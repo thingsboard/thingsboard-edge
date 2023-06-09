@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,12 +29,10 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import * as tinycolor_ from 'tinycolor2';
+import tinycolor from 'tinycolor2';
 import { GroupInfo } from '@shared/models/widget.models';
 import { ColorPalette } from '@shared/models/material.models';
 import { MouseEvent } from 'react';
-
-const tinycolor = tinycolor_;
 
 export interface SchemaValidationResult {
   valid: boolean;

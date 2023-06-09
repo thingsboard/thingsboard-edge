@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
 ///
 
 import { Component, ElementRef, EventEmitter, forwardRef, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
@@ -63,7 +63,7 @@ import { getEntityDetailsPageURL } from '@core/utils';
 })
 export class TenantProfileAutocompleteComponent implements ControlValueAccessor, OnInit {
 
-  selectTenantProfileFormGroup: FormGroup;
+  selectTenantProfileFormGroup: UntypedFormGroup;
 
   modelValue: TenantProfileId | null;
 
@@ -103,7 +103,7 @@ export class TenantProfileAutocompleteComponent implements ControlValueAccessor,
               public translate: TranslateService,
               public truncate: TruncatePipe,
               private tenantProfileService: TenantProfileService,
-              private fb: FormBuilder,
+              private fb: UntypedFormBuilder,
               private dialog: MatDialog) {
     this.selectTenantProfileFormGroup = this.fb.group({
       tenantProfile: [null]

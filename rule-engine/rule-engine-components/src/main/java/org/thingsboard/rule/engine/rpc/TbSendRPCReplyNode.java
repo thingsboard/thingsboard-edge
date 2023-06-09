@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -113,7 +113,7 @@ public class TbSendRPCReplyNode implements TbNode {
             return;
         }
 
-        ObjectNode body = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode body = JacksonUtil.newObjectNode();
         body.put("serviceId", serviceIdStr);
         body.put("sessionId", sessionIdStr);
         body.put("requestId", requestIdStr);

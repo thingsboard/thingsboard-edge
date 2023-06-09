@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -106,7 +106,10 @@ import { TbPopoverComponent } from '@shared/components/popover.component';
 import { EntityId } from '@shared/models/id/entity-id';
 import { ReportService } from '@core/http/report.service';
 import { AlarmQuery, AlarmSearchStatus, AlarmStatus} from '@app/shared/models/alarm.models';
-import { TelemetrySubscriber } from '@app/shared/public-api';
+import { MillisecondsToTimeStringPipe, TelemetrySubscriber } from '@app/shared/public-api';
+import { UserId } from '@shared/models/id/user-id';
+import { UserSettingsService } from '@core/http/user-settings.service';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 export interface IWidgetAction {
   name: string;
@@ -198,14 +201,17 @@ export class WidgetContext {
   dialogs: DialogService;
   customDialog: CustomDialogService;
   resourceService: ResourceService;
+  userSettingsService: UserSettingsService;
   telemetryWsService: TelemetryWebsocketService;
   telemetrySubscribers?: TelemetrySubscriber[];
   date: DatePipe;
+  milliSecondsToTimeString: MillisecondsToTimeStringPipe;
   translate: TranslateService;
   http: HttpClient;
   sanitizer: DomSanitizer;
   router: Router;
   reportService: ReportService;
+  wl: WhiteLabelingService;
 
   private changeDetectorValue: ChangeDetectorRef;
   private containerChangeDetectorValue: ChangeDetectorRef;
@@ -437,8 +443,8 @@ export class WidgetContext {
     return new TimePageLink(pageSize, page, textSearch, sortOrder, startTime, endTime);
   }
 
-  alarmQuery(entityId: EntityId, pageLink: TimePageLink, searchStatus: AlarmSearchStatus, status: AlarmStatus, fetchOriginator: boolean) {
-    return new AlarmQuery(entityId, pageLink, searchStatus, status, fetchOriginator);
+  alarmQuery(entityId: EntityId, pageLink: TimePageLink, searchStatus: AlarmSearchStatus, status: AlarmStatus, fetchOriginator: boolean, assigneeId: UserId) {
+    return new AlarmQuery(entityId, pageLink, searchStatus, status, fetchOriginator, assigneeId);
   }
 }
 
@@ -466,6 +472,7 @@ export interface WidgetInfo extends WidgetTypeDescriptor, WidgetControllerDescri
 }
 
 export interface WidgetConfigComponentData {
+  widgetName: string;
   config: WidgetConfig;
   layout: WidgetLayout;
   widgetType: widgetType;
@@ -478,6 +485,7 @@ export interface WidgetConfigComponentData {
   settingsDirective: string;
   dataKeySettingsDirective: string;
   latestDataKeySettingsDirective: string;
+  basicModeDirective: string;
 }
 
 export const MissingWidgetType: WidgetInfo = {
@@ -570,6 +578,8 @@ export function toWidgetInfo(widgetTypeEntity: WidgetType): WidgetInfo {
     settingsDirective: widgetTypeEntity.descriptor.settingsDirective,
     dataKeySettingsDirective: widgetTypeEntity.descriptor.dataKeySettingsDirective,
     latestDataKeySettingsDirective: widgetTypeEntity.descriptor.latestDataKeySettingsDirective,
+    hasBasicMode: widgetTypeEntity.descriptor.hasBasicMode,
+    basicModeDirective: widgetTypeEntity.descriptor.basicModeDirective,
     defaultConfig: widgetTypeEntity.descriptor.defaultConfig
   };
 }
@@ -600,6 +610,8 @@ export function toWidgetType(widgetInfo: WidgetInfo, id: WidgetTypeId, tenantId:
     settingsDirective: widgetInfo.settingsDirective,
     dataKeySettingsDirective: widgetInfo.dataKeySettingsDirective,
     latestDataKeySettingsDirective: widgetInfo.latestDataKeySettingsDirective,
+    hasBasicMode: widgetInfo.hasBasicMode,
+    basicModeDirective: widgetInfo.basicModeDirective,
     defaultConfig: widgetInfo.defaultConfig
   };
   return {

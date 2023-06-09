@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -60,7 +60,7 @@ import org.junit.Assert;
 import org.mockito.Mockito;
 import org.thingsboard.server.transport.lwm2m.server.client.LwM2mClient;
 import org.thingsboard.server.transport.lwm2m.server.client.LwM2mClientContext;
-import org.thingsboard.server.transport.lwm2m.server.uplink.DefaultLwM2mUplinkMsgHandler;
+import org.thingsboard.server.transport.lwm2m.server.uplink.LwM2mUplinkMsgHandler;
 import org.thingsboard.server.transport.lwm2m.utils.LwM2mValueConverterImpl;
 
 import java.io.IOException;
@@ -124,12 +124,12 @@ public class LwM2MTestClient {
     private LwM2MLocationParams locationParams;
     private LwM2mTemperatureSensor lwM2MTemperatureSensor;
     private Set<LwM2MClientState> clientStates;
-    private DefaultLwM2mUplinkMsgHandler defaultLwM2mUplinkMsgHandlerTest;
+    private LwM2mUplinkMsgHandler defaultLwM2mUplinkMsgHandlerTest;
     private LwM2mClientContext clientContext;
 
     public void init(Security security, Configuration coapConfig, int port, boolean isRpc, boolean isBootstrap,
                      int shortServerId, int shortServerIdBs, Security securityBs,
-                     DefaultLwM2mUplinkMsgHandler defaultLwM2mUplinkMsgHandler,
+                     LwM2mUplinkMsgHandler defaultLwM2mUplinkMsgHandler,
                      LwM2mClientContext clientContext) throws InvalidDDFFileException, IOException {
         Assert.assertNull("client already initialized", leshanClient);
         this.defaultLwM2mUplinkMsgHandlerTest = defaultLwM2mUplinkMsgHandler;

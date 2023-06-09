@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -57,7 +57,7 @@ public interface BlobEntityInfoRepository extends JpaRepository<BlobEntityInfoEn
             "WHERE b.tenantId = :tenantId " +
             "AND (:startTime IS NULL OR b.createdTime >= :startTime) " +
             "AND (:endTime IS NULL OR b.createdTime <= :endTime) " +
-            "AND (LOWER(b.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%')))"
+            "AND (LOWER(b.name) LIKE LOWER(CONCAT('%', :textSearch, '%')))"
     )
     Page<BlobEntityWithCustomerInfoEntity> findByTenantId(
             @Param("tenantId") UUID tenantId,
@@ -73,7 +73,7 @@ public interface BlobEntityInfoRepository extends JpaRepository<BlobEntityInfoEn
             "AND b.type = :type " +
             "AND (:startTime IS NULL OR b.createdTime >= :startTime) " +
             "AND (:endTime IS NULL OR b.createdTime <= :endTime) " +
-            "AND (LOWER(b.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%')))"
+            "AND (LOWER(b.name) LIKE LOWER(CONCAT('%', :textSearch, '%')))"
     )
     Page<BlobEntityWithCustomerInfoEntity> findByTenantIdAndType(
             @Param("tenantId") UUID tenantId,
@@ -90,7 +90,7 @@ public interface BlobEntityInfoRepository extends JpaRepository<BlobEntityInfoEn
             "AND b.customerId = :customerId " +
             "AND (:startTime IS NULL OR b.createdTime >= :startTime) " +
             "AND (:endTime IS NULL OR b.createdTime <= :endTime) " +
-            "AND (LOWER(b.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%')))"
+            "AND (LOWER(b.name) LIKE LOWER(CONCAT('%', :textSearch, '%')))"
     )
     Page<BlobEntityWithCustomerInfoEntity> findByTenantIdAndCustomerId(
             @Param("tenantId") UUID tenantId,
@@ -108,7 +108,7 @@ public interface BlobEntityInfoRepository extends JpaRepository<BlobEntityInfoEn
             "AND b.type = :type " +
             "AND (:startTime IS NULL OR b.createdTime >= :startTime) " +
             "AND (:endTime IS NULL OR b.createdTime <= :endTime) " +
-            "AND (LOWER(b.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%')))"
+            "AND (LOWER(b.name) LIKE LOWER(CONCAT('%', :textSearch, '%')))"
     )
     Page<BlobEntityWithCustomerInfoEntity> findByTenantIdAndCustomerIdAndType(
             @Param("tenantId") UUID tenantId,

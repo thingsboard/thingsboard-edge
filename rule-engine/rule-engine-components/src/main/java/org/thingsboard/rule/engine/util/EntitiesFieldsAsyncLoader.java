@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -52,7 +52,7 @@ import java.util.function.Function;
 public class EntitiesFieldsAsyncLoader {
 
     public static ListenableFuture<EntityFieldsData> findAsync(TbContext ctx, EntityId original) {
-        switch (original.getEntityType()) {
+        switch (original.getEntityType()) { // TODO: use EntityServiceRegistry
             case TENANT:
                 return getAsync(ctx.getTenantService().findTenantByIdAsync(ctx.getTenantId(), (TenantId) original),
                         EntityFieldsData::new);
@@ -66,7 +66,7 @@ public class EntitiesFieldsAsyncLoader {
                 return getAsync(ctx.getAssetService().findAssetByIdAsync(ctx.getTenantId(), (AssetId) original),
                         EntityFieldsData::new);
             case DEVICE:
-                return getAsync(ctx.getDeviceService().findDeviceByIdAsync(ctx.getTenantId(), (DeviceId) original),
+                return getAsync(Futures.immediateFuture(ctx.getDeviceService().findDeviceById(ctx.getTenantId(), (DeviceId) original)),
                         EntityFieldsData::new);
             case ALARM:
                 return getAsync(ctx.getAlarmService().findAlarmByIdAsync(ctx.getTenantId(), (AlarmId) original),

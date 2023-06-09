@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -29,31 +29,27 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host ::ng-deep {
-  button.tb-card-button {
+  .mat-mdc-button-base.tb-card-button {
     width: 100%;
     height: 100%;
     max-width: 240px;
-    .mat-button-wrapper {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      mat-icon {
-        margin: auto;
-      }
-      span {
-        height: 18px;
-        min-height: 18px;
-        max-height: 18px;
-        margin: 0 0 20px 0;
-        font-size: 18px;
-        font-weight: 400;
-        line-height: 18px;
-        white-space: normal;
-      }
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    mat-icon {
+      margin: auto;
     }
-    &.mat-raised-button.mat-primary {
+    span.mdc-button__label {
+      height: 18px;
+      min-height: 18px;
+      max-height: 18px;
+      margin: 0 0 20px 0;
+      font-size: 18px;
+      font-weight: 400;
+      line-height: 18px;
+      white-space: normal;
+    }
+    &.mat-mdc-raised-button.mat-primary {
       .mat-ripple-element {
         opacity: 0.3;
         background-color: rgba(255, 255, 255, 0.3);

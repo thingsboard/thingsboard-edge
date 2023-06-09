@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,10 +39,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.dao.entity.EntityService;
-import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.util.AbstractBufferedRateExecutor;
 import org.thingsboard.server.dao.util.AsyncTaskContext;
 import org.thingsboard.server.dao.util.NoSqlAnyDao;
+import org.thingsboard.server.dao.util.limits.RateLimitService;
 
 import javax.annotation.PreDestroy;
 
@@ -67,9 +67,9 @@ public class CassandraBufferedRateWriteExecutor extends AbstractBufferedRateExec
             @Value("${cassandra.query.print_queries_freq:0}") int printQueriesFreq,
             @Autowired StatsFactory statsFactory,
             @Autowired EntityService entityService,
-            @Autowired TbTenantProfileCache tenantProfileCache) {
+            @Autowired RateLimitService rateLimitService) {
         super(queueLimit, concurrencyLimit, maxWaitTime, dispatcherThreads, callbackThreads, pollMs, printQueriesFreq, statsFactory,
-                entityService, tenantProfileCache, printTenantNames);
+                entityService, rateLimitService, printTenantNames);
     }
 
     @Scheduled(fixedDelayString = "${cassandra.query.rate_limit_print_interval_ms}")

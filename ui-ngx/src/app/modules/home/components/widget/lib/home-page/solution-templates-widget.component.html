@@ -1,0 +1,88 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="tb-card-content" fxLayout="column" fxLayoutGap="8px">
+  <ng-container *ngIf="hasSolutionTemplatesAccess; else noDataAvailable">
+    <div class="tb-card-header">
+      <a class="tb-title-link" routerLink="/solutionTemplates">{{ 'widgets.solution-templates.title' | translate }}</a>
+      <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
+        <button mat-icon-button class="tb-mat-24" [disabled]="selectedIndex === 0" (click)="selectedIndex = selectedIndex - 1"><mat-icon>keyboard_arrow_left</mat-icon></button>
+        <button mat-icon-button class="tb-mat-24" [disabled]="selectedIndex >= solutionTemplates?.length - items" (click)="selectedIndex = selectedIndex + 1"><mat-icon>keyboard_arrow_right</mat-icon></button>
+      </div>
+    </div>
+    <div fxFlex class="tb-solution-templates">
+      <ngx-hm-carousel
+        #carousel
+        align="left"
+        [drag-many]="true"
+        [show-num]="items"
+        [data]="solutionTemplates"
+        [(ngModel)]="selectedIndex"
+        class="carousel c-accent">
+        <section ngx-hm-carousel-container class="content">
+          <article ngx-hm-carousel-item class="item cursor-pointer"
+                   *ngFor="let solutionTemplate of solutionTemplates">
+            <a draggable="false" class="tb-solution-template-item"
+               [routerLink]="'/solutionTemplates/' + solutionTemplate.id"
+               tb-popover tbPopoverTrigger="hover" tbPopoverPlacement="bottom" tbPopoverShowCloseButton="false"
+               tbPopoverMouseEnterDelay="0.5"
+               [tbPopoverContent]="solutionTemplateHover" [tbPopoverContext]="{$implicit: solutionTemplate}">
+              <div class="tb-solution-template-img-container">
+                <img class="tb-solution-template-img" [src]="solutionTemplate.previewImageUrl"/>
+                <div *ngIf="solutionTemplate.installed" class="tb-solution-template-installed">
+                </div>
+              </div>
+              <div class="tb-solution-template-title">
+                {{ solutionTemplate.title }}
+              </div>
+              <div *ngIf="solutionTemplate.level !== solutionTemplateLevel.MAKER" class="tb-solution-template-plan">
+                {{ planText(solutionTemplate.level) }}
+              </div>
+            </a>
+          </article>
+        </section>
+      </ngx-hm-carousel>
+    </div>
+  </ng-container>
+  <ng-template #noDataAvailable>
+    <div class="tb-card-header">
+      <div class="tb-title">{{ 'widgets.solution-templates.title' | translate }}</div>
+    </div>
+    <div class="tb-no-data-available">
+      <div class="tb-no-data-bg"></div>
+      <div class="tb-no-data-text" translate>widgets.home.no-data-available</div>
+    </div>
+  </ng-template>
+  <ng-template #solutionTemplateHover let-solutionTemplate>
+    <tb-solution-template-video [solutionTemplate]="solutionTemplate"></tb-solution-template-video>
+  </ng-template>
+</div>

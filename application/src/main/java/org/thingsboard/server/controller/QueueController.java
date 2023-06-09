@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -98,7 +98,7 @@ public class QueueController extends BaseController {
                                                         @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter("serviceType", serviceType);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-        ServiceType type = ServiceType.valueOf(serviceType);
+        ServiceType type = ServiceType.of(serviceType);
         switch (type) {
             case TB_RULE_ENGINE:
                 return queueService.findQueuesByTenantId(getTenantId(), pageLink);
@@ -151,7 +151,7 @@ public class QueueController extends BaseController {
 
         checkEntity(queue.getId(), queue, Resource.QUEUE, null);
 
-        ServiceType type = ServiceType.valueOf(serviceType);
+        ServiceType type = ServiceType.of(serviceType);
         switch (type) {
             case TB_RULE_ENGINE:
                 queue.setTenantId(getTenantId());

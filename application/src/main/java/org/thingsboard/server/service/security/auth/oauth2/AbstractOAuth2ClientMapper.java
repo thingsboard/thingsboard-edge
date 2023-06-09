@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,6 @@
 package org.thingsboard.server.service.security.auth.oauth2;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
@@ -45,6 +44,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
@@ -89,8 +89,6 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 public abstract class AbstractOAuth2ClientMapper {
     private static final int DASHBOARDS_REQUEST_LIMIT = 10;
-
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
     private UserService userService;
@@ -171,7 +169,7 @@ public abstract class AbstractOAuth2ClientMapper {
                     user.setFirstName(oauth2User.getFirstName());
                     user.setLastName(oauth2User.getLastName());
 
-                    ObjectNode additionalInfo = mapper.createObjectNode();
+                    ObjectNode additionalInfo = JacksonUtil.newObjectNode();
 
                     if (registration.getAdditionalInfo() != null &&
                             registration.getAdditionalInfo().has("providerName")) {
@@ -180,7 +178,7 @@ public abstract class AbstractOAuth2ClientMapper {
 
                     user.setAdditionalInfo(additionalInfo);
 
-                    user = tbUserService.save(tenantId, customerId, null, user, false, null, null, null, null);
+                    user = tbUserService.save(tenantId, customerId, null, user, false, null, (EntityGroup) null, null);
                     if (config.isActivateUser()) {
                         UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
                         userService.activateUserCredentials(user.getTenantId(), userCredentials.getActivateToken(), passwordEncoder.encode(""));
@@ -219,7 +217,7 @@ public abstract class AbstractOAuth2ClientMapper {
                     user = userService.findUserById(user.getTenantId(), user.getId());
                     JsonNode additionalInfo = user.getAdditionalInfo();
                     if (additionalInfo == null || additionalInfo instanceof NullNode) {
-                        additionalInfo = mapper.createObjectNode();
+                        additionalInfo = JacksonUtil.newObjectNode();
                     }
                     ((ObjectNode) additionalInfo).put("defaultDashboardFullscreen", oauth2User.isAlwaysFullScreen());
                     ((ObjectNode) additionalInfo).put("defaultDashboardId", dashboardIdOpt.get().getId().toString());
@@ -271,7 +269,7 @@ public abstract class AbstractOAuth2ClientMapper {
             throw new RuntimeException("Can't add user to user groups", e);
         }
 
-        ListenableFuture<List<EntityGroupId>> future = entityGroupService.findEntityGroupsForEntity(user.getTenantId(), user.getId());
+        ListenableFuture<List<EntityGroupId>> future = entityGroupService.findEntityGroupsForEntityAsync(user.getTenantId(), user.getId());
 
         return Futures.transformAsync(future, currentEntityGroups -> {
             if (currentEntityGroups != null && !currentEntityGroups.isEmpty()) {

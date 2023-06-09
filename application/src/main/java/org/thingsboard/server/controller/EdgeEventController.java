@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -96,14 +96,10 @@ public class EdgeEventController extends BaseController {
             @ApiParam(value = "Timestamp. Edge events with creation time after it won't be queried")
             @RequestParam(required = false) Long endTime) throws ThingsboardException {
         checkParameter(EDGE_ID, strEdgeId);
-        try {
-            TenantId tenantId = getCurrentUser().getTenantId();
-            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-            checkEdgeId(edgeId, Operation.READ);
-            TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
-            return checkNotNull(edgeEventService.findEdgeEvents(tenantId, edgeId, pageLink, false));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        TenantId tenantId = getCurrentUser().getTenantId();
+        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+        checkEdgeId(edgeId, Operation.READ);
+        TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
+        return checkNotNull(edgeEventService.findEdgeEvents(tenantId, edgeId, pageLink, false));
     }
 }

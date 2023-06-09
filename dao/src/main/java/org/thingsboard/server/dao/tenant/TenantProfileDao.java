@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,6 +37,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface TenantProfileDao extends Dao<TenantProfile> {
@@ -52,5 +53,7 @@ public interface TenantProfileDao extends Dao<TenantProfile> {
     TenantProfile findDefaultTenantProfile(TenantId tenantId);
 
     EntityInfo findDefaultTenantProfileInfo(TenantId tenantId);
+
+    List<TenantProfile> findTenantProfilesByIds(TenantId tenantId, UUID[] ids);
 
 }

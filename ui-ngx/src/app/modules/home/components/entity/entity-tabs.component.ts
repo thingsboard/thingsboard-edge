@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -45,11 +45,11 @@ import { AuditLogMode } from '@shared/models/audit-log.models';
 import { DebugEventType, EventType } from '@shared/models/event.models';
 import { AttributeScope, LatestTelemetry } from '@shared/models/telemetry/telemetry.models';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { PageLink } from '@shared/models/page/page-link';
 
 @Directive()
-// tslint:disable-next-line:directive-class-suffix
+// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export abstract class EntityTabsComponent<T extends BaseData<HasId>,
   P extends PageLink = PageLink,
   L extends BaseData<HasId> = T,
@@ -109,7 +109,7 @@ export abstract class EntityTabsComponent<T extends BaseData<HasId>,
   }
 
   @Input()
-  detailsForm: FormGroup;
+  detailsForm: UntypedFormGroup;
 
   private entityTabsSubject = new BehaviorSubject<Array<MatTab>>(null);
 

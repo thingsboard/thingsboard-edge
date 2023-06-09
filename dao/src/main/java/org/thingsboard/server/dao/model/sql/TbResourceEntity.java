@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,8 +36,8 @@ import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
-import org.thingsboard.server.dao.model.SearchTextEntity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -46,6 +46,7 @@ import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_DATA_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_FILE_NAME_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_ETAG_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_KEY_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_TENANT_ID_COLUMN;
@@ -57,7 +58,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPER
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = RESOURCE_TABLE_NAME)
-public class TbResourceEntity extends BaseSqlEntity<TbResource> implements SearchTextEntity<TbResource> {
+public class TbResourceEntity extends BaseSqlEntity<TbResource> implements BaseEntity<TbResource> {
 
     @Column(name = RESOURCE_TENANT_ID_COLUMN, columnDefinition = "uuid")
     private UUID tenantId;
@@ -80,6 +81,9 @@ public class TbResourceEntity extends BaseSqlEntity<TbResource> implements Searc
     @Column(name = RESOURCE_DATA_COLUMN)
     private String data;
 
+    @Column(name = RESOURCE_ETAG_COLUMN)
+    private String etag;
+
     public TbResourceEntity() {
     }
 
@@ -97,6 +101,7 @@ public class TbResourceEntity extends BaseSqlEntity<TbResource> implements Searc
         this.searchText = resource.getSearchText();
         this.fileName = resource.getFileName();
         this.data = resource.getData();
+        this.etag = resource.getEtag();
     }
 
     @Override
@@ -110,11 +115,8 @@ public class TbResourceEntity extends BaseSqlEntity<TbResource> implements Searc
         resource.setSearchText(searchText);
         resource.setFileName(fileName);
         resource.setData(data);
+        resource.setEtag(etag);
         return resource;
     }
 
-    @Override
-    public String getSearchTextSource() {
-        return this.searchText;
-    }
 }

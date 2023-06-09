@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,6 +35,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
+import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 
@@ -49,11 +50,23 @@ public class SchedulerEventMsgConstructor {
         builder.setIdLSB(schedulerEvent.getId().getId().getLeastSignificantBits());
         builder.setName(schedulerEvent.getName());
         builder.setType(schedulerEvent.getType());
-        builder.setSchedule(JacksonUtil.toString(schedulerEvent.getSchedule()));
-        builder.setConfiguration(JacksonUtil.toString(schedulerEvent.getConfiguration()));
+        if (schedulerEvent.getSchedule() != null) {
+            builder.setSchedule(JacksonUtil.toString(schedulerEvent.getSchedule()));
+        }
+        if (schedulerEvent.getConfiguration() != null) {
+            builder.setConfiguration(JacksonUtil.toString(schedulerEvent.getConfiguration()));
+        }
         if (schedulerEvent.getCustomerId() != null) {
             builder.setCustomerIdMSB(schedulerEvent.getCustomerId().getId().getMostSignificantBits())
                     .setCustomerIdLSB(schedulerEvent.getCustomerId().getId().getLeastSignificantBits());
+        }
+        if (schedulerEvent.getAdditionalInfo() != null) {
+            builder.setAdditionalInfo(JacksonUtil.toString(schedulerEvent.getAdditionalInfo()));
+        }
+        if (schedulerEvent.getOriginatorId() != null && !schedulerEvent.getOriginatorId().getId().equals(ModelConstants.NULL_UUID)) {
+            builder.setOriginatorType(schedulerEvent.getOriginatorId().getEntityType().name())
+                    .setOriginatorIdMSB(schedulerEvent.getOriginatorId().getId().getMostSignificantBits())
+                    .setOriginatorIdLSB(schedulerEvent.getOriginatorId().getId().getLeastSignificantBits());
         }
         return builder.build();
     }

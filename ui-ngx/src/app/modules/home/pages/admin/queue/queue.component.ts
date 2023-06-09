@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,7 @@
 
 import { ChangeDetectorRef, Component, Inject } from '@angular/core';
 import { EntityType } from '@shared/models/entity-type.models';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { EntityComponent } from '@home/components/entity/entity.component';
 import { QueueInfo } from '@shared/models/queue.models';
 import { Store } from '@ngrx/store';
@@ -46,7 +46,7 @@ import { ActionNotificationShow } from '@core/notification/notification.actions'
   styleUrls: []
 })
 export class QueueComponent extends EntityComponent<QueueInfo> {
-  entityForm: FormGroup;
+  entityForm: UntypedFormGroup;
 
   entityType = EntityType;
   submitStrategies: string[] = [];
@@ -57,7 +57,7 @@ export class QueueComponent extends EntityComponent<QueueInfo> {
               @Inject('entity') protected entityValue: QueueInfo,
               @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<QueueInfo>,
               protected cd: ChangeDetectorRef,
-              public fb: FormBuilder) {
+              public fb: UntypedFormBuilder) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
 
@@ -65,7 +65,7 @@ export class QueueComponent extends EntityComponent<QueueInfo> {
     super.ngOnInit();
   }
 
-  buildForm(entity: QueueInfo): FormGroup {
+  buildForm(entity: QueueInfo): UntypedFormGroup {
     return this.fb.group({
       queue: [entity]
     });

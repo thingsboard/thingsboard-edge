@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,24 +29,25 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   NG_VALIDATORS,
-  NG_VALUE_ACCESSOR, ValidationErrors,
+  NG_VALUE_ACCESSOR,
   Validator,
   Validators
 } from '@angular/forms';
-import { AlarmRule, alarmRuleValidator } from '@shared/models/device.models';
+import { DeviceProfileAlarmRule, alarmRuleValidator } from '@shared/models/device.models';
 import { MatDialog } from '@angular/material/dialog';
-import { Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
 import { AlarmSeverity, alarmSeverityTranslations } from '@shared/models/alarm.models';
 import { EntityId } from '@shared/models/id/entity-id';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-create-alarm-rules',
@@ -65,7 +66,7 @@ import { EntityId } from '@shared/models/id/entity-id';
     }
   ]
 })
-export class CreateAlarmRulesComponent implements ControlValueAccessor, OnInit, Validator {
+export class CreateAlarmRulesComponent implements ControlValueAccessor, OnInit, Validator, OnDestroy {
 
   alarmSeverities = Object.keys(AlarmSeverity);
   alarmSeverityEnum = AlarmSeverity;
@@ -78,16 +79,15 @@ export class CreateAlarmRulesComponent implements ControlValueAccessor, OnInit, 
   @Input()
   deviceProfileId: EntityId;
 
-  createAlarmRulesFormGroup: FormGroup;
+  createAlarmRulesFormGroup: UntypedFormGroup;
 
   private usedSeverities: AlarmSeverity[] = [];
 
-  private valueChangeSubscription: Subscription = null;
-
+  private destroy$ = new Subject<void>();
   private propagateChange = (v: any) => { };
 
   constructor(private dialog: MatDialog,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
   }
 
   registerOnChange(fn: any): void {
@@ -101,10 +101,18 @@ export class CreateAlarmRulesComponent implements ControlValueAccessor, OnInit, 
     this.createAlarmRulesFormGroup = this.fb.group({
       createAlarmRules: this.fb.array([])
     });
+    this.createAlarmRulesFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.updateModel());
   }
 
-  createAlarmRulesFormArray(): FormArray {
-    return this.createAlarmRulesFormGroup.get('createAlarmRules') as FormArray;
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  createAlarmRulesFormArray(): UntypedFormArray {
+    return this.createAlarmRulesFormGroup.get('createAlarmRules') as UntypedFormArray;
   }
 
   setDisabledState(isDisabled: boolean): void {
@@ -116,10 +124,7 @@ export class CreateAlarmRulesComponent implements ControlValueAccessor, OnInit, 
     }
   }
 
-  writeValue(createAlarmRules: {[severity: string]: AlarmRule}): void {
-    if (this.valueChangeSubscription) {
-      this.valueChangeSubscription.unsubscribe();
-    }
+  writeValue(createAlarmRules: {[severity: string]: DeviceProfileAlarmRule}): void {
     const createAlarmRulesControls: Array<AbstractControl> = [];
     if (createAlarmRules) {
       Object.keys(createAlarmRules).forEach((severity) => {
@@ -133,15 +138,12 @@ export class CreateAlarmRulesComponent implements ControlValueAccessor, OnInit, 
         }));
       });
     }
-    this.createAlarmRulesFormGroup.setControl('createAlarmRules', this.fb.array(createAlarmRulesControls));
+    this.createAlarmRulesFormGroup.setControl('createAlarmRules', this.fb.array(createAlarmRulesControls), {emitEvent: false});
     if (this.disabled) {
       this.createAlarmRulesFormGroup.disable({emitEvent: false});
     } else {
       this.createAlarmRulesFormGroup.enable({emitEvent: false});
     }
-    this.valueChangeSubscription = this.createAlarmRulesFormGroup.valueChanges.subscribe(() => {
-      this.updateModel();
-    });
     this.updateUsedSeverities();
     if (!this.disabled && !this.createAlarmRulesFormGroup.valid) {
       this.updateModel();
@@ -149,16 +151,16 @@ export class CreateAlarmRulesComponent implements ControlValueAccessor, OnInit, 
   }
 
   public removeCreateAlarmRule(index: number) {
-    (this.createAlarmRulesFormGroup.get('createAlarmRules') as FormArray).removeAt(index);
+    (this.createAlarmRulesFormGroup.get('createAlarmRules') as UntypedFormArray).removeAt(index);
   }
 
   public addCreateAlarmRule() {
-    const createAlarmRule: AlarmRule = {
+    const createAlarmRule: DeviceProfileAlarmRule = {
       condition: {
         condition: []
       }
     };
-    const createAlarmRulesArray = this.createAlarmRulesFormGroup.get('createAlarmRules') as FormArray;
+    const createAlarmRulesArray = this.createAlarmRulesFormGroup.get('createAlarmRules') as UntypedFormArray;
     createAlarmRulesArray.push(this.fb.group({
       severity: [this.getFirstUnusedSeverity(), Validators.required],
       alarmRule: [createAlarmRule, alarmRuleValidator]
@@ -179,7 +181,7 @@ export class CreateAlarmRulesComponent implements ControlValueAccessor, OnInit, 
     return null;
   }
 
-  public validate(c: FormControl) {
+  public validate(c: UntypedFormControl) {
     return (this.createAlarmRulesFormGroup.valid) ? null : {
       createAlarmRules: {
         valid: false,
@@ -194,15 +196,15 @@ export class CreateAlarmRulesComponent implements ControlValueAccessor, OnInit, 
 
   private updateUsedSeverities() {
     this.usedSeverities = [];
-    const value: {severity: string, alarmRule: AlarmRule}[] = this.createAlarmRulesFormGroup.get('createAlarmRules').value;
+    const value: {severity: string, alarmRule: DeviceProfileAlarmRule}[] = this.createAlarmRulesFormGroup.get('createAlarmRules').value;
     value.forEach((rule, index) => {
       this.usedSeverities[index] = AlarmSeverity[rule.severity];
     });
   }
 
   private updateModel() {
-    const value: {severity: string, alarmRule: AlarmRule}[] = this.createAlarmRulesFormGroup.get('createAlarmRules').value;
-    const createAlarmRules: {[severity: string]: AlarmRule} = {};
+    const value: {severity: string, alarmRule: DeviceProfileAlarmRule}[] = this.createAlarmRulesFormGroup.get('createAlarmRules').value;
+    const createAlarmRules: {[severity: string]: DeviceProfileAlarmRule} = {};
     value.forEach(v => {
       createAlarmRules[v.severity] = v.alarmRule;
     });

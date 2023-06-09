@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -38,7 +38,7 @@ export * from './dynamic-component-factory.service';
 export * from './item-buffer.service';
 export * from './menu.models';
 export * from './menu.service';
-export * from './notification.service';
+export * from './toast-notification.service';
 export * from './raf.service';
 export * from './resources.service';
 export * from './time.service';

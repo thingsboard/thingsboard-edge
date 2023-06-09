@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -51,8 +51,17 @@ export const exportableEntityTypes: Array<EntityType> = [
   EntityType.WIDGETS_BUNDLE,
   EntityType.CONVERTER,
   EntityType.INTEGRATION,
-  EntityType.ROLE
+  EntityType.ROLE,
+  EntityType.NOTIFICATION_TEMPLATE,
+  EntityType.NOTIFICATION_TARGET,
+  EntityType.NOTIFICATION_RULE
 ];
+
+export const entityTypesWithoutRelatedData: Set<EntityType> = new Set([
+  EntityType.NOTIFICATION_TEMPLATE,
+  EntityType.NOTIFICATION_TARGET,
+  EntityType.NOTIFICATION_RULE
+]);
 
 export interface VersionCreateConfig {
   saveRelations: boolean;

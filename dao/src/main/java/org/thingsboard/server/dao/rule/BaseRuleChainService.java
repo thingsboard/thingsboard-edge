@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -47,11 +47,13 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.plugin.ComponentClusteringMode;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
@@ -64,12 +66,14 @@ import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleChainUpdateResult;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.rule.RuleNodeUpdateResult;
+import org.thingsboard.server.common.data.util.ReflectionUtils;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
-import org.thingsboard.server.dao.service.ConstraintValidator;
+import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
+import org.thingsboard.server.dao.service.validator.RuleChainDataValidator;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
@@ -77,12 +81,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.DataConstants.TENANT;
@@ -93,7 +95,7 @@ import static org.thingsboard.server.dao.service.Validator.validateString;
 /**
  * Created by igor on 3/12/18.
  */
-@Service
+@Service("RuleChainDaoService")
 @Slf4j
 public class BaseRuleChainService extends AbstractEntityService implements RuleChainService {
 
@@ -108,6 +110,9 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
     private RuleNodeDao ruleNodeDao;
 
     @Autowired
+    private EntityCountService entityCountService;
+
+    @Autowired
     private DataValidator<RuleChain> ruleChainValidator;
 
     @Override
@@ -115,7 +120,11 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
     public RuleChain saveRuleChain(RuleChain ruleChain) {
         ruleChainValidator.validate(ruleChain, RuleChain::getTenantId);
         try {
-            return ruleChainDao.save(ruleChain.getTenantId(), ruleChain);
+            RuleChain savedRuleChain = ruleChainDao.save(ruleChain.getTenantId(), ruleChain);
+            if (ruleChain.getId() == null) {
+                entityCountService.publishCountEntityEvictEvent(ruleChain.getTenantId(), EntityType.RULE_CHAIN);
+            }
+            return savedRuleChain;
         } catch (Exception e) {
             checkConstraintViolation(e, "rule_chain_external_id_unq_key", "Rule Chain with such external id already exists!");
             throw e;
@@ -153,12 +162,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
         if (ruleChain == null) {
             return RuleChainUpdateResult.failed();
         }
-        ConstraintValidator.validateFields(ruleChainMetaData);
-        List<RuleNodeUpdateResult> updatedRuleNodes = new ArrayList<>();
-
-        if (CollectionUtils.isNotEmpty(ruleChainMetaData.getConnections())) {
-            validateCircles(ruleChainMetaData.getConnections());
-        }
+        RuleChainDataValidator.validateMetaData(ruleChainMetaData);
 
         List<RuleNode> nodes = ruleChainMetaData.getNodes();
         List<RuleNode> toAddOrUpdate = new ArrayList<>();
@@ -168,6 +172,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
         Map<RuleNodeId, Integer> ruleNodeIndexMap = new HashMap<>();
         if (nodes != null) {
             for (RuleNode node : nodes) {
+                setSingletonMode(node);
                 if (node.getId() != null) {
                     ruleNodeIndexMap.put(node.getId(), nodes.indexOf(node));
                 } else {
@@ -176,6 +181,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
             }
         }
 
+        List<RuleNodeUpdateResult> updatedRuleNodes = new ArrayList<>();
         List<RuleNode> existingRuleNodes = getRuleChainNodes(tenantId, ruleChainMetaData.getRuleChainId());
         for (RuleNode existingNode : existingRuleNodes) {
             deleteEntityRelations(tenantId, existingNode.getId());
@@ -263,31 +269,6 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
         }
 
         return RuleChainUpdateResult.successful(updatedRuleNodes);
-    }
-
-    private void validateCircles(List<NodeConnectionInfo> connectionInfos) {
-        Map<Integer, Set<Integer>> connectionsMap = new HashMap<>();
-        for (NodeConnectionInfo nodeConnection : connectionInfos) {
-            if (nodeConnection.getFromIndex() == nodeConnection.getToIndex()) {
-                throw new DataValidationException("Can't create the relation to yourself.");
-            }
-            connectionsMap
-                    .computeIfAbsent(nodeConnection.getFromIndex(), from -> new HashSet<>())
-                    .add(nodeConnection.getToIndex());
-        }
-        connectionsMap.keySet().forEach(key -> validateCircles(key, connectionsMap.get(key), connectionsMap));
-    }
-
-    private void validateCircles(int from, Set<Integer> toList, Map<Integer, Set<Integer>> connectionsMap) {
-        if (toList == null) {
-            return;
-        }
-        for (Integer to : toList) {
-            if (from == to) {
-                throw new DataValidationException("Can't create circling relations in rule chain.");
-            }
-            validateCircles(from, connectionsMap.get(to), connectionsMap);
-        }
     }
 
     @Override
@@ -742,6 +723,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
 
     private void checkRuleNodesAndDelete(TenantId tenantId, RuleChainId ruleChainId) {
         try {
+            entityCountService.publishCountEntityEvictEvent(tenantId, EntityType.RULE_CHAIN);
             ruleChainDao.removeById(tenantId, ruleChainId.getId());
         } catch (Exception t) {
             ConstraintViolationException e = DaoUtil.extractConstraintViolationException(t).orElse(null);
@@ -774,6 +756,31 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
         deleteEntityRelations(tenantId, ruleChainId);
     }
 
+
+    @Override
+    public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
+        HasId<?> hasId = EntityType.RULE_NODE.equals(entityId.getEntityType()) ?
+                findRuleNodeById(tenantId, new RuleNodeId(entityId.getId())) :
+                findRuleChainById(tenantId, new RuleChainId(entityId.getId()));
+        return Optional.ofNullable(hasId);
+    }
+
+    @Override
+    public long countByTenantId(TenantId tenantId) {
+        return ruleChainDao.countByTenantId(tenantId);
+    }
+
+    @Override
+    @Transactional
+    public void deleteEntity(TenantId tenantId, EntityId id) {
+        deleteRuleChainById(tenantId, (RuleChainId) id);
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.RULE_CHAIN;
+    }
+
     private List<EntityRelation> getRuleChainToNodeRelations(TenantId tenantId, RuleChainId ruleChainId) {
         return relationService.findByFrom(tenantId, ruleChainId, RelationTypeGroup.RULE_CHAIN);
     }
@@ -800,5 +807,31 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                     checkRuleNodesAndDelete(tenantId, entity.getId());
                 }
             };
+
+    private void setSingletonMode(RuleNode ruleNode) {
+        boolean singletonMode;
+        try {
+            ComponentClusteringMode nodeConfigType = ReflectionUtils.getAnnotationProperty(ruleNode.getType(),
+                    "org.thingsboard.rule.engine.api.RuleNode", "clusteringMode");
+
+            switch (nodeConfigType) {
+                case ENABLED:
+                    singletonMode = false;
+                    break;
+                case SINGLETON:
+                    singletonMode = true;
+                    break;
+                case USER_PREFERENCE:
+                default:
+                    singletonMode = ruleNode.isSingletonMode();
+                    break;
+            }
+        } catch (Exception e) {
+            log.warn("Failed to get clustering mode: {}", ExceptionUtils.getRootCauseMessage(e));
+            singletonMode = false;
+        }
+
+        ruleNode.setSingletonMode(singletonMode);
+    }
 
 }

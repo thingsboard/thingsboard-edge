@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,18 +30,27 @@
  */
 package org.thingsboard.server.service.entitiy.alarm;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.UserId;
 
 public interface TbAlarmService {
 
     Alarm save(Alarm entity, User user) throws ThingsboardException;
 
-    ListenableFuture<Void> ack(Alarm alarm, User user);
+    AlarmInfo ack(Alarm alarm, User user) throws ThingsboardException;
 
-    ListenableFuture<Void> clear(Alarm alarm, User user);
+    AlarmInfo ack(Alarm alarm, long ackTs, User user) throws ThingsboardException;
+
+    AlarmInfo clear(Alarm alarm, User user) throws ThingsboardException;
+
+    AlarmInfo clear(Alarm alarm, long clearTs, User user) throws ThingsboardException;
+
+    AlarmInfo assign(Alarm alarm, UserId assigneeId, long assignTs, User user) throws ThingsboardException;
+
+    AlarmInfo unassign(Alarm alarm, long unassignTs, User user) throws ThingsboardException;
 
     Boolean delete(Alarm alarm, User user);
 }

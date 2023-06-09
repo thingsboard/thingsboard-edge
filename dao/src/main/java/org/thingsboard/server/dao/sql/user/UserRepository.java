@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,10 +35,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.model.sql.UserEntity;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -53,7 +53,7 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
 
     @Query("SELECT u FROM UserEntity u WHERE u.tenantId = :tenantId " +
             "AND u.customerId = :customerId AND u.authority = :authority " +
-            "AND LOWER(u.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(u.email) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<UserEntity> findUsersByAuthority(@Param("tenantId") UUID tenantId,
                                           @Param("customerId") UUID customerId,
                                           @Param("searchText") String searchText,
@@ -61,8 +61,16 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
                                           Pageable pageable);
 
     @Query("SELECT u FROM UserEntity u WHERE u.tenantId = :tenantId " +
+            "AND u.customerId IN (:customerIds) " +
+            "AND LOWER(u.email) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+    Page<UserEntity> findTenantAndCustomerUsers(@Param("tenantId") UUID tenantId,
+                                                @Param("customerIds") Collection<UUID> customerIds,
+                                                @Param("searchText") String searchText,
+                                                Pageable pageable);
+
+    @Query("SELECT u FROM UserEntity u WHERE u.tenantId = :tenantId " +
             "AND u.authority = :authority " +
-            "AND LOWER(u.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(u.email) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<UserEntity> findAllTenantUsersByAuthority(@Param("tenantId") UUID tenantId,
                                                    @Param("searchText") String searchText,
                                                    @Param("authority") Authority authority,
@@ -74,7 +82,7 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
             "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
             "AND re.relationType = 'Contains' " +
             "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
-            "AND LOWER(u.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND LOWER(u.email) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<UserEntity> findByEntityGroupId(@Param("groupId") UUID groupId,
                                          @Param("textSearch") String textSearch,
                                          Pageable pageable);
@@ -85,7 +93,7 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
             "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
             "AND re.relationType = 'Contains' " +
             "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
-            "AND LOWER(u.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND LOWER(u.email) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<UserEntity> findByEntityGroupIds(@Param("groupIds") List<UUID> groupIds,
                                           @Param("textSearch") String textSearch,
                                           Pageable pageable);
@@ -93,11 +101,30 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
     List<UserEntity> findUsersByTenantIdAndIdIn(UUID tenantId, List<UUID> userIds);
 
     @Query("SELECT u FROM UserEntity u WHERE u.tenantId = :tenantId " +
-            "AND LOWER(u.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(u.email) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<UserEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                     @Param("searchText") String searchText,
                                     Pageable pageable);
 
+    Page<UserEntity> findAllByAuthority(Authority authority, Pageable pageable);
+
+    Page<UserEntity> findByAuthorityAndTenantIdIn(Authority authority, Collection<UUID> tenantsIds, Pageable pageable);
+
+    @Query("SELECT u FROM UserEntity u INNER JOIN TenantEntity t ON u.tenantId = t.id AND u.authority = :authority " +
+            "INNER JOIN TenantProfileEntity p ON t.tenantProfileId = p.id " +
+            "WHERE p.id IN :profiles")
+    Page<UserEntity> findByAuthorityAndTenantProfilesIds(@Param("authority") Authority authority,
+                                                         @Param("profiles") Collection<UUID> tenantProfilesIds,
+                                                         Pageable pageable);
+
     Long countByTenantId(UUID tenantId);
+
+    @Query("SELECT u FROM UserEntity u WHERE u.id IN " +
+            "(SELECT r.toId FROM RelationEntity r WHERE r.fromType = 'ENTITY_GROUP' AND r.toType = 'USER' AND r.fromId IN " +
+            "(SELECT p.userGroupId FROM GroupPermissionEntity p WHERE (p.tenantId = :tenantId OR :tenantId = '13814000-1dd2-11b2-8080-808080808080') " +
+            "AND p.roleId IN :rolesIds))")
+    Page<UserEntity> findByTenantIdAndRolesIds(@Param("tenantId") UUID tenantId,
+                                               @Param("rolesIds") List<UUID> rolesIds,
+                                               Pageable pageable);
 
 }

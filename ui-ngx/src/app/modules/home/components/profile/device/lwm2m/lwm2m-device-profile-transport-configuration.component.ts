@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,8 +32,8 @@
 import { ChangeDetectorRef, Component, forwardRef, Input, OnDestroy } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -61,7 +61,6 @@ import {
 } from './lwm2m-profile-config.models';
 import { DeviceProfileService } from '@core/http/device-profile.service';
 import { deepClone, isDefinedAndNotNull, isEmpty, isUndefined } from '@core/utils';
-import { JsonArray, JsonObject } from '@angular/compiler-cli/ngcc/src/packages/entry_point';
 import { Direction } from '@shared/models/page/sort-order';
 import _ from 'lodash';
 import { Subject } from 'rxjs';
@@ -92,9 +91,9 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
   public isTransportWasRunWithBootstrap = true;
   public isBootstrapServerUpdateEnable: boolean;
   private requiredValue: boolean;
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
-  lwm2mDeviceProfileFormGroup: FormGroup;
+  lwm2mDeviceProfileFormGroup: UntypedFormGroup;
   configurationValue: Lwm2mProfileConfigModels;
   sortFunction: (key: string, value: object) => object;
 
@@ -114,7 +113,7 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
   }
 
   constructor(public translate: TranslateService,
-              private fb: FormBuilder,
+              private fb: UntypedFormBuilder,
               private cd: ChangeDetectorRef,
               private dialogService: DialogService,
               private deviceProfileService: DeviceProfileService) {
@@ -432,7 +431,7 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
     });
   }
 
-  private validateKeyNameObjects = (nameJson: JsonObject, attributeArray: JsonArray, telemetryArray: JsonArray): {} => {
+  private validateKeyNameObjects = (nameJson: object, attributeArray: string[], telemetryArray: string[]): object => {
     const keyName = JSON.parse(JSON.stringify(nameJson));
     const keyNameValidate = {};
     const keyAttrTelemetry = attributeArray.concat(telemetryArray);
@@ -442,7 +441,7 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
       }
     });
     return keyNameValidate;
-  }
+  };
 
   private updateObserveAttrTelemetryFromGroupToJson = (val: ObjectLwM2M[]): void => {
     const observeArray: Array<string> = [];
@@ -585,8 +584,8 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
     });
   }
 
-  get clientSettingsFormGroup(): FormGroup {
-    return this.lwm2mDeviceProfileFormGroup.get('clientLwM2mSettings') as FormGroup;
+  get clientSettingsFormGroup(): UntypedFormGroup {
+    return this.lwm2mDeviceProfileFormGroup.get('clientLwM2mSettings') as UntypedFormGroup;
   }
 
 }

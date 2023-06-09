@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,13 +29,13 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Injector, Input, OnInit } from '@angular/core';
+import { Component, forwardRef, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALUE_ACCESSOR,
   NgControl,
   Validators
@@ -43,9 +43,10 @@ import {
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
 import { GenericRolePermissions } from '@shared/models/role.models';
 import { Operation, Resource } from '@shared/models/security.models';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-permission-list',
@@ -59,33 +60,41 @@ import { Operation, Resource } from '@shared/models/security.models';
     }
   ]
 })
-export class PermissionListComponent extends PageComponent implements ControlValueAccessor, OnInit {
+export class PermissionListComponent extends PageComponent implements ControlValueAccessor, OnInit, OnDestroy {
 
   @Input() disabled: boolean;
 
-  permissionListFormGroup: FormGroup;
+  permissionListFormGroup: UntypedFormGroup;
 
   private propagateChange = null;
 
-  private valueChangeSubscription: Subscription = null;
+  private destroy$ = new Subject<void>();
 
   ngControl: NgControl;
 
   constructor(protected store: Store<AppState>,
               private injector: Injector,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
   ngOnInit(): void {
     this.ngControl = this.injector.get(NgControl);
-    this.permissionListFormGroup = this.fb.group({});
-    this.permissionListFormGroup.addControl('permissions',
-      this.fb.array([]));
+    this.permissionListFormGroup = this.fb.group({
+      permissions: this.fb.array([])
+    });
+    this.permissionListFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.updateModel());
   }
 
-  permissionsFormArray(): FormArray {
-    return this.permissionListFormGroup.get('permissions') as FormArray;
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  permissionsFormArray(): UntypedFormArray {
+    return this.permissionListFormGroup.get('permissions') as UntypedFormArray;
   }
 
   registerOnChange(fn: any): void {
@@ -105,9 +114,6 @@ export class PermissionListComponent extends PageComponent implements ControlVal
   }
 
   writeValue(permissions: GenericRolePermissions): void {
-    if (this.valueChangeSubscription) {
-      this.valueChangeSubscription.unsubscribe();
-    }
     const permissionsControls: Array<AbstractControl> = [];
     if (permissions) {
       for (const resource of Object.keys(permissions)) {
@@ -121,18 +127,15 @@ export class PermissionListComponent extends PageComponent implements ControlVal
         permissionsControls.push(permissionControl);
       }
     }
-    this.permissionListFormGroup.setControl('permissions', this.fb.array(permissionsControls));
-    this.valueChangeSubscription = this.permissionListFormGroup.valueChanges.subscribe(() => {
-      this.updateModel();
-    });
+    this.permissionListFormGroup.setControl('permissions', this.fb.array(permissionsControls), {emitEvent: false});
   }
 
   public removePermission(index: number) {
-    (this.permissionListFormGroup.get('permissions') as FormArray).removeAt(index);
+    (this.permissionListFormGroup.get('permissions') as UntypedFormArray).removeAt(index);
   }
 
   public addPermission() {
-    const permissionsFormArray = this.permissionListFormGroup.get('permissions') as FormArray;
+    const permissionsFormArray = this.permissionListFormGroup.get('permissions') as UntypedFormArray;
     permissionsFormArray.push(this.fb.group({
       resource: [null, [Validators.required]],
       operations: [null, [Validators.required]]

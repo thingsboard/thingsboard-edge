@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,9 +32,9 @@
 import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnInit, SkipSelf, ViewChild } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   FormGroupDirective,
   NG_VALUE_ACCESSOR,
   NgForm
@@ -63,15 +63,15 @@ import { ErrorStateMatcher } from '@angular/material/core';
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => EntityAliasSelectComponent),
     multi: true
-  },
+  }/*,
   {
     provide: ErrorStateMatcher,
     useExisting: EntityAliasSelectComponent
-  }]
+  }*/]
 })
 export class EntityAliasSelectComponent implements ControlValueAccessor, OnInit, AfterViewInit, ErrorStateMatcher {
 
-  selectEntityAliasFormGroup: FormGroup;
+  selectEntityAliasFormGroup: UntypedFormGroup;
 
   modelValue: string | null;
 
@@ -122,7 +122,7 @@ export class EntityAliasSelectComponent implements ControlValueAccessor, OnInit,
               private entityService: EntityService,
               public translate: TranslateService,
               public truncate: TruncatePipe,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.selectEntityAliasFormGroup = this.fb.group({
       entityAlias: [null]
     });
@@ -166,7 +166,7 @@ export class EntityAliasSelectComponent implements ControlValueAccessor, OnInit,
       );
   }
 
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: UntypedFormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
     const customErrorState = this.tbRequired && !this.modelValue;
     return originalErrorState || customErrorState;
@@ -252,16 +252,19 @@ export class EntityAliasSelectComponent implements ControlValueAccessor, OnInit,
     }
   }
 
-  createEntityAlias($event: Event, alias: string) {
+  createEntityAlias($event: Event, alias: string, focusOnCancel = true) {
     $event.preventDefault();
+    $event.stopPropagation();
     this.creatingEntityAlias = true;
     if (this.callbacks && this.callbacks.createEntityAlias) {
       this.callbacks.createEntityAlias(alias, this.allowedEntityTypes).subscribe((newAlias) => {
           if (!newAlias) {
-            setTimeout(() => {
-              this.entityAliasInput.nativeElement.blur();
-              this.entityAliasInput.nativeElement.focus();
-            }, 0);
+            if (focusOnCancel) {
+              setTimeout(() => {
+                this.entityAliasInput.nativeElement.blur();
+                this.entityAliasInput.nativeElement.focus();
+              }, 0);
+            }
           } else {
             this.entityAliasList.push(newAlias);
             this.modelValue = newAlias.id;

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,16 +31,9 @@
 package org.thingsboard.server.service.integration.rpc;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.server.cache.TbTransactionalCache;
 import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.service.integration.downlink.DownlinkCacheKey;
-
-import static org.thingsboard.server.common.data.CacheConstants.REMOTE_INTEGRATIONS_CACHE;
 
 @RequiredArgsConstructor
 @Service

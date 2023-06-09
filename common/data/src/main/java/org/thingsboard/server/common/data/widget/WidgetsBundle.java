@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,9 +37,10 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import org.thingsboard.server.common.data.ExportableEntity;
+import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.SearchTextBased;
+import org.thingsboard.server.common.data.ExportableEntity;
+import org.thingsboard.server.common.data.HasTitle;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
@@ -48,7 +49,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 
 @ApiModel
 @EqualsAndHashCode(callSuper = true)
-public class WidgetsBundle extends SearchTextBased<WidgetsBundleId> implements TenantEntity, ExportableEntity<WidgetsBundleId> {
+public class WidgetsBundle extends BaseData<WidgetsBundleId> implements TenantEntity, ExportableEntity<WidgetsBundleId>, HasTitle {
 
     private static final long serialVersionUID = -7627368878362410489L;
 
@@ -119,11 +120,6 @@ public class WidgetsBundle extends SearchTextBased<WidgetsBundleId> implements T
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();
-    }
-
-    @Override
-    public String getSearchText() {
-        return getTitle();
     }
 
     @ApiModelProperty(position = 3, value = "Same as title of the Widget Bundle. Read-only field. Update the 'title' to change the 'name' of the Widget Bundle.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)

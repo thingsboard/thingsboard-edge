@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -72,7 +72,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.AUDIT_LOG_USER_NAM
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
-@Table(name = ModelConstants.AUDIT_LOG_COLUMN_FAMILY_NAME)
+@Table(name = ModelConstants.AUDIT_LOG_TABLE_NAME)
 public class AuditLogEntity extends BaseSqlEntity<AuditLog> implements BaseEntity<AuditLog> {
 
     @Column(name = AUDIT_LOG_TENANT_ID_PROPERTY)

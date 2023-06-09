@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -30,17 +30,16 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field appearance="standard" [formGroup]="lwm2mListFormGroup" class="mat-block">
+<mat-form-field [formGroup]="lwm2mListFormGroup" class="mat-block">
   <mat-label translate>device-profile.lwm2m.object-list</mat-label>
-  <mat-chip-list #chipList formControlName="objectsList" [required]="required">
-    <mat-chip
+  <mat-chip-grid #chipList formControlName="objectsList" [required]="required">
+    <mat-chip-row
       *ngFor="let objectLwm2m of objectsList"
-      [selectable]="!disabled"
       [removable]="!disabled"
       (removed)="remove(objectLwm2m)">
       {{objectLwm2m.name}} #{{objectLwm2m.keyId}}
       <mat-icon matChipRemove *ngIf="!disabled">close</mat-icon>
-    </mat-chip>
+    </mat-chip-row>
     <input matInput type="text"
            style="max-width: 200px;"
            #objectInput
@@ -51,7 +50,7 @@
            [matAutocompleteConnectedTo]="origin"
            [matAutocomplete]="objectAutocomplete"
            [matChipInputFor]="chipList">
-  </mat-chip-list>
+  </mat-chip-grid>
   <mat-autocomplete #objectAutocomplete="matAutocomplete"
                     class="tb-autocomplete"
                     [displayWith]="displayObjectLwm2mFn">

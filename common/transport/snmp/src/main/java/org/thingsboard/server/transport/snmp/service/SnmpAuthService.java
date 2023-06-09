@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,7 +49,6 @@ import org.thingsboard.server.common.data.device.data.SnmpDeviceTransportConfigu
 import org.thingsboard.server.common.data.device.profile.SnmpDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.transport.snmp.SnmpProtocolVersion;
 import org.thingsboard.server.queue.util.TbSnmpTransportComponent;
-import org.thingsboard.server.transport.snmp.service.SnmpTransportService;
 import org.thingsboard.server.transport.snmp.session.DeviceSessionContext;
 
 import java.util.Optional;

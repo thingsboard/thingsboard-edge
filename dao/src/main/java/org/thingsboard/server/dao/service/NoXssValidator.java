@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,21 +45,18 @@ import java.util.Optional;
 @Slf4j
 public class NoXssValidator implements ConstraintValidator<NoXss, Object> {
     private static final AntiSamy xssChecker = new AntiSamy();
-    private static Policy xssPolicy;
+    private static final Policy xssPolicy;
 
-    @Override
-    public void initialize(NoXss constraintAnnotation) {
-        if (xssPolicy == null) {
-            xssPolicy = Optional.ofNullable(getClass().getClassLoader().getResourceAsStream("xss-policy.xml"))
-                    .map(inputStream -> {
-                        try {
-                            return Policy.getInstance(inputStream);
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    })
-                    .orElseThrow(() -> new IllegalStateException("XSS policy file not found"));
-        }
+    static {
+        xssPolicy = Optional.ofNullable(NoXssValidator.class.getClassLoader().getResourceAsStream("xss-policy.xml"))
+                .map(inputStream -> {
+                    try {
+                        return Policy.getInstance(inputStream);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .orElseThrow(() -> new IllegalStateException("XSS policy file not found"));
     }
 
     @Override
@@ -70,14 +67,18 @@ public class NoXssValidator implements ConstraintValidator<NoXss, Object> {
         } else {
             return true;
         }
+        return isValid(stringValue);
+    }
+
+    public static boolean isValid(String stringValue) {
         if (stringValue.isEmpty()) {
             return true;
         }
-
         try {
             return xssChecker.scan(stringValue, xssPolicy).getNumberOfErrors() == 0;
         } catch (ScanException | PolicyException e) {
             return false;
         }
     }
+
 }

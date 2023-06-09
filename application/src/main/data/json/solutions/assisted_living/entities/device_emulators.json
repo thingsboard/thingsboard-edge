@@ -1,0 +1,421 @@
+[
+  {
+    "name": "Sensor",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 14400,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "battery",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 75,
+          "maxStartValue": 95,
+          "minLowValue": 50,
+          "maxLowValue": 50,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 0.0,
+          "maxIncrement": 0.0,
+          "minDecrement": 0.01,
+          "maxDecrement": 0.05,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "Door Sensor",
+    "extendz": "Sensor",
+    "telemetryProfiles": [
+      {
+        "key": "open",
+        "valueStrategy": {
+          "type": "constant",
+          "value": false
+        }
+      }
+    ]
+  },
+  {
+    "name": "Window Sensor",
+    "extendz": "Sensor",
+    "telemetryProfiles": [
+      {
+        "key": "open",
+        "valueStrategy": {
+          "type": "constant",
+          "value": false
+        }
+      }
+    ]
+  },
+  {
+    "name": "Smoke Sensor",
+    "extendz": "Sensor",
+    "telemetryProfiles": [
+      {
+        "key": "smoke",
+        "valueStrategy": {
+          "type": "constant",
+          "value": false
+        }
+      }
+    ]
+  },
+  {
+    "name": "Leak Sensor",
+    "extendz": "Sensor",
+    "telemetryProfiles": [
+      {
+        "key": "leak",
+        "valueStrategy": {
+          "type": "constant",
+          "value": false
+        }
+      }
+    ]
+  },
+  {
+    "name": "Gateway",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 28800,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "battery",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 75,
+          "maxStartValue": 95,
+          "minLowValue": 50,
+          "maxLowValue": 50,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 0.0,
+          "maxIncrement": 0.0,
+          "minDecrement": 0.01,
+          "maxDecrement": 0.05,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "Unassigned WristBand",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 3600,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "battery",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 75,
+          "maxStartValue": 95,
+          "minLowValue": 50,
+          "maxLowValue": 50,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 0.0,
+          "maxIncrement": 0.0,
+          "minDecrement": 0.01,
+          "maxDecrement": 0.05,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "WristBand",
+    "extendz": "Unassigned WristBand",
+    "telemetryProfiles": [
+      {
+        "key": "temperature",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 36.6,
+          "maxStartValue": 36.6,
+          "minLowValue": 36.3,
+          "maxLowValue": 36.4,
+          "minHighValue": 36.8,
+          "maxHighValue": 36.9,
+          "minIncrement": 0.01,
+          "maxIncrement": 0.01,
+          "minDecrement": 0.02,
+          "maxDecrement": 0.03,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      },
+      {
+        "key": "pulse",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 80.0,
+          "maxStartValue": 109.0,
+          "minLowValue": 60.0,
+          "maxLowValue": 75.0,
+          "minHighValue": 90.0,
+          "maxHighValue": 105.0,
+          "minIncrement": 3.0,
+          "maxIncrement": 10.0,
+          "minDecrement": 3.0,
+          "maxDecrement": 10.0,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      },
+      {
+        "key": "panicButton",
+        "valueStrategy": {
+          "type": "constant",
+          "value": false
+        }
+      }
+    ]
+  },
+  {
+    "name": "Panic WristBand",
+    "extendz": "WristBand",
+    "telemetryProfiles": [
+      {
+        "key": "panicButton",
+        "valueStrategy": {
+          "type": "constant",
+          "value": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "Discharged WristBand",
+    "extendz": "WristBand",
+    "telemetryProfiles": [
+      {
+        "key": "battery",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 5,
+          "maxStartValue": 25,
+          "minLowValue": 10,
+          "maxLowValue": 10,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 0.0,
+          "maxIncrement": 0.0,
+          "minDecrement": 0.01,
+          "maxDecrement": 0.05,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "Cardio WristBand",
+    "extendz": "WristBand",
+    "telemetryProfiles": [
+      {
+        "key": "pulse",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 121.0,
+          "maxStartValue": 130.0,
+          "minLowValue": 121.0,
+          "maxLowValue": 125.0,
+          "minHighValue": 131.0,
+          "maxHighValue": 139.0,
+          "minIncrement": 3.0,
+          "maxIncrement": 10.0,
+          "minDecrement": 3.0,
+          "maxDecrement": 10.0,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "Noise WristBand",
+    "extendz": "WristBand",
+    "telemetryProfiles": [
+      {
+        "key": "noise",
+        "valueStrategy": {
+          "type": "constant",
+          "value": 120
+        }
+      }
+    ]
+  },
+  {
+    "name": "Regular RoomSensor",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 28800,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "battery",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 75,
+          "maxStartValue": 95,
+          "minLowValue": 10,
+          "maxLowValue": 10,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 0.0,
+          "maxIncrement": 0.0,
+          "minDecrement": 0.01,
+          "maxDecrement": 0.05,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      },
+      {
+        "key": "temperature",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 20,
+          "maxStartValue": 23,
+          "minLowValue": 20,
+          "maxLowValue": 20,
+          "minHighValue": 23,
+          "maxHighValue": 23,
+          "minIncrement": 0.1,
+          "maxIncrement": 1.6,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.8,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "humidity",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 50,
+          "maxStartValue": 53,
+          "minLowValue": 40,
+          "maxLowValue": 40,
+          "minHighValue": 60,
+          "maxHighValue": 70,
+          "minIncrement": 0.1,
+          "maxIncrement": 1.6,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.8,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.3
+        }
+      },
+      {
+        "key": "IAQ",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 50,
+          "maxStartValue": 120,
+          "minLowValue": 50,
+          "maxLowValue": 50,
+          "minHighValue": 120,
+          "maxHighValue": 120,
+          "minIncrement": 5.0,
+          "maxIncrement": 20.0,
+          "minDecrement": 1.0,
+          "maxDecrement": 8.0,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.3
+        }
+      }
+    ]
+  },
+  {
+    "name": "Temperature RoomSensor",
+    "extendz": "Regular RoomSensor",
+    "telemetryProfiles": [
+      {
+        "key": "temperature",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 29,
+          "maxStartValue": 31,
+          "minLowValue": 29,
+          "maxLowValue": 29,
+          "minHighValue": 31,
+          "maxHighValue": 31,
+          "minIncrement": 0.1,
+          "maxIncrement": 0.2,
+          "minDecrement": 0.05,
+          "maxDecrement": 0.1,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.5
+        }
+      }
+    ]
+  },
+  {
+    "name": "AIQ RoomSensor",
+    "extendz": "Regular RoomSensor",
+    "telemetryProfiles": [
+      {
+        "key": "IAQ",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 200,
+          "maxStartValue": 250,
+          "minLowValue": 200,
+          "maxLowValue": 200,
+          "minHighValue": 280,
+          "maxHighValue": 280,
+          "minIncrement": 5.0,
+          "maxIncrement": 20.0,
+          "minDecrement": 1.0,
+          "maxDecrement": 8.0,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.3
+        }
+      }
+    ]
+  }
+]

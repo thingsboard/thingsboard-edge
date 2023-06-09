@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,6 +38,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.thingsboard.integration.api.IntegrationContext;
@@ -151,7 +152,7 @@ public class ChirpStackIntegration extends BasicHttpIntegration<JsonHttpIntegrat
                         throw new ThingsboardException("FPort is missing in the downlink metadata!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
                     }
                     String payload = new String(downlink.getData(), StandardCharsets.UTF_8);
-                    ObjectNode body = mapper.createObjectNode();
+                    ObjectNode body = JacksonUtil.newObjectNode();
                     if (metadata.containsKey(CONFIRMED)) {
                         body.with(DEVICE_DOWNLINK_QUEUE).put(CONFIRMED, metadata.get(CONFIRMED));
                     }

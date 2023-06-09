@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,7 +49,7 @@ import org.thingsboard.server.common.msg.TbMsg;
 @RuleNode(type = ComponentType.ENRICHMENT,
           name = "originator attributes",
           configClazz = TbGetAttributesNodeConfiguration.class,
-          nodeDescription = "Add Message Originator Attributes or Latest Telemetry into Message Data or Metadata",
+          nodeDescription = "Enrich the message body or metadata with the originator attributes and/or timeseries data",
           nodeDetails = "If Attributes enrichment configured, <b>CLIENT/SHARED/SERVER</b> attributes are added into Message data/metadata " +
                 "with specific prefix: <i>cs/shared/ss</i>. Latest telemetry value added into Message data/metadata without prefix. " +
                   "To access those attributes in other nodes this template can be used " +

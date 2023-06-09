@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,12 +34,12 @@ import io.netty.handler.ssl.ClientAuth;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.StringUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.thingsboard.integration.mqtt.MqttClientConfiguration;
 import org.thingsboard.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.integration.mqtt.credentials.BasicCredentials;
 import org.thingsboard.integration.mqtt.credentials.MqttClientCredentials;
+import org.thingsboard.server.common.data.StringUtils;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLException;
@@ -88,12 +88,16 @@ public class TtnIntegration extends BasicMqttIntegration {
     @Override
     protected Optional<SslContext> initSslContext(MqttClientConfiguration configuration) throws SSLException {
         try {
-            Security.addProvider(new BouncyCastleProvider());
-            return Optional.of(SslContextBuilder.forClient()
-                    .keyManager((KeyManagerFactory) null)
-                    .trustManager((File) null)
-                    .clientAuth(ClientAuth.NONE)
-                    .build());
+            if (configuration.isSsl()) {
+                Security.addProvider(new BouncyCastleProvider());
+                return Optional.of(SslContextBuilder.forClient()
+                        .keyManager((KeyManagerFactory) null)
+                        .trustManager((File) null)
+                        .clientAuth(ClientAuth.NONE)
+                        .build());
+            } else {
+                return Optional.empty();
+            }
         } catch (Exception e) {
             log.error("Creating TLS factory failed!", e);
             throw new RuntimeException("Creating TLS factory failed!", e);

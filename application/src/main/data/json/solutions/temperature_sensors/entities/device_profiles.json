@@ -9,6 +9,10 @@
       "entityType": "RULE_CHAIN",
       "id": "95c148c0-599a-11eb-940c-293b71ac913b"
     },
+    "defaultEdgeRuleChainId": {
+      "entityType": "RULE_CHAIN",
+      "id": "93df11df-2fef-4177-8cda-1571e94f5d18"
+    },
     "defaultQueueName": null,
     "profileData": {
       "configuration": {

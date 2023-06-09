@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -42,18 +42,21 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { merge, Observable, of, Subject } from 'rxjs';
-import { catchError, debounceTime, map, publishReplay, refCount, share, switchMap, tap } from 'rxjs/operators';
+import { catchError, debounceTime, map, share, switchMap, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityType } from '@shared/models/entity-type.models';
 import { EntityId } from '@shared/models/id/entity-id';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { isEqual, isString } from '@core/utils';
+import { PageLink } from '@shared/models/page/page-link';
+import { Direction } from '@shared/models/page/sort-order';
+import { emptyPageData, PageData } from '@shared/models/page/page-data';
+import { EntityInfoData } from '@shared/models/entity.models';
 
 @Component({
   selector: 'tb-entity-group-autocomplete',
@@ -67,7 +70,7 @@ import { isEqual, isString } from '@core/utils';
 })
 export class EntityGroupAutocompleteComponent implements ControlValueAccessor, OnInit, OnChanges, OnDestroy {
 
-  selectEntityGroupFormGroup: FormGroup;
+  selectEntityGroupFormGroup: UntypedFormGroup;
 
   modelValue: string | null = null;
 
@@ -83,7 +86,7 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
   set ownerId(value: EntityId | null) {
     if (!isEqual(this.ownerIdValue, value)) {
       const currentEntityGroup = this.getCurrentEntityGroup();
-      const keepEntityGroup = currentEntityGroup?.ownerId?.id === value?.id || currentEntityGroup === null;
+      const keepEntityGroup = currentEntityGroup === null;
       this.reset(keepEntityGroup);
     }
     this.ownerIdValue = value;
@@ -117,25 +120,25 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
   disabled: boolean;
 
   @Output()
-  entityGroupLoaded = new EventEmitter<EntityGroupInfo>();
+  entityGroupLoaded = new EventEmitter<EntityInfoData>();
 
   @ViewChild('entityGroupInput', {static: true}) entityGroupInput: ElementRef<HTMLInputElement>;
 
-  filteredEntityGroups: Observable<Array<EntityGroupInfo>>;
+  filteredEntityGroups: Observable<Array<EntityInfoData>>;
 
-  allEntityGroups: Observable<Array<EntityGroupInfo>>;
+  allEntityGroups: Observable<Array<EntityInfoData>>;
 
   searchText = '';
 
   private pristine = true;
-  private cleanFilteredEntityGroups: Subject<Array<EntityGroupInfo>> = new Subject();
+  private cleanFilteredEntityGroups: Subject<Array<EntityInfoData>> = new Subject();
 
   private propagateChange = (v: any) => { };
 
   constructor(private store: Store<AppState>,
               public translate: TranslateService,
               private entityGroupService: EntityGroupService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.selectEntityGroupFormGroup = this.fb.group({
       entityGroup: [null]
     });
@@ -181,7 +184,7 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
       if (!change.firstChange && !isEqual(change.currentValue, change.previousValue)) {
         if (propName === 'groupType') {
           const currentEntityGroup = this.getCurrentEntityGroup();
-          if (!currentEntityGroup || currentEntityGroup.type !== this.groupType) {
+          if (!currentEntityGroup) {
             this.reset();
           }
         }
@@ -194,10 +197,10 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
     this.cleanFilteredEntityGroups = null;
   }
 
-  getCurrentEntityGroup(): EntityGroupInfo | null {
+  getCurrentEntityGroup(): EntityInfoData | null {
     const currentEntityGroup = this.selectEntityGroupFormGroup.get('entityGroup').value;
     if (currentEntityGroup && typeof currentEntityGroup !== 'string') {
-      return currentEntityGroup as EntityGroupInfo;
+      return currentEntityGroup as EntityInfoData;
     } else {
       return null;
     }
@@ -212,21 +215,28 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
     }
   }
 
-  writeValue(value: string | null): void {
+  writeValue(value: string | EntityInfoData | null): void {
     this.searchText = '';
     if (value !== null) {
-      this.entityGroupService.getEntityGroup(value, {ignoreLoading: true}).subscribe(
-        (entityGroup) => {
-          this.modelValue = entityGroup.id.id;
-          this.selectEntityGroupFormGroup.get('entityGroup').patchValue(entityGroup, {emitEvent: false});
-          this.entityGroupLoaded.next(entityGroup);
-        },
-        () => {
-          this.modelValue = null;
-          this.selectEntityGroupFormGroup.get('entityGroup').patchValue('', {emitEvent: false});
-          this.entityGroupLoaded.next(null);
-        }
-      );
+      if ((value as EntityInfoData).id) {
+        const entityGroup = value as EntityInfoData;
+        this.modelValue = entityGroup.id.id;
+        this.selectEntityGroupFormGroup.get('entityGroup').patchValue(entityGroup, {emitEvent: false});
+        this.entityGroupLoaded.next(entityGroup);
+      } else {
+        this.entityGroupService.getEntityGroupEntityInfo(value as string, {ignoreLoading: true}).subscribe({
+          next: (entityGroup) => {
+            this.modelValue = entityGroup.id.id;
+            this.selectEntityGroupFormGroup.get('entityGroup').patchValue(entityGroup, {emitEvent: false});
+            this.entityGroupLoaded.next(entityGroup);
+          },
+          error: () => {
+            this.modelValue = null;
+            this.selectEntityGroupFormGroup.get('entityGroup').patchValue('', {emitEvent: false});
+            this.entityGroupLoaded.next(null);
+          }
+        });
+      }
     } else {
       this.modelValue = null;
       this.selectEntityGroupFormGroup.get('entityGroup').patchValue('', {emitEvent: false});
@@ -252,7 +262,7 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
     }
   }
 
-  updateView(value: string | null, entityGroup: EntityGroupInfo | string | null ) {
+  updateView(value: string | null, entityGroup: EntityInfoData | string | null ) {
     if (this.modelValue !== value) {
       this.modelValue = value;
       this.propagateChange(this.modelValue);
@@ -263,55 +273,46 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
     }
   }
 
-  displayEntityGroupFn(entityGroup?: EntityGroupInfo): string | undefined {
+  displayEntityGroupFn(entityGroup?: EntityInfoData): string | undefined {
     return entityGroup ? entityGroup.name : undefined;
   }
 
-  fetchEntityGroups(searchText?: string): Observable<Array<EntityGroupInfo>> {
+  fetchEntityGroups(searchText?: string): Observable<Array<EntityInfoData>> {
     this.searchText = searchText;
-    return this.getEntityGroups().pipe(
-      map((groups) => groups.filter(group => {
-        return searchText ? group.name.toUpperCase().startsWith(searchText.toUpperCase()) : true;
-      }))
+    const pageLink = new PageLink(50, 0, searchText, {
+      property: 'name',
+      direction: Direction.ASC
+    });
+    return this.getEntityGroups(pageLink).pipe(
+      catchError(() => of(emptyPageData<EntityInfoData>())),
+      map(pageData => {
+        let data = pageData.data;
+        if (this.excludeGroupAll) {
+          data = data.filter(group => group.name !== 'All');
+        }
+        if (this.excludeGroupIds && this.excludeGroupIds.length) {
+          const groups: Array<EntityInfoData> = [];
+          data.forEach((group) => {
+            if (this.excludeGroupIds.indexOf(group.id.id) === -1) {
+              groups.push(group);
+            }
+          });
+          return groups;
+        } else {
+          return data;
+        }
+      })
     );
   }
 
-  getEntityGroups(): Observable<Array<EntityGroupInfo>> {
-    if (!this.allEntityGroups) {
-      let entityGroupsObservable: Observable<Array<EntityGroupInfo>>;
-      if (this.ownerId) {
-        entityGroupsObservable = this.entityGroupService
-          .getEntityGroupsByOwnerId(this.ownerId.entityType as EntityType, this.ownerId.id, this.groupType, {ignoreLoading: true});
-      } else {
-        entityGroupsObservable = this.entityGroupService.getEntityGroups(this.groupType, {ignoreLoading: true});
-      }
-      this.allEntityGroups = entityGroupsObservable.pipe(
-        catchError(() => of(null)),
-        map(data => {
-          if (data) {
-            if (this.excludeGroupAll) {
-              data = data.filter(group => !group.groupAll);
-            }
-            if (this.excludeGroupIds && this.excludeGroupIds.length) {
-              const groups: Array<EntityGroupInfo> = [];
-              data.forEach((group) => {
-                if (this.excludeGroupIds.indexOf(group.id.id) === -1) {
-                  groups.push(group);
-                }
-              });
-              return groups;
-            } else {
-              return data;
-            }
-          } else {
-            return [];
-          }
-        }),
-        publishReplay(1),
-        refCount()
-      );
+  getEntityGroups(pageLink: PageLink): Observable<PageData<EntityInfoData>> {
+    if (this.ownerId) {
+      return this.entityGroupService
+        .getEntityGroupEntityInfosByOwnerId(pageLink, this.ownerId.entityType as EntityType,
+          this.ownerId.id, this.groupType, {ignoreLoading: true});
+    } else {
+      return this.entityGroupService.getEntityGroupEntityInfos(pageLink, this.groupType, true, {ignoreLoading: true});
     }
-    return this.allEntityGroups;
   }
 
   clear() {

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,6 @@ import { Widget, WidgetTypeDetails } from '@app/shared/models/widget.models';
 import { DashboardLayoutId } from '@shared/models/dashboard.models';
 import { WidgetsBundle } from '@shared/models/widgets-bundle.model';
 import { CustomerId } from '@shared/models/id/customer-id';
-import { EntityGroupId } from '@shared/models/id/entity-group-id';
 
 export interface ImportWidgetResult {
   widget: Widget;
@@ -88,9 +87,6 @@ export enum ImportEntityColumnType {
   routingKey = 'ROUTING_KEY',
   secret = 'SECRET'
 }
-
-export const importEntityObjectColumns =
-  [ImportEntityColumnType.name, ImportEntityColumnType.type, ImportEntityColumnType.accessToken];
 
 export const importEntityColumnTypeTranslations = new Map<ImportEntityColumnType, string>(
   [

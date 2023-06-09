@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -339,7 +339,8 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               padding: '0 12px 0 0'
             })),
           new EntityTableColumn<Event>('entityId', 'event.entity-id', '85px',
-            (entity) => `${entity.body.entityId.substring(0, 6)}…`, () => ({
+            (entity) => `<span style="display: inline-block; width: 7ch">${entity.body.entityId.substring(0, 6)}…</span>`,
+            () => ({
               padding: '0 12px 0 0'
             }), false, () => ({
               padding: '0 12px 0 0'
@@ -348,6 +349,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               name: this.translate.instant('event.copy-entity-id'),
               icon: 'content_paste',
               style: {
+                padding: '4px',
                 'font-size': '16px',
                 color: 'rgba(0,0,0,.87)'
               },
@@ -356,7 +358,8 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               type: CellActionDescriptorType.COPY_BUTTON
             }),
           new EntityTableColumn<Event>('msgId', 'event.message-id', '85px',
-            (entity) => `${entity.body.msgId.substring(0, 6)}…`, () => ({
+            (entity) => `<span style="display: inline-block; width: 7ch">${entity.body.msgId.substring(0, 6)}…</span>`,
+            () => ({
               padding: '0 12px 0 0'
             }), false, () => ({
               padding: '0 12px 0 0'
@@ -364,6 +367,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               name: this.translate.instant('event.copy-message-id'),
               icon: 'content_paste',
               style: {
+                padding: '4px',
                 'font-size': '16px',
                 color: 'rgba(0,0,0,.87)'
               },
@@ -391,7 +395,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               onAction: ($event, entity) => this.showContent($event, entity.body.data,
                 'event.data', entity.body.dataType)
             },
-            '40px'),
+            '48px'),
           new EntityActionTableColumn<Event>('metadata', 'event.metadata',
             {
               name: this.translate.instant('action.view'),
@@ -400,7 +404,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               onAction: ($event, entity) => this.showContent($event, entity.body.metadata,
                 'event.metadata', ContentType.JSON, true)
             },
-            '40px'),
+            '48px'),
           new EntityActionTableColumn<Event>('error', 'event.error',
             {
               name: this.translate.instant('action.view'),
@@ -409,7 +413,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               onAction: ($event, entity) => this.showContent($event, entity.body.error,
                 'event.error')
             },
-            '40px')
+            '48px')
         );
         break;
       case DebugEventType.DEBUG_RULE_CHAIN:
@@ -423,7 +427,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               onAction: ($event, entity) => this.showContent($event, entity.body.message,
                 'event.message')
             },
-            '40px'),
+            '48px'),
           new EntityActionTableColumn<Event>('error', 'event.error',
             {
               name: this.translate.instant('action.view'),
@@ -432,7 +436,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               onAction: ($event, entity) => this.showContent($event, entity.body.error,
                 'event.error')
             },
-            '40px')
+            '48px')
         );
         break;
     }

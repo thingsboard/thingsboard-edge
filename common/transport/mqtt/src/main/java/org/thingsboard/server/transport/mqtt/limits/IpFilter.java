@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,8 +31,6 @@
 package org.thingsboard.server.transport.mqtt.limits;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.haproxy.HAProxyMessage;
 import io.netty.handler.ipfilter.AbstractRemoteAddressFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.transport.mqtt.MqttTransportContext;

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -87,14 +87,14 @@ public class DefaultTbEntityViewService extends AbstractTbEntityService implemen
     final Map<TenantId, Map<EntityId, List<EntityView>>> localCache = new ConcurrentHashMap<>();
 
     @Override
-    public EntityView save(EntityView entityView, EntityGroup entityGroup, User user) throws Exception {
+    public EntityView save(EntityView entityView, List<EntityGroup> entityGroups, User user) throws Exception {
         ActionType actionType = entityView.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = entityView.getTenantId();
         try {
             EntityView existingEntityView = entityView.getId() == null ? null : entityViewService.findEntityViewById(tenantId, entityView.getId());
             EntityView savedEntityView = checkNotNull(entityViewService.saveEntityView(entityView));
             this.updateEntityViewAttributes(tenantId, savedEntityView, existingEntityView, user);
-            createOrUpdateGroupEntity(tenantId, savedEntityView, entityGroup, actionType, user);
+            createOrUpdateGroupEntity(tenantId, savedEntityView, entityGroups, actionType, user);
             autoCommit(user, savedEntityView.getId());
             localCache.computeIfAbsent(savedEntityView.getTenantId(), (k) -> new ConcurrentReferenceHashMap<>()).clear();
             tbClusterService.broadcastEntityStateChangeEvent(savedEntityView.getTenantId(), savedEntityView.getId(),

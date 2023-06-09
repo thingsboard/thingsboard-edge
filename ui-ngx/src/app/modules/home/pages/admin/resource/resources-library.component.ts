@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -44,8 +44,9 @@ import {
   ResourceTypeMIMETypes,
   ResourceTypeTranslationMap
 } from '@shared/models/resource.models';
-import {filter, pairwise, startWith, takeUntil} from 'rxjs/operators';
+import { filter, startWith, takeUntil } from 'rxjs/operators';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
+import { isDefinedAndNotNull } from '@core/utils';
 
 @Component({
   selector: 'tb-resources-library',
@@ -54,10 +55,10 @@ import { ActionNotificationShow } from '@core/notification/notification.actions'
 export class ResourcesLibraryComponent extends EntityComponent<Resource> implements OnInit, OnDestroy {
 
   readonly resourceType = ResourceType;
-  readonly resourceTypes = Object.values(this.resourceType);
+  readonly resourceTypes: ResourceType[] = Object.values(this.resourceType);
   readonly resourceTypesTranslationMap = ResourceTypeTranslationMap;
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
@@ -71,7 +72,7 @@ export class ResourcesLibraryComponent extends EntityComponent<Resource> impleme
   ngOnInit() {
     super.ngOnInit();
     this.entityForm.get('resourceType').valueChanges.pipe(
-      startWith(ResourceType.LWM2M_MODEL),
+      startWith(ResourceType.JS_MODULE),
       filter(() => this.isAdd),
       takeUntil(this.destroy$)
     ).subscribe((type) => {
@@ -103,30 +104,36 @@ export class ResourcesLibraryComponent extends EntityComponent<Resource> impleme
   }
 
   buildForm(entity: Resource): FormGroup {
-    const form = this.fb.group(
-      {
-        title: [entity ? entity.title : '', [Validators.required, Validators.maxLength(255)]],
-        resourceType: [entity?.resourceType ? entity.resourceType : ResourceType.LWM2M_MODEL, [Validators.required]],
-        fileName: [entity ? entity.fileName : null, [Validators.required]],
-      }
-    );
-    if (this.isAdd) {
-      form.addControl('data', this.fb.control(null, Validators.required));
-    }
-    return form;
+    return this.fb.group({
+      title: [entity ? entity.title : '', [Validators.required, Validators.maxLength(255)]],
+      resourceType: [entity?.resourceType ? entity.resourceType : ResourceType.JS_MODULE, Validators.required],
+      fileName: [entity ? entity.fileName : null, Validators.required],
+      data: [entity ? entity.data : null, Validators.required]
+    });
   }
 
   updateForm(entity: Resource) {
     this.entity.name = entity.title;
     if (this.isEdit) {
       this.entityForm.get('resourceType').disable({emitEvent: false});
-      this.entityForm.get('fileName').disable({emitEvent: false});
+      if (entity.resourceType !== ResourceType.JS_MODULE) {
+        this.entityForm.get('fileName').disable({emitEvent: false});
+        this.entityForm.get('data').disable({emitEvent: false});
+      }
     }
     this.entityForm.patchValue({
       resourceType: entity.resourceType,
       fileName: entity.fileName,
-      title: entity.title
+      title: entity.title,
+      data: entity.data
     });
+  }
+
+  prepareFormValue(formValue: Resource): Resource {
+    if (this.isEdit && !isDefinedAndNotNull(formValue.data)) {
+      delete formValue.data;
+    }
+    return super.prepareFormValue(formValue);
   }
 
   getAllowedExtensions() {

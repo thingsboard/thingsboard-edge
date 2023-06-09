@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -65,6 +65,7 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.ControllerConstants.BLOB_ENTITY_ID_PARAM_DESCRIPTION;
@@ -113,12 +114,8 @@ public class BlobEntityController extends BaseController {
             @ApiParam(value = BLOB_ENTITY_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(BLOB_ENTITY_ID) String strBlobEntityId) throws ThingsboardException {
         checkParameter(BLOB_ENTITY_ID, strBlobEntityId);
-        try {
-            BlobEntityId blobEntityId = new BlobEntityId(toUUID(strBlobEntityId));
-            return checkBlobEntityInfoId(blobEntityId, Operation.READ);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        BlobEntityId blobEntityId = new BlobEntityId(toUUID(strBlobEntityId));
+        return checkBlobEntityInfoId(blobEntityId, Operation.READ);
     }
 
     @ApiOperation(value = "Download Blob Entity By Id (downloadBlobEntity)",
@@ -131,19 +128,15 @@ public class BlobEntityController extends BaseController {
             @ApiParam(value = BLOB_ENTITY_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(BLOB_ENTITY_ID) String strBlobEntityId) throws ThingsboardException {
         checkParameter(BLOB_ENTITY_ID, strBlobEntityId);
-        try {
-            BlobEntityId blobEntityId = new BlobEntityId(toUUID(strBlobEntityId));
-            BlobEntity blobEntity = checkBlobEntityId(blobEntityId, Operation.READ);
-            ByteArrayResource resource = new ByteArrayResource(blobEntity.getData().array());
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + blobEntity.getName())
-                    .header("x-filename", blobEntity.getName())
-                    .contentLength(resource.contentLength())
-                    .contentType(parseMediaType(blobEntity.getContentType()))
-                    .body(resource);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        BlobEntityId blobEntityId = new BlobEntityId(toUUID(strBlobEntityId));
+        BlobEntity blobEntity = checkBlobEntityId(blobEntityId, Operation.READ);
+        ByteArrayResource resource = new ByteArrayResource(blobEntity.getData().array());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + blobEntity.getName())
+                .header("x-filename", blobEntity.getName())
+                .contentLength(resource.contentLength())
+                .contentType(parseMediaType(blobEntity.getContentType()))
+                .body(resource);
     }
 
     @ApiOperation(value = "Delete Blob Entity (deleteBlobEntity)",
@@ -187,28 +180,24 @@ public class BlobEntityController extends BaseController {
             @ApiParam(value = BLOB_ENTITY_QUERY_END_TIME_DESCRIPTION)
             @RequestParam(required = false) Long endTime
     ) throws ThingsboardException {
-        try {
-            TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
-            TenantId tenantId = getCurrentUser().getTenantId();
-            if (!accessControlService.hasPermission(getCurrentUser(), org.thingsboard.server.common.data.permission.Resource.BLOB_ENTITY, Operation.READ)) {
-                return new PageData<>();
+        TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        if (!accessControlService.hasPermission(getCurrentUser(), org.thingsboard.server.common.data.permission.Resource.BLOB_ENTITY, Operation.READ)) {
+            return new PageData<>();
+        }
+        if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
+            if (type != null && type.trim().length() > 0) {
+                return checkNotNull(blobEntityService.findBlobEntitiesByTenantIdAndType(tenantId, type, pageLink));
+            } else {
+                return checkNotNull(blobEntityService.findBlobEntitiesByTenantId(tenantId, pageLink));
             }
-            if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
-                if (type != null && type.trim().length() > 0) {
-                    return checkNotNull(blobEntityService.findBlobEntitiesByTenantIdAndType(tenantId, type, pageLink));
-                } else {
-                    return checkNotNull(blobEntityService.findBlobEntitiesByTenantId(tenantId, pageLink));
-                }
-            } else { //CUSTOMER_USER
-                CustomerId customerId = getCurrentUser().getCustomerId();
-                if (type != null && type.trim().length() > 0) {
-                    return checkNotNull(blobEntityService.findBlobEntitiesByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
-                } else {
-                    return checkNotNull(blobEntityService.findBlobEntitiesByTenantIdAndCustomerId(tenantId, customerId, pageLink));
-                }
+        } else { //CUSTOMER_USER
+            CustomerId customerId = getCurrentUser().getCustomerId();
+            if (type != null && type.trim().length() > 0) {
+                return checkNotNull(blobEntityService.findBlobEntitiesByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
+            } else {
+                return checkNotNull(blobEntityService.findBlobEntitiesByTenantIdAndCustomerId(tenantId, customerId, pageLink));
             }
-        } catch (Exception e) {
-            throw handleException(e);
         }
     }
 
@@ -220,23 +209,19 @@ public class BlobEntityController extends BaseController {
     @RequestMapping(value = "/blobEntities", params = {"blobEntityIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<BlobEntityInfo> getBlobEntitiesByIds(
-            @ApiParam(value = "A list of blob entity ids, separated by comma ','", required = true) @RequestParam("blobEntityIds") String[] strBlobEntityIds) throws ThingsboardException {
+            @ApiParam(value = "A list of blob entity ids, separated by comma ','", required = true) @RequestParam("blobEntityIds") String[] strBlobEntityIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("blobEntityIds", strBlobEntityIds);
-        try {
-            if (!accessControlService.hasPermission(getCurrentUser(), org.thingsboard.server.common.data.permission.Resource.BLOB_ENTITY, Operation.READ)) {
-                return Collections.emptyList();
-            }
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            List<BlobEntityId> blobEntityIds = new ArrayList<>();
-            for (String strBlobEntityId : strBlobEntityIds) {
-                blobEntityIds.add(new BlobEntityId(toUUID(strBlobEntityId)));
-            }
-            List<BlobEntityInfo> blobEntities = checkNotNull(blobEntityService.findBlobEntityInfoByIdsAsync(tenantId, blobEntityIds).get());
-            return filterBlobEntitiesByReadPermission(blobEntities);
-        } catch (Exception e) {
-            throw handleException(e);
+        if (!accessControlService.hasPermission(getCurrentUser(), org.thingsboard.server.common.data.permission.Resource.BLOB_ENTITY, Operation.READ)) {
+            return Collections.emptyList();
         }
+        SecurityUser user = getCurrentUser();
+        TenantId tenantId = user.getTenantId();
+        List<BlobEntityId> blobEntityIds = new ArrayList<>();
+        for (String strBlobEntityId : strBlobEntityIds) {
+            blobEntityIds.add(new BlobEntityId(toUUID(strBlobEntityId)));
+        }
+        List<BlobEntityInfo> blobEntities = checkNotNull(blobEntityService.findBlobEntityInfoByIdsAsync(tenantId, blobEntityIds).get());
+        return filterBlobEntitiesByReadPermission(blobEntities);
     }
 
     private List<BlobEntityInfo> filterBlobEntitiesByReadPermission(List<BlobEntityInfo> blobEntities) {

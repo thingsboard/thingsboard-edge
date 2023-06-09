@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -325,7 +325,7 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
         int cntTime = 1;
         testNotificationMsgToEdgeServiceTime(entityId, tenantId, actionType, cntTime);
         testLogEntityAction(entity, originatorId, tenantId, customerId, userId, userName, actionType, cntTime, additionalInfo);
-        tesPushMsgToCoreTime(cntTime);
+        testPushMsgToCoreTime(cntTime);
         Mockito.reset(tbClusterService, auditLogService);
     }
 
@@ -453,13 +453,13 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
                 Mockito.any(entityId.getClass()), Mockito.any(ComponentLifecycleEvent.class));
     }
 
-    private void tesPushMsgToCoreTime(int cntTime) {
+    private void testPushMsgToCoreTime(int cntTime) {
         Mockito.verify(tbClusterService, times(cntTime)).pushMsgToCore(Mockito.any(ToDeviceActorNotificationMsg.class), Mockito.isNull());
     }
 
-    private void testLogEntityAction(HasName entity, EntityId originatorId, TenantId tenantId,
-                                     CustomerId customerId, UserId userId, String userName,
-                                     ActionType actionType, int cntTime, Object... additionalInfo) {
+    protected void testLogEntityAction(HasName entity, EntityId originatorId, TenantId tenantId,
+                                       CustomerId customerId, UserId userId, String userName,
+                                       ActionType actionType, int cntTime, Object... additionalInfo) {
         ArgumentMatcher<HasName> matcherEntityEquals = entity == null ? Objects::isNull : argument -> argument.toString().equals(entity.toString());
         ArgumentMatcher<EntityId> matcherOriginatorId = argument -> argument.equals(originatorId);
         ArgumentMatcher<CustomerId> matcherCustomerId = customerId == null ?
@@ -470,10 +470,10 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
                 actionType, cntTime, extractMatcherAdditionalInfo(additionalInfo));
     }
 
-    private void testLogEntityActionEntityEqClass(HasName entity, EntityId originatorId, TenantId tenantId,
-                                                  CustomerId customerId, UserId userId, String userName,
-                                                  ActionType actionType, int cntTime, Object... additionalInfo) {
-        ArgumentMatcher<HasName> matcherEntityEquals = argument -> argument.getClass().equals(entity.getClass());
+    protected void testLogEntityActionEntityEqClass(HasName entity, EntityId originatorId, TenantId tenantId,
+                                                    CustomerId customerId, UserId userId, String userName,
+                                                    ActionType actionType, int cntTime, Object... additionalInfo) {
+        ArgumentMatcher<HasName> matcherEntityEquals = argument -> entity.getClass().isAssignableFrom(argument.getClass());
         ArgumentMatcher<EntityId> matcherOriginatorId = argument -> argument.equals(originatorId);
         ArgumentMatcher<CustomerId> matcherCustomerId = customerId == null ?
                 argument -> argument.getClass().equals(CustomerId.class) : argument -> argument.equals(customerId);
@@ -698,7 +698,7 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
     }
 
     protected String msgErrorFieldLength(String fieldName) {
-        return "length of " + fieldName + " must be equal or less than 255";
+        return fieldName + " length must be equal or less than 255";
     }
 
     protected String msgErrorNoFound(String entityClassName, String entityIdStr) {

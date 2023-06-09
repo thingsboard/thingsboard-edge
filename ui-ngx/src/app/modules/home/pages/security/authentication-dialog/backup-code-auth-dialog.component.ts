@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -36,7 +36,7 @@ import { AppState } from '@core/core.state';
 import { Router } from '@angular/router';
 import { TwoFactorAuthenticationService } from '@core/http/two-factor-authentication.service';
 import { MatDialogRef } from '@angular/material/dialog';
-import { FormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import {
   AccountTwoFaSettings,
   BackupCodeTwoFactorAuthAccountConfig,
@@ -63,7 +63,7 @@ export class BackupCodeAuthDialogComponent extends DialogComponent<BackupCodeAut
               private twoFaService: TwoFactorAuthenticationService,
               private importExportService: ImportExportService,
               public dialogRef: MatDialogRef<BackupCodeAuthDialogComponent>,
-              public fb: FormBuilder) {
+              public fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
     this.twoFaService.generateTwoFaAccountConfig(TwoFactorAuthProviderType.BACKUP_CODE).pipe(
       tap((data: BackupCodeTwoFactorAuthAccountConfig) => this.backupCode = data),

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,7 @@ import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DialogComponent } from '@app/shared/components/dialog.component';
 import { DashboardId } from '@shared/models/id/dashboard-id';
@@ -71,8 +71,8 @@ export class DashboardImageDialogComponent extends DialogComponent<DashboardImag
   safeImageUrl?: SafeUrl;
   dashboardElement: HTMLElement;
 
-  dashboardRectFormGroup: FormGroup;
-  dashboardImageFormGroup: FormGroup;
+  dashboardRectFormGroup: UntypedFormGroup;
+  dashboardImageFormGroup: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
@@ -80,7 +80,7 @@ export class DashboardImageDialogComponent extends DialogComponent<DashboardImag
               public dialogRef: MatDialogRef<DashboardImageDialogComponent, DashboardImageDialogResult>,
               private dashboardService: DashboardService,
               private sanitizer: DomSanitizer,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
 
     this.dashboardId = this.data.dashboardId;

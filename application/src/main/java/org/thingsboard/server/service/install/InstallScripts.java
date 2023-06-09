@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,10 +37,14 @@ import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.TbResource;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AdminSettingsId;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -54,16 +58,19 @@ import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.oauth2.OAuth2ConfigTemplateService;
+import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -71,7 +78,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.thingsboard.server.service.install.DatabaseHelper.objectMapper;
+import static org.thingsboard.server.utils.LwM2mObjectModelUtils.toLwm2mResource;
 
 /**
  * Created by ashvayka on 18.04.18.
@@ -87,6 +94,7 @@ public class InstallScripts {
     public static final String JSON_DIR = "json";
     public static final String SYSTEM_DIR = "system";
     public static final String TENANT_DIR = "tenant";
+    public static final String EDGE_DIR = "edge";
     public static final String DEVICE_PROFILE_DIR = "device_profile";
     public static final String DEMO_DIR = "demo";
     public static final String RULE_CHAINS_DIR = "rule_chains";
@@ -97,9 +105,7 @@ public class InstallScripts {
     public static final String DASHBOARDS_DIR = "dashboards";
     public static final String MAIL_TEMPLATES_DIR = "mail_templates";
     public static final String MAIL_TEMPLATES_JSON = "mail_templates.json";
-    public static final String MODELS_DIR = "models";
-    public static final String CREDENTIALS_DIR = "credentials";
-    public static final String EDGE_MANAGEMENT = "edge_management";
+    public static final String MODELS_LWM2M_DIR = "lwm2m-registry";
 
     public static final String JSON_EXT = ".json";
     public static final String XML_EXT = ".xml";
@@ -131,6 +137,9 @@ public class InstallScripts {
     @Autowired
     private OAuth2ConfigTemplateService oAuth2TemplateService;
 
+    @Autowired
+    private ResourceService resourceService;
+
     private Path getTenantRuleChainsDir() {
         return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, RULE_CHAINS_DIR);
     }
@@ -144,7 +153,7 @@ public class InstallScripts {
     }
 
     private Path getEdgeRuleChainsDir() {
-        return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, EDGE_MANAGEMENT, RULE_CHAINS_DIR);
+        return Paths.get(getDataDir(), JSON_DIR, EDGE_DIR, RULE_CHAINS_DIR);
     }
 
     public String getDataDir() {
@@ -176,8 +185,8 @@ public class InstallScripts {
 
     private RuleChain loadRuleChain(Path path, JsonNode ruleChainJson, TenantId tenantId, String newRuleChainName) {
         try {
-            RuleChain ruleChain = objectMapper.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
-            RuleChainMetaData ruleChainMetaData = objectMapper.treeToValue(ruleChainJson.get("metadata"), RuleChainMetaData.class);
+            RuleChain ruleChain = JacksonUtil.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
+            RuleChainMetaData ruleChainMetaData = JacksonUtil.treeToValue(ruleChainJson.get("metadata"), RuleChainMetaData.class);
 
             ruleChain.setTenantId(tenantId);
             if (!StringUtils.isEmpty(newRuleChainName)) {
@@ -199,7 +208,7 @@ public class InstallScripts {
     }
 
     public RuleChain createRuleChainFromFile(TenantId tenantId, Path templateFilePath, String newRuleChainName) throws IOException {
-        JsonNode ruleChainJson = objectMapper.readTree(templateFilePath.toFile());
+        JsonNode ruleChainJson = JacksonUtil.toJsonNode(templateFilePath.toFile());
         return this.loadRuleChain(templateFilePath, ruleChainJson, tenantId, newRuleChainName);
     }
 
@@ -214,15 +223,15 @@ public class InstallScripts {
             dirStream.forEach(
                     path -> {
                         try {
-                            JsonNode widgetsBundleDescriptorJson = objectMapper.readTree(path.toFile());
+                            JsonNode widgetsBundleDescriptorJson = JacksonUtil.toJsonNode(path.toFile());
                             JsonNode widgetsBundleJson = widgetsBundleDescriptorJson.get("widgetsBundle");
-                            WidgetsBundle widgetsBundle = objectMapper.treeToValue(widgetsBundleJson, WidgetsBundle.class);
+                            WidgetsBundle widgetsBundle = JacksonUtil.treeToValue(widgetsBundleJson, WidgetsBundle.class);
                             WidgetsBundle savedWidgetsBundle = widgetsBundleService.saveWidgetsBundle(widgetsBundle);
                             JsonNode widgetTypesArrayJson = widgetsBundleDescriptorJson.get("widgetTypes");
                             widgetTypesArrayJson.forEach(
                                     widgetTypeJson -> {
                                         try {
-                                            WidgetTypeDetails widgetTypeDetails = objectMapper.treeToValue(widgetTypeJson, WidgetTypeDetails.class);
+                                            WidgetTypeDetails widgetTypeDetails = JacksonUtil.treeToValue(widgetTypeJson, WidgetTypeDetails.class);
                                             widgetTypeDetails.setBundleAlias(savedWidgetsBundle.getAlias());
                                             widgetTypeService.saveWidgetType(widgetTypeDetails);
                                         } catch (Exception e) {
@@ -246,8 +255,8 @@ public class InstallScripts {
             dirStream.forEach(
                     path -> {
                         try {
-                            JsonNode dashboardJson = objectMapper.readTree(path.toFile());
-                            Dashboard dashboard = objectMapper.treeToValue(dashboardJson, Dashboard.class);
+                            JsonNode dashboardJson = JacksonUtil.toJsonNode(path.toFile());
+                            Dashboard dashboard = JacksonUtil.treeToValue(dashboardJson, Dashboard.class);
                             dashboard.setTenantId(tenantId);
                             Dashboard savedDashboard = dashboardService.saveDashboard(dashboard);
                             if (customerId != null && !customerId.isNullUid()) {
@@ -282,7 +291,7 @@ public class InstallScripts {
     public ObjectNode updateMailTemplates(JsonNode oldTemplates) throws IOException {
         JsonNode newTemplates = readMailTemplates();
 
-        ObjectNode result = objectMapper.createObjectNode();
+        ObjectNode result = JacksonUtil.newObjectNode();
         Iterator<String> fieldsIterator = newTemplates.fieldNames();
         while (fieldsIterator.hasNext()) {
             String field = fieldsIterator.next();
@@ -292,9 +301,9 @@ public class InstallScripts {
                 result.set(field, newTemplates.get(field));
             }
         }
-        Optional<String> updated = updateMailTemplatesFromVelocityToFreeMarker(objectMapper.writeValueAsString(result));
+        Optional<String> updated = updateMailTemplatesFromVelocityToFreeMarker(JacksonUtil.toString(result));
         if (updated.isPresent()) {
-            result = (ObjectNode) objectMapper.readTree(updated.get());
+            result = (ObjectNode) JacksonUtil.toJsonNode(updated.get());
         }
         return result;
     }
@@ -311,7 +320,7 @@ public class InstallScripts {
 
     private JsonNode readMailTemplates() throws IOException {
         Path mailTemplatesFile = Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, MAIL_TEMPLATES_DIR, MAIL_TEMPLATES_JSON);
-        return objectMapper.readTree(mailTemplatesFile.toFile());
+        return JacksonUtil.toJsonNode(mailTemplatesFile.toFile());
     }
 
     public void loadDemoRuleChains(TenantId tenantId) {
@@ -331,7 +340,7 @@ public class InstallScripts {
             String key = "${" + entry.getKey() + "}";
             rootRuleChainContent = rootRuleChainContent.replace(key, entry.getValue().toString());
         }
-        JsonNode rootRuleChainJson = objectMapper.readTree(rootRuleChainContent);
+        JsonNode rootRuleChainJson = JacksonUtil.toJsonNode(rootRuleChainContent);
         loadRuleChain(rootRuleChainFile, rootRuleChainJson, tenantId, null);
     }
 
@@ -341,7 +350,7 @@ public class InstallScripts {
             dirStream.forEach(
                     path -> {
                         try {
-                            JsonNode ruleChainJson = objectMapper.readTree(path.toFile());
+                            JsonNode ruleChainJson = JacksonUtil.toJsonNode(path.toFile());
 
                             RuleChain ruleChain = loadRuleChain(path, ruleChainJson, tenantId, null);
                             ruleChainIdMap.put(ruleChain.getName(), ruleChain.getId());
@@ -362,8 +371,8 @@ public class InstallScripts {
             dirStream.forEach(
                     path -> {
                         try {
-                            JsonNode oauth2ConfigTemplateJson = objectMapper.readTree(path.toFile());
-                            OAuth2ClientRegistrationTemplate clientRegistrationTemplate = objectMapper.treeToValue(oauth2ConfigTemplateJson, OAuth2ClientRegistrationTemplate.class);
+                            JsonNode oauth2ConfigTemplateJson = JacksonUtil.toJsonNode(path.toFile());
+                            OAuth2ClientRegistrationTemplate clientRegistrationTemplate = JacksonUtil.treeToValue(oauth2ConfigTemplateJson, OAuth2ClientRegistrationTemplate.class);
                             Optional<OAuth2ClientRegistrationTemplate> existingClientRegistrationTemplate =
                                     oAuth2TemplateService.findClientRegistrationTemplateByProviderId(clientRegistrationTemplate.getProviderId());
                             if (existingClientRegistrationTemplate.isPresent()) {
@@ -378,4 +387,43 @@ public class InstallScripts {
             );
         }
     }
+
+    public void loadSystemLwm2mResources() {
+        Path resourceLwm2mPath = Paths.get(dataDir, MODELS_LWM2M_DIR);
+        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(resourceLwm2mPath, path -> path.toString().endsWith(InstallScripts.XML_EXT))) {
+            dirStream.forEach(
+                    path -> {
+                        try {
+                            String data = Base64.getEncoder().encodeToString(Files.readAllBytes(path));
+                            TbResource tbResource = new TbResource();
+                            tbResource.setTenantId(TenantId.SYS_TENANT_ID);
+                            tbResource.setData(data);
+                            tbResource.setResourceType(ResourceType.LWM2M_MODEL);
+                            tbResource.setFileName(path.toFile().getName());
+                            doSaveLwm2mResource(tbResource);
+                        } catch (Exception e) {
+                            log.error("Unable to load resource lwm2m object model from file: [{}]", path.toString());
+                            throw new RuntimeException("resource lwm2m object model from file", e);
+                        }
+                    }
+            );
+        } catch (Exception e) {
+            log.error("Unable to load resources lwm2m object model from file: [{}]", resourceLwm2mPath.toString());
+            throw new RuntimeException("resource lwm2m object model from file", e);
+        }
+    }
+
+    private void doSaveLwm2mResource(TbResource resource) throws ThingsboardException {
+        log.trace("Executing saveResource [{}]", resource);
+        if (StringUtils.isEmpty(resource.getData())) {
+            throw new DataValidationException("Resource data should be specified!");
+        }
+        toLwm2mResource(resource);
+        TbResource foundResource =
+                resourceService.getResource(TenantId.SYS_TENANT_ID, ResourceType.LWM2M_MODEL, resource.getResourceKey());
+        if (foundResource == null) {
+            resourceService.saveResource(resource);
+        }
+    }
 }
+

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
@@ -40,11 +40,12 @@ import { AdminService } from '@core/http/admin.service';
 import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
 import { MatDialog } from '@angular/material/dialog';
 import { SendTestSmsDialogComponent, SendTestSmsDialogData } from '@home/pages/admin/send-test-sms-dialog.component';
+import { NotificationSettings } from '@shared/models/notification.models';
+import { deepTrim, isDefined, isEmptyStr } from '@core/utils';
+import { NotificationService } from '@core/http/notification.service';
 import { Authority } from '@shared/models/authority.enum';
-import { AuthState } from '@core/auth/auth.models';
-import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { AuthUser } from '@shared/models/user.model';
-import { isDefined } from '@core/utils';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 
@@ -53,41 +54,46 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
   templateUrl: './sms-provider.component.html',
   styleUrls: ['./sms-provider.component.scss', './settings-card.scss']
 })
-export class SmsProviderComponent extends PageComponent implements OnInit, HasConfirmForm {
-
-  authState: AuthState = getCurrentAuthState(this.store);
-
-  authUser: AuthUser = this.authState.authUser;
+export class SmsProviderComponent extends PageComponent implements HasConfirmForm {
 
   smsProvider: FormGroup;
-  adminSettings: AdminSettings<SmsProviderConfiguration>;
+  private adminSettings: AdminSettings<SmsProviderConfiguration>;
 
+  slackSettingsForm: FormGroup;
+  private notificationSettings: NotificationSettings;
+
+  private readonly authUser = getCurrentAuthUser(this.store);
   readonly = this.isTenantAdmin() && !this.userPermissionsService.hasGenericPermission(Resource.WHITE_LABELING, Operation.WRITE);
 
   constructor(protected store: Store<AppState>,
               private router: Router,
               private adminService: AdminService,
+              private notificationService: NotificationService,
               private dialog: MatDialog,
               private userPermissionsService: UserPermissionsService,
               public fb: FormBuilder) {
     super(store);
-  }
-
-  ngOnInit() {
     this.buildSmsProviderForm();
-    this.adminService.getAdminSettings<SmsProviderConfiguration>('sms', false, {ignoreErrors: true}).subscribe(
-      (adminSettings) => {
+    this.buildGeneralServerSettingsForm();
+    this.notificationService.getNotificationSettings().subscribe(
+      (settings) => {
+        this.notificationSettings = settings;
+        this.slackSettingsForm.reset(this.notificationSettings);
+      }
+    );
+    this.adminService.getAdminSettings<SmsProviderConfiguration>('sms', false, {ignoreErrors: true}).subscribe({
+      next: adminSettings => {
         this.adminSettings = adminSettings;
         this.setSmsProviderSettings(this.adminSettings.jsonValue);
       },
-      () => {
+      error: () => {
         this.adminSettings = {
           key: 'sms',
           jsonValue: null
         };
         this.setSmsProviderSettings(this.adminSettings.jsonValue);
       }
-    );
+    });
   }
 
   private setSmsProviderSettings(smsProviderConfiguration: SmsProviderConfiguration) {
@@ -111,7 +117,7 @@ export class SmsProviderComponent extends PageComponent implements OnInit, HasCo
     return this.authUser.authority === Authority.TENANT_ADMIN;
   }
 
-  buildSmsProviderForm() {
+  private buildSmsProviderForm() {
     this.smsProvider = this.fb.group({
       useSystemSmsSettings: [false],
       configuration: [null, [Validators.required]]
@@ -177,7 +183,41 @@ export class SmsProviderComponent extends PageComponent implements OnInit, HasCo
   }
 
   confirmForm(): FormGroup {
-    return this.smsProvider;
+    return this.smsProvider.dirty ? this.smsProvider : this.slackSettingsForm;
   }
 
+  private buildGeneralServerSettingsForm() {
+    this.slackSettingsForm = this.fb.group({
+      deliveryMethodsConfigs: this.fb.group({
+        SLACK: this.fb.group({
+          botToken: ['']
+        })
+      })
+    });
+    if(this.readonly) {
+      this.slackSettingsForm.disable(({emitEvent: false}));
+    } else {
+      this.registerDisableOnLoadFormControl(this.slackSettingsForm.get('deliveryMethodsConfigs'));
+    }
+  }
+
+  saveNotification(): void {
+    this.notificationSettings = deepTrim({
+      ...this.notificationSettings,
+      ...this.slackSettingsForm.value
+    });
+    // eslint-disable-next-line guard-for-in
+    for (const method in this.notificationSettings.deliveryMethodsConfigs) {
+      const keys = Object.keys(this.notificationSettings.deliveryMethodsConfigs[method]);
+      if (keys.some(item => isEmptyStr(this.notificationSettings.deliveryMethodsConfigs[method][item]))) {
+        delete this.notificationSettings.deliveryMethodsConfigs[method];
+      } else {
+        this.notificationSettings.deliveryMethodsConfigs[method].method = method;
+      }
+    }
+    this.notificationService.saveNotificationSettings(this.notificationSettings).subscribe(setting => {
+      this.notificationSettings = setting;
+      this.slackSettingsForm.reset(this.notificationSettings);
+    });
+  }
 }

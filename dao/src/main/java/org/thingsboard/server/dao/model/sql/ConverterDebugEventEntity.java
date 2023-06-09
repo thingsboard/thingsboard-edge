@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,32 +34,21 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.event.ConverterDebugEvent;
-import org.thingsboard.server.common.data.event.RuleNodeDebugEvent;
-import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseEntity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_DEBUG_EVENT_TABLE_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.EVENT_DATA_COLUMN_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.EVENT_DATA_TYPE_COLUMN_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.EVENT_ENTITY_ID_COLUMN_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.EVENT_ENTITY_TYPE_COLUMN_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.EVENT_ERROR_COLUMN_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.EVENT_IN_MSG_COLUMN_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.EVENT_IN_MSG_TYPE_COLUMN_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.EVENT_METADATA_COLUMN_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.EVENT_MSG_ID_COLUMN_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.EVENT_MSG_TYPE_COLUMN_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.EVENT_OUT_MSG_COLUMN_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.EVENT_OUT_MSG_TYPE_COLUMN_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.EVENT_RELATION_TYPE_COLUMN_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.EVENT_TYPE_COLUMN_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.RULE_NODE_DEBUG_EVENT_TABLE_NAME;
 
 @Data
 @EqualsAndHashCode(callSuper = true)

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -41,23 +41,22 @@ import org.eclipse.californium.core.network.Exchange;
 import org.eclipse.californium.core.server.resources.CoapExchange;
 import org.eclipse.californium.core.server.resources.Resource;
 import org.springframework.util.CollectionUtils;
+import org.thingsboard.server.common.adaptor.AdaptorException;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.device.profile.CoapDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.EfentoCoapDeviceTypeConfiguration;
-import org.thingsboard.server.common.adaptor.AdaptorException;
 import org.thingsboard.server.common.transport.auth.SessionInfoCreator;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceTokenRequestMsg;
 import org.thingsboard.server.gen.transport.coap.MeasurementTypeProtos.MeasurementType;
-import org.thingsboard.server.gen.transport.coap.MeasurementsProtos.ProtoMeasurements;
 import org.thingsboard.server.gen.transport.coap.MeasurementsProtos.ProtoChannel;
+import org.thingsboard.server.gen.transport.coap.MeasurementsProtos.ProtoMeasurements;
 import org.thingsboard.server.transport.coap.AbstractCoapTransportResource;
 import org.thingsboard.server.transport.coap.CoapTransportContext;
 import org.thingsboard.server.transport.coap.callback.CoapDeviceAuthCallback;
 import org.thingsboard.server.transport.coap.callback.CoapEfentoCallback;
-import org.thingsboard.server.transport.coap.callback.CoapOkCallback;
 import org.thingsboard.server.transport.coap.efento.utils.CoapEfentoUtils;
 
 import java.nio.ByteBuffer;

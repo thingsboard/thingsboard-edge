@@ -1,0 +1,162 @@
+[
+  {
+    "name": "389021001291",
+    "label": "",
+    "type": "Waste Sensor",
+    "group": "Waste Sensors",
+    "emulator": "Garbage Bins Emulator",
+    "attributes": {
+      "latitude": 33.8936843,
+      "longitude": -118.3965735,
+      "address": "Oak Avenue, 2304",
+      "inactivityTimeout": 7200000,
+      "isFull": false,
+      "isLowBattery": false
+    },
+    "relations": []
+  },
+  {
+    "name": "389021001305",
+    "label": "",
+    "type": "Waste Sensor",
+    "group": "Waste Sensors",
+    "emulator": "Garbage Bins Emulator",
+    "attributes": {
+      "latitude": 33.888286,
+      "longitude": -118.38513,
+      "address": "Manhattan Beach Blvd, 1601",
+      "inactivityTimeout": 7200000,
+      "isFull": false,
+      "isLowBattery": false
+    },
+    "relations": []
+  },
+  {
+    "name": "389021001273",
+    "label": "",
+    "type": "Waste Sensor",
+    "group": "Waste Sensors",
+    "emulator": "Garbage Bins Emulator",
+    "attributes": {
+      "latitude": 33.89108,
+      "longitude": -118.38962,
+      "address": "18th St, 1401",
+      "inactivityTimeout": 7200000,
+      "isFull": false,
+      "isLowBattery": false
+    },
+    "relations": []
+  },
+  {
+    "name": "389021001228",
+    "label": "",
+    "type": "Waste Sensor",
+    "group": "Waste Sensors",
+    "emulator": "Garbage Bins Emulator",
+    "attributes": {
+      "latitude": 33.8854546,
+      "longitude": -118.3952727,
+      "address": "10th St, 1126",
+      "inactivityTimeout": 7200000,
+      "isFull": false,
+      "isLowBattery": false
+    },
+    "relations": []
+  },
+  {
+    "name": "389021001241",
+    "label": "",
+    "type": "Waste Sensor",
+    "group": "Waste Sensors",
+    "emulator": "Garbage Bins Emulator",
+    "attributes": {
+      "latitude": 33.8847724,
+      "longitude": -118.3870622,
+      "address": "9th St, 1501",
+      "inactivityTimeout": 7200000,
+      "isFull": false,
+      "isLowBattery": false
+    },
+    "relations": []
+  },
+  {
+    "name": "389021001302",
+    "label": "",
+    "type": "Waste Sensor",
+    "group": "Waste Sensors",
+    "emulator": "Garbage Bins Emulator",
+    "attributes": {
+      "latitude": 33.8929445,
+      "longitude": -118.3804986,
+      "address": "Faymont Avenue, 2102",
+      "inactivityTimeout": 7200000,
+      "isFull": false,
+      "isLowBattery": false
+    },
+    "relations": []
+  },
+  {
+    "name": "389021001318",
+    "label": "",
+    "type": "Waste Sensor",
+    "group": "Waste Sensors",
+    "emulator": "Garbage Bins Emulator",
+    "attributes": {
+      "latitude": 33.88605217,
+      "longitude": -118.382587,
+      "address": "Redondo Avenue, 1016",
+      "inactivityTimeout": 7200000,
+      "isFull": false,
+      "isLowBattery": false
+    },
+    "relations": []
+  },
+  {
+    "name": "389021001299",
+    "label": "",
+    "type": "Waste Sensor",
+    "group": "Waste Sensors",
+    "emulator": "Garbage Bins Emulator",
+    "attributes": {
+      "latitude": 33.89506547,
+      "longitude": -118.389860,
+      "address": "Village Circle, 2",
+      "inactivityTimeout": 7200000,
+      "isFull": false,
+      "isLowBattery": false
+    },
+    "relations": []
+  },
+  {
+    "name": "389021001250",
+    "label": "",
+    "type": "Waste Sensor",
+    "group": "Waste Sensors",
+    "emulator": "Garbage Bins Emulator",
+    "attributes": {
+      "latitude": 33.8938007,
+      "longitude": -118.3849467,
+      "address": "23rd St, 1600",
+      "inactivityTimeout": 7200000,
+      "isFull": false,
+      "isLowBattery": false
+    },
+    "relations": []
+  },
+  {
+    "name": "389021001264",
+    "label": "",
+    "type": "Waste Sensor",
+    "group": "Waste Sensors",
+    "emulator": null,
+    "attributes": {
+      "latitude": 33.8905202,
+      "longitude": -118.394159,
+      "address": "Sepulveda Blvd, 1700",
+      "inactivityTimeout": 7200000,
+      "isFull": false,
+      "isLowBattery": false
+    },
+    "relations": []
+  }
+]

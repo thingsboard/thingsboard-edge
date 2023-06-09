@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -51,7 +51,7 @@ import { AppState } from '@core/core.state';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { BaseData, HasId, hasIdEquals } from '@shared/models/base-data';
 import { EntityType, EntityTypeResource, EntityTypeTranslation } from '@shared/models/entity-type.models';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { EntityComponent } from './entity.component';
 import { TbAnchorComponent } from '@shared/components/tb-anchor.component';
 import { EntityAction } from '@home/models/entity/entity-component.models';
@@ -83,7 +83,7 @@ export class EntityDetailsPanelComponent extends PageComponent implements AfterV
 
   entityTabsComponentRef: ComponentRef<EntityTabsComponent<BaseData<HasId>>>;
   entityTabsComponent: EntityTabsComponent<BaseData<HasId>>;
-  detailsForm: FormGroup;
+  detailsForm: UntypedFormGroup;
 
   entitiesTableConfigValue: EntityTableConfig<BaseData<HasId>>;
   isEditValue = false;

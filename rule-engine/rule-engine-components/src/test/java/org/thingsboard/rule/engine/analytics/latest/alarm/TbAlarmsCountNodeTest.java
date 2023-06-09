@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,6 @@
 package org.thingsboard.rule.engine.analytics.latest.alarm;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Futures;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -48,6 +47,7 @@ import org.mockito.internal.verification.Times;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.Stubber;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesRelationsQuery;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
@@ -237,8 +237,7 @@ public class TbAlarmsCountNodeTest {
         config.setPeriodValue(0);
         config.setOutMsgType(SessionMsgType.POST_TELEMETRY_REQUEST.name());
 
-        ObjectMapper mapper = new ObjectMapper();
-        nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
+        nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
 
         expectedAllAlarmsCountMap = new HashMap<>();
         expectedActiveAlarmsCountMap = new HashMap<>();
@@ -361,7 +360,9 @@ public class TbAlarmsCountNodeTest {
 
             alarm.setId(new AlarmId(Uuids.startOf(createdTime)));
             int alarmStatusOrdinal = (int)Math.floor(Math.random() * AlarmStatus.values().length);
-            alarm.setStatus(AlarmStatus.values()[alarmStatusOrdinal]);
+            var alarmStatus = AlarmStatus.values()[alarmStatusOrdinal];
+            alarm.setCleared(alarmStatus.isCleared());
+            alarm.setAcknowledged(alarmStatus.isAck());
             alarm.setStartTs(createdTime);
             alarm.setCreatedTime(createdTime);
             alarm.setSeverity(AlarmSeverity.CRITICAL);
@@ -442,7 +443,7 @@ public class TbAlarmsCountNodeTest {
                     alarmCounts.set(i, count);
                 }
                 if (alarms.hasNext()) {
-                    query = new AlarmQuery(query.getAffectedEntityId(), query.getPageLink(), query.getSearchStatus(), query.getStatus(), false);
+                    query = new AlarmQuery(query.getAffectedEntityId(), query.getPageLink(), query.getSearchStatus(), query.getStatus(), null, false);
                 }
             } catch (ExecutionException | InterruptedException e) {
                 log.warn("Failed to find alarms by query. Query: [{}]", query);

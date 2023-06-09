@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,6 @@ package org.thingsboard.server.service.solutions.data.values;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.thingsboard.server.service.solutions.data.definition.TelemetryProfile;
 
-import static org.thingsboard.server.service.solutions.data.values.GeneratorTools.getMultiplier;
 import static org.thingsboard.server.service.solutions.data.values.GeneratorTools.randomLong;
 
 
@@ -41,7 +40,7 @@ public class EventTelemetryGenerator extends TelemetryGenerator {
 
     private final EventValueStrategyDefinition strategy;
     private final long currentAnomaly;
-    private boolean value;
+    private Object value;
 
     public EventTelemetryGenerator(TelemetryProfile telemetryProfile) {
         super(telemetryProfile);
@@ -55,8 +54,16 @@ public class EventTelemetryGenerator extends TelemetryGenerator {
         if (randomLong(0, strategy.getAnomalyChance()) == currentAnomaly) {
             anomaly = true;
         }
-        this.value = anomaly ? strategy.isAnomalyValue() : strategy.isNormalValue();
-        values.put(key, value);
+        this.value = anomaly ? strategy.getAnomalyValue() : strategy.getNormalValue();
+        if (value instanceof Boolean) {
+            values.put(key, (Boolean) value);
+        } else if (value instanceof Double) {
+            values.put(key, ((Double) value));
+        } else if (value instanceof Integer) {
+            values.put(key, ((Integer) value));
+        } else {
+            throw new RuntimeException("Not supported value for event telemetry generator: " + value);
+        }
     }
 
 }

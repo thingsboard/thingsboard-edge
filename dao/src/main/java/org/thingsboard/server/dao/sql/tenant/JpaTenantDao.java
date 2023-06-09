@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,7 +44,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.TenantEntity;
 import org.thingsboard.server.dao.model.sql.TenantInfoEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.tenant.TenantDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
@@ -58,7 +58,7 @@ import java.util.stream.Collectors;
  */
 @Component
 @SqlDao
-public class JpaTenantDao extends JpaAbstractSearchTextDao<TenantEntity, Tenant> implements TenantDao {
+public class JpaTenantDao extends JpaAbstractDao<TenantEntity, Tenant> implements TenantDao {
 
     @Autowired
     private TenantRepository tenantRepository;

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,7 +44,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.integration.IntegrationDao;
 import org.thingsboard.server.dao.model.sql.IntegrationEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
@@ -55,7 +55,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 @SqlDao
-public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntity, Integration> implements IntegrationDao {
+public class JpaIntegrationDao extends JpaAbstractDao<IntegrationEntity, Integration> implements IntegrationDao {
 
     @Autowired
     private IntegrationRepository integrationRepository;
@@ -119,6 +119,11 @@ public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntit
                         edgeId,
                         Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public Long countCoreIntegrations() {
+        return integrationRepository.countByEdgeTemplateFalse();
     }
 
     @Override

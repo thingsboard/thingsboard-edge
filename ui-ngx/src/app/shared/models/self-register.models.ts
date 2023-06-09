@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,9 +31,13 @@
 
 import { GroupPermission } from '@shared/models/group-permission.models';
 
+export type CaptchaVersion = 'v2' | 'v3';
+
 export interface SignUpSelfRegistrationParams {
   signUpTextMessage?: string;
   captchaSiteKey?: string;
+  captchaVersion?: CaptchaVersion;
+  captchaAction?: string;
   activate?: boolean;
   showPrivacyPolicy?: boolean;
   showTermsOfUse?: boolean;

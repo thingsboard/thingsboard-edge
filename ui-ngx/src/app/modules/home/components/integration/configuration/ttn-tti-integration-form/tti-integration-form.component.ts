@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,9 +31,7 @@
 
 import { Component, forwardRef } from '@angular/core';
 import { FormBuilder, NG_VALIDATORS, NG_VALUE_ACCESSOR } from '@angular/forms';
-import {
-  TtnIntegrationFormComponent
-} from './ttn-integration-form.component';
+import { TtnIntegrationFormComponent } from './ttn-integration-form.component';
 
 @Component({
   selector: 'tb-tti-integration-form',
@@ -53,11 +51,6 @@ import {
 export class TtiIntegrationFormComponent extends TtnIntegrationFormComponent {
 
   hostRegionSuffix = '.cloud.thethings.industries';
-
-  userNameLabel = 'integration.username';
-  userNameRequired = 'integration.username-required';
-  passwordLabel = 'integration.password';
-  passwordRequired = 'integration.password-required';
 
   hideSelectVersion = true;
 

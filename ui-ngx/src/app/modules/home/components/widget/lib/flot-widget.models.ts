@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,16 +29,24 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-// tslint:disable-next-line:no-reference
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="../../../../../../../src/typings/jquery.flot.typings.d.ts" />
 
-import { DataKey, Datasource, DatasourceData, FormattedData, JsonSettingsSchema } from '@shared/models/widget.models';
+import {
+  DataKey,
+  Datasource,
+  DatasourceData,
+  FormattedData,
+  JsonSettingsSchema,
+  LegendConfig
+} from '@shared/models/widget.models';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { ComparisonDuration } from '@shared/models/time/time.models';
 
 export declare type ChartType = 'line' | 'pie' | 'bar' | 'state' | 'graph';
 
-export declare type TbFlotSettings = TbFlotBaseSettings & TbFlotGraphSettings & TbFlotBarSettings & TbFlotPieSettings;
+export declare type TbFlotSettings = TbFlotBaseSettings & TbFlotLegendSettings &
+  TbFlotGraphSettings & TbFlotBarSettings & TbFlotPieSettings;
 
 export declare type TooltipValueFormatFunction = (value: any, latestData: FormattedData) => string;
 
@@ -156,6 +164,11 @@ export interface TbFlotBaseSettings {
   yaxis: TbFlotYAxisSettings;
 }
 
+export interface TbFlotLegendSettings {
+  showLegend?: boolean;
+  legendConfig?: LegendConfig;
+}
+
 export interface TbFlotComparisonSettings {
   comparisonEnabled: boolean;
   timeForComparison: ComparisonDuration;
@@ -235,6 +248,7 @@ export interface TbFlotKeySettings {
   removeFromLegend: boolean;
   showLines: boolean;
   fillLines: boolean;
+  fillLinesOpacity: number;
   showPoints: boolean;
   showPointShape: string;
   pointShapeFormatter: string;

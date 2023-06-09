@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,8 @@ import { ChangeDetectorRef, Component, EventEmitter, Input, Output } from '@angu
 import { ClipboardService } from 'ngx-clipboard';
 import { TooltipPosition } from '@angular/material/tooltip';
 import { TranslateService } from '@ngx-translate/core';
+import { ThemePalette } from '@angular/material/core';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-copy-button',
@@ -49,6 +51,7 @@ export class CopyButtonComponent {
   copyText: string;
 
   @Input()
+  @coerceBoolean()
   disabled = false;
 
   @Input()
@@ -67,7 +70,11 @@ export class CopyButtonComponent {
   style: {[key: string]: any} = {};
 
   @Input()
-  color: string;
+  color: ThemePalette;
+
+  @Input()
+  @coerceBoolean()
+  miniButton = true;
 
   @Output()
   successCopied = new EventEmitter<string>();

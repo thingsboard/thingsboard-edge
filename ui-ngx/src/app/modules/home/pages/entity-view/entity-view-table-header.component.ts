@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,29 +29,43 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityTableHeaderComponent } from '../../components/entity/entity-table-header.component';
 import { EntityType } from '@shared/models/entity-type.models';
-import { EntityView } from '@app/shared/models/entity-view.models';
+import { EntityView, EntityViewInfo } from '@app/shared/models/entity-view.models';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { Authority } from '@shared/models/authority.enum';
 
 @Component({
   selector: 'tb-entity-view-table-header',
   templateUrl: './entity-view-table-header.component.html',
-  styleUrls: ['./entity-view-table-header.component.scss']
+  styleUrls: []
 })
-export class EntityViewTableHeaderComponent extends EntityTableHeaderComponent<EntityView> {
+export class EntityViewTableHeaderComponent extends EntityTableHeaderComponent<EntityViewInfo | EntityView> implements OnInit {
 
   entityType = EntityType;
+
+  includeCustomersLabel: string;
 
   constructor(protected store: Store<AppState>) {
     super(store);
   }
 
+  ngOnInit() {
+    super.ngOnInit();
+    this.includeCustomersLabel = (getCurrentAuthUser(this.store).authority === Authority.CUSTOMER_USER ||
+      this.entitiesTableConfig.customerId) ? 'entity.include-sub-customer-entities' : 'entity.include-customer-entities';
+  }
+
   entityViewTypeChanged(entityViewType: string) {
     this.entitiesTableConfig.componentsData.entityViewType = entityViewType;
     this.entitiesTableConfig.getTable().resetSortAndFilter(true);
+  }
+
+  includeCustomersChanged(includeCustomers: boolean) {
+    this.entitiesTableConfig.componentsData.includeCustomersChanged(includeCustomers);
   }
 
 }

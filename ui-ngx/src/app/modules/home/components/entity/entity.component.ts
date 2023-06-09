@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
 ///
 
 import { BaseData, HasId } from '@shared/models/base-data';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { PageComponent } from '@shared/components/page.component';
 import { ChangeDetectorRef, Directive, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { Store } from '@ngrx/store';
@@ -42,14 +42,14 @@ import { deepTrim } from '@core/utils';
 
 // @dynamic
 @Directive()
-// tslint:disable-next-line:directive-class-suffix
+// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export abstract class EntityComponent<T extends BaseData<HasId>,
   P extends PageLink = PageLink,
   L extends BaseData<HasId> = T,
   C extends EntityTableConfig<T, P, L> = EntityTableConfig<T, P, L>>
   extends PageComponent implements OnInit {
 
-  entityForm: FormGroup;
+  entityForm: UntypedFormGroup;
 
   isEditValue: boolean;
 
@@ -96,7 +96,7 @@ export abstract class EntityComponent<T extends BaseData<HasId>,
   entityAction = new EventEmitter<EntityAction<T>>();
 
   protected constructor(protected store: Store<AppState>,
-                        protected fb: FormBuilder,
+                        protected fb: UntypedFormBuilder,
                         protected entityValue: T,
                         protected entitiesTableConfigValue: C,
                         protected cd: ChangeDetectorRef) {
@@ -141,7 +141,7 @@ export abstract class EntityComponent<T extends BaseData<HasId>,
     this.entitiesTableConfigValue = entitiesTableConfig;
   }
 
-  abstract buildForm(entity: T): FormGroup;
+  abstract buildForm(entity: T): UntypedFormGroup;
 
   abstract updateForm(entity: T);
 

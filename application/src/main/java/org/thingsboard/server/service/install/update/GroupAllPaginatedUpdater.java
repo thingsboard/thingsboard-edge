@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,11 +30,11 @@
  */
 package org.thingsboard.server.service.install.update;
 
-import org.thingsboard.server.common.data.SearchTextBased;
+import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.UUIDBased;
 
-public abstract class GroupAllPaginatedUpdater<I, D extends SearchTextBased<? extends UUIDBased>> extends PaginatedUpdater<I,D> {
+public abstract class GroupAllPaginatedUpdater<I, D extends BaseDataWithAdditionalInfo<? extends UUIDBased>> extends PaginatedUpdater<I,D> {
 
     protected final EntityGroup groupAll;
 

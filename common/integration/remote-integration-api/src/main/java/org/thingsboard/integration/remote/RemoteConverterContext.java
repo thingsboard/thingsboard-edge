@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,6 @@
  */
 package org.thingsboard.integration.remote;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +48,6 @@ public class RemoteConverterContext implements ConverterContext {
 
     private final EventStorage eventStorage;
     private final boolean isUplink;
-    private final ObjectMapper mapper;
     private final String clientId;
     private final int port;
 

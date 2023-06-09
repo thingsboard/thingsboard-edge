@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,7 +42,6 @@ import org.thingsboard.server.common.data.kv.JsonDataEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.dao.asset.AssetService;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.util.TbRuleEngineComponent;
 import org.thingsboard.server.service.queue.TbRuleEngineConsumerStats;
@@ -92,8 +91,8 @@ public class DefaultRuleEngineStatisticsService implements RuleEngineStatisticsS
     public void reportQueueStats(long ts, TbRuleEngineConsumerStats ruleEngineStats) {
         String queueName = ruleEngineStats.getQueueName();
         ruleEngineStats.getTenantStats().forEach((id, stats) -> {
-            TenantId tenantId = TenantId.fromUUID(id);
             try {
+                TenantId tenantId = TenantId.fromUUID(id);
                 AssetId serviceAssetId = getServiceAssetId(tenantId, queueName);
                 if (stats.getTotalMsgCounter().get() > 0) {
                     List<TsKvEntry> tsList = stats.getCounters().entrySet().stream()
@@ -103,19 +102,19 @@ public class DefaultRuleEngineStatisticsService implements RuleEngineStatisticsS
                         tsService.saveAndNotifyInternal(tenantId, serviceAssetId, tsList, CALLBACK);
                     }
                 }
-            } catch (DataValidationException e) {
-                if (!e.getMessage().equalsIgnoreCase("Asset is referencing to non-existent tenant!")) {
-                    throw e;
+            } catch (Exception e) {
+                if (!"Asset is referencing to non-existent tenant!".equalsIgnoreCase(e.getMessage())) {
+                    log.debug("[{}] Failed to store the statistics", id, e);
                 }
             }
         });
         ruleEngineStats.getTenantExceptions().forEach((tenantId, e) -> {
-            TsKvEntry tsKv = new BasicTsKvEntry(e.getTs(), new JsonDataEntry("ruleEngineException", e.toJsonString()));
             try {
+                TsKvEntry tsKv = new BasicTsKvEntry(e.getTs(), new JsonDataEntry("ruleEngineException", e.toJsonString()));
                 tsService.saveAndNotifyInternal(tenantId, getServiceAssetId(tenantId, queueName), Collections.singletonList(tsKv), CALLBACK);
-            } catch (DataValidationException e2) {
-                if (!e2.getMessage().equalsIgnoreCase("Asset is referencing to non-existent tenant!")) {
-                    throw e2;
+            } catch (Exception e2) {
+                if (!"Asset is referencing to non-existent tenant!".equalsIgnoreCase(e2.getMessage())) {
+                    log.debug("[{}] Failed to store the statistics", tenantId, e2);
                 }
             }
         });

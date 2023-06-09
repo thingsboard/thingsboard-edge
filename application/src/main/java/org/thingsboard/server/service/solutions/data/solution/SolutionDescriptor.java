@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,5 +39,8 @@ public class SolutionDescriptor extends SolutionTemplate {
 
     private List<String> imageUrls;
     private String previewImageUrl;
+    private String videoPreviewImageUrl;
+    private String previewMp4Url;
+    private String previewWebmUrl;
 
 }

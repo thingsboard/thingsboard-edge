@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
 ///
 
 import { Component, forwardRef, Input, OnDestroy } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { isEmpty, isUndefinedOrNull } from '@core/utils';
 import { Lwm2mAttributesDialogComponent, Lwm2mAttributesDialogData } from './lwm2m-attributes-dialog.component';
@@ -50,10 +50,10 @@ import { takeUntil } from 'rxjs/operators';
   }]
 })
 export class Lwm2mAttributesComponent implements ControlValueAccessor, OnDestroy {
-  attributesFormGroup: FormGroup;
+  attributesFormGroup: UntypedFormGroup;
 
   private requiredValue: boolean;
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   @Input()
   isAttributeTelemetry: boolean;
@@ -76,7 +76,7 @@ export class Lwm2mAttributesComponent implements ControlValueAccessor, OnDestroy
   }
 
   constructor(private dialog: MatDialog,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.attributesFormGroup = this.fb.group({
       attributes: [{}]
     });

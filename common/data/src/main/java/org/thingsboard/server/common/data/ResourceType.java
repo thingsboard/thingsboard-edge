@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,21 @@
  */
 package org.thingsboard.server.common.data;
 
+import lombok.Getter;
+
 public enum ResourceType {
-    LWM2M_MODEL, JKS, PKCS_12
+    LWM2M_MODEL("application/xml", false),
+    JKS("application/x-java-keystore", false),
+    PKCS_12("application/x-pkcs12", false),
+    JS_MODULE("application/javascript", true);
+
+    @Getter
+    private final String mediaType;
+    @Getter
+    private final boolean customerAccess;
+
+    ResourceType(String mediaType, boolean customerAccess) {
+        this.mediaType = mediaType;
+        this.customerAccess = customerAccess;
+    }
 }

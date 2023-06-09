@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,7 @@
 
 import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, Sanitizer } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import {
   EntityDataInfo,
   SingleEntityVersionLoadRequest, VersionCreationResult,
@@ -82,7 +82,7 @@ export class EntityVersionRestoreComponent extends PageComponent implements OnIn
 
   entityDataInfo: EntityDataInfo = null;
 
-  restoreFormGroup: FormGroup;
+  restoreFormGroup: UntypedFormGroup;
 
   errorMessage: SafeHtml;
 
@@ -95,7 +95,7 @@ export class EntityVersionRestoreComponent extends PageComponent implements OnIn
               private cd: ChangeDetectorRef,
               private translate: TranslateService,
               private sanitizer: DomSanitizer,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 

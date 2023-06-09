@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +62,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_U
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
-@Table(name = ModelConstants.GROUP_PERMISSION_TABLE_FAMILY_NAME)
+@Table(name = ModelConstants.GROUP_PERMISSION_TABLE_NAME)
 @Slf4j
 public class GroupPermissionEntity extends BaseSqlEntity<GroupPermission> {
 
@@ -85,8 +84,6 @@ public class GroupPermissionEntity extends BaseSqlEntity<GroupPermission> {
 
     @Column(name = GROUP_PERMISSION_IS_PUBLIC_PROPERTY)
     private boolean isPublic;
-
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     public GroupPermissionEntity() {
         super();

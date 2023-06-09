@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,7 @@
 package org.thingsboard.integration.tcpip.configs;
 
 import lombok.Data;
+import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.tcpip.AbstractIpIntegration;
 import org.thingsboard.integration.tcpip.HandlerConfiguration;
 
@@ -43,4 +44,8 @@ public class HexHandlerConfiguration implements HandlerConfiguration {
     public String getHandlerType() {
         return AbstractIpIntegration.HEX_PAYLOAD;
     }
+
+    @Override
+    public UplinkContentType getUplinkContentType() {return UplinkContentType.JSON;}
+
 }

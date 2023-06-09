@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,7 +32,7 @@
 import { ChangeDetectorRef, Component, Inject, Input, Optional } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActionNotificationShow } from '@app/core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
@@ -57,6 +57,7 @@ import { ServiceType } from '@shared/models/queue.models';
 import { EntityId } from '@shared/models/id/entity-id';
 import { OtaUpdateType } from '@shared/models/ota-package.models';
 import { DashboardId } from '@shared/models/id/dashboard-id';
+import { RuleChainType } from '@shared/models/rule-chain.models';
 
 @Component({
   selector: 'tb-device-profile',
@@ -86,6 +87,8 @@ export class DeviceProfileComponent extends EntityComponent<DeviceProfile> {
 
   serviceType = ServiceType.TB_RULE_ENGINE;
 
+  edgeRuleChainType = RuleChainType.EDGE;
+
   deviceProfileId: EntityId;
 
   otaUpdateType = OtaUpdateType;
@@ -94,7 +97,7 @@ export class DeviceProfileComponent extends EntityComponent<DeviceProfile> {
               protected translate: TranslateService,
               @Optional() @Inject('entity') protected entityValue: DeviceProfile,
               @Optional() @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<DeviceProfile>,
-              protected fb: FormBuilder,
+              protected fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
@@ -107,7 +110,7 @@ export class DeviceProfileComponent extends EntityComponent<DeviceProfile> {
     }
   }
 
-  buildForm(entity: DeviceProfile): FormGroup {
+  buildForm(entity: DeviceProfile): UntypedFormGroup {
     this.deviceProfileId = entity?.id ? entity.id : null;
     this.displayProfileConfiguration = entity && entity.type &&
       deviceProfileTypeConfigurationInfoMap.get(entity.type).hasProfileConfiguration;
@@ -116,7 +119,9 @@ export class DeviceProfileComponent extends EntityComponent<DeviceProfile> {
     const deviceProvisionConfiguration: DeviceProvisionConfiguration = {
       type: entity?.provisionType ? entity.provisionType : DeviceProvisionType.DISABLED,
       provisionDeviceKey: entity?.provisionDeviceKey,
-      provisionDeviceSecret: entity?.profileData?.provisionConfiguration?.provisionDeviceSecret
+      provisionDeviceSecret: entity?.profileData?.provisionConfiguration?.provisionDeviceSecret,
+      certificateRegExPattern: entity?.profileData?.provisionConfiguration?.certificateRegExPattern,
+      allowCreateNewDevicesByX509Certificate: entity?.profileData?.provisionConfiguration?.allowCreateNewDevicesByX509Certificate
     };
     const form = this.fb.group(
       {
@@ -133,6 +138,7 @@ export class DeviceProfileComponent extends EntityComponent<DeviceProfile> {
         defaultRuleChainId: [entity && entity.defaultRuleChainId ? entity.defaultRuleChainId.id : null, []],
         defaultDashboardId: [entity && entity.defaultDashboardId ? entity.defaultDashboardId.id : null, []],
         defaultQueueName: [entity ? entity.defaultQueueName : null, []],
+        defaultEdgeRuleChainId: [entity && entity.defaultEdgeRuleChainId ? entity.defaultEdgeRuleChainId.id : null, []],
         firmwareId: [entity ? entity.firmwareId : null],
         softwareId: [entity ? entity.softwareId : null],
         description: [entity ? entity.description : '', []],
@@ -148,7 +154,7 @@ export class DeviceProfileComponent extends EntityComponent<DeviceProfile> {
     return form;
   }
 
-  private checkIsNewDeviceProfile(entity: DeviceProfile, form: FormGroup) {
+  private checkIsNewDeviceProfile(entity: DeviceProfile, form: UntypedFormGroup) {
     if (entity && !entity.id) {
       form.get('type').patchValue(DeviceProfileType.DEFAULT, {emitEvent: true});
       form.get('transportType').patchValue(DeviceTransportType.DEFAULT, {emitEvent: true});
@@ -156,7 +162,7 @@ export class DeviceProfileComponent extends EntityComponent<DeviceProfile> {
     }
   }
 
-  private deviceProfileTypeChanged(form: FormGroup) {
+  private deviceProfileTypeChanged(form: UntypedFormGroup) {
     const deviceProfileType: DeviceProfileType = form.get('type').value;
     this.displayProfileConfiguration = deviceProfileType &&
       deviceProfileTypeConfigurationInfoMap.get(deviceProfileType).hasProfileConfiguration;
@@ -171,7 +177,7 @@ export class DeviceProfileComponent extends EntityComponent<DeviceProfile> {
     form.patchValue({profileData});
   }
 
-  private deviceProfileTransportTypeChanged(form: FormGroup) {
+  private deviceProfileTransportTypeChanged(form: UntypedFormGroup) {
     const deviceTransportType: DeviceTransportType = form.get('transportType').value;
     this.displayTransportConfiguration = deviceTransportType &&
       deviceTransportTypeConfigurationInfoMap.get(deviceTransportType).hasProfileConfiguration;
@@ -196,7 +202,9 @@ export class DeviceProfileComponent extends EntityComponent<DeviceProfile> {
     const deviceProvisionConfiguration: DeviceProvisionConfiguration = {
       type: entity?.provisionType ? entity.provisionType : DeviceProvisionType.DISABLED,
       provisionDeviceKey: entity?.provisionDeviceKey,
-      provisionDeviceSecret: entity?.profileData?.provisionConfiguration?.provisionDeviceSecret
+      provisionDeviceSecret: entity?.profileData?.provisionConfiguration?.provisionDeviceSecret,
+      certificateRegExPattern: entity?.profileData?.provisionConfiguration?.certificateRegExPattern,
+      allowCreateNewDevicesByX509Certificate: entity?.profileData?.provisionConfiguration?.allowCreateNewDevicesByX509Certificate
     };
     this.entityForm.patchValue({name: entity.name});
     this.entityForm.patchValue({type: entity.type}, {emitEvent: false});
@@ -213,6 +221,7 @@ export class DeviceProfileComponent extends EntityComponent<DeviceProfile> {
     this.entityForm.patchValue({defaultRuleChainId: entity.defaultRuleChainId ? entity.defaultRuleChainId.id : null}, {emitEvent: false});
     this.entityForm.patchValue({defaultDashboardId: entity.defaultDashboardId ? entity.defaultDashboardId.id : null}, {emitEvent: false});
     this.entityForm.patchValue({defaultQueueName: entity.defaultQueueName}, {emitEvent: false});
+    this.entityForm.patchValue({defaultEdgeRuleChainId: entity.defaultEdgeRuleChainId ? entity.defaultEdgeRuleChainId.id : null}, {emitEvent: false});
     this.entityForm.patchValue({firmwareId: entity.firmwareId}, {emitEvent: false});
     this.entityForm.patchValue({softwareId: entity.softwareId}, {emitEvent: false});
     this.entityForm.patchValue({description: entity.description}, {emitEvent: false});
@@ -224,6 +233,9 @@ export class DeviceProfileComponent extends EntityComponent<DeviceProfile> {
     }
     if (formValue.defaultDashboardId) {
       formValue.defaultDashboardId = new DashboardId(formValue.defaultDashboardId);
+    }
+    if (formValue.defaultEdgeRuleChainId) {
+      formValue.defaultEdgeRuleChainId = new RuleChainId(formValue.defaultEdgeRuleChainId);
     }
     const deviceProvisionConfiguration: DeviceProvisionConfiguration = formValue.profileData.provisionConfiguration;
     formValue.provisionType = deviceProvisionConfiguration.type;

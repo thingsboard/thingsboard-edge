@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,11 +33,17 @@ import { Component, Inject, OnDestroy, SkipSelf, ViewChild } from '@angular/core
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import {
+  FormGroupDirective,
+  NgForm,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
-import { MatHorizontalStepper } from '@angular/material/stepper';
-import { AddEntityDialogData } from '@home/models/entity/entity-component.models';
+import { MatStepper } from '@angular/material/stepper';
 import { EntityType } from '@shared/models/entity-type.models';
 import { Observable, of, Subscription } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';
@@ -49,6 +55,13 @@ import { EntityGroupInfo, ShareGroupRequest } from '@shared/models/entity-group.
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
+import { EntityId } from '@shared/models/id/entity-id';
+
+export interface EntityGroupWizardDialogData {
+  ownerId?: EntityId;
+  groupName?: string;
+  groupType: EntityType;
+}
 
 export interface EntityGroupWizardDialogResult {
   entityGroup: EntityGroupInfo;
@@ -64,7 +77,7 @@ export interface EntityGroupWizardDialogResult {
 export class EntityGroupWizardDialogComponent extends
   DialogComponent<EntityGroupWizardDialogComponent, EntityGroupWizardDialogResult> implements OnDestroy, ErrorStateMatcher {
 
-  @ViewChild('addEntityGroupWizardStepper', {static: true}) addEntityGroupWizardStepper: MatHorizontalStepper;
+  @ViewChild('addEntityGroupWizardStepper', {static: true}) addEntityGroupWizardStepper: MatStepper;
 
   resource = Resource;
 
@@ -76,28 +89,26 @@ export class EntityGroupWizardDialogComponent extends
 
   entityType = EntityType;
 
-  entityGroupWizardFormGroup: FormGroup;
+  entityGroupWizardFormGroup: UntypedFormGroup;
 
-  shareEntityGroupFormGroup: FormGroup;
+  shareEntityGroupFormGroup: UntypedFormGroup;
 
   labelPosition = 'end';
-
-  entitiesTableConfig = this.data.entitiesTableConfig;
 
   private subscriptions: Subscription[] = [];
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
-              @Inject(MAT_DIALOG_DATA) public data: AddEntityDialogData<EntityGroupInfo>,
+              @Inject(MAT_DIALOG_DATA) public data: EntityGroupWizardDialogData,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public dialogRef: MatDialogRef<EntityGroupWizardDialogComponent, EntityGroupWizardDialogResult>,
               private entityGroupService: EntityGroupService,
               private userPermissionService: UserPermissionsService,
               private breakpointObserver: BreakpointObserver,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
     this.entityGroupWizardFormGroup = this.fb.group({
-        name: ['', [Validators.required, Validators.maxLength(255)]],
+        name: [this.data.groupName, [Validators.required, Validators.maxLength(255)]],
         description: ['']
       }
     );
@@ -143,7 +154,7 @@ export class EntityGroupWizardDialogComponent extends
     this.subscriptions.forEach(s => s.unsubscribe());
   }
 
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: UntypedFormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
     const customErrorState = !!(control && control.invalid);
     return originalErrorState || customErrorState;
@@ -178,9 +189,7 @@ export class EntityGroupWizardDialogComponent extends
     if (this.allValid()) {
       this.createEntityGroup().pipe(
         mergeMap(entityGroup => this.shareEntityGroup(entityGroup).pipe(
-            map((shared) => {
-                return {entityGroup, shared} as EntityGroupWizardDialogResult;
-              }
+            map((shared) => ({entityGroup, shared} as EntityGroupWizardDialogResult)
             )
           )
         )
@@ -198,9 +207,20 @@ export class EntityGroupWizardDialogComponent extends
       additionalInfo: {
         description: this.entityGroupWizardFormGroup.get('description').value.trim()
       },
-      customerId: null
+      type: this.data.groupType
     } as EntityGroupInfo;
-    return this.entitiesTableConfig.saveEntity(entityGroup);
+    if (this.data.ownerId) {
+      entityGroup.ownerId = this.data.ownerId;
+    } else {
+      entityGroup.ownerId = this.userPermissionService.getUserOwnerId();
+    }
+    let saveEntity$: Observable<EntityGroupInfo>;
+    if (entityGroup.type === EntityType.DEVICE) {
+      saveEntity$ = this.entityGroupService.saveDeviceEntityGroup(entityGroup);
+    } else {
+      saveEntity$ = this.entityGroupService.saveEntityGroup(entityGroup);
+    }
+    return saveEntity$;
   }
 
   private shareEntityGroup(entityGroup: EntityGroupInfo): Observable<boolean> {

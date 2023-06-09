@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,8 +35,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
 import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
 import org.thingsboard.server.common.data.id.OAuth2ParamsId;
 import org.thingsboard.server.common.data.id.OAuth2RegistrationId;
 
@@ -46,7 +46,7 @@ import java.util.List;
 @Data
 @ToString(exclude = {"clientSecret"})
 @NoArgsConstructor
-public class OAuth2Registration extends SearchTextBasedWithAdditionalInfo<OAuth2RegistrationId> implements HasName {
+public class OAuth2Registration extends BaseDataWithAdditionalInfo<OAuth2RegistrationId> implements HasName {
 
     private OAuth2ParamsId oauth2ParamsId;
     private OAuth2MapperConfig mapperConfig;
@@ -85,10 +85,5 @@ public class OAuth2Registration extends SearchTextBasedWithAdditionalInfo<OAuth2
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String getName() {
         return loginButtonLabel;
-    }
-
-    @Override
-    public String getSearchText() {
-        return getName();
     }
 }

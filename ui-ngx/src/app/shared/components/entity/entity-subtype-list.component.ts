@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
 ///
 
 import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Observable, Subscription, throwError } from 'rxjs';
 import { map, mergeMap, publishReplay, refCount, share } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
@@ -38,7 +38,7 @@ import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { EntitySubtype, EntityType } from '@shared/models/entity-type.models';
 import { MatAutocomplete, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { MatChipInputEvent, MatChipList } from '@angular/material/chips';
+import { MatChipInputEvent, MatChipGrid } from '@angular/material/chips';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { AssetService } from '@core/http/asset.service';
 import { DeviceService } from '@core/http/device.service';
@@ -50,7 +50,7 @@ import { COMMA, ENTER, SEMICOLON } from '@angular/cdk/keycodes';
 @Component({
   selector: 'tb-entity-subtype-list',
   templateUrl: './entity-subtype-list.component.html',
-  styleUrls: ['./entity-subtype-list.component.scss'],
+  styleUrls: [],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -61,7 +61,7 @@ import { COMMA, ENTER, SEMICOLON } from '@angular/cdk/keycodes';
 })
 export class EntitySubTypeListComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnDestroy {
 
-  entitySubtypeListFormGroup: FormGroup;
+  entitySubtypeListFormGroup: UntypedFormGroup;
 
   modelValue: Array<string> | null;
 
@@ -86,7 +86,7 @@ export class EntitySubTypeListComponent implements ControlValueAccessor, OnInit,
 
   @ViewChild('entitySubtypeInput') entitySubtypeInput: ElementRef<HTMLInputElement>;
   @ViewChild('entitySubtypeAutocomplete') entitySubtypeAutocomplete: MatAutocomplete;
-  @ViewChild('chipList', {static: true}) chipList: MatChipList;
+  @ViewChild('chipList', {static: true}) chipList: MatChipGrid;
 
   entitySubtypeList: Array<string> = [];
   filteredEntitySubtypeList: Observable<Array<string>>;
@@ -114,7 +114,7 @@ export class EntitySubTypeListComponent implements ControlValueAccessor, OnInit,
               private deviceService: DeviceService,
               private entityViewService: EntityViewService,
               private edgeService: EdgeService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.entitySubtypeListFormGroup = this.fb.group({
       entitySubtypeList: [this.entitySubtypeList, this.required ? [Validators.required] : []],
       entitySubtype: [null]

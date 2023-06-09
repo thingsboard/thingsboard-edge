@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,13 +33,20 @@ package org.thingsboard.server.service.entitiy;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.group.EntityGroup;
 
+import java.util.Collections;
+import java.util.List;
+
 public interface SimpleTbEntityService<T> {
 
     default T save(T entity, EntityGroup entityGroup) throws Exception {
         return save(entity, entityGroup, null);
     }
 
-    T save(T entity, EntityGroup entityGroup, User user) throws Exception;
+    default T save(T entity, EntityGroup entityGroup, User user) throws Exception {
+        return save(entity, entityGroup != null ? Collections.singletonList(entityGroup) : null, user);
+    }
+
+    T save(T entity, List<EntityGroup> entityGroups, User user) throws Exception;
 
     void delete(T entity, User user);
 

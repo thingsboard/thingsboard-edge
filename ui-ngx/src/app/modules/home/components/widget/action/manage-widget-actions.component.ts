@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -70,6 +70,7 @@ import { deepClone } from '@core/utils';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { hidePageSizePixelValue } from '@shared/models/constants';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-manage-widget-actions',
@@ -91,9 +92,19 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
 
   @Input() callbacks: WidgetActionCallbacks;
 
+  @Input() actionSources: {[actionSourceId: string]: WidgetActionSource};
+
   @Input() actionTypes: WidgetActionType[];
 
   @Input() customFunctionArgs: string[];
+
+  @Input()
+  @coerceBoolean()
+  isEntityGroup = false;
+
+  @Input()
+  @coerceBoolean()
+  outlinedBorder = false;
 
   innerValue: WidgetActionsData;
 
@@ -108,6 +119,7 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
   dragDisabled = true;
 
   private widgetResize$: ResizeObserver;
+  private destroyed = false;
 
   @ViewChild('searchInput') searchInputField: ElementRef;
 
@@ -142,6 +154,7 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
     if (this.widgetResize$) {
       this.widgetResize$.disconnect();
     }
@@ -251,7 +264,8 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
         action: deepClone(action),
         actionTypes: this.actionTypes,
         customFunctionArgs: this.customFunctionArgs,
-        widgetType: this.widgetType
+        widgetType: this.widgetType,
+        isEntityGroup: this.isEntityGroup
       }
     }).afterClosed().subscribe(
       (res) => {
@@ -357,22 +371,25 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
     this.disabled = isDisabled;
   }
 
-  writeValue(obj: WidgetActionsData): void {
-    this.innerValue = obj;
-    if (this.innerValue) {
-      setTimeout(() => {
+  writeValue(actions?: {[actionSourceId: string]: Array<WidgetActionDescriptor>}): void {
+    this.innerValue = {
+      actionsMap: actions || {},
+      actionSources: this.actionSources || {}
+    };
+    setTimeout(() => {
+      if (!this.destroyed) {
         this.dataSource.setActions(this.innerValue);
         if (this.viewsInited) {
           this.resetSortAndFilter(true);
         } else {
           this.dirtyValue = true;
         }
-      }, 0);
-    }
+      }
+    }, 0);
   }
 
   private onActionsUpdated() {
     this.updateData(true);
-    this.propagateChange(this.innerValue);
+    this.propagateChange(this.innerValue.actionsMap);
   }
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,6 +40,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.security.Authority;
@@ -101,6 +102,8 @@ import static springfox.documentation.builders.PathSelectors.regex;
 @Profile("!test")
 public class SwaggerConfiguration {
 
+    @Value("${swagger.enabled:true}")
+    private boolean enabled;
     @Value("${swagger.api_path_regex}")
     private String apiPathRegex;
     @Value("${swagger.security_path_regex}")
@@ -130,6 +133,7 @@ public class SwaggerConfiguration {
     public Docket thingsboardApi() {
         TypeResolver typeResolver = new TypeResolver();
         return new Docket(DocumentationType.OAS_30)
+                .enable(enabled)
                 .groupName("thingsboard")
                 .apiInfo(apiInfo())
                 .additionalModels(
@@ -153,6 +157,7 @@ public class SwaggerConfiguration {
                 )
                 .securitySchemes(newArrayList(httpLogin()))
                 .securityContexts(newArrayList(securityContext()))
+                .ignoredParameterTypes(AuthenticationPrincipal.class)
                 .enableUrlTemplating(true);
     }
 

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -179,7 +179,7 @@ public class TbAlarmsCountNodeV2 implements TbNode {
         } else {
             pageLink = new TimePageLink(alarmSearchPageLink, null, null);
         }
-        AlarmQuery alarmQuery = new AlarmQuery(entityId, pageLink, null, null, false);
+        AlarmQuery alarmQuery = new AlarmQuery(entityId, pageLink, null, null, null,false);
         List<Long> alarmCounts = ctx.getAlarmService().findAlarmCounts(ctx.getTenantId(), alarmQuery, filters);
         ObjectNode obj = JacksonUtil.newObjectNode();
         for (int i = 0; i < mappings.size(); i++) {

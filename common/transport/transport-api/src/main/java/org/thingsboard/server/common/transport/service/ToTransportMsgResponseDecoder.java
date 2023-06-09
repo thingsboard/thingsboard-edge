@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,8 +30,8 @@
  */
 package org.thingsboard.server.common.transport.service;
 
-import org.thingsboard.server.queue.TbQueueMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToTransportMsg;
+import org.thingsboard.server.queue.TbQueueMsg;
 import org.thingsboard.server.queue.kafka.TbKafkaDecoder;
 
 import java.io.IOException;

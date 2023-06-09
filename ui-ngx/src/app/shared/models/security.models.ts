@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -111,7 +111,8 @@ export enum Resource {
   EDGE_GROUP = 'EDGE_GROUP',
   OTA_PACKAGE = 'OTA_PACKAGE',
   QUEUE = 'QUEUE',
-  VERSION_CONTROL = 'VERSION_CONTROL'
+  VERSION_CONTROL = 'VERSION_CONTROL',
+  NOTIFICATION = 'NOTIFICATION'
 }
 
 const resourceTypeTranslations = new Map<Resource, string>();

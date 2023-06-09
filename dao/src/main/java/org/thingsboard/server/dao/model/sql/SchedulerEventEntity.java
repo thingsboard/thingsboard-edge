@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -41,9 +41,9 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
+import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
@@ -53,21 +53,20 @@ import javax.persistence.Enumerated;
 import javax.persistence.Table;
 import java.util.UUID;
 
-import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_CUSTOMER_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_NAME_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_ORIGINATOR_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_ORIGINATOR_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TYPE_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
-@Table(name = SCHEDULER_EVENT_COLUMN_FAMILY_NAME)
-public final class SchedulerEventEntity extends BaseSqlEntity<SchedulerEvent> implements SearchTextEntity<SchedulerEvent> {
+@Table(name = SCHEDULER_EVENT_TABLE_NAME)
+public final class SchedulerEventEntity extends BaseSqlEntity<SchedulerEvent> implements BaseEntity<SchedulerEvent> {
 
     @Column(name = SCHEDULER_EVENT_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -87,9 +86,6 @@ public final class SchedulerEventEntity extends BaseSqlEntity<SchedulerEvent> im
 
     @Column(name = SCHEDULER_EVENT_TYPE_PROPERTY)
     private String type;
-
-    @Column(name = SEARCH_TEXT_PROPERTY)
-    private String searchText;
 
     @Type(type = "json")
     @Column(name = ModelConstants.SCHEDULER_EVENT_ADDITIONAL_INFO_PROPERTY)
@@ -127,20 +123,6 @@ public final class SchedulerEventEntity extends BaseSqlEntity<SchedulerEvent> im
         this.additionalInfo = schedulerEvent.getAdditionalInfo();
         this.configuration = schedulerEvent.getConfiguration();
         this.schedule = schedulerEvent.getSchedule();
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return name;
-    }
-
-    @Override
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
-    }
-
-    public String getSearchText() {
-        return searchText;
     }
 
     @Override

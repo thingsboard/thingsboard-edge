@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -46,7 +46,7 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
 import { NEVER, Observable, of } from 'rxjs';
 import { Router } from '@angular/router';
 import { DialogComponent } from '@shared/components/dialog.component';
@@ -106,7 +106,7 @@ export class NodeScriptTestDialogComponent extends DialogComponent<NodeScriptTes
 
   @ViewChild('payloadContent', {static: true}) payloadContent: JsonContentComponent;
 
-  nodeScriptTestFormGroup: FormGroup;
+  nodeScriptTestFormGroup: UntypedFormGroup;
 
   functionTitle: string;
 
@@ -123,7 +123,7 @@ export class NodeScriptTestDialogComponent extends DialogComponent<NodeScriptTes
               @Inject(MAT_DIALOG_DATA) public data: NodeScriptTestDialogData,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public dialogRef: MatDialogRef<NodeScriptTestDialogComponent, string>,
-              public fb: FormBuilder,
+              public fb: UntypedFormBuilder,
               public wl: WhiteLabelingService,
               private ruleChainService: RuleChainService) {
     super(store, router, dialogRef);
@@ -183,7 +183,7 @@ export class NodeScriptTestDialogComponent extends DialogComponent<NodeScriptTes
     });
   }
 
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: UntypedFormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
     const customErrorState = !!(control && control.invalid && this.submitted);
     return originalErrorState || customErrorState;

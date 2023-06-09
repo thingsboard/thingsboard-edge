@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,6 +37,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.service.queue.processing.TbRuleEngineSubmitStrategy;
@@ -84,7 +85,7 @@ public class TbMsgPackProcessingContextTest {
         TbRuleEngineSubmitStrategy strategyMock = mock(TbRuleEngineSubmitStrategy.class);
         when(strategyMock.getPendingMap()).thenReturn(messages);
 
-        TbMsgPackProcessingContext context = new TbMsgPackProcessingContext("Main", strategyMock, false);
+        TbMsgPackProcessingContext context = new TbMsgPackProcessingContext(DataConstants.MAIN_QUEUE_NAME, strategyMock, false);
         for (UUID uuid : messages.keySet()) {
             final CountDownLatch readyLatch = new CountDownLatch(parallelCount);
             final CountDownLatch startLatch = new CountDownLatch(1);

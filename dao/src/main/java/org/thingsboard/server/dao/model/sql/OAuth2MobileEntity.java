@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -46,7 +46,7 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(name = ModelConstants.OAUTH2_MOBILE_COLUMN_FAMILY_NAME)
+@Table(name = ModelConstants.OAUTH2_MOBILE_TABLE_NAME)
 public class OAuth2MobileEntity extends BaseSqlEntity<OAuth2Mobile> {
 
     @Column(name = ModelConstants.OAUTH2_PARAMS_ID_PROPERTY)

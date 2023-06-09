@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,8 @@
  */
 package org.thingsboard.server.dao.service;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.thingsboard.server.exception.DataValidationException;
 
 public class DataValidatorTest {
@@ -41,38 +42,50 @@ public class DataValidatorTest {
         DataValidator.validateEmail(email);
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void validateInvalidEmail1() {
         String email = "test:1@mail.io";
-        DataValidator.validateEmail(email);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            DataValidator.validateEmail(email);
+        });
     }
-    @Test(expected = DataValidationException.class)
+    @Test
     public void validateInvalidEmail2() {
         String email = "test()1@mail.io";
-        DataValidator.validateEmail(email);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            DataValidator.validateEmail(email);
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void validateInvalidEmail3() {
         String email = "test[]1@mail.io";
-        DataValidator.validateEmail(email);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            DataValidator.validateEmail(email);
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void validateInvalidEmail4() {
         String email = "test\\1@mail.io";
-        DataValidator.validateEmail(email);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            DataValidator.validateEmail(email);
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void validateInvalidEmail5() {
         String email = "test\"1@mail.io";
-        DataValidator.validateEmail(email);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            DataValidator.validateEmail(email);
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void validateInvalidEmail6() {
         String email = "test<>1@mail.io";
-        DataValidator.validateEmail(email);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            DataValidator.validateEmail(email);
+        });
     }
 }

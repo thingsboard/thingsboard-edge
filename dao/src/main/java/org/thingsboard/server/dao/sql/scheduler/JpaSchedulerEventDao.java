@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -41,7 +41,7 @@ import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.SchedulerEventEntity;
 import org.thingsboard.server.dao.scheduler.SchedulerEventDao;
-import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.Objects;
@@ -50,7 +50,7 @@ import java.util.UUID;
 @Component
 @Slf4j
 @SqlDao
-public class JpaSchedulerEventDao extends JpaAbstractSearchTextDao<SchedulerEventEntity, SchedulerEvent> implements SchedulerEventDao {
+public class JpaSchedulerEventDao extends JpaAbstractDao<SchedulerEventEntity, SchedulerEvent> implements SchedulerEventDao {
 
     @Autowired
     SchedulerEventRepository schedulerEventRepository;

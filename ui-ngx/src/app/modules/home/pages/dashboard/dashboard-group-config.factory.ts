@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -42,11 +42,11 @@ import { EntityType } from '@shared/models/entity-type.models';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { MatDialog } from '@angular/material/dialog';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { EntityGroupParams, ShortEntityView } from '@shared/models/entity-group.models';
+import { EntityGroupDetailsMode, EntityGroupParams, ShortEntityView } from '@shared/models/entity-group.models';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
-import { Dashboard, DashboardInfo } from '@shared/models/dashboard.models';
+import { DashboardInfo } from '@shared/models/dashboard.models';
 import { DashboardService } from '@core/http/dashboard.service';
 import { DashboardFormComponent } from '@home/pages/dashboard/dashboard-form.component';
 import { Operation, Resource } from '@shared/models/security.models';
@@ -57,12 +57,13 @@ import {
   PublicDashboardLinkDialogData
 } from '@home/pages/dashboard/public-dashboard-link.dialog.component';
 import { WINDOW } from '@core/services/window.service';
+import { mergeMap } from 'rxjs/operators';
 
 // @dynamic
 @Injectable()
-export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactory<Dashboard> {
+export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactory<DashboardInfo> {
 
-  constructor(private groupConfigTableConfigService: GroupConfigTableConfigService<Dashboard>,
+  constructor(private groupConfigTableConfigService: GroupConfigTableConfigService<DashboardInfo>,
               private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
               private utils: UtilsService,
@@ -75,21 +76,27 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
               @Inject(WINDOW) private window: Window) {
   }
 
-  createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<Dashboard>): Observable<GroupEntityTableConfig<Dashboard>> {
-    const config = new GroupEntityTableConfig<Dashboard>(entityGroup, params);
+  createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<DashboardInfo>):
+    Observable<GroupEntityTableConfig<DashboardInfo>> {
+    const config = new GroupEntityTableConfig<DashboardInfo>(entityGroup, params);
 
     config.entityComponent = DashboardFormComponent;
+    config.addDialogStyle = {height: '800px'};
 
     config.entityTitle = (dashboard) => dashboard ?
       this.utils.customTranslation(dashboard.title, dashboard.title) : '';
 
-    config.deleteEntityTitle = dashboard => this.translate.instant('dashboard.delete-dashboard-title', { dashboardTitle: dashboard.title });
+    config.rowPointer = true;
+
+    config.deleteEntityTitle = dashboard => this.translate.instant('dashboard.delete-dashboard-title', {dashboardTitle: dashboard.title});
     config.deleteEntityContent = () => this.translate.instant('dashboard.delete-dashboard-text');
     config.deleteEntitiesTitle = count => this.translate.instant('dashboard.delete-dashboards-title', {count});
     config.deleteEntitiesContent = () => this.translate.instant('dashboard.delete-dashboards-text');
 
-    config.loadEntity = id => this.dashboardService.getDashboard(id.id);
-    config.saveEntity = dashboard => this.dashboardService.saveDashboard(dashboard);
+    config.loadEntity = id => this.dashboardService.getDashboardInfo(id.id);
+    config.saveEntity = dashboard => this.dashboardService.saveDashboard(dashboard).pipe(
+      mergeMap((savedDashboard) => this.dashboardService.getDashboardInfo(savedDashboard.id.id))
+    );
     config.deleteEntity = id => this.dashboardService.deleteDashboard(id.id);
 
     config.onEntityAction = action => this.onDashboardAction(action, config, params);
@@ -108,17 +115,14 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
     }
 
     if (this.userPermissionsService.hasGenericPermission(Resource.WIDGETS_BUNDLE, Operation.READ) &&
-        this.userPermissionsService.hasGenericPermission(Resource.WIDGET_TYPE, Operation.READ)) {
-      config.cellActionDescriptors.push(
-        {
-          name: this.translate.instant('dashboard.open-dashboard'),
-          icon: 'dashboard',
-          isEnabled: () => true,
-          onAction: ($event, entity) => {
-            this.openDashboard($event, entity, config, params);
-          }
+      this.userPermissionsService.hasGenericPermission(Resource.WIDGET_TYPE, Operation.READ)) {
+      config.onGroupEntityRowClick = ($event, dashboard) => {
+        if (config.isDetailsOpen()) {
+          config.onToggleEntityDetails($event, dashboard);
+        } else {
+          this.openDashboard($event, dashboard, config, params);
         }
-      );
+      };
     }
 
     config.cellActionDescriptors.push(
@@ -131,6 +135,18 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
         }
       }
     );
+
+    if (config.settings.detailsMode === EntityGroupDetailsMode.onRowClick &&
+        this.userPermissionsService.hasGroupEntityPermission(Operation.READ, config.entityGroup)) {
+        config.cellActionDescriptors.push(
+          {
+            name: this.translate.instant('dashboard.dashboard-details'),
+            icon: 'edit',
+            isEnabled: () => true,
+            onAction: ($event, entity) => config.onToggleEntityDetails($event, entity)
+          }
+        );
+    }
 
     if (this.userPermissionsService.hasGroupEntityPermission(Operation.CREATE, config.entityGroup)) {
       config.headerActionDescriptors.push(
@@ -145,7 +161,7 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
   }
 
-  openDashboard($event: Event, dashboard: ShortEntityView | Dashboard, config: GroupEntityTableConfig<Dashboard>,
+  openDashboard($event: Event, dashboard: ShortEntityView | DashboardInfo, config: GroupEntityTableConfig<DashboardInfo>,
                 params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
@@ -153,11 +169,12 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
     if (params.hierarchyView) {
       let url: UrlTree;
       if (params.groupType === EntityType.EDGE) {
-        url = this.router.createUrlTree(['customerGroups', params.entityGroupId, params.customerId,
-          'edgeGroups', params.childEntityGroupId, params.edgeId, 'dashboardGroups', params.edgeEntitiesGroupId, dashboard.id.id]);
+        url = this.router.createUrlTree(['customers', 'groups', params.entityGroupId, params.customerId,
+          'edgeManagement', 'instances', 'groups',
+          params.childEntityGroupId, params.edgeId, 'dashboardGroups', params.edgeEntitiesGroupId, dashboard.id.id]);
       } else {
-        url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
-          params.customerId, 'dashboardGroups', params.childEntityGroupId, dashboard.id.id]);
+        url = this.router.createUrlTree(['customers', 'groups', params.entityGroupId,
+          params.customerId, 'dashboards', 'groups', params.childEntityGroupId, dashboard.id.id]);
       }
       this.window.open(window.location.origin + url, '_blank');
     } else {
@@ -166,14 +183,14 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
     }
   }
 
-  exportDashboard($event: Event, dashboard: ShortEntityView | Dashboard) {
+  exportDashboard($event: Event, dashboard: ShortEntityView | DashboardInfo) {
     if ($event) {
       $event.stopPropagation();
     }
     this.importExport.exportDashboard(dashboard.id.id);
   }
 
-  importDashboard($event: Event, config: GroupEntityTableConfig<Dashboard>) {
+  importDashboard($event: Event, config: GroupEntityTableConfig<DashboardInfo>) {
     const entityGroup = config.entityGroup;
     const entityGroupId = !entityGroup.groupAll ? entityGroup.id.id : null;
     let customerId: CustomerId = null;
@@ -187,7 +204,7 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
     });
   }
 
-  openPublicDashboardLinkDialog($event: Event, dashboard: ShortEntityView | DashboardInfo, config: GroupEntityTableConfig<Dashboard>) {
+  openPublicDashboardLinkDialog($event: Event, dashboard: ShortEntityView | DashboardInfo, config: GroupEntityTableConfig<DashboardInfo>) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -202,13 +219,27 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
     });
   }
 
-  onDashboardAction(action: EntityAction<Dashboard>, config: GroupEntityTableConfig<Dashboard>, params: EntityGroupParams): boolean {
+  manageOwnerAndGroups($event: Event, dashboard: DashboardInfo, config: GroupEntityTableConfig<DashboardInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, dashboard).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
+  }
+
+  onDashboardAction(action: EntityAction<DashboardInfo>,
+                    config: GroupEntityTableConfig<DashboardInfo>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
         this.openDashboard(action.event, action.entity, config, params);
         return true;
       case 'export':
         this.exportDashboard(action.event, action.entity);
+        return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
         return true;
     }
     return false;

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,6 @@
 package org.thingsboard.rule.engine.analytics.latest.alarm;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Futures;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -44,6 +43,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.internal.verification.Times;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
@@ -111,8 +111,6 @@ public class TbAlarmsCountV2NodeTest {
     private Map<EntityId, Integer> expectedLastDayAlarmsCountMap;
     private Set<Long> alarmCreatedTimes;
 
-    ObjectMapper mapper = JacksonUtil.OBJECT_MAPPER;
-
     @Before
     public void before() {
         doAnswer((Answer<List<Long>>) invocationOnMock -> {
@@ -125,7 +123,7 @@ public class TbAlarmsCountV2NodeTest {
     }
 
     public void init(TbAlarmsCountNodeV2Configuration configuration) throws TbNodeException {
-        nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(configuration));
+        nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(configuration));
         node = new TbAlarmsCountNodeV2();
         expectedAllAlarmsCountMap = new HashMap<>();
         expectedActiveAlarmsCountMap = new HashMap<>();
@@ -223,7 +221,7 @@ public class TbAlarmsCountV2NodeTest {
             alarm.setPropagate(true);
             try {
                 TbMsg alarmMsg = TbMsg.newMsg(type, entityId, new TbMsgMetaData(),
-                        TbMsgDataType.JSON, mapper.writeValueAsString(alarm), null, null);
+                        TbMsgDataType.JSON, JacksonUtil.toString(alarm), null, null);
                 node.onMsg(ctx, alarmMsg);
             } catch (Exception e) {
                 log.error("Exception occurred during onMsg processing: ", e);
@@ -281,10 +279,10 @@ public class TbAlarmsCountV2NodeTest {
                 parentEntityIds.add(parentEntityId);
                 parentEntityIds.add(rootEntityId);
                 parentEntityIds.add(alarm.getOriginator());
-                when(ctx.getAlarmService().getPropagationEntityIds(eq(alarm), eq(Collections.emptyList()))).thenReturn(parentEntityIds);
+                when(ctx.getAlarmService().getPropagationEntityIds(Mockito.any(), eq(Collections.emptyList()))).thenReturn(parentEntityIds);
                 try {
                     TbMsg alarmMsg = TbMsg.newMsg("ALARM", entityId, new TbMsgMetaData(),
-                            TbMsgDataType.JSON, mapper.writeValueAsString(alarm), null, null);
+                            TbMsgDataType.JSON, JacksonUtil.toString(alarm), null, null);
                     node.onMsg(ctx, alarmMsg);
                 } catch (Exception e) {
                     log.error("Exception occurred during onMsg processing: ", e);
@@ -342,10 +340,10 @@ public class TbAlarmsCountV2NodeTest {
                 Alarm alarm = createAlarm(entityId);
                 Set<EntityId> parentEntityIds = new HashSet<>();
                 parentEntityIds.add(parentEntityId);
-                when(ctx.getAlarmService().getPropagationEntityIds(eq(alarm), eq(propagationEntityTypes))).thenReturn(parentEntityIds);
+                when(ctx.getAlarmService().getPropagationEntityIds(Mockito.any(), eq(propagationEntityTypes))).thenReturn(parentEntityIds);
                 try {
                     TbMsg alarmMsg = TbMsg.newMsg("ALARM", entityId, new TbMsgMetaData(),
-                            TbMsgDataType.JSON, mapper.writeValueAsString(alarm), null, null);
+                            TbMsgDataType.JSON, JacksonUtil.toString(alarm), null, null);
                     node.onMsg(ctx, alarmMsg);
                 } catch (Exception e) {
                     log.error("Exception occurred during onMsg processing: ", e);
@@ -401,7 +399,9 @@ public class TbAlarmsCountV2NodeTest {
 
             alarm.setId(new AlarmId(Uuids.startOf(createdTime)));
             int alarmStatusOrdinal = (int) Math.floor(Math.random() * AlarmStatus.values().length);
-            alarm.setStatus(AlarmStatus.values()[alarmStatusOrdinal]);
+            var alarmStatus = AlarmStatus.values()[alarmStatusOrdinal];
+            alarm.setCleared(alarmStatus.isCleared());
+            alarm.setAcknowledged(alarmStatus.isAck());
             alarm.setStartTs(createdTime);
             alarm.setCreatedTime(createdTime);
             alarm.setSeverity(AlarmSeverity.CRITICAL);
@@ -465,7 +465,7 @@ public class TbAlarmsCountV2NodeTest {
                     alarmCounts.set(i, count);
                 }
                 if (alarms.hasNext()) {
-                    query = new AlarmQuery(query.getAffectedEntityId(), query.getPageLink(), query.getSearchStatus(), query.getStatus(), false);
+                    query = new AlarmQuery(query.getAffectedEntityId(), query.getPageLink(), query.getSearchStatus(), query.getStatus(), null,false);
                 }
             } catch (ExecutionException | InterruptedException e) {
                 log.warn("Failed to find alarms by query. Query: [{}]", query);

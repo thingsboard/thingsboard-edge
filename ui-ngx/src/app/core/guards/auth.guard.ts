@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -119,7 +119,7 @@ export class AuthGuard implements CanActivate, CanActivateChild {
           } else {
             const tasks: Observable<any>[] = [];
             tasks.push(this.whiteLabelingService.loadLoginWhiteLabelingParams());
-            if (path === 'login' || path === 'signup') {
+            if (path === 'login' || path === 'signup' || path === 'signup.recaptcha') {
               tasks.push(this.selfRegistrationService.loadSelfRegistrationParams());
               if (path === 'login') {
                 tasks.push(this.authService.loadOAuth2Clients());
@@ -188,7 +188,7 @@ export class AuthGuard implements CanActivate, CanActivateChild {
               }
               if (isObject(redirect) && redirect.hasOwnProperty('condition')) {
                 const userPermissionsService = this.userPermissionsService; // used in eval
-                // tslint:disable-next-line:no-eval
+                // eslint-disable-next-line no-eval
                 redirect = eval(redirect.condition);
               }
               return this.menuService.getRedirectPath(path, redirect).pipe(

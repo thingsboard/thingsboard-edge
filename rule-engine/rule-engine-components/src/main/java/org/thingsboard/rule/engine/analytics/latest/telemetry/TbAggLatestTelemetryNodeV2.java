@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -63,8 +63,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
@@ -85,9 +85,11 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 )
 public class TbAggLatestTelemetryNodeV2 implements TbNode {
     private final Gson gson = new Gson();
+    static final String TB_CLEAR_INACTIVE_ENTITIES_MSG = "TbClearInactiveEntitiesMsg";
+    private static final int CACHE_TTL_MULTIPLIER = 3;
     private static final String TB_AGG_LATEST_NODE_MSG = "TbAggLatestNodeMsg";
     private TbAggLatestTelemetryNodeV2Configuration config;
-    private final Map<EntityId, AggDeduplicationData> lastMsgMap = new WeakHashMap<>();
+    private final Map<EntityId, AggDeduplicationData> lastMsgMap = new HashMap<>();
     private final Set<String> clientAttributeNames = new HashSet<>();
     private final Set<String> sharedAttributeNames = new HashSet<>();
     private final Set<String> serverAttributeNames = new HashSet<>();
@@ -122,6 +124,7 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
                     break;
             }
         });
+        scheduleClearInactiveEntitiesMsg(ctx);
     }
 
     private void addAllSafe(Set<String> dest, Collection<String> source) {
@@ -134,6 +137,8 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
     public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
         if (msg.getType().equals(TB_AGG_LATEST_NODE_MSG)) {
             processDelayedMsg(ctx, msg.getOriginator());
+        } else if (msg.getType().equals(TB_CLEAR_INACTIVE_ENTITIES_MSG)) {
+            processClearInactiveEntitiesMsg(ctx);
         } else {
             processRegularMsg(ctx, msg);
         }
@@ -168,6 +173,23 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
         }
     }
 
+    private void processClearInactiveEntitiesMsg(TbContext ctx) {
+        try {
+            long inactiveTs = System.currentTimeMillis() - config.getDeduplicationInSec() * 1000 * CACHE_TTL_MULTIPLIER;
+            lastMsgMap.entrySet()
+                    .removeIf(entry -> entry.getValue() != null
+                            && entry.getValue().getTs() < inactiveTs);
+        } finally {
+            scheduleClearInactiveEntitiesMsg(ctx);
+        }
+    }
+
+    private void scheduleClearInactiveEntitiesMsg(TbContext ctx) {
+        long delayMs = Math.max(TimeUnit.HOURS.toMillis(1), config.getDeduplicationInSec() * 1000 * CACHE_TTL_MULTIPLIER);
+        ctx.tellSelf(ctx.newMsg(null, TB_CLEAR_INACTIVE_ENTITIES_MSG, ctx.getSelfId(), null, new TbMsgMetaData(), ""),
+                delayMs);
+    }
+
     private void doCalculate(TbContext ctx, TbMsg msg, long ts) {
         lastMsgMap.put(msg.getOriginator(), new AggDeduplicationData(ts, null));
         ListenableFuture<List<EntityId>> entityIds;
@@ -188,10 +210,10 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
                 data.setClientAttributesFuture(ctx.getAttributesService().find(ctx.getTenantId(), entityId, DataConstants.CLIENT_SCOPE, clientAttributeNames));
             }
             if (!sharedAttributeNames.isEmpty()) {
-                data.setSharedAttributesFuture(ctx.getAttributesService().find(ctx.getTenantId(), entityId, DataConstants.SHARED_SCOPE, clientAttributeNames));
+                data.setSharedAttributesFuture(ctx.getAttributesService().find(ctx.getTenantId(), entityId, DataConstants.SHARED_SCOPE, sharedAttributeNames));
             }
             if (!serverAttributeNames.isEmpty()) {
-                data.setServerAttributesFuture(ctx.getAttributesService().find(ctx.getTenantId(), entityId, DataConstants.SERVER_SCOPE, clientAttributeNames));
+                data.setServerAttributesFuture(ctx.getAttributesService().find(ctx.getTenantId(), entityId, DataConstants.SERVER_SCOPE, serverAttributeNames));
             }
             return data;
         }).collect(Collectors.toList()), ctx.getDbCallbackExecutor());
@@ -202,7 +224,7 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
                 if (entityData.getClientAttributesFuture() != null) {
                     futures.add(entityData.getClientAttributesFuture());
                 }
-                if (entityData.getServerAttributesFuture() != null) {
+                if (entityData.getSharedAttributesFuture() != null) {
                     futures.add(entityData.getSharedAttributesFuture());
                 }
                 if (entityData.getServerAttributesFuture() != null) {
@@ -220,8 +242,9 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
             public void onSuccess(@Nullable Object result) {
                 try {
                     doCalculate(ctx, msg, ts, entityDataList.get());
-                } catch (InterruptedException | ExecutionException e) {
+                } catch (Exception e) {
                     log.warn("[{}] Unexpected error: {}", ctx.getSelfId(), msg.getOriginator(), e);
+                    onFailure(e);
                 }
             }
 

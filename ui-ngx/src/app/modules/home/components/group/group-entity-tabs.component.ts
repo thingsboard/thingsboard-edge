@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -41,6 +41,7 @@ import { EntityType } from '@shared/models/entity-type.models';
 import { Operation, Resource, resourceByEntityType } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { exportableEntityTypes } from '@shared/models/vc.models';
+import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 
 @Component({
   selector: 'tb-group-entity-tabs',
@@ -48,10 +49,11 @@ import { exportableEntityTypes } from '@shared/models/vc.models';
   styleUrls: []
 })
 export class GroupEntityTabsComponent<T extends BaseData<HasId>>
-  extends EntityTabsComponent<T, PageLink, ShortEntityView, GroupEntityTableConfig<T>> {
+  extends EntityTabsComponent<T, PageLink, T | ShortEntityView, EntityTableConfig<T> | GroupEntityTableConfig<T>> {
 
   entityGroup: EntityGroupInfo;
   entityType: EntityType;
+  entityResource: Resource;
 
   constructor(private userPermissionsService: UserPermissionsService,
               protected store: Store<AppState>) {
@@ -65,19 +67,27 @@ export class GroupEntityTabsComponent<T extends BaseData<HasId>>
   hasVersionControl(): boolean {
     if (this.authUser.authority === this.authorities.TENANT_ADMIN && this.entityType &&
       exportableEntityTypes.includes(this.entityType) && EntityType.USER !== this.entityType) {
-      const entityResource = resourceByEntityType.get(this.entityType);
-      return this.userPermissionsService.hasResourcesGenericPermission([Resource.VERSION_CONTROL, entityResource], Operation.READ);
+      return this.userPermissionsService.hasResourcesGenericPermission([Resource.VERSION_CONTROL, this.entityResource], Operation.READ);
     } else {
       return false;
     }
   }
 
-  protected setEntitiesTableConfig(entitiesTableConfig: GroupEntityTableConfig<T>) {
+  protected setEntitiesTableConfig(entitiesTableConfig: EntityTableConfig<T> | GroupEntityTableConfig<T>) {
     super.setEntitiesTableConfig(entitiesTableConfig);
     if (entitiesTableConfig) {
-      this.entityGroup = entitiesTableConfig.entityGroup;
-      this.entityType = this.entityGroup.type;
+      this.entityGroup = (entitiesTableConfig as GroupEntityTableConfig<T>).entityGroup;
+      if (this.entityGroup) {
+        this.entityType = this.entityGroup.type;
+      } else {
+        this.entityType = entitiesTableConfig.entityType;
+      }
+      this.entityResource = resourceByEntityType.get(this.entityType);
     }
+  }
+
+  protected isGroupMode(): boolean {
+    return this.entitiesTableConfig && this.entitiesTableConfig instanceof GroupEntityTableConfig;
   }
 
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,8 +30,10 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.Type;
 import org.thingsboard.server.common.data.id.UserCredentialsId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.UserCredentials;
@@ -47,7 +49,7 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(name = ModelConstants.USER_CREDENTIALS_COLUMN_FAMILY_NAME)
+@Table(name = ModelConstants.USER_CREDENTIALS_TABLE_NAME)
 public final class UserCredentialsEntity extends BaseSqlEntity<UserCredentials> implements BaseEntity<UserCredentials> {
 
     @Column(name = ModelConstants.USER_CREDENTIALS_USER_ID_PROPERTY, unique = true)
@@ -65,6 +67,10 @@ public final class UserCredentialsEntity extends BaseSqlEntity<UserCredentials> 
     @Column(name = ModelConstants.USER_CREDENTIALS_RESET_TOKEN_PROPERTY, unique = true)
     private String resetToken;
 
+    @Type(type = "json")
+    @Column(name = ModelConstants.USER_CREDENTIALS_ADDITIONAL_PROPERTY)
+    private JsonNode additionalInfo;
+
     public UserCredentialsEntity() {
         super();
     }
@@ -81,6 +87,7 @@ public final class UserCredentialsEntity extends BaseSqlEntity<UserCredentials> 
         this.password = userCredentials.getPassword();
         this.activateToken = userCredentials.getActivateToken();
         this.resetToken = userCredentials.getResetToken();
+        this.additionalInfo = userCredentials.getAdditionalInfo();
     }
 
     @Override
@@ -94,6 +101,7 @@ public final class UserCredentialsEntity extends BaseSqlEntity<UserCredentials> 
         userCredentials.setPassword(password);
         userCredentials.setActivateToken(activateToken);
         userCredentials.setResetToken(resetToken);
+        userCredentials.setAdditionalInfo(additionalInfo);
         return userCredentials;
     }
 

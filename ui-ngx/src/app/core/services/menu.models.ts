@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,6 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Observable } from 'rxjs';
 import { EntityType } from '@shared/models/entity-type.models';
 import { HasUUID } from '@shared/models/id/has-uuid';
 
@@ -37,17 +36,19 @@ export declare type MenuSectionType = 'link' | 'toggle';
 
 export interface MenuSection extends HasUUID{
   name: string;
+  fullName?: string;
   type: MenuSectionType;
   path: string;
   queryParams?: {[k: string]: any};
   icon: string;
   iconUrl?: string;
   isMdiIcon?: boolean;
-  asyncPages?: Observable<Array<MenuSection>>;
   pages?: Array<MenuSection>;
+  opened?: boolean;
   disabled?: boolean;
   ignoreTranslate?: boolean;
   groupType?: EntityType;
+  rootOnly?: boolean;
   isCustom?: boolean;
   isNew?: boolean;
   stateId?: string;

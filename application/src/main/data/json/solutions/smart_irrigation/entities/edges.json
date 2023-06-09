@@ -1,0 +1,36 @@
+[
+  {
+    "name": "Remote Farm R1",
+    "type": "farm",
+    "ruleChainIds": [
+      "dceb0310-9676-11ed-b5e1-392bb934190c",
+      "c3daff10-9676-11ed-b5e1-392bb934190c",
+      "9fdea7b0-9676-11ed-b5e1-392bb934190c",
+      "6bc73c80-9676-11ed-b5e1-392bb934190c",
+      "53190790-9676-11ed-b5e1-392bb934190c"
+    ],
+    "attributes": {},
+    "relations": [],
+    "userGroups": [],
+    "assetGroups": [],
+    "deviceGroups": [],
+    "dashboardGroups": [
+      {
+        "name": "Smart Irrigation"
+      }
+    ],
+    "assetIds": [
+      "f19a9530-38d6-11ed-af17-3d7337747e91"
+    ],
+    "deviceIds": [
+      "d924ddb0-398c-11ed-af17-3d7337747e91",
+      "eb87ca30-3982-11ed-af17-3d7337747e91",
+      "f1a06190-38d6-11ed-af17-3d7337747e91",
+      "f1a06190-38d6-11ed-af17-3d7337747e92"
+    ],
+    "schedulerEventIds": [
+      "18dd3f10-967b-11ed-b5e1-392bb934190c",
+      "18dd8d30-967b-11ed-b5e1-392bb934190c"
+    ]
+  }
+]

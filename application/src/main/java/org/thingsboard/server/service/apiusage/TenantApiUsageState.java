@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -70,6 +70,10 @@ public class TenantApiUsageState extends BaseApiUsageState {
         return tenantProfileData.getConfiguration().getProfileThreshold(key);
     }
 
+    public boolean getProfileFeatureEnabled(ApiUsageRecordKey key) {
+        return tenantProfileData.getConfiguration().getProfileFeatureEnabled(key);
+    }
+
     public long getProfileWarnThreshold(ApiUsageRecordKey key) {
         return tenantProfileData.getConfiguration().getWarnThreshold(key);
     }
@@ -78,13 +82,18 @@ public class TenantApiUsageState extends BaseApiUsageState {
         ApiUsageStateValue featureValue = ApiUsageStateValue.ENABLED;
         for (ApiUsageRecordKey recordKey : ApiUsageRecordKey.getKeys(feature)) {
             long value = get(recordKey);
-            long threshold = getProfileThreshold(recordKey);
-            long warnThreshold = getProfileWarnThreshold(recordKey);
+            boolean featureEnabled = getProfileFeatureEnabled(recordKey);
             ApiUsageStateValue tmpValue;
-            if (threshold == 0 || value == 0 || value < warnThreshold) {
-                tmpValue = ApiUsageStateValue.ENABLED;
-            } else if (value < threshold) {
-                tmpValue = ApiUsageStateValue.WARNING;
+            if (featureEnabled) {
+                long threshold = getProfileThreshold(recordKey);
+                long warnThreshold = getProfileWarnThreshold(recordKey);
+                if (threshold == 0 || value == 0 || value < warnThreshold) {
+                    tmpValue = ApiUsageStateValue.ENABLED;
+                } else if (value < threshold) {
+                    tmpValue = ApiUsageStateValue.WARNING;
+                } else {
+                    tmpValue = ApiUsageStateValue.DISABLED;
+                }
             } else {
                 tmpValue = ApiUsageStateValue.DISABLED;
             }

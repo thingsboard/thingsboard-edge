@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -41,7 +41,8 @@ import { DOCUMENT } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '@core/auth/auth.service';
 import { OpenReportMessage, ReportResultMessage, WindowMessage } from '@shared/models/window-message.model';
-import { CmdUpdateMsg, TelemetryPluginCmdsWrapper } from '@shared/models/telemetry/telemetry.models';
+import { WebsocketCmd } from '@shared/models/telemetry/telemetry.models';
+import { CmdWrapper } from '@shared/models/websocket/websocket.models';
 
 // @dynamic
 @Injectable({
@@ -99,7 +100,7 @@ export class ReportService {
     return this.reportView;
   }
 
-  public onSendWsCommands(cmds: TelemetryPluginCmdsWrapper) {
+  public onSendWsCommands(cmds: CmdWrapper) {
     for (const key of Object.keys(cmds)) {
       if (!key.toLowerCase().includes('unsubscribe')) {
         cmds[key].forEach((cmdComand: any) => {
@@ -114,7 +115,7 @@ export class ReportService {
     }
   }
 
-  public onWsCmdUpdateMessage(message: CmdUpdateMsg) {
+  public onWsCmdUpdateMessage(message: WebsocketCmd) {
     if (message.cmdId !== undefined) {
       this.receiveWsData.set(message.cmdId, true);
     }

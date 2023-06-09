@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -59,8 +59,13 @@ export interface DefaultTenantProfileConfiguration {
   transportDeviceTelemetryMsgRateLimit?: string;
   transportDeviceTelemetryDataPointsRateLimit?: string;
 
+  integrationMsgsPerTenantRateLimit?: string;
+  integrationMsgsPerDeviceRateLimit?: string;
+
   tenantEntityExportRateLimit?: string;
   tenantEntityImportRateLimit?: string;
+  tenantNotificationRequestsRateLimit?: string;
+  tenantNotificationRequestsPerRuleRateLimit?: string;
 
   maxTransportMessages: number;
   maxTransportDataPoints: number;
@@ -70,6 +75,7 @@ export interface DefaultTenantProfileConfiguration {
   maxRuleNodeExecutionsPerMessage: number;
   maxEmails: number;
   maxSms: number;
+  smsEnabled: boolean;
   maxCreatedAlarms: number;
 
   tenantServerRestLimitsConfiguration: string;
@@ -124,6 +130,7 @@ export function createTenantProfileConfiguration(type: TenantProfileType): Tenan
           maxRuleNodeExecutionsPerMessage: 0,
           maxEmails: 0,
           maxSms: 0,
+          smsEnabled: true,
           maxCreatedAlarms: 0,
           tenantServerRestLimitsConfiguration: '',
           customerServerRestLimitsConfiguration: '',

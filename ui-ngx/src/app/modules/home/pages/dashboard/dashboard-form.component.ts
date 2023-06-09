@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,21 +32,23 @@
 import { ChangeDetectorRef, Component, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
-import { Dashboard } from '@shared/models/dashboard.models';
+import { Dashboard, DashboardInfo } from '@shared/models/dashboard.models';
 import { DashboardService } from '@core/http/dashboard.service';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { isEqual } from '@core/utils';
+import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
   selector: 'tb-dashboard-form',
   templateUrl: './dashboard-form.component.html',
   styleUrls: ['./dashboard-form.component.scss']
 })
-export class DashboardFormComponent extends GroupEntityComponent<Dashboard> {
+export class DashboardFormComponent extends GroupEntityComponent<DashboardInfo> {
 
   // dashboardScope: 'tenant' | 'customer' | 'customer_user';
   // customerId: string;
@@ -58,11 +60,13 @@ export class DashboardFormComponent extends GroupEntityComponent<Dashboard> {
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
               private dashboardService: DashboardService,
-              @Inject('entity') protected entityValue: Dashboard,
-              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<Dashboard>,
-              protected fb: FormBuilder,
-              protected cd: ChangeDetectorRef) {
-    super(store, fb, entityValue, entitiesTableConfigValue, cd);
+              @Inject('entity') protected entityValue: DashboardInfo,
+              @Inject('entitiesTableConfig')
+              protected entitiesTableConfigValue: EntityTableConfig<DashboardInfo> | GroupEntityTableConfig<DashboardInfo>,
+              protected fb: UntypedFormBuilder,
+              protected cd: ChangeDetectorRef,
+              protected userPermissionsService: UserPermissionsService) {
+    super(store, fb, entityValue, entitiesTableConfigValue, cd, userPermissionsService);
     if (this.entityGroup && this.entityGroup.additionalInfo && this.entityGroup.additionalInfo.isPublic) {
       this.isPublic = true;
     } else {
@@ -92,7 +96,7 @@ export class DashboardFormComponent extends GroupEntityComponent<Dashboard> {
     }
   }
 
-  buildForm(entity: Dashboard): FormGroup {
+  buildForm(entity: DashboardInfo): UntypedFormGroup {
     this.updateFields(entity);
     return this.fb.group(
       {

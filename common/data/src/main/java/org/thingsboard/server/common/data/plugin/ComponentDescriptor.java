@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,12 +31,13 @@
 package org.thingsboard.server.common.data.plugin;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import org.thingsboard.server.common.data.SearchTextBased;
+import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
 import org.thingsboard.server.common.data.id.ComponentDescriptorId;
 import org.thingsboard.server.common.data.validation.Length;
 
@@ -45,7 +46,7 @@ import org.thingsboard.server.common.data.validation.Length;
  */
 @ApiModel
 @ToString
-public class ComponentDescriptor extends SearchTextBased<ComponentDescriptorId> {
+public class ComponentDescriptor extends BaseData<ComponentDescriptorId> {
 
     private static final long serialVersionUID = 1L;
 
@@ -53,15 +54,17 @@ public class ComponentDescriptor extends SearchTextBased<ComponentDescriptorId> 
     @Getter @Setter private ComponentType type;
     @ApiModelProperty(position = 4, value = "Scope of the Rule Node. Always set to 'TENANT', since no rule chains on the 'SYSTEM' level yet.", accessMode = ApiModelProperty.AccessMode.READ_ONLY, allowableValues = "TENANT", example = "TENANT")
     @Getter @Setter private ComponentScope scope;
+    @ApiModelProperty(position = 5, value = "Clustering mode of the RuleNode. This mode represents the ability to start Rule Node in multiple microservices.", accessMode = ApiModelProperty.AccessMode.READ_ONLY, allowableValues = "USER_PREFERENCE, ENABLED, SINGLETON", example = "ENABLED")
+    @Getter @Setter private ComponentClusteringMode clusteringMode;
     @Length(fieldName = "name")
-    @ApiModelProperty(position = 5, value = "Name of the Rule Node. Taken from the @RuleNode annotation.", accessMode = ApiModelProperty.AccessMode.READ_ONLY, example = "Custom Rule Node")
+    @ApiModelProperty(position = 6, value = "Name of the Rule Node. Taken from the @RuleNode annotation.", accessMode = ApiModelProperty.AccessMode.READ_ONLY, example = "Custom Rule Node")
     @Getter @Setter private String name;
-    @ApiModelProperty(position = 6, value = "Full name of the Java class that implements the Rule Engine Node interface.", accessMode = ApiModelProperty.AccessMode.READ_ONLY, example = "com.mycompany.CustomRuleNode")
+    @ApiModelProperty(position = 7, value = "Full name of the Java class that implements the Rule Engine Node interface.", accessMode = ApiModelProperty.AccessMode.READ_ONLY, example = "com.mycompany.CustomRuleNode")
     @Getter @Setter private String clazz;
-    @ApiModelProperty(position = 7, value = "Complex JSON object that represents the Rule Node configuration.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @ApiModelProperty(position = 8, value = "Complex JSON object that represents the Rule Node configuration.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Getter @Setter private transient JsonNode configurationDescriptor;
     @Length(fieldName = "actions")
-    @ApiModelProperty(position = 8, value = "Rule Node Actions. Deprecated. Always null.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @ApiModelProperty(position = 9, value = "Rule Node Actions. Deprecated. Always null.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Getter @Setter private String actions;
 
     public ComponentDescriptor() {
@@ -95,11 +98,6 @@ public class ComponentDescriptor extends SearchTextBased<ComponentDescriptorId> 
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();
-    }
-
-    @Override
-    public String getSearchText() {
-        return name;
     }
 
     @Override

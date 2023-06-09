@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -179,6 +179,9 @@ public final class EdgeUtils {
     }
 
     public static boolean isEdgeGroupAll(String groupName) {
+        if (groupName == null) {
+            return false;
+        }
         return groupName.startsWith(EntityGroup.GROUP_EDGE_ALL_STARTS_WITH) && groupName.endsWith(EntityGroup.GROUP_EDGE_ALL_ENDS_WITH);
     }
 }

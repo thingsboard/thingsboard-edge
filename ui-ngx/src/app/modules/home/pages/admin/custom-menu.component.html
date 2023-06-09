@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -31,14 +31,14 @@
 
 -->
 <div>
-  <mat-card class="settings-card">
-    <mat-card-title>
-      <div fxLayout="row">
-        <span class="mat-headline" translate>custom-menu.custom-menu</span>
-        <span fxFlex></span>
-        <div tb-help="customMenu"></div>
-      </div>
-    </mat-card-title>
+  <mat-card appearance="outlined" class="settings-card">
+    <mat-card-header>
+      <mat-card-title>
+        <span class="mat-headline-5" translate>custom-menu.custom-menu</span>
+      </mat-card-title>
+      <span fxFlex></span>
+      <div tb-help="customMenu"></div>
+    </mat-card-header>
     <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">
     </mat-progress-bar>
     <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
@@ -47,7 +47,7 @@
         <div tb-toast toastTarget="tb-custom-menu-panel" fxFlex fxLayout="column">
           <div class="tb-hint" translate>custom-menu.custom-menu-hint</div>
           <fieldset [disabled]="isLoading$ | async">
-            <div class="mat-block" style="height: 500px; padding: 2px; margin: 18px 0;">
+            <div class="mat-block" style="height: 500px; padding: 2px; margin: 0 0 18px;">
               <tb-json-content
                 [readonly]="readonly"
                 [(ngModel)]="customMenuJson"

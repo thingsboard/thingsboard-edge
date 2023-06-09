@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,6 +39,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.DonAsynchron;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
@@ -199,10 +200,10 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
     }
 
     private String metadataToJson(UplinkMetaData metaData) throws JsonProcessingException {
-        return mapper.writeValueAsString(metaData.getKvMap());
+        return JacksonUtil.toString(metaData.getKvMap());
     }
 
     private String getTypeUplink(byte[] inMessage) throws JsonProcessingException {
-        return (inMessage != null && inMessage.length > 23 && Arrays.equals(Arrays.copyOfRange(inMessage, 1, 23), mapper.writeValueAsBytes("DevEUI_downlink_Sent"))) ? "Downlink_Sent" : "Uplink";
+        return (inMessage != null && inMessage.length > 23 && Arrays.equals(Arrays.copyOfRange(inMessage, 1, 23), JacksonUtil.writeValueAsBytes("DevEUI_downlink_Sent"))) ? "Downlink_Sent" : "Uplink";
     }
 }

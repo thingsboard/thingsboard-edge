@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -49,6 +49,8 @@ import { Lwm2mDeviceTransportConfigurationComponent } from './data/lwm2m-device-
 import { SnmpDeviceTransportConfigurationComponent } from './data/snmp-device-transport-configuration.component';
 import { DeviceCredentialsModule } from '@home/components/device/device-credentials.module';
 import { DeviceProfileCommonModule } from '@home/components/profile/device/common/device-profile-common.module';
+import { DeviceRoutingModule } from '@home/pages/device/device-routing.module';
+import { DeviceTableHeaderComponent } from '@home/pages/device/device-table-header.component';
 
 @NgModule({
   declarations: [
@@ -62,7 +64,7 @@ import { DeviceProfileCommonModule } from '@home/components/profile/device/commo
     DeviceTransportConfigurationComponent,
     DeviceDataComponent,
     DeviceComponent,
-    DeviceCredentialsDialogComponent,
+    DeviceTableHeaderComponent,
     DeviceCredentialsDialogComponent
   ],
   imports: [
@@ -72,6 +74,7 @@ import { DeviceProfileCommonModule } from '@home/components/profile/device/commo
     HomeDialogsModule,
     DeviceCredentialsModule,
     DeviceProfileCommonModule,
+    DeviceRoutingModule
   ],
   providers: [
     {

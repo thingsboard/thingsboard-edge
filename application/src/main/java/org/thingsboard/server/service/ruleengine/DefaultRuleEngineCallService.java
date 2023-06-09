@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -80,10 +80,10 @@ public class DefaultRuleEngineCallService implements RuleEngineCallService {
     }
 
     @Override
-    public void processRestAPICallToRuleEngine(TenantId tenantId, UUID requestId, TbMsg request, Consumer<TbMsg> consumer) {
-        log.trace("[{}] Processing REST API call to rule engine [{}]", tenantId, request.getOriginator());
+    public void processRestAPICallToRuleEngine(TenantId tenantId, UUID requestId, TbMsg request, boolean useQueueFromTbMsg, Consumer<TbMsg> consumer) {
+        log.trace("[{}] Processing REST API call to rule engine: [{}] for entity: [{}]", tenantId, requestId, request.getOriginator());
         requests.put(requestId, consumer);
-        sendRequestToRuleEngine(tenantId, request);
+        sendRequestToRuleEngine(tenantId, request, useQueueFromTbMsg);
         scheduleTimeout(request, requestId, requests);
     }
 
@@ -99,8 +99,8 @@ public class DefaultRuleEngineCallService implements RuleEngineCallService {
         callback.onSuccess();
     }
 
-    private void sendRequestToRuleEngine(TenantId tenantId, TbMsg msg) {
-        clusterService.pushMsgToRuleEngine(tenantId, msg.getOriginator(), msg, null);
+    private void sendRequestToRuleEngine(TenantId tenantId, TbMsg msg, boolean useQueueFromTbMsg) {
+        clusterService.pushMsgToRuleEngine(tenantId, msg.getOriginator(), msg, useQueueFromTbMsg, null);
     }
 
     private void scheduleTimeout(TbMsg request, UUID requestId, ConcurrentMap<UUID, Consumer<TbMsg>> requestsMap) {
@@ -108,9 +108,9 @@ public class DefaultRuleEngineCallService implements RuleEngineCallService {
         long timeout = Math.max(0, expirationTime - System.currentTimeMillis());
         log.trace("[{}] processing the request: [{}]", this.hashCode(), requestId);
         rpcCallBackExecutor.schedule(() -> {
-            log.trace("[{}] timeout the request: [{}]", this.hashCode(), requestId);
             Consumer<TbMsg> consumer = requestsMap.remove(requestId);
             if (consumer != null) {
+                log.trace("[{}] request timeout detected: [{}]", this.hashCode(), requestId);
                 consumer.accept(null);
             }
         }, timeout, TimeUnit.MILLISECONDS);

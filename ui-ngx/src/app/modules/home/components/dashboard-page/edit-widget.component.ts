@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,23 +29,23 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { MatDialog } from '@angular/material/dialog';
 import { Dashboard, WidgetLayout } from '@shared/models/dashboard.models';
-import { IAliasController } from '@core/api/widget-api.models';
-import { Widget } from '@shared/models/widget.models';
+import { IAliasController, IStateController } from '@core/api/widget-api.models';
+import { Widget, WidgetConfigMode } from '@shared/models/widget.models';
 import { WidgetComponentService } from '@home/components/widget/widget-component.service';
 import { WidgetConfigComponentData } from '../../models/widget-component.models';
-import { isDefined, isString } from '@core/utils';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { isDefined, isDefinedAndNotNull, isString } from '@core/utils';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 
 @Component({
   selector: 'tb-edit-widget',
   templateUrl: './edit-widget.component.html',
-  styleUrls: []
+  styleUrls: ['./edit-widget.component.scss']
 })
 export class EditWidgetComponent extends PageComponent implements OnInit, OnChanges {
 
@@ -56,6 +56,9 @@ export class EditWidgetComponent extends PageComponent implements OnInit, OnChan
   aliasController: IAliasController;
 
   @Input()
+  stateController: IStateController;
+
+  @Input()
   widgetEditMode: boolean;
 
   @Input()
@@ -64,13 +67,36 @@ export class EditWidgetComponent extends PageComponent implements OnInit, OnChan
   @Input()
   widgetLayout: WidgetLayout;
 
-  widgetFormGroup: FormGroup;
+  @Output()
+  applyWidgetConfig = new EventEmitter<void>();
+
+  @Output()
+  revertWidgetConfig = new EventEmitter<void>();
+
+  widgetFormGroup: UntypedFormGroup;
 
   widgetConfig: WidgetConfigComponentData;
 
+  previewMode = false;
+
+  hasBasicMode = false;
+
+  get widgetConfigMode(): WidgetConfigMode {
+    return this.hasBasicMode ? (this.widgetConfig?.config?.configMode || WidgetConfigMode.advanced) : WidgetConfigMode.advanced;
+  }
+
+  set widgetConfigMode(widgetConfigMode: WidgetConfigMode) {
+    if (this.hasBasicMode) {
+      this.widgetConfig.config.configMode = widgetConfigMode;
+      this.widgetFormGroup.markAsDirty();
+    }
+  }
+
+  private currentWidgetConfigChanged = false;
+
   constructor(protected store: Store<AppState>,
               private dialog: MatDialog,
-              private fb: FormBuilder,
+              private fb: UntypedFormBuilder,
               private widgetComponentService: WidgetComponentService) {
     super(store);
     this.widgetFormGroup = this.fb.group({
@@ -93,8 +119,25 @@ export class EditWidgetComponent extends PageComponent implements OnInit, OnChan
       }
     }
     if (reloadConfig) {
+      if (this.currentWidgetConfigChanged) {
+        this.currentWidgetConfigChanged = false;
+      } else {
+        this.previewMode = false;
+      }
       this.loadWidgetConfig();
     }
+  }
+
+  onApplyWidgetConfig() {
+    if (this.widgetFormGroup.valid) {
+      this.currentWidgetConfigChanged = true;
+      this.applyWidgetConfig.emit();
+    }
+  }
+
+  onRevertWidgetConfig() {
+    this.currentWidgetConfigChanged = true;
+    this.revertWidgetConfig.emit();
   }
 
   private loadWidgetConfig() {
@@ -128,6 +171,7 @@ export class EditWidgetComponent extends PageComponent implements OnInit, OnChan
         JSON.parse(rawLatestDataKeySettingsSchema) : rawLatestDataKeySettingsSchema;
     }
     this.widgetConfig = {
+      widgetName: widgetInfo.widgetName,
       config: this.widget.config,
       layout: this.widgetLayout,
       widgetType: this.widget.type,
@@ -139,8 +183,10 @@ export class EditWidgetComponent extends PageComponent implements OnInit, OnChan
       latestDataKeySettingsSchema,
       settingsDirective: widgetInfo.settingsDirective,
       dataKeySettingsDirective: widgetInfo.dataKeySettingsDirective,
-      latestDataKeySettingsDirective: widgetInfo.latestDataKeySettingsDirective
+      latestDataKeySettingsDirective: widgetInfo.latestDataKeySettingsDirective,
+      basicModeDirective: widgetInfo.basicModeDirective
     };
+    this.hasBasicMode = isDefinedAndNotNull(widgetInfo.hasBasicMode) ? widgetInfo.hasBasicMode : false;
     this.widgetFormGroup.reset({widgetConfig: this.widgetConfig});
   }
 }

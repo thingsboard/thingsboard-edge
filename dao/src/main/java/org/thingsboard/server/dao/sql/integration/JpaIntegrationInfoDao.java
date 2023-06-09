@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,13 +30,10 @@
  */
 package org.thingsboard.server.dao.sql.integration;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -44,12 +41,11 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.integration.IntegrationInfoDao;
 import org.thingsboard.server.dao.model.sql.IntegrationInfoEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 
@@ -59,7 +55,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 @SqlDao
-public class JpaIntegrationInfoDao extends JpaAbstractSearchTextDao<IntegrationInfoEntity, IntegrationInfo> implements IntegrationInfoDao {
+public class JpaIntegrationInfoDao extends JpaAbstractDao<IntegrationInfoEntity, IntegrationInfo> implements IntegrationInfoDao {
 
     @Autowired
     private IntegrationInfoRepository integrationInfoRepository;

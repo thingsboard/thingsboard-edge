@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,10 +33,10 @@ import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   Validator,
@@ -55,8 +55,9 @@ import {
   labelDataKeyValidator
 } from '@home/components/widget/lib/settings/chart/label-data-key.component';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
+import { defaultLegendConfig, widgetType } from '@shared/models/widget.models';
 
-export function flotDefaultSettings(chartType: ChartType): Partial<TbFlotSettings> {
+export const flotDefaultSettings = (chartType: ChartType): Partial<TbFlotSettings> => {
   const settings: Partial<TbFlotSettings> = {
     stack: false,
     enableSelection: 'enable',
@@ -111,9 +112,11 @@ export function flotDefaultSettings(chartType: ChartType): Partial<TbFlotSetting
     };
     settings.customLegendEnabled = false;
     settings.dataKeysListForLabels = [];
+    settings.showLegend = true;
+    settings.legendConfig = defaultLegendConfig(widgetType.timeseries);
   }
   return settings;
-}
+};
 
 @Component({
   selector: 'tb-flot-widget-settings',
@@ -146,12 +149,12 @@ export class FlotWidgetSettingsComponent extends PageComponent implements OnInit
 
   private propagateChange = null;
 
-  public flotSettingsFormGroup: FormGroup;
+  public flotSettingsFormGroup: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
               private widgetService: WidgetService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
@@ -238,6 +241,11 @@ export class FlotWidgetSettingsComponent extends PageComponent implements OnInit
         showLabels: [true, []]
       }));
 
+      // Legend settings
+
+      this.flotSettingsFormGroup.addControl('showLegend', this.fb.control(false, []));
+      this.flotSettingsFormGroup.addControl('legendConfig', this.fb.control(null, []));
+
       // Custom legend settings
 
       this.flotSettingsFormGroup.addControl('customLegendEnabled', this.fb.control(false, []));
@@ -257,6 +265,9 @@ export class FlotWidgetSettingsComponent extends PageComponent implements OnInit
     });
 
     if (this.chartType === 'graph' || this.chartType === 'bar') {
+      this.flotSettingsFormGroup.get('showLegend').valueChanges.subscribe(() => {
+        this.updateValidators(true);
+      });
       this.flotSettingsFormGroup.get('comparisonEnabled').valueChanges.subscribe(() => {
         this.updateValidators(true);
       });
@@ -307,7 +318,7 @@ export class FlotWidgetSettingsComponent extends PageComponent implements OnInit
     this.updateValidators(false);
   }
 
-  validate(c: FormControl) {
+  validate(c: UntypedFormControl) {
     return (this.flotSettingsFormGroup.valid) ? null : {
       flotSettings: {
         valid: false,
@@ -367,9 +378,15 @@ export class FlotWidgetSettingsComponent extends PageComponent implements OnInit
     this.flotSettingsFormGroup.get('yaxis.ticksFormatter').updateValueAndValidity({emitEvent: false});
 
     if (this.chartType === 'graph' || this.chartType === 'bar') {
+      const showLegend: boolean = this.flotSettingsFormGroup.get('showLegend').value;
       const comparisonEnabled: boolean = this.flotSettingsFormGroup.get('comparisonEnabled').value;
       const timeForComparison: ComparisonDuration = this.flotSettingsFormGroup.get('timeForComparison').value;
       const customLegendEnabled: boolean = this.flotSettingsFormGroup.get('customLegendEnabled').value;
+      if (showLegend) {
+        this.flotSettingsFormGroup.get('legendConfig').enable({emitEvent});
+      } else {
+        this.flotSettingsFormGroup.get('legendConfig').disable({emitEvent});
+      }
       if (comparisonEnabled) {
         this.flotSettingsFormGroup.get('timeForComparison').enable({emitEvent: false});
         if (timeForComparison === 'customInterval') {
@@ -387,14 +404,15 @@ export class FlotWidgetSettingsComponent extends PageComponent implements OnInit
         this.flotSettingsFormGroup.get('dataKeysListForLabels').disable({emitEvent});
       }
 
+      this.flotSettingsFormGroup.get('legendConfig').updateValueAndValidity({emitEvent: false});
       this.flotSettingsFormGroup.get('timeForComparison').updateValueAndValidity({emitEvent: false});
       this.flotSettingsFormGroup.get('comparisonCustomIntervalValue').updateValueAndValidity({emitEvent: false});
       this.flotSettingsFormGroup.get('dataKeysListForLabels').updateValueAndValidity({emitEvent: false});
     }
   }
 
-  dataKeysListForLabelsFormArray(): FormArray {
-    return this.flotSettingsFormGroup.get('dataKeysListForLabels') as FormArray;
+  dataKeysListForLabelsFormArray(): UntypedFormArray {
+    return this.flotSettingsFormGroup.get('dataKeysListForLabels') as UntypedFormArray;
   }
 
   public trackByLabelDataKey(index: number, labelDataKeyControl: AbstractControl): any {
@@ -402,7 +420,7 @@ export class FlotWidgetSettingsComponent extends PageComponent implements OnInit
   }
 
   public removeLabelDataKey(index: number) {
-    (this.flotSettingsFormGroup.get('dataKeysListForLabels') as FormArray).removeAt(index);
+    (this.flotSettingsFormGroup.get('dataKeysListForLabels') as UntypedFormArray).removeAt(index);
   }
 
   public addLabelDataKey() {
@@ -410,7 +428,7 @@ export class FlotWidgetSettingsComponent extends PageComponent implements OnInit
       name: null,
       type: DataKeyType.attribute
     };
-    const dataKeysListForLabelsArray = this.flotSettingsFormGroup.get('dataKeysListForLabels') as FormArray;
+    const dataKeysListForLabelsArray = this.flotSettingsFormGroup.get('dataKeysListForLabels') as UntypedFormArray;
     const labelDataKeyControl = this.fb.control(labelDataKey, [labelDataKeyValidator]);
     (labelDataKeyControl as any).new = true;
     dataKeysListForLabelsArray.push(labelDataKeyControl);
@@ -418,7 +436,7 @@ export class FlotWidgetSettingsComponent extends PageComponent implements OnInit
   }
 
   labelDataKeyDrop(event: CdkDragDrop<string[]>) {
-    const dataKeysListForLabelsArray = this.flotSettingsFormGroup.get('dataKeysListForLabels') as FormArray;
+    const dataKeysListForLabelsArray = this.flotSettingsFormGroup.get('dataKeysListForLabels') as UntypedFormArray;
     const labelDataKey = dataKeysListForLabelsArray.at(event.previousIndex);
     dataKeysListForLabelsArray.removeAt(event.previousIndex);
     dataKeysListForLabelsArray.insert(event.currentIndex, labelDataKey);

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,14 +29,15 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, forwardRef, Input, OnInit } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { DialogService } from '@core/services/dialog.service';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { TranslateService } from '@ngx-translate/core';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-material-icon-select',
@@ -53,7 +54,14 @@ import { TranslateService } from '@ngx-translate/core';
 export class MaterialIconSelectComponent extends PageComponent implements OnInit, ControlValueAccessor {
 
   @Input()
+  @coerceBoolean()
+  asBoxInput = false;
+
+  @Input()
   label = this.translate.instant('icon.icon');
+
+  @Input()
+  color: string;
 
   @Input()
   disabled: boolean;
@@ -83,12 +91,13 @@ export class MaterialIconSelectComponent extends PageComponent implements OnInit
 
   private propagateChange = null;
 
-  public materialIconFormGroup: FormGroup;
+  public materialIconFormGroup: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
               private dialogs: DialogService,
               private translate: TranslateService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder,
+              private cd: ChangeDetectorRef) {
     super(store);
   }
 
@@ -141,6 +150,7 @@ export class MaterialIconSelectComponent extends PageComponent implements OnInit
             this.materialIconFormGroup.patchValue(
               {icon}, {emitEvent: true}
             );
+            this.cd.markForCheck();
           }
         }
       );
@@ -149,5 +159,6 @@ export class MaterialIconSelectComponent extends PageComponent implements OnInit
 
   clear() {
     this.materialIconFormGroup.get('icon').patchValue(null, {emitEvent: true});
+    this.cd.markForCheck();
   }
 }

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -67,6 +67,22 @@ export class HasGroupEntityPermissionPipe implements PipeTransform {
 
   transform(entityGroup: EntityGroupInfo, operation: Operation): boolean {
     return this.userPermissionsService.hasGroupEntityPermission(operation, entityGroup);
+  }
+}
+
+@Pipe({
+  name: 'hasGroupEntityOrGenericPermission'
+})
+export class HasGroupEntityOrGenericPermissionPipe implements PipeTransform {
+
+  constructor(private userPermissionsService: UserPermissionsService) {}
+
+  transform(entityGroup: EntityGroupInfo, resource: Resource, operation: Operation): boolean {
+    if (entityGroup) {
+      return this.userPermissionsService.hasGroupEntityPermission(operation, entityGroup);
+    } else {
+      return this.userPermissionsService.hasResourcesGenericPermission(resource, operation);
+    }
   }
 }
 

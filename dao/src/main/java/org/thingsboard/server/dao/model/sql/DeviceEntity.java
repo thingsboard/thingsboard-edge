@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,7 +49,7 @@ import javax.persistence.Table;
         @TypeDef(name = "json", typeClass = JsonStringType.class),
         @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 })
-@Table(name = ModelConstants.DEVICE_COLUMN_FAMILY_NAME)
+@Table(name = ModelConstants.DEVICE_TABLE_NAME)
 public final class DeviceEntity extends AbstractDeviceEntity<Device> {
 
     public DeviceEntity() {

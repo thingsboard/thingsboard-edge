@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,7 @@
 package org.thingsboard.server.transport.lwm2m.server.store;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Hex;
 import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.Cursor;
@@ -63,7 +64,12 @@ public class TbRedisLwM2MClientStore implements TbLwM2MClientStore {
             if (data == null) {
                 return null;
             } else {
-                return deserialize(data);
+                try {
+                    return deserialize(data);
+                } catch (Exception e) {
+                    log.warn("[{}] Failed to deserialize client from data: {}", endpoint, Hex.encodeHexString(data), e);
+                    return null;
+                }
             }
         }
     }
@@ -85,7 +91,13 @@ public class TbRedisLwM2MClientStore implements TbLwM2MClientStore {
             scans.forEach(scan -> {
                 scan.forEachRemaining(key -> {
                     byte[] element = connection.get(key);
-                    clients.add(deserialize(element));
+                    if (element != null) {
+                        try {
+                            clients.add(deserialize(element));
+                        } catch (Exception e) {
+                            log.warn("[{}] Failed to deserialize client from data: {}", Hex.encodeHexString(key), Hex.encodeHexString(element), e);
+                        }
+                    }
                 });
             });
             return clients;

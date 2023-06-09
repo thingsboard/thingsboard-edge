@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -48,7 +48,7 @@ public interface TbResourceRepository extends JpaRepository<TbResourceEntity, UU
 
     @Query("SELECT tr FROM TbResourceEntity tr " +
             "WHERE tr.resourceType = :resourceType " +
-            "AND LOWER(tr.searchText) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+            "AND LOWER(tr.title) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
             "AND (tr.tenantId = :tenantId " +
             "OR (tr.tenantId = :systemAdminId " +
             "AND NOT EXISTS " +
@@ -65,7 +65,7 @@ public interface TbResourceRepository extends JpaRepository<TbResourceEntity, UU
 
     @Query("SELECT tr FROM TbResourceEntity tr " +
             "WHERE tr.resourceType = :resourceType " +
-            "AND LOWER(tr.searchText) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+            "AND LOWER(tr.title) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
             "AND (tr.tenantId = :tenantId " +
             "OR (tr.tenantId = :systemAdminId " +
             "AND NOT EXISTS " +

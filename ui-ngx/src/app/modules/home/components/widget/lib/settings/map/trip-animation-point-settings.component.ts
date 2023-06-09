@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,9 +32,9 @@
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   Validator, Validators
@@ -79,12 +79,12 @@ export class TripAnimationPointSettingsComponent extends PageComponent implement
 
   private propagateChange = null;
 
-  public tripAnimationPointSettingsFormGroup: FormGroup;
+  public tripAnimationPointSettingsFormGroup: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
               private widgetService: WidgetService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
@@ -138,7 +138,7 @@ export class TripAnimationPointSettingsComponent extends PageComponent implement
     this.updateValidators(false);
   }
 
-  public validate(c: FormControl) {
+  public validate(c: UntypedFormControl) {
     return this.tripAnimationPointSettingsFormGroup.valid ? null : {
       tripAnimationPointSettings: {
         valid: false,

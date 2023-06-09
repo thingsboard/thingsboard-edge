@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -190,8 +190,10 @@ export class EntityDataService {
       type: subscriptionType
     };
     if (entityDataSubscriptionOptions.datasourceType === DatasourceType.entity ||
-      entityDataSubscriptionOptions.datasourceType === DatasourceType.entityCount) {
+      entityDataSubscriptionOptions.datasourceType === DatasourceType.entityCount ||
+      entityDataSubscriptionOptions.datasourceType === DatasourceType.alarmCount) {
       entityDataSubscriptionOptions.entityFilter = datasource.entityFilter;
+      entityDataSubscriptionOptions.alarmFilter = datasource.alarmFilter;
       entityDataSubscriptionOptions.keyFilters = keyFilters;
       entityDataSubscriptionOptions.additionalKeyFilters = additionalKeyFilters;
       if (entityDataSubscriptionOptions.datasourceType === DatasourceType.entity) {

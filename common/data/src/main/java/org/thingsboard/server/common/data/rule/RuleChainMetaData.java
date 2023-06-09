@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,16 +30,13 @@
  */
 package org.thingsboard.server.common.data.rule;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.thingsboard.server.common.data.id.RuleChainId;
 
-import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by igor on 3/13/18.
@@ -54,7 +51,6 @@ public class RuleChainMetaData {
     @ApiModelProperty(position = 2, required = true, value = "Index of the first rule node in the 'nodes' list")
     private Integer firstNodeIndex;
 
-    @Valid
     @ApiModelProperty(position = 3, required = true, value = "List of rule node JSON objects")
     private List<RuleNode> nodes;
 

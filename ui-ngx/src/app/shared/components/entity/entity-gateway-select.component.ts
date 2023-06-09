@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
 ///
 
 import { Component, ElementRef, EventEmitter, forwardRef, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
@@ -86,7 +86,7 @@ export class EntityGatewaySelectComponent implements ControlValueAccessor, OnIni
               private dialogService: DialogService,
               private deviceService: DeviceService,
               private translate: TranslateService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
   }
 
   private gatewayType = 'Gateway';
@@ -96,7 +96,7 @@ export class EntityGatewaySelectComponent implements ControlValueAccessor, OnIni
 
   searchText = '';
   filteredGateways: Observable<Array<Device>>;
-  selectDeviceGatewayFormGroup: FormGroup;
+  selectDeviceGatewayFormGroup: UntypedFormGroup;
   modelValue: string | null;
 
   @ViewChild('deviceGatewayInput', {static: true}) deviceGatewayInput: ElementRef<HTMLInputElement>;

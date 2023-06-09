@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -51,7 +51,6 @@ import { EditAttributeValuePanelComponent } from '@home/components/attribute/edi
 import { DashboardComponent } from '@home/components/dashboard/dashboard.component';
 import { WidgetComponent } from '@home/components/widget/widget.component';
 import { WidgetComponentService } from '@home/components/widget/widget-component.service';
-import { LegendComponent } from '@home/components/widget/legend.component';
 import { AliasesEntitySelectPanelComponent } from '@home/components/alias/aliases-entity-select-panel.component';
 import { AliasesEntitySelectComponent } from '@home/components/alias/aliases-entity-select.component';
 import { WidgetConfigComponent } from '@home/components/widget/widget-config.component';
@@ -60,11 +59,6 @@ import { EntityFilterViewComponent } from '@home/components/entity/entity-filter
 import { EntityAliasDialogComponent } from '@home/components/alias/entity-alias-dialog.component';
 import { EntityFilterComponent } from '@home/components/entity/entity-filter.component';
 import { RelationFiltersComponent } from '@home/components/relation/relation-filters.component';
-import { EntityAliasSelectComponent } from '@home/components/alias/entity-alias-select.component';
-import { DataKeysComponent } from '@home/components/widget/data-keys.component';
-import { DataKeyConfigDialogComponent } from '@home/components/widget/data-key-config-dialog.component';
-import { DataKeyConfigComponent } from '@home/components/widget/data-key-config.component';
-import { LegendConfigComponent } from '@home/components/widget/legend-config.component';
 import { ManageWidgetActionsComponent } from '@home/components/widget/action/manage-widget-actions.component';
 import { WidgetActionDialogComponent } from '@home/components/widget/action/widget-action-dialog.component';
 import { CustomActionPrettyResourcesTabsComponent } from '@home/components/widget/action/custom-action-pretty-resources-tabs.component';
@@ -93,7 +87,6 @@ import { ComplexFilterPredicateDialogComponent } from '@home/components/filter/c
 import { KeyFilterDialogComponent } from '@home/components/filter/key-filter-dialog.component';
 import { FiltersDialogComponent } from '@home/components/filter/filters-dialog.component';
 import { FilterDialogComponent } from '@home/components/filter/filter-dialog.component';
-import { FilterSelectComponent } from '@home/components/filter/filter-select.component';
 import { FiltersEditComponent } from '@home/components/filter/filters-edit.component';
 import { FiltersEditPanelComponent } from '@home/components/filter/filters-edit-panel.component';
 import { UserFilterDialogComponent } from '@home/components/filter/user-filter-dialog.component';
@@ -192,8 +185,6 @@ import { AlarmDynamicValue } from '@home/components/profile/alarm/alarm-dynamic-
 import { EntityDetailsPageComponent } from '@home/components/entity/entity-details-page.component';
 import { TenantProfileQueuesComponent } from '@home/components/profile/queue/tenant-profile-queues.component';
 import { QueueFormComponent } from '@home/components/queue/queue-form.component';
-import { WidgetSettingsModule } from '@home/components/widget/lib/settings/widget-settings.module';
-import { WidgetSettingsComponent } from '@home/components/widget/widget-settings.component';
 import { RepositorySettingsComponent } from '@home/components/vc/repository-settings.component';
 import { VersionControlComponent } from '@home/components/vc/version-control.component';
 import { EntityVersionsTableComponent } from '@home/components/vc/entity-versions-table.component';
@@ -218,10 +209,29 @@ import { IntegrationWizardDialogComponent } from '@home/components/wizard/integr
 import { ConverterComponent } from '@home/components/converter/converter.component';
 import { ConverterTestDialogComponent } from '@home/components/converter/converter-test-dialog.component';
 import { IntegrationComponentModule } from '@home/components/integration/integration-component.module';
+import { MODULES_MAP } from '@shared/models/constants';
+import { modulesMap } from '@modules/common/modules-map';
+import { AlarmAssigneePanelComponent } from '@home/components/alarm/alarm-assignee-panel.component';
+import { RouterTabsComponent } from '@home/components/router-tabs.component';
+import { AllEntitiesTableConfigService } from '@home/components/entity/all-entities-table-config.service';
+import { SendNotificationButtonComponent } from '@home/components/notification/send-notification-button.component';
+import { GroupChipsComponent } from '@home/components/group/group-chips.component';
+import { GroupEntityInfoComponent } from '@home/components/group/group-entity-info.component';
+import { ManageOwnerAndGroupsDialogComponent } from '@home/components/group/manage-owner-and-groups-dialog.component';
+import { OwnerAndGroupsComponent } from '@home/components/group/owner-and-groups.component';
+import { AlarmAssigneeSelectPanelComponent } from '@home/components/alarm/alarm-assignee-select-panel.component';
+import { DeviceInfoFilterComponent } from '@home/components/device/device-info-filter.component';
+import { WidgetPreviewComponent } from '@home/components/widget/widget-preview.component';
+import {
+  ManageWidgetActionsDialogComponent
+} from '@home/components/widget/action/manage-widget-actions-dialog.component';
+import { WidgetConfigComponentsModule } from '@home/components/widget/config/widget-config-components.module';
+import { BasicWidgetConfigModule } from '@home/components/widget/config/basic/basic-widget-config.module';
 
 @NgModule({
   declarations:
     [
+      RouterTabsComponent,
       EntitiesTableComponent,
       AddEntityDialogComponent,
       DetailsPanelComponent,
@@ -240,6 +250,8 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
       RelationFiltersComponent,
       AlarmTableHeaderComponent,
       AlarmTableComponent,
+      AlarmAssigneePanelComponent,
+      AlarmAssigneeSelectPanelComponent,
       AttributeTableComponent,
       AddAttributeDialogComponent,
       EditAttributeValuePanelComponent,
@@ -251,18 +263,13 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
       DashboardComponent,
       WidgetContainerComponent,
       WidgetComponent,
-      LegendComponent,
-      WidgetSettingsComponent,
       WidgetConfigComponent,
+      WidgetPreviewComponent,
       EntityFilterViewComponent,
       EntityFilterComponent,
-      EntityAliasSelectComponent,
-      DataKeysComponent,
-      DataKeyConfigComponent,
-      DataKeyConfigDialogComponent,
-      LegendConfigComponent,
       ManageWidgetActionsComponent,
       WidgetActionDialogComponent,
+      ManageWidgetActionsDialogComponent,
       CustomActionPrettyResourcesTabsComponent,
       CustomActionPrettyEditorComponent,
       MobileActionEditorComponent,
@@ -289,6 +296,10 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
       EntityGroupColumnsComponent,
       EntityGroupColumnDialogComponent,
       AddGroupEntityDialogComponent,
+      GroupChipsComponent,
+      GroupEntityInfoComponent,
+      OwnerAndGroupsComponent,
+      ManageOwnerAndGroupsDialogComponent,
       RegistrationPermissionsComponent,
       BooleanFilterPredicateComponent,
       StringFilterPredicateComponent,
@@ -301,7 +312,6 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
       KeyFilterDialogComponent,
       FilterDialogComponent,
       FiltersDialogComponent,
-      FilterSelectComponent,
       FilterTextComponent,
       FiltersEditComponent,
       FiltersEditPanelComponent,
@@ -331,6 +341,7 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
       DeviceProfileComponent,
       DeviceProfileDialogComponent,
       AddDeviceProfileDialogComponent,
+      DeviceInfoFilterComponent,
       AssetProfileComponent,
       AssetProfileDialogComponent,
       AssetProfileAutocompleteComponent,
@@ -386,14 +397,16 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
       RateLimitsTextComponent,
       IntegrationWizardDialogComponent,
       ConverterComponent,
-      ConverterTestDialogComponent
+      ConverterTestDialogComponent,
+      SendNotificationButtonComponent
     ],
   imports: [
     CommonModule,
     SharedModule,
     SharedHomeComponentsModule,
     HomeDialogsModule,
-    WidgetSettingsModule,
+    WidgetConfigComponentsModule,
+    BasicWidgetConfigModule,
     Lwm2mProfileComponentsModule,
     SnmpDeviceProfileTransportModule,
     StatesControllerModule,
@@ -403,6 +416,7 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
   ],
   exports: [
     SharedHomeComponentsModule,
+    RouterTabsComponent,
     EntitiesTableComponent,
     AddEntityDialogComponent,
     DetailsPanelComponent,
@@ -415,6 +429,8 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
     RelationTableComponent,
     RelationFiltersComponent,
     AlarmTableComponent,
+    AlarmAssigneePanelComponent,
+    AlarmAssigneeSelectPanelComponent,
     AttributeTableComponent,
     AliasesEntitySelectComponent,
     AliasesEntityAutocompleteComponent,
@@ -423,18 +439,13 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
     DashboardComponent,
     WidgetContainerComponent,
     WidgetComponent,
-    LegendComponent,
-    WidgetSettingsComponent,
     WidgetConfigComponent,
+    WidgetPreviewComponent,
     EntityFilterViewComponent,
     EntityFilterComponent,
-    EntityAliasSelectComponent,
-    DataKeysComponent,
-    DataKeyConfigComponent,
-    DataKeyConfigDialogComponent,
-    LegendConfigComponent,
     ManageWidgetActionsComponent,
     WidgetActionDialogComponent,
+    ManageWidgetActionsDialogComponent,
     CustomActionPrettyResourcesTabsComponent,
     CustomActionPrettyEditorComponent,
     MobileActionEditorComponent,
@@ -459,6 +470,10 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
     EntityGroupColumnsComponent,
     EntityGroupColumnDialogComponent,
     AddGroupEntityDialogComponent,
+    GroupChipsComponent,
+    GroupEntityInfoComponent,
+    OwnerAndGroupsComponent,
+    ManageOwnerAndGroupsDialogComponent,
     RegistrationPermissionsComponent,
     BooleanFilterPredicateComponent,
     StringFilterPredicateComponent,
@@ -471,7 +486,6 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
     KeyFilterDialogComponent,
     FilterDialogComponent,
     FiltersDialogComponent,
-    FilterSelectComponent,
     FilterTextComponent,
     FiltersEditComponent,
     UserFilterDialogComponent,
@@ -495,6 +509,7 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
     DeviceProfileComponent,
     DeviceProfileDialogComponent,
     AddDeviceProfileDialogComponent,
+    DeviceInfoFilterComponent,
     RuleChainAutocompleteComponent,
     DeviceWizardDialogComponent,
     AssetProfileComponent,
@@ -548,19 +563,22 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
     RateLimitsComponent,
     RateLimitsListComponent,
     RateLimitsTextComponent,
-    IntegrationWizardDialogComponent
+    IntegrationWizardDialogComponent,
+    SendNotificationButtonComponent
   ],
   providers: [
     WidgetComponentService,
     CustomDialogService,
     ImportExportService,
+    AllEntitiesTableConfigService,
     GroupConfigTableConfigService,
     EntityGroupsTableConfigResolver,
     EntityGroupConfigResolver,
     {provide: EMBED_DASHBOARD_DIALOG_TOKEN, useValue: EmbedDashboardDialogComponent},
     {provide: COMPLEX_FILTER_PREDICATE_DIALOG_COMPONENT_TOKEN, useValue: ComplexFilterPredicateDialogComponent},
     {provide: DASHBOARD_PAGE_COMPONENT_TOKEN, useValue: DashboardPageComponent},
-    {provide: HOME_COMPONENTS_MODULE_TOKEN, useValue: HomeComponentsModule }
+    {provide: HOME_COMPONENTS_MODULE_TOKEN, useValue: HomeComponentsModule },
+    {provide: MODULES_MAP, useValue: modulesMap}
   ]
 })
 export class HomeComponentsModule {

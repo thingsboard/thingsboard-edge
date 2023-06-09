@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,19 +39,24 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceIdInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.exception.TenantNotFoundException;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -72,18 +77,19 @@ import org.thingsboard.server.common.data.query.EntityListFilter;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
+import org.thingsboard.server.common.msg.notification.trigger.DeviceActivityTrigger;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.sql.query.EntityQueryRepository;
-import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.util.DbTypeInfoComponent;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.discovery.PartitionService;
-import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.partition.AbstractPartitionBasedService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
@@ -96,6 +102,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -122,6 +129,7 @@ import static org.thingsboard.server.common.data.DataConstants.SERVER_SCOPE;
 @Service
 @TbCoreComponent
 @Slf4j
+@RequiredArgsConstructor
 public class DefaultDeviceStateService extends AbstractPartitionBasedService<DeviceId> implements DeviceStateService {
 
     public static final String ACTIVITY_STATE = "active";
@@ -153,18 +161,19 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
     private static final List<EntityKey> PERSISTENT_ENTITY_FIELDS = Arrays.asList(
             new EntityKey(EntityKeyType.ENTITY_FIELD, "name"),
             new EntityKey(EntityKeyType.ENTITY_FIELD, "type"),
+            new EntityKey(EntityKeyType.ENTITY_FIELD, "label"),
             new EntityKey(EntityKeyType.ENTITY_FIELD, "createdTime"));
 
-    private final TenantService tenantService;
     private final DeviceService deviceService;
     private final AttributesService attributesService;
     private final TimeseriesService tsService;
     private final TbClusterService clusterService;
     private final PartitionService partitionService;
-    private final TbServiceInfoProvider serviceInfoProvider;
     private final EntityQueryRepository entityQueryRepository;
     private final DbTypeInfoComponent dbTypeInfoComponent;
-
+    private final TbApiUsageReportClient apiUsageReportClient;
+    private final NotificationRuleProcessor notificationRuleProcessor;
+    @Autowired @Lazy
     private TelemetrySubscriptionService tsSubService;
 
     @Value("${state.defaultInactivityTimeoutInSec}")
@@ -181,6 +190,10 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
     @Getter
     private int defaultStateCheckIntervalInSec;
 
+    @Value("${usage.stats.devices.report_interval:60}")
+    @Getter
+    private int defaultActivityStatsIntervalInSec;
+
     @Value("${state.persistToTelemetry:false}")
     @Getter
     @Setter
@@ -194,34 +207,13 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
 
     final ConcurrentMap<DeviceId, DeviceStateData> deviceStates = new ConcurrentHashMap<>();
 
-    public DefaultDeviceStateService(TenantService tenantService, DeviceService deviceService,
-                                     AttributesService attributesService, TimeseriesService tsService,
-                                     TbClusterService clusterService, PartitionService partitionService,
-                                     TbServiceInfoProvider serviceInfoProvider,
-                                     EntityQueryRepository entityQueryRepository,
-                                     DbTypeInfoComponent dbTypeInfoComponent) {
-        this.tenantService = tenantService;
-        this.deviceService = deviceService;
-        this.attributesService = attributesService;
-        this.tsService = tsService;
-        this.clusterService = clusterService;
-        this.partitionService = partitionService;
-        this.serviceInfoProvider = serviceInfoProvider;
-        this.entityQueryRepository = entityQueryRepository;
-        this.dbTypeInfoComponent = dbTypeInfoComponent;
-    }
-
-    @Autowired
-    public void setTsSubService(TelemetrySubscriptionService tsSubService) {
-        this.tsSubService = tsSubService;
-    }
-
     @PostConstruct
     public void init() {
         super.init();
         deviceStateExecutor = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newWorkStealingPool(
                 Math.max(4, Runtime.getRuntime().availableProcessors()), "device-state"));
-        scheduledExecutor.scheduleAtFixedRate(this::updateInactivityStateIfExpired, new Random().nextInt(defaultStateCheckIntervalInSec), defaultStateCheckIntervalInSec, TimeUnit.SECONDS);
+        scheduledExecutor.scheduleWithFixedDelay(this::checkStates, new Random().nextInt(defaultStateCheckIntervalInSec), defaultStateCheckIntervalInSec, TimeUnit.SECONDS);
+        scheduledExecutor.scheduleWithFixedDelay(this::reportActivityStats, defaultActivityStatsIntervalInSec, defaultActivityStatsIntervalInSec, TimeUnit.SECONDS);
     }
 
     @PreDestroy
@@ -277,8 +269,7 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
             state.setLastActivityTime(lastReportedActivity);
             if (!state.isActive()) {
                 state.setActive(true);
-                save(deviceId, ACTIVITY_STATE, true);
-                pushRuleEngineMessage(stateData, ACTIVITY_EVENT);
+                onDeviceActivityStatusChange(deviceId, true, stateData);
             }
         } else {
             log.debug("updateActivityState - fetched state IN NULL for device {}, lastReportedActivity {}", deviceId, lastReportedActivity);
@@ -304,7 +295,7 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
             return;
         }
         if (inactivityTimeout <= 0L) {
-            inactivityTimeout = defaultInactivityTimeoutInSec;
+            inactivityTimeout = defaultInactivityTimeoutMs;
         }
         log.trace("on Device Activity Timeout Update device id {} inactivityTimeout {}", deviceId, inactivityTimeout);
         DeviceStateData stateData = getOrFetchDeviceStateData(deviceId);
@@ -348,6 +339,7 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
                         DeviceStateData stateData = getOrFetchDeviceStateData(device.getId());
                         TbMsgMetaData md = new TbMsgMetaData();
                         md.putValue("deviceName", device.getName());
+                        md.putValue("deviceLabel", device.getLabel());
                         md.putValue("deviceType", device.getType());
                         stateData.setMetaData(md);
                         callback.onSuccess();
@@ -445,27 +437,62 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
         }
     }
 
-    void updateInactivityStateIfExpired() {
+    void checkStates() {
         try {
             final long ts = System.currentTimeMillis();
             partitionedEntities.forEach((tpi, deviceIds) -> {
                 log.debug("Calculating state updates. tpi {} for {} devices", tpi.getFullTopicName(), deviceIds.size());
+                Set<DeviceId> idsFromRemovedTenant = new HashSet<>();
                 for (DeviceId deviceId : deviceIds) {
+                    DeviceStateData stateData;
                     try {
-                        updateInactivityStateIfExpired(ts, deviceId);
+                        stateData = getOrFetchDeviceStateData(deviceId);
                     } catch (Exception e) {
-                        log.warn("[{}] Failed to update inactivity state", deviceId, e);
+                        log.error("[{}] Failed to get or fetch device state data", deviceId, e);
+                        continue;
+                    }
+                    try {
+                        updateInactivityStateIfExpired(ts, deviceId, stateData);
+                    } catch (Exception e) {
+                        if (e instanceof TenantNotFoundException) {
+                            idsFromRemovedTenant.add(deviceId);
+                        } else {
+                            log.warn("[{}] Failed to update inactivity state [{}]", deviceId, e.getMessage());
+                        }
                     }
                 }
+                deviceIds.removeAll(idsFromRemovedTenant);
             });
         } catch (Throwable t) {
-            log.warn("Failed to update inactivity states", t);
+            log.warn("Failed to check devices states", t);
         }
     }
 
-    void updateInactivityStateIfExpired(long ts, DeviceId deviceId) {
-        DeviceStateData stateData = getOrFetchDeviceStateData(deviceId);
-        updateInactivityStateIfExpired(ts, deviceId, stateData);
+    void reportActivityStats() {
+        try{
+            Map<TenantId, Pair<AtomicInteger, AtomicInteger>> stats = new HashMap<>();
+            for (DeviceStateData stateData : deviceStates.values()) {
+                Pair<AtomicInteger, AtomicInteger> tenantDevicesActivity = stats.computeIfAbsent(stateData.getTenantId(),
+                        tenantId -> Pair.of(new AtomicInteger(), new AtomicInteger()));
+                if (stateData.getState().isActive()) {
+                    tenantDevicesActivity.getLeft().incrementAndGet();
+                } else {
+                    tenantDevicesActivity.getRight().incrementAndGet();
+                }
+            }
+
+            stats.forEach((tenantId, tenantDevicesActivity) -> {
+                int active = tenantDevicesActivity.getLeft().get();
+                int inactive = tenantDevicesActivity.getRight().get();
+                apiUsageReportClient.report(tenantId, null, ApiUsageRecordKey.ACTIVE_DEVICES, active);
+                apiUsageReportClient.report(tenantId, null, ApiUsageRecordKey.INACTIVE_DEVICES, inactive);
+                if (active > 0) {
+                    log.debug("[{}] Active devices: {}, inactive devices: {}", tenantId, active, inactive);
+                }
+            });
+        } catch (Throwable t) {
+            log.warn("Failed to report activity states", t);
+        }
     }
 
     void updateInactivityStateIfExpired(long ts, DeviceId deviceId, DeviceStateData stateData) {
@@ -478,9 +505,8 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
                 if (partitionService.resolve(ServiceType.TB_CORE, stateData.getTenantId(), deviceId).isMyPartition()) {
                     state.setActive(false);
                     state.setLastInactivityAlarmTime(ts);
-                    save(deviceId, ACTIVITY_STATE, false);
+                    onDeviceActivityStatusChange(deviceId, false, stateData);
                     save(deviceId, INACTIVITY_ALARM_TIME, ts);
-                    pushRuleEngineMessage(stateData, INACTIVITY_EVENT);
                 } else {
                     cleanupEntity(deviceId);
                 }
@@ -518,6 +544,19 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
             log.warn("[{}] Failed to fetch device state!", deviceId, e);
             throw new RuntimeException(e);
         }
+    }
+
+    private void onDeviceActivityStatusChange(DeviceId deviceId, boolean active, DeviceStateData stateData) {
+        save(deviceId, ACTIVITY_STATE, active);
+        pushRuleEngineMessage(stateData, active ? ACTIVITY_EVENT : INACTIVITY_EVENT);
+        TbMsgMetaData metaData = stateData.getMetaData();
+        notificationRuleProcessor.process(DeviceActivityTrigger.builder()
+                .tenantId(stateData.getTenantId()).customerId(stateData.getCustomerId())
+                .deviceId(deviceId).active(active)
+                .deviceName(metaData.getValue("deviceName"))
+                .deviceType(metaData.getValue("deviceType"))
+                .deviceLabel(metaData.getValue("deviceLabel"))
+                .build());
     }
 
     private boolean cleanDeviceStateIfBelongsExternalPartition(TenantId tenantId, final DeviceId deviceId) {
@@ -600,6 +639,7 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
                             .build();
                     TbMsgMetaData md = new TbMsgMetaData();
                     md.putValue("deviceName", device.getName());
+                    md.putValue("deviceLabel", device.getLabel());
                     md.putValue("deviceType", device.getType());
                     DeviceStateData deviceStateData = DeviceStateData.builder()
                             .customerId(device.getCustomerId())
@@ -679,6 +719,7 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
                 .build();
         TbMsgMetaData md = new TbMsgMetaData();
         md.putValue("deviceName", getEntryValue(ed, EntityKeyType.ENTITY_FIELD, "name", ""));
+        md.putValue("deviceLabel", getEntryValue(ed, EntityKeyType.ENTITY_FIELD, "label", ""));
         md.putValue("deviceType", getEntryValue(ed, EntityKeyType.ENTITY_FIELD, "type", ""));
         return DeviceStateData.builder()
                 .customerId(deviceIdInfo.getCustomerId())

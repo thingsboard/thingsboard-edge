@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -47,9 +47,9 @@ import java.util.UUID;
 public interface CustomerRepository extends JpaRepository<CustomerEntity, UUID>, ExportableEntityRepository<CustomerEntity> {
 
     @Query("SELECT c FROM CustomerEntity c WHERE c.tenantId = :tenantId " +
-            "AND LOWER(c.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(c.title) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<CustomerEntity> findByTenantId(@Param("tenantId") UUID tenantId,
-                                        @Param("searchText") String searchText,
+                                        @Param("textSearch") String textSearch,
                                         Pageable pageable);
 
     CustomerEntity findByTenantIdAndTitle(UUID tenantId, String title);
@@ -60,7 +60,7 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, UUID>,
             "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
             "AND re.relationType = 'Contains' " +
             "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
-            "AND LOWER(c.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND LOWER(c.title) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<CustomerEntity> findByEntityGroupId(@Param("groupId") UUID groupId,
                                              @Param("textSearch") String textSearch,
                                              Pageable pageable);
@@ -72,7 +72,7 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, UUID>,
             "AND re.relationType = 'Contains' " +
             "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP') " +
             "OR (:additionalCustomerIds IS NOT NULL AND c.id in :additionalCustomerIds)) " +
-            "AND LOWER(c.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND LOWER(c.title) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<CustomerEntity> findByEntityGroupIds(@Param("groupIds") List<UUID> groupIds,
                                               @Param("additionalCustomerIds") List<UUID> additionalCustomerIds,
                                               @Param("textSearch") String textSearch,

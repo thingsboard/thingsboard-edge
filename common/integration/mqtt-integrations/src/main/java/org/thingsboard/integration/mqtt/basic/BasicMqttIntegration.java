@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.DownlinkData;
@@ -150,7 +151,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
             for (DownlinkData data : topicEntry.getValue()) {
                 String topic = topicEntry.getKey();
                 logMqttDownlink(context, topic, data);
-                mqttClient.publish(topic, Unpooled.wrappedBuffer(data.getData()), MqttQoS.AT_LEAST_ONCE);
+                mqttClient.publish(topic, Unpooled.wrappedBuffer(data.getData()), MqttQoS.AT_LEAST_ONCE, mqttClientConfiguration.isRetainedMessage());
             }
         }
         return !topicToDataMap.isEmpty();
@@ -184,10 +185,10 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
     private void logMqttDownlink(IntegrationContext context, String topic, DownlinkData data) {
         if (configuration.isDebugMode()) {
             try {
-                ObjectNode json = mapper.createObjectNode();
+                ObjectNode json = JacksonUtil.newObjectNode();
                 json.put("topic", topic);
                 json.set("payload", getDownlinkPayloadJson(data));
-                persistDebug(context, "Downlink", "JSON", mapper.writeValueAsString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
+                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }

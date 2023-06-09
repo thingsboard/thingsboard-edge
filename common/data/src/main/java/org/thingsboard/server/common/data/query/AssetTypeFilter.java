@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,18 +30,38 @@
  */
 package org.thingsboard.server.common.data.query;
 
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.springframework.util.CollectionUtils;
 
-@Data
+import java.util.Collections;
+import java.util.List;
+
+@ToString
+@EqualsAndHashCode
+@Setter
 public class AssetTypeFilter implements EntityFilter {
+
+    /**
+     * Replaced by {@link AssetTypeFilter#getAssetTypes()} instead.
+     */
+    @Deprecated(since = "3.5", forRemoval = true)
+    private String assetType;
+
+    private List<String> assetTypes;
+
+    public List<String> getAssetTypes() {
+        return !CollectionUtils.isEmpty(assetTypes) ? assetTypes : Collections.singletonList(assetType);
+    }
+
+    @Getter
+    private String assetNameFilter;
 
     @Override
     public EntityFilterType getType() {
         return EntityFilterType.ASSET_TYPE;
     }
-
-    private String assetType;
-
-    private String assetNameFilter;
 
 }

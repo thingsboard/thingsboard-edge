@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -32,8 +32,8 @@
 -->
 <div #blobEntitiesWidgetContainer class="mat-padding tb-blob-entities tb-absolute-fill" [ngClass]="{'mat-padding': !widgetMode}">
   <div [fxShow]="showData"
-       fxFlex fxLayout="column" class="tb-blob-entities-content" [ngClass]="{'mat-elevation-z1': !widgetMode}">
-    <mat-toolbar class="mat-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
+       fxFlex fxLayout="column" class="tb-blob-entities-content" [ngClass]="{'tb-outlined-border': !widgetMode}">
+    <mat-toolbar class="mat-mdc-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
         <span *ngIf="widgetMode; else blobEntitiesTitle" class="tb-blob-entities-title">{{ctx.widgetTitle}}</span>
         <ng-template #blobEntitiesTitle>
@@ -46,14 +46,14 @@
       <section *ngIf="!widgetMode" fxFlex fxLayout="row">
         <span fxFlex></span>
         <button [disabled]="isLoading$ | async"
-                mat-button mat-icon-button
+                mat-icon-button
                 (click)="enterFilterMode()"
                 matTooltip="{{'action.search' | translate }}"
                 matTooltipPosition="above">
           <mat-icon>search</mat-icon>
         </button>
         <button [disabled]="isLoading$ | async"
-                mat-button mat-icon-button
+                mat-icon-button
                 (click)="reloadBlobEntities()"
                 matTooltip="{{'action.refresh' | translate }}"
                 matTooltipPosition="above">
@@ -61,9 +61,9 @@
         </button>
       </section>
     </mat-toolbar>
-    <mat-toolbar class="mat-table-toolbar" [fxShow]="textSearchMode && dataSource.selection.isEmpty()">
+    <mat-toolbar class="mat-mdc-table-toolbar" [fxShow]="textSearchMode && dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
-        <button mat-button mat-icon-button
+        <button mat-icon-button
                 matTooltip="{{ 'blob-entity.search' | translate }}"
                 matTooltipPosition="above">
           <mat-icon>search</mat-icon>
@@ -74,20 +74,20 @@
                  [(ngModel)]="pageLink.textSearch"
                  placeholder="{{ 'blob-entity.search' | translate }}"/>
         </mat-form-field>
-        <button mat-button mat-icon-button (click)="exitFilterMode()"
+        <button mat-icon-button (click)="exitFilterMode()"
                 matTooltip="{{ 'action.close' | translate }}"
                 matTooltipPosition="above">
           <mat-icon>close</mat-icon>
         </button>
       </div>
     </mat-toolbar>
-    <mat-toolbar class="mat-table-toolbar" color="primary" [fxShow]="!dataSource.selection.isEmpty()">
+    <mat-toolbar class="mat-mdc-table-toolbar" color="primary" [fxShow]="!dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
                 <span>
                   {{ translate.get('blob-entity.selected-blob-entities', {count: dataSource.selection.selected.length}) | async }}
                 </span>
         <span fxFlex></span>
-        <button mat-button mat-icon-button [disabled]="isLoading$ | async"
+        <button mat-icon-button [disabled]="isLoading$ | async"
                 matTooltip="{{ 'action.delete' | translate }}"
                 matTooltipPosition="above"
                 (click)="deleteBlobEntities($event)">
@@ -142,14 +142,14 @@
             </mat-header-cell>
             <mat-cell *matCellDef="let blobEntity">
               <div fxFlex fxLayout="row" fxLayoutAlign="end">
-                <button mat-button mat-icon-button [disabled]="isLoading$ | async"
+                <button mat-icon-button [disabled]="isLoading$ | async"
                         matTooltip="{{ 'blob-entity.download-blob-entity' | translate }}"
                         matTooltipPosition="above"
                         (click)="downloadBlobEntity($event, blobEntity)">
                   <mat-icon>file_download</mat-icon>
                 </button>
                 <button *ngIf="deleteEnabled"
-                        mat-button mat-icon-button [disabled]="isLoading$ | async"
+                        mat-icon-button [disabled]="isLoading$ | async"
                         matTooltip="{{ 'blob-entity.delete-blob-entity' | translate }}"
                         matTooltipPosition="above"
                         (click)="deleteBlobEntity($event, blobEntity)">

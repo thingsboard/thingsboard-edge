@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -36,6 +36,9 @@ import { AlarmDetailsDialogComponent } from '@home/components/alarm/alarm-detail
 import { SchedulerEventModule } from '@home/components/scheduler/scheduler-event.module';
 import { BlobEntitiesComponent } from '@home/components/blob-entity/blob-entities.component';
 import { SHARED_HOME_COMPONENTS_MODULE_TOKEN } from '@home/components/tokens';
+import { AlarmCommentComponent } from '@home/components/alarm/alarm-comment.component';
+import { AlarmCommentDialogComponent } from '@home/components/alarm/alarm-comment-dialog.component';
+import { AlarmAssigneeComponent } from '@home/components/alarm/alarm-assignee.component';
 
 @NgModule({
   providers: [
@@ -44,6 +47,9 @@ import { SHARED_HOME_COMPONENTS_MODULE_TOKEN } from '@home/components/tokens';
   declarations:
     [
       AlarmDetailsDialogComponent,
+      AlarmCommentComponent,
+      AlarmCommentDialogComponent,
+      AlarmAssigneeComponent,
       BlobEntitiesComponent
     ],
   imports: [
@@ -53,6 +59,9 @@ import { SHARED_HOME_COMPONENTS_MODULE_TOKEN } from '@home/components/tokens';
   ],
   exports: [
     AlarmDetailsDialogComponent,
+    AlarmCommentComponent,
+    AlarmCommentDialogComponent,
+    AlarmAssigneeComponent,
     BlobEntitiesComponent,
     SchedulerEventModule
   ]

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -41,8 +41,8 @@ import javax.validation.constraints.Pattern;
 @Data
 public class SmsTwoFaAccountConfig extends OtpBasedTwoFaAccountConfig {
 
-    @NotBlank(message = "phone number cannot be blank")
-    @Pattern(regexp = "^\\+[1-9]\\d{1,14}$", message = "phone number is not of E.164 format")
+    @NotBlank
+    @Pattern(regexp = "^\\+[1-9]\\d{1,14}$", message = "is not of E.164 format")
     private String phoneNumber;
 
     @Override

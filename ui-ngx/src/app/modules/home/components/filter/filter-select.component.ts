@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,9 +32,9 @@
 import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnInit, SkipSelf, ViewChild } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   FormGroupDirective,
   NG_VALUE_ACCESSOR,
   NgForm
@@ -56,7 +56,7 @@ import { Filter } from '@shared/models/query/query.models';
 @Component({
   selector: 'tb-filter-select',
   templateUrl: './filter-select.component.html',
-  styleUrls: ['./filter-select.component.scss'],
+  styleUrls: [],
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => FilterSelectComponent),
@@ -69,7 +69,7 @@ import { Filter } from '@shared/models/query/query.models';
 })
 export class FilterSelectComponent implements ControlValueAccessor, OnInit, AfterViewInit, ErrorStateMatcher {
 
-  selectFilterFormGroup: FormGroup;
+  selectFilterFormGroup: UntypedFormGroup;
 
   modelValue: string | null;
 
@@ -116,7 +116,7 @@ export class FilterSelectComponent implements ControlValueAccessor, OnInit, Afte
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public translate: TranslateService,
               public truncate: TruncatePipe,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.selectFilterFormGroup = this.fb.group({
       filter: [null]
     });
@@ -155,7 +155,7 @@ export class FilterSelectComponent implements ControlValueAccessor, OnInit, Afte
       );
   }
 
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: UntypedFormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
     const customErrorState = this.tbRequired && !this.modelValue;
     return originalErrorState || customErrorState;
@@ -241,16 +241,19 @@ export class FilterSelectComponent implements ControlValueAccessor, OnInit, Afte
     }
   }
 
-  createFilter($event: Event, filter: string) {
+  createFilter($event: Event, filter: string, focusOnCancel = true) {
     $event.preventDefault();
+    $event.stopPropagation();
     this.creatingFilter = true;
     if (this.callbacks && this.callbacks.createFilter) {
       this.callbacks.createFilter(filter).subscribe((newFilter) => {
           if (!newFilter) {
-            setTimeout(() => {
-              this.filterInput.nativeElement.blur();
-              this.filterInput.nativeElement.focus();
-            }, 0);
+            if (focusOnCancel) {
+              setTimeout(() => {
+                this.filterInput.nativeElement.blur();
+                this.filterInput.nativeElement.focus();
+              }, 0);
+            }
           } else {
             this.filterList.push(newFilter);
             this.modelValue = newFilter.id;

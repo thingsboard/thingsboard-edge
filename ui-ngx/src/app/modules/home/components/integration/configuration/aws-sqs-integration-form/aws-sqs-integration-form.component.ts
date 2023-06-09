@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,8 +32,8 @@
 import { Component, forwardRef } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -63,11 +63,11 @@ import { privateNetworkAddressValidator } from '@home/components/integration/int
 })
 export class AwsSqsIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
 
-  awsSqsIntegrationConfigForm: FormGroup;
+  awsSqsIntegrationConfigForm: UntypedFormGroup;
 
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
     super();
     this.awsSqsIntegrationConfigForm = this.fb.group({
       queueUrl: ['', [Validators.required]],

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,7 @@
 
 import { Component } from '@angular/core';
 import { WidgetSettings } from '@shared/models/widget.models';
-import { FormBuilder, Validators } from '@angular/forms';
+import { UntypedFormBuilder, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import {
@@ -48,7 +48,7 @@ export class AnalogueRadialGaugeWidgetSettingsComponent extends AnalogueGaugeWid
   gaugeType = 'radial';
 
   constructor(protected store: Store<AppState>,
-              protected fb: FormBuilder) {
+              protected fb: UntypedFormBuilder) {
     super(store, fb);
   }
 

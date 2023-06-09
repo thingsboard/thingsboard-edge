@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,7 @@
 
 import { COMMA, ENTER, SEMICOLON } from '@angular/cdk/keycodes';
 import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { map, mergeMap, share } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
@@ -40,7 +40,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { EntityId } from '@shared/models/id/entity-id';
 import { EntityService } from '@core/http/entity.service';
 import { MatAutocomplete, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { MatChipInputEvent, MatChipList } from '@angular/material/chips';
+import { MatChipInputEvent, MatChipGrid } from '@angular/material/chips';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { isEqual } from '@core/utils';
@@ -48,7 +48,7 @@ import { isEqual } from '@core/utils';
 @Component({
   selector: 'tb-entity-keys-list',
   templateUrl: './entity-keys-list.component.html',
-  styleUrls: ['./entity-keys-list.component.scss'],
+  styleUrls: [],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -59,7 +59,7 @@ import { isEqual } from '@core/utils';
 })
 export class EntityKeysListComponent implements ControlValueAccessor, OnInit, AfterViewInit {
 
-  keysListFormGroup: FormGroup;
+  keysListFormGroup: UntypedFormGroup;
 
   modelValue: Array<string> | null;
 
@@ -93,7 +93,7 @@ export class EntityKeysListComponent implements ControlValueAccessor, OnInit, Af
 
   @ViewChild('keyInput') keyInput: ElementRef<HTMLInputElement>;
   @ViewChild('keyAutocomplete') matAutocomplete: MatAutocomplete;
-  @ViewChild('chipList') chipList: MatChipList;
+  @ViewChild('chipList') chipList: MatChipGrid;
 
   filteredKeys: Observable<Array<string>>;
 
@@ -108,7 +108,7 @@ export class EntityKeysListComponent implements ControlValueAccessor, OnInit, Af
   constructor(private store: Store<AppState>,
               public translate: TranslateService,
               private entityService: EntityService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.keysListFormGroup = this.fb.group({
       key: [null]
     });

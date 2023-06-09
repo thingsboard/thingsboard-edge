@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,10 +30,16 @@
  */
 package org.thingsboard.server.common.data.security;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.id.UserCredentialsId;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.validation.NoXss;
+
+import static org.thingsboard.server.common.data.BaseDataWithAdditionalInfo.getJson;
+import static org.thingsboard.server.common.data.BaseDataWithAdditionalInfo.setJson;
 
 @EqualsAndHashCode(callSuper = true)
 public class UserCredentials extends BaseData<UserCredentialsId> {
@@ -45,6 +51,20 @@ public class UserCredentials extends BaseData<UserCredentialsId> {
     private String password;
     private String activateToken;
     private String resetToken;
+
+    @NoXss
+    private transient JsonNode additionalInfo;
+
+    @JsonIgnore
+    private byte[] additionalInfoBytes;
+
+    public JsonNode getAdditionalInfo() {
+        return getJson(() -> additionalInfo, () -> additionalInfoBytes);
+    }
+
+    public void setAdditionalInfo(JsonNode settings) {
+        setJson(settings, json -> this.additionalInfo = json, bytes -> this.additionalInfoBytes = bytes);
+    }
     
     public UserCredentials() {
         super();
@@ -61,6 +81,7 @@ public class UserCredentials extends BaseData<UserCredentialsId> {
         this.enabled = userCredentials.isEnabled();
         this.activateToken = userCredentials.getActivateToken();
         this.resetToken = userCredentials.getResetToken();
+        setAdditionalInfo(userCredentials.getAdditionalInfo());
     }
 
     public UserId getUserId() {

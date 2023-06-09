@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -47,7 +47,7 @@ import { BaseData, HasId } from '@shared/models/base-data';
 import { EntityGroupStateInfo, GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
@@ -100,6 +100,7 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
   constructor(protected store: Store<AppState>,
               @Inject(WINDOW) private window: Window,
               private route: ActivatedRoute,
+              private router: Router,
               private entityGroupsTableConfigResolver: EntityGroupsTableConfigResolver,
               private entityGroupConfigResolver: EntityGroupConfigResolver,
               private entityGroupService: EntityGroupService,

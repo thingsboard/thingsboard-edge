@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -51,7 +51,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @Data
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class EntityView extends SearchTextBasedWithAdditionalInfo<EntityViewId>
+public class EntityView extends BaseDataWithAdditionalInfo<EntityViewId>
         implements GroupEntity<EntityViewId>, ExportableEntity<EntityViewId> {
 
     private static final long serialVersionUID = 5582010124562018986L;
@@ -96,11 +96,6 @@ public class EntityView extends SearchTextBasedWithAdditionalInfo<EntityViewId>
         this.startTimeMs = entityView.getStartTimeMs();
         this.endTimeMs = entityView.getEndTimeMs();
         this.externalId = entityView.getExternalId();
-    }
-
-    @Override
-    public String getSearchText() {
-        return getName() /*What the ...*/;
     }
 
     @ApiModelProperty(position = 4, value = "JSON object with Customer Id. Use 'assignEntityViewToCustomer' to change the Customer Id.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)

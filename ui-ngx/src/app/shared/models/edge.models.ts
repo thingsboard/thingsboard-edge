@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BaseData } from '@shared/models/base-data';
+import { BaseData, GroupEntityInfo } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { EdgeId } from '@shared/models/id/edge-id';
@@ -38,6 +38,7 @@ import { RuleChainId } from '@shared/models/id/rule-chain-id';
 import { BaseEventBody } from '@shared/models/event.models';
 import { EventId } from '@shared/models/id/event-id';
 import { EntityType } from '@shared/models/entity-type.models';
+import { EntityInfoData } from '@shared/models/entity.models';
 
 export interface Edge extends BaseData<EdgeId> {
   tenantId?: TenantId;
@@ -53,10 +54,7 @@ export interface Edge extends BaseData<EdgeId> {
   rootRuleChainId?: RuleChainId;
 }
 
-export interface EdgeInfo extends Edge {
-  customerTitle: string;
-  customerIsPublic: boolean;
-}
+export type EdgeInfo = Edge & GroupEntityInfo<EdgeId>;
 
 export interface EdgeSearchQuery extends EntitySearchQuery {
   edgeTypes: Array<string>;
@@ -209,6 +207,10 @@ export interface EdgeEvent extends BaseData<EventId> {
   body: string;
 }
 
+export interface EdgeInstallInstructions {
+  dockerInstallInstructions: string;
+}
+
 export const edgeEntityGroupTypes: EntityType[] = [
   EntityType.USER,
   EntityType.ASSET,
@@ -216,3 +218,4 @@ export const edgeEntityGroupTypes: EntityType[] = [
   EntityType.ENTITY_VIEW,
   EntityType.DASHBOARD
 ];
+

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,11 +30,16 @@
  */
 package org.thingsboard.server.dao.owner;
 
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.HasOwnerId;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 
+import java.util.List;
 import java.util.Set;
 
 public interface OwnerService {
@@ -50,5 +55,14 @@ public interface OwnerService {
     Set<EntityId> getOwners(TenantId tenantId, EntityGroupId entityGroupId);
 
     void clearOwners(EntityId entityId);
+
+    PageData<EntityInfo> findTenantOwnerByTenantId(TenantId tenantId, PageLink pageLink);
+
+    PageData<EntityInfo> findCustomerOwnersByTenantIdIncludingTenant(TenantId tenantId, PageLink pageLink);
+
+    PageData<EntityInfo> findCustomerOwnersByTenantId(TenantId tenantId, PageLink pageLink);
+
+    PageData<EntityInfo> findCustomerOwnersByIdsAndTenantId(TenantId tenantId, List<CustomerId> ownerIds, PageLink pageLink);
+
 
 }

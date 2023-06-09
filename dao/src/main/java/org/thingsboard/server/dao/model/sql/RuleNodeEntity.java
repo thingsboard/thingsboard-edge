@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -41,7 +41,6 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
@@ -53,8 +52,8 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
-@Table(name = ModelConstants.RULE_NODE_COLUMN_FAMILY_NAME)
-public class RuleNodeEntity extends BaseSqlEntity<RuleNode> implements SearchTextEntity<RuleNode> {
+@Table(name = ModelConstants.RULE_NODE_TABLE_NAME)
+public class RuleNodeEntity extends BaseSqlEntity<RuleNode> {
 
     @Column(name = ModelConstants.RULE_NODE_CHAIN_ID_PROPERTY)
     private UUID ruleChainId;
@@ -64,9 +63,6 @@ public class RuleNodeEntity extends BaseSqlEntity<RuleNode> implements SearchTex
 
     @Column(name = ModelConstants.RULE_NODE_NAME_PROPERTY)
     private String name;
-
-    @Column(name = ModelConstants.SEARCH_TEXT_PROPERTY)
-    private String searchText;
 
     @Type(type = "json")
     @Column(name = ModelConstants.RULE_NODE_CONFIGURATION_PROPERTY)
@@ -78,6 +74,9 @@ public class RuleNodeEntity extends BaseSqlEntity<RuleNode> implements SearchTex
 
     @Column(name = ModelConstants.DEBUG_MODE)
     private boolean debugMode;
+
+    @Column(name = ModelConstants.SINGLETON_MODE)
+    private boolean singletonMode;
 
     @Column(name = ModelConstants.EXTERNAL_ID_PROPERTY)
     private UUID externalId;
@@ -96,22 +95,12 @@ public class RuleNodeEntity extends BaseSqlEntity<RuleNode> implements SearchTex
         this.type = ruleNode.getType();
         this.name = ruleNode.getName();
         this.debugMode = ruleNode.isDebugMode();
-        this.searchText = ruleNode.getName();
+        this.singletonMode = ruleNode.isSingletonMode();
         this.configuration = ruleNode.getConfiguration();
         this.additionalInfo = ruleNode.getAdditionalInfo();
         if (ruleNode.getExternalId() != null) {
             this.externalId = ruleNode.getExternalId().getId();
         }
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return searchText;
-    }
-
-    @Override
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
     }
 
     @Override
@@ -124,6 +113,7 @@ public class RuleNodeEntity extends BaseSqlEntity<RuleNode> implements SearchTex
         ruleNode.setType(type);
         ruleNode.setName(name);
         ruleNode.setDebugMode(debugMode);
+        ruleNode.setSingletonMode(singletonMode);
         ruleNode.setConfiguration(configuration);
         ruleNode.setAdditionalInfo(additionalInfo);
         if (externalId != null) {

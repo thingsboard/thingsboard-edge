@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,16 +34,20 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.Authority;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 public interface TbUserService {
     User save(TenantId tenantId, CustomerId customerId, Authority authority, User tbUser,
-              boolean sendActivationMail, HttpServletRequest request, EntityGroupId entityGroupId,
+              boolean sendActivationMail, HttpServletRequest request,
               EntityGroup entityGroup, User user) throws ThingsboardException;
+
+    User save(TenantId tenantId, CustomerId customerId, Authority authority, User tbUser,
+              boolean sendActivationMail, HttpServletRequest request,
+              List<EntityGroup> entityGroups, User user) throws ThingsboardException;
 
     void delete(TenantId tenantId, CustomerId customerId, User tbUser, User user) throws ThingsboardException;
 }

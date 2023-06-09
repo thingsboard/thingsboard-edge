@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -48,7 +48,7 @@ import javax.persistence.Table;
 import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.ADDITIONAL_INFO_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.RELATION_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.RELATION_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.RELATION_FROM_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.RELATION_FROM_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.RELATION_TO_ID_PROPERTY;
@@ -59,7 +59,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.RELATION_TYPE_PROP
 @Data
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
-@Table(name = RELATION_COLUMN_FAMILY_NAME)
+@Table(name = RELATION_TABLE_NAME)
 @IdClass(RelationCompositeKey.class)
 public final class RelationEntity implements ToData<EntityRelation> {
 

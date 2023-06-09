@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,7 +34,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import io.swagger.annotations.ApiModel;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.TenantProfileType;
 
@@ -52,6 +51,9 @@ public interface TenantProfileConfiguration {
 
     @JsonIgnore
     long getProfileThreshold(ApiUsageRecordKey key);
+
+    @JsonIgnore
+    boolean getProfileFeatureEnabled(ApiUsageRecordKey key);
 
     @JsonIgnore
     long getWarnThreshold(ApiUsageRecordKey key);

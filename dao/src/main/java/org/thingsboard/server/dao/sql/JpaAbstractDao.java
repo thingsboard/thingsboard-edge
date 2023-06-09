@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -60,9 +60,6 @@ public abstract class JpaAbstractDao<E extends BaseEntity<D>, D>
 
     protected abstract JpaRepository<E, UUID> getRepository();
 
-    protected void setSearchText(E entity) {
-    }
-
     @Override
     @Transactional
     public D save(TenantId tenantId, D domain) {
@@ -73,7 +70,6 @@ public abstract class JpaAbstractDao<E extends BaseEntity<D>, D>
             log.error("Can't create entity for domain object {}", domain, e);
             throw new IllegalArgumentException("Can't create entity for domain object {" + domain + "}", e);
         }
-        setSearchText(entity);
         log.debug("Saving entity {}", entity);
         if (entity.getUuid() == null) {
             UUID uuid = Uuids.timeBased();

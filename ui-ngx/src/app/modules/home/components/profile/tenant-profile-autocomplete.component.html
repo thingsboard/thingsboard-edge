@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,8 @@
 
 -->
 <mat-form-field [formGroup]="selectTenantProfileFormGroup" class="mat-block">
-  <input matInput type="text" placeholder="{{ 'tenant-profile.tenant-profile' | translate }}"
+  <mat-label translate>tenant-profile.tenant-profile</mat-label>
+  <input matInput type="text"
          #tenantProfileInput
          formControlName="tenantProfile"
          (focusin)="onFocus()"
@@ -45,13 +46,13 @@
   </a>
   <button *ngIf="selectTenantProfileFormGroup.get('tenantProfile').value && !disabled"
           type="button"
-          matSuffix mat-button mat-icon-button aria-label="Clear"
+          matSuffix mat-icon-button aria-label="Clear"
           (click)="clear()">
     <mat-icon class="material-icons">close</mat-icon>
   </button>
   <button *ngIf="selectTenantProfileFormGroup.get('tenantProfile').value && !disabled"
           type="button"
-          matSuffix mat-button mat-icon-button aria-label="Edit"
+          matSuffix mat-icon-button aria-label="Edit"
           matTooltip="{{ 'tenant-profile.edit' | translate }}"
           matTooltipPosition="above"
           (click)="editTenantProfile($event)">

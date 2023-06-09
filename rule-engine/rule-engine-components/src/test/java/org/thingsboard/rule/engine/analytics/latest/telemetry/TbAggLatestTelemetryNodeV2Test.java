@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,7 @@
  */
 package org.thingsboard.rule.engine.analytics.latest.telemetry;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -53,12 +54,14 @@ import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.TbPeContext;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.DoubleDataEntry;
+import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
@@ -67,6 +70,7 @@ import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
+import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 
@@ -76,16 +80,21 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNodeV2.TB_CLEAR_INACTIVE_ENTITIES_MSG;
 import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -102,6 +111,8 @@ public class TbAggLatestTelemetryNodeV2Test {
     private RelationService relationService;
     @Mock
     private TimeseriesService timeseriesService;
+    @Mock
+    private AttributesService attributesService;
     @Mock
     private ScriptEngine scriptEngine;
     private AbstractListeningExecutor executor;
@@ -128,6 +139,7 @@ public class TbAggLatestTelemetryNodeV2Test {
         when(ctx.getDbCallbackExecutor()).thenReturn(executor);
         when(ctx.getRelationService()).thenReturn(relationService);
         when(ctx.getTimeseriesService()).thenReturn(timeseriesService);
+        when(ctx.getAttributesService()).thenReturn(attributesService);
 
         initMock();
     }
@@ -268,6 +280,8 @@ public class TbAggLatestTelemetryNodeV2Test {
         long deduplicationInSec = 60;
         TbAggLatestTelemetryNodeV2Configuration config = getConfigNode();
         config.setDeduplicationInSec(deduplicationInSec); //delay 60 sec
+        when(ctx.newMsg(any(), eq(TB_CLEAR_INACTIVE_ENTITIES_MSG), any(), any(), any(), any()))
+                .thenReturn(TbMsg.newMsg(TB_CLEAR_INACTIVE_ENTITIES_MSG, null, new TbMsgMetaData(), null));
         node.init(ctx, new TbNodeConfiguration(JacksonUtil.valueToTree(config)));
 
         //Mock for tellSelf
@@ -295,10 +309,14 @@ public class TbAggLatestTelemetryNodeV2Test {
         ArgumentCaptor<TbMsg> captor = ArgumentCaptor.forClass(TbMsg.class);
         ArgumentCaptor<TbMsg> captorForDelayedMsg = ArgumentCaptor.forClass(TbMsg.class);
         verify(ctx, Mockito.timeout(5000).times(countMsg)).enqueueForTellNext(captor.capture(), eq(SUCCESS));
-        verify(ctx, Mockito.timeout(5000).times(countMsg - 1)).tellSelf(captorForDelayedMsg.capture(), anyLong());
+        // four TB_AGG_LATEST_NODE_MSG tbMsgs during node.onMsg() and one TB_CLEAR_LAST_MSG_MAP_NODE_MSG tbMsg during node.init()
+        verify(ctx, Mockito.timeout(5000).times(countMsg)).tellSelf(captorForDelayedMsg.capture(), anyLong());
 
         List<TbMsg> resultMsg = captor.getAllValues();
-        List<TbMsg> delayedMsg = captorForDelayedMsg.getAllValues();
+        List<TbMsg> delayedMsg = captorForDelayedMsg.getAllValues()
+                .stream()
+                .filter(tbMsg -> tbMsg.getType().equals(TB_AGG_LATEST_NODE_MSG))
+                .collect(Collectors.toList());
 
         Assert.assertNotNull(resultMsg);
         Assert.assertEquals(countMsg, resultMsg.size());
@@ -314,4 +332,53 @@ public class TbAggLatestTelemetryNodeV2Test {
             Assert.assertEquals(TB_AGG_LATEST_NODE_MSG, tbMsg.getType());
         });
     }
+
+    @Test
+    public void testAggregationWithNoTargetTelemetry() throws Exception {
+        BasicTsKvEntry emptyKvEntry = new BasicTsKvEntry(System.currentTimeMillis(), new StringDataEntry("temperature", null));
+        when(timeseriesService.findLatest(eq(tenantId), any(), eq(Set.of("temperature"))))
+                .thenReturn(Futures.immediateFuture(List.of(emptyKvEntry)));
+
+        TbNodeConfiguration config = new TbNodeConfiguration(JacksonUtil.valueToTree(getConfigNode()));
+        node.init(ctx, config);
+
+        TbMsg msg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(), assetId, new TbMsgMetaData(), JacksonUtil.toString(JacksonUtil.newObjectNode()));
+        node.onMsg(ctx, msg);
+
+        ArgumentCaptor<TbMsg> out = ArgumentCaptor.forClass(TbMsg.class);
+        verify(ctx, Mockito.timeout(5000)).enqueueForTellNext(out.capture(), eq(SUCCESS));
+
+        JsonNode data = JacksonUtil.toJsonNode(out.getValue().getData());
+        assertThat(data.get("latestAvgTemperature").asDouble()).isEqualTo(0.0);
+    }
+
+    @Test
+    public void testAggregationWithNoTargetAttributes() throws Exception {
+        TbAggLatestTelemetryNodeV2Configuration config = new TbAggLatestTelemetryNodeV2Configuration();
+        AggLatestMapping avgAttrMapping = new AggLatestMapping();
+        avgAttrMapping.setSource("attr");
+        avgAttrMapping.setSourceScope(DataConstants.SERVER_SCOPE);
+        avgAttrMapping.setAggFunction(MathFunction.AVG);
+        avgAttrMapping.setDefaultValue(0);
+        avgAttrMapping.setTarget("avgAttr");
+        config.setAggMappings(List.of(avgAttrMapping));
+        config.setDirection(EntitySearchDirection.FROM);
+        config.setRelationType(EntityRelation.CONTAINS_TYPE);
+        config.setOutMsgType(SessionMsgType.POST_TELEMETRY_REQUEST.name());
+
+        when(attributesService.find(eq(tenantId), any(), eq(DataConstants.SERVER_SCOPE), anyCollection()))
+                .thenReturn(Futures.immediateFuture(Collections.emptyList()));
+
+        node.init(ctx, new TbNodeConfiguration(JacksonUtil.valueToTree(config)));
+
+        TbMsg msg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(), assetId, new TbMsgMetaData(), JacksonUtil.toString(JacksonUtil.newObjectNode()));
+        node.onMsg(ctx, msg);
+
+        ArgumentCaptor<TbMsg> out = ArgumentCaptor.forClass(TbMsg.class);
+        verify(ctx, Mockito.timeout(5000)).enqueueForTellNext(out.capture(), eq(SUCCESS));
+
+        JsonNode data = JacksonUtil.toJsonNode(out.getValue().getData());
+        assertThat(data.get("avgAttr").asDouble()).isEqualTo(0.0);
+    }
+
 }

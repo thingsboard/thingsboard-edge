@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -37,11 +37,9 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { isDefined, isNumber } from '@core/utils';
 import { CanvasDigitalGaugeOptions } from '@home/components/widget/lib/canvas-digital-gauge';
-import * as tinycolor_ from 'tinycolor2';
+import tinycolor from 'tinycolor2';
 import { ResizeObserver } from '@juggle/resize-observer';
 import GenericOptions = CanvasGauges.GenericOptions;
-
-const tinycolor = tinycolor_;
 
 interface KnobSettings {
   minValue: number;

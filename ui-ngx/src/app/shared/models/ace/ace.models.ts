@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -58,6 +58,7 @@ function loadAceDependencies(): Observable<any> {
     aceObservables.push(from(import('ace-builds/src-noconflict/snippets/css')));
     aceObservables.push(from(import('ace-builds/src-noconflict/snippets/json')));
     aceObservables.push(from(import('ace-builds/src-noconflict/snippets/javascript')));
+    aceObservables.push(from(import('./tbel/mode-tbel')));
     aceObservables.push(from(import('ace-builds/src-noconflict/snippets/text')));
     aceObservables.push(from(import('ace-builds/src-noconflict/snippets/markdown')));
     aceObservables.push(from(import('ace-builds/src-noconflict/snippets/html')));

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -98,6 +98,7 @@ export class WidgetLibraryComponent extends PageComponent implements OnInit {
 
   dashboardCallbacks: DashboardCallbacks = {
     onEditWidget: this.openWidgetType.bind(this),
+    onWidgetClicked: this.openWidgetType.bind(this),
     onExportWidget: this.exportWidgetType.bind(this),
     onRemoveWidget: this.removeWidgetType.bind(this)
   };

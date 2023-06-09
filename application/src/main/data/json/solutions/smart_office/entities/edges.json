@@ -1,0 +1,24 @@
+[
+  {
+    "name": "Remote Office R1",
+    "type": "office",
+    "attributes": {},
+    "relations": [],
+    "userGroups": [],
+    "assetGroups": [
+      {
+        "name": "Buildings"
+      }
+    ],
+    "deviceGroups": [
+      {
+        "name": "Office sensors"
+      }
+    ],
+    "dashboardGroups": [
+      {
+        "name": "Smart office dashboards"
+      }
+    ]
+  }
+]

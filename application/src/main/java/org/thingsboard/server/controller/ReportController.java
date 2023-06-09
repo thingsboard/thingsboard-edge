@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -109,7 +109,7 @@ public class ReportController extends BaseController {
                                 result.setErrorResult(throwable);
                             });
         } catch (Exception e) {
-            result.setErrorResult(handleException(e));
+            result.setErrorResult(e);
         }
         return result;
     }
@@ -146,7 +146,7 @@ public class ReportController extends BaseController {
                                 result.setErrorResult(throwable);
                             });
         } catch (Exception e) {
-            result.setErrorResult(handleException(e));
+            result.setErrorResult(e);
         }
         return result;
     }

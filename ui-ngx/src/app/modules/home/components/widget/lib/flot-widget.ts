@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -69,14 +69,13 @@ import {
   TooltipValueFormatFunction
 } from './flot-widget.models';
 import * as moment_ from 'moment';
-import * as tinycolor_ from 'tinycolor2';
+import tinycolor from 'tinycolor2';
 import { AggregationType } from '@shared/models/time/time.models';
 import { CancelAnimationFrame } from '@core/services/raf.service';
 import { UtilsService } from '@core/services/utils.service';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import Timeout = NodeJS.Timeout;
 
-const tinycolor = tinycolor_;
 const moment = moment_;
 
 export class TbFlot {
@@ -146,7 +145,7 @@ export class TbFlot {
   private pieAnimationLastTime: number;
   private pieAnimationCaf: CancelAnimationFrame;
 
-  constructor(private ctx: WidgetContext, private readonly chartType: ChartType) {
+  constructor(private ctx: WidgetContext, private readonly chartType: ChartType, private $flotElement?: JQuery<any>) {
     this.chartType = this.chartType || 'line';
     this.settings = ctx.settings as TbFlotSettings;
     this.utils = this.ctx.$injector.get(UtilsService);
@@ -355,12 +354,13 @@ export class TbFlot {
     }
 
     if (this.ctx.defaultSubscription) {
-      this.init(this.ctx.$container, this.ctx.defaultSubscription);
+      this.init(this.$flotElement || this.ctx.$container, this.ctx.defaultSubscription);
     }
   }
 
   private init($element: JQuery<any>, subscription: IWidgetSubscription) {
     this.$element = $element;
+    this.$element.css('letter-spacing', 'normal');
     this.subscription = subscription;
     this.comparisonEnabled = this.subscription ? this.subscription.comparisonEnabled : this.settings.comparisonEnabled;
     if (this.comparisonEnabled) {
@@ -428,7 +428,7 @@ export class TbFlot {
         }
       }
       series.lines = {
-        fill: keySettings.fillLines === true
+        fill: keySettings.fillLines === true ? (keySettings.fillLinesOpacity || 0.4) : false
       };
 
       if (this.settings.stack && !this.comparisonEnabled) {

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,8 +30,8 @@
  */
 package org.thingsboard.rest.client;
 
+import com.auth0.jwt.JWT;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.core.ParameterizedTypeReference;
@@ -44,15 +44,12 @@ import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.ClientHttpRequestExecution;
-import org.springframework.http.client.ClientHttpRequestInterceptor;
-import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.support.HttpRequestWrapper;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.rest.client.utils.RestJsonConverter;
 import org.thingsboard.server.common.data.AdminSettings;
@@ -70,18 +67,25 @@ import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.EventInfo;
+import org.thingsboard.server.common.data.FeaturesInfo;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.OtaPackageInfo;
-import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.SaveDeviceWithCredentialsRequest;
+import org.thingsboard.server.common.data.ShortEntityView;
+import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.SystemInfo;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantInfo;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.UpdateMessage;
+import org.thingsboard.server.common.data.UsageInfo;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.UserEmailInfo;
 import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmComment;
+import org.thingsboard.server.common.data.alarm.AlarmCommentInfo;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
@@ -97,16 +101,18 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeInstallInstructions;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
 import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
+import org.thingsboard.server.common.data.id.AlarmCommentId;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.ConverterId;
-import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -119,8 +125,8 @@ import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.OAuth2ClientRegistrationTemplateId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
-import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.QueueId;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
@@ -153,6 +159,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.ShareGroupRequest;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.data.query.AlarmCountQuery;
 import org.thingsboard.server.common.data.query.AlarmData;
 import org.thingsboard.server.common.data.query.AlarmDataQuery;
 import org.thingsboard.server.common.data.query.EntityCountQuery;
@@ -184,7 +191,6 @@ import org.thingsboard.server.common.data.selfregistration.SignUpSelfRegistratio
 import org.thingsboard.server.common.data.signup.SignUpRequest;
 import org.thingsboard.server.common.data.signup.SignUpResult;
 import org.thingsboard.server.common.data.sms.config.TestSmsRequest;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportRequest;
 import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportResult;
 import org.thingsboard.server.common.data.sync.vc.AutoCommitSettings;
@@ -198,6 +204,7 @@ import org.thingsboard.server.common.data.sync.vc.VersionLoadResult;
 import org.thingsboard.server.common.data.sync.vc.VersionedEntityInfo;
 import org.thingsboard.server.common.data.sync.vc.request.create.VersionCreateRequest;
 import org.thingsboard.server.common.data.sync.vc.request.load.VersionLoadRequest;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetTypeInfo;
@@ -207,9 +214,7 @@ import org.thingsboard.server.common.data.wl.PaletteSettings;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -217,6 +222,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.StringUtils.isEmpty;
@@ -224,16 +230,22 @@ import static org.thingsboard.server.common.data.StringUtils.isEmpty;
 /**
  * @author Andrew Shvayka
  */
-public class RestClient implements ClientHttpRequestInterceptor, Closeable {
+public class RestClient implements Closeable {
     private static final String JWT_TOKEN_HEADER_PARAM = "X-Authorization";
-    protected final RestTemplate restTemplate;
-    protected final String baseURL;
-    private String token;
-    private String refreshToken;
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private ExecutorService service = ThingsBoardExecutors.newWorkStealingPool(10, getClass());
-
+    private static final long AVG_REQUEST_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
     protected static final String ACTIVATE_TOKEN_REGEX = "/api/noauth/activate?activateToken=";
+    private final ExecutorService service = ThingsBoardExecutors.newWorkStealingPool(10, getClass());
+    protected final RestTemplate restTemplate;
+    protected final RestTemplate loginRestTemplate;
+    protected final String baseURL;
+
+    private String username;
+    private String password;
+    private String mainToken;
+    private String refreshToken;
+    private long mainTokenExpTs;
+    private long refreshTokenExpTs;
+    private long clientServerTimeDiff;
 
     public RestClient(String baseURL) {
         this(new RestTemplate(), baseURL);
@@ -241,23 +253,25 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
 
     public RestClient(RestTemplate restTemplate, String baseURL) {
         this.restTemplate = restTemplate;
+        this.loginRestTemplate = new RestTemplate(restTemplate.getRequestFactory());
         this.baseURL = baseURL;
-    }
-
-    @Override
-    public ClientHttpResponse intercept(HttpRequest request, byte[] bytes, ClientHttpRequestExecution execution) throws IOException {
-        HttpRequest wrapper = new HttpRequestWrapper(request);
-        wrapper.getHeaders().set(JWT_TOKEN_HEADER_PARAM, "Bearer " + token);
-        ClientHttpResponse response = execution.execute(wrapper, bytes);
-        if (response.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-            synchronized (this) {
-                restTemplate.getInterceptors().remove(this);
-                refreshToken();
-                wrapper.getHeaders().set(JWT_TOKEN_HEADER_PARAM, "Bearer " + token);
-                return execution.execute(wrapper, bytes);
+        this.restTemplate.getInterceptors().add((request, bytes, execution) -> {
+            HttpRequest wrapper = new HttpRequestWrapper(request);
+            long calculatedTs = System.currentTimeMillis() + clientServerTimeDiff + AVG_REQUEST_TIMEOUT;
+            if (calculatedTs > mainTokenExpTs) {
+                synchronized (RestClient.this) {
+                    if (calculatedTs > mainTokenExpTs) {
+                        if (calculatedTs < refreshTokenExpTs) {
+                            refreshToken();
+                        } else {
+                            doLogin();
+                        }
+                    }
+                }
             }
-        }
-        return response;
+            wrapper.getHeaders().set(JWT_TOKEN_HEADER_PARAM, "Bearer " + mainToken);
+            return execution.execute(wrapper, bytes);
+        });
     }
 
     public RestTemplate getRestTemplate() {
@@ -265,7 +279,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     }
 
     public String getToken() {
-        return token;
+        return mainToken;
     }
 
     public String getRefreshToken() {
@@ -275,22 +289,32 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     public void refreshToken() {
         Map<String, String> refreshTokenRequest = new HashMap<>();
         refreshTokenRequest.put("refreshToken", refreshToken);
-        ResponseEntity<JsonNode> tokenInfo = restTemplate.postForEntity(baseURL + "/api/auth/token", refreshTokenRequest, JsonNode.class);
-        setTokenInfo(tokenInfo.getBody());
+        long ts = System.currentTimeMillis();
+        ResponseEntity<JsonNode> tokenInfo = loginRestTemplate.postForEntity(baseURL + "/api/auth/token", refreshTokenRequest, JsonNode.class);
+        setTokenInfo(ts, tokenInfo.getBody());
     }
 
     public void login(String username, String password) {
+        this.username = username;
+        this.password = password;
+        doLogin();
+    }
+
+    private void doLogin() {
+        long ts = System.currentTimeMillis();
         Map<String, String> loginRequest = new HashMap<>();
         loginRequest.put("username", username);
         loginRequest.put("password", password);
-        ResponseEntity<JsonNode> tokenInfo = restTemplate.postForEntity(baseURL + "/api/auth/login", loginRequest, JsonNode.class);
-        setTokenInfo(tokenInfo.getBody());
+        ResponseEntity<JsonNode> tokenInfo = loginRestTemplate.postForEntity(baseURL + "/api/auth/login", loginRequest, JsonNode.class);
+        setTokenInfo(ts, tokenInfo.getBody());
     }
 
-    private void setTokenInfo(JsonNode tokenInfo) {
-        this.token = tokenInfo.get("token").asText();
+    private synchronized void setTokenInfo(long ts, JsonNode tokenInfo) {
+        this.mainToken = tokenInfo.get("token").asText();
         this.refreshToken = tokenInfo.get("refreshToken").asText();
-        restTemplate.getInterceptors().add(this);
+        this.mainTokenExpTs = JWT.decode(this.mainToken).getExpiresAtAsInstant().toEpochMilli();
+        this.refreshTokenExpTs = JWT.decode(refreshToken).getExpiresAtAsInstant().toEpochMilli();
+        this.clientServerTimeDiff = JWT.decode(this.mainToken).getIssuedAtAsInstant().toEpochMilli() - ts;
     }
 
     public Optional<AdminSettings> getAdminSettings(String key) {
@@ -419,6 +443,14 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         }
     }
 
+    public SystemInfo getSystemInfo() {
+        return restTemplate.getForEntity(baseURL + "/api/admin/systemInfo", SystemInfo.class).getBody();
+    }
+
+    public FeaturesInfo getFeaturesInfo() {
+        return restTemplate.getForEntity(baseURL + "/api/admin/featuresInfo", FeaturesInfo.class).getBody();
+    }
+
     public Optional<Alarm> getAlarmById(AlarmId alarmId) {
         try {
             ResponseEntity<Alarm> alarm = restTemplate.getForEntity(baseURL + "/api/alarm/{alarmId}", Alarm.class, alarmId.getId());
@@ -459,6 +491,14 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
 
     public void clearAlarm(AlarmId alarmId) {
         restTemplate.postForLocation(baseURL + "/api/alarm/{alarmId}/clear", null, alarmId.getId());
+    }
+
+    public void assignAlarm(AlarmId alarmId, UserId userId) {
+        restTemplate.postForLocation(baseURL + "/api/alarm/{alarmId}/assign/{userId}", null, alarmId.getId(), userId.getId());
+    }
+
+    public void unassignAlarm(AlarmId alarmId) {
+        restTemplate.delete(baseURL + "/api/alarm/{alarmId}/assign", alarmId.getId());
     }
 
     public PageData<AlarmInfo> getAlarms(EntityId entityId, AlarmSearchStatus searchStatus, AlarmStatus status, TimePageLink pageLink, Boolean fetchOriginator) {
@@ -508,6 +548,29 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     @Deprecated
     public Alarm createAlarm(Alarm alarm) {
         return restTemplate.postForEntity(baseURL + "/api/alarm", alarm, Alarm.class).getBody();
+    }
+
+    public AlarmComment saveAlarmComment(AlarmId alarmId, AlarmComment alarmComment) {
+        return restTemplate.postForEntity(baseURL + "/api/alarm/{alarmId}/comment", alarmComment, AlarmComment.class, alarmId.getId()).getBody();
+    }
+
+    public void deleteAlarmComment(AlarmId alarmId, AlarmCommentId alarmCommentId) {
+        restTemplate.delete(baseURL + "/api/alarm/{alarmId}/comment/{alarmCommentId}",
+                alarmId.getId(), alarmCommentId.getId());
+    }
+
+    public PageData<AlarmCommentInfo> getAlarmComments(AlarmId alarmId, PageLink pageLink) {
+        String urlSecondPart = "/api/alarm/{alarmId}/comment";
+        Map<String, String> params = new HashMap<>();
+        params.put("alarmId", alarmId.getId().toString());
+
+        return restTemplate.exchange(
+                baseURL + urlSecondPart + "&" + getUrlParams(pageLink),
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<PageData<AlarmCommentInfo>>() {
+                },
+                params).getBody();
     }
 
     public Optional<Asset> getAssetById(AssetId assetId) {
@@ -729,7 +792,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     }
 
     public void changePassword(String currentPassword, String newPassword) {
-        ObjectNode changePasswordRequest = objectMapper.createObjectNode();
+        ObjectNode changePasswordRequest = JacksonUtil.newObjectNode();
         changePasswordRequest.put("currentPassword", currentPassword);
         changePasswordRequest.put("newPassword", newPassword);
         restTemplate.postForLocation(baseURL + "/api/auth/changePassword", changePasswordRequest);
@@ -754,7 +817,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     }
 
     public void requestResetPasswordByEmail(String email) {
-        ObjectNode resetPasswordByEmailRequest = objectMapper.createObjectNode();
+        ObjectNode resetPasswordByEmailRequest = JacksonUtil.newObjectNode();
         resetPasswordByEmailRequest.put("email", email);
         restTemplate.postForLocation(baseURL + "/api/noauth/resetPasswordByEmail", resetPasswordByEmailRequest);
     }
@@ -764,7 +827,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     }
 
     public Optional<JsonNode> activateUser(UserId userId, String password, boolean sendActivationMail) {
-        ObjectNode activateRequest = objectMapper.createObjectNode();
+        ObjectNode activateRequest = JacksonUtil.newObjectNode();
         activateRequest.put("activateToken", getActivateToken(userId));
         activateRequest.put("password", password);
         try {
@@ -1365,6 +1428,10 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 HttpMethod.POST, new HttpEntity<>(query),
                 new ParameterizedTypeReference<PageData<AlarmData>>() {
                 }).getBody();
+    }
+
+    public Long countAlarmsByQuery(AlarmCountQuery query) {
+        return restTemplate.postForObject(baseURL + "/api/alarmsQuery/count", query, Long.class);
     }
 
     public void saveRelation(EntityRelation relation) {
@@ -2117,6 +2184,14 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 }, params).getBody();
     }
 
+    public UsageInfo getUsageInfo() {
+        return restTemplate.exchange(
+                baseURL + "/api/usage",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                UsageInfo.class).getBody();
+    }
+
     public Optional<TenantProfile> getTenantProfileById(TenantProfileId tenantProfileId) {
         try {
             ResponseEntity<TenantProfile> tenantProfile = restTemplate.getForEntity(baseURL + "/api/tenantProfile/{tenantProfileId}", TenantProfile.class, tenantProfileId);
@@ -2269,6 +2344,19 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<PageData<User>>() {
+                }, params).getBody();
+    }
+
+    public PageData<UserEmailInfo> getUsersForAssign(AlarmId alarmId, PageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        params.put("alarmId", alarmId.getId().toString());
+        addPageLinkToParam(params, pageLink);
+
+        return restTemplate.exchange(
+                baseURL + "/users/assign/{alarmId}" + getUrlParams(pageLink),
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<PageData<UserEmailInfo>>() {
                 }, params).getBody();
     }
 
@@ -2694,6 +2782,12 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 }).getBody();
     }
 
+    public Optional<EdgeInstallInstructions> getEdgeDockerInstallInstructions(EdgeId edgeId) {
+        ResponseEntity<EdgeInstallInstructions> edgeInstallInstructionsResult =
+                restTemplate.getForEntity(baseURL + "/api/edge/instructions/{edgeId}", EdgeInstallInstructions.class, edgeId.getId());
+        return Optional.ofNullable(edgeInstallInstructionsResult.getBody());
+    }
+
     public UUID saveEntitiesVersion(VersionCreateRequest request) {
         return restTemplate.postForEntity(baseURL + "/api/entities/vc/version", request, UUID.class).getBody();
     }
@@ -2710,6 +2804,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
             }
         }
     }
+
     public PageData<EntityVersion> listEntityVersions(EntityId externalEntityId, EntityId internalEntityId, String branch, PageLink pageLink) {
         String url = baseURL + "/api/entities/vc/version/{entityType}/{externalEntityUuid}?branch={branch}&" + getUrlParams(pageLink);
         Map<String, String> params = new HashMap<>();
@@ -3115,9 +3210,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
 
     @Override
     public void close() {
-        if (service != null) {
-            service.shutdown();
-        }
+        service.shutdown();
     }
 
     @Deprecated
@@ -3917,11 +4010,19 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     }
 
     public void changeOwnerToTenant(EntityId ownerId, EntityId entityId) {
-        restTemplate.postForEntity(baseURL + "/api/owner/TENANT/{ownerId}/{entityType}/{entityId}", null, Object.class, ownerId.getId(), entityId.getEntityType(), entityId.getId());
+        changeOwnerToTenant(ownerId, entityId, new String[]{});
+    }
+
+    public void changeOwnerToTenant(EntityId ownerId, EntityId entityId, String[] strEntityGroupIds) {
+        restTemplate.postForEntity(baseURL + "/api/owner/TENANT/{ownerId}/{entityType}/{entityId}", strEntityGroupIds, Object.class, ownerId.getId(), entityId.getEntityType(), entityId.getId());
     }
 
     public void changeOwnerToCustomer(EntityId ownerId, EntityId entityId) {
-        restTemplate.postForEntity(baseURL + "/api/owner/CUSTOMER/{ownerId}/{entityType}/{entityId}", null, Object.class, ownerId.getId(), entityId.getEntityType(), entityId.getId());
+        changeOwnerToCustomer(ownerId, entityId, new String[]{});
+    }
+
+    public void changeOwnerToCustomer(EntityId ownerId, EntityId entityId, String[] strEntityGroupIds) {
+        restTemplate.postForEntity(baseURL + "/api/owner/CUSTOMER/{ownerId}/{entityType}/{entityId}", strEntityGroupIds, Object.class, ownerId.getId(), entityId.getEntityType(), entityId.getId());
     }
 
     public JsonNode downloadDashboardReport(DashboardId dashboardId, JsonNode reportParams) {
@@ -3991,7 +4092,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         Role role = new Role();
         role.setName(roleName);
         role.setType(RoleType.GROUP);
-        ArrayNode permissions = objectMapper.createArrayNode();
+        ArrayNode permissions = JacksonUtil.newArrayNode();
         operations.stream().map(Operation::name).forEach(permissions::add);
         role.setPermissions(permissions);
         return saveRole(role);
@@ -4026,6 +4127,19 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 },
                 entityId.getEntityType(),
                 entityId.getId(),
+                timeout).getBody();
+    }
+
+    public JsonNode handleRuleEngineRequest(EntityId entityId, String queueName, int timeout, JsonNode requestBody) {
+        return restTemplate.exchange(
+                baseURL + "/api/rule-engine/{entityType}/{entityId}/{queueName}/{timeout}",
+                HttpMethod.POST,
+                new HttpEntity<>(requestBody),
+                new ParameterizedTypeReference<JsonNode>() {
+                },
+                entityId.getEntityType(),
+                entityId.getId(),
+                queueName,
                 timeout).getBody();
     }
 

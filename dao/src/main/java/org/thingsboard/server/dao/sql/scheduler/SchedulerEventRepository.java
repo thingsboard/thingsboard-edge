@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -46,7 +46,7 @@ public interface SchedulerEventRepository extends JpaRepository<SchedulerEventEn
     @Query("SELECT se FROM SchedulerEventEntity se, RelationEntity re WHERE se.tenantId = :tenantId " +
             "AND se.id = re.toId AND re.toType = 'SCHEDULER_EVENT' AND re.relationTypeGroup = 'EDGE' " +
             "AND re.relationType = 'Contains' AND re.fromId = :edgeId AND re.fromType = 'EDGE' " +
-            "AND LOWER(se.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(se.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<SchedulerEventEntity> findByTenantIdAndEdgeId(@Param("tenantId") UUID tenantId,
                                                       @Param("edgeId") UUID edgeId,
                                                       @Param("searchText") String searchText,

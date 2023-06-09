@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -72,8 +72,8 @@ export class TtnIntegrationFormComponent extends IntegrationForm implements Cont
 
   ttnIntegrationConfigForm: FormGroup;
 
-  hostEdit: FormControl;
-  apiVersion: FormControl;
+  hostEdit: FormControl<string>;
+  apiVersion: FormControl<boolean>;
 
   ThingsStartHostType = ThingsStartHostType;
   ThingsStartHostTypes = Object.values(ThingsStartHostType).filter(v => isNumber(v));
@@ -82,11 +82,6 @@ export class TtnIntegrationFormComponent extends IntegrationForm implements Cont
 
   hostRegionSuffix = '.cloud.thethings.network';
   hideSelectVersion = false;
-
-  userNameLabel = 'integration.application-id';
-  userNameRequired = 'integration.application-id-required';
-  passwordLabel = 'integration.access-key';
-  passwordRequired = 'integration.access-key-required';
 
   private downlinkPattern = ttnVersionMap.get(ttnVersion.v3).downlinkPattern;
   private propagateChange = (v: any) => { };
@@ -124,7 +119,7 @@ export class TtnIntegrationFormComponent extends IntegrationForm implements Cont
 
     this.apiVersion.valueChanges.pipe(
       takeUntil(this.destroy$)
-    ).subscribe((value: boolean) => {
+    ).subscribe((value) => {
       this.updateTtnVersionState(Number(value));
     });
 

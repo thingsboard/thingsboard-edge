@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -259,14 +259,10 @@ public class EventController extends BaseController {
                             @RequestBody EventFilter eventFilter) throws ThingsboardException {
         checkParameter("EntityId", strEntityId);
         checkParameter("EntityType", strEntityType);
-        try {
-            EntityId entityId = EntityIdFactory.getByTypeAndId(strEntityType, strEntityId);
-            checkEntityId(entityId, Operation.WRITE);
+        EntityId entityId = EntityIdFactory.getByTypeAndId(strEntityType, strEntityId);
+        checkEntityId(entityId, Operation.WRITE);
 
-            eventService.removeEvents(getTenantId(), entityId, eventFilter, startTime, endTime);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        eventService.removeEvents(getTenantId(), entityId, eventFilter, startTime, endTime);
     }
 
     private static EventType resolveEventType(String eventType) throws ThingsboardException {

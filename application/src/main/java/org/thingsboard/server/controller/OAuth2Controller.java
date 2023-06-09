@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -84,25 +84,21 @@ public class OAuth2Controller extends BaseController {
                                                            "If platform type is not one of allowable values - it will just be ignored",
                                                            allowableValues = "WEB, ANDROID, IOS")
                                                    @RequestParam(required = false) String platform) throws ThingsboardException {
-        try {
-            if (log.isDebugEnabled()) {
-                log.debug("Executing getOAuth2Clients: [{}][{}][{}]", request.getScheme(), request.getServerName(), request.getServerPort());
-                Enumeration<String> headerNames = request.getHeaderNames();
-                while (headerNames.hasMoreElements()) {
-                    String header = headerNames.nextElement();
-                    log.debug("Header: {} {}", header, request.getHeader(header));
-                }
+        if (log.isDebugEnabled()) {
+            log.debug("Executing getOAuth2Clients: [{}][{}][{}]", request.getScheme(), request.getServerName(), request.getServerPort());
+            Enumeration<String> headerNames = request.getHeaderNames();
+            while (headerNames.hasMoreElements()) {
+                String header = headerNames.nextElement();
+                log.debug("Header: {} {}", header, request.getHeader(header));
             }
-            PlatformType platformType = null;
-            if (StringUtils.isNotEmpty(platform)) {
-                try {
-                    platformType = PlatformType.valueOf(platform);
-                } catch (Exception e) {}
-            }
-            return oAuth2Service.getOAuth2Clients(MiscUtils.getScheme(request), MiscUtils.getDomainNameAndPort(request), pkgName, platformType);
-        } catch (Exception e) {
-            throw handleException(e);
         }
+        PlatformType platformType = null;
+        if (StringUtils.isNotEmpty(platform)) {
+            try {
+                platformType = PlatformType.valueOf(platform);
+            } catch (Exception e) {}
+        }
+        return oAuth2Service.getOAuth2Clients(MiscUtils.getScheme(request), MiscUtils.getDomainNameAndPort(request), pkgName, platformType);
     }
 
     @ApiOperation(value = "Get current OAuth2 settings (getCurrentOAuth2Info)", notes = SYSTEM_AUTHORITY_PARAGRAPH)
@@ -110,12 +106,8 @@ public class OAuth2Controller extends BaseController {
     @RequestMapping(value = "/oauth2/config", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public OAuth2Info getCurrentOAuth2Info() throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.OAUTH2_CONFIGURATION_INFO, Operation.READ);
-            return oAuth2Service.findOAuth2Info();
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        accessControlService.checkPermission(getCurrentUser(), Resource.OAUTH2_CONFIGURATION_INFO, Operation.READ);
+        return oAuth2Service.findOAuth2Info();
     }
 
     @ApiOperation(value = "Save OAuth2 settings (saveOAuth2Info)", notes = SYSTEM_AUTHORITY_PARAGRAPH)
@@ -123,13 +115,9 @@ public class OAuth2Controller extends BaseController {
     @RequestMapping(value = "/oauth2/config", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     public OAuth2Info saveOAuth2Info(@RequestBody OAuth2Info oauth2Info) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.OAUTH2_CONFIGURATION_INFO, Operation.WRITE);
-            oAuth2Service.saveOAuth2Info(oauth2Info);
-            return oAuth2Service.findOAuth2Info();
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        accessControlService.checkPermission(getCurrentUser(), Resource.OAUTH2_CONFIGURATION_INFO, Operation.WRITE);
+        oAuth2Service.saveOAuth2Info(oauth2Info);
+        return oAuth2Service.findOAuth2Info();
     }
 
     @ApiOperation(value = "Get OAuth2 log in processing URL (getLoginProcessingUrl)", notes = "Returns the URL enclosed in " +
@@ -140,12 +128,8 @@ public class OAuth2Controller extends BaseController {
     @RequestMapping(value = "/oauth2/loginProcessingUrl", method = RequestMethod.GET)
     @ResponseBody
     public String getLoginProcessingUrl() throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.OAUTH2_CONFIGURATION_INFO, Operation.READ);
-            return "\"" + oAuth2Configuration.getLoginProcessingUrl() + "\"";
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        accessControlService.checkPermission(getCurrentUser(), Resource.OAUTH2_CONFIGURATION_INFO, Operation.READ);
+        return "\"" + oAuth2Configuration.getLoginProcessingUrl() + "\"";
     }
 
 }

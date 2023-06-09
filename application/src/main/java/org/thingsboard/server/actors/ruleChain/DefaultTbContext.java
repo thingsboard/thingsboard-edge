@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,6 @@
 package org.thingsboard.server.actors.ruleChain;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
@@ -41,6 +40,7 @@ import org.bouncycastle.util.Arrays;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.api.MailService;
+import org.thingsboard.rule.engine.api.NotificationCenter;
 import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
 import org.thingsboard.rule.engine.api.RuleEngineApiUsageStateService;
@@ -53,6 +53,7 @@ import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbPeContext;
 import org.thingsboard.rule.engine.api.TbRelationTypes;
+import org.thingsboard.rule.engine.api.slack.SlackService;
 import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
 import org.thingsboard.rule.engine.util.TenantIdLoader;
 import org.thingsboard.script.api.ScriptType;
@@ -71,8 +72,8 @@ import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.asset.AssetProfile;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -89,7 +90,6 @@ import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.rule.RuleNodeState;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
-import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.TbMsgProcessingStackItem;
@@ -97,6 +97,8 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
+import org.thingsboard.server.dao.alarm.AlarmCommentService;
+import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
@@ -105,6 +107,7 @@ import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
+import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
@@ -115,6 +118,10 @@ import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.nosql.CassandraStatementTask;
 import org.thingsboard.server.dao.nosql.TbResultSetFuture;
+import org.thingsboard.server.dao.notification.NotificationRequestService;
+import org.thingsboard.server.dao.notification.NotificationRuleService;
+import org.thingsboard.server.dao.notification.NotificationTargetService;
+import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -138,6 +145,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -146,8 +154,6 @@ import java.util.function.Consumer;
  */
 @Slf4j
 class DefaultTbContext implements TbContext, TbPeContext {
-
-    public final static ObjectMapper mapper = new ObjectMapper();
 
     private final ActorSystemContext mainCtx;
     private final String ruleChainName;
@@ -444,8 +450,8 @@ class DefaultTbContext implements TbContext, TbPeContext {
 
     public <E, I extends EntityId, K extends HasRuleEngineProfile> TbMsg entityActionMsg(E entity, I id, RuleNodeId ruleNodeId, String action, K profile) {
         try {
-            return entityActionMsg(id, getActionMetaData(ruleNodeId), mapper.writeValueAsString(mapper.valueToTree(entity)), action, profile);
-        } catch (JsonProcessingException | IllegalArgumentException e) {
+            return entityActionMsg(id, getActionMetaData(ruleNodeId), JacksonUtil.toString(JacksonUtil.valueToTree(entity)), action, profile);
+        } catch (IllegalArgumentException e) {
             throw new RuntimeException("Failed to process " + id.getEntityType().name().toLowerCase() + " " + action + " msg: " + e);
         }
     }
@@ -498,6 +504,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public ListeningExecutor getExternalCallExecutor() {
         return mainCtx.getExternalCallExecutorService();
+    }
+
+    @Override
+    public ListeningExecutor getNotificationExecutor() {
+        return mainCtx.getNotificationExecutor();
     }
 
     @Override
@@ -610,6 +621,16 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
+    public DeviceProfileService getDeviceProfileService() {
+        return mainCtx.getDeviceProfileService();
+    }
+
+    @Override
+    public AssetProfileService getAssetProfileService() {
+        return mainCtx.getAssetProfileService();
+    }
+
+    @Override
     public DeviceCredentialsService getDeviceCredentialsService() {
         return mainCtx.getDeviceCredentialsService();
     }
@@ -627,6 +648,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public RuleEngineAlarmService getAlarmService() {
         return mainCtx.getAlarmService();
+    }
+
+    @Override
+    public AlarmCommentService getAlarmCommentService() {
+        return mainCtx.getAlarmCommentService();
     }
 
     @Override
@@ -711,6 +737,36 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public SmsSenderFactory getSmsSenderFactory() {
         return mainCtx.getSmsSenderFactory();
+    }
+
+    @Override
+    public NotificationCenter getNotificationCenter() {
+        return mainCtx.getNotificationCenter();
+    }
+
+    @Override
+    public NotificationTargetService getNotificationTargetService() {
+        return mainCtx.getNotificationTargetService();
+    }
+
+    @Override
+    public NotificationTemplateService getNotificationTemplateService() {
+        return mainCtx.getNotificationTemplateService();
+    }
+
+    @Override
+    public NotificationRequestService getNotificationRequestService() {
+        return mainCtx.getNotificationRequestService();
+    }
+
+    @Override
+    public NotificationRuleService getNotificationRuleService() {
+        return mainCtx.getNotificationRuleService();
+    }
+
+    @Override
+    public SlackService getSlackService() {
+        return mainCtx.getSlackService();
     }
 
     @Override
@@ -967,6 +1023,12 @@ class DefaultTbContext implements TbContext, TbPeContext {
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("ruleNodeId", ruleNodeId.toString());
         return metaData;
+    }
+
+
+    @Override
+    public void schedule(Runnable runnable, long delay, TimeUnit timeUnit) {
+        mainCtx.getScheduler().schedule(runnable, delay, timeUnit);
     }
 
     @Override

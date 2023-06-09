@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -48,6 +48,7 @@ public class PostgreSqlInitializer {
             "sql/schema-entities.sql",
             "sql/schema-entities-idx.sql",
             "sql/schema-entities-idx-psql-addon.sql",
+            "sql/schema-views-and-functions.sql",
             "sql/system-data.sql",
             "sql/system-test-psql.sql");
     private static final String dropAllTablesSqlFile = "sql/psql/drop-all-tables.sql";

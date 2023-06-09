@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
 ///
 
 import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { SchedulerEventConfiguration } from '@shared/models/scheduler-event.models';
@@ -54,10 +54,10 @@ import { OtaUpdateType } from '@shared/models/ota-package.models';
 })
 export class OtaUpdateEventConfigComponent implements ControlValueAccessor, OnDestroy, OnInit {
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   modelValue: SchedulerEventConfiguration | null;
-  updatePackageForm: FormGroup;
+  updatePackageForm: UntypedFormGroup;
   currentGroupType: EntityType;
   packageType = OtaUpdateType.FIRMWARE;
   profileId: string;
@@ -73,7 +73,7 @@ export class OtaUpdateEventConfigComponent implements ControlValueAccessor, OnDe
   private propagateChange = (v: any) => { };
 
   constructor(private store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.updatePackageForm = this.fb.group({
       originatorId: [null, Validators.required],
       packageId: [{value: null, disabled: true}, Validators.required]

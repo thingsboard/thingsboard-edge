@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -57,7 +57,7 @@ import org.thingsboard.server.transport.lwm2m.server.ota.LwM2MOtaUpdateService;
 import org.thingsboard.server.transport.lwm2m.server.session.LwM2MSessionManager;
 import org.thingsboard.server.transport.lwm2m.server.store.TbLwM2MClientStore;
 import org.thingsboard.server.transport.lwm2m.server.store.TbMainSecurityStore;
-import org.thingsboard.server.transport.lwm2m.server.uplink.DefaultLwM2mUplinkMsgHandler;
+import org.thingsboard.server.transport.lwm2m.server.uplink.LwM2mUplinkMsgHandler;
 import org.thingsboard.server.transport.lwm2m.utils.LwM2MTransportUtil;
 
 import java.util.Arrays;
@@ -90,7 +90,7 @@ public class LwM2mClientContextImpl implements LwM2mClientContext {
 
     @Autowired
     @Lazy
-    private DefaultLwM2mUplinkMsgHandler defaultLwM2MUplinkMsgHandler;
+    private LwM2mUplinkMsgHandler defaultLwM2MUplinkMsgHandler;
     @Autowired
     @Lazy
     private LwM2MOtaUpdateService otaUpdateService;

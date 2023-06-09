@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,6 +35,7 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
@@ -84,7 +85,7 @@ public abstract class AbstractKafkaIntegration<T extends KafkaIntegrationMsg> ex
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(), mapper.writeValueAsString(msg.getMsg()), status, exception);
+                persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(msg.getMsg()), status, exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }

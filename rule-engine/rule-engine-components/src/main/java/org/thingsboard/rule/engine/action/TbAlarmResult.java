@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,7 @@ package org.thingsboard.rule.engine.action;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmApiCallResult;
 
 @Data
 @AllArgsConstructor
@@ -48,5 +49,9 @@ public class TbAlarmResult {
         this.isUpdated = isUpdated;
         this.isCleared = isCleared;
         this.alarm = alarm;
+    }
+
+    public static TbAlarmResult fromAlarmResult(AlarmApiCallResult result) {
+        return new TbAlarmResult(result.isCreated(), result.isModified(), result.isSeverityChanged(), result.isCleared(), result.getAlarm());
     }
 }

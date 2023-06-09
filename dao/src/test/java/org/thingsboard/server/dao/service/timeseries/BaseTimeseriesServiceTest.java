@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,6 +36,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -50,10 +51,13 @@ import org.thingsboard.server.common.data.kv.DoubleDataEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
+import org.thingsboard.server.common.data.kv.ReadTsKvQueryResult;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.objects.TelemetryEntityView;
+import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.service.AbstractServiceTest;
+import org.thingsboard.server.dao.timeseries.TimeseriesService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,6 +67,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -72,6 +77,13 @@ import static org.junit.Assert.assertNotNull;
 
 @Slf4j
 public abstract class BaseTimeseriesServiceTest extends AbstractServiceTest {
+
+    @Autowired
+    TimeseriesService tsService;
+
+    @Autowired
+    EntityViewService entityViewService;
+
     static final int MAX_TIMEOUT = 30;
 
     private static final String STRING_KEY = "stringKey";
@@ -357,6 +369,36 @@ public abstract class BaseTimeseriesServiceTest extends AbstractServiceTest {
         Assert.assertEquals(toTsEntry(TS - 1, stringKvEntry), entries.get(0));
         Assert.assertEquals(toTsEntry(TS - 2, stringKvEntry), entries.get(1));
         Assert.assertEquals(toTsEntry(TS - 3, stringKvEntry), entries.get(2));
+    }
+
+    @Test
+    public void testFindAllByQueries_verifyQueryId() throws Exception {
+        DeviceId deviceId = new DeviceId(Uuids.timeBased());
+        saveEntries(deviceId, TS);
+        saveEntries(deviceId, TS - 2);
+        saveEntries(deviceId, TS - 10);
+
+        BaseReadTsKvQuery query = new BaseReadTsKvQuery(STRING_KEY, TS - 10, TS + 1, 0, 1000, Aggregation.NONE, "DESC");
+        findAndVerifyQueryId(deviceId, query);
+    }
+
+    @Test
+    public void testFindAllByQueries_verifyQueryId_forEntityView() throws Exception {
+        DeviceId deviceId = new DeviceId(Uuids.timeBased());
+        saveEntries(deviceId, TS);
+        saveEntries(deviceId, TS - 2);
+        saveEntries(deviceId, TS - 12);
+
+        EntityView entityView = saveAndCreateEntityView(deviceId, List.of(LONG_KEY));
+
+        BaseReadTsKvQuery query = new BaseReadTsKvQuery(LONG_KEY, TS - 10, TS + 1, 0, 1000, Aggregation.NONE, "DESC");
+        findAndVerifyQueryId(entityView.getId(), query);
+    }
+
+    private void findAndVerifyQueryId(EntityId entityId, ReadTsKvQuery query) throws InterruptedException, ExecutionException, TimeoutException {
+        List<ReadTsKvQueryResult> results = tsService.findAllByQueries(tenantId, entityId, List.of(query)).get(MAX_TIMEOUT, TimeUnit.SECONDS);
+        assertThat(results).isNotEmpty();
+        assertThat(results).extracting(ReadTsKvQueryResult::getQueryId).containsOnly(query.getId());
     }
 
     @Test

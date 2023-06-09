@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -43,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.mqtt.MqttClient;
 import org.thingsboard.mqtt.MqttClientConfig;
@@ -61,6 +62,7 @@ import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.msa.AbstractContainerTest;
+import org.thingsboard.server.msa.DisableUIListeners;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.AttributesResponse;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
@@ -83,6 +85,7 @@ import static org.thingsboard.server.common.data.DataConstants.DEVICE;
 import static org.thingsboard.server.common.data.DataConstants.SHARED_SCOPE;
 import static org.thingsboard.server.msa.prototypes.DevicePrototypes.defaultDevicePrototype;
 
+@DisableUIListeners
 @Slf4j
 public class MqttClientTest extends AbstractContainerTest {
 
@@ -190,7 +193,7 @@ public class MqttClientTest extends AbstractContainerTest {
         JsonObject sharedAttributes = new JsonObject();
         String sharedAttributeValue = StringUtils.randomAlphanumeric(8);
         sharedAttributes.addProperty("sharedAttr", sharedAttributeValue);
-        JsonNode sharedAttribute = mapper.readTree(sharedAttributes.toString());
+        JsonNode sharedAttribute = JacksonUtil.toJsonNode(sharedAttributes.toString());
         testRestClient.postTelemetryAttribute(DataConstants.DEVICE, device.getId(), SHARED_SCOPE, sharedAttribute);
 
         // Subscribe to attributes response
@@ -205,7 +208,7 @@ public class MqttClientTest extends AbstractContainerTest {
         request.addProperty("sharedKeys", "sharedAttr");
         mqttClient.publish("v1/devices/me/attributes/request/" + new Random().nextInt(100), Unpooled.wrappedBuffer(request.toString().getBytes())).get();
         MqttEvent event = listener.getEvents().poll(10 * timeoutMultiplier, TimeUnit.SECONDS);
-        AttributesResponse attributes = mapper.readValue(Objects.requireNonNull(event).getMessage(), AttributesResponse.class);
+        AttributesResponse attributes = JacksonUtil.fromString(Objects.requireNonNull(event).getMessage(), AttributesResponse.class);
         log.info("Received telemetry: {}", attributes);
 
         assertThat(attributes.getClient()).hasSize(1);
@@ -232,22 +235,22 @@ public class MqttClientTest extends AbstractContainerTest {
         JsonObject sharedAttributes = new JsonObject();
         String sharedAttributeValue = StringUtils.randomAlphanumeric(8);
         sharedAttributes.addProperty(sharedAttributeName, sharedAttributeValue);
-        JsonNode sharedAttribute = mapper.readTree(sharedAttributes.toString());
+        JsonNode sharedAttribute = JacksonUtil.toJsonNode(sharedAttributes.toString());
 
         testRestClient.postTelemetryAttribute(DataConstants.DEVICE, device.getId(), SHARED_SCOPE, sharedAttribute);
 
         MqttEvent event = listener.getEvents().poll(10 * timeoutMultiplier, TimeUnit.SECONDS);
-        assertThat(mapper.readValue(Objects.requireNonNull(event).getMessage(), JsonNode.class).get(sharedAttributeName).asText())
+        assertThat(JacksonUtil.fromString(Objects.requireNonNull(event).getMessage(), JsonNode.class).get(sharedAttributeName).asText())
                 .isEqualTo(sharedAttributeValue);
 
         // Update the shared attribute value
         JsonObject updatedSharedAttributes = new JsonObject();
         String updatedSharedAttributeValue = StringUtils.randomAlphanumeric(8);
         updatedSharedAttributes.addProperty(sharedAttributeName, updatedSharedAttributeValue);
-        testRestClient.postTelemetryAttribute(DEVICE, device.getId(), SHARED_SCOPE, mapper.readTree(updatedSharedAttributes.toString()));
+        testRestClient.postTelemetryAttribute(DEVICE, device.getId(), SHARED_SCOPE, JacksonUtil.toJsonNode(updatedSharedAttributes.toString()));
 
         event = listener.getEvents().poll(10 * timeoutMultiplier, TimeUnit.SECONDS);
-        assertThat(mapper.readValue(Objects.requireNonNull(event).getMessage(), JsonNode.class).get(sharedAttributeName).asText())
+        assertThat(JacksonUtil.fromString(Objects.requireNonNull(event).getMessage(), JsonNode.class).get(sharedAttributeName).asText())
                 .isEqualTo(updatedSharedAttributeValue);
     }
 
@@ -269,8 +272,8 @@ public class MqttClientTest extends AbstractContainerTest {
         ListeningExecutorService service = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(getClass().getSimpleName())));
         ListenableFuture<JsonNode> future = service.submit(() -> {
             try {
-                return testRestClient.postServerSideRpc(device.getId(), mapper.readTree(serverRpcPayload.toString()));
-            } catch (IOException e) {
+                return testRestClient.postServerSideRpc(device.getId(), JacksonUtil.toJsonNode(serverRpcPayload.toString()));
+            } catch (IllegalArgumentException e) {
                 return null;
             }
         });
@@ -288,7 +291,7 @@ public class MqttClientTest extends AbstractContainerTest {
 
         JsonNode serverResponse = future.get(5 * timeoutMultiplier, TimeUnit.SECONDS);
         service.shutdownNow();
-        assertThat(serverResponse).isEqualTo(mapper.readTree(clientResponse.toString()));
+        assertThat(serverResponse).isEqualTo(JacksonUtil.toJsonNode(clientResponse.toString()));
     }
 
     @Test
@@ -318,7 +321,7 @@ public class MqttClientTest extends AbstractContainerTest {
         MqttEvent responseFromServer = listener.getEvents().poll(1 * timeoutMultiplier, TimeUnit.SECONDS);
         Integer responseId = Integer.valueOf(Objects.requireNonNull(responseFromServer).getTopic().substring("v1/devices/me/rpc/response/".length()));
         assertThat(responseId).isEqualTo(requestId);
-        assertThat(mapper.readTree(responseFromServer.getMessage()).get("response").asText()).isEqualTo("requestReceived");
+        assertThat(JacksonUtil.toJsonNode(responseFromServer.getMessage()).get("response").asText()).isEqualTo("requestReceived");
 
         // Make the default rule chain a root again
         testRestClient.setRootRuleChain(defaultRuleChainId);
@@ -364,7 +367,7 @@ public class MqttClientTest extends AbstractContainerTest {
 
         assertThat(provisionResponseMsg).isNotNull();
 
-        JsonNode provisionResponse = mapper.readTree(provisionResponseMsg.getMessage());
+        JsonNode provisionResponse = JacksonUtil.toJsonNode(provisionResponseMsg.getMessage());
 
         assertThat(provisionResponse.get("credentialsType").asText()).isEqualTo(expectedDeviceCredentials.getCredentialsType().name());
         assertThat(provisionResponse.get("credentialsValue").asText()).isEqualTo(expectedDeviceCredentials.getCredentialsId());
@@ -399,7 +402,7 @@ public class MqttClientTest extends AbstractContainerTest {
 
         assertThat(provisionResponseMsg).isNotNull();
 
-        JsonNode provisionResponse = mapper.readTree(provisionResponseMsg.getMessage());
+        JsonNode provisionResponse = JacksonUtil.toJsonNode(provisionResponseMsg.getMessage());
 
         testRestClient.deleteDeviceIfExists(device.getId());
         device = testRestClient.getDeviceByName(testDeviceName);
@@ -432,7 +435,7 @@ public class MqttClientTest extends AbstractContainerTest {
 
         assertThat(provisionResponseMsg).isNotNull();
 
-        JsonNode provisionResponse = mapper.readTree(provisionResponseMsg.getMessage());
+        JsonNode provisionResponse = JacksonUtil.toJsonNode(provisionResponseMsg.getMessage());
 
         assertThat(provisionResponse.get("status").asText()).isEqualTo("NOT_FOUND");
     }
@@ -441,14 +444,14 @@ public class MqttClientTest extends AbstractContainerTest {
         RuleChain newRuleChain = new RuleChain();
         newRuleChain.setName("testRuleChain");
 
-        RuleChain ruleChain = testRestClient.postRootRuleChain(newRuleChain);
+        RuleChain ruleChain = testRestClient.postRuleChain(newRuleChain);
 
-        JsonNode configuration = mapper.readTree(this.getClass().getClassLoader().getResourceAsStream("RpcResponseRuleChainMetadata.json"));
+        JsonNode configuration = JacksonUtil.OBJECT_MAPPER.readTree(this.getClass().getClassLoader().getResourceAsStream("RpcResponseRuleChainMetadata.json"));
         RuleChainMetaData ruleChainMetaData = new RuleChainMetaData();
         ruleChainMetaData.setRuleChainId(ruleChain.getId());
         ruleChainMetaData.setFirstNodeIndex(configuration.get("firstNodeIndex").asInt());
-        ruleChainMetaData.setNodes(Arrays.asList(mapper.treeToValue(configuration.get("nodes"), RuleNode[].class)));
-        ruleChainMetaData.setConnections(Arrays.asList(mapper.treeToValue(configuration.get("connections"), NodeConnectionInfo[].class)));
+        ruleChainMetaData.setNodes(Arrays.asList(JacksonUtil.treeToValue(configuration.get("nodes"), RuleNode[].class)));
+        ruleChainMetaData.setConnections(Arrays.asList(JacksonUtil.treeToValue(configuration.get("connections"), NodeConnectionInfo[].class)));
 
         testRestClient.postRuleChainMetadata(ruleChainMetaData);
 

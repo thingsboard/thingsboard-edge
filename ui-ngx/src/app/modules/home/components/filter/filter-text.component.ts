@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
 ///
 
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { KeyFilter, keyFiltersToText } from '@shared/models/query/query.models';
 import { TranslateService } from '@ngx-translate/core';
@@ -79,7 +79,7 @@ export class FilterTextComponent implements ControlValueAccessor, OnInit {
   private propagateChange = (v: any) => { };
 
   constructor(private dialog: MatDialog,
-              private fb: FormBuilder,
+              private fb: UntypedFormBuilder,
               private translate: TranslateService,
               private datePipe: DatePipe) {
   }

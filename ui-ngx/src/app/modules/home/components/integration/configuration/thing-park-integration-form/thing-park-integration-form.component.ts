@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,8 +32,8 @@
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -70,7 +70,7 @@ import { IntegrationForm } from '@home/components/integration/configuration/inte
 })
 export class ThingParkIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator, OnInit {
 
-  thingParkConfigForm: FormGroup;
+  thingParkConfigForm: UntypedFormGroup;
 
   @Input()
   routingKey: string;
@@ -80,7 +80,7 @@ export class ThingParkIntegrationFormComponent extends IntegrationForm implement
   private propagateChangePending = false;
   private propagateChange = (v: any) => { };
 
-  constructor(protected fb: FormBuilder,
+  constructor(protected fb: UntypedFormBuilder,
               protected store: Store<AppState>,
               protected translate: TranslateService) {
     super();
@@ -88,16 +88,17 @@ export class ThingParkIntegrationFormComponent extends IntegrationForm implement
 
   ngOnInit() {
     const baseURLValidators = [Validators.required];
+    const downlinkUrlValidators = [];
     if (!this.allowLocalNetwork) {
       baseURLValidators.push(privateNetworkAddressValidator);
+      downlinkUrlValidators.push(privateNetworkAddressValidator);
     }
     this.thingParkConfigForm = this.fb.group({
       baseUrl: [baseUrl(), baseURLValidators],
       httpEndpoint: [{value: integrationEndPointUrl(this.integrationType, baseUrl(), this.routingKey), disabled: true}],
       enableSecurity: [false],
       replaceNoContentToOk: [false],
-      downlinkUrl: ['https://api.thingpark.com/thingpark/lrc/rest/downlink',
-        [!this.allowLocalNetwork ? privateNetworkAddressValidator : null]],
+      downlinkUrl: ['https://api.thingpark.com/thingpark/lrc/rest/downlink', downlinkUrlValidators],
       enableSecurityNew: [{value: false, disabled: true}],
       asId: [{value: '', disabled: true}, Validators.required],
       asIdNew: [{value: '', disabled: true}, Validators.required],

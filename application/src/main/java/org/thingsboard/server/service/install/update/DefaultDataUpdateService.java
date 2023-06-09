@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,7 +32,6 @@ package org.thingsboard.server.service.install.update;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -54,13 +53,13 @@ import org.thingsboard.rule.engine.profile.TbDeviceProfileNodeConfiguration;
 import org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNode;
 import org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNodeConfiguration;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.ShortCustomerInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
@@ -164,8 +163,6 @@ import static org.thingsboard.server.common.data.StringUtils.isBlank;
 @Slf4j
 public class DefaultDataUpdateService implements DataUpdateService {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
     private static final String WHITE_LABEL_PARAMS = "whiteLabelParams";
     private static final String LOGO_IMAGE = "logoImage";
     private static final String LOGO_IMAGE_CHECKSUM = "logoImageChecksum";
@@ -260,6 +257,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     private EdgeEventDao edgeEventDao;
 
+    @Autowired
+    private IntegrationRateLimitsUpdater integrationRateLimitsUpdater;
+
     @Override
     public void updateData(String fromVersion) throws Exception {
 
@@ -324,8 +324,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     log.info("Skipping blob entities migration");
                 }
                 break;
-            case "3.4.2":
-                log.info("Updating data from version 3.4.2 to 3.4.2PE ...");
+            case "3.5.1":
+                integrationRateLimitsUpdater.updateEntities();
+                break;
+            case "ce":
+                log.info("Updating data ...");
                 tenantsCustomersGroupAllUpdater.updateEntities();
                 tenantEntitiesGroupAllUpdater.updateEntities();
                 tenantIntegrationUpdater.updateEntities();
@@ -524,7 +527,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
             });
         });
     }
-    
+
     private void updateDuplicateMsgRuleNode() {
         PageDataIterable<RuleNode> ruleNodesIterator = new PageDataIterable<>(
                 link -> ruleChainService.findAllRuleNodesByType(TbDuplicateMsgToGroupNode.class.getName(), link), 1024);
@@ -681,26 +684,16 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
                 @Override
                 protected void updateEntity(Tenant tenant) {
-                    try {
-                        List<EntityGroup> entityGroups = entityGroupService.findAllEntityGroups(TenantId.SYS_TENANT_ID, tenant.getId()).get();
-                        for (EntityGroup entityGroup : entityGroups) {
-                            if (entityGroup.getOwnerId() == null || entityGroup.getOwnerId().isNullUid()) {
-                                entityGroup.setOwnerId(tenant.getId());
-                                entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, tenant.getId(), entityGroup);
-                            }
-                        }
-                        EntityGroup entityGroup;
-                        Optional<EntityGroup> customerGroupOptional =
-                                entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, tenant.getId(), EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
-                        if (!customerGroupOptional.isPresent()) {
-                            entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, tenant.getId(), EntityType.CUSTOMER);
-                        } else {
-                            entityGroup = customerGroupOptional.get();
-                        }
-                        new CustomersGroupAllUpdater(entityGroup).updateEntities(tenant.getId());
-                    } catch (InterruptedException | ExecutionException e) {
-                        log.error("Unable to update Tenant", e);
+                    new EntityGroupsOwnerUpdater(tenant.getId()).updateEntities(tenant.getId());
+                    EntityGroup entityGroup;
+                    Optional<EntityGroup> customerGroupOptional =
+                            entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, tenant.getId(), EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
+                    if (!customerGroupOptional.isPresent()) {
+                        entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, tenant.getId(), EntityType.CUSTOMER);
+                    } else {
+                        entityGroup = customerGroupOptional.get();
                     }
+                    new CustomersGroupAllUpdater(entityGroup).updateEntities(tenant.getId());
                 }
             };
 
@@ -767,6 +760,34 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
             };
 
+    private class EntityGroupsOwnerUpdater extends PaginatedUpdater<EntityId, EntityGroup> {
+
+        private final EntityId ownerId;
+
+        public EntityGroupsOwnerUpdater(EntityId ownerId) {
+            this.ownerId = ownerId;
+        }
+
+        @Override
+        protected String getName() {
+            return "Entity groups owner updater";
+        }
+
+        @Override
+        protected PageData<EntityGroup> findEntities(EntityId parentEntityId, PageLink pageLink) {
+            return entityGroupService.findAllEntityGroupsByParentRelation(TenantId.SYS_TENANT_ID, parentEntityId, pageLink);
+        }
+
+        @Override
+        protected void updateEntity(EntityGroup entityGroup) {
+            if (entityGroup.getOwnerId() == null || entityGroup.getOwnerId().isNullUid()) {
+                entityGroup.setOwnerId(this.ownerId);
+                entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, this.ownerId, entityGroup);
+            }
+        }
+
+    }
+
     private class TenantAdminsGroupAllUpdater extends GroupAllPaginatedUpdater<TenantId, User> {
 
         private final EntityGroup tenantAdmins;
@@ -809,7 +830,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         @Override
         protected PageData<User> findEntities(TenantId id, PageLink pageLink) {
             try {
-                List<EntityId> entityIds = entityGroupService.findAllEntityIds(TenantId.SYS_TENANT_ID, groupAll.getId(), new PageLink(Integer.MAX_VALUE)).get();
+                List<EntityId> entityIds = entityGroupService.findAllEntityIdsAsync(TenantId.SYS_TENANT_ID, groupAll.getId(), new PageLink(Integer.MAX_VALUE)).get();
                 List<UserId> userIds = entityIds.stream().map(entityId -> new UserId(entityId.getId())).collect(Collectors.toList());
                 List<User> users;
                 if (!userIds.isEmpty()) {
@@ -887,37 +908,27 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 return;
             }
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), customer.getId());
-            try {
-                List<EntityGroup> entityGroups = entityGroupService.findAllEntityGroups(TenantId.SYS_TENANT_ID, customer.getId()).get();
-                for (EntityGroup entityGroup : entityGroups) {
-                    if (!customer.getId().equals(entityGroup.getOwnerId())) {
-                        entityGroup.setOwnerId(customer.getId());
-                        entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, customer.getId(), entityGroup);
-                    }
-                }
-                EntityType[] entityGroupTypes = new EntityType[]{EntityType.USER, EntityType.CUSTOMER, EntityType.ASSET, EntityType.DEVICE, EntityType.DASHBOARD, EntityType.ENTITY_VIEW, EntityType.EDGE};
-                for (EntityType groupType : entityGroupTypes) {
-                    Optional<EntityGroup> entityGroupOptional =
-                            entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, customer.getId(), groupType, EntityGroup.GROUP_ALL_NAME);
-                    if (!entityGroupOptional.isPresent()) {
-                        EntityGroup entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, customer.getId(), groupType);
-                        if (groupType == EntityType.USER) {
-                            if (!customer.isPublic()) {
-                                entityGroupService.findOrCreateCustomerAdminsGroup(customer.getTenantId(), customer.getId(), null);
-                                Optional<EntityGroup> customerUsersOptional =
-                                        entityGroupService.findEntityGroupByTypeAndName(customer.getTenantId(), customer.getId(), EntityType.USER, EntityGroup.GROUP_CUSTOMER_USERS_NAME);
-                                if (!customerUsersOptional.isPresent()) {
-                                    EntityGroup customerUsers = entityGroupService.findOrCreateCustomerUsersGroup(customer.getTenantId(), customer.getId(), null);
-                                    new CustomerUsersGroupAllUpdater(customer.getTenantId(), entityGroup, customerUsers).updateEntities(customer.getId());
-                                }
-                            } else {
-                                entityGroupService.findOrCreatePublicUsersGroup(customer.getTenantId(), customer.getId());
+            new EntityGroupsOwnerUpdater(customer.getId()).updateEntities(customer.getId());
+            EntityType[] entityGroupTypes = new EntityType[]{EntityType.USER, EntityType.CUSTOMER, EntityType.ASSET, EntityType.DEVICE, EntityType.DASHBOARD, EntityType.ENTITY_VIEW, EntityType.EDGE};
+            for (EntityType groupType : entityGroupTypes) {
+                Optional<EntityGroup> entityGroupOptional =
+                        entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, customer.getId(), groupType, EntityGroup.GROUP_ALL_NAME);
+                if (!entityGroupOptional.isPresent()) {
+                    EntityGroup entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, customer.getId(), groupType);
+                    if (groupType == EntityType.USER) {
+                        if (!customer.isPublic()) {
+                            entityGroupService.findOrCreateCustomerAdminsGroup(customer.getTenantId(), customer.getId(), null);
+                            Optional<EntityGroup> customerUsersOptional =
+                                    entityGroupService.findEntityGroupByTypeAndName(customer.getTenantId(), customer.getId(), EntityType.USER, EntityGroup.GROUP_CUSTOMER_USERS_NAME);
+                            if (!customerUsersOptional.isPresent()) {
+                                EntityGroup customerUsers = entityGroupService.findOrCreateCustomerUsersGroup(customer.getTenantId(), customer.getId(), null);
+                                new CustomerUsersGroupAllUpdater(customer.getTenantId(), entityGroup, customerUsers).updateEntities(customer.getId());
                             }
+                        } else {
+                            entityGroupService.findOrCreatePublicUsersGroup(customer.getTenantId(), customer.getId());
                         }
                     }
                 }
-            } catch (InterruptedException | ExecutionException e) {
-                log.error("Unable to update Customer", e);
             }
         }
     }
@@ -948,7 +959,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 return dashboardService.findDashboardsByTenantId(id, pageLink);
             } else {
                 try {
-                    List<EntityId> entityIds = entityGroupService.findAllEntityIds(TenantId.SYS_TENANT_ID, groupAll.getId(), new PageLink(Integer.MAX_VALUE)).get();
+                    List<EntityId> entityIds = entityGroupService.findAllEntityIdsAsync(TenantId.SYS_TENANT_ID, groupAll.getId(), new PageLink(Integer.MAX_VALUE)).get();
                     List<DashboardId> dashboardIds = entityIds.stream().map(entityId -> new DashboardId(entityId.getId())).collect(Collectors.toList());
                     List<DashboardInfo> dashboards;
                     if (!dashboardIds.isEmpty()) {
@@ -1115,8 +1126,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
             String json = whiteLabelParamsSettings.getJsonValue().get("value").asText();
             if (!StringUtils.isEmpty(json)) {
                 try {
-                    storedWl = objectMapper.readTree(json);
-                } catch (IOException e) {
+                    storedWl = JacksonUtil.toJsonNode(json);
+                } catch (IllegalArgumentException e) {
                     log.error("Unable to read System White Labeling Params!", e);
                 }
             }
@@ -1150,7 +1161,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private ListenableFuture<List<String>> updateTenantMailTemplates(TenantId tenantId) throws IOException {
         String mailTemplatesJsonString = getEntityAttributeValue(tenantId, MAIL_TEMPLATES);
         if (!StringUtils.isEmpty(mailTemplatesJsonString)) {
-            JsonNode oldMailTemplates = objectMapper.readTree(mailTemplatesJsonString);
+            JsonNode oldMailTemplates = JacksonUtil.toJsonNode(mailTemplatesJsonString);
             ObjectNode updatedMailTemplates = installScripts.updateMailTemplates(oldMailTemplates);
 
             if (oldMailTemplates.has(USE_SYSTEM_MAIL_SETTINGS)) {
@@ -1216,13 +1227,13 @@ public class DefaultDataUpdateService implements DataUpdateService {
             };
 
     private void updateTenantAlarmsCustomer(TenantId tenantId, String name, AtomicLong processed) {
-        AlarmQuery alarmQuery = new AlarmQuery(null, new TimePageLink(1024 * 4), null, null, false);
+        AlarmQuery alarmQuery = new AlarmQuery(null, new TimePageLink(1024 * 4), null, null, null, false);
         PageData<AlarmInfo> alarms = alarmDao.findAlarms(tenantId, alarmQuery);
         boolean hasNext = true;
         while (hasNext) {
             for (Alarm alarm : alarms.getData()) {
                 if (alarm.getCustomerId() == null && alarm.getOriginator() != null) {
-                    alarm.setCustomerId(entityService.fetchEntityCustomerId(tenantId, alarm.getOriginator()));
+                    alarm.setCustomerId(entityService.fetchEntityCustomerId(tenantId, alarm.getOriginator()).get());
                     alarmDao.save(tenantId, alarm);
                 }
                 if (processed.incrementAndGet() % 1000 == 0) {
@@ -1280,8 +1291,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 JsonNode faviconJson = storedWl.get("favicon");
                 Favicon favicon = null;
                 try {
-                    favicon = objectMapper.treeToValue(faviconJson, Favicon.class);
-                } catch (JsonProcessingException e) {
+                    favicon = JacksonUtil.treeToValue(faviconJson, Favicon.class);
+                } catch (IllegalArgumentException e) {
                     log.error("Unable to read Favicon from previous White Labeling Params!", e);
                 }
                 whiteLabelingParams.setFavicon(favicon);
@@ -1290,8 +1301,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 JsonNode paletteSettingsJson = storedWl.get("paletteSettings");
                 PaletteSettings paletteSettings = null;
                 try {
-                    paletteSettings = objectMapper.treeToValue(paletteSettingsJson, PaletteSettings.class);
-                } catch (JsonProcessingException e) {
+                    paletteSettings = JacksonUtil.treeToValue(paletteSettingsJson, PaletteSettings.class);
+                } catch (IllegalArgumentException e) {
                     log.error("Unable to read Palette Settings from previous White Labeling Params!", e);
                 }
                 whiteLabelingParams.setPaletteSettings(paletteSettings);
@@ -1337,8 +1348,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
         String value = getEntityAttributeValue(entityId, WHITE_LABEL_PARAMS);
         if (!StringUtils.isEmpty(value)) {
             try {
-                return objectMapper.readTree(value);
-            } catch (IOException e) {
+                return JacksonUtil.toJsonNode(value);
+            } catch (IllegalArgumentException e) {
                 log.error("Unable to read White Labeling Params from JSON!", e);
                 return null;
             }
@@ -1382,7 +1393,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
     }
 
-    private abstract static class WhiteLabelingPaginatedUpdater<I, D extends SearchTextBased<? extends UUIDBased>> {
+    private abstract static class WhiteLabelingPaginatedUpdater<I, D extends BaseDataWithAdditionalInfo<? extends UUIDBased>> {
 
         private static final int DEFAULT_LIMIT = 100;
         private int updated = 0;
@@ -1492,8 +1503,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     private TenantProfileQueueConfiguration getMainQueueConfiguration() {
         TenantProfileQueueConfiguration mainQueueConfiguration = new TenantProfileQueueConfiguration();
-        mainQueueConfiguration.setName("Main");
-        mainQueueConfiguration.setTopic("tb_rule_engine.main");
+        mainQueueConfiguration.setName(DataConstants.MAIN_QUEUE_NAME);
+        mainQueueConfiguration.setTopic(DataConstants.MAIN_QUEUE_TOPIC);
         mainQueueConfiguration.setPollInterval(25);
         mainQueueConfiguration.setPartitions(10);
         mainQueueConfiguration.setConsumerPerPartition(true);
@@ -1512,7 +1523,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         return mainQueueConfiguration;
     }
 
-    private boolean getEnv(String name, boolean defaultValue) {
+    public static boolean getEnv(String name, boolean defaultValue) {
         String env = System.getenv(name);
         if (env == null) {
             return defaultValue;

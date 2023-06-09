@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,13 +33,13 @@ import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, Renderer2, Vie
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DialogComponent } from '@app/shared/components/dialog.component';
 import { EntityType } from '@shared/models/entity-type.models';
 import { TranslateService } from '@ngx-translate/core';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
-import { MatVerticalStepper } from '@angular/material/stepper';
+import { MatStepper } from '@angular/material/stepper';
 import {
   BulkImportRequest,
   BulkImportResult,
@@ -74,7 +74,7 @@ export interface ImportDialogCsvData {
 export class ImportDialogCsvComponent extends DialogComponent<ImportDialogCsvComponent, boolean>
   implements AfterViewInit, OnDestroy {
 
-  @ViewChild('importStepper', {static: true}) importStepper: MatVerticalStepper;
+  @ViewChild('importStepper', {static: true}) importStepper: MatStepper;
 
   @ViewChild('columnsAssignmentComponent', {static: true})
   columnsAssignmentComponent: TableColumnsAssignmentComponent;
@@ -104,9 +104,9 @@ export class ImportDialogCsvComponent extends DialogComponent<ImportDialogCsvCom
 
   selectedIndex = 0;
 
-  selectFileFormGroup: FormGroup;
-  importParametersFormGroup: FormGroup;
-  columnTypesFormGroup: FormGroup;
+  selectFileFormGroup: UntypedFormGroup;
+  importParametersFormGroup: UntypedFormGroup;
+  columnTypesFormGroup: UntypedFormGroup;
 
   isImportData = false;
   statistical: BulkImportResult;
@@ -123,7 +123,7 @@ export class ImportDialogCsvComponent extends DialogComponent<ImportDialogCsvCom
               public dialogRef: MatDialogRef<ImportDialogCsvComponent, boolean>,
               public translate: TranslateService,
               private importExport: ImportExportService,
-              private fb: FormBuilder,
+              private fb: UntypedFormBuilder,
               private renderer: Renderer2) {
     super(store, router, dialogRef);
     this.entityType = data.entityType;

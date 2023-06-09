@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -54,6 +54,7 @@ import { ImportExportService } from '@home/components/import-export/import-expor
 import { EdgeService } from '@core/http/edge.service';
 import { SchedulerEventService } from '@core/http/scheduler-event.service';
 import { DeviceProfileService } from '@core/http/device-profile.service';
+import { AssetProfileService } from '@core/http/asset-profile.service';
 import { OtaPackageService } from '@core/http/ota-package.service';
 import { RuleEngineService } from '@core/http/rule-engine.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
@@ -61,6 +62,11 @@ import { AuthService } from '@core/auth/auth.service';
 import { ResourceService } from '@core/http/resource.service';
 import { TwoFactorAuthenticationService } from '@core/http/two-factor-authentication.service';
 import { TelemetryWebsocketService } from '@core/ws/telemetry-websocket.service';
+import { NotificationService } from '@core/http/notification.service';
+import { MillisecondsToTimeStringPipe } from '@shared/pipe/milliseconds-to-time-string.pipe';
+import { UserSettingsService } from '@core/http/user-settings.service';
+import { ActionNotificationHide, ActionNotificationShow } from '@core/notification/notification.actions';
+import { Store } from '@ngrx/store';
 
 export const ServicesMap = new Map<string, Type<any>>(
   [
@@ -81,6 +87,7 @@ export const ServicesMap = new Map<string, Type<any>>(
    ['dialogs', DialogService],
    ['customDialog', CustomDialogService],
    ['date', DatePipe],
+   ['milliSecondsToTimeString', MillisecondsToTimeStringPipe],
    ['utils', UtilsService],
    ['translate', TranslateService],
    ['http', HttpClient],
@@ -88,12 +95,18 @@ export const ServicesMap = new Map<string, Type<any>>(
    ['importExport', ImportExportService],
    ['schedulerEventService', SchedulerEventService],
    ['deviceProfileService', DeviceProfileService],
+   ['assetProfileService', AssetProfileService],
    ['otaPackageService', OtaPackageService],
    ['ruleEngineService', RuleEngineService],
    ['userPermissionsService', UserPermissionsService],
    ['authService', AuthService],
    ['resourceService', ResourceService],
    ['twoFactorAuthenticationService', TwoFactorAuthenticationService],
-   ['telemetryWsService', TelemetryWebsocketService]
+   ['telemetryWsService', TelemetryWebsocketService],
+   ['userSettingsService', UserSettingsService],
+   ['notificationService', NotificationService],
+   ['actionNotificationShow', ActionNotificationShow],
+   ['actionNotificationHide', ActionNotificationHide],
+   ['store', Store]
   ]
 );

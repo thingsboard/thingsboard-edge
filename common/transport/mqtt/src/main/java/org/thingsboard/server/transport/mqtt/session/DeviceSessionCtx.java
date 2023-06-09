@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,6 +34,7 @@ import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttMessage;
+import io.netty.handler.codec.mqtt.MqttVersion;
 import io.netty.util.ReferenceCountUtil;
 import lombok.Getter;
 import lombok.Setter;
@@ -89,8 +90,13 @@ public class DeviceSessionCtx extends MqttDeviceAwareSessionContext {
     @Setter
     private boolean provisionOnly = false;
 
+    @Getter
+    @Setter
+    private MqttVersion mqttVersion;
+
     private volatile MqttTopicFilter telemetryTopicFilter = MqttTopicFilterFactory.getDefaultTelemetryFilter();
-    private volatile MqttTopicFilter attributesTopicFilter = MqttTopicFilterFactory.getDefaultAttributesFilter();
+    private volatile MqttTopicFilter attributesPublishTopicFilter = MqttTopicFilterFactory.getDefaultAttributesFilter();
+    private volatile MqttTopicFilter attributesSubscribeTopicFilter = MqttTopicFilterFactory.getDefaultAttributesFilter();
     private volatile TransportPayloadType payloadType = TransportPayloadType.JSON;
     private volatile Descriptors.Descriptor attributesDynamicMessageDescriptor;
     private volatile Descriptors.Descriptor telemetryDynamicMessageDescriptor;
@@ -120,7 +126,11 @@ public class DeviceSessionCtx extends MqttDeviceAwareSessionContext {
     }
 
     public boolean isDeviceAttributesTopic(String topicName) {
-        return attributesTopicFilter.filter(topicName);
+        return attributesPublishTopicFilter.filter(topicName);
+    }
+
+    public boolean isDeviceSubscriptionAttributesTopic(String topicName) {
+        return attributesSubscribeTopicFilter.filter(topicName);
     }
 
     public MqttTransportAdaptor getPayloadAdaptor() {
@@ -171,7 +181,8 @@ public class DeviceSessionCtx extends MqttDeviceAwareSessionContext {
             TransportPayloadTypeConfiguration transportPayloadTypeConfiguration = mqttConfig.getTransportPayloadTypeConfiguration();
             payloadType = transportPayloadTypeConfiguration.getTransportPayloadType();
             telemetryTopicFilter = MqttTopicFilterFactory.toFilter(mqttConfig.getDeviceTelemetryTopic());
-            attributesTopicFilter = MqttTopicFilterFactory.toFilter(mqttConfig.getDeviceAttributesTopic());
+            attributesPublishTopicFilter = MqttTopicFilterFactory.toFilter(mqttConfig.getDeviceAttributesTopic());
+            attributesSubscribeTopicFilter = MqttTopicFilterFactory.toFilter(mqttConfig.getDeviceAttributesSubscribeTopic());
             sendAckOnValidationException = mqttConfig.isSendAckOnValidationException();
             if (TransportPayloadType.PROTOBUF.equals(payloadType)) {
                 ProtoTransportPayloadConfiguration protoTransportPayloadConfig = (ProtoTransportPayloadConfiguration) transportPayloadTypeConfiguration;
@@ -181,7 +192,7 @@ public class DeviceSessionCtx extends MqttDeviceAwareSessionContext {
             }
         } else {
             telemetryTopicFilter = MqttTopicFilterFactory.getDefaultTelemetryFilter();
-            attributesTopicFilter = MqttTopicFilterFactory.getDefaultAttributesFilter();
+            attributesPublishTopicFilter = MqttTopicFilterFactory.getDefaultAttributesFilter();
             payloadType = TransportPayloadType.JSON;
             sendAckOnValidationException = false;
         }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,11 +31,11 @@
 package org.thingsboard.server.msa.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
@@ -47,7 +47,7 @@ public class OpcUaIntegrationTest extends AbstractIntegrationTest {
     private static final String CONFIG_INTEGRATION = "{\"clientConfiguration\":{" +
             "\"applicationName\":\"\"," +
             "\"applicationUri\":\"\"," +
-            "\"host\":\"qa-integrations.thingsboard.io\"," +
+            "\"host\":\"opcplc\"," +
             "\"port\":50000," +
             "\"scanPeriodInSeconds\":10," +
             "\"timeoutInMillis\":5000," +
@@ -100,7 +100,7 @@ public class OpcUaIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void telemetryUploadWithLocalIntegration() throws Exception {
-        JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder",
+        JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder",
                 CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
         integration = createIntegration(
                 IntegrationType.OPC_UA, CONFIG_INTEGRATION, configConverter, ROUTING_KEY, SECRET_KEY, false);

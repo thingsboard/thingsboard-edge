@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,7 @@ import { ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../../components/entity/entity.component';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
@@ -65,7 +65,7 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
               protected translate: TranslateService,
               @Inject('entity') protected entityValue: Integration,
               @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<Integration, PageLink, IntegrationInfo>,
-              protected fb: FormBuilder,
+              protected fb: UntypedFormBuilder,
               protected integrationService: IntegrationService,
               protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
@@ -85,7 +85,7 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
     }
   }
 
-  buildForm(entity: Integration): FormGroup {
+  buildForm(entity: Integration): UntypedFormGroup {
     this.integrationType = entity ? entity.type : null;
     return this.fb.group(
       {
@@ -120,7 +120,7 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
     }
   }
 
-  private checkIsRemote(form: FormGroup) {
+  private checkIsRemote(form: UntypedFormGroup) {
     const integrationType: IntegrationType = form.get('type').value;
     if (integrationType && integrationTypeInfoMap.get(integrationType).remote) {
       form.get('remote').patchValue(true, { emitEvent: false });

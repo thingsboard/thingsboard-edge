@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -64,6 +64,11 @@ export enum ActionType {
   RELATIONS_DELETED = 'RELATIONS_DELETED',
   ALARM_ACK = 'ALARM_ACK',
   ALARM_CLEAR = 'ALARM_CLEAR',
+  ALARM_ASSIGNED = 'ALARM_ASSIGNED',
+  ALARM_UNASSIGNED = 'ALARM_UNASSIGNED',
+  ADDED_COMMENT = 'ADDED_COMMENT',
+  UPDATED_COMMENT = 'UPDATED_COMMENT',
+  DELETED_COMMENT = 'DELETED_COMMENT',
   REST_API_RULE_ENGINE_CALL = 'REST_API_RULE_ENGINE_CALL',
   MADE_PUBLIC = 'MADE_PUBLIC',
   MADE_PRIVATE = 'MADE_PRIVATE',
@@ -78,7 +83,8 @@ export enum ActionType {
   TIMESERIES_DELETED = 'TIMESERIES_DELETED',
   CHANGE_OWNER = 'CHANGE_OWNER',
   ASSIGNED_TO_EDGE = 'ASSIGNED_TO_EDGE',
-  UNASSIGNED_FROM_EDGE = 'UNASSIGNED_FROM_EDGE'
+  UNASSIGNED_FROM_EDGE = 'UNASSIGNED_FROM_EDGE',
+  SMS_SENT = 'SMS_SENT'
 }
 
 export enum ActionStatus {
@@ -108,6 +114,11 @@ export const actionTypeTranslations = new Map<ActionType, string>(
     [ActionType.RELATIONS_DELETED, 'audit-log.type-relations-delete'],
     [ActionType.ALARM_ACK, 'audit-log.type-alarm-ack'],
     [ActionType.ALARM_CLEAR, 'audit-log.type-alarm-clear'],
+    [ActionType.ALARM_ASSIGNED, 'audit-log.type-alarm-assign'],
+    [ActionType.ALARM_UNASSIGNED, 'audit-log.type-alarm-unassign'],
+    [ActionType.ADDED_COMMENT, 'audit-log.type-added-comment'],
+    [ActionType.UPDATED_COMMENT, 'audit-log.type-updated-comment'],
+    [ActionType.DELETED_COMMENT, 'audit-log.type-deleted-comment'],
     [ActionType.REST_API_RULE_ENGINE_CALL, 'audit-log.type-rest-api-rule-engine-call'],
     [ActionType.MADE_PUBLIC, 'audit-log.type-made-public'],
     [ActionType.MADE_PRIVATE, 'audit-log.type-made-private'],
@@ -122,7 +133,8 @@ export const actionTypeTranslations = new Map<ActionType, string>(
     [ActionType.TIMESERIES_DELETED, 'audit-log.type-timeseries-deleted'],
     [ActionType.CHANGE_OWNER, 'audit-log.type-owner-changed'],
     [ActionType.ASSIGNED_TO_EDGE, 'audit-log.type-assigned-to-edge'],
-    [ActionType.UNASSIGNED_FROM_EDGE, 'audit-log.type-unassigned-from-edge']
+    [ActionType.UNASSIGNED_FROM_EDGE, 'audit-log.type-unassigned-from-edge'],
+    [ActionType.SMS_SENT, 'audit-log.type-sms-sent'],
   ]
 );
 

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -77,15 +77,15 @@ import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.query.SingleEntityFilter;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
-import org.thingsboard.server.controller.AbstractControllerTest;
 import org.thingsboard.server.dao.service.DaoSqlTest;
-import org.thingsboard.server.service.telemetry.cmd.TelemetryPluginCmdsWrapper;
-import org.thingsboard.server.service.telemetry.cmd.v2.EntityDataCmd;
-import org.thingsboard.server.service.telemetry.cmd.v2.EntityDataUpdate;
-import org.thingsboard.server.service.telemetry.cmd.v2.LatestValueCmd;
+import org.thingsboard.server.service.ws.telemetry.cmd.TelemetryPluginCmdsWrapper;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityDataCmd;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityDataUpdate;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.LatestValueCmd;
+import org.thingsboard.server.transport.AbstractTransportIntegrationTest;
 import org.thingsboard.server.transport.lwm2m.client.LwM2MTestClient;
 import org.thingsboard.server.transport.lwm2m.server.client.LwM2mClientContext;
-import org.thingsboard.server.transport.lwm2m.server.uplink.DefaultLwM2mUplinkMsgHandler;
+import org.thingsboard.server.transport.lwm2m.server.uplink.LwM2mUplinkMsgHandler;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -120,10 +120,10 @@ import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MProfil
 })
 @Slf4j
 @DaoSqlTest
-public abstract class AbstractLwM2MIntegrationTest extends AbstractControllerTest {
+public abstract class AbstractLwM2MIntegrationTest extends AbstractTransportIntegrationTest {
 
     @SpyBean
-    DefaultLwM2mUplinkMsgHandler defaultLwM2mUplinkMsgHandlerTest;
+    LwM2mUplinkMsgHandler defaultLwM2mUplinkMsgHandlerTest;
 
     @Autowired
     private LwM2mClientContext clientContextTest;
@@ -247,7 +247,7 @@ public abstract class AbstractLwM2MIntegrationTest extends AbstractControllerTes
         TelemetryPluginCmdsWrapper wrapper = new TelemetryPluginCmdsWrapper();
         wrapper.setEntityDataCmds(Collections.singletonList(cmd));
 
-        getWsClient().send(mapper.writeValueAsString(wrapper));
+        getWsClient().send(JacksonUtil.toString(wrapper));
         getWsClient().waitForReply();
 
         getWsClient().registerWaitForUpdate();
@@ -255,7 +255,7 @@ public abstract class AbstractLwM2MIntegrationTest extends AbstractControllerTes
         awaitObserveReadAll(0, false, device.getId().getId().toString());
         String msg = getWsClient().waitForUpdate();
 
-        EntityDataUpdate update = mapper.readValue(msg, EntityDataUpdate.class);
+        EntityDataUpdate update = JacksonUtil.fromString(msg, EntityDataUpdate.class);
         Assert.assertEquals(1, update.getCmdId());
         List<EntityData> eData = update.getUpdate();
         Assert.assertNotNull(eData);
@@ -387,7 +387,7 @@ public abstract class AbstractLwM2MIntegrationTest extends AbstractControllerTes
 
     private static void awaitServersDestroy() {
         await("One of servers ports number is not free")
-                .atMost(3000, TimeUnit.MILLISECONDS)
+                .atMost(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .until(() -> isServerPortsAvailable() == null);
     }
 
@@ -406,7 +406,7 @@ public abstract class AbstractLwM2MIntegrationTest extends AbstractControllerTes
 
     private static void awaitClientDestroy(LeshanClient leshanClient) {
         await("Destroy LeshanClient: delete All is registered Servers.")
-                .atMost(2000, TimeUnit.MILLISECONDS)
+                .atMost(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .until(() -> leshanClient.getRegisteredServers().size() == 0);
     }
 

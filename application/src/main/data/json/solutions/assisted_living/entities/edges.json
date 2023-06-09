@@ -1,0 +1,43 @@
+[
+  {
+    "name": "Remote Residence R1",
+    "type": "residence",
+    "customer": "Assisted Living Company",
+    "ruleChainIds": [
+      "58ff28e0-cf94-11ed-89f0-1539199f4c4d",
+      "4af7b2d0-cf94-11ed-89f0-1539199f4c4d",
+      "3cb6b630-cf94-11ed-89f0-1539199f4c4d"
+    ],
+    "attributes": {},
+    "relations": [],
+    "userGroups": [
+      {
+        "name": "Administrators",
+        "customer": "Assisted Living Company"
+      },
+      {
+        "name": "Residents",
+        "customer": "Assisted Living Company"
+      }
+    ],
+    "assetGroups": [],
+    "deviceGroups": [],
+    "dashboardGroups": [
+      {
+        "name": "Assisted Living"
+      }
+    ],
+    "assetIds": [
+      "ea9f2460-cf1e-11ed-9cfd-ffa4950210f7",
+      "ea951240-cf1e-11ed-9cfd-ffa4950210f7",
+      "ea9debe0-cf1e-11ed-9cfd-ffa4950210f7",
+      "eaa90f70-cf1e-11ed-9cfd-ffa4950210f7"
+    ],
+    "deviceIds": [
+      "fdfa6460-8767-11ed-ace0-2b013f453ca4",
+      "fdfa6460-8767-11ed-ace0-2b013f453ca5",
+      "eafb0000-cf1e-11ed-9cfd-ffa4950210f7",
+      "eaf7a4a0-cf1e-11ed-9cfd-ffa4950210f7"
+    ]
+  }
+]

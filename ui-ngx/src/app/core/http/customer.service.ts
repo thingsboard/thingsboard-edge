@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -35,7 +35,7 @@ import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { PageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
-import { Customer, ShortCustomerInfo } from '@shared/models/customer.model';
+import { Customer, CustomerInfo, ShortCustomerInfo } from '@shared/models/customer.model';
 import { map } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
 
@@ -57,10 +57,18 @@ export class CustomerService {
     return this.http.get<Customer>(`/api/customer/${customerId}`, defaultHttpOptionsFromConfig(config));
   }
 
-  public saveCustomer(customer: Customer, entityGroupId?: string, config?: RequestConfig): Observable<Customer> {
+  public getCustomerInfo(customerId: string, config?: RequestConfig): Observable<CustomerInfo> {
+    return this.http.get<CustomerInfo>(`/api/customer/info/${customerId}`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public saveCustomer(customer: Customer, entityGroupIds?: string | string[], config?: RequestConfig): Observable<Customer> {
     let url = '/api/customer';
-    if (entityGroupId) {
-      url += `?entityGroupId=${entityGroupId}`;
+    if (entityGroupIds) {
+      if (Array.isArray(entityGroupIds)) {
+        url += `?entityGroupIds=${entityGroupIds.join(',')}`;
+      } else {
+        url += `?entityGroupId=${entityGroupIds}`;
+      }
     }
     return this.http.post<Customer>(url, customer, defaultHttpOptionsFromConfig(config));
   }
@@ -77,6 +85,26 @@ export class CustomerService {
 
   public getUserCustomers(pageLink: PageLink, config?: RequestConfig): Observable<PageData<Customer>> {
     return this.http.get<PageData<Customer>>(`/api/user/customers${pageLink.toQuery()}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getAllCustomerInfos(includeCustomers: boolean,
+                             pageLink: PageLink, config?: RequestConfig): Observable<PageData<CustomerInfo>> {
+    let url = `/api/customerInfos/all${pageLink.toQuery()}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<CustomerInfo>>(url,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getCustomerCustomerInfos(includeCustomers: boolean, customerId: string,
+                                  pageLink: PageLink, config?: RequestConfig): Observable<PageData<CustomerInfo>> {
+    let url = `/api/customer/${customerId}/customerInfos${pageLink.toQuery()}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<CustomerInfo>>(url,
       defaultHttpOptionsFromConfig(config));
   }
 

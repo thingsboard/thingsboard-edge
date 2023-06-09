@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,9 +49,10 @@ import static org.thingsboard.common.util.DonAsynchron.withCallback;
         type = ComponentType.FILTER,
         name = "script", relationTypes = {"True", "False"},
         configClazz = TbJsFilterNodeConfiguration.class,
-        nodeDescription = "Filter incoming messages using JS script",
-        nodeDetails = "Evaluate incoming Message with configured JS condition. " +
-                "If <b>True</b> - send Message via <b>True</b> chain, otherwise <b>False</b> chain is used." +
+        nodeDescription = "Filter incoming messages using TBEL or JS script",
+        nodeDetails = "Evaluates boolean function using incoming message. " +
+                "The function may be written using TBEL or plain JavaScript. " +
+                "Script function should return boolean value and accepts three parameters: <br/>" +
                 "Message payload can be accessed via <code>msg</code> property. For example <code>msg.temperature < 10;</code><br/>" +
                 "Message metadata can be accessed via <code>metadata</code> property. For example <code>metadata.customerName === 'John';</code><br/>" +
                 "Message type can be accessed via <code>msgType</code> property.",

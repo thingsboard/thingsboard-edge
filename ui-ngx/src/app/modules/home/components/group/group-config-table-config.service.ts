@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -171,7 +171,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
             icon: descriptor.icon,
             isEnabled: entity => true,
             onAction: ($event, entity) => {
-              this.handleDescriptorAction($event, entity, descriptor);
+              this.handleDescriptorAction($event, entity, descriptor, config);
             }
           }
         );
@@ -294,7 +294,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
               changeOwnerObservables.push(groupIdsObservable);
               entities.forEach((entity) => {
                 changeOwnerObservables.push(
-                  this.entityGroupService.changeEntityOwner(targetOwnerId, entity.id, {ignoreErrors}).pipe(
+                  this.entityGroupService.changeEntityOwner(targetOwnerId, entity.id, null, {ignoreErrors}).pipe(
                     catchError((err) => {
                       if (ignoreErrors) {
                         return of(null);
@@ -487,7 +487,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
   }
 
   private onRowClick(config: GroupEntityTableConfig<T>, event: Event, entity: ShortEntityView): boolean {
-    if (config.settings.detailsMode === EntityGroupDetailsMode.onRowClick) {
+    if (config.settings.detailsMode === EntityGroupDetailsMode.onRowClick && config.onGroupEntityRowClick == null) {
       if (this.userPermissionsService.hasGroupEntityPermission(Operation.READ, config.entityGroup)) {
         return false;
       }
@@ -495,13 +495,15 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
       const descriptors = config.actionDescriptorsBySourceId.rowClick;
       if (descriptors && descriptors.length) {
         const descriptor = descriptors[0];
-        this.handleDescriptorAction(event, entity, descriptor);
+        this.handleDescriptorAction(event, entity, descriptor, config);
+      } else if (config.onGroupEntityRowClick != null) {
+        config.onGroupEntityRowClick(event, entity);
       }
       return true;
     }
   }
 
-  private handleDescriptorAction(event: Event, entity: ShortEntityView, descriptor: WidgetActionDescriptor) {
+  private handleDescriptorAction(event: Event, entity: ShortEntityView, descriptor: WidgetActionDescriptor, config: GroupEntityTableConfig<T>) {
     if (event) {
       event.stopPropagation();
     }
@@ -533,8 +535,9 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
         if (customFunction && customFunction.length > 0) {
           try {
             const customActionFunction = new Function('$event', '$injector', 'entityId',
-              'entityName', 'servicesMap', customFunction);
-            customActionFunction(event, this.injector, entityId, entityName, ServicesMap);
+              'entityName', 'servicesMap', 'tableConfig', customFunction);
+            const tableConfig = config.getTable();
+            customActionFunction(event, this.injector, entityId, entityName, ServicesMap, tableConfig);
           } catch (e) {
             console.error(e);
           }

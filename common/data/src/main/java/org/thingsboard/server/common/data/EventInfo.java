@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,8 +40,8 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EventId;
 import org.thingsboard.server.common.data.id.TenantId;
 
-import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo.getJson;
-import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo.setJson;
+import static org.thingsboard.server.common.data.BaseDataWithAdditionalInfo.getJson;
+import static org.thingsboard.server.common.data.BaseDataWithAdditionalInfo.setJson;
 
 /**
  * @author Andrew Shvayka

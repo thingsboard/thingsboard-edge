@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form [formGroup]="entityAliasesFormGroup" (ngSubmit)="save()" style="width: 700px;">
+<form [formGroup]="entityAliasesFormGroup" (ngSubmit)="save()" style="width: 800px;">
   <mat-toolbar color="primary">
     <h2>{{ title | translate }}</h2>
     <span fxFlex></span>
@@ -47,7 +47,7 @@
     <div class="tb-aliases-header" fxLayout="row" fxLayoutAlign="start center">
       <span fxFlex="5"></span>
       <div fxFlex="95" fxLayout="row" fxLayoutAlign="start center">
-        <span class="tb-header-label" translate fxFlex="150px">alias.name</span>
+        <span class="tb-header-label" translate fxFlex fxFlex.gt-sm="200px">alias.name</span>
         <span class="tb-header-label" translate fxFlex style="padding-left: 10px;">alias.entity-filter</span>
         <span class="tb-header-label" translate fxFlex="120px" style="padding-left: 10px;">alias.resolve-multiple</span>
         <span style="min-width: 80px;"></span>
@@ -60,8 +60,7 @@
            *ngFor="let entityAliasControl of entityAliasesFormArray().controls; let $index = index">
         <span fxFlex="5">{{$index + 1}}.</span>
         <div class="mat-elevation-z4 tb-alias" fxFlex="95" fxLayout="row" fxLayoutAlign="start center">
-          <mat-form-field floatLabel="always" hideRequiredMarker class="mat-block" fxFlex="150px">
-            <mat-label></mat-label>
+          <mat-form-field class="mat-block" fxFlex fxFlex.gt-sm="200px" style="padding-top: 20px;">
             <input matInput [formControl]="entityAliasControl.get('alias')" required placeholder="{{ 'entity.alias' | translate }}">
             <mat-error *ngIf="entityAliasControl.get('alias').hasError('required')">
               {{ 'entity.alias-required' | translate }}

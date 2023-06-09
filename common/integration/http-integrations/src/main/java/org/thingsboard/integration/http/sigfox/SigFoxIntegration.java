@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.controller.JsonHttpIntegrationMsg;
@@ -108,7 +109,7 @@ public class SigFoxIntegration extends BasicHttpIntegration<JsonHttpIntegrationM
                 context.removeDownlinkMsg(deviceName);
                 if (result.size() == 1 && !result.get(0).isEmpty()) {
                     DownlinkData downlink = result.get(0);
-                    ObjectNode json = mapper.createObjectNode();
+                    ObjectNode json = JacksonUtil.newObjectNode();
                     json.putObject(sigFoxDeviceId).put("downlinkData", new String(downlink.getData(), StandardCharsets.UTF_8));
                     HttpHeaders responseHeaders = new HttpHeaders();
                     responseHeaders.add("Content-Type", "application/json");

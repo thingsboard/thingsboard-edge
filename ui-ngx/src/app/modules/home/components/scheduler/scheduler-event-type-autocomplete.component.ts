@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,8 +32,8 @@
 import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -70,7 +70,7 @@ interface SchedulerEventTypeInfo {
 })
 export class SchedulerEventTypeAutocompleteComponent implements ControlValueAccessor, OnInit, AfterViewInit, Validator, OnDestroy {
 
-  schedulerEventTypeFormGroup: FormGroup;
+  schedulerEventTypeFormGroup: UntypedFormGroup;
 
   modelValue: string | null;
 
@@ -103,7 +103,7 @@ export class SchedulerEventTypeAutocompleteComponent implements ControlValueAcce
   constructor(private store: Store<AppState>,
               public translate: TranslateService,
               private userPermissionsService: UserPermissionsService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.schedulerEventTypeFormGroup = this.fb.group({
       schedulerEventType: [null, Validators.maxLength(255)]
     });

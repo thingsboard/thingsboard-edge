@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,12 +42,12 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.thingsboard.server.dao.model.ModelConstants.EDGE_EVENT_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.EDGE_EVENT_TABLE_NAME;
 
 @TbCoreComponent
 @Slf4j
 @Service
-@ConditionalOnExpression("${sql.ttl.edge_events.enabled:true} && ${sql.ttl.edge_events.edge_event_ttl:0} > 0")
+@ConditionalOnExpression("${sql.ttl.edge_events.enabled:true} && ${sql.ttl.edge_events.edge_events_ttl:0} > 0")
 public class EdgeEventsCleanUpService extends AbstractCleanUpService {
 
     public static final String RANDOM_DELAY_INTERVAL_MS_EXPRESSION =
@@ -78,7 +78,7 @@ public class EdgeEventsCleanUpService extends AbstractCleanUpService {
         if (ttlTaskExecutionEnabled && isSystemTenantPartitionMine()) {
             edgeEventService.cleanupEvents(edgeEventsExpTime);
         } else {
-            partitioningRepository.cleanupPartitionsCache(EDGE_EVENT_COLUMN_FAMILY_NAME, edgeEventsExpTime, TimeUnit.HOURS.toMillis(partitionSizeInHours));
+            partitioningRepository.cleanupPartitionsCache(EDGE_EVENT_TABLE_NAME, edgeEventsExpTime, TimeUnit.HOURS.toMillis(partitionSizeInHours));
         }
     }
 

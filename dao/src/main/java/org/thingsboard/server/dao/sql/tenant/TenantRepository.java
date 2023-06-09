@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -52,7 +52,7 @@ public interface TenantRepository extends JpaRepository<TenantEntity, UUID> {
             "WHERE t.id = :tenantId")
     TenantInfoEntity findTenantInfoById(@Param("tenantId") UUID tenantId);
 
-    @Query("SELECT t FROM TenantEntity t WHERE LOWER(t.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+    @Query("SELECT t FROM TenantEntity t WHERE LOWER(t.title) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<TenantEntity> findTenantsNextPage(@Param("textSearch") String textSearch,
                                            Pageable pageable);
 
@@ -61,7 +61,7 @@ public interface TenantRepository extends JpaRepository<TenantEntity, UUID> {
     @Query("SELECT new org.thingsboard.server.dao.model.sql.TenantInfoEntity(t, p.name) " +
             "FROM TenantEntity t " +
             "LEFT JOIN TenantProfileEntity p on p.id = t.tenantProfileId " +
-            "WHERE LOWER(t.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "WHERE LOWER(t.title) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<TenantInfoEntity> findTenantInfosNextPage(@Param("textSearch") String textSearch,
                                                           Pageable pageable);
 

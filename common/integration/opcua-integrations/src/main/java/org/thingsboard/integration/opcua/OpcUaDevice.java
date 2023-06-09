@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,11 +31,11 @@
 package org.thingsboard.integration.opcua;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
+import org.thingsboard.common.util.JacksonUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,8 +44,6 @@ import java.util.Map;
 
 @Data
 public class OpcUaDevice {
-
-    private final static ObjectMapper mapper = new ObjectMapper();
 
     private final NodeId nodeId;
     private final DeviceMapping mapping;
@@ -112,7 +110,7 @@ public class OpcUaDevice {
     }
 
     private JsonNode preparePayload(String affectedTagName) {
-        ObjectNode payload = mapper.createObjectNode();
+        ObjectNode payload = JacksonUtil.newObjectNode();
         mapping.getSubscriptionTags().forEach(subscriptionTag -> {
             if (affectedTagName == null ||
                     subscriptionTag.isRequired() ||

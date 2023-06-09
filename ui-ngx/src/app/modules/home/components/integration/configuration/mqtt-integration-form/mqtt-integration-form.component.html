@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -70,10 +70,16 @@
       </mat-panel-description>
     </mat-expansion-panel-header>
     <ng-template matExpansionPanelContent>
-      <mat-slide-toggle class="checkbox" [aria-label]="'integration.clean-session' | translate"
-                        formControlName="cleanSession">
-        {{ 'integration.clean-session' | translate }}
-      </mat-slide-toggle>
+      <div class="row" fxLayout="column" fxLayoutGap="8px">
+        <mat-slide-toggle class="checkbox" [aria-label]="'integration.clean-session' | translate"
+                          formControlName="cleanSession" style="padding: 16px;">
+          {{ 'integration.clean-session' | translate }}
+        </mat-slide-toggle>
+        <mat-slide-toggle class="checkbox" [aria-label]="'integration.retained-message' | translate"
+                          formControlName="retainedMessage" style="padding: 16px;">
+          {{ 'integration.retained-message' | translate }}
+        </mat-slide-toggle>
+      </div>
       <mat-form-field class="mat-block">
         <mat-label translate>integration.client-id</mat-label>
         <input matInput formControlName="clientId" autocomplete="new-clientId">

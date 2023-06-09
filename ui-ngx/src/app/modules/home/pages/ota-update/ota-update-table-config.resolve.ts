@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -91,6 +91,7 @@ export class OtaUpdateTableConfigResolve implements Resolve<EntityTableConfig<Ot
           name: this.translate.instant('ota-update.copy-direct-url'),
           icon: 'content_paste',
           style: {
+            padding: '4px',
             'font-size': '16px',
             color: 'rgba(0,0,0,.87)'
           },
@@ -109,6 +110,7 @@ export class OtaUpdateTableConfigResolve implements Resolve<EntityTableConfig<Ot
         name: this.translate.instant('ota-update.copy-checksum'),
         icon: 'content_paste',
         style: {
+          padding: '4px',
           'font-size': '16px',
           color: 'rgba(0,0,0,.87)'
         },

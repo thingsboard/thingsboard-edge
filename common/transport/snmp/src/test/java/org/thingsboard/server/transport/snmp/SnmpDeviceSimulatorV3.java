@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,7 +45,6 @@ import org.snmp4j.agent.mo.MOMutableColumn;
 import org.snmp4j.agent.mo.MOMutableTableModel;
 import org.snmp4j.agent.mo.MOScalar;
 import org.snmp4j.agent.mo.MOTableIndex;
-import org.snmp4j.agent.mo.MOTableRow;
 import org.snmp4j.agent.mo.MOTableSubIndex;
 import org.snmp4j.agent.mo.ext.AgentppSimulationMib;
 import org.snmp4j.agent.mo.snmp.RowStatus;

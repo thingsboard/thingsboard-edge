@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,7 @@
 <div class="tb-js-func" style="background: #fff;" [ngClass]="{'tb-disabled': disabled, 'fill-height': fillHeight, 'tb-js-func-title': functionTitle}"
      tb-fullscreen
      [fullscreen]="fullscreen" fxLayout="column">
-  <div fxLayout="row" fxLayoutAlign="start center" style="height: 40px;" class="tb-js-func-toolbar">
+  <div fxLayout="row" fxLayoutAlign="start center" style="min-height: 40px;" class="tb-js-func-toolbar">
     <label *ngIf="functionTitle" class="tb-title no-padding"
            [ngClass]="{'tb-error': !disabled && (hasErrors || !functionValid || required && !modelValue), 'tb-required': !disabled && required}">{{functionTitle + ': f(' + functionArgsString + ')' }}</label>
     <label *ngIf="!functionTitle" class="tb-title no-padding"
@@ -48,7 +48,7 @@
            matTooltipPosition="above"
            style="border-radius: 50%"
            (click)="fullscreen = !fullscreen">
-        <button type='button' mat-button mat-icon-button class="tb-mat-32">
+        <button type='button' mat-icon-button class="tb-mat-32">
           <mat-icon class="material-icons">{{ fullscreen ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
         </button>
       </div>

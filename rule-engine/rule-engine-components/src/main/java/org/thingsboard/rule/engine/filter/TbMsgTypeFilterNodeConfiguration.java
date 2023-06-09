@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,7 +35,6 @@ import org.thingsboard.rule.engine.api.NodeConfiguration;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**

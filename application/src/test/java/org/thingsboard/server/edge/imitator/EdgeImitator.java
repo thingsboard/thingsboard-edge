@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -125,13 +125,15 @@ public class EdgeImitator {
         ignoredTypes = new ArrayList<>();
         this.routingKey = routingKey;
         this.routingSecret = routingSecret;
-        setEdgeCredentials("rpcHost", host);
-        setEdgeCredentials("rpcPort", port);
-        setEdgeCredentials("timeoutSecs", 3);
-        setEdgeCredentials("keepAliveTimeSec", 300);
+        updateEdgeClientFields("rpcHost", host);
+        updateEdgeClientFields("rpcPort", port);
+        updateEdgeClientFields("timeoutSecs", 3);
+        updateEdgeClientFields("keepAliveTimeSec", 300);
+        updateEdgeClientFields("keepAliveTimeoutSec", 5);
+        updateEdgeClientFields("maxInboundMessageSize", 4194304);
     }
 
-    private void setEdgeCredentials(String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
+    private void updateEdgeClientFields(String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
         Field fieldToSet = edgeRpcClient.getClass().getDeclaredField(fieldName);
         fieldToSet.setAccessible(true);
         fieldToSet.set(edgeRpcClient, value);

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,12 +39,10 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.asset.AssetDao;
 import org.thingsboard.server.dao.asset.BaseAssetService;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.exception.DataValidationException;
 
@@ -63,17 +61,10 @@ public class AssetDataValidator extends DataValidator<Asset> {
     @Autowired
     private CustomerDao customerDao;
 
-    @Autowired
-    @Lazy
-    private TbTenantProfileCache tenantProfileCache;
-
     @Override
     protected void validateCreate(TenantId tenantId, Asset asset) {
-        DefaultTenantProfileConfiguration profileConfiguration =
-                (DefaultTenantProfileConfiguration) tenantProfileCache.get(tenantId).getProfileData().getConfiguration();
         if (!BaseAssetService.TB_SERVICE_QUEUE.equals(asset.getType())) {
-            long maxAssets = profileConfiguration.getMaxAssets();
-            validateNumberOfEntitiesPerTenant(tenantId, assetDao, maxAssets, EntityType.ASSET);
+            validateNumberOfEntitiesPerTenant(tenantId, EntityType.ASSET);
         }
     }
 

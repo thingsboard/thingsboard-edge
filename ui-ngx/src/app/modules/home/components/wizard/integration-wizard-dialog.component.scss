@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,9 +30,19 @@
  */
 @import "../../../../../scss/constants";
 
-:host-context(.tb-fullscreen-dialog .mat-dialog-container) {
+:host-context(.tb-fullscreen-dialog .mat-mdc-dialog-container) {
+  max-width: 820px;
+  min-width: 100%;
+  width: 700px;
+  display: block;
+
+  @media #{$mat-lt-md} {
+    width: 100%;
+    min-width: 80vw;
+  }
+
   @media #{$mat-gt-xs} {
-    .mat-dialog-content {
+    .mat-mdc-dialog-content {
       max-height: 75vh;
     }
   }
@@ -44,6 +54,7 @@
     position: relative;
 
     .tb-radio-button {
+      display: inline-block;
       margin-bottom: 12px;
     }
 
@@ -125,8 +136,7 @@
 }
 
 :host ::ng-deep {
-  width: 720px;
-  .mat-dialog-content {
+  .mat-mdc-dialog-content {
     display: flex;
     flex-direction: column;
     height: 100%;

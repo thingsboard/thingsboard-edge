@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -51,11 +51,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.function.Consumer;
 
 public abstract class DaoUtil {
+
     private static final int MAX_IN_VALUE = Short.MAX_VALUE / 2;
 
     private DaoUtil() {
@@ -66,7 +67,7 @@ public abstract class DaoUtil {
         return new PageData<>(data, page.getTotalPages(), page.getTotalElements(), page.hasNext());
     }
 
-    public static <T,V> PageData<V> pageToPageData(Page<T> page, Function<T, V> transform) {
+    public static <T, V> PageData<V> pageToPageData(Page<T> page, Function<T, V> transform) {
         return new PageData<>(page.getContent().stream().map(transform).collect(Collectors.toList()), page.getTotalPages(), page.getTotalElements(), page.hasNext());
     }
 
@@ -135,18 +136,42 @@ public abstract class DaoUtil {
         return ids;
     }
 
+    public static <I> List<I> fromUUIDs(List<UUID> uuids, Function<UUID, I> mapper) {
+        return uuids.stream().map(mapper).collect(Collectors.toList());
+    }
+
+    public static <I> I toEntityId(UUID uuid, Function<UUID, I> creator) {
+        if (uuid != null) {
+            return creator.apply(uuid);
+        } else {
+            return null;
+        }
+    }
+
     public static <T> void processInBatches(Function<PageLink, PageData<T>> finder, int batchSize, Consumer<T> processor) {
+        processBatches(finder, batchSize, batch -> batch.getData().forEach(processor));
+    }
+
+    public static <T> void processBatches(Function<PageLink, PageData<T>> finder, int batchSize, Consumer<PageData<T>> processor) {
         PageLink pageLink = new PageLink(batchSize);
         PageData<T> batch;
 
         boolean hasNextBatch;
         do {
             batch = finder.apply(pageLink);
-            batch.getData().forEach(processor);
+            processor.accept(batch);
 
             hasNextBatch = batch.hasNext();
             pageLink = pageLink.nextPageLink();
         } while (hasNextBatch);
+    }
+
+    public static String getStringId(UUIDBased id) {
+        if (id != null) {
+            return id.toString();
+        } else {
+            return null;
+        }
     }
 
     public static <T> ListenableFuture<List<T>> getEntitiesByTenantIdAndIdIn(List<UUID> entityIds,
@@ -186,4 +211,5 @@ public abstract class DaoUtil {
             return Optional.empty();
         }
     }
+
 }

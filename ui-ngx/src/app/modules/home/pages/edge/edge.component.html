@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -37,24 +37,6 @@
           [fxShow]="!isEdit && !isDetailsPage">
     {{'common.open-details-page' | translate }}
   </button>
-  <!--button mat-raised-button color="primary"
-          [disabled]="(isLoading$ | async)"
-          (click)="onEntityAction($event, 'makePublic')"
-          [fxShow]="!isEdit && !isAssignedToCustomer(entity) && !entity?.customerIsPublic">
-    {{'edge.make-public' | translate }}
-  </button>
-  <button mat-raised-button color="primary"
-          [disabled]="(isLoading$ | async)"
-          (click)="onEntityAction($event, 'assignToCustomer')"
-          [fxShow]="!isEdit && !isAssignedToCustomer(entity)">
-    {{'edge.assign-to-customer' | translate }}
-  </button>
-  <button mat-raised-button color="primary"
-          [disabled]="(isLoading$ | async)"
-          (click)="onEntityAction($event, 'unassignFromCustomer')"
-          [fxShow]="!isEdit && (edgeScope === 'customer' || edgeScope === 'tenant') && isAssignedToCustomer(entity)">
-    {{ (entity?.customerIsPublic ? 'edge.make-private' : 'edge.unassign-from-customer') | translate }}
-  </button> -->
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageUsers')"
@@ -83,48 +65,54 @@
           [fxShow]="!hideManageEntityViews() && !isEdit">
     {{ 'edge.manage-entity-view-groups' | translate }}
   </button>
-  <div fxLayout="row" fxLayout.xs="column">
-    <button mat-raised-button color="primary"
-            [disabled]="(isLoading$ | async)"
-            (click)="onEntityAction($event, 'manageDashboards')"
-            *ngIf="resource.DASHBOARD_GROUP | hasGenericPermission: operation.READ"
-            [fxShow]="!hideManageDashboards() && !isEdit">
-      {{ 'edge.manage-dashboard-groups' | translate }}
-    </button>
-    <button mat-raised-button color="primary"
-            [disabled]="(isLoading$ | async)"
-            (click)="onEntityAction($event, 'manageSchedulerEvents')"
-            *ngIf="resource.SCHEDULER_EVENT | hasGenericPermission: operation.READ"
-            [fxShow]="!hideManageSchedulerEvents() && !isEdit">
-      {{ 'edge.manage-scheduler-events' | translate }}
-    </button>
-    <button mat-raised-button color="primary"
-            [disabled]="(isLoading$ | async)"
-            (click)="onEntityAction($event, 'manageRuleChains')"
-            *ngIf="isTenantAdmin() && (resource.RULE_CHAIN | hasGenericPermission: operation.READ)"
-            [fxShow]="!isEdit">
-      {{ 'edge.manage-rulechains' | translate }}
-    </button>
-    <button mat-raised-button color="primary"
-            [disabled]="(isLoading$ | async)"
-            (click)="onEntityAction($event, 'manageIntegrations')"
-            *ngIf="isTenantAdmin() && (resource.INTEGRATION | hasGenericPermission: operation.READ)"
-            [fxShow]="!isEdit">
-      {{ 'edge.manage-integrations' | translate }}
-    </button>
-    <button mat-raised-button color="primary" fxFlex.xs
-            [disabled]="(isLoading$ | async)"
-            (click)="onEntityAction($event, 'delete')"
-            *ngIf="entityGroup | hasGroupEntityPermission: operation.DELETE"
-            [fxShow]="!hideDelete() && !isEdit">
-      {{ 'edge.delete' | translate }}
-    </button>
-  </div>
-  <div fxLayout="row" fxLayout.xs="column">
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'manageDashboards')"
+          *ngIf="resource.DASHBOARD_GROUP | hasGenericPermission: operation.READ"
+          [fxShow]="!hideManageDashboards() && !isEdit">
+    {{ 'edge.manage-dashboard-groups' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'manageSchedulerEvents')"
+          *ngIf="resource.SCHEDULER_EVENT | hasGenericPermission: operation.READ"
+          [fxShow]="!hideManageSchedulerEvents() && !isEdit">
+    {{ 'edge.manage-scheduler-events' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'manageRuleChains')"
+          *ngIf="isTenantAdmin() && (resource.RULE_CHAIN | hasGenericPermission: operation.READ)"
+          [fxShow]="!isEdit">
+    {{ 'edge.manage-rulechains' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'manageIntegrations')"
+          *ngIf="isTenantAdmin() && (resource.INTEGRATION | hasGenericPermission: operation.READ)"
+          [fxShow]="!isEdit">
+    {{ 'edge.manage-integrations' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'manageOwnerAndGroups')"
+          *ngIf="canManageOwnerAndGroups()"
+          [fxShow]="!isEdit">
+    {{'entity-group.manage-owner-and-groups' | translate }}
+  </button>
+  <button mat-raised-button color="primary" fxFlex.xs
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'delete')"
+          *ngIf="entityGroup | hasGroupEntityOrGenericPermission: resource.EDGE: operation.DELETE"
+          [fxShow]="!hideDelete() && !isEdit">
+    {{ 'edge.delete' | translate }}
+  </button>
+  <div fxLayout="row wrap" fxLayout.xs="column">
     <button mat-raised-button
             ngxClipboard
             (cbOnSuccess)="onEdgeIdCopied($event)"
             [cbContent]="entity?.id?.id"
+            [disabled]="(isLoading$ | async)"
             [fxShow]="!isEdit">
       <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
       <span translate>edge.copy-id</span>
@@ -133,6 +121,7 @@
             ngxClipboard
             (cbOnSuccess)="onEdgeInfoCopied('key')"
             [cbContent]="entity?.routingKey"
+            [disabled]="(isLoading$ | async)"
             [fxShow]="!isEdit">
       <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
       <span translate>edge.copy-edge-key</span>
@@ -141,6 +130,7 @@
             ngxClipboard
             (cbOnSuccess)="onEdgeInfoCopied('secret')"
             [cbContent]="entity?.secret"
+            [disabled]="(isLoading$ | async)"
             [fxShow]="!isEdit">
       <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
       <span translate>edge.copy-edge-secret</span>
@@ -154,18 +144,17 @@
       <span translate>edge.sync</span>
     </button>
   </div>
+  <div fxLayout="row" fxLayout.xs="column">
+    <button mat-raised-button color="primary"
+            [disabled]="(isLoading$ | async)"
+            (click)="onEntityAction($event, 'openInstructions')"
+            [fxShow]="!isEdit">
+      <mat-icon>info_outline</mat-icon>
+      <span>{{ 'edge.install-connect-instructions' | translate }}</span>
+    </button>
+  </div>
 </div>
 <div class="mat-padding" fxLayout="column">
-  <!--mat-form-field class="mat-block"
-                  [fxShow]="!isEdit && isAssignedToCustomer(entity)
-                              && !entity?.customerIsPublic">
-    <mat-label translate>edge.assigned-to-customer</mat-label>
-    <input matInput disabled [ngModel]="entity?.customerTitle">
-  </mat-form-field>
-  <div class="tb-small" style="padding-bottom: 10px; padding-left: 2px;"
-       [fxShow]="!isEdit && entity?.customerIsPublic && (edgeScope === 'customer' || edgeScope === 'tenant')">
-    {{ 'edge.public' | translate }}
-  </div-->
   <form [formGroup]="entityForm">
     <fieldset [disabled]="(isLoading$ | async) || !isEdit">
       <mat-form-field class="mat-block">
@@ -215,7 +204,7 @@
           <mat-label translate>edge.edge-key</mat-label>
           <input matInput formControlName="routingKey">
         </mat-form-field>
-      <button mat-button mat-icon-button type="button" ngxClipboard (cbOnSuccess)="onEdgeInfoCopied('key')"
+      <button mat-icon-button type="button" ngxClipboard (cbOnSuccess)="onEdgeInfoCopied('key')"
               [cbContent]="entityForm?.get('routingKey').value"
               matTooltip="{{'edge.copy-edge-key' | translate}}">
         <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
@@ -226,7 +215,7 @@
           <mat-label translate>edge.edge-secret</mat-label>
           <input matInput formControlName="secret">
         </mat-form-field>
-      <button mat-button mat-icon-button type="button" ngxClipboard (cbOnSuccess)="onEdgeInfoCopied('secret')"
+      <button mat-icon-button type="button" ngxClipboard (cbOnSuccess)="onEdgeInfoCopied('secret')"
               [cbContent]="entityForm?.get('secret').value"
               matTooltip="{{'edge.copy-edge-secret' | translate}}">
         <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
@@ -248,4 +237,5 @@
       </div>
     </fieldset>
   </form>
+  <tb-group-entity-info *ngIf="!isEdit" [groupEntity]="entity"></tb-group-entity-info>
 </div>

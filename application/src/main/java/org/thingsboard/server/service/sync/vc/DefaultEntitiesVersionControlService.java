@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,6 +38,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -50,15 +51,14 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasOwnerId;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.HasId;
@@ -66,7 +66,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.sync.ThrowingRunnable;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
 import org.thingsboard.server.common.data.sync.ie.EntityImportResult;
@@ -91,6 +90,7 @@ import org.thingsboard.server.common.data.sync.vc.request.load.EntityTypeVersion
 import org.thingsboard.server.common.data.sync.vc.request.load.SingleEntityVersionLoadRequest;
 import org.thingsboard.server.common.data.sync.vc.request.load.VersionLoadConfig;
 import org.thingsboard.server.common.data.sync.vc.request.load.VersionLoadRequest;
+import org.thingsboard.server.common.data.util.ThrowingRunnable;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.edge.EdgeService;
@@ -133,6 +133,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.google.common.util.concurrent.Futures.transform;
+import static org.thingsboard.server.common.data.sync.vc.VcUtils.checkBranchName;
 
 @Service
 @TbCoreComponent
@@ -177,6 +178,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     @SuppressWarnings("UnstableApiUsage")
     @Override
     public ListenableFuture<UUID> saveEntitiesVersion(User user, VersionCreateRequest request) throws Exception {
+        checkBranchName(request.getBranch());
         var pendingCommit = gitServiceQueue.prepareCommit(user, request);
         DonAsynchron.withCallback(pendingCommit, commit -> {
             cachePut(commit.getTxId(), new VersionCreationResult());
@@ -354,22 +356,27 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                         }
                     });
         }
-        for (EntityGroup group : groupService.findEntityGroupsByType(ctx.getTenantId(), task.getOwnerId(), ctx.getEntityType()).get()) {
-            EntityExportData<ExportableEntity<EntityGroupId>> entityData = exportImportService.exportEntity(ctx, group.getId());
-            ctx.getFutures().add(gitServiceQueue.addToCommit(ctx.getCommit(), parents, entityData));
-            if (!group.isGroupAll() && ctx.shouldExportEntities(ctx.getEntityType())) {
-                PageDataIterable<EntityId> entityIdsIterator = new PageDataIterable<>(
-                        link -> groupService.findEntityIds(ctx.getTenantId(), group.getType(), group.getId(), link), 1024);
-                List<EntityId> groupEntityIds = new ArrayList<>();
-                for (EntityId groupEntityId : entityIdsIterator) {
-                    var entityExternalId = ctx.getExternalId(groupEntityId);
-                    if (entityExternalId != null) {
-                        groupEntityIds.add(entityExternalId);
+        DaoUtil.processInBatches(pageLink -> groupService.findEntityGroupsByType(ctx.getTenantId(), task.getOwnerId(), ctx.getEntityType(), pageLink)
+        , 1024, group -> {
+                    try {
+                        EntityExportData<ExportableEntity<EntityGroupId>> entityData = exportImportService.exportEntity(ctx, group.getId());
+                        ctx.getFutures().add(gitServiceQueue.addToCommit(ctx.getCommit(), parents, entityData));
+                        if (!group.isGroupAll() && ctx.shouldExportEntities(ctx.getEntityType())) {
+                            PageDataIterable<EntityId> entityIdsIterator = new PageDataIterable<>(
+                                    link -> groupService.findEntityIds(ctx.getTenantId(), group.getType(), group.getId(), link), 1024);
+                            List<EntityId> groupEntityIds = new ArrayList<>();
+                            for (EntityId groupEntityId : entityIdsIterator) {
+                                var entityExternalId = ctx.getExternalId(groupEntityId);
+                                if (entityExternalId != null) {
+                                    groupEntityIds.add(entityExternalId);
+                                }
+                            }
+                            ctx.getFutures().add(gitServiceQueue.addToCommit(ctx.getCommit(), parents, group.getType(), entityData.getExternalId(), groupEntityIds));
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
                     }
-                }
-                ctx.getFutures().add(gitServiceQueue.addToCommit(ctx.getCommit(), parents, group.getType(), entityData.getExternalId(), groupEntityIds));
-            }
-        }
+                });
 
         DaoUtil.processInBatches(pageLink -> exportableEntitiesService.findEntityIdsByTenantIdAndCustomerId(ctx.getTenantId(), customerId, EntityType.CUSTOMER, pageLink)
                 , 1024, cId -> ctx.addTask(new EntityTypeExportTask(parents, cId)));
@@ -685,7 +692,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             EntityId savedEntityId = importResult.getSavedEntity().getId();
             ctx.getImportedEntities().computeIfAbsent(entityType, t -> new HashSet<>()).add(savedEntityId);
         }
-        log.debug("Imported {} pack for tenant {}", entityType, ctx.getTenantId());
+        log.debug("Imported {} pack ({}) for tenant {}", entityType, entityDataList.size(), ctx.getTenantId());
         return importResults;
     }
 
@@ -738,7 +745,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             }
         });
         DaoUtil.processInBatches(pageLink ->
-                groupService.findEntityGroupsByTypeAndPageLink(ctx.getTenantId(), entityType, pageLink), 1024, entity -> {
+                groupService.findEntityGroupsByType(ctx.getTenantId(), entityType, pageLink), 1024, entity -> {
             //Skip reserved groups (All) even if they are not part of the restored commit.
             if (entity.isGroupAll()) {
                 return;
@@ -841,6 +848,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
 
     @Override
     public ListenableFuture<RepositorySettings> saveVersionControlSettings(TenantId tenantId, RepositorySettings versionControlSettings) {
+        checkBranchName(versionControlSettings.getDefaultBranch());
         var restoredSettings = this.repositorySettingsService.restore(tenantId, versionControlSettings);
         try {
             var future = gitServiceQueue.initRepository(tenantId, restoredSettings);
@@ -862,6 +870,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
 
     @Override
     public ListenableFuture<Void> checkVersionControlAccess(TenantId tenantId, RepositorySettings settings) throws ThingsboardException {
+        checkBranchName(settings.getDefaultBranch());
         settings = this.repositorySettingsService.restore(tenantId, settings);
         try {
             return gitServiceQueue.testRepository(tenantId, settings);

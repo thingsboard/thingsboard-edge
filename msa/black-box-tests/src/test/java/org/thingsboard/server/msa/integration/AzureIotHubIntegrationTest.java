@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,6 @@
 package org.thingsboard.server.msa.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.microsoft.azure.sdk.iot.service.DeliveryAcknowledgement;
 import com.microsoft.azure.sdk.iot.service.IotHubServiceClientProtocol;
@@ -42,6 +41,7 @@ import org.testng.Assert;
 import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
@@ -102,7 +102,7 @@ public class AzureIotHubIntegrationTest extends AbstractIntegrationTest {
     }
     @Test
     public void telemetryUploadWithLocalIntegration() throws Exception {
-        JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder",
+        JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder",
                 CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
         integration = createIntegration(
                 IntegrationType.AZURE_IOT_HUB, CONFIG_INTEGRATION, configConverter, ROUTING_KEY, SECRET_KEY, false);

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,19 +49,19 @@ public interface WidgetsBundleRepository extends JpaRepository<WidgetsBundleEnti
     WidgetsBundleEntity findWidgetsBundleByTenantIdAndAlias(UUID tenantId, String alias);
 
     @Query("SELECT wb FROM WidgetsBundleEntity wb WHERE wb.tenantId = :systemTenantId " +
-            "AND LOWER(wb.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(wb.title) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<WidgetsBundleEntity> findSystemWidgetsBundles(@Param("systemTenantId") UUID systemTenantId,
                                                        @Param("searchText") String searchText,
                                                        Pageable pageable);
 
     @Query("SELECT wb FROM WidgetsBundleEntity wb WHERE wb.tenantId = :tenantId " +
-            "AND LOWER(wb.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND LOWER(wb.title) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<WidgetsBundleEntity> findTenantWidgetsBundlesByTenantId(@Param("tenantId") UUID tenantId,
                                                                  @Param("textSearch") String textSearch,
                                                                  Pageable pageable);
 
     @Query("SELECT wb FROM WidgetsBundleEntity wb WHERE wb.tenantId IN (:tenantId, :nullTenantId) " +
-            "AND LOWER(wb.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND LOWER(wb.title) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<WidgetsBundleEntity> findAllTenantWidgetsBundlesByTenantId(@Param("tenantId") UUID tenantId,
                                                                     @Param("nullTenantId") UUID nullTenantId,
                                                                     @Param("textSearch") String textSearch,

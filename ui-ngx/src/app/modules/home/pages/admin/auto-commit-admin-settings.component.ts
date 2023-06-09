@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -34,7 +34,7 @@ import { PageComponent } from '@shared/components/page.component';
 import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
 import { select, Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { AutoCommitSettingsComponent } from '@home/components/vc/auto-commit-settings.component';
 import { selectHasRepository } from '@core/auth/auth.selectors';
 import { RepositorySettingsComponent } from '@home/components/vc/repository-settings.component';
@@ -58,7 +58,7 @@ export class AutoCommitAdminSettingsComponent extends PageComponent implements O
   ngOnInit() {
   }
 
-  confirmForm(): FormGroup {
+  confirmForm(): UntypedFormGroup {
     return this.repositorySettingsComponent ?
       this.repositorySettingsComponent?.repositorySettingsForm :
       this.autoCommitSettingsComponent?.autoCommitSettingsForm;

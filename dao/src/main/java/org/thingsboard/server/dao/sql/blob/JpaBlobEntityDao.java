@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -43,7 +43,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.blob.BlobEntityDao;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.sql.BlobEntityEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.sqlts.insert.sql.SqlPartitioningRepository;
 import org.thingsboard.server.dao.util.SqlDao;
 
@@ -54,7 +54,7 @@ import java.util.concurrent.TimeUnit;
 @SqlDao
 @RequiredArgsConstructor
 @Slf4j
-public class JpaBlobEntityDao extends JpaAbstractSearchTextDao<BlobEntityEntity, BlobEntity> implements BlobEntityDao {
+public class JpaBlobEntityDao extends JpaAbstractDao<BlobEntityEntity, BlobEntity> implements BlobEntityDao {
 
     private final BlobEntityRepository blobEntityRepository;
     private final SqlPartitioningRepository partitioningRepository;
@@ -67,7 +67,7 @@ public class JpaBlobEntityDao extends JpaAbstractSearchTextDao<BlobEntityEntity,
     @Value("${sql.ttl.blob_entities.ttl:0}")
     private int ttlInSec;
 
-    private static final String TABLE_NAME = ModelConstants.BLOB_ENTITY_COLUMN_FAMILY_NAME;
+    private static final String TABLE_NAME = ModelConstants.BLOB_ENTITY_TABLE_NAME;
 
     @Override
     protected Class<BlobEntityEntity> getEntityClass() {

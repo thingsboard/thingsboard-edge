@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,12 +44,11 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.query.TsValue;
+import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.device.DeviceService;
-import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.queue.discovery.PartitionService;
-import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 
 import java.util.Map;
 import java.util.UUID;
@@ -57,6 +56,7 @@ import java.util.UUID;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -65,8 +65,6 @@ import static org.thingsboard.server.service.state.DefaultDeviceStateService.INA
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultDeviceStateServiceTest {
 
-    @Mock
-    TenantService tenantService;
     @Mock
     DeviceService deviceService;
     @Mock
@@ -79,8 +77,6 @@ public class DefaultDeviceStateServiceTest {
     PartitionService partitionService;
     @Mock
     DeviceStateData deviceStateDataMock;
-    @Mock
-    TbServiceInfoProvider serviceInfoProvider;
 
     DeviceId deviceId = DeviceId.fromString("00797a3b-7aeb-4b5b-b57a-c2a810d0f112");
 
@@ -88,7 +84,7 @@ public class DefaultDeviceStateServiceTest {
 
     @Before
     public void setUp() {
-        service = spy(new DefaultDeviceStateService(tenantService, deviceService, attributesService, tsService, clusterService, partitionService, serviceInfoProvider, null, null));
+        service = spy(new DefaultDeviceStateService(deviceService, attributesService, tsService, clusterService, partitionService, null, null, null, mock(NotificationRuleProcessor.class)));
     }
 
     @Test

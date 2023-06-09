@@ -13,5 +13,10 @@
     "name": "Water Metering Solution Main",
     "file": "water_metering_solution_main.json",
     "jsonId": "95c148c0-599a-11eb-940c-293b71ac913c"
+  },
+  {
+    "name": "Water Metering Solution Main (Remote Facility)",
+    "file": "remote_facility_water_metering_solution_main.json",
+    "jsonId": "04124690-95b1-11ed-be6a-73de83b1ebad"
   }
 ]

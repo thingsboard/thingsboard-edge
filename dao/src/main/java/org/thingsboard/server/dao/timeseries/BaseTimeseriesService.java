@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -177,9 +177,6 @@ public class BaseTimeseriesService implements TimeseriesService {
     @Override
     public ListenableFuture<Integer> save(TenantId tenantId, EntityId entityId, TsKvEntry tsKvEntry) {
         validate(entityId);
-        if (tsKvEntry == null) {
-            throw new IncorrectParameterException("Key value entry can't be null");
-        }
         List<ListenableFuture<Integer>> futures = Lists.newArrayListWithExpectedSize(INSERTS_PER_ENTRY);
         saveAndRegisterFutures(tenantId, futures, entityId, tsKvEntry, 0L);
         return Futures.transform(Futures.allAsList(futures), SUM_ALL_INTEGERS, MoreExecutors.directExecutor());
@@ -199,9 +196,6 @@ public class BaseTimeseriesService implements TimeseriesService {
         int inserts = saveLatest ? INSERTS_PER_ENTRY : INSERTS_PER_ENTRY_WITHOUT_LATEST;
         List<ListenableFuture<Integer>> futures = Lists.newArrayListWithExpectedSize(tsKvEntries.size() * inserts);
         for (TsKvEntry tsKvEntry : tsKvEntries) {
-            if (tsKvEntry == null) {
-                throw new IncorrectParameterException("Key value entry can't be null");
-            }
             if (saveLatest) {
                 saveAndRegisterFutures(tenantId, futures, entityId, tsKvEntry, ttl);
             } else {
@@ -215,9 +209,6 @@ public class BaseTimeseriesService implements TimeseriesService {
     public ListenableFuture<List<Void>> saveLatest(TenantId tenantId, EntityId entityId, List<TsKvEntry> tsKvEntries) {
         List<ListenableFuture<Void>> futures = Lists.newArrayListWithExpectedSize(tsKvEntries.size());
         for (TsKvEntry tsKvEntry : tsKvEntries) {
-            if (tsKvEntry == null) {
-                throw new IncorrectParameterException("Key value entry can't be null");
-            }
             futures.add(timeseriesLatestDao.saveLatest(tenantId, entityId, tsKvEntry));
         }
         return Futures.allAsList(futures);
@@ -255,7 +246,7 @@ public class BaseTimeseriesService implements TimeseriesService {
             } else {
                 endTs = query.getEndTs();
             }
-            return new BaseReadTsKvQuery(query.getKey(), startTs, endTs, query.getInterval(), query.getLimit(), query.getAggregation(), query.getOrder());
+            return new BaseReadTsKvQuery(query, startTs, endTs);
         }).collect(Collectors.toList());
     }
 

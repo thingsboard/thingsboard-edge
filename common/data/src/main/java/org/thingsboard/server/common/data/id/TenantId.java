@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -60,9 +60,15 @@ public final class TenantId extends UUIDBased implements EntityId {
         super(id);
     }
 
+    @JsonIgnore
+    public boolean isSysTenantId() {
+        return this.equals(SYS_TENANT_ID);
+    }
+
     @ApiModelProperty(position = 2, required = true, value = "string", example = "TENANT", allowableValues = "TENANT")
     @Override
     public EntityType getEntityType() {
         return EntityType.TENANT;
     }
+
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,7 +37,6 @@ import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
 
 import java.util.Collections;
 import java.util.List;
@@ -58,7 +57,7 @@ public class ParentEntitiesGroup implements ParentEntitiesQuery {
 
     @Override
     public ListenableFuture<List<EntityId>> getChildEntitiesAsync(TbContext ctx, EntityId parentEntityId) {
-        return ctx.getPeContext().getEntityGroupService().findAllEntityIds(ctx.getTenantId(), new EntityGroupId(parentEntityId.getId()),
+        return ctx.getPeContext().getEntityGroupService().findAllEntityIdsAsync(ctx.getTenantId(), new EntityGroupId(parentEntityId.getId()),
                 new PageLink(Integer.MAX_VALUE));
     }
 

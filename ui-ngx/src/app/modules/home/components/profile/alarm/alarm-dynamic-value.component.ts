@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,8 +32,8 @@
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALUE_ACCESSOR,
 } from '@angular/forms';
 import {
@@ -53,7 +53,7 @@ import {
 })
 
 export class AlarmDynamicValue implements ControlValueAccessor, OnInit{
-  public dynamicValue: FormGroup;
+  public dynamicValue: UntypedFormGroup;
   public dynamicValueSourceTypes: DynamicValueSourceType[] = getDynamicSourcesForAllowUser(false);
   public dynamicValueSourceTypeTranslations = dynamicValueSourceTypeTranslationMap;
   private propagateChange = (v: any) => { };
@@ -64,7 +64,7 @@ export class AlarmDynamicValue implements ControlValueAccessor, OnInit{
   @Input()
   disabled: boolean;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
   }
 
   ngOnInit(): void {

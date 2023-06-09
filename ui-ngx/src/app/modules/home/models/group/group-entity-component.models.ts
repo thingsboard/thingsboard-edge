@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,8 @@
 
 import { BaseData, HasId } from '@shared/models/base-data';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
+import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 
 export interface AddGroupEntityDialogData<T extends BaseData<HasId>> {
-  entitiesTableConfig: GroupEntityTableConfig<T>;
+  entitiesTableConfig: EntityTableConfig<T> | GroupEntityTableConfig<T>;
 }

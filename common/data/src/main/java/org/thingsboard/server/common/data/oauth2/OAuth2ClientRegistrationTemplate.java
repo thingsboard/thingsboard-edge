@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,8 +36,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
 import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
 import org.thingsboard.server.common.data.id.OAuth2ClientRegistrationTemplateId;
 import org.thingsboard.server.common.data.validation.Length;
 
@@ -49,7 +49,7 @@ import java.util.List;
 @ToString
 @NoArgsConstructor
 @ApiModel
-public class OAuth2ClientRegistrationTemplate extends SearchTextBasedWithAdditionalInfo<OAuth2ClientRegistrationTemplateId> implements HasName {
+public class OAuth2ClientRegistrationTemplate extends BaseDataWithAdditionalInfo<OAuth2ClientRegistrationTemplateId> implements HasName {
 
     @Length(fieldName = "providerId")
     @ApiModelProperty(value = "OAuth2 provider identifier (e.g. its name)", required = true)
@@ -109,10 +109,5 @@ public class OAuth2ClientRegistrationTemplate extends SearchTextBasedWithAdditio
     @Override
     public String getName() {
         return providerId;
-    }
-
-    @Override
-    public String getSearchText() {
-        return getName();
     }
 }

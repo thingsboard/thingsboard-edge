@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -61,10 +61,14 @@ export class NodeScriptTestService {
           let msgType: string;
           if (debugIn) {
             if (debugIn.data) {
-              msg = JSON.parse(debugIn.data);
+              try {
+                msg = JSON.parse(debugIn.data);
+              } catch (e) {}
             }
             if (debugIn.metadata) {
-              metadata = JSON.parse(debugIn.metadata);
+              try {
+                metadata = JSON.parse(debugIn.metadata);
+              } catch (e) {}
             }
             msgType = debugIn.msgType;
           }

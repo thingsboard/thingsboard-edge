@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -40,6 +40,8 @@ import {
   ClaimResult,
   Device,
   DeviceCredentials,
+  DeviceInfo,
+  DeviceInfoQuery,
   DeviceSearchQuery
 } from '@app/shared/models/device.models';
 import { EntitySubtype } from '@app/shared/models/entity-type.models';
@@ -48,6 +50,7 @@ import { map } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
 import { BulkImportRequest, BulkImportResult } from '@home/components/import-export/import-export.models';
 import { PersistentRpc, RpcStatus } from '@shared/models/rpc.models';
+import { DashboardInfo } from '@shared/models/dashboard.models';
 
 @Injectable({
   providedIn: 'root'
@@ -57,6 +60,11 @@ export class DeviceService {
   constructor(
     private http: HttpClient
   ) { }
+
+  public getDeviceInfosByQuery(deviceInfoQuery: DeviceInfoQuery, config?: RequestConfig): Observable<PageData<DeviceInfo>> {
+    return this.http.get<PageData<DeviceInfo>>(`/api${deviceInfoQuery.toQuery()}`,
+      defaultHttpOptionsFromConfig(config));
+  }
 
 /*  public getTenantDeviceInfos(pageLink: PageLink, type: string = '',
                               config?: RequestConfig): Observable<PageData<DeviceInfo>> {
@@ -110,14 +118,39 @@ export class DeviceService {
       defaultHttpOptionsFromConfig(config));
   }
 
-/*  public getDeviceInfo(deviceId: string, config?: RequestConfig): Observable<DeviceInfo> {
-    return this.http.get<DeviceInfo>(`/api/device/info/${deviceId}`, defaultHttpOptionsFromConfig(config));
-  }*/
+  public getAllDeviceInfos(includeCustomers: boolean,
+                           pageLink: PageLink, deviceProfileId: string = '', config?: RequestConfig): Observable<PageData<DeviceInfo>> {
+    let url = `/api/deviceInfos/all${pageLink.toQuery()}&deviceProfileId=${deviceProfileId}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<DeviceInfo>>(url,
+      defaultHttpOptionsFromConfig(config));
+  }
 
-  public saveDevice(device: Device, entityGroupId?: string, config?: RequestConfig): Observable<Device> {
+  public getCustomerDeviceInfos(includeCustomers: boolean, customerId: string,
+                                pageLink: PageLink, deviceProfileId: string = '',
+                                config?: RequestConfig): Observable<PageData<DeviceInfo>> {
+    let url = `/api/customer/${customerId}/deviceInfos${pageLink.toQuery()}&deviceProfileId=${deviceProfileId}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<DeviceInfo>>(url,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getDeviceInfo(deviceId: string, config?: RequestConfig): Observable<DeviceInfo> {
+    return this.http.get<DeviceInfo>(`/api/device/info/${deviceId}`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public saveDevice(device: Device, entityGroupIds?: string | string[], config?: RequestConfig): Observable<Device> {
     let url = '/api/device';
-    if (entityGroupId) {
-      url += `?entityGroupId=${entityGroupId}`;
+    if (entityGroupIds) {
+      if (Array.isArray(entityGroupIds)) {
+        url += `?entityGroupIds=${entityGroupIds.join(',')}`;
+      } else {
+        url += `?entityGroupId=${entityGroupIds}`;
+      }
     }
     return this.http.post<Device>(url, device, defaultHttpOptionsFromConfig(config));
   }

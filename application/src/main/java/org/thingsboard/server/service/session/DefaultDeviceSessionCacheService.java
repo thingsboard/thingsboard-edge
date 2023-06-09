@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,21 +30,15 @@
  */
 package org.thingsboard.server.service.session;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.cache.TbTransactionalCache;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceSessionsCacheEntry;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.io.Serializable;
 import java.util.Collections;
-
-import static org.thingsboard.server.common.data.CacheConstants.SESSIONS_CACHE;
 
 /**
  * Created by ashvayka on 29.10.18.
@@ -67,7 +61,7 @@ public class DefaultDeviceSessionCacheService implements DeviceSessionCacheServi
     @Override
     public DeviceSessionsCacheEntry put(DeviceId deviceId, DeviceSessionsCacheEntry sessions) {
         log.debug("[{}] Pushing session data to cache: {}", deviceId, sessions);
-        cache.putIfAbsent(deviceId, sessions);
+        cache.put(deviceId, sessions);
         return sessions;
     }
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -51,11 +51,11 @@ import org.thingsboard.server.queue.TbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.DefaultTbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.HashPartitionService;
 import org.thingsboard.server.queue.discovery.NotificationsTopicService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
 import org.thingsboard.server.queue.sqs.TbAwsSqsAdmin;
 import org.thingsboard.server.queue.sqs.TbAwsSqsConsumerTemplate;
@@ -76,6 +76,7 @@ public class AwsSqsIntegrationExecutorQueueFactory implements TbIntegrationExecu
     private final TbServiceInfoProvider serviceInfoProvider;
     private final TbQueueCoreSettings coreSettings;
     private final TbQueueIntegrationApiSettings integrationApiSettings;
+    private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
     private final TbQueueRemoteJsInvokeSettings jsInvokeSettings;
 
     private final TbQueueAdmin coreAdmin;
@@ -90,13 +91,15 @@ public class AwsSqsIntegrationExecutorQueueFactory implements TbIntegrationExecu
                                                  TbQueueCoreSettings coreSettings,
                                                  TbQueueIntegrationApiSettings integrationApiSettings,
                                                  TbQueueRemoteJsInvokeSettings jsInvokeSettings,
-                                                 TbAwsSqsQueueAttributes sqsQueueAttributes) {
+                                                 TbAwsSqsQueueAttributes sqsQueueAttributes,
+                                                 TbQueueIntegrationExecutorSettings integrationExecutorSettings) {
         this.notificationsTopicService = notificationsTopicService;
         this.sqsSettings = sqsSettings;
         this.serviceInfoProvider = serviceInfoProvider;
         this.coreSettings = coreSettings;
         this.integrationApiSettings = integrationApiSettings;
         this.jsInvokeSettings = jsInvokeSettings;
+        this.integrationExecutorSettings = integrationExecutorSettings;
 
         this.coreAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getCoreAttributes());
         this.ruleEngineAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getRuleEngineAttributes());
@@ -107,7 +110,7 @@ public class AwsSqsIntegrationExecutorQueueFactory implements TbIntegrationExecu
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createTbCoreIntegrationMsgProducer() {
-        return new TbAwsSqsProducerTemplate<>(coreAdmin, sqsSettings, coreSettings.getIntegrationsTopic());
+        return new TbAwsSqsProducerTemplate<>(coreAdmin, sqsSettings, integrationExecutorSettings.getUplinkTopic());
     }
 
     @Override
@@ -124,7 +127,7 @@ public class AwsSqsIntegrationExecutorQueueFactory implements TbIntegrationExecu
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createToIntegrationExecutorDownlinkMsgConsumer(IntegrationType integrationType) {
-        return new TbAwsSqsConsumerTemplate<>(ruleEngineAdmin, sqsSettings, HashPartitionService.getIntegrationDownlinkTopic(integrationType),
+        return new TbAwsSqsConsumerTemplate<>(ruleEngineAdmin, sqsSettings, integrationExecutorSettings.getIntegrationDownlinkTopic(integrationType),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorDownlinkMsg.parseFrom(msg.getData()), msg.getHeaders()));
     }
 

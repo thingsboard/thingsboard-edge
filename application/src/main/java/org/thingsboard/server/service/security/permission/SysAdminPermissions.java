@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -61,6 +61,7 @@ public class SysAdminPermissions extends AbstractPermissions {
         put(Resource.TENANT_PROFILE, PermissionChecker.allowAllPermissionChecker);
         put(Resource.TB_RESOURCE, systemEntityPermissionChecker);
         put(Resource.QUEUE, systemEntityPermissionChecker);
+        put(Resource.NOTIFICATION, systemEntityPermissionChecker);
     }
 
     private static final PermissionChecker systemEntityPermissionChecker = new PermissionChecker() {

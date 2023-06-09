@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -41,7 +41,6 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 
 import java.util.List;
@@ -71,7 +70,7 @@ public class TbDuplicateMsgToGroupNode extends TbAbstractDuplicateMsgToOriginato
 
     @Override
     protected ListenableFuture<List<EntityId>> getNewOriginators(TbContext ctx, EntityId original) {
-        return ctx.getPeContext().getEntityGroupService().findAllEntityIds(ctx.getTenantId(), detectTargetEntityGroupId(original), new PageLink(Integer.MAX_VALUE));
+        return ctx.getPeContext().getEntityGroupService().findAllEntityIdsAsync(ctx.getTenantId(), detectTargetEntityGroupId(original), new PageLink(Integer.MAX_VALUE));
     }
 
     private EntityGroupId detectTargetEntityGroupId(EntityId original) {

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -68,18 +68,14 @@ public class UserPermissionsController extends BaseController {
     @RequestMapping(value = "/permissions/allowedPermissions", method = RequestMethod.GET)
     @ResponseBody
     public AllowedPermissionsInfo getAllowedPermissions() throws ThingsboardException {
-        try {
-            Set<Resource> allowedResources = Resource.resourcesByAuthority.get(getCurrentUser().getAuthority());
-            Map<Resource, Set<Operation>> operationsByResource = new HashMap<>();
-            allowedResources.forEach(resource -> operationsByResource.put(resource, Resource.operationsByResource.get(resource)));
-            return new AllowedPermissionsInfo(operationsByResource,
-                    Operation.allowedForGroupRoleOperations,
-                    Operation.allowedForGroupOwnerOnlyOperations,
-                    Operation.allowedForGroupOwnerOnlyGroupOperations,
-                    allowedResources, getCurrentUser().getUserPermissions(), getCurrentUser().getOwnerId());
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        Set<Resource> allowedResources = Resource.resourcesByAuthority.get(getCurrentUser().getAuthority());
+        Map<Resource, Set<Operation>> operationsByResource = new HashMap<>();
+        allowedResources.forEach(resource -> operationsByResource.put(resource, Resource.operationsByResource.get(resource)));
+        return new AllowedPermissionsInfo(operationsByResource,
+                Operation.allowedForGroupRoleOperations,
+                Operation.allowedForGroupOwnerOnlyOperations,
+                Operation.allowedForGroupOwnerOnlyGroupOperations,
+                allowedResources, getCurrentUser().getUserPermissions(), getCurrentUser().getOwnerId());
     }
 
 }

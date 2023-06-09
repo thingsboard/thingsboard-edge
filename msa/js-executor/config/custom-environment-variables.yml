@@ -1,7 +1,7 @@
 #
 # ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+# Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
 # the property of ThingsBoard, Inc. and its suppliers,
@@ -47,6 +47,7 @@ kafka:
   linger_ms: "TB_KAFKA_LINGER_MS" # for producer
   partitions_consumed_concurrently: "TB_KAFKA_PARTITIONS_CONSUMED_CONCURRENTLY" # (EXPERIMENTAL) increase this value if you are planning to handle more than one partition (scale up, scale down) - this will decrease the latency
   requestTimeout: "TB_QUEUE_KAFKA_REQUEST_TIMEOUT_MS"
+  connectionTimeout: "TB_KAFKA_CONNECTION_TIMEOUT_MS"
   compression: "TB_QUEUE_KAFKA_COMPRESSION" # gzip or uncompressed
   topic_properties: "TB_QUEUE_KAFKA_JE_TOPIC_PROPERTIES"
   use_confluent_cloud: "TB_QUEUE_KAFKA_USE_CONFLUENT_CLOUD"

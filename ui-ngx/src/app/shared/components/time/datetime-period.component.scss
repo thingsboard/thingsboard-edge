@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,14 +31,8 @@
 @import '../../../../scss/constants';
 
 :host ::ng-deep {
-  .mat-form-field-wrapper {
-    padding-bottom: 8px;
-  }
-  .mat-form-field-underline {
-    bottom: 8px;
-  }
-  .mat-form-field-infix {
-    width: 150px;
+  .mat-mdc-form-field-infix {
+    width: 100px;
 
     @media #{$mat-xs} {
       width: 100%;

@@ -1,0 +1,32 @@
+[
+  {
+    "name": "AL Room Device Rule Chain",
+    "file": "al_room_device_rule_chain.json",
+    "jsonId": "c91744c0-8767-11ed-ace0-2b013f453ca4"
+  },
+  {
+    "name": "AL Wristband Device Rule Chain",
+    "file": "al_wristband_device_rule_chain.json",
+    "jsonId": "54ec7690-9d9e-11ed-9390-d159ada3209f"
+  },
+  {
+    "name": "AL Gateway Rule Chain",
+    "file": "al_gateway_rule_chain.json",
+    "jsonId": "fd4a4e40-8767-11ed-ace0-2b013f453ca4"
+  },
+  {
+    "name": "AL Room Device Rule Chain (Remote residence)",
+    "file": "remote_residence_al_room_device_rule_chain.json",
+    "jsonId": "3cb6b630-cf94-11ed-89f0-1539199f4c4d"
+  },
+  {
+    "name": "AL Wristband Device Rule Chain (Remote residence)",
+    "file": "remote_residence_al_wristband_device_rule_chain.json",
+    "jsonId": "4af7b2d0-cf94-11ed-89f0-1539199f4c4d"
+  },
+  {
+    "name": "AL Gateway Rule Chain (Remote residence)",
+    "file": "remote_residence_al_gateway_rule_chain.json",
+    "jsonId": "58ff28e0-cf94-11ed-89f0-1539199f4c4d"
+  }
+]

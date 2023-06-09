@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -64,7 +64,7 @@
       <mat-label translate>integration.coap-endpoint</mat-label>
       <input matInput formControlName="coapEndpoint">
     </mat-form-field>
-    <button mat-button mat-icon-button ngxClipboard type="button" color="primary"
+    <button mat-icon-button ngxClipboard type="button" color="primary"
             (cbOnSuccess)="onCoapEndpointCopied()"
             [cbContent]="coapIntegrationConfigForm.get('coapEndpoint').value"
             matTooltip="{{'integration.copy-coap-endpoint-url' | translate }}">
@@ -76,7 +76,7 @@
       <mat-label translate>integration.coap-dtls-endpoint</mat-label>
       <input matInput formControlName="dtlsCoapEndpoint">
     </mat-form-field>
-    <button mat-button mat-icon-button ngxClipboard type="button" color="primary"
+    <button mat-icon-button ngxClipboard type="button" color="primary"
             (cbOnSuccess)="onDtlsCoapEndpointCopied()"
             [cbContent]="coapIntegrationConfigForm.get('dtlsCoapEndpoint').value"
             matTooltip="{{'integration.copy-coap-dtls-endpoint-url' | translate }}">

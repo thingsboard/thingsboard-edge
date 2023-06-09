@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -48,7 +48,7 @@ public interface IntegrationInfoRepository extends JpaRepository<IntegrationInfo
 
     @Query("SELECT ii FROM IntegrationInfoEntity ii WHERE ii.tenantId = :tenantId " +
             "AND ii.edgeTemplate = :isEdgeTemplate " +
-            "AND LOWER(ii.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(ii.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<IntegrationInfoEntity> findByTenantIdAndIsEdgeTemplate(@Param("tenantId") UUID tenantId,
                                                                 @Param("searchText") String searchText,
                                                                 @Param("isEdgeTemplate") boolean isEdgeTemplate,
@@ -57,7 +57,7 @@ public interface IntegrationInfoRepository extends JpaRepository<IntegrationInfo
     @Query("SELECT ii FROM IntegrationInfoEntity ii, RelationEntity re WHERE ii.tenantId = :tenantId " +
             "AND ii.id = re.toId AND re.toType = 'INTEGRATION' AND re.relationTypeGroup = 'EDGE' " +
             "AND re.relationType = 'Contains' AND re.fromId = :edgeId AND re.fromType = 'EDGE' " +
-            "AND LOWER(ii.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(ii.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<IntegrationInfoEntity> findByTenantIdAndEdgeId(@Param("tenantId") UUID tenantId,
                                                         @Param("edgeId") UUID edgeId,
                                                         @Param("searchText") String searchText,
@@ -65,7 +65,7 @@ public interface IntegrationInfoRepository extends JpaRepository<IntegrationInfo
 
     @Query("SELECT ii FROM IntegrationInfoEntity ii WHERE ii.tenantId = :tenantId " +
             "AND ii.edgeTemplate = :isEdgeTemplate " +
-            "AND LOWER(ii.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(ii.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<IntegrationInfoEntity> findAllIntegrationInfosWithStats(@Param("tenantId") UUID tenantId,
                                                                  @Param("searchText") String searchText,
                                                                  @Param("isEdgeTemplate") boolean isEdgeTemplate,

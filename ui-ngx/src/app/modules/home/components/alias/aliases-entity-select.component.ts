@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,7 @@
 
 import {
   ChangeDetectorRef,
-  Component,
+  Component, HostBinding,
   Injector,
   Input,
   OnDestroy,
@@ -61,6 +61,9 @@ import { AliasFilterType } from '@shared/models/alias.models';
   styleUrls: ['./aliases-entity-select.component.scss']
 })
 export class AliasesEntitySelectComponent implements OnInit, OnDestroy {
+
+  @HostBinding('class')
+  aliasesEntitySelectClass = 'tb-hide';
 
   aliasControllerValue: IAliasController;
 
@@ -203,12 +206,14 @@ export class AliasesEntitySelectComponent implements OnInit, OnDestroy {
     const allEntityAliases = this.aliasController.getEntityAliases();
     this.entityAliasesInfo = {};
     this.hasSelectableAliasEntities = false;
+    this.aliasesEntitySelectClass = 'tb-hide';
     for (const aliasId of Object.keys(allEntityAliases)) {
       const aliasInfo = this.aliasController.getInstantAliasInfo(aliasId);
       if (aliasInfo && !aliasInfo.resolveMultiple && aliasInfo.currentEntity
         && aliasInfo.entityFilter && aliasInfo.entityFilter.type !== AliasFilterType.singleEntity) {
         this.entityAliasesInfo[aliasId] = deepClone(aliasInfo);
         this.hasSelectableAliasEntities = true;
+        this.aliasesEntitySelectClass = '';
       }
     }
   }

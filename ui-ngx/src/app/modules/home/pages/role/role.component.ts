@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,7 @@ import { ChangeDetectorRef, Component, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../../components/entity/entity.component';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
@@ -60,7 +60,7 @@ export class RoleComponent extends EntityComponent<Role> {
               private dialog: MatDialog,
               @Inject('entity') protected entityValue: Role,
               @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<Role>,
-              protected fb: FormBuilder,
+              protected fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
@@ -77,7 +77,7 @@ export class RoleComponent extends EntityComponent<Role> {
     }
   }
 
-  buildForm(entity: Role): FormGroup {
+  buildForm(entity: Role): UntypedFormGroup {
     const form = this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255)]],
@@ -98,7 +98,7 @@ export class RoleComponent extends EntityComponent<Role> {
     return form;
   }
 
-  private roleTypeChanged(form: FormGroup, newVal: RoleType) {
+  private roleTypeChanged(form: UntypedFormGroup, newVal: RoleType) {
     if (this.isEdit) {
       const prevVal: RoleType = form.value.type;
       if (!isEqual(newVal, prevVal)) {
@@ -109,7 +109,7 @@ export class RoleComponent extends EntityComponent<Role> {
     }
   }
 
-  private updateValidators(form: FormGroup) {
+  private updateValidators(form: UntypedFormGroup) {
     const roleType: RoleType = form.get('type').value;
     form.get('genericPermissions').setValidators([genericRolePermissionsValidator(roleType && roleType === RoleType.GENERIC)]);
     form.get('groupPermissions').setValidators(roleType && roleType === RoleType.GROUP ? [Validators.required] : []);

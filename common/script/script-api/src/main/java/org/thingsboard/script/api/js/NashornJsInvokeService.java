@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -119,6 +119,7 @@ public class NashornJsInvokeService extends AbstractJsInvokeService {
     }
 
     @PostConstruct
+    @Override
     public void init() {
         super.init();
         jsExecutor = MoreExecutors.listeningDecorator(Executors.newWorkStealingPool(jsExecutorThreadPoolSize));
@@ -137,10 +138,14 @@ public class NashornJsInvokeService extends AbstractJsInvokeService {
     }
 
     @PreDestroy
+    @Override
     public void stop() {
         super.stop();
         if (monitorExecutorService != null) {
             monitorExecutorService.shutdownNow();
+        }
+        if (jsExecutor != null) {
+            jsExecutor.shutdownNow();
         }
     }
 

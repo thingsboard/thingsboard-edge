@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -65,13 +65,33 @@ import { DOCUMENT } from '@angular/common';
 const cssParser = new cssjs();
 cssParser.testMode = false;
 
+const applyCustomCss = (customCss: string, isLoginTheme: boolean) => {
+  const target = isLoginTheme ? 'tb-login-custom-css' : 'tb-app-custom-css';
+  let targetStyle = $(`#${target}`);
+  if (!targetStyle.length) {
+    targetStyle = $(`<style id="${target}"></style>`);
+    $('head').append(targetStyle);
+  }
+  let css;
+  if (customCss && customCss.length) {
+    cssParser.cssPreviewNamespace = isLoginTheme ? 'tb-custom-css' : 'tb-default';
+    css = cssParser.applyNamespacing(customCss);
+    if (typeof css !== 'string') {
+      css = cssParser.getCSSForEditor(css);
+    }
+  } else {
+    css = '';
+  }
+  targetStyle.text(css);
+};
+
 // @dynamic
 @Injectable({
   providedIn: 'root'
 })
 export class WhiteLabelingService {
 
-  private changeWhiteLabelingSubject = new ReplaySubject(1);
+  private changeWhiteLabelingSubject = new ReplaySubject<void>(1);
 
   private loginLogo: string;
   private loginLogoSafeUrl: SafeUrl;
@@ -101,13 +121,13 @@ export class WhiteLabelingService {
   private isUserWlMode = false;
   private isPreviewWlMode = false;
 
-  private primaryPalette: Palette = {
+  public primaryPalette: Palette = {
     type: 'tb-primary',
     colors: tbPrimaryPalette,
     extends: 'teal'
   };
 
-  private accentPalette: Palette = {
+  public accentPalette: Palette = {
     type: 'tb-accent',
     colors: tbAccentPalette,
     extends: 'deep-orange'
@@ -367,25 +387,19 @@ export class WhiteLabelingService {
 
   public getCurrentWhiteLabelParams(): Observable<WhiteLabelingParams> {
     return this.http.get<WhiteLabelingParams>('/api/whiteLabel/currentWhiteLabelParams').pipe(
-      map((wlParams) => {
-        return checkWlParams(wlParams);
-      })
+      map((wlParams) => checkWlParams(wlParams))
     );
   }
 
   public getCurrentLoginWhiteLabelParams(): Observable<LoginWhiteLabelingParams> {
     return this.http.get<LoginWhiteLabelingParams>('/api/whiteLabel/currentLoginWhiteLabelParams').pipe(
-      map((wlParams) => {
-        return checkWlParams(wlParams);
-      })
+      map((wlParams) => checkWlParams(wlParams))
     );
   }
 
   public saveWhiteLabelParams(wlParams: WhiteLabelingParams): Observable<WhiteLabelingParams> {
     return this.http.post<WhiteLabelingParams>('/api/whiteLabel/whiteLabelParams', wlParams).pipe(
-      mergeMap(() => {
-        return this.loadUserWhiteLabelingParams();
-      })
+      mergeMap(() => this.loadUserWhiteLabelingParams())
     );
   }
 
@@ -541,24 +555,4 @@ export class WhiteLabelingService {
     );
   }
 
-}
-
-function applyCustomCss(customCss: string, isLoginTheme: boolean) {
-  const target = isLoginTheme ? 'tb-login-custom-css' : 'tb-app-custom-css';
-  let targetStyle = $(`#${target}`);
-  if (!targetStyle.length) {
-    targetStyle = $(`<style id="${target}"></style>`);
-    $('head').append(targetStyle);
-  }
-  let css;
-  if (customCss && customCss.length) {
-    cssParser.cssPreviewNamespace = isLoginTheme ? 'tb-custom-css' : 'tb-default';
-    css = cssParser.applyNamespacing(customCss);
-    if (typeof css !== 'string') {
-      css = cssParser.getCSSForEditor(css);
-    }
-  } else {
-    css = '';
-  }
-  targetStyle.text(css);
 }

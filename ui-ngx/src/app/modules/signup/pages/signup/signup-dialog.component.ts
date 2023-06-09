@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -47,7 +47,7 @@ export interface SignupDialogData {
 @Component({
   selector: 'tb-signup-dialog',
   templateUrl: './signup-dialog.component.html',
-  styleUrls: []
+  styleUrls: ['./signup-dialog.component.scss']
 })
 export class SignupDialogComponent extends DialogComponent<SignupDialogComponent, boolean> implements OnInit {
 

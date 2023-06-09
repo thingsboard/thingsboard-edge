@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,9 +40,9 @@ import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
@@ -54,7 +54,7 @@ import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_ALLOW_CREATE_DEVICES_OR_ASSETS;
-import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_CONVERTER_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_DEBUG_MODE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_DOWNLINK_CONVERTER_ID_PROPERTY;
@@ -65,14 +65,13 @@ import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_ROUTIN
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_SECRET_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_TYPE_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
-@Table(name = INTEGRATION_COLUMN_FAMILY_NAME)
-public class IntegrationEntity extends BaseSqlEntity<Integration> implements SearchTextEntity<Integration> {
+@Table(name = INTEGRATION_TABLE_NAME)
+public class IntegrationEntity extends BaseSqlEntity<Integration> implements BaseEntity<Integration> {
 
     @Column(name = INTEGRATION_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -107,9 +106,6 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
 
     @Column(name = INTEGRATION_ALLOW_CREATE_DEVICES_OR_ASSETS)
     private Boolean allowCreateDevicesOrAssets;
-
-    @Column(name = SEARCH_TEXT_PROPERTY)
-    private String searchText;
 
     @Type(type = "json")
     @Column(name = ModelConstants.INTEGRATION_CONFIGURATION_PROPERTY)
@@ -157,20 +153,6 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
             this.externalId = integration.getExternalId().getId();
         }
         this.edgeTemplate = integration.isEdgeTemplate();
-    }
-
-    public String getSearchText() {
-        return searchText;
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return name;
-    }
-
-    @Override
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
     }
 
     @Override

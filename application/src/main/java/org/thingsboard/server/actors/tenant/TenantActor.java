@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -59,6 +59,7 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.msg.MsgType;
 import org.thingsboard.server.common.msg.TbActorMsg;
+import org.thingsboard.server.common.msg.TbActorStopReason;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.aware.DeviceAwareMsg;
 import org.thingsboard.server.common.msg.aware.RuleChainAwareMsg;
@@ -109,6 +110,7 @@ public class TenantActor extends RuleChainManagerActor {
                             log.info("[{}] Skip init of the rule chains due to API limits", tenantId);
                         }
                     } catch (Exception e) {
+                        log.info("Failed to check ApiUsage \"ReExecEnabled\"!!!", e);
                         cantFindTenant = true;
                     }
                 }
@@ -122,7 +124,7 @@ public class TenantActor extends RuleChainManagerActor {
     }
 
     @Override
-    public void destroy() {
+    public void destroy(TbActorStopReason stopReason, Throwable cause) {
         log.info("[{}] Stopping tenant actor.", tenantId);
     }
 

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,11 +35,7 @@ import lombok.Getter;
 import lombok.ToString;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.msg.MsgType;
-import org.thingsboard.server.common.msg.TbActorStopReason;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.TbRuleEngineActorMsg;
-import org.thingsboard.server.common.msg.aware.RuleChainAwareMsg;
-import org.thingsboard.server.common.msg.queue.RuleEngineException;
 
 /**
  * Created by ashvayka on 19.03.18.
