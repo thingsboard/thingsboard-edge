@@ -8,46 +8,97 @@ var deviceType = data.end_device_ids.application_ids.application_id;
 // expected output:
 //  {
 //    "attributes": {"attributeKey": "attributeValue"},
-//    "telemetry": {"telemetryKey": "telemetryValue"}
+//    "telemetry": {"telemetryKey": "telemetryValue"},
+//    "constants": {"constantKey": "constantValue"}
 //  }
-// default functionality - convert bytes to HEX string with telemetry key "HEX_bytes"
+//
+// In the example - bytes will be saved as HEX string and also parsed as light level, battery level and PIR sensor value.
+//
 
 function decodeFrmPayload(input) {
-    var output = { attributes:{}, telemetry: {} };
+    var output = { attributes:{}, telemetry: {}, constants: {} };
     // --- Decoding code --- //
 
     output.telemetry.HEX_bytes = bytesToHex(input);
+
+    for (var i = 0; i < input.length; ) {
+        var channel_id = input[i++];
+        var channel_type = input[i++];
+        // BATTERY
+        if (channel_id === 0x01 && channel_type === 0x75) {
+            output.telemetry.battery = input[i];
+            i += 1;
+        }
+        // PIR
+        else if (channel_id === 0x03 && channel_type === 0x00) {
+            output.telemetry.pir = input[i] === 0 ? "normal" : "trigger";
+            i += 1;
+        }
+        // DAYLIGHT
+        else if (channel_id === 0x04 && channel_type === 0x00) {
+            output.telemetry.daylight = input[i] === 0 ? "dark" : "light";
+            i += 1;
+        } else {
+            break;
+        }
+    }
 
     // --- Decoding code --- //
     return output;
 }
 
-// --- attributes and telemetry objects ---
+// --- attributes, telemetry and constants objects ---
 var telemetry = {};
 var attributes = {};
-// --- attributes and telemetry objects ---
+var constants = {};
+// --- attributes, telemetry and constants objects ---
 
 // --- Timestamp parsing
-var incomingDateString = data.uplink_message.received_at;
-var dateString = incomingDateString.substring(0, incomingDateString.lastIndexOf(".")+3) + "Z";
+var dateString = data.uplink_message.received_at;
 var timestamp = new Date(dateString).getTime();
+if (timestamp == -1) {
+    // Specific data parsing for The Things Industries incoming message
+    var secondsSeparatorIndex = dateString.lastIndexOf('.') + 1;
+    var millisecondsEndIndex = dateString.lastIndexOf('+');
+    if (millisecondsEndIndex == -1) {
+        millisecondsEndIndex = dateString.lastIndexOf('Z');
+    }
+    if (millisecondsEndIndex == -1) {
+        millisecondsEndIndex = dateString.lastIndexOf('-');
+    }
+    if (millisecondsEndIndex == -1) {
+        dateString = dateString.substring(0, secondsSeparatorIndex + 3);
+    } else {
+        dateString = dateString.substring(0, secondsSeparatorIndex + 3) +
+            dateString.substring(millisecondsEndIndex, dateString.length);
+    }
+    timestamp = new Date(dateString).getTime();
+}
+// If we cannot parse timestamp - we will use the current timestamp
+if (timestamp == -1) {
+    timestamp = Date.now();
+}
 // --- Timestamp parsing
 
-// You can add some keys manually to attributes or telemetry
+// You can add some keys manually to attributes, telemetry or constants
+constants.dev_eui = data.end_device_ids.dev_eui;
 attributes.f_port = data.uplink_message.f_port;
-attributes.settings = data.uplink_message.settings;
 // We want to save correlation ids as single object, so we are excluding them from attributes parse and add manually
 attributes.correlation_ids = data.correlation_ids;
 
 // You can exclude some keys from the result
-var excludeFromAttributesList = ["device_id", "application_id", "uplink_message", "correlation_ids"];
-var excludeFromTelemetryList = ["uplink_token", "gateway_id", "settings"];
+var excludeFromTelemetryList = ["uplink_token", "gateway_id", "settings", "f_port", "time", "timestamp", "received_at", "network_ids"];
+var excludeFromConstantsList = ["uplink_token", "gateway_id", "f_port", "time", "timestamp", "received_at", "session_key_id"];
 
 // Message parsing
 // To avoid paths in the decoded objects we passing false value to function as "pathInKey" argument.
 // Warning: pathInKey can cause already found fields to be overwritten with the last value found, e.g. receive_at from uplink_message will be written receive_at in the root.
 var telemetryData = toFlatMap(data.uplink_message, excludeFromTelemetryList, false);
-var attributesData = toFlatMap(data, excludeFromAttributesList, false);
+// Parsing constants (Data described in constants section will be saved to attributes only on first income for every device after integration start/restart)
+var constantsData = {};
+constantsData.putAll(toFlatMap(data.uplink_message.settings, excludeFromConstantsList, false));
+constantsData.putAll(toFlatMap(data.uplink_message.network_ids, excludeFromConstantsList, false));
+constantsData.putAll(toFlatMap(data.end_device_ids, excludeFromConstantsList, false));
 
 // Passing incoming bytes to decodeFrmPayload function, to get custom decoding
 var customDecoding = {};
@@ -64,8 +115,12 @@ if (customDecoding.?attributes.size() > 0) {
     attributes.putAll(customDecoding.attributes);
 }
 
+if (customDecoding.?constants.size() > 0) {
+    constants.putAll(customDecoding.constants);
+}
+
 telemetry.putAll(telemetryData);
-attributes.putAll(attributesData);
+constants.putAll(constantsData);
 
 var result = {
     deviceName: deviceName,
@@ -74,7 +129,8 @@ var result = {
         ts: timestamp,
         values: telemetry
     },
-    attributes: attributes
+    attributes: attributes,
+    constants: constants
 };
 
 return result;

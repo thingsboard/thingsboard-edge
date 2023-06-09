@@ -8,9 +8,12 @@ var gatewayDeviceType = "LoraGateway";
 // expected output:
 //  {
 //    "attributes": {"attributeKey": "attributeValue"},
-//    "telemetry": {"telemetryKey": "telemetryValue"}
+//    "telemetry": {"telemetryKey": "telemetryValue"},
+//    "constants": {"constantKey": "constantValue"}
 //  }
-// default functionality - convert bytes to HEX string with telemetry key "HEX_bytes"
+//
+// In the example - bytes will be saved as HEX string and also parsed as light level, battery level and PIR sensor value.
+//
 
 function decodePayload(input) {
     var output = { attributes:{}, telemetry: {} };
@@ -18,25 +21,52 @@ function decodePayload(input) {
 
     output.telemetry.HEX_bytes = bytesToHex(input);
 
+    for (var i = 0; i < input.length; ) {
+        var channel_id = input[i++];
+        var channel_type = input[i++];
+        // BATTERY
+        if (channel_id === 0x01 && channel_type === 0x75) {
+            output.telemetry.battery = input[i];
+            i += 1;
+        }
+        // PIR
+        else if (channel_id === 0x03 && channel_type === 0x00) {
+            output.telemetry.pir = input[i] === 0 ? "normal" : "trigger";
+            i += 1;
+        }
+        // DAYLIGHT
+        else if (channel_id === 0x04 && channel_type === 0x00) {
+            output.telemetry.daylight = input[i] === 0 ? "dark" : "light";
+            i += 1;
+        } else {
+            break;
+        }
+    }
+
     // --- Decoding code --- //
     return output;
 }
 
-// --- attributes and telemetry objects ---
+// --- attributes, telemetry and constants objects ---
 var telemetry = {};
 var attributes = {};
-// --- attributes and telemetry objects ---
+var constants = {};
+// --- attributes, telemetry and constants objects ---
 
 // --- Timestamp parsing
 var timestamp = data.ts;
+// If we cannot parse timestamp - we will use the current timestamp
+if (timestamp == -1) {
+    timestamp = Date.now();
+}
 // --- Timestamp parsing
 
 // You can add some keys manually to attributes or telemetry
-attributes.fPort = data.port;
-attributes.battery = data.bat;
+attributes.f_port = data.port;
+constants.dr = data.dr;
 
 // You can exclude some keys from the result
-var excludeFromAttributesList = ["data", "gws", "EUI", "ts", "cmd", "port", "seqno", "fcnt", "toa", "ack", "bat", "snr", "rssi"];
+var excludeFromAttributesList = ["data", "gws", "EUI", "ts", "cmd", "port", "seqno", "fcnt", "toa", "dr", "ack", "bat", "snr", "rssi"];
 var excludeFromTelemetryList = ["gws", "EUI", "ts", "freq", "port", "data", "cmd", "dr", "offline"];
 
 // Message parsing
@@ -45,6 +75,7 @@ var excludeFromTelemetryList = ["gws", "EUI", "ts", "freq", "port", "data", "cmd
 
 var telemetryData = toFlatMap(data, excludeFromTelemetryList, false);
 var attributesData = toFlatMap(data, excludeFromAttributesList, false);
+var constantsData = {};
 
 var uplinkDataList = [];
 
@@ -62,6 +93,7 @@ if (customDecoding.?attributes.size() > 0) {
 
 telemetry.putAll(telemetryData);
 attributes.putAll(attributesData);
+constants.putAll(constantsData);
 
 var deviceInfo = {
     deviceName: deviceName,
@@ -70,7 +102,8 @@ var deviceInfo = {
         ts: timestamp,
         values: telemetry
     },
-    attributes: attributes
+    attributes: attributes,
+    constants: constants
 };
 
 uplinkDataList.add(deviceInfo);

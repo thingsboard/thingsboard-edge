@@ -7,9 +7,12 @@ var deviceType = data.deviceInfo.deviceProfileName;
 // expected output:
 //  {
 //    "attributes": {"attributeKey": "attributeValue"},
-//    "telemetry": {"telemetryKey": "telemetryValue"}
+//    "telemetry": {"telemetryKey": "telemetryValue"},
+//    "constants": {"constantKey": "constantValue"}
 //  }
-// default functionality - convert bytes to HEX string with telemetry key "HEX_bytes"
+//
+// In the example - bytes will be saved as HEX string and also parsed as light level, battery level and PIR sensor value.
+//
 
 function decodePayload(input) {
     var output = { attributes:{}, telemetry: {} };
@@ -17,27 +20,71 @@ function decodePayload(input) {
 
     output.telemetry.HEX_bytes = bytesToHex(input);
 
+    for (var i = 0; i < input.length; ) {
+        var channel_id = input[i++];
+        var channel_type = input[i++];
+        // BATTERY
+        if (channel_id === 0x01 && channel_type === 0x75) {
+            output.telemetry.battery = input[i];
+            i += 1;
+        }
+        // PIR
+        else if (channel_id === 0x03 && channel_type === 0x00) {
+            output.telemetry.pir = input[i] === 0 ? "normal" : "trigger";
+            i += 1;
+        }
+        // DAYLIGHT
+        else if (channel_id === 0x04 && channel_type === 0x00) {
+            output.telemetry.daylight = input[i] === 0 ? "dark" : "light";
+            i += 1;
+        } else {
+            break;
+        }
+    }
+
     // --- Decoding code --- //
     return output;
 }
 
-// --- attributes and telemetry objects ---
+// --- attributes, telemetry and constants objects ---
 var telemetry = {};
 var attributes = {};
-// --- attributes and telemetry objects ---
+var constants = {};
+// --- attributes, telemetry and constants objects ---
 
 // --- Timestamp parsing
-var dateString = data.time.substring(0, data.time.lastIndexOf('+')-3) + "Z";
+var dateString = data.time;
 var timestamp = new Date(dateString).getTime();
+if (timestamp == -1) {
+    var secondsSeparatorIndex = dateString.lastIndexOf('.') + 1;
+    var millisecondsEndIndex = dateString.lastIndexOf('+');
+    if (millisecondsEndIndex == -1) {
+        millisecondsEndIndex = dateString.lastIndexOf('Z');
+    }
+    if (millisecondsEndIndex == -1) {
+        millisecondsEndIndex = dateString.lastIndexOf('-');
+    }
+    if (millisecondsEndIndex == -1) {
+        dateString = dateString.substring(0, secondsSeparatorIndex + 3);
+    } else {
+        dateString = dateString.substring(0, secondsSeparatorIndex + 3) +
+            dateString.substring(millisecondsEndIndex, dateString.length);
+    }
+    timestamp = new Date(dateString).getTime();
+}
+// If we cannot parse timestamp - we will use the current timestamp
+if (timestamp == -1) {
+    timestamp = Date.now();
+}
 // --- Timestamp parsing
 
 // You can add some keys manually to attributes or telemetry
-attributes.fPort = data.port;
-attributes.encodedData = data.data;
+attributes.deduplicationId = data.deduplicationId;
 
 // You can exclude some keys from the result
-var excludeFromAttributesList = ["deviceName", "rxInfo", "txInfo", "deduplicationId", "time", "dr", "fCnt", "fPort"];
-var excludeFromTelemetryList = ["data", "deviceInfo", "devAddr", "adr"];
+var excludeFromAttributesList = ["deviceName", "rxInfo", "txInfo", "confirmed", "data", "deduplicationId","time", "adr", "devAddr", "dr", "fCnt", "deviceInfo"];
+var excludeFromTelemetryList = ["data", "deviceInfo", "txInfo", "devAddr", "adr", "time", "fPort", "region_common_name", "region_config_id", "deduplicationId"];
+var excludeFromConstantsList = ["deviceName", "rxInfo", "deduplicationId", "confirmed", "data", "time", "adr", "dr", "fCnt", "fPort"];
 
 // Message parsing
 // To avoid paths in the decoded objects we passing false value to function as "pathInKey" argument.
@@ -45,11 +92,14 @@ var excludeFromTelemetryList = ["data", "deviceInfo", "devAddr", "adr"];
 
 var telemetryData = toFlatMap(data, excludeFromTelemetryList, false);
 var attributesData = toFlatMap(data, excludeFromAttributesList, false);
+// Parsing constants (Data described in constants section will be saved to attributes only on first income for every device after integration start/restart)
+var constantsData = {};
+constantsData.putAll(toFlatMap(data, excludeFromConstantsList, false));
 
 var uplinkDataList = [];
 
 // Passing incoming bytes to decodePayload function, to get custom decoding
-var customDecoding = decodePayload(hexToBytes(data.data));
+var customDecoding = decodePayload(base64ToBytes(data.data));
 
 // Collecting data to result
 if (customDecoding.?telemetry.size() > 0) {
@@ -60,8 +110,13 @@ if (customDecoding.?attributes.size() > 0) {
     attributes.putAll(customDecoding.attributes);
 }
 
+if (customDecoding.?constants.size() > 0) {
+    constants.putAll(customDecoding.constants);
+}
+
 telemetry.putAll(telemetryData);
 attributes.putAll(attributesData);
+constants.putAll(constantsData);
 
 var deviceInfo = {
     deviceName: deviceName,
@@ -70,7 +125,8 @@ var deviceInfo = {
         ts: timestamp,
         values: telemetry
     },
-    attributes: attributes
+    attributes: attributes,
+    constants: constants
 };
 
 uplinkDataList.add(deviceInfo);

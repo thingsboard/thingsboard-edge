@@ -99,6 +99,8 @@ import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_TE
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_TYPE_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_SIGFOX_UPLINK_CONVERTER_MESSAGE;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_SIGFOX_UPLINK_CONVERTER_METADATA;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_TTN_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.INTEGRATION_NAME;
@@ -297,7 +299,6 @@ public class ConverterController extends AutoCommitController {
                 ObjectNode debugIn = objectMapper.createObjectNode();
                 ObjectNode metadata = objectMapper.createObjectNode();
                 metadata.put(INTEGRATION_NAME, integrationName);
-                debugIn.put("inMetadata", objectMapper.writeValueAsString(metadata));
                 String inContent;
                 switch (targetIntegrationType) {
                     case TTN:
@@ -312,9 +313,14 @@ public class ConverterController extends AutoCommitController {
                     case CHIRPSTACK:
                         inContent = DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE;
                         break;
+                    case SIGFOX:
+                        inContent = DEFAULT_SIGFOX_UPLINK_CONVERTER_MESSAGE;
+                        metadata.setAll((ObjectNode) objectMapper.readTree(DEFAULT_SIGFOX_UPLINK_CONVERTER_METADATA));
+                        break;
                     default:
                         return null;
                 }
+                debugIn.put("inMetadata", objectMapper.writeValueAsString(metadata));
                 debugIn.put("inContent", inContent);
                 debugIn.put("inContentType", UplinkContentType.JSON.name());
                 result = debugIn;

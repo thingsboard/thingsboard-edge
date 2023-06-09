@@ -1967,7 +1967,7 @@ public class ControllerConstants {
     "    \"session_key_id\": \"AYfg8rhha5n+FWx0ZaAprA==\",\n" +
     "    \"f_port\": 85,\n" +
     "    \"f_cnt\": 5017,\n" +
-    "    \"frm_payload\": \"A2fiAARoUwUAAQbLAgd9BwMIfWQACXNFJwt9EAAMfRAAAXVe\",\n" +
+    "    \"frm_payload\": \"AXVeAwABBAAB\",\n" +
     "    \"rx_metadata\": [{\n" +
     "        \"gateway_ids\": {\n" +
     "            \"gateway_id\": \"eui-6A7E111A10000000\",\n" +
@@ -2098,7 +2098,7 @@ public class ControllerConstants {
     "    \"toa\": 206,\n" +
     "    \"dr\": \"SF9 BW125 4/5\",\n" +
     "    \"ack\": false,\n" +
-    "    \"bat\": 254,\n" +
+    "    \"bat\": 94,\n" +
     "    \"offline\": false,\n" +
     "    \"data\": \"01755e030001040001\"\n" +
     "}\n";
@@ -2151,6 +2151,26 @@ public class ControllerConstants {
     "        }\n" +
     "    }\n" +
     "}";
+
+    static final String DEFAULT_SIGFOX_UPLINK_CONVERTER_MESSAGE = "{\n" +
+    "    \"device\": \"2203961\",\n" +
+    "    \"time\": \"1686298419\",\n" +
+    "    \"data\": \"2502af2102462a\",\n" +
+    "    \"seqNumber\": \"570\",\n" +
+    "    \"deviceTypeId\": \"630ceaea10d051194ec0246e\",\n" +
+    "    \"ack\": \"false\",\n" +
+    "    \"customData#int1\": \"37\",\n" +
+    "    \"customData#int2\": \"2\"\n" +
+    "}";
+
+    static final String DEFAULT_SIGFOX_UPLINK_CONVERTER_METADATA = "{\n" +
+    "    \"Header:accept-encoding\": \"gzip,deflate\",\n" +
+    "    \"Header:content-type\": \"application/json\",\n" +
+    "    \"Header:content-length\": \"243\",\n" +
+    "    \"Header:user-agent\": \"SIGFOX\",\n" +
+    "    \"Header:accept-charset\": \"UTF-8;q=0.9,*;q=0.7\",\n" +
+    "    \"Header:accept-language\": \"en\"" +
+    "}\n";
     
     // Default converter uplinks messages
 }

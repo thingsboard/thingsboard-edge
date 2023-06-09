@@ -39,6 +39,7 @@ import tbelChirpstackDecoderTemplate from '!raw-loader!src/assets/converters/tbe
 import tbelLoriotDecoderTemplate from '!raw-loader!src/assets/converters/tbel-loriot-decoder.raw';
 import tbelTtiDecoderTemplate from '!raw-loader!src/assets/converters/tbel-tti-decoder.raw';
 import tbelTtnDecoderTemplate from '!raw-loader!src/assets/converters/tbel-ttn-decoder.raw';
+import tbelSigfoxDecoderTemplate from '!raw-loader!src/assets/converters/tbel-sigfox-decoder.raw';
 
 export enum ConverterType {
   UPLINK = 'UPLINK',
@@ -49,7 +50,8 @@ export const DecoderMap = new Map<string, string>([
   [IntegrationType.CHIRPSTACK, tbelChirpstackDecoderTemplate],
   [IntegrationType.LORIOT, tbelLoriotDecoderTemplate],
   [IntegrationType.TTI, tbelTtiDecoderTemplate],
-  [IntegrationType.TTN, tbelTtnDecoderTemplate]
+  [IntegrationType.TTN, tbelTtnDecoderTemplate],
+  [IntegrationType.SIGFOX, tbelSigfoxDecoderTemplate]
 ]);
 
 export const converterTypeTranslationMap = new Map<ConverterType, string>(
