@@ -36,6 +36,7 @@ import { HttpClient } from '@angular/common/http';
 import {
   AdminSettings,
   AutoCommitSettings,
+  MailConfigTemplate,
   FeaturesInfo,
   JwtSettings, LicenseUsageInfo,
   MailServerSettings,
@@ -155,5 +156,17 @@ export class AdminService {
 
   public getLicenseUsageInfo(config?: RequestConfig): Observable<LicenseUsageInfo> {
     return this.http.get<LicenseUsageInfo>('/api/admin/licenseUsageInfo', defaultHttpOptionsFromConfig(config));
+  }
+
+  public getLoginProcessingUrl(config?: RequestConfig): Observable<string> {
+    return this.http.get<string>(`/api/admin/mail/oauth2/loginProcessingUrl`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public generateAccessToken(config?: RequestConfig): Observable<string> {
+    return this.http.get<string>(`/api/admin/mail/oauth2/authorize`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public getMailConfigTemplate(config?: RequestConfig): Observable<Array<MailConfigTemplate>> {
+    return this.http.get<Array<MailConfigTemplate>>('/api/mail/config/template', defaultHttpOptionsFromConfig(config));
   }
 }
