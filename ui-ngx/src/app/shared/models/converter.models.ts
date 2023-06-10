@@ -40,6 +40,8 @@ import tbelLoriotDecoderTemplate from '!raw-loader!src/assets/converters/tbel-lo
 import tbelTtiDecoderTemplate from '!raw-loader!src/assets/converters/tbel-tti-decoder.raw';
 import tbelTtnDecoderTemplate from '!raw-loader!src/assets/converters/tbel-ttn-decoder.raw';
 import tbelSigfoxDecoderTemplate from '!raw-loader!src/assets/converters/tbel-sigfox-decoder.raw';
+import tbelAzureDecoderTemplate from '!raw-loader!src/assets/converters/tbel-azure-decoder.raw';
+import tbelAWSIOTDecoderTemplate from '!raw-loader!src/assets/converters/tbel-aws-iot-decoder.raw';
 
 export enum ConverterType {
   UPLINK = 'UPLINK',
@@ -51,7 +53,11 @@ export const DecoderMap = new Map<string, string>([
   [IntegrationType.LORIOT, tbelLoriotDecoderTemplate],
   [IntegrationType.TTI, tbelTtiDecoderTemplate],
   [IntegrationType.TTN, tbelTtnDecoderTemplate],
-  [IntegrationType.SIGFOX, tbelSigfoxDecoderTemplate]
+  [IntegrationType.SIGFOX, tbelSigfoxDecoderTemplate],
+  [IntegrationType.AZURE_IOT_HUB, tbelAzureDecoderTemplate],
+  [IntegrationType.AZURE_EVENT_HUB, tbelAzureDecoderTemplate],
+  [IntegrationType.AZURE_EVENT_HUB, tbelAzureDecoderTemplate],
+  [IntegrationType.AWS_IOT, tbelAWSIOTDecoderTemplate]
 ]);
 
 export const converterTypeTranslationMap = new Map<ConverterType, string>(

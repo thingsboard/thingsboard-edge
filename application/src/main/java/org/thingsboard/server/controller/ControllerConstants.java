@@ -2171,6 +2171,66 @@ public class ControllerConstants {
     "    \"Header:accept-charset\": \"UTF-8;q=0.9,*;q=0.7\",\n" +
     "    \"Header:accept-language\": \"en\"" +
     "}\n";
+
+    static final String DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE = "{\n" +
+            "  \"deviceId\": \"8F4A2C6D\",\n" +
+            "  \"deviceType\": \"Packing machine\",\n" +
+            "  \"temperature\": 25.5,\n" +
+            "  \"pressure\": 1013.25,\n" +
+            "  \"vibration\": {\n" +
+            "    \"x\": 0.02,\n" +
+            "    \"y\": 0.03,\n" +
+            "    \"z\": 0.015\n" +
+            "  },\n" +
+            "  \"location\": {\n" +
+            "    \"latitude\": 37.7749,\n" +
+            "    \"longitude\": -122.4194,\n" +
+            "    \"altitude\": 10\n" +
+            "  },\n" +
+            "  \"timestamp\": \"2023-06-09T10:30:00Z\",\n" +
+            "  \"status\": \"ALARM\",\n" +
+            "  \"alarms\": [\n" +
+            "    {\n" +
+            "      \"type\": \"temperature\",\n" +
+            "      \"severity\": \"high\",\n" +
+            "      \"message\": \"Temperature exceeds threshold.\"\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"type\": \"vibration\",\n" +
+            "      \"severity\": \"critical\",\n" +
+            "      \"message\": \"Excessive vibration detected.\"\n" +
+            "    }\n" +
+            "  ],\n" +
+            "  \"metadata\": {\n" +
+            "    \"version\": 1,\n" +
+            "    \"batteryLevel\": 100,\n" +
+            "    \"batteryStatus\": \"Charging\",\n" +
+            "    \"manufacturer\": \"ABC\"\n" +
+            "  }\n" +
+            "}";
+
+    static final String DEFAULT_AWS_IOT_UPLINK_CONVERTER_MESSAGE = "{\n" +
+            "  \"device_id\": \"3G7H1j-9zF\",\n" +
+            "  \"timestamp\": \"2023-06-10T12:00:00Z\",\n" +
+            "  \"sensor_data\": {\n" +
+            "    \"temperature\": 25.3,\n" +
+            "    \"humidity\": 62.8,\n" +
+            "    \"pressure\": 1012.5\n" +
+            "  },\n" +
+            "  \"location\": {\n" +
+            "    \"latitude\": 37.7749,\n" +
+            "    \"longitude\": -122.4194\n" +
+            "  },\n" +
+            "  \"status\": \"active\",\n" +
+            "  \"power_status\": \"on\",\n" +
+            "  \"vibration\": {\n" +
+            "    \"x\": 0.02,\n" +
+            "    \"y\": 0.03,\n" +
+            "    \"z\": 0.01\n" +
+            "  },\n" +
+            "  \"fault_codes\": [100, 204, 301],\n" +
+            "  \"battery_level\": 78.5\n" +
+            "}\n";
     
     // Default converter uplinks messages
 }

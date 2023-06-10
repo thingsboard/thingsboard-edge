@@ -97,6 +97,8 @@ import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_ID
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_SORT_PROPERTY_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_TEXT_SEARCH_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_TYPE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_AWS_IOT_UPLINK_CONVERTER_MESSAGE;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_SIGFOX_UPLINK_CONVERTER_MESSAGE;
@@ -131,6 +133,22 @@ public class ConverterController extends AutoCommitController {
     private final JsInvokeService jsInvokeService;
     private final Optional<TbelInvokeService> tbelInvokeService;
     private final TbConverterService tbConverterService;
+
+    private final Map<IntegrationType, String> converterDefaultMessages = Map.of(
+            IntegrationType.LORIOT, DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE,
+            IntegrationType.SIGFOX, DEFAULT_SIGFOX_UPLINK_CONVERTER_MESSAGE,
+            IntegrationType.TTI, DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE,
+            IntegrationType.TTN, DEFAULT_TTN_UPLINK_CONVERTER_MESSAGE,
+            IntegrationType.CHIRPSTACK, DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE,
+            IntegrationType.AZURE_IOT_HUB, DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE,
+            IntegrationType.AZURE_EVENT_HUB, DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE,
+            IntegrationType.AZURE_SERVICE_BUS, DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE,
+            IntegrationType.AWS_IOT, DEFAULT_AWS_IOT_UPLINK_CONVERTER_MESSAGE
+    );
+
+    private final Map<IntegrationType, String> converterDefaultMetadatas = Map.of(
+            IntegrationType.SIGFOX, DEFAULT_SIGFOX_UPLINK_CONVERTER_METADATA
+    );
 
     public static final String CONVERTER_ID = "converterId";
 
@@ -293,32 +311,15 @@ public class ConverterController extends AutoCommitController {
                         }
                     }
                 }
-                if (targetIntegrationType == null) {
+                if (targetIntegrationType == null || !converterDefaultMessages.containsKey(targetIntegrationType)) {
                     return null;
                 }
                 ObjectNode debugIn = objectMapper.createObjectNode();
                 ObjectNode metadata = objectMapper.createObjectNode();
                 metadata.put(INTEGRATION_NAME, integrationName);
-                String inContent;
-                switch (targetIntegrationType) {
-                    case TTN:
-                        inContent = DEFAULT_TTN_UPLINK_CONVERTER_MESSAGE;
-                        break;
-                    case TTI:
-                        inContent = DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE;
-                        break;
-                    case LORIOT:
-                        inContent = DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE;
-                        break;
-                    case CHIRPSTACK:
-                        inContent = DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE;
-                        break;
-                    case SIGFOX:
-                        inContent = DEFAULT_SIGFOX_UPLINK_CONVERTER_MESSAGE;
-                        metadata.setAll((ObjectNode) objectMapper.readTree(DEFAULT_SIGFOX_UPLINK_CONVERTER_METADATA));
-                        break;
-                    default:
-                        return null;
+                String inContent = converterDefaultMessages.get(targetIntegrationType);
+                if (converterDefaultMetadatas.containsKey(targetIntegrationType)) {
+                    metadata.setAll((ObjectNode) objectMapper.readTree(converterDefaultMetadatas.get(targetIntegrationType)));
                 }
                 debugIn.put("inMetadata", objectMapper.writeValueAsString(metadata));
                 debugIn.put("inContent", inContent);

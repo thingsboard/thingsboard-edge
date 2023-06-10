@@ -67,7 +67,9 @@ if (timestamp == -1) {
         millisecondsEndIndex = dateString.lastIndexOf('-');
     }
     if (millisecondsEndIndex == -1) {
-        dateString = dateString.substring(0, secondsSeparatorIndex + 3);
+        if (dateString.length >= secondsSeparatorIndex + 3) {
+            dateString = dateString.substring(0, secondsSeparatorIndex + 3);
+        }
     } else {
         dateString = dateString.substring(0, secondsSeparatorIndex + 3) +
             dateString.substring(millisecondsEndIndex, dateString.length);
