@@ -28,44 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.coap;
+package org.thingsboard.server.transport.mqtt.mqttv3;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.californium.core.CoapHandler;
-import org.eclipse.californium.core.CoapResponse;
-import org.eclipse.californium.core.coap.CoAP;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 
-@Slf4j
 @Data
-public class CoapTestCallback implements CoapHandler {
+@Slf4j
+@EqualsAndHashCode(callSuper = true)
+public class MqttTestSubscribeOnTopicCallback extends MqttTestCallback {
 
-    protected Integer observe;
-    protected byte[] payloadBytes;
-    protected CoAP.ResponseCode responseCode;
+    protected final String awaitSubTopic;
 
-    public Integer getObserve() {
-        return observe;
-    }
-
-    public byte[] getPayloadBytes() {
-        return payloadBytes;
-    }
-
-    public CoAP.ResponseCode getResponseCode() {
-        return responseCode;
+    public MqttTestSubscribeOnTopicCallback(String awaitSubTopic) {
+        super();
+        this.awaitSubTopic = awaitSubTopic;
     }
 
     @Override
-    public void onLoad(CoapResponse response) {
-        observe = response.getOptions().getObserve();
-        payloadBytes = response.getPayload();
-        responseCode = response.getCode();
-    }
-
-    @Override
-    public void onError() {
-        log.warn("Command Response Ack Error, No connect");
+    public void messageArrived(String requestTopic, MqttMessage mqttMessage) {
+        log.warn("messageArrived on topic: {}, awaitSubTopic: {}", requestTopic, awaitSubTopic);
+        if (awaitSubTopic.equals(requestTopic)) {
+            qoS = mqttMessage.getQos();
+            payloadBytes = mqttMessage.getPayload();
+            subscribeLatch.countDown();
+        }
     }
 
 }
