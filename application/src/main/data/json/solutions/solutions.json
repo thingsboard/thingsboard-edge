@@ -39,8 +39,8 @@
     "installTimeoutMs": 15000,
     "previewImageUrl": "https://thingsboard.io/images/solutions/waste_monitoring/waste-monitoring-preview.png",
     "videoPreviewImageUrl": "https://thingsboard.io/images/usecases/fleet-tracking-v2/video/fleet-tracking-v2.png",
-    "previewMp4Url": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/fleet-tracking-v2.mp4",
-    "previewWebmUrl": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/fleet-tracking-v2.webm",
+    "previewMp4Url": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/fuel-level-monitoring.mp4",
+    "previewWebmUrl": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/fuel-level-monitoring.webm",
     "imageUrls": ["https://thingsboard.io/images/solutions/waste_monitoring/waste-monitoring-preview.png", "https://thingsboard.io/images/solutions/waste_monitoring/waste-monitoring-preview.png", "https://thingsboard.io/images/solutions/waste_monitoring/waste-monitoring-preview.png"]
   },
   {
