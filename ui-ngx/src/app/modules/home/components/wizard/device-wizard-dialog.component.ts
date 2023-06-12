@@ -433,6 +433,7 @@ export class DeviceWizardDialogComponent extends
         mergeMap(
           (deviceCredentials) => {
             const deviceCredentialsValue = {...deviceCredentials, ...this.credentialsFormGroup.value.credential};
+            this.deviceCredentials = deviceCredentialsValue;
             return this.deviceService.saveDeviceCredentials(deviceCredentialsValue).pipe(
               catchError(e => {
                 this.addDeviceWizardStepper.selectedIndex = 1;
@@ -452,7 +453,6 @@ export class DeviceWizardDialogComponent extends
         })
       );
     }
-    return of(device);
   }
 
   allValid(): boolean {
