@@ -669,7 +669,7 @@ public class DefaultSolutionService implements SolutionService {
             RuleChainMetaData ruleChainMetaData = JacksonUtil.treeToValue(JacksonUtil.toJsonNode(metadataStr), RuleChainMetaData.class);
             RuleChain savedRuleChain = ruleChainService.saveRuleChain(ruleChain);
             ruleChainMetaData.setRuleChainId(savedRuleChain.getId());
-            ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), ruleChainMetaData);
+            ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), ruleChainMetaData, Function.identity());
             if (ruleChain.isRoot()) {
                 ruleChainService.setRootRuleChain(ctx.getTenantId(), savedRuleChain.getId());
             }
@@ -700,7 +700,7 @@ public class DefaultSolutionService implements SolutionService {
             RuleChainId ruleChainId = (RuleChainId) EntityIdFactory.getByTypeAndUuid(EntityType.RULE_CHAIN, ctx.getRealIds().get(entityDefinition.getJsonId()));
             RuleChain savedRuleChain = ruleChainService.findRuleChainById(ctx.getTenantId(), ruleChainId);
             ruleChainMetaData.setRuleChainId(savedRuleChain.getId());
-            ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), ruleChainMetaData);
+            ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), ruleChainMetaData, Function.identity());
             tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), savedRuleChain.getId(), ComponentLifecycleEvent.UPDATED);
         }
     }
@@ -727,7 +727,7 @@ public class DefaultSolutionService implements SolutionService {
             RuleChainId ruleChainId = (RuleChainId) EntityIdFactory.getByTypeAndUuid(EntityType.RULE_CHAIN, ctx.getRealIds().get(entityDefinition.getJsonId()));
             RuleChain savedRuleChain = ruleChainService.findRuleChainById(ctx.getTenantId(), ruleChainId);
             ruleChainMetaData.setRuleChainId(savedRuleChain.getId());
-            ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), ruleChainMetaData);
+            ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), ruleChainMetaData, Function.identity());
             tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), savedRuleChain.getId(), ComponentLifecycleEvent.UPDATED);
         }
     }

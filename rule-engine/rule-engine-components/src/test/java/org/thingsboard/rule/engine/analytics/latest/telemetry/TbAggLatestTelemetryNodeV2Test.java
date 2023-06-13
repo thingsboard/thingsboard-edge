@@ -83,6 +83,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -93,6 +94,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNodeV2.TB_CLEAR_INACTIVE_ENTITIES_MSG;
 import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -278,6 +280,8 @@ public class TbAggLatestTelemetryNodeV2Test {
         long deduplicationInSec = 60;
         TbAggLatestTelemetryNodeV2Configuration config = getConfigNode();
         config.setDeduplicationInSec(deduplicationInSec); //delay 60 sec
+        when(ctx.newMsg(any(), eq(TB_CLEAR_INACTIVE_ENTITIES_MSG), any(), any(), any(), any()))
+                .thenReturn(TbMsg.newMsg(TB_CLEAR_INACTIVE_ENTITIES_MSG, null, new TbMsgMetaData(), null));
         node.init(ctx, new TbNodeConfiguration(JacksonUtil.valueToTree(config)));
 
         //Mock for tellSelf
@@ -305,10 +309,14 @@ public class TbAggLatestTelemetryNodeV2Test {
         ArgumentCaptor<TbMsg> captor = ArgumentCaptor.forClass(TbMsg.class);
         ArgumentCaptor<TbMsg> captorForDelayedMsg = ArgumentCaptor.forClass(TbMsg.class);
         verify(ctx, Mockito.timeout(5000).times(countMsg)).enqueueForTellNext(captor.capture(), eq(SUCCESS));
-        verify(ctx, Mockito.timeout(5000).times(countMsg - 1)).tellSelf(captorForDelayedMsg.capture(), anyLong());
+        // four TB_AGG_LATEST_NODE_MSG tbMsgs during node.onMsg() and one TB_CLEAR_LAST_MSG_MAP_NODE_MSG tbMsg during node.init()
+        verify(ctx, Mockito.timeout(5000).times(countMsg)).tellSelf(captorForDelayedMsg.capture(), anyLong());
 
         List<TbMsg> resultMsg = captor.getAllValues();
-        List<TbMsg> delayedMsg = captorForDelayedMsg.getAllValues();
+        List<TbMsg> delayedMsg = captorForDelayedMsg.getAllValues()
+                .stream()
+                .filter(tbMsg -> tbMsg.getType().equals(TB_AGG_LATEST_NODE_MSG))
+                .collect(Collectors.toList());
 
         Assert.assertNotNull(resultMsg);
         Assert.assertEquals(countMsg, resultMsg.size());

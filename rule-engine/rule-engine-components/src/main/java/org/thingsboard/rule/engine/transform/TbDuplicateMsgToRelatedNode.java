@@ -40,6 +40,7 @@ import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.rule.engine.util.EntitiesRelatedEntityIdAsyncLoader;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.msg.TbMsg;
 
 import java.util.List;
 
@@ -55,27 +56,26 @@ import java.util.List;
         configDirective = "tbTransformationNodeDuplicateToRelatedConfig",
         icon = "call_split"
 )
-public class TbDuplicateMsgToRelatedNode extends TbAbstractDuplicateMsgToOriginatorsNode {
-
-    private TbDuplicateMsgToRelatedNodeConfiguration config;
+public class TbDuplicateMsgToRelatedNode extends TbAbstractDuplicateMsgNode<TbDuplicateMsgToRelatedNodeConfiguration> {
 
     @Override
-    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
-        this.config = TbNodeUtils.convert(configuration, TbDuplicateMsgToRelatedNodeConfiguration.class);
-        validateConfig(config);
-        setConfig(config);
+    protected TbDuplicateMsgToRelatedNodeConfiguration loadNodeConfiguration(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+        var config = TbNodeUtils.convert(configuration, TbDuplicateMsgToRelatedNodeConfiguration.class);
+        if (config.getRelationsQuery() == null) {
+            log.error("TbDuplicateMsgToRelatedNode configuration should have relations query");
+            throw new IllegalArgumentException("Wrong configuration for TbDuplicateMsgToRelatedNode: relation query is missing.");
+        }
+        return config;
+    }
+
+    @Override
+    protected ListenableFuture<List<TbMsg>> transform(TbContext ctx, TbMsg msg) {
+        return duplicate(ctx, msg);
     }
 
     @Override
     protected ListenableFuture<List<EntityId>> getNewOriginators(TbContext ctx, EntityId original) {
         return EntitiesRelatedEntityIdAsyncLoader.findEntitiesAsync(ctx, original, config.getRelationsQuery());
-    }
-
-    private void validateConfig(TbDuplicateMsgToRelatedNodeConfiguration conf) {
-        if (conf.getRelationsQuery() == null) {
-            log.error("TbDuplicateMsgToRelatedNode configuration should have relations query");
-            throw new IllegalArgumentException("Wrong configuration for TbDuplicateMsgToRelatedNode: relation query is missing.");
-        }
     }
 
 }

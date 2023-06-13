@@ -1,4 +1,4 @@
 [submodule "docker"]
 	path = docker
 	url = git@github.com:thingsboard/thingsboard-pe-docker-compose.git
-	branch = release-3.4.4
+	branch = master

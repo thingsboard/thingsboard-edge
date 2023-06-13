@@ -39,7 +39,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { BroadcastService } from '@app/core/services/broadcast.service';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { RelationTypes } from '@app/shared/models/relation.models';
-import { SubscriptSizing } from '@angular/material/form-field';
+import { FloatLabelType, SubscriptSizing } from '@angular/material/form-field';
 
 @Component({
   selector: 'tb-relation-type-autocomplete',
@@ -61,6 +61,11 @@ export class RelationTypeAutocompleteComponent implements ControlValueAccessor, 
   get required(): boolean {
     return this.requiredValue;
   }
+
+  @Input() label: string;
+
+  @Input() floatLabel: FloatLabelType = 'auto';
+
   @Input()
   set required(value: boolean) {
     this.requiredValue = coerceBooleanProperty(value);
