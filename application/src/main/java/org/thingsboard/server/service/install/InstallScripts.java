@@ -77,6 +77,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.function.Function;
 
 import static org.thingsboard.server.utils.LwM2mObjectModelUtils.toLwm2mResource;
 
@@ -195,7 +196,7 @@ public class InstallScripts {
             ruleChain = ruleChainService.saveRuleChain(ruleChain);
 
             ruleChainMetaData.setRuleChainId(ruleChain.getId());
-            ruleChainService.saveRuleChainMetaData(TenantId.SYS_TENANT_ID, ruleChainMetaData);
+            ruleChainService.saveRuleChainMetaData(TenantId.SYS_TENANT_ID, ruleChainMetaData, Function.identity());
             return ruleChain;
         } catch (Exception e) {
             log.error("Unable to load rule chain from json: [{}]", path.toString());

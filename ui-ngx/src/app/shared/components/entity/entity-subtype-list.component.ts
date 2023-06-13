@@ -69,6 +69,9 @@ export class EntitySubTypeListComponent implements ControlValueAccessor, OnInit,
   get required(): boolean {
     return this.requiredValue;
   }
+
+  @Input() label: string;
+
   @Input()
   set required(value: boolean) {
     const newVal = coerceBooleanProperty(value);
@@ -239,6 +242,12 @@ export class EntitySubTypeListComponent implements ControlValueAccessor, OnInit,
     this.clear('');
   }
 
+  clearChipGrid() {
+    this.entitySubtypeList = [];
+    this.modelValue = null;
+    this.entitySubtypeListFormGroup.get('entitySubtypeList').patchValue([], {emitEvent: true});
+  }
+
   remove(entitySubtype: string) {
     const index = this.entitySubtypeList.indexOf(entitySubtype);
     if (index >= 0) {
@@ -265,9 +274,7 @@ export class EntitySubTypeListComponent implements ControlValueAccessor, OnInit,
     this.searchText = searchText;
     return this.getEntitySubtypes().pipe(
       map(subTypes => {
-        let result = subTypes.filter( subType => {
-          return searchText ? subType.toUpperCase().startsWith(searchText.toUpperCase()) : true;
-        });
+        let result = subTypes.filter( subType => searchText ? subType.toUpperCase().startsWith(searchText.toUpperCase()) : true);
         if (!result.length) {
           result = [searchText];
         }

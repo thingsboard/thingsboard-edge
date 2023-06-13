@@ -31,6 +31,7 @@
 package org.thingsboard.rule.engine.analytics.latest.alarm;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -39,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
@@ -68,6 +70,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -93,7 +96,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 @Slf4j
-public class TbAlarmsCountV2NodeTest {
+public class TbAlarmsCountNodeV2Test {
 
     private final Gson gson = new Gson();
 
@@ -157,6 +160,27 @@ public class TbAlarmsCountV2NodeTest {
         List<EntityType> propagationEntityTypes = Collections.singletonList(EntityType.ASSET);
         init(createConfigWithCountAlarmsForPropagationEntitiesEnabledAndPropagationTypesSelected(propagationEntityTypes));
         testWithCountAlarmsForPropagationEntitiesEnabledAndPropagationTypesSelected(propagationEntityTypes);
+    }
+
+    @Test
+    public void givenOldConfig_whenUpgrade_thenShouldReturnTrueResultWithNewConfig() throws Exception {
+        var node = new TbAlarmsCountNodeV2();
+        var defaultConfig = new TbAlarmsCountNodeV2Configuration().defaultConfiguration();
+        String oldConfig = "{\"alarmsCountMappings\":[{\"target\":\"alarmsCount\",\"typesList\":null,\"severityList\":null,\"statusList\":null,\"latestInterval\":0}]," +
+                "\"countAlarmsForPropagationEntities\":true,\"propagationEntityTypes\":[],\"queueName\":null}";
+        TbPair<Boolean, JsonNode> upgrade = node.upgrade(0, JacksonUtil.toJsonNode(oldConfig));
+        Assertions.assertTrue(upgrade.getFirst());
+        Assertions.assertEquals(defaultConfig, JacksonUtil.treeToValue(upgrade.getSecond(), defaultConfig.getClass()));
+    }
+
+    @Test
+    public void givenNewConfigWithOldVersion_whenUpgrade_thenShouldReturnFalseResultWithTheSameConfig() throws Exception {
+        var node = new TbAlarmsCountNodeV2();
+        var defaultConfig = new TbAlarmsCountNodeV2Configuration().defaultConfiguration();
+        JsonNode expectedConfig = JacksonUtil.valueToTree(defaultConfig);
+        TbPair<Boolean, JsonNode> upgrade = node.upgrade(0, expectedConfig);
+        Assertions.assertFalse(upgrade.getFirst());
+        Assertions.assertEquals(defaultConfig, JacksonUtil.treeToValue(upgrade.getSecond(), defaultConfig.getClass()));
     }
 
 

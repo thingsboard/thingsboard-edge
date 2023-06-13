@@ -60,6 +60,7 @@ import java.util.Optional;
         type = ComponentType.ANALYTICS,
         name = "alarms count (deprecated)",
         configClazz = TbAlarmsCountNodeConfiguration.class,
+        version = 1,
         nodeDescription = "Periodically counts alarms for entities",
         nodeDetails = "Performs count of alarms for parent entities and child entities if specified with configurable period. " +
                 "Generates outgoing messages with alarm count values for each found entity. By default, an outgoing message generates with 'POST_TELEMETRY_REQUEST' type. " +

@@ -31,30 +31,18 @@
 package org.thingsboard.rule.engine.transform;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
-import org.thingsboard.rule.engine.data.RelationsQuery;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.EntitySearchDirection;
-import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
-
-import java.util.Collections;
 
 @Data
-public class TbDuplicateMsgToRelatedNodeConfiguration extends TbDuplicateMsgNodeConfiguration implements NodeConfiguration {
-
-    private RelationsQuery relationsQuery;
+@EqualsAndHashCode(callSuper = true)
+public class TbDuplicateMsgToRelatedNodeConfiguration extends TbAbstractTransformNodeConfigurationWithRelationQuery implements NodeConfiguration<TbDuplicateMsgToRelatedNodeConfiguration> {
 
     @Override
     public TbDuplicateMsgToRelatedNodeConfiguration defaultConfiguration() {
-        TbDuplicateMsgToRelatedNodeConfiguration configuration = new TbDuplicateMsgToRelatedNodeConfiguration();
-
-        RelationsQuery relationsQuery = new RelationsQuery();
-        relationsQuery.setDirection(EntitySearchDirection.FROM);
-        relationsQuery.setMaxLevel(1);
-        RelationEntityTypeFilter entityTypeFilter = new RelationEntityTypeFilter(EntityRelation.CONTAINS_TYPE, Collections.emptyList());
-        relationsQuery.setFilters(Collections.singletonList(entityTypeFilter));
-        configuration.setRelationsQuery(relationsQuery);
-
+        var configuration = new TbDuplicateMsgToRelatedNodeConfiguration();
+        configuration.setRelationsQuery(getDefaultRelationQuery());
         return configuration;
     }
+
 }
