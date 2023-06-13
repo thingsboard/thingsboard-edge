@@ -28,25 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.notification;
+package org.thingsboard.server.common.data.notification.rule.trigger.config;
 
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.notification.DefaultNotificationSettingsService;
-import org.thingsboard.server.dao.settings.AdminSettingsService;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.limit.LimitedApi;
 
-@Service
-@Primary
-public class MockNotificationSettingsService extends DefaultNotificationSettingsService {
+import java.util.Set;
+import java.util.stream.Collectors;
 
-    public MockNotificationSettingsService(AdminSettingsService adminSettingsService) {
-        super(adminSettingsService, null, null, null);
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class RateLimitsNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
+
+    private Set<LimitedApi> apis;
+
+    @Override
+    public NotificationRuleTriggerType getTriggerType() {
+        return NotificationRuleTriggerType.RATE_LIMITS;
     }
 
     @Override
-    public void createDefaultNotificationConfigs(TenantId tenantId) {
-        // do nothing
+    public String getDeduplicationKey() {
+        return apis == null ? "#" : apis.stream().sorted().map(Enum::name).collect(Collectors.joining(","));
     }
 
 }

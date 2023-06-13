@@ -56,6 +56,7 @@ import org.thingsboard.server.common.data.notification.targets.platform.UserGrou
 import org.thingsboard.server.common.data.notification.targets.platform.UserListFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.UserRoleFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.UsersFilter;
+import org.thingsboard.server.common.data.notification.targets.platform.UsersFilterType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
@@ -111,6 +112,11 @@ public class DefaultNotificationTargetService extends AbstractEntityService impl
     @Override
     public List<NotificationTarget> findNotificationTargetsByTenantIdAndIds(TenantId tenantId, List<NotificationTargetId> ids) {
         return notificationTargetDao.findByTenantIdAndIds(tenantId, ids);
+    }
+
+    @Override
+    public List<NotificationTarget> findNotificationTargetsByTenantIdAndUsersFilterType(TenantId tenantId, UsersFilterType filterType) {
+        return notificationTargetDao.findByTenantIdAndUsersFilterType(tenantId, filterType);
     }
 
     @Override

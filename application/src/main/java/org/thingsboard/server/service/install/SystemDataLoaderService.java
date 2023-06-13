@@ -63,4 +63,6 @@ public interface SystemDataLoaderService {
 
     void createDefaultNotificationConfigs();
 
+    void updateDefaultNotificationConfigs();
+
 }

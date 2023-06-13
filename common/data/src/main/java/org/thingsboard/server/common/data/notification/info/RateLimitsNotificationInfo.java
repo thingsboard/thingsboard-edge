@@ -28,25 +28,47 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.notification;
+package org.thingsboard.server.common.data.notification.info;
 
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Service;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.notification.DefaultNotificationSettingsService;
-import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.common.data.limit.LimitedApi;
 
-@Service
-@Primary
-public class MockNotificationSettingsService extends DefaultNotificationSettingsService {
+import java.util.Map;
 
-    public MockNotificationSettingsService(AdminSettingsService adminSettingsService) {
-        super(adminSettingsService, null, null, null);
+import static org.thingsboard.server.common.data.util.CollectionsUtil.mapOf;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class RateLimitsNotificationInfo implements RuleOriginatedNotificationInfo {
+
+    private TenantId tenantId;
+    private String tenantName;
+    private LimitedApi api;
+    private EntityId limitLevel;
+    private String limitLevelEntityName;
+
+    @Override
+    public Map<String, String> getTemplateData() {
+        return mapOf(
+                "api", api.getLabel(),
+                "limitLevelEntityType", limitLevel != null ? limitLevel.getEntityType().getNormalName() : null,
+                "limitLevelEntityId", limitLevel != null ? limitLevel.getId().toString() : null,
+                "limitLevelEntityName", limitLevelEntityName,
+                "tenantName", tenantName,
+                "tenantId", tenantId.toString()
+        );
     }
 
     @Override
-    public void createDefaultNotificationConfigs(TenantId tenantId) {
-        // do nothing
+    public TenantId getAffectedTenantId() {
+        return tenantId;
     }
 
 }
