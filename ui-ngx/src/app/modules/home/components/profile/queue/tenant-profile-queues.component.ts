@@ -131,7 +131,7 @@ export class TenantProfileQueuesComponent implements ControlValueAccessor, Valid
   }
 
   writeValue(queues: Array<QueueInfo> | null): void {
-    if (queues.length === this.queuesFormArray.length) {
+    if (queues?.length === this.queuesFormArray.length) {
       this.queuesFormArray.patchValue(queues, {emitEvent: false});
     } else {
       const queuesControls: Array<AbstractControl> = [];

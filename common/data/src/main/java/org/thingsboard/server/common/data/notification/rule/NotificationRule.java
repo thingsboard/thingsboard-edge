@@ -52,6 +52,8 @@ import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
@@ -98,6 +100,14 @@ public class NotificationRule extends BaseData<NotificationRuleId> implements Ha
     public boolean isValid() {
         return triggerType == triggerConfig.getTriggerType() &&
                 triggerType == recipientsConfig.getTriggerType();
+    }
+
+    @JsonIgnore
+    public String getDeduplicationKey() {
+        String targets = recipientsConfig.getTargetsTable().values().stream()
+                .flatMap(List::stream).sorted().map(Object::toString)
+                .collect(Collectors.joining(","));
+        return String.join(":", targets, triggerConfig.getDeduplicationKey());
     }
 
     @Override

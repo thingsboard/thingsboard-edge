@@ -34,8 +34,10 @@ import io.qameta.allure.Allure;
 import lombok.SneakyThrows;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
@@ -200,7 +202,7 @@ abstract public class AbstractBasePage {
         try {
             wait.until(ExpectedConditions.attributeContains(element, attribute, value));
         } catch (WebDriverException e) {
-            fail("Miss locator, attribute or value");
+            fail("Failed to wait until attribute '" + attribute + "' of element '" + element + "' contains value '" + value + "'");
         }
     }
 
@@ -257,5 +259,26 @@ abstract public class AbstractBasePage {
 
     public void pull(WebElement element, int xOffset, int yOffset) {
         actions.clickAndHold(element).moveByOffset(xOffset, yOffset).release().perform();
+    }
+
+    public void waitUntilAttributeToBe(String locator, String attribute, String value) {
+        try {
+            wait.until(ExpectedConditions.attributeToBe(By.xpath(locator), attribute, value));
+        } catch (WebDriverException e) {
+            fail("Failed to wait until attribute '" + attribute + "' of element located by '" + locator + "' is '" + value + "'");
+        }
+    }
+
+    public void clearInputField(WebElement element) {
+        element.click();
+        element.sendKeys(Keys.CONTROL + "A" + Keys.BACK_SPACE);
+    }
+
+    public void waitUntilAttributeToBeNotEmpty(WebElement element, String attribute) {
+        try {
+            wait.until(ExpectedConditions.attributeToBeNotEmpty(element, attribute));
+        } catch (WebDriverException e) {
+            fail("Failed to wait until attribute '" + attribute + "' of element '" + element + "' is not empty");
+        }
     }
 }

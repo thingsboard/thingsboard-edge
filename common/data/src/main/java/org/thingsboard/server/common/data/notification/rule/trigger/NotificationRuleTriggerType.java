@@ -31,10 +31,8 @@
 package org.thingsboard.server.common.data.notification.rule.trigger;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 @Getter
-@RequiredArgsConstructor
 public enum NotificationRuleTriggerType {
 
     ENTITY_ACTION,
@@ -43,16 +41,19 @@ public enum NotificationRuleTriggerType {
     ALARM_ASSIGNMENT,
     DEVICE_ACTIVITY,
     RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT,
-    NEW_PLATFORM_VERSION(false, true),
-    ENTITIES_LIMIT(false, false),
-    API_USAGE_LIMIT(false, false),
-    INTEGRATION_LIFECYCLE_EVENT;
+    INTEGRATION_LIFECYCLE_EVENT,
+    NEW_PLATFORM_VERSION(false),
+    ENTITIES_LIMIT(false),
+    API_USAGE_LIMIT(false);
 
     private final boolean tenantLevel;
-    private final boolean deduplicate;
 
     NotificationRuleTriggerType() {
-        this(true, false);
+        this(true);
+    }
+
+    NotificationRuleTriggerType(boolean tenantLevel) {
+        this.tenantLevel = tenantLevel;
     }
 
 }

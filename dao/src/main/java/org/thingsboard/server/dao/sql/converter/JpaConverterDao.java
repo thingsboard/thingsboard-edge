@@ -44,7 +44,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.converter.ConverterDao;
 import org.thingsboard.server.dao.model.sql.ConverterEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
@@ -54,7 +54,7 @@ import java.util.UUID;
 
 @Component
 @SqlDao
-public class JpaConverterDao extends JpaAbstractSearchTextDao<ConverterEntity, Converter> implements ConverterDao {
+public class JpaConverterDao extends JpaAbstractDao<ConverterEntity, Converter> implements ConverterDao {
 
     @Autowired
     private ConverterRepository converterRepository;

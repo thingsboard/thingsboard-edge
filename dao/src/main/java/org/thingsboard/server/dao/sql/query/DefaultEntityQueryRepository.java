@@ -32,7 +32,6 @@ package org.thingsboard.server.dao.sql.query;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -85,7 +84,6 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
-import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.sql.AlarmEntity;
 import org.thingsboard.server.dao.model.sql.AssetEntity;
 import org.thingsboard.server.dao.model.sql.BlobEntityEntity;
@@ -376,7 +374,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         entityNameColumns.put(EntityType.WIDGETS_BUNDLE, "title");
         entityNameColumns.put(EntityType.WIDGET_TYPE, "name");
         entityNameColumns.put(EntityType.ENTITY_VIEW, "name");
-        entityNameColumns.put(EntityType.TB_RESOURCE, "search_text");
+        entityNameColumns.put(EntityType.TB_RESOURCE, "title");
         entityNameColumns.put(EntityType.EDGE, "name");
         entityNameColumns.put(EntityType.QUEUE, "name");
         entityNameColumns.put(EntityType.ENTITY_GROUP, "name");
@@ -1008,7 +1006,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
 
             if (!StringUtils.isEmpty(pageLink.getTextSearch())) {
                 ctx.addStringParameter("textSearch", "%" + pageLink.getTextSearch().toLowerCase() + "%");
-                fromClause.append(" AND LOWER(e.").append(ModelConstants.SEARCH_TEXT_PROPERTY).append(") LIKE :textSearch");
+                fromClause.append(" AND LOWER(e.").append(entityNameColumns.get(entityType)).append(") LIKE :textSearch");
             }
 
             int totalElements = jdbcTemplate.queryForObject(String.format("select count(*) %s", fromClause), ctx, Integer.class);
@@ -2018,7 +2016,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         }
     }
 
-    private String getNameColumn(EntityType entityType) {
+    public static String getNameColumn(EntityType entityType) {
         String nameColumn = entityNameColumns.get(entityType);
         if (nameColumn == null) {
             log.error("Name column is not defined in the entityNameColumns map for entity type {}.", entityType);

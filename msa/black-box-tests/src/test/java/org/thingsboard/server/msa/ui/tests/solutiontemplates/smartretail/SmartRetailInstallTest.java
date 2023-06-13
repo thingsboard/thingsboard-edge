@@ -375,7 +375,7 @@ public class SmartRetailInstallTest extends AbstractSolutionTemplateTest {
         testRestClient.postSmartRetail();
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartRetailInstructionBtn().click();
-        solutionTemplatesInstalledView.goToMainDashboardPageBtn().click();
+        solutionTemplatesInstalledView.goToMainDashboard();
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, SUPERMARKET_USER_SHARED_DASHBOARD_GROUP, SMART_SUPERMARKET_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SUPERMARKET_USER_SHARED_DASHBOARD_GROUP).getUuidId().toString();
 

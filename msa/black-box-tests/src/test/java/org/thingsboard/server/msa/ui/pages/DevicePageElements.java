@@ -50,8 +50,8 @@ public class DevicePageElements extends OtherPageElementsHelper {
             "/ancestor::mat-row//mat-icon[contains(text(),'assignment_ind')]/parent::button";
     private static final String CHOOSE_CUSTOMER_FOR_ASSIGN_FIELD = "//input[@formcontrolname='entity']";
     private static final String ENTITY_FROM_DROPDOWN = "//div[@role = 'listbox']//span[text() = '%s']";
-    private static final String CLOSE_DEVICE_DETAILS_VIEW = "//header//mat-icon[contains(text(),'close')]/parent::button";
-    private static final String SUBMIT_ASSIGN_TO_CUSTOMER_BTN = "//button[@type='submit']";
+    private static final String CLOSE_DETAILS_VIEW = "//header//mat-icon[contains(text(),'close')]/parent::button";
+    private static final String SUBMIT_BTN = "//button[@type='submit']";
     private static final String ADD_DEVICE_BTN = "//mat-icon[text() = 'insert_drive_file']/parent::button";
     private static final String HEADER_NAME_VIEW = "//header//div[@class='tb-details-title']/span";
     private static final String ADD_DEVICE_VIEW = "//tb-device-wizard";
@@ -68,11 +68,18 @@ public class DevicePageElements extends OtherPageElementsHelper {
     private static final String OWNER_FIELD = "//input[@formcontrolname='owner']";
     private static final String DEVICE_LABEL_EDIT = "//input[@formcontrolname='label']";
     private static final String DEVICE_DEVICE_PROFILE_PAGE = DEVICE + "/ancestor::mat-row//mat-cell[contains(@class,'cdk-column-type')]/span";
-    protected static final String ASSIGN_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),'assignment_ind')]/ancestor::button";
-    protected static final String UNASSIGN_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),' assignment_return')]/ancestor::button";
-    protected static final String ASSIGN_BTN_DETAILS_TAB = "//span[contains(text(),'Assign to customer')]/parent::button";
-    protected static final String UNASSIGN_BTN_DETAILS_TAB = "//span[contains(text(),'Unassign from customer')]/parent::button";
     protected static final String CHANGE_OWNER_BTN = "//mat-icon[text() = 'assignment_ind']/parent::button";
+    private static final String FILTER_BTN = "//tb-device-info-filter/button";
+    private static final String DEVICE_PROFILE_FIELD = "(//input[@formcontrolname='deviceProfile'])[2]";
+    private static final String DEVICE_STATE_SELECT = "//div[contains(@class,'tb-filter-panel')]//mat-select[@role='combobox']";
+    private static final String LIST_OF_DEVICES_STATE = "//div[@class='status']";
+    private static final String LIST_OF_DEVICES_PROFILE = "//mat-cell[contains(@class,'type')]";
+    private static final String MAKE_DEVICE_GROUP_PUBLIC_BTN = DEVICE + "/ancestor::mat-row//mat-icon[contains(text(),'share')]/parent::button";
+    private static final String DEVICE_GROUP_IS_PUBLIC_CHECKBOX = DEVICE + "/ancestor::mat-row//mat-icon[contains(text(),'check_box')]";
+    private static final String MAKE_DEVICE_GROUP_PUBLIC_BTN_DETAILS_TAB = "//span[contains(text(),' Make entity group public ')]/parent::button";
+    private static final String MAKE_DEVICE_GROUP_PRIVATE_BTN = DEVICE + "/ancestor::mat-row//mat-icon[contains(text(),'reply')]/parent::button";
+    private static final String DEVICE_IS_PRIVATE_CHECKBOX = DEVICE + "/ancestor::mat-row//mat-icon[contains(text(),'check_box_outline_blank')]";
+    private static final String MAKE_DEVICE_GROUP_PRIVATE_BTN_DETAILS_TAB = "//span[contains(text(),'Make entity group private')]/parent::button";
 
     public List<WebElement> allGroupNames() {
         return waitUntilElementsToBeClickable(ALL_GROUP_NAMES);
@@ -110,12 +117,12 @@ public class DevicePageElements extends OtherPageElementsHelper {
         return waitUntilElementToBeClickable(String.format(ENTITY_FROM_DROPDOWN, customerTitle));
     }
 
-    public WebElement closeDeviceDetailsViewBtn() {
-        return waitUntilElementToBeClickable(CLOSE_DEVICE_DETAILS_VIEW);
+    public WebElement closeDetailsViewBtn() {
+        return waitUntilElementToBeClickable(CLOSE_DETAILS_VIEW);
     }
 
-    public WebElement submitAssignToCustomerBtn() {
-        return waitUntilElementToBeClickable(SUBMIT_ASSIGN_TO_CUSTOMER_BTN);
+    public WebElement submitBtn() {
+        return waitUntilElementToBeClickable(SUBMIT_BTN);
     }
 
     public WebElement addDeviceBtn() {
@@ -186,27 +193,51 @@ public class DevicePageElements extends OtherPageElementsHelper {
         return waitUntilVisibilityOfElementLocated(String.format(DEVICE_DEVICE_PROFILE_PAGE, deviceProfileTitle));
     }
 
-    public WebElement assignBtn(String deviceName) {
-        return waitUntilElementToBeClickable(String.format(ASSIGN_BTN, deviceName));
-    }
-
-    public WebElement assignBtnVisible(String deviceName) {
-        return waitUntilVisibilityOfElementLocated(String.format(ASSIGN_BTN, deviceName));
-    }
-
-    public WebElement unassignBtn(String deviceName) {
-        return waitUntilElementToBeClickable(String.format(UNASSIGN_BTN, deviceName));
-    }
-
-    public WebElement assignBtnDetailsTab() {
-        return waitUntilElementToBeClickable(ASSIGN_BTN_DETAILS_TAB);
-    }
-
-    public WebElement unassignBtnDetailsTab() {
-        return waitUntilElementToBeClickable(UNASSIGN_BTN_DETAILS_TAB);
-    }
-
     public WebElement changeOwnerDeviceBtn() {
         return waitUntilVisibilityOfElementLocated(CHANGE_OWNER_BTN);
+    }
+
+    public WebElement filterBtn() {
+        return waitUntilElementToBeClickable(FILTER_BTN);
+    }
+
+    public WebElement deviceProfileField() {
+        return waitUntilElementToBeClickable(DEVICE_PROFILE_FIELD);
+    }
+
+    public WebElement deviceStateSelect() {
+        return waitUntilElementToBeClickable(DEVICE_STATE_SELECT);
+    }
+
+    public List<WebElement> listOfDevicesState() {
+        return waitUntilVisibilityOfElementsLocated(LIST_OF_DEVICES_STATE);
+    }
+
+    public List<WebElement> listOfDevicesProfile() {
+        return waitUntilVisibilityOfElementsLocated(LIST_OF_DEVICES_PROFILE);
+    }
+
+    public WebElement makeDeviceGroupPublicBtn(String deviceName) {
+        return waitUntilElementToBeClickable(String.format(MAKE_DEVICE_GROUP_PUBLIC_BTN, deviceName));
+    }
+
+    public WebElement deviceGroupIsPublicCheckbox(String deviceName) {
+        return waitUntilVisibilityOfElementLocated(String.format(DEVICE_GROUP_IS_PUBLIC_CHECKBOX, deviceName));
+    }
+
+    public WebElement makeDeviceGroupPublicBtnDetailsTab() {
+        return waitUntilElementToBeClickable(MAKE_DEVICE_GROUP_PUBLIC_BTN_DETAILS_TAB);
+    }
+
+    public WebElement makeDeviceGroupPrivateBtn(String deviceName) {
+        return waitUntilElementToBeClickable(String.format(MAKE_DEVICE_GROUP_PRIVATE_BTN, deviceName));
+    }
+
+    public WebElement deviceIsPrivateCheckbox(String deviceName) {
+        return waitUntilVisibilityOfElementLocated(String.format(DEVICE_IS_PRIVATE_CHECKBOX, deviceName));
+    }
+
+    public WebElement makeDeviceGroupPrivateBtnDetailsTab() {
+        return waitUntilElementToBeClickable(MAKE_DEVICE_GROUP_PRIVATE_BTN_DETAILS_TAB);
     }
 }

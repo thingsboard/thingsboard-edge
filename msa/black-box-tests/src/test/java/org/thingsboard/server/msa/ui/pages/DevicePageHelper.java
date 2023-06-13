@@ -84,16 +84,6 @@ public class DevicePageHelper extends DevicePageElements {
         entityFromDropdown(deviceProfileName).click();
     }
 
-    public void unassignedDeviceByRightSideBtn(String deviceName) {
-        unassignBtn(deviceName).click();
-        warningPopUpYesBtn().click();
-    }
-
-    public void unassignedDeviceFromDetailsTab() {
-        unassignBtnDetailsTab().click();
-        warningPopUpYesBtn().click();
-    }
-
     public void selectDevices(String... deviceNames) {
         for (String deviceName : deviceNames) {
             checkBox(deviceName).click();
@@ -108,6 +98,48 @@ public class DevicePageHelper extends DevicePageElements {
     public void deleteSelectedDevices(String... deviceNames) {
         selectDevices(deviceNames);
         deleteSelectedBtn().click();
+        warningPopUpYesBtn().click();
+    }
+
+    public void filterDeviceByDeviceProfile(String deviceProfileTitle) {
+        clearProfileFieldBtn().click();
+        entityFromDropdown(deviceProfileTitle).click();
+        submitBtn().click();
+    }
+
+    public void filterDeviceByState(String state) {
+        deviceStateSelect().click();
+        entityFromDropdown(" " + state + " ").click();
+        sleep(2); //wait until the action is counted
+        submitBtn().click();
+    }
+
+    public void filterDeviceByDeviceProfileAndState(String deviceProfileTitle, String state) {
+        clearProfileFieldBtn().click();
+        entityFromDropdown(deviceProfileTitle).click();
+        deviceStateSelect().click();
+        entityFromDropdown(" " + state + " ").click();
+        sleep(2); //wait until the action is counted
+        submitBtn().click();
+    }
+
+    public void makeDeviceGroupPublicByRightSideBtn(String deviceName) {
+        makeDeviceGroupPublicBtn(deviceName).click();
+        warningPopUpYesBtn().click();
+    }
+
+    public void makeDeviceGroupPublicFromDetailsTab() {
+        makeDeviceGroupPublicBtnDetailsTab().click();
+        warningPopUpYesBtn().click();
+    }
+
+    public void makeDeviceGroupPrivateByRightSideBtn(String deviceName) {
+        makeDeviceGroupPrivateBtn(deviceName).click();
+        warningPopUpYesBtn().click();
+    }
+
+    public void makeDeviceGroupPrivateFromDetailsTab() {
+        makeDeviceGroupPrivateBtnDetailsTab().click();
         warningPopUpYesBtn().click();
     }
 }

@@ -41,7 +41,6 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
@@ -54,7 +53,7 @@ import java.util.UUID;
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = ModelConstants.RULE_NODE_TABLE_NAME)
-public class RuleNodeEntity extends BaseSqlEntity<RuleNode> implements SearchTextEntity<RuleNode> {
+public class RuleNodeEntity extends BaseSqlEntity<RuleNode> {
 
     @Column(name = ModelConstants.RULE_NODE_CHAIN_ID_PROPERTY)
     private UUID ruleChainId;
@@ -64,9 +63,6 @@ public class RuleNodeEntity extends BaseSqlEntity<RuleNode> implements SearchTex
 
     @Column(name = ModelConstants.RULE_NODE_NAME_PROPERTY)
     private String name;
-
-    @Column(name = ModelConstants.SEARCH_TEXT_PROPERTY)
-    private String searchText;
 
     @Column(name = ModelConstants.RULE_NODE_VERSION_PROPERTY)
     private int configurationVersion;
@@ -103,23 +99,12 @@ public class RuleNodeEntity extends BaseSqlEntity<RuleNode> implements SearchTex
         this.name = ruleNode.getName();
         this.debugMode = ruleNode.isDebugMode();
         this.singletonMode = ruleNode.isSingletonMode();
-        this.searchText = ruleNode.getName();
         this.configurationVersion = ruleNode.getConfigurationVersion();
         this.configuration = ruleNode.getConfiguration();
         this.additionalInfo = ruleNode.getAdditionalInfo();
         if (ruleNode.getExternalId() != null) {
             this.externalId = ruleNode.getExternalId().getId();
         }
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return searchText;
-    }
-
-    @Override
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
     }
 
     @Override

@@ -93,8 +93,8 @@ To emulate the data upload on behalf of device "SI Soil Moisture 1" located insi
 curl -v -X POST -d "{\"moisture\":  77}" ${BASE_URL}/api/v1/${SI Soil Moisture 1ACCESS_TOKEN}/telemetry --header "Content-Type:application/json"{:copy-code}
 ```
 
-The example above uses <a href="https://thingsboard.io/docs/reference/http-api/#telemetry-upload-api" target="_blank">HTTP API</a> for simplicity of demonstration.
-See <a href="https://thingsboard.io/docs/getting-started-guides/connectivity/" target="_blank">connecting devices</a> for other connectivity options.
+The example above uses <a href="https://thingsboard.io/docs/pe/reference/http-api/#telemetry-upload-api" target="_blank">HTTP API</a> for simplicity of demonstration.
+See <a href="https://thingsboard.io/docs/pe/getting-started-guides/connectivity/" target="_blank">connecting devices</a> for other connectivity options.
       
 ### Solution entities
 

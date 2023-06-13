@@ -88,7 +88,7 @@ public interface SchedulerEventInfoRepository extends JpaRepository<SchedulerEve
     @Query("SELECT sei FROM SchedulerEventInfoEntity sei, RelationEntity re WHERE sei.tenantId = :tenantId " +
             "AND sei.id = re.toId AND re.toType = 'SCHEDULER_EVENT' AND re.relationTypeGroup = 'EDGE' " +
             "AND re.relationType = 'Contains' AND re.fromId = :edgeId AND re.fromType = 'EDGE' " +
-            "AND LOWER(sei.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(sei.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<SchedulerEventInfoEntity> findByTenantIdAndEdgeId(@Param("tenantId") UUID tenantId,
                                                        @Param("edgeId") UUID edgeId,
                                                        @Param("searchText") String searchText,
