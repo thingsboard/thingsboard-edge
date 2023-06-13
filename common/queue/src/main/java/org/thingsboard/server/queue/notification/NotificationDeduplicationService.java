@@ -28,35 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg.notification.trigger;
+package org.thingsboard.server.queue.notification;
 
-import lombok.Builder;
-import lombok.Data;
-import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
+import org.thingsboard.server.common.data.notification.rule.NotificationRule;
+import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTrigger;
 
-@Data
-@Builder
-public class EntityActionTrigger implements NotificationRuleTrigger {
+public interface NotificationDeduplicationService {
 
-    private final TenantId tenantId;
-    private final EntityId entityId;
-    private final HasName entity;
-    private final ActionType actionType;
-    private final User user;
+    boolean alreadyProcessed(NotificationRuleTrigger trigger);
 
-    @Override
-    public NotificationRuleTriggerType getType() {
-        return NotificationRuleTriggerType.ENTITY_ACTION;
-    }
-
-    @Override
-    public EntityId getOriginatorEntityId() {
-        return entityId;
-    }
+    boolean alreadyProcessed(NotificationRuleTrigger trigger, NotificationRule rule);
 
 }

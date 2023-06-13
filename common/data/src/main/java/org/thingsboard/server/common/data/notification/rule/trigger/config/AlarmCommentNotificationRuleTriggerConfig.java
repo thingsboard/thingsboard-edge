@@ -28,32 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg.notification.trigger;
+package org.thingsboard.server.common.data.notification.rule.trigger.config;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import org.thingsboard.server.common.data.ApiUsageRecordState;
-import org.thingsboard.server.common.data.ApiUsageStateValue;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
+import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
+import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+
+import java.util.Set;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class ApiUsageLimitTrigger implements NotificationRuleTrigger {
+public class AlarmCommentNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
 
-    private final TenantId tenantId;
-    private final ApiUsageRecordState state;
-    private final ApiUsageStateValue status;
-
-    @Override
-    public NotificationRuleTriggerType getType() {
-        return NotificationRuleTriggerType.API_USAGE_LIMIT;
-    }
+    private Set<String> alarmTypes;
+    private Set<AlarmSeverity> alarmSeverities;
+    private Set<AlarmSearchStatus> alarmStatuses;
+    private boolean onlyUserComments;
+    private boolean notifyOnCommentUpdate;
 
     @Override
-    public EntityId getOriginatorEntityId() {
-        return tenantId;
+    public NotificationRuleTriggerType getTriggerType() {
+        return NotificationRuleTriggerType.ALARM_COMMENT;
     }
 
 }

@@ -30,35 +30,35 @@
  */
 package org.thingsboard.server.common.data.notification.rule.trigger;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
-import org.thingsboard.server.common.data.alarm.AlarmSeverity;
-
-import javax.validation.constraints.NotEmpty;
-import java.util.Set;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.notification.rule.trigger.config.NotificationRuleTriggerType;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
-public class AlarmAssignmentNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
+public class DeviceActivityTrigger implements NotificationRuleTrigger {
 
-    private Set<String> alarmTypes;
-    private Set<AlarmSeverity> alarmSeverities;
-    private Set<AlarmSearchStatus> alarmStatuses;
-    @NotEmpty
-    private Set<Action> notifyOn;
+    private final TenantId tenantId;
+    private final CustomerId customerId;
+    private final DeviceId deviceId;
+    private final boolean active;
+
+    private final String deviceName;
+    private final String deviceType;
+    private final String deviceLabel;
 
     @Override
-    public NotificationRuleTriggerType getTriggerType() {
-        return NotificationRuleTriggerType.ALARM_ASSIGNMENT;
+    public EntityId getOriginatorEntityId() {
+        return deviceId;
     }
 
-    public enum Action {
-        ASSIGNED, UNASSIGNED
+    @Override
+    public NotificationRuleTriggerType getType() {
+        return NotificationRuleTriggerType.DEVICE_ACTIVITY;
     }
 
 }

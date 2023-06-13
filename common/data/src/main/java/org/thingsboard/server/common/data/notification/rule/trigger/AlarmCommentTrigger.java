@@ -30,33 +30,34 @@
  */
 package org.thingsboard.server.common.data.notification.rule.trigger;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import javax.validation.constraints.NotEmpty;
-import java.util.Set;
-import java.util.UUID;
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmComment;
+import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.notification.rule.trigger.config.NotificationRuleTriggerType;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
-public class DeviceActivityNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
+public class AlarmCommentTrigger implements NotificationRuleTrigger {
 
-    private Set<UUID> devices;
-    private Set<UUID> deviceProfiles; // set either devices or profiles
-    @NotEmpty
-    private Set<DeviceEvent> notifyOn;
+    private final TenantId tenantId;
+    private final AlarmComment comment;
+    private final Alarm alarm;
+    private final ActionType actionType;
+    private final User user;
 
     @Override
-    public NotificationRuleTriggerType getTriggerType() {
-        return NotificationRuleTriggerType.DEVICE_ACTIVITY;
+    public NotificationRuleTriggerType getType() {
+        return NotificationRuleTriggerType.ALARM_COMMENT;
     }
 
-    public enum DeviceEvent {
-        ACTIVE, INACTIVE
+    @Override
+    public EntityId getOriginatorEntityId() {
+        return alarm.getId();
     }
 
 }

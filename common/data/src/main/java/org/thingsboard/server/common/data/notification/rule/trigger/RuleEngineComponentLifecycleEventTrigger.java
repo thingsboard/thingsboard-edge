@@ -30,28 +30,34 @@
  */
 package org.thingsboard.server.common.data.notification.rule.trigger;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.EntityType;
-
-import javax.validation.constraints.Max;
-import java.util.Set;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.notification.rule.trigger.config.NotificationRuleTriggerType;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
-public class EntitiesLimitNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
+public class RuleEngineComponentLifecycleEventTrigger implements NotificationRuleTrigger {
 
-    private Set<EntityType> entityTypes;
-    @Max(1)
-    private float threshold; // in percents,
+    private final TenantId tenantId;
+    private final RuleChainId ruleChainId;
+    private final String ruleChainName;
+    private final EntityId componentId;
+    private final String componentName;
+    private final ComponentLifecycleEvent eventType;
+    private final Throwable error;
 
     @Override
-    public NotificationRuleTriggerType getTriggerType() {
-        return NotificationRuleTriggerType.ENTITIES_LIMIT;
+    public NotificationRuleTriggerType getType() {
+        return NotificationRuleTriggerType.RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT;
+    }
+
+    @Override
+    public EntityId getOriginatorEntityId() {
+        return componentId;
     }
 
 }
