@@ -28,50 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg.notification.trigger;
+package org.thingsboard.server.common.data.notification.rule.trigger.config;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
+import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.limit.LimitedApi;
-import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class RateLimitsTrigger implements NotificationRuleTrigger {
+public class RateLimitsNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
 
-    private final TenantId tenantId;
-    private final LimitedApi api;
-    private final EntityId limitLevel;
-    private final String limitLevelEntityName;
+    private Set<LimitedApi> apis;
 
     @Override
-    public NotificationRuleTriggerType getType() {
+    public NotificationRuleTriggerType getTriggerType() {
         return NotificationRuleTriggerType.RATE_LIMITS;
     }
 
     @Override
-    public EntityId getOriginatorEntityId() {
-        return limitLevel != null ? limitLevel : tenantId;
-    }
-
-
-    @Override
-    public boolean deduplicate() {
-        return true;
-    }
-
-    @Override
     public String getDeduplicationKey() {
-        return String.join(":", NotificationRuleTrigger.super.getDeduplicationKey(), api.toString());
-    }
-
-    @Override
-    public long getDefaultDeduplicationDuration() {
-        return TimeUnit.HOURS.toMillis(4);
+        return apis == null ? "#" : apis.stream().sorted().map(Enum::name).collect(Collectors.joining(","));
     }
 
 }
