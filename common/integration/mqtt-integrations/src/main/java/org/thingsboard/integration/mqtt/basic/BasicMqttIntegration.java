@@ -31,6 +31,8 @@
 package org.thingsboard.integration.mqtt.basic;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import lombok.extern.slf4j.Slf4j;
@@ -53,11 +55,13 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Created by ashvayka on 25.12.17.
@@ -68,6 +72,8 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
     protected String downlinkTopicPattern = "${topic}";
 
     private static final String DEFAULT_DOWNLINK_TOPIC_PATTERN = "${topic}";
+
+    private volatile WeakReference<ListenableFuture<?>> subscribeFuture = new WeakReference<>(Futures.immediateVoidFuture());
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
@@ -84,11 +90,15 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
             @Override
             public void onSuccessfulReconnect() {
                 log.info("[{}][{}] MQTT Integration successfully reconnected to the target broker", configuration.getId(), configuration.getName());
-                try {
-                    subscribeToTopics();
-                } catch (IOException e) {
-                    log.info("[{}][{}] MQTT Integration failed to subscribe to topics", configuration.getId(), configuration.getName());
-                }
+                Optional.ofNullable(subscribeFuture.get()).ifPresent(f -> f.cancel(true));
+                var future = mqttClient.getHandlerExecutor().submit(() -> {
+                    try {
+                        subscribeToTopics();
+                    } catch (IOException e) {
+                        log.info("[{}][{}] MQTT Integration failed to subscribe to topics", configuration.getId(), configuration.getName());
+                    }
+                });
+                subscribeFuture = new WeakReference<>(future);
             }
         });
     }

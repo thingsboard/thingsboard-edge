@@ -33,10 +33,15 @@ package org.thingsboard.integration.mqtt;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
+import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -53,6 +58,7 @@ import javax.net.ssl.SSLException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
@@ -220,7 +226,20 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
 
         configuration.getCredentials().configure(config);
 
-        MqttClient client = MqttClient.create(config, defaultHandler);
+        ListeningExecutorService listeningExecutorService = MoreExecutors.listeningDecorator(ctx.getExecutorService());
+        ListeningExecutor handlerExecutor = new ListeningExecutor() {
+            @Override
+            public <T> ListenableFuture<T> executeAsync(Callable<T> task) {
+                return listeningExecutorService.submit(task);
+            }
+
+            @Override
+            public void execute(@NotNull Runnable command) {
+                listeningExecutorService.execute(command);
+            }
+        };
+
+        MqttClient client = MqttClient.create(config, defaultHandler, handlerExecutor);
         client.setEventLoop(context.getEventLoopGroup());
         Future<MqttConnectResult> connectFuture = client.connect(configuration.getHost(), configuration.getPort());
         MqttConnectResult result;
