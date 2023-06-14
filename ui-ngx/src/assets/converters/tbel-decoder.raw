@@ -14,7 +14,7 @@ var deviceName = 'Device A';
 var deviceType = 'thermostat';
 var customerName = 'Customer C';
 var groupName = 'thermostat devices';
-var manufacturer = 'Example corporation'
+var manufacturer = 'Example corporation';
 // use assetName and assetType instead of deviceName and deviceType
 // to automatically create assets instead of devices.
 // var assetName = 'Asset A';
@@ -39,7 +39,6 @@ var result = {
        humidity: 80,
        rawData: payloadStr
    },
-   // Variables returned in the constants section will be saved in the client attributes once and only updated after the integration is restarted.
    constants: {
       manufacturer: manufacturer
    }
