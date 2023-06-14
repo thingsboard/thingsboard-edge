@@ -30,8 +30,10 @@
  */
 package org.thingsboard.server.controller;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -60,6 +62,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.integration.TbIntegrationService;
@@ -83,7 +86,6 @@ import static org.thingsboard.server.controller.ControllerConstants.EDGE_UNASSIG
 import static org.thingsboard.server.controller.ControllerConstants.INTEGRATION_CONFIGURATION_DEFINITION;
 import static org.thingsboard.server.controller.ControllerConstants.INTEGRATION_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.INTEGRATION_ID_PARAM_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.INTEGRATION_SORT_PROPERTY_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.INTEGRATION_TEXT_SEARCH_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
@@ -91,7 +93,6 @@ import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_DELETE_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
-import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
@@ -112,11 +113,11 @@ public class IntegrationController extends AutoCommitController {
             notes = "Fetch the Integration object based on the provided Integration Id. " +
                     "The server checks that the integration is owned by the same tenant. "
                     + NEW_LINE + RBAC_READ_CHECK
-            , produces = MediaType.APPLICATION_JSON_VALUE)
+            , responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integration/{integrationId}", method = RequestMethod.GET)
     @ResponseBody
-    public Integration getIntegrationById(@ApiParam(required = true, value = INTEGRATION_ID_PARAM_DESCRIPTION)
+    public Integration getIntegrationById(@Parameter(required = true, description = INTEGRATION_ID_PARAM_DESCRIPTION)
                                           @PathVariable(INTEGRATION_ID) String strIntegrationId) throws Exception {
         checkParameter(INTEGRATION_ID, strIntegrationId);
         IntegrationId integrationId = new IntegrationId(toUUID(strIntegrationId));
@@ -127,12 +128,12 @@ public class IntegrationController extends AutoCommitController {
             notes = "Fetch the Integration object based on the provided routing key. " +
                     "The server checks that the integration is owned by the same tenant. "
                     + NEW_LINE + RBAC_READ_CHECK
-            , produces = MediaType.APPLICATION_JSON_VALUE)
+            , responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integration/routingKey/{routingKey}", method = RequestMethod.GET)
     @ResponseBody
     public Integration getIntegrationByRoutingKey(
-            @ApiParam(required = true, value = "A string value representing the integration routing key. For example, '542047e6-c1b2-112e-a87e-e49247c09d4b'")
+            @Parameter(required = true, description = "A string value representing the integration routing key. For example, '542047e6-c1b2-112e-a87e-e49247c09d4b'")
             @PathVariable("routingKey") String routingKey) throws Exception {
         Integration integration = checkNotNull(integrationService.findIntegrationByRoutingKey(getTenantId(), routingKey));
         accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, Operation.READ, integration.getId(), integration);
@@ -147,11 +148,11 @@ public class IntegrationController extends AutoCommitController {
                     "Integration configuration is validated for each type of the integration before it can be created. " +
                     INTEGRATION_CONFIGURATION_DEFINITION +
                     "Remove 'id', 'tenantId' from the request body example (below) to create new Integration entity. " +
-                    TENANT_AUTHORITY_PARAGRAPH, produces = MediaType.APPLICATION_JSON_VALUE)
+                    TENANT_AUTHORITY_PARAGRAPH, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integration", method = RequestMethod.POST)
     @ResponseBody
-    public Integration saveIntegration(@ApiParam(required = true, value = "A JSON value representing the integration.")
+    public Integration saveIntegration(@Parameter(required = true, description = "A JSON value representing the integration.")
                                        @RequestBody Integration integration) throws Exception {
         SecurityUser currentUser = getCurrentUser();
         try {
@@ -196,22 +197,22 @@ public class IntegrationController extends AutoCommitController {
 
     @ApiOperation(value = "Get Integrations (getIntegrations)",
             notes = "Returns a page of integrations owned by tenant. " +
-                    PAGE_DATA_PARAMETERS + NEW_LINE + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+                    PAGE_DATA_PARAMETERS + NEW_LINE + RBAC_READ_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integrations", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<Integration> getIntegrations(
-            @ApiParam(value = "Fetch edge template integrations")
+            @Parameter(description = "Fetch edge template integrations")
             @RequestParam(value = "isEdgeTemplate", required = false, defaultValue = "false") boolean isEdgeTemplate,
-            @ApiParam(required = true, value = PAGE_SIZE_DESCRIPTION, allowableValues = "range[1, infinity]")
+            @Parameter(required = true, description = PAGE_SIZE_DESCRIPTION, schema = @Schema(minimum = "1"))
             @RequestParam int pageSize,
-            @ApiParam(required = true, value = PAGE_NUMBER_DESCRIPTION, allowableValues = "range[0, infinity]")
+            @Parameter(required = true, description = PAGE_NUMBER_DESCRIPTION, schema = @Schema(minimum = "0"))
             @RequestParam int page,
-            @ApiParam(value = INTEGRATION_TEXT_SEARCH_DESCRIPTION)
+            @Parameter(description = INTEGRATION_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
-            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = INTEGRATION_SORT_PROPERTY_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {"createdTime", "name", "type", "debugMode", "allowCreateDevicesOrAssets", "enabled", "remote", "routingKey", "secret"}))
             @RequestParam(required = false) String sortProperty,
-            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
             @RequestParam(required = false) String sortOrder) throws Exception {
         accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, Operation.READ);
         TenantId tenantId = getCurrentUser().getTenantId();
@@ -225,22 +226,22 @@ public class IntegrationController extends AutoCommitController {
 
     @ApiOperation(value = "Get Integration Infos (getIntegrationInfos)",
             notes = "Returns a page of integration infos owned by tenant. " +
-                    PAGE_DATA_PARAMETERS + NEW_LINE + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+                    PAGE_DATA_PARAMETERS + NEW_LINE + RBAC_READ_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integrationInfos", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<IntegrationInfo> getIntegrationInfos(
-            @ApiParam(value = "Fetch edge template integrations")
+            @Parameter(description = "Fetch edge template integrations")
             @RequestParam(value = "isEdgeTemplate", required = false, defaultValue = "false") boolean isEdgeTemplate,
-            @ApiParam(required = true, value = PAGE_SIZE_DESCRIPTION, allowableValues = "range[1, infinity]")
+            @Parameter(required = true, description = PAGE_SIZE_DESCRIPTION, schema = @Schema(minimum = "1"))
             @RequestParam int pageSize,
-            @ApiParam(required = true, value = PAGE_NUMBER_DESCRIPTION, allowableValues = "range[0, infinity]")
+            @Parameter(required = true, description = PAGE_NUMBER_DESCRIPTION, schema = @Schema(minimum = "0"))
             @RequestParam int page,
-            @ApiParam(value = INTEGRATION_TEXT_SEARCH_DESCRIPTION)
+            @Parameter(description = INTEGRATION_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
-            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = INTEGRATION_SORT_PROPERTY_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {"createdTime", "name", "type", "debugMode", "allowCreateDevicesOrAssets", "enabled", "remote", "routingKey", "secret"}))
             @RequestParam(required = false) String sortProperty,
-            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
             @RequestParam(required = false) String sortOrder) throws Exception {
         accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, Operation.READ);
         TenantId tenantId = getCurrentUser().getTenantId();
@@ -254,7 +255,7 @@ public class IntegrationController extends AutoCommitController {
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integration/check", method = RequestMethod.POST)
     @ResponseBody
-    public void checkIntegrationConnection(@ApiParam(required = true, value = "A JSON value representing the integration.")
+    public void checkIntegrationConnection(@Parameter(required = true, description = "A JSON value representing the integration.")
                                            @RequestBody Integration integration) throws Exception {
         try {
             checkNotNull(integration);
@@ -276,7 +277,7 @@ public class IntegrationController extends AutoCommitController {
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integration/{integrationId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
-    public void deleteIntegration(@ApiParam(required = true, value = INTEGRATION_ID_PARAM_DESCRIPTION)
+    public void deleteIntegration(@Parameter(required = true, description = INTEGRATION_ID_PARAM_DESCRIPTION)
                                   @PathVariable(INTEGRATION_ID) String strIntegrationId) throws Exception {
         checkParameter(INTEGRATION_ID, strIntegrationId);
         try {
@@ -311,12 +312,12 @@ public class IntegrationController extends AutoCommitController {
 
     @ApiOperation(value = "Get Integrations By Ids (getIntegrationsByIds)",
             notes = "Requested integrations must be owned by tenant which is performing the request. " +
-                    NEW_LINE + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+                    NEW_LINE + RBAC_READ_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integrations", params = {"integrationIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<Integration> getIntegrationsByIds(
-            @ApiParam(value = "A list of integration ids, separated by comma ','", required = true)
+            @Parameter(description = "A list of integration ids, separated by comma ','", required = true)
             @RequestParam("integrationIds") String[] strIntegrationIds) throws Exception {
         checkArrayParameter("integrationIds", strIntegrationIds);
         try {
@@ -353,7 +354,7 @@ public class IntegrationController extends AutoCommitController {
                     EDGE_ASSIGN_RECEIVE_STEP_DESCRIPTION +
                     "Third, once integration will be delivered to edge service, it's going to start locally. " +
                     "\n\nOnly integration edge template can be assigned to edge." + TENANT_AUTHORITY_PARAGRAPH,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/edge/{edgeId}/integration/{integrationId}", method = RequestMethod.POST)
     @ResponseBody
@@ -390,7 +391,7 @@ public class IntegrationController extends AutoCommitController {
                     "Second, remote edge service will receive an 'unassign' command to remove integration " +
                     EDGE_UNASSIGN_RECEIVE_STEP_DESCRIPTION +
                     "Third, once 'unassign' command will be delivered to edge service, it's going to remove integration locally." + TENANT_AUTHORITY_PARAGRAPH,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/edge/{edgeId}/integration/{integrationId}", method = RequestMethod.DELETE)
     @ResponseBody
@@ -426,17 +427,17 @@ public class IntegrationController extends AutoCommitController {
     @RequestMapping(value = "/edge/{edgeId}/integrations", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<Integration> getEdgeIntegrations(
-            @ApiParam(value = EDGE_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = EDGE_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(EDGE_ID) String strEdgeId,
-            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
+            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
             @RequestParam int pageSize,
-            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
+            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
             @RequestParam int page,
-            @ApiParam(value = INTEGRATION_TEXT_SEARCH_DESCRIPTION)
+            @Parameter(description = INTEGRATION_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
-            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = INTEGRATION_SORT_PROPERTY_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {"createdTime", "name", "type", "debugMode", "allowCreateDevicesOrAssets", "enabled", "remote", "routingKey", "secret"}))
             @RequestParam(required = false) String sortProperty,
-            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter(EDGE_ID, strEdgeId);
         TenantId tenantId = getCurrentUser().getTenantId();
@@ -452,17 +453,17 @@ public class IntegrationController extends AutoCommitController {
     @RequestMapping(value = "/edge/{edgeId}/integrationInfos", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<IntegrationInfo> getEdgeIntegrationInfos(
-            @ApiParam(value = EDGE_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = EDGE_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(EDGE_ID) String strEdgeId,
-            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
+            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
             @RequestParam int pageSize,
-            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
+            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
             @RequestParam int page,
-            @ApiParam(value = INTEGRATION_TEXT_SEARCH_DESCRIPTION)
+            @Parameter(description = INTEGRATION_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
-            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = INTEGRATION_SORT_PROPERTY_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {"createdTime", "name", "type", "debugMode", "allowCreateDevicesOrAssets", "enabled", "remote", "routingKey", "secret"}))
             @RequestParam(required = false) String sortProperty,
-            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter(EDGE_ID, strEdgeId);
         TenantId tenantId = getCurrentUser().getTenantId();
@@ -477,9 +478,9 @@ public class IntegrationController extends AutoCommitController {
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/edge/integration/{edgeId}/missingAttributes", params = {"integrationIds"}, method = RequestMethod.GET)
     @ResponseBody
-    public String findEdgeMissingAttributes(@ApiParam(value = EDGE_ID_PARAM_DESCRIPTION, required = true)
+    public String findEdgeMissingAttributes(@Parameter(description = EDGE_ID_PARAM_DESCRIPTION, required = true)
                                             @PathVariable(EDGE_ID) String strEdgeId,
-                                            @ApiParam(value = "A list of assigned integration ids, separated by comma ','", required = true)
+                                            @Parameter(description = "A list of assigned integration ids, separated by comma ','", required = true)
                                             @RequestParam("integrationIds") String[] strIntegrationIds) throws Exception {
         checkArrayParameter("integrationIds", strIntegrationIds);
         EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
@@ -498,7 +499,7 @@ public class IntegrationController extends AutoCommitController {
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/edge/integration/{integrationId}/allMissingAttributes", method = RequestMethod.GET)
     @ResponseBody
-    public String findAllRelatedEdgesMissingAttributes(@ApiParam(value = INTEGRATION_ID_PARAM_DESCRIPTION, required = true)
+    public String findAllRelatedEdgesMissingAttributes(@Parameter(description = INTEGRATION_ID_PARAM_DESCRIPTION, required = true)
                                                        @PathVariable("integrationId") String strIntegrationId) throws Exception {
         checkParameter("integrationId", strIntegrationId);
         IntegrationId integrationId = new IntegrationId(toUUID(strIntegrationId));

@@ -30,46 +30,45 @@
  */
 package org.thingsboard.server.common.data.wl;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.StringUtils;
 
-@ApiModel
+@Schema
 @Data
 @EqualsAndHashCode
 public class WhiteLabelingParams {
 
-    @ApiModelProperty(position = 1, value = "Logo image URL", example = "https://company.com/images/logo.png")
+    @Schema(description = "Logo image URL", example = "https://company.com/images/logo.png")
     protected String logoImageUrl;
-    @ApiModelProperty(position = 2, value = "Logo image checksum. Used to detect the changes of the logo image.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Logo image checksum. Used to detect the changes of the logo image.", accessMode = Schema.AccessMode.READ_ONLY)
     protected String logoImageChecksum;
-    @ApiModelProperty(position = 3, value = "The height of a logo container. Logo image will be automatically scaled.")
+    @Schema(description = "The height of a logo container. Logo image will be automatically scaled.")
     protected Integer logoImageHeight;
-    @ApiModelProperty(position = 4, value = "White-labeled name of the platform", example = "My Company IoT Platform")
+    @Schema(description = "White-labeled name of the platform", example = "My Company IoT Platform")
     protected String appTitle;
-    @ApiModelProperty(position = 5, value = "JSON object that contains website icon url and type")
+    @Schema(description = "JSON object that contains website icon url and type")
     protected Favicon favicon;
-    @ApiModelProperty(position = 6, value = "Favicon image checksum. Used to detect the changes of the website icon", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Favicon image checksum. Used to detect the changes of the website icon", accessMode = Schema.AccessMode.READ_ONLY)
     protected String faviconChecksum;
-    @ApiModelProperty(position = 7, value = "Complex JSON that describes structure of the Angular Material Palette. See [theming](https://material.angular.io/guide/theming) for more details")
+    @Schema(description = "Complex JSON that describes structure of the Angular Material Palette. See [theming](https://material.angular.io/guide/theming) for more details")
     protected PaletteSettings paletteSettings;
-    @ApiModelProperty(position = 8, value = "Base URL for help link")
+    @Schema(description = "Base URL for help link")
     protected String helpLinkBaseUrl;
-    @ApiModelProperty(position = 9, value = "Base URL for the repository with the UI help components (markdown)")
+    @Schema(description = "Base URL for the repository with the UI help components (markdown)")
     protected String uiHelpBaseUrl;
-    @ApiModelProperty(position = 10, value = "Enable or Disable help links")
+    @Schema(description = "Enable or Disable help links")
     protected Boolean enableHelpLinks;
-    @ApiModelProperty(position = 11, value = "Enable white-labeling", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Enable white-labeling", accessMode = Schema.AccessMode.READ_ONLY)
     protected boolean whiteLabelingEnabled = true;
-    @ApiModelProperty(position = 12, value = "Show platform name and version on UI and login screen")
+    @Schema(description = "Show platform name and version on UI and login screen")
     protected Boolean showNameVersion;
-    @ApiModelProperty(position = 13, value = "White-labeled platform name")
+    @Schema(description = "White-labeled platform name")
     protected String platformName;
-    @ApiModelProperty(position = 14, value = "White-labeled platform version")
+    @Schema(description = "White-labeled platform version")
     protected String platformVersion;
-    @ApiModelProperty(position = 15, value = "Custom CSS content")
+    @Schema(description = "Custom CSS content")
     protected String customCss;
 
     public WhiteLabelingParams merge(WhiteLabelingParams otherWlParams) {

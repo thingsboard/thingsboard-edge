@@ -32,7 +32,7 @@ package org.thingsboard.server.dao.sql.query;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.type.PostgresUUIDType;
+import org.hibernate.type.descriptor.jdbc.UUIDJdbcType;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -47,7 +47,7 @@ import java.util.UUID;
 
 @Slf4j
 public class QueryContext implements SqlParameterSource {
-    private static final PostgresUUIDType UUID_TYPE = new PostgresUUIDType();
+    private static final UUIDJdbcType UUID_TYPE = UUIDJdbcType.INSTANCE;
 
     @Getter
     private final QuerySecurityContext securityCtx;
@@ -109,7 +109,7 @@ public class QueryContext implements SqlParameterSource {
     }
 
     public void addUuidParameter(String name, UUID value) {
-        addParameter(name, value, UUID_TYPE.sqlType(), UUID_TYPE.getName());
+        addParameter(name, value, UUID_TYPE.getJdbcTypeCode(), UUID_TYPE.getFriendlyName());
     }
 
     public void addStringParameter(String name, String value) {
@@ -133,7 +133,7 @@ public class QueryContext implements SqlParameterSource {
     }
 
     public void addUuidListParameter(String name, List<UUID> value) {
-        addParameter(name, value, UUID_TYPE.sqlType(), UUID_TYPE.getName());
+        addParameter(name, value, UUID_TYPE.getJdbcTypeCode(), UUID_TYPE.getFriendlyName());
     }
 
     public String getQuery() {

@@ -31,10 +31,14 @@
 package org.thingsboard.server.dao.model.sql;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -43,18 +47,12 @@ import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.util.mapping.JsonStringType;
+import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Table;
 import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_ALLOW_CREATE_DEVICES_OR_ASSETS;
-import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_CONVERTER_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_DEBUG_MODE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_DOWNLINK_CONVERTER_ID_PROPERTY;
@@ -63,13 +61,13 @@ import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_IS_REM
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_NAME_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_ROUTING_KEY_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_SECRET_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_TYPE_PROPERTY;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = INTEGRATION_TABLE_NAME)
 public class IntegrationEntity extends BaseSqlEntity<Integration> implements BaseEntity<Integration> {
 
@@ -107,11 +105,11 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Bas
     @Column(name = INTEGRATION_ALLOW_CREATE_DEVICES_OR_ASSETS)
     private Boolean allowCreateDevicesOrAssets;
 
-    @Type(type = "json")
+    @Convert(converter = JsonConverter.class)
     @Column(name = ModelConstants.INTEGRATION_CONFIGURATION_PROPERTY)
     private JsonNode configuration;
 
-    @Type(type = "json")
+    @Convert(converter = JsonConverter.class)
     @Column(name = ModelConstants.INTEGRATION_ADDITIONAL_INFO_PROPERTY)
     private JsonNode additionalInfo;
 

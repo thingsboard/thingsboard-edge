@@ -30,21 +30,17 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.util.mapping.JsonStringType;
-
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.Transient;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = ModelConstants.ENTITY_GROUP_TABLE_NAME)
 public class EntityGroupEntity extends AbstractEntityGroupEntity<EntityGroup> {
 

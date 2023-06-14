@@ -31,8 +31,10 @@
 package org.thingsboard.server.controller;
 
 import com.google.common.util.concurrent.FutureCallback;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -57,6 +59,7 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.exception.ToErrorResponseEntity;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.ruleengine.LocalRequestMetaData;
@@ -64,8 +67,6 @@ import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
 import org.thingsboard.server.service.security.AccessValidator;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
@@ -100,12 +101,13 @@ public class RuleEngineController extends BaseController {
                     "Uses current User Id ( the one which credentials is used to perform the request) as the Rule Engine message originator. " +
                     MSG_DESCRIPTION +
                     "The default timeout of the request processing is 10 seconds."
-                    + "\n\n" + ControllerConstants.RBAC_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+                    + "\n\n" + ControllerConstants.RBAC_WRITE_CHECK,
+            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/", method = RequestMethod.POST)
     @ResponseBody
     public DeferredResult<ResponseEntity> handleRuleEngineRequest(
-            @ApiParam(value = "A JSON value representing the message.", required = true)
+            @Parameter(description = "A JSON value representing the message.", required = true)
             @RequestBody String requestBody) throws ThingsboardException {
         return handleRuleEngineRequest(null, null, null, DEFAULT_TIMEOUT, requestBody);
     }
@@ -115,16 +117,16 @@ public class RuleEngineController extends BaseController {
                     "Uses specified Entity Id as the Rule Engine message originator. " +
                     MSG_DESCRIPTION +
                     "The default timeout of the request processing is 10 seconds."
-                    + "\n\n" + ControllerConstants.RBAC_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+                    + "\n\n" + ControllerConstants.RBAC_WRITE_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/{entityType}/{entityId}", method = RequestMethod.POST)
     @ResponseBody
     public DeferredResult<ResponseEntity> handleRuleEngineRequest(
-            @ApiParam(value = ENTITY_TYPE_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION, required = true)
             @PathVariable("entityType") String entityType,
-            @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable("entityId") String entityIdStr,
-            @ApiParam(value = "A JSON value representing the message.", required = true)
+            @Parameter(description = "A JSON value representing the message.", required = true)
             @RequestBody String requestBody) throws ThingsboardException {
         return handleRuleEngineRequest(entityType, entityIdStr, null, DEFAULT_TIMEOUT, requestBody);
     }
@@ -134,18 +136,18 @@ public class RuleEngineController extends BaseController {
                     "Uses specified Entity Id as the Rule Engine message originator. " +
                     MSG_DESCRIPTION +
                     "The platform expects the timeout value in milliseconds."
-                    + "\n\n" + ControllerConstants.RBAC_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+                    + "\n\n" + ControllerConstants.RBAC_WRITE_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/{entityType}/{entityId}/{timeout}", method = RequestMethod.POST)
     @ResponseBody
     public DeferredResult<ResponseEntity> handleRuleEngineRequest(
-            @ApiParam(value = ENTITY_TYPE_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION, required = true)
             @PathVariable("entityType") String entityType,
-            @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable("entityId") String entityIdStr,
-            @ApiParam(value = "Timeout to process the request in milliseconds", required = true)
+            @Parameter(description = "Timeout to process the request in milliseconds", required = true)
             @PathVariable("timeout") int timeout,
-            @ApiParam(value = "A JSON value representing the message.", required = true)
+            @Parameter(description = "A JSON value representing the message.", required = true)
             @RequestBody String requestBody) throws ThingsboardException {
         return handleRuleEngineRequest(entityType, entityIdStr, null, timeout, requestBody);
     }
@@ -156,20 +158,20 @@ public class RuleEngineController extends BaseController {
                     MSG_DESCRIPTION +
                     "If request sent for Device/Device Profile or Asset/Asset Profile entity, specified queue will be used instead of the queue selected in the device or asset profile. " +
                     "The platform expects the timeout value in milliseconds."
-                    + "\n\n" + ControllerConstants.RBAC_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+                    + "\n\n" + ControllerConstants.RBAC_WRITE_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/{entityType}/{entityId}/{queueName}/{timeout}", method = RequestMethod.POST)
     @ResponseBody
     public DeferredResult<ResponseEntity> handleRuleEngineRequest(
-            @ApiParam(value = ENTITY_TYPE_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION, required = true)
             @PathVariable("entityType") String entityType,
-            @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable("entityId") String entityIdStr,
-            @ApiParam(value = "Queue name to process the request in the rule engine", required = true)
+            @Parameter(description = "Queue name to process the request in the rule engine", required = true)
             @PathVariable("queueName") String queueName,
-            @ApiParam(value = "Timeout to process the request in milliseconds", required = true)
+            @Parameter(description = "Timeout to process the request in milliseconds", required = true)
             @PathVariable("timeout") int timeout,
-            @ApiParam(value = "A JSON value representing the message.", required = true)
+            @Parameter(description = "A JSON value representing the message.", required = true)
             @RequestBody String requestBody) throws ThingsboardException {
         try {
             SecurityUser currentUser = getCurrentUser();

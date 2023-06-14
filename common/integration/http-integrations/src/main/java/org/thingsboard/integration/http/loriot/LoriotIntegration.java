@@ -36,20 +36,17 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.handler.ssl.SslContextBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.encoders.Hex;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.client.Netty4ClientHttpRequestFactory;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.StringUtils;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.ListenableFutureCallback;
-import org.springframework.web.client.AsyncRestTemplate;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.UnknownHttpStatusCodeException;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.controller.JsonHttpIntegrationMsg;
@@ -57,8 +54,12 @@ import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.http.basic.BasicHttpIntegration;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.msg.TbMsg;
+import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
 
+import javax.net.ssl.SSLException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
@@ -76,7 +77,7 @@ public class LoriotIntegration extends BasicHttpIntegration<JsonHttpIntegrationM
 
     private LoriotConfiguration loriotConfiguration;
     private RestTemplate httpClient;
-    private AsyncRestTemplate asyncHttpClient;
+    private WebClient webClient;
     private String baseUrl;
 
     @Override
@@ -99,9 +100,18 @@ public class LoriotIntegration extends BasicHttpIntegration<JsonHttpIntegrationM
                 createApplicationOutputIfNotExist();
             }
             if (loriotConfiguration.isSendDownlink()) {
-                Netty4ClientHttpRequestFactory nettyFactory = new Netty4ClientHttpRequestFactory(context.getEventLoopGroup());
-                nettyFactory.setSslContext(SslContextBuilder.forClient().build());
-                asyncHttpClient = new AsyncRestTemplate(nettyFactory);
+                HttpClient httpClient = HttpClient.create()
+                        .secure(t -> {
+                            try {
+                                t.sslContext(SslContextBuilder.forClient().build());
+                            } catch (SSLException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
+
+                this.webClient = WebClient.builder()
+                        .clientConnector(new ReactorClientHttpConnector(httpClient))
+                        .build();
             }
         }
     }
@@ -128,7 +138,7 @@ public class LoriotIntegration extends BasicHttpIntegration<JsonHttpIntegrationM
 
             ResponseEntity<JsonNode> response =
                     httpClient.postForEntity(baseUrl + "1/nwk/app/" + loriotConfiguration.getAppId() + "/outputs/httppush", newOutput, JsonNode.class);
-            HttpStatus responseStatus = response.getStatusCode();
+            HttpStatus responseStatus = (HttpStatus) response.getStatusCode();
             JsonNode error = response.getBody() != null ? response.getBody().get("error") : null;
 
             if (responseStatus.equals(HttpStatus.OK) || responseStatus.equals(HttpStatus.NO_CONTENT)) {
@@ -225,28 +235,54 @@ public class LoriotIntegration extends BasicHttpIntegration<JsonHttpIntegrationM
                     HttpHeaders headers = new HttpHeaders();
                     headers.setBearerAuth(loriotConfiguration.getToken());
 
-                    ListenableFuture<ResponseEntity<String>> future =
-                            asyncHttpClient.postForEntity(loriotConfiguration.getLoriotDownlinkUrl(), new HttpEntity<>(payload, headers), String.class);
-                    future.addCallback(new ListenableFutureCallback<ResponseEntity<String>>() {
-                        @Override
-                        public void onFailure(Throwable throwable) {
-                            if (throwable instanceof UnknownHttpStatusCodeException) {
-                                UnknownHttpStatusCodeException exception = (UnknownHttpStatusCodeException) throwable;
-                                reportDownlinkError(context, msg, "ERROR", new Exception(exception.getResponseBodyAsString()));
-                            } else {
-                                reportDownlinkError(context, msg, "ERROR", new Exception(throwable));
-                            }
-                        }
+//                    ListenableFuture<ResponseEntity<String>> future =
+//                            asyncHttpClient.postForEntity(loriotConfiguration.getLoriotDownlinkUrl(), new HttpEntity<>(payload, headers), String.class);
+//                    future.addCallback(new ListenableFutureCallback<ResponseEntity<String>>() {
+//                        @Override
+//                        public void onFailure(Throwable throwable) {
+//                            if (throwable instanceof UnknownHttpStatusCodeException) {
+//                                UnknownHttpStatusCodeException exception = (UnknownHttpStatusCodeException) throwable;
+//                                reportDownlinkError(context, msg, "ERROR", new Exception(exception.getResponseBodyAsString()));
+//                            } else {
+//                                reportDownlinkError(context, msg, "ERROR", new Exception(throwable));
+//                            }
+//                        }
+//
+//                        @Override
+//                        public void onSuccess(ResponseEntity<String> voidResponseEntity) {
+//                            if (voidResponseEntity.getStatusCode().is2xxSuccessful()) {
+//                                reportDownlinkOk(context, downlink);
+//                            } else {
+//                                reportDownlinkError(context, msg, voidResponseEntity.getBody(), new RuntimeException());
+//                            }
+//                        }
+//                    });
 
-                        @Override
-                        public void onSuccess(ResponseEntity<String> voidResponseEntity) {
-                            if (voidResponseEntity.getStatusCode().is2xxSuccessful()) {
-                                reportDownlinkOk(context, downlink);
-                            } else {
-                                reportDownlinkError(context, msg, voidResponseEntity.getBody(), new RuntimeException());
+                    Mono<ResponseEntity<String>> responseMono = webClient.post()
+                            .uri(loriotConfiguration.getLoriotDownlinkUrl())
+                            .headers(h -> h.addAll(headers))
+                            .bodyValue(payload)
+                            .retrieve()
+                            .toEntity(String.class);
+
+                    responseMono.subscribe(
+                            voidResponseEntity -> {
+                                HttpStatusCode statusCode = voidResponseEntity.getStatusCode();
+                                if (statusCode.is2xxSuccessful()) {
+                                    reportDownlinkOk(context, downlink);
+                                } else {
+                                    reportDownlinkError(context, msg, voidResponseEntity.getBody(), new RuntimeException());
+                                }
+                            },
+                            throwable -> {
+                                if (throwable instanceof UnknownHttpStatusCodeException) {
+                                    reportDownlinkError(context, msg, "ERROR", new Exception(((UnknownHttpStatusCodeException) throwable).getResponseBodyAsString()));
+                                } else {
+                                    reportDownlinkError(context, msg, "ERROR", new Exception(throwable));
+                                }
                             }
-                        }
-                    });
+                    );
+
                 }
             }
         } catch (Exception e) {

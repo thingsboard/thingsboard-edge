@@ -30,15 +30,14 @@
  */
 package org.thingsboard.server.service.solutions.data.solution;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel
+@Schema
 @Data
 public class TenantSolutionTemplateInfo extends SolutionTemplateInfo {
 
-    @ApiModelProperty(position = 9, value = "Indicates that template is already installed for the current tenant")
+    @Schema(description = "Indicates that template is already installed for the current tenant")
     private boolean installed;
 
     public TenantSolutionTemplateInfo(SolutionTemplateInfo solution, boolean installed) {

@@ -30,11 +30,11 @@
  */
 package org.thingsboard.server.dao.model.sqlts.timescale.ts;
 
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Transient;
 import java.io.Serializable;
 import java.util.UUID;
 

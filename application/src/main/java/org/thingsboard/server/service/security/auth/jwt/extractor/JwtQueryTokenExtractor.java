@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.config.ThingsboardSecurityConfiguration;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Component(value="jwtQueryTokenExtractor")
 public class JwtQueryTokenExtractor implements TokenExtractor {

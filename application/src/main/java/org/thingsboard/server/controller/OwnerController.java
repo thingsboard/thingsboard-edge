@@ -30,8 +30,8 @@
  */
 package org.thingsboard.server.controller;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import org.thingsboard.server.config.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -103,13 +103,13 @@ public class OwnerController extends AutoCommitController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/owner/TENANT/{ownerId}/{entityType}/{entityId}", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public void changeOwnerToTenant(@ApiParam(value = TENANT_ID_PARAM_DESCRIPTION)
+    public void changeOwnerToTenant(@Parameter(description = TENANT_ID_PARAM_DESCRIPTION)
                                     @PathVariable(OWNER_ID) String ownerIdStr,
-                                    @ApiParam(value = ENTITY_TYPE_PARAM_DESCRIPTION)
+                                    @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION)
                                     @PathVariable(ENTITY_TYPE) String entityType,
-                                    @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION)
+                                    @Parameter(description = ENTITY_ID_PARAM_DESCRIPTION)
                                     @PathVariable(ENTITY_ID) String entityIdStr,
-                                    @ApiParam(value = "An optional list of additional entity group ids")
+                                    @Parameter(description = "An optional list of additional entity group ids")
                                     @RequestBody(required = false) String[] strEntityGroupIds) throws ThingsboardException {
         checkParameter(OWNER_ID, ownerIdStr);
         checkParameter(ENTITY_TYPE, entityType);
@@ -135,13 +135,13 @@ public class OwnerController extends AutoCommitController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/owner/CUSTOMER/{ownerId}/{entityType}/{entityId}", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public void changeOwnerToCustomer(@ApiParam(value = CUSTOMER_ID_PARAM_DESCRIPTION)
+    public void changeOwnerToCustomer(@Parameter(description = CUSTOMER_ID_PARAM_DESCRIPTION)
                                       @PathVariable(OWNER_ID) String ownerIdStr,
-                                      @ApiParam(value = ENTITY_TYPE_PARAM_DESCRIPTION)
+                                      @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION)
                                       @PathVariable(ENTITY_TYPE) String entityType,
-                                      @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION)
+                                      @Parameter(description = ENTITY_ID_PARAM_DESCRIPTION)
                                       @PathVariable(ENTITY_ID) String entityIdStr,
-                                      @ApiParam(value = "An optional list of additional entity group ids")
+                                      @Parameter(description = "An optional list of additional entity group ids")
                                       @RequestBody(required = false) String[] strEntityGroupIds) throws Exception {
         checkParameter(OWNER_ID, ownerIdStr);
         checkParameter(ENTITY_TYPE, entityType);

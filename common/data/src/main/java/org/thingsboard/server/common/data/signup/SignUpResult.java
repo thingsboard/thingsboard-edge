@@ -30,12 +30,12 @@
  */
 package org.thingsboard.server.common.data.signup;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Created by igor on 12/13/16.
  */
-@ApiModel
+@Schema
 public enum SignUpResult {
 
     SUCCESS,

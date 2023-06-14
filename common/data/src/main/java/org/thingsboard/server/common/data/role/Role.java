@@ -32,7 +32,7 @@ package org.thingsboard.server.common.data.role;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -66,17 +66,17 @@ public class Role extends BaseDataWithAdditionalInfo<RoleId> implements HasName,
     public static final String ROLE_READ_ONLY_ENTITY_GROUP_NAME = "Entity Group Read-only User";
     public static final String ROLE_WRITE_ENTITY_GROUP_NAME = "Entity Group Write User";
 
-    @ApiModelProperty(position = 3, required = true, value = "JSON object with Tenant Id.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(required = true, description = "JSON object with Tenant Id.", accessMode = Schema.AccessMode.READ_ONLY)
     private TenantId tenantId;
-    @ApiModelProperty(position = 4, value = "JSON object with Customer Id. ", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "JSON object with Customer Id. ", accessMode = Schema.AccessMode.READ_ONLY)
     private CustomerId customerId;
     @NoXss
     @Length(fieldName = "name")
-    @ApiModelProperty(position = 6, required = true, value = "Role Name", example = "Read-Only")
+    @Schema(required = true, description = "Role Name", example = "Read-Only")
     private String name;
-    @ApiModelProperty(position = 7, required = true, value = "Type of the role: generic or group", example = "GROUP")
+    @Schema(required = true, description = "Type of the role: generic or group", example = "GROUP")
     private RoleType type;
-    @ApiModelProperty(position = 8, value = "JSON object with the set of permissions. Structure is specific for role type", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "JSON object with the set of permissions. Structure is specific for role type", accessMode = Schema.AccessMode.READ_ONLY)
     private transient JsonNode permissions;
     @JsonIgnore
     private byte[] permissionsBytes;
@@ -97,7 +97,7 @@ public class Role extends BaseDataWithAdditionalInfo<RoleId> implements HasName,
         externalId = role.getExternalId();
     }
 
-    @ApiModelProperty(position = 5, value = "JSON object with Customer or Tenant Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "JSON object with Customer or Tenant Id", accessMode = Schema.AccessMode.READ_ONLY)
     @Override
     public EntityId getOwnerId() {
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
@@ -126,7 +126,7 @@ public class Role extends BaseDataWithAdditionalInfo<RoleId> implements HasName,
         setJson(permissions, json -> this.permissions = json, bytes -> this.permissionsBytes = bytes);
     }
 
-    @ApiModelProperty(position = 1, value = "JSON object with the Role Id. " +
+    @Schema(description = "JSON object with the Role Id. " +
             "Specify this field to update the Role. " +
             "Referencing non-existing Role Id will cause error. " +
             "Omit this field to create new Role." )
@@ -135,13 +135,13 @@ public class Role extends BaseDataWithAdditionalInfo<RoleId> implements HasName,
         return super.getId();
     }
 
-    @ApiModelProperty(position = 2, value = "Timestamp of the role creation, in milliseconds", example = "1609459200000", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Timestamp of the role creation, in milliseconds", example = "1609459200000", accessMode = Schema.AccessMode.READ_ONLY)
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();
     }
 
-    @ApiModelProperty(position = 13, value = "Additional parameters of the role", dataType = "com.fasterxml.jackson.databind.JsonNode")
+    @Schema(description = "Additional parameters of the role", implementation = com.fasterxml.jackson.databind.JsonNode.class)
     @Override
     public JsonNode getAdditionalInfo() {
         return super.getAdditionalInfo();

@@ -28,39 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.model.sql.types;
+package org.thingsboard.server.dao.util.mapping;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.hibernate.HibernateException;
-import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.StringUtils;
 
 import java.nio.charset.StandardCharsets;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-public class GroupsType extends AbstractJavaUserType {
+@Converter
+public class EntityInfosConverter implements AttributeConverter<List<EntityInfo>, String> {
 
     @Override
-    public Class<List> returnedClass() {
-        return List.class;
+    public String convertToDatabaseColumn(List<EntityInfo> attribute) {
+        throw new IllegalArgumentException("Not implemented!");
     }
 
     @Override
-    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner) throws HibernateException, SQLException {
-        final String value = rs.getString(names[0]);
-        if (StringUtils.isEmpty(value)) {
-            return Collections.emptyList();
-        }
+    public List<EntityInfo> convertToEntityAttribute(String s) {
         try {
-            JsonNode node = JacksonUtil.fromBytes(value.getBytes(StandardCharsets.UTF_8));
+            JsonNode node = JacksonUtil.fromBytes(s.getBytes(StandardCharsets.UTF_8));
             if (node.isArray()) {
                 List<EntityInfo> groups = new ArrayList<>();
                 for (int i = 0; i < node.size(); i++) {
@@ -72,7 +66,8 @@ public class GroupsType extends AbstractJavaUserType {
                     if (idNode != null && nameNode != null) {
                         try {
                             id = UUID.fromString(idNode.asText());
-                        } catch (Exception ignored){}
+                        } catch (Exception ignored) {
+                        }
                         name = nameNode.asText();
                     }
                     if (id != null && name != null) {

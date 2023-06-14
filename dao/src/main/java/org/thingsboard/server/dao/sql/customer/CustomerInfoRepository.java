@@ -52,7 +52,7 @@ public interface CustomerInfoRepository extends JpaRepository<CustomerInfoEntity
                                             Pageable pageable);
 
     @Query("SELECT ci FROM CustomerInfoEntity ci " +
-            "WHERE ci.tenantId = :tenantId AND (ci.parentCustomerId IS NULL OR ci.parentCustomerId = '13814000-1dd2-11b2-8080-808080808080') " +
+            "WHERE ci.tenantId = :tenantId AND (ci.parentCustomerId IS NULL OR ci.parentCustomerId = uuid('13814000-1dd2-11b2-8080-808080808080')) " +
             "AND LOWER(ci.title) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<CustomerInfoEntity> findTenantCustomersByTenantId(@Param("tenantId") UUID tenantId,
                                                            @Param("searchText") String searchText,

@@ -66,7 +66,7 @@ public class TbRestApiCallNode implements TbNode {
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         TbRestApiCallNodeConfiguration config = TbNodeUtils.convert(configuration, TbRestApiCallNodeConfiguration.class);
-        httpClient = new TbHttpClient(config, ctx.getSharedEventLoop());
+        httpClient = new TbHttpClient(config);
         useRedisQueueForMsgPersistence = config.isUseRedisQueueForMsgPersistence();
         if (useRedisQueueForMsgPersistence) {
             log.warn("[{}][{}] Usage of Redis Template is deprecated starting 2.5 and will have no affect", ctx.getTenantId(), ctx.getSelfId());
@@ -76,13 +76,6 @@ public class TbRestApiCallNode implements TbNode {
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
         httpClient.processMessage(ctx, msg);
-    }
-
-    @Override
-    public void destroy() {
-        if (this.httpClient != null) {
-            this.httpClient.destroy();
-        }
     }
 
 }

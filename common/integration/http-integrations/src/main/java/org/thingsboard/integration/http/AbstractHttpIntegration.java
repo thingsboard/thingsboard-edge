@@ -54,7 +54,7 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg<?>> e
         try {
             ResponseEntity httpResponse = doProcess(msg);
             if (!httpResponse.getStatusCode().is2xxSuccessful()) {
-                status = httpResponse.getStatusCode().name();
+                status = ((HttpStatus) httpResponse.getStatusCode()).name();
             }
             try {
                 msg.getCallback().setResult(httpResponse);

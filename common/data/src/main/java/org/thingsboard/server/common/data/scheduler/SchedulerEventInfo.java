@@ -32,8 +32,7 @@ package org.thingsboard.server.common.data.scheduler;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -50,7 +49,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
-@ApiModel
+@Schema
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
@@ -58,21 +57,21 @@ public class SchedulerEventInfo extends BaseDataWithAdditionalInfo<SchedulerEven
 
     private static final long serialVersionUID = 2807343040519549363L;
 
-    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "JSON object with Tenant Id", accessMode = Schema.AccessMode.READ_ONLY)
     private TenantId tenantId;
-    @ApiModelProperty(position = 4, value = "JSON object with Customer Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "JSON object with Customer Id", accessMode = Schema.AccessMode.READ_ONLY)
     private CustomerId customerId;
-    @ApiModelProperty(position = 5, value = "JSON object with Originator Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "JSON object with Originator Id", accessMode = Schema.AccessMode.READ_ONLY)
     private EntityId originatorId;
     @NoXss
     @Length(fieldName = "name")
-    @ApiModelProperty(position = 6, value = "scheduler event name", example = "Weekly Dashboard Report")
+    @Schema(description = "scheduler event name", example = "Weekly Dashboard Report")
     private String name;
-    @ApiModelProperty(position = 7, value = "scheduler event type", example = "generateReport")
+    @Schema(description = "scheduler event type", example = "generateReport")
     @NoXss
     @Length(fieldName = "type")
     private String type;
-    @ApiModelProperty(position = 8, value = "a JSON value with schedule time configuration", dataType = "com.fasterxml.jackson.databind.JsonNode")
+    @Schema(description = "a JSON value with schedule time configuration", implementation = com.fasterxml.jackson.databind.JsonNode.class)
     private transient JsonNode schedule;
     @JsonIgnore
     private byte[] scheduleBytes;
@@ -95,7 +94,7 @@ public class SchedulerEventInfo extends BaseDataWithAdditionalInfo<SchedulerEven
         this.setSchedule(schedulerEventInfo.getSchedule());
     }
 
-    @ApiModelProperty(position = 1, value = "JSON object with the scheduler event Id. " +
+    @Schema(description = "JSON object with the scheduler event Id. " +
             "Specify this field to update the scheduler event. " +
             "Referencing non-existing scheduler event Id will cause error. " +
             "Omit this field to create new scheduler event" )
@@ -104,13 +103,13 @@ public class SchedulerEventInfo extends BaseDataWithAdditionalInfo<SchedulerEven
         return super.getId();
     }
 
-    @ApiModelProperty(position = 2, value = "Timestamp of the scheduler event creation, in milliseconds", example = "1609459200000", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Timestamp of the scheduler event creation, in milliseconds", example = "1609459200000", accessMode = Schema.AccessMode.READ_ONLY)
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();
     }
 
-    @ApiModelProperty(position = 10, value = "Additional parameters of the scheduler event", dataType = "com.fasterxml.jackson.databind.JsonNode")
+    @Schema(description = "Additional parameters of the scheduler event", implementation = com.fasterxml.jackson.databind.JsonNode.class)
     @Override
     public JsonNode getAdditionalInfo() {
         return super.getAdditionalInfo();
@@ -121,7 +120,7 @@ public class SchedulerEventInfo extends BaseDataWithAdditionalInfo<SchedulerEven
         return name;
     }
 
-    @ApiModelProperty(position = 5, value = "JSON object with Customer or Tenant Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "JSON object with Customer or Tenant Id", accessMode = Schema.AccessMode.READ_ONLY)
     @Override
     public EntityId getOwnerId() {
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;

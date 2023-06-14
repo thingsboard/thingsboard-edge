@@ -62,14 +62,14 @@ public interface AssetInfoRepository extends JpaRepository<AssetInfoEntity, UUID
                                                           Pageable pageable);
 
     @Query("SELECT ai FROM AssetInfoEntity ai " +
-            "WHERE ai.tenantId = :tenantId AND (ai.customerId IS NULL OR ai.customerId = '13814000-1dd2-11b2-8080-808080808080') " +
+            "WHERE ai.tenantId = :tenantId AND (ai.customerId IS NULL OR ai.customerId = uuid('13814000-1dd2-11b2-8080-808080808080')) " +
             "AND LOWER(ai.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<AssetInfoEntity> findTenantAssetsByTenantId(@Param("tenantId") UUID tenantId,
                                                      @Param("searchText") String searchText,
                                                      Pageable pageable);
 
     @Query("SELECT ai FROM AssetInfoEntity ai " +
-            "WHERE ai.tenantId = :tenantId AND (ai.customerId IS NULL OR ai.customerId = '13814000-1dd2-11b2-8080-808080808080') " +
+            "WHERE ai.tenantId = :tenantId AND (ai.customerId IS NULL OR ai.customerId = uuid('13814000-1dd2-11b2-8080-808080808080')) " +
             "AND ai.assetProfileId = :assetProfileId " +
             "AND LOWER(ai.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<AssetInfoEntity> findTenantAssetsByTenantIdAndAssetProfileId(@Param("tenantId") UUID tenantId,

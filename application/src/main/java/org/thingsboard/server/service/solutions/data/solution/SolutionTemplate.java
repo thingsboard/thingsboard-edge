@@ -30,29 +30,28 @@
  */
 package org.thingsboard.server.service.solutions.data.solution;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@ApiModel
+@Schema
 @Data
 @NoArgsConstructor
 public class SolutionTemplate {
 
-    @ApiModelProperty(position = 1, value = "ID of the solution template", example = "784f394c-42b6-435a-983c-b7beff2784f9")
+    @Schema(description = "ID of the solution template", example = "784f394c-42b6-435a-983c-b7beff2784f9")
     private String id;
-    @ApiModelProperty(position = 2, value = "Template Title", example = "Smart office")
+    @Schema(description = "Template Title", example = "Smart office")
     private String title;
-    @ApiModelProperty(position = 3, value = "Level of the subscription that is required to unlock the template", example = "PROTOTYPE")
+    @Schema(description = "Level of the subscription that is required to unlock the template", example = "PROTOTYPE")
     private SolutionTemplateLevel level;
-    @ApiModelProperty(position = 4, value = "Timeout for the installation UI to wait while template is installing")
+    @Schema(description = "Timeout for the installation UI to wait while template is installing")
     private long installTimeoutMs;
-    @ApiModelProperty(position = 5, value = "What keys to delete during template uninstall")
+    @Schema(description = "What keys to delete during template uninstall")
     private List<String> tenantTelemetryKeys;
-    @ApiModelProperty(position = 6, value = "What attributes to delete during template uninstall")
+    @Schema(description = "What attributes to delete during template uninstall")
     private List<String> tenantAttributeKeys;
 
     public SolutionTemplate(SolutionTemplate solution) {

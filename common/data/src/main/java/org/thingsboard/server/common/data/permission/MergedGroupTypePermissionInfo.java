@@ -30,22 +30,21 @@
  */
 package org.thingsboard.server.common.data.permission;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 
 import java.util.List;
 
-@ApiModel
+@Schema
 @Data
 @AllArgsConstructor
 public class MergedGroupTypePermissionInfo {
 
-    @ApiModelProperty(position = 2, value = "List of Entity Groups in case of group roles are assigned to the user (user group)")
+    @Schema(description = "List of Entity Groups in case of group roles are assigned to the user (user group)")
     private final List<EntityGroupId> entityGroupIds;
-    @ApiModelProperty(position = 1, value = "Indicates if generic permission assigned to the user group.")
+    @Schema(description = "Indicates if generic permission assigned to the user group.")
     private final boolean hasGenericRead;
 
 }

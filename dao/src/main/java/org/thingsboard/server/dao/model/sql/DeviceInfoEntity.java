@@ -30,27 +30,27 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.Immutable;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.PostgreSQLJsonPGObjectJsonType;
 import org.thingsboard.server.common.data.DeviceInfo;
 import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.sql.types.GroupsType;
+import org.thingsboard.server.dao.util.mapping.EntityInfosConverter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
 import java.util.List;
 
 @Data
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@TypeDef(name = "Groups", typeClass = GroupsType.class)
 @Immutable
 @Table(name = ModelConstants.DEVICE_INFO_VIEW_TABLE_NAME)
 public class DeviceInfoEntity extends AbstractDeviceEntity<DeviceInfo> {
@@ -58,7 +58,8 @@ public class DeviceInfoEntity extends AbstractDeviceEntity<DeviceInfo> {
     @Column(name = ModelConstants.OWNER_NAME_COLUMN)
     private String ownerName;
 
-    @Type(type = "Groups")
+    @Convert(converter = EntityInfosConverter.class)
+    @JdbcType(PostgreSQLJsonPGObjectJsonType.class)
     @Column(name = ModelConstants.GROUPS_COLUMN)
     private List<EntityInfo> groups;
 
