@@ -32,6 +32,7 @@ package org.thingsboard.integration.http.thingpark;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.io.BaseEncoding;
+import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -101,14 +102,9 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
         if (downlinkConverter != null) {
             downlinkUrl = json.has("downlinkUrl") ? json.get("downlinkUrl").asText() : DEFAULT_DOWNLINK_URL;
 
-            HttpClient httpClient = HttpClient.create()
-                    .secure(t -> {
-                        try {
-                            t.sslContext(SslContextBuilder.forClient().build());
-                        } catch (SSLException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
+            HttpClient httpClient = HttpClient.create();
+            SslContext sslContext = SslContextBuilder.forClient().build();
+            httpClient.secure(t -> t.sslContext(sslContext));
 
             this.webClient = WebClient.builder()
                     .clientConnector(new ReactorClientHttpConnector(httpClient))

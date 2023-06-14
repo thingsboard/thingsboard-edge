@@ -191,7 +191,7 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
 
     protected void doSignUp(SignUpRequest signUpRequest) throws Exception {
         var result = doPostWithTypedResponse(
-                "/api/noauth/signup/", signUpRequest,
+                "/api/noauth/signup", signUpRequest,
                 new TypeReference<SignUpResult>() {
                 }
         );

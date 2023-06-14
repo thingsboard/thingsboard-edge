@@ -33,6 +33,7 @@ package org.thingsboard.integration.http.loriot;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.encoders.Hex;
@@ -100,14 +101,9 @@ public class LoriotIntegration extends BasicHttpIntegration<JsonHttpIntegrationM
                 createApplicationOutputIfNotExist();
             }
             if (loriotConfiguration.isSendDownlink()) {
-                HttpClient httpClient = HttpClient.create()
-                        .secure(t -> {
-                            try {
-                                t.sslContext(SslContextBuilder.forClient().build());
-                            } catch (SSLException e) {
-                                throw new RuntimeException(e);
-                            }
-                        });
+                HttpClient httpClient = HttpClient.create();
+                SslContext sslContext = SslContextBuilder.forClient().build();
+                httpClient.secure(t -> t.sslContext(sslContext));
 
                 this.webClient = WebClient.builder()
                         .clientConnector(new ReactorClientHttpConnector(httpClient))
@@ -234,29 +230,6 @@ public class LoriotIntegration extends BasicHttpIntegration<JsonHttpIntegrationM
 
                     HttpHeaders headers = new HttpHeaders();
                     headers.setBearerAuth(loriotConfiguration.getToken());
-
-//                    ListenableFuture<ResponseEntity<String>> future =
-//                            asyncHttpClient.postForEntity(loriotConfiguration.getLoriotDownlinkUrl(), new HttpEntity<>(payload, headers), String.class);
-//                    future.addCallback(new ListenableFutureCallback<ResponseEntity<String>>() {
-//                        @Override
-//                        public void onFailure(Throwable throwable) {
-//                            if (throwable instanceof UnknownHttpStatusCodeException) {
-//                                UnknownHttpStatusCodeException exception = (UnknownHttpStatusCodeException) throwable;
-//                                reportDownlinkError(context, msg, "ERROR", new Exception(exception.getResponseBodyAsString()));
-//                            } else {
-//                                reportDownlinkError(context, msg, "ERROR", new Exception(throwable));
-//                            }
-//                        }
-//
-//                        @Override
-//                        public void onSuccess(ResponseEntity<String> voidResponseEntity) {
-//                            if (voidResponseEntity.getStatusCode().is2xxSuccessful()) {
-//                                reportDownlinkOk(context, downlink);
-//                            } else {
-//                                reportDownlinkError(context, msg, voidResponseEntity.getBody(), new RuntimeException());
-//                            }
-//                        }
-//                    });
 
                     Mono<ResponseEntity<String>> responseMono = webClient.post()
                             .uri(loriotConfiguration.getLoriotDownlinkUrl())
