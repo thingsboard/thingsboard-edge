@@ -348,18 +348,20 @@
               </button>
             </section>
           </fieldset>
-          <div fxLayout="row" fxLayoutAlign="end center" fxLayout.xs="column" fxLayoutAlign.xs="end" fxLayoutGap="16px">
-            <button mat-raised-button type="button"
-                    [disabled]="(isLoading$ | async) || mailSettings.invalid || domainForm.invalid || (mailSettings.dirty || domainForm.dirty)"
-                    (click)="sendTestMail()">
-              {{'admin.send-test-mail' | translate}}
-            </button>
-            <button mat-raised-button color="primary"
-                    [disabled]="(isLoading$ | async) || mailSettings.invalid || domainForm.invalid || (!mailSettings.dirty && !domainForm.dirty)"
-                    type="submit">{{'action.save' | translate}}
-            </button>
-          </div>
         </fieldset>
+        <div fxLayout="row" fxLayoutAlign="end center" fxLayout.xs="column" fxLayoutAlign.xs="end" fxLayoutGap="16px">
+          <button mat-raised-button type="button"
+                  *ngIf="!mailSettings.get('useSystemMailSettings').value && !readonly"
+                  [disabled]="(isLoading$ | async) || mailSettings.get('enableOauth2').value ? mailSettings.invalid || domainForm.invalid || (mailSettings.dirty || domainForm.dirty) : mailSettings.invalid"
+                  (click)="sendTestMail()">
+            {{'admin.send-test-mail' | translate}}
+          </button>
+          <button mat-raised-button color="primary"
+                  *ngIf="!readonly"
+                  [disabled]="(isLoading$ | async) || mailSettings.invalid || domainForm.invalid || (!mailSettings.dirty && !domainForm.dirty)"
+                  type="submit">{{'action.save' | translate}}
+          </button>
+        </div>
       </form>
     </mat-card-content>
   </mat-card>
