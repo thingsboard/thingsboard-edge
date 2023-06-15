@@ -37,11 +37,11 @@
     "title": "Fuel Level Monitoring",
     "level": "MAKER",
     "installTimeoutMs": 15000,
-    "previewImageUrl": "https://thingsboard.io/images/solutions/waste_monitoring/waste-monitoring-preview.png",
-    "videoPreviewImageUrl": "https://thingsboard.io/images/usecases/fleet-tracking-v2/video/fleet-tracking-v2.png",
+    "previewImageUrl": "https://thingsboard.io/images/solutions/fuel_level_monitoring/fuel-monitoring-1.png",
+    "videoPreviewImageUrl": "https://thingsboard.io/images/usecases/fuel-level-monitoring/video/fuel-monitoring.png",
     "previewMp4Url": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/fuel-level-monitoring.mp4",
     "previewWebmUrl": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/fuel-level-monitoring.webm",
-    "imageUrls": ["https://thingsboard.io/images/solutions/waste_monitoring/waste-monitoring-preview.png", "https://thingsboard.io/images/solutions/waste_monitoring/waste-monitoring-preview.png", "https://thingsboard.io/images/solutions/waste_monitoring/waste-monitoring-preview.png"]
+    "imageUrls": ["https://thingsboard.io/images/solutions/fuel_level_monitoring/fuel-monitoring-1.png", "https://thingsboard.io/images/solutions/fuel_level_monitoring/fuel-monitoring-2.png", "https://thingsboard.io/images/solutions/fuel_level_monitoring/fuel-monitoring-3.png", "https://thingsboard.io/images/solutions/fuel_level_monitoring/fuel-monitoring-4.png"]
   },
   {
     "id": "air_quality_index",

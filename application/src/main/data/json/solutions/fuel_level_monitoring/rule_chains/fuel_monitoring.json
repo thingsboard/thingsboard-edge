@@ -107,8 +107,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 359,
-          "layoutY": 491
+          "layoutX": 374,
+          "layoutY": 496
         },
         "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
         "name": "Device Profile Node",
@@ -123,8 +123,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 357,
-          "layoutY": 638
+          "layoutX": 355,
+          "layoutY": 682
         },
         "type": "org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2",
         "name": "Count alarms",
@@ -244,8 +244,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 738,
-          "layoutY": 639
+          "layoutX": 737,
+          "layoutY": 691
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
         "name": "Get alarms count attributes",
@@ -351,6 +351,36 @@
           "checkAllKeys": true
         },
         "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 355,
+          "layoutY": 613
+        },
+        "type": "org.thingsboard.rule.engine.flow.TbCheckpointNode",
+        "name": "Sequential processing",
+        "debugMode": false,
+        "singletonMode": false,
+        "configuration": {
+          "queueName": "SequentialByOriginator"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 735,
+          "layoutY": 620
+        },
+        "type": "org.thingsboard.rule.engine.flow.TbCheckpointNode",
+        "name": "Sequential processing",
+        "debugMode": false,
+        "singletonMode": false,
+        "configuration": {
+          "queueName": "SequentialByOriginator"
+        },
+        "externalId": null
       }
     ],
     "connections": [
@@ -381,17 +411,17 @@
       },
       {
         "fromIndex": 2,
-        "toIndex": 7,
+        "toIndex": 16,
         "type": "Alarm Cleared"
       },
       {
         "fromIndex": 2,
-        "toIndex": 11,
+        "toIndex": 17,
         "type": "Activity Event"
       },
       {
         "fromIndex": 2,
-        "toIndex": 11,
+        "toIndex": 17,
         "type": "Inactivity Event"
       },
       {
@@ -401,12 +431,12 @@
       },
       {
         "fromIndex": 6,
-        "toIndex": 7,
+        "toIndex": 16,
         "type": "Alarm Cleared"
       },
       {
         "fromIndex": 6,
-        "toIndex": 7,
+        "toIndex": 16,
         "type": "Alarm Created"
       },
       {
@@ -458,6 +488,16 @@
         "fromIndex": 15,
         "toIndex": 12,
         "type": "True"
+      },
+      {
+        "fromIndex": 16,
+        "toIndex": 7,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 17,
+        "toIndex": 11,
+        "type": "Success"
       }
     ],
     "ruleChainConnections": null
