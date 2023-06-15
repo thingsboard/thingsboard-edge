@@ -33,6 +33,17 @@
     "imageUrls": ["https://thingsboard.io/images/solutions/fleet_tracking/fleet-tracking-1.png", "https://thingsboard.io/images/solutions/fleet_tracking/fleet-tracking-2.png", "https://thingsboard.io/images/solutions/fleet_tracking/fleet-tracking-3.png"]
   },
   {
+    "id": "fuel_level_monitoring",
+    "title": "Fuel Level Monitoring",
+    "level": "MAKER",
+    "installTimeoutMs": 15000,
+    "previewImageUrl": "https://thingsboard.io/images/solutions/fuel_level_monitoring/fuel-monitoring-1.png",
+    "videoPreviewImageUrl": "https://thingsboard.io/images/usecases/fuel-level-monitoring/video/fuel-monitoring.png",
+    "previewMp4Url": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/fuel-level-monitoring.mp4",
+    "previewWebmUrl": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/fuel-level-monitoring.webm",
+    "imageUrls": ["https://thingsboard.io/images/solutions/fuel_level_monitoring/fuel-monitoring-1.png", "https://thingsboard.io/images/solutions/fuel_level_monitoring/fuel-monitoring-2.png", "https://thingsboard.io/images/solutions/fuel_level_monitoring/fuel-monitoring-3.png", "https://thingsboard.io/images/solutions/fuel_level_monitoring/fuel-monitoring-4.png"]
+  },
+  {
     "id": "air_quality_index",
     "title": "Air Quality Monitoring",
     "level": "PROTOTYPE",
