@@ -88,7 +88,7 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
                     "       temperature: data.temperature\n" +
                     "   },\n" +
                     "   constants: {\n" +
-                    "       temperature: data.temperature\n" +
+                    "       humidity: data.humidity\n" +
                     "   }\n" +
                     "};\n" +
                     "function decodeToString(payload) {\n" +
@@ -193,27 +193,27 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
         integration = testRestClient.postIntegration(integration);
         waitUntilIntegrationStarted(integration.getId(), integration.getTenantId());
 
-        testRestClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, TELEMETRY_VALUE));
+        testRestClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, ATTRIBUTE_KEY, TELEMETRY_VALUE));
         Awaitility
                 .await()
                 .atMost(10, TimeUnit.SECONDS)
                 .until(() -> {
-                    List<JsonNode> attributes = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, TELEMETRY_KEY);
+                    List<JsonNode> attributes = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, ATTRIBUTE_KEY);
                     Assert.assertFalse(attributes.isEmpty());
-                    Assert.assertEquals(attributes.get(0).get("key").asText(), TELEMETRY_KEY);
+                    Assert.assertEquals(attributes.get(0).get("key").asText(), ATTRIBUTE_KEY);
                     Assert.assertEquals(attributes.get(0).get("value").asText(), TELEMETRY_VALUE);
                     return true;
                 });
 
-        testRestClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, "35"));
+        testRestClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, ATTRIBUTE_KEY, "35"));
 
         Awaitility
                 .await()
                 .atMost(10, TimeUnit.SECONDS)
                 .until(() -> {
-                    List<JsonNode> attributes = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, TELEMETRY_KEY);
+                    List<JsonNode> attributes = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, ATTRIBUTE_KEY);
                     Assert.assertFalse(attributes.isEmpty());
-                    Assert.assertEquals(attributes.get(0).get("key").asText(), TELEMETRY_KEY);
+                    Assert.assertEquals(attributes.get(0).get("key").asText(), ATTRIBUTE_KEY);
                     Assert.assertEquals(attributes.get(0).get("value").asText(), TELEMETRY_VALUE);
                     return true;
                 });
