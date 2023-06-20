@@ -36,10 +36,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
-import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.TbRelationTypes;
+import org.thingsboard.rule.engine.api.TbVersionedNode;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
@@ -52,6 +52,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
@@ -68,6 +69,7 @@ import java.util.Set;
         type = ComponentType.ANALYTICS,
         name = "alarms count",
         configClazz = TbAlarmsCountNodeV2Configuration.class,
+        version = 1,
         nodeDescription = "Counts alarms by msg originator",
         nodeDetails = "Performs count of alarms for originator and for propagation entities if specified. " +
                 "Generates outgoing messages with alarm count values for each found entity. By default, an outgoing message generates with 'POST_TELEMETRY_REQUEST' type. " +
@@ -76,7 +78,7 @@ import java.util.Set;
         configDirective = "tbAnalyticsNodeAlarmsCountV2Config",
         icon = "functions"
 )
-public class TbAlarmsCountNodeV2 implements TbNode {
+public class TbAlarmsCountNodeV2 implements TbVersionedNode {
 
     private static final List<String> ALARM_FIELDS = List.of("originator", "severity", "status", "ackTs", "clearTs", "details");
 
@@ -186,6 +188,18 @@ public class TbAlarmsCountNodeV2 implements TbNode {
             obj.put(mappings.get(i).getTarget(), alarmCounts.get(i));
         }
         return obj;
+    }
+
+    @Override
+    public TbPair<Boolean, JsonNode> upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
+        if (fromVersion == 0) {
+            if (!oldConfiguration.hasNonNull("outMsgType")) {
+                ObjectNode newConfig = (ObjectNode) oldConfiguration;
+                newConfig.put("outMsgType", SessionMsgType.POST_TELEMETRY_REQUEST.name());
+                return new TbPair<>(true, newConfig);
+            }
+        }
+        return new TbPair<>(false, oldConfiguration);
     }
 
 }

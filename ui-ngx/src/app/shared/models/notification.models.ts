@@ -41,6 +41,7 @@ import { NotificationRuleId } from '@shared/models/id/notification-rule-id';
 import { AlarmSearchStatus, AlarmSeverity, AlarmStatus } from '@shared/models/alarm.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { ApiFeature, ApiUsageStateValue } from '@shared/models/api-usage.models';
+import { LimitedApi } from '@shared/models/limited-api.models';
 import { IntegrationType } from '@shared/models/integration.models';
 
 export interface Notification {
@@ -135,7 +136,8 @@ export interface NotificationRule extends Omit<BaseData<NotificationRuleId>, 'la
 export type NotificationRuleTriggerConfig = Partial<AlarmNotificationRuleTriggerConfig & DeviceInactivityNotificationRuleTriggerConfig &
   EntityActionNotificationRuleTriggerConfig & AlarmCommentNotificationRuleTriggerConfig & AlarmAssignmentNotificationRuleTriggerConfig &
   RuleEngineLifecycleEventNotificationRuleTriggerConfig & EntitiesLimitNotificationRuleTriggerConfig &
-  ApiUsageLimitNotificationRuleTriggerConfig & IntegrationLifecycleEventNotificationRuleTriggerConfig>;
+  ApiUsageLimitNotificationRuleTriggerConfig & RateLimitsNotificationRuleTriggerConfig &
+  IntegrationLifecycleEventNotificationRuleTriggerConfig>;
 
 export interface AlarmNotificationRuleTriggerConfig {
   alarmTypes?: Array<string>;
@@ -192,6 +194,10 @@ export interface EntitiesLimitNotificationRuleTriggerConfig {
 export interface ApiUsageLimitNotificationRuleTriggerConfig {
   apiFeatures: ApiFeature[];
   notifyOn: ApiUsageStateValue[];
+}
+
+export interface RateLimitsNotificationRuleTriggerConfig {
+  apis: LimitedApi[];
 }
 
 export interface IntegrationLifecycleEventNotificationRuleTriggerConfig {
@@ -488,7 +494,8 @@ export enum NotificationType {
   API_USAGE_LIMIT = 'API_USAGE_LIMIT',
   NEW_PLATFORM_VERSION = 'NEW_PLATFORM_VERSION',
   RULE_NODE = 'RULE_NODE',
-  INTEGRATION_LIFECYCLE_EVENT = 'INTEGRATION_LIFECYCLE_EVENT'
+  INTEGRATION_LIFECYCLE_EVENT = 'INTEGRATION_LIFECYCLE_EVENT',
+  RATE_LIMITS = 'RATE_LIMITS'
 }
 
 export const NotificationTypeIcons = new Map<NotificationType, string | null>([
@@ -600,6 +607,12 @@ export const NotificationTemplateTypeTranslateMap = new Map<NotificationType, No
       name: 'notification.template-type.integration-lifecycle-event',
       helpId: 'notification/integration_lifecycle_event'
     }
+  ],
+  [NotificationType.RATE_LIMITS,
+    {
+      name: 'notification.template-type.rate-limits',
+      helpId: 'notification/rate_limits'
+    }
   ]
 ]);
 
@@ -613,7 +626,8 @@ export enum TriggerType {
   ENTITIES_LIMIT = 'ENTITIES_LIMIT',
   API_USAGE_LIMIT = 'API_USAGE_LIMIT',
   INTEGRATION_LIFECYCLE_EVENT = 'INTEGRATION_LIFECYCLE_EVENT',
-  NEW_PLATFORM_VERSION = 'NEW_PLATFORM_VERSION'
+  NEW_PLATFORM_VERSION = 'NEW_PLATFORM_VERSION',
+  RATE_LIMITS = 'RATE_LIMITS'
 }
 
 export const TriggerTypeTranslationMap = new Map<TriggerType, string>([
@@ -627,4 +641,5 @@ export const TriggerTypeTranslationMap = new Map<TriggerType, string>([
   [TriggerType.API_USAGE_LIMIT, 'notification.trigger.api-usage-limit'],
   [TriggerType.INTEGRATION_LIFECYCLE_EVENT, 'notification.trigger.integration-lifecycle-event'],
   [TriggerType.NEW_PLATFORM_VERSION, 'notification.trigger.new-platform-version'],
+  [TriggerType.RATE_LIMITS, 'notification.trigger.rate-limits'],
 ]);

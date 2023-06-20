@@ -81,6 +81,8 @@ import {
   ApiUsageStateValue,
   ApiUsageStateValueTranslationMap
 } from '@shared/models/api-usage.models';
+import { LimitedApi, LimitedApiTranslationMap } from '@shared/models/limited-api.models';
+import { StringItemsOption } from '@shared/components/string-items-list.component';
 import { IntegrationType, integrationTypeInfoMap } from '@shared/models/integration.models';
 
 export interface RuleNotificationDialogData {
@@ -113,6 +115,7 @@ export class RuleNotificationDialogComponent extends
   apiUsageLimitTemplateForm: FormGroup;
   integrationEventsTemplateForm: FormGroup;
   newPlatformVersionTemplateForm: FormGroup;
+  rateLimitsTemplateForm: FormGroup;
 
   triggerType = TriggerType;
   triggerTypes: TriggerType[];
@@ -146,6 +149,8 @@ export class RuleNotificationDialogComponent extends
 
   apiFeatures: ApiFeature[] = Object.values(ApiFeature);
   apiFeatureTranslationMap = ApiFeatureTranslationMap;
+
+  limitedApis: StringItemsOption[];
 
   integrationTypes: IntegrationType[] = Object.values(IntegrationType);
   integrationTypeInfoMap = integrationTypeInfoMap;
@@ -194,6 +199,11 @@ export class RuleNotificationDialogComponent extends
     if (isDefined(data.isAdd)) {
       this.isAdd = data.isAdd;
     }
+
+    this.limitedApis = Object.values(LimitedApi).map(value => ({
+      name: this.translate.instant(LimitedApiTranslationMap.get(value)),
+      value
+    }));
 
     this.stepperOrientation = this.breakpointObserver.observe(MediaBreakpoints['gt-xs'])
       .pipe(map(({matches}) => matches ? 'horizontal' : 'vertical'));
@@ -348,6 +358,12 @@ export class RuleNotificationDialogComponent extends
       })
     });
 
+    this.rateLimitsTemplateForm = this.fb.group({
+      triggerConfig: this.fb.group({
+        apis: []
+      })
+    });
+
     this.triggerTypeFormsMap = new Map<TriggerType, FormGroup>([
       [TriggerType.ALARM, this.alarmTemplateForm],
       [TriggerType.ALARM_COMMENT, this.alarmCommentTemplateForm],
@@ -358,7 +374,8 @@ export class RuleNotificationDialogComponent extends
       [TriggerType.ENTITIES_LIMIT, this.entitiesLimitTemplateForm],
       [TriggerType.API_USAGE_LIMIT, this.apiUsageLimitTemplateForm],
       [TriggerType.INTEGRATION_LIFECYCLE_EVENT, this.integrationEventsTemplateForm],
-      [TriggerType.NEW_PLATFORM_VERSION, this.newPlatformVersionTemplateForm]
+      [TriggerType.NEW_PLATFORM_VERSION, this.newPlatformVersionTemplateForm],
+      [TriggerType.RATE_LIMITS, this.rateLimitsTemplateForm]
     ]);
 
     if (data.isAdd || data.isCopy) {
@@ -507,6 +524,7 @@ export class RuleNotificationDialogComponent extends
       TriggerType.ENTITIES_LIMIT,
       TriggerType.API_USAGE_LIMIT,
       TriggerType.NEW_PLATFORM_VERSION,
+      TriggerType.RATE_LIMITS
     ]);
 
     if (this.isSysAdmin()) {

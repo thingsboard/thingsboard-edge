@@ -30,13 +30,25 @@
  */
 package org.thingsboard.server.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
+import com.google.api.client.auth.oauth2.AuthorizationCodeTokenRequest;
+import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
+import com.google.api.client.auth.oauth2.TokenResponse;
+import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.StringUtils;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
@@ -58,14 +70,21 @@ import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.FeaturesInfo;
 import org.thingsboard.server.common.data.LicenseInfo;
 import org.thingsboard.server.common.data.LicenseUsageInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.SystemInfo;
 import org.thingsboard.server.common.data.UpdateMessage;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+import org.thingsboard.server.common.data.FeaturesInfo;
+import org.thingsboard.server.common.data.SystemInfo;
+import org.thingsboard.server.common.data.UpdateMessage;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -81,13 +100,14 @@ import org.thingsboard.server.common.data.sms.config.TestSmsRequest;
 import org.thingsboard.server.common.data.sync.vc.AutoCommitSettings;
 import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
 import org.thingsboard.server.common.data.sync.vc.RepositorySettingsInfo;
+import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.common.data.sync.vc.VcUtils;
 import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.mail.MailTemplates;
-import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
+import org.thingsboard.server.service.security.auth.oauth2.CookieUtils;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
@@ -103,9 +123,17 @@ import java.util.List;
 import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @RestController
 @TbCoreComponent
+@Slf4j
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
 public class AdminController extends BaseController {
@@ -124,6 +152,12 @@ public class AdminController extends BaseController {
     private final UpdateService updateService;
     private final SystemInfoService systemInfoService;
     private final AuditLogService auditLogService;
+
+    private static final String PREV_URI_PATH_PARAMETER = "prevUri";
+    private static final String PREV_URI_COOKIE_NAME = "prev_uri";
+    private static final String STATE_COOKIE_NAME = "state";
+    private static final String MAIL_SETTINGS_KEY = "mail";
+    private static final ConcurrentMap<String, TenantId> internalSessionMap = new ConcurrentHashMap<>();
 
     protected static final String RESOURCE_READ_CHECK = "\n\nSecurity check is performed to verify that " +
             "the user has 'READ' permission for the 'ADMIN_SETTINGS' (for 'SYS_ADMIN' authority) or 'WHITE_LABELING' (for 'TENANT_ADMIN' authority) resource.";
@@ -147,7 +181,8 @@ public class AdminController extends BaseController {
             accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
             adminSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key), "No Administration settings found for key: " + key);
         } else {
-            adminSettings = getTenantAdminSettings(key, systemByDefault);
+            accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.READ);
+            adminSettings =  getTenantAdminSettings(getTenantId(), key, systemByDefault);
             if (adminSettings.getKey().equals("mailTemplates")) {
                 ((ObjectNode) adminSettings.getJsonValue()).remove(MailTemplates.API_USAGE_STATE_ENABLED);
                 ((ObjectNode) adminSettings.getJsonValue()).remove(MailTemplates.API_USAGE_STATE_WARNING);
@@ -156,6 +191,7 @@ public class AdminController extends BaseController {
         }
         if (adminSettings.getKey().equals("mail")) {
             ((ObjectNode) adminSettings.getJsonValue()).remove("password");
+            ((ObjectNode) adminSettings.getJsonValue()).remove("refreshToken");
         }
         return adminSettings;
     }
@@ -176,10 +212,12 @@ public class AdminController extends BaseController {
             accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.WRITE);
             adminSettings = checkNotNull(adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, adminSettings));
         } else {
-            adminSettings = saveTenantAdminSettings(adminSettings);
+            accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.WRITE);
+            adminSettings = saveTenantAdminSettings(getTenantId(), adminSettings);
         }
         if (adminSettings.getKey().equals("mail")) {
             ((ObjectNode) adminSettings.getJsonValue()).remove("password");
+            ((ObjectNode) adminSettings.getJsonValue()).remove("refreshToken");
         }
         return adminSettings;
     }
@@ -250,14 +288,23 @@ public class AdminController extends BaseController {
         }
         adminSettings = checkNotNull(adminSettings);
         if (adminSettings.getKey().equals("mail")) {
-            if (!adminSettings.getJsonValue().has("password")) {
-                AdminSettings mailSettings;
-                if (Authority.SYS_ADMIN.equals(authority)) {
-                    mailSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mail"));
-                } else {
-                    mailSettings = getTenantAdminSettings("mail", false);
+            AdminSettings mailSettings;
+            if (Authority.SYS_ADMIN.equals(authority)) {
+                mailSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mail"));
+            } else {
+                mailSettings = getTenantAdminSettings(getTenantId(), "mail", false);
+            }
+            if (adminSettings.getJsonValue().has("enableOauth2") && adminSettings.getJsonValue().get("enableOauth2").asBoolean()){
+                JsonNode refreshToken = mailSettings.getJsonValue().get("refreshToken");
+                if (refreshToken == null) {
+                    throw new ThingsboardException("Refresh token was not generated. Please, generate refresh token.", ThingsboardErrorCode.GENERAL);
                 }
-                ((ObjectNode) adminSettings.getJsonValue()).put("password", mailSettings.getJsonValue().get("password").asText());
+                ((ObjectNode) adminSettings.getJsonValue()).put("refreshToken", refreshToken.asText());
+            }
+            else {
+                if (!adminSettings.getJsonValue().has("password")) {
+                    ((ObjectNode) adminSettings.getJsonValue()).put("password", mailSettings.getJsonValue().get("password").asText());
+                }
             }
             String email = getCurrentUser().getEmail();
             mailService.sendTestMail(getTenantId(), adminSettings.getJsonValue(), email);
@@ -463,9 +510,106 @@ public class AdminController extends BaseController {
         return systemInfoService.getFeaturesInfo();
     }
 
-    private AdminSettings getTenantAdminSettings(String key, boolean systemByDefault) throws Exception {
-        accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.READ);
-        String jsonString = getEntityAttributeValue(getTenantId(), key);
+    @ApiOperation(value = "Get OAuth2 log in processing URL (getMailProcessingUrl)", notes = "Returns the URL enclosed in " +
+            "double quotes. After successful authentication with OAuth2 provider and user consent for requested scope, it makes a redirect to this path so that the platform can do " +
+            "further log in processing and generating access tokens. " + SYSTEM_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
+    @RequestMapping(value = "/mail/oauth2/loginProcessingUrl", method = RequestMethod.GET)
+    @ResponseBody
+    public String getMailProcessingUrl() throws ThingsboardException {
+         accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
+         return "\"/api/admin/mail/oauth2/code\"";
+    }
+
+    @ApiOperation(value = "Redirect user to mail provider login page. ", notes = "After user logged in and provided access" +
+            "provider sends authorization code to specified redirect uri.)" )
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
+    @RequestMapping(value = "/mail/oauth2/authorize", method = RequestMethod.GET, produces = "application/text")
+    public String getAuthorizationUrl(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        SecurityUser currentUser = getCurrentUser();
+        String state = StringUtils.generateSafeToken();
+        if (request.getParameter(PREV_URI_PATH_PARAMETER) != null) {
+            CookieUtils.addCookie(response, PREV_URI_COOKIE_NAME, request.getParameter(PREV_URI_PATH_PARAMETER), 180);
+        }
+        CookieUtils.addCookie(response, STATE_COOKIE_NAME, state, 180);
+        internalSessionMap.put(state, currentUser.getTenantId());
+
+        AdminSettings adminSettings;
+        if (Authority.SYS_ADMIN.equals(currentUser.getAuthority())) {
+            accessControlService.checkPermission(currentUser, Resource.ADMIN_SETTINGS, Operation.READ);
+            adminSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, MAIL_SETTINGS_KEY), "No Administration settings found for key: " + MAIL_SETTINGS_KEY);
+        } else {
+            accessControlService.checkPermission(currentUser, Resource.WHITE_LABELING, Operation.READ);
+            adminSettings = getTenantAdminSettings(currentUser.getTenantId(), MAIL_SETTINGS_KEY, true);
+        }
+        JsonNode jsonValue = adminSettings.getJsonValue();
+        String clientId = checkNotNull(jsonValue.get("clientId"), "No clientId was configured").asText();
+        String authUri = checkNotNull(jsonValue.get("authUri"), "No authorization uri was configured").asText();
+        String redirectUri = checkNotNull(jsonValue.get("redirectUri"), "No Redirect uri was configured").asText();
+        List<String> scope =  JacksonUtil.convertValue(checkNotNull(jsonValue.get("scope"), "No scope was configured"), new TypeReference<>() {
+        });
+
+        return "\"" + new AuthorizationCodeRequestUrl(authUri, clientId)
+                .setScopes(scope)
+                .setState(state)
+                .setRedirectUri(redirectUri)
+                .build() + "\"";
+    }
+
+    @RequestMapping(value = "/mail/oauth2/code", params = {"code", "state"}, method = RequestMethod.GET)
+    public void codeProcessingUrl( @RequestParam(value = "code") String code, @RequestParam(value = "state") String state,
+                                   HttpServletRequest request, HttpServletResponse response) throws Exception {
+        Optional<Cookie> prevUrlOpt = CookieUtils.getCookie(request, PREV_URI_COOKIE_NAME);
+        Optional<Cookie> cookieState = CookieUtils.getCookie(request, STATE_COOKIE_NAME);
+
+        String baseUrl = this.systemSecurityService.getBaseUrl(TenantId.SYS_TENANT_ID, new CustomerId(EntityId.NULL_UUID), request);
+        String prevUri = baseUrl + (prevUrlOpt.isPresent() ? prevUrlOpt.get().getValue(): "/settings/outgoing-mail");
+
+        if (cookieState.isEmpty() || !cookieState.get().getValue().equals(state)) {
+            CookieUtils.deleteCookie(request, response, STATE_COOKIE_NAME);
+            throw new ThingsboardException("Refresh token was not generated, invalid state param", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+        TenantId tenantId = internalSessionMap.remove(cookieState.get().getValue());
+
+        CookieUtils.deleteCookie(request, response, STATE_COOKIE_NAME);
+        CookieUtils.deleteCookie(request, response, PREV_URI_COOKIE_NAME);
+
+        AdminSettings adminSettings;
+        if (TenantId.SYS_TENANT_ID.equals(tenantId)) {
+            adminSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(tenantId, MAIL_SETTINGS_KEY), "No Administration mail settings found");
+        } else {
+            adminSettings = getTenantAdminSettings(tenantId, MAIL_SETTINGS_KEY, false);
+        }
+        JsonNode jsonValue = adminSettings.getJsonValue();
+
+        String clientId = checkNotNull(jsonValue.get("clientId"), "No clientId was configured").asText();
+        String clientSecret = checkNotNull(jsonValue.get("clientSecret"), "No client secret was configured").asText();
+        String clientRedirectUri = checkNotNull(jsonValue.get("redirectUri"), "No Redirect uri was configured").asText();
+        String tokenUri = checkNotNull(jsonValue.get("tokenUri"), "No authorization uri was configured").asText();
+
+        TokenResponse tokenResponse;
+        try {
+            tokenResponse = new AuthorizationCodeTokenRequest(new NetHttpTransport(), new GsonFactory(), new GenericUrl(tokenUri), code)
+                    .setRedirectUri(clientRedirectUri)
+                    .setClientAuthentication(new ClientParametersAuthentication(clientId, clientSecret))
+                    .execute();
+        } catch (IOException e) {
+            log.warn("Unable to retrieve refresh token: {}", e.getMessage());
+            throw new ThingsboardException("Error while requesting access token: " + e.getMessage(), ThingsboardErrorCode.GENERAL);
+        }
+        ((ObjectNode)jsonValue).put("refreshToken", tokenResponse.getRefreshToken());
+        ((ObjectNode)jsonValue).put("tokenGenerated", true);
+
+        if (TenantId.SYS_TENANT_ID.equals(tenantId)) {
+            adminSettingsService.saveAdminSettings(tenantId, adminSettings);
+        } else {
+            saveTenantAdminSettings(tenantId, adminSettings);
+        }
+        response.sendRedirect(prevUri);
+    }
+
+    private AdminSettings getTenantAdminSettings(TenantId tenantId, String key, boolean systemByDefault) throws Exception {
+        String jsonString = getTenantAttributeValue(tenantId, key);
         JsonNode jsonValue = null;
         if (!StringUtils.isEmpty(jsonString)) {
             try {
@@ -475,7 +619,7 @@ public class AdminController extends BaseController {
         }
         if (jsonValue == null) {
             if (systemByDefault) {
-                AdminSettings systemAdminSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(getTenantId(), key));
+                AdminSettings systemAdminSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(tenantId, key));
                 jsonValue = systemAdminSettings.getJsonValue();
             } else {
                 jsonValue = JacksonUtil.newObjectNode();
@@ -487,15 +631,18 @@ public class AdminController extends BaseController {
         return adminSettings;
     }
 
-    private AdminSettings saveTenantAdminSettings(AdminSettings adminSettings) throws Exception {
-        accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.WRITE);
+    private AdminSettings saveTenantAdminSettings(TenantId tenantId, AdminSettings adminSettings) throws Exception {
         JsonNode jsonValue = adminSettings.getJsonValue();
-        if (adminSettings.getKey().equals("mail") && !jsonValue.has("password")) {
-            JsonNode oldMailSettings = JacksonUtil.toJsonNode(getEntityAttributeValue(getTenantId(), "mail"));
-            if (oldMailSettings != null) {
-                if (oldMailSettings.has("password")) {
-                    ((ObjectNode) jsonValue).put("password", oldMailSettings.get("password").asText());
+        if (adminSettings.getKey().equals("mail")) {
+            JsonNode oldJsonValue = JacksonUtil.toJsonNode(getTenantAttributeValue(tenantId, "mail"));
+            if (oldJsonValue != null) {
+                if (!jsonValue.has("password") && oldJsonValue.has("password")){
+                    ((ObjectNode) jsonValue).put("password", oldJsonValue.get("password").asText());
                 }
+                if (!jsonValue.has("refreshToken") && oldJsonValue.has("refreshToken")){
+                    ((ObjectNode) jsonValue).put("refreshToken", oldJsonValue.get("refreshToken").asText());
+                }
+                dropRefreshTokenIfProviderInfoChanged(jsonValue, oldJsonValue);
             }
         }
         String jsonString = null;
@@ -508,13 +655,13 @@ public class AdminController extends BaseController {
         if (jsonString == null) {
             jsonString = "";
         }
-        saveEntityAttribute(getTenantId(), adminSettings.getKey(), jsonString);
+        saveTenantAttribute(tenantId, adminSettings.getKey(), jsonString);
         return adminSettings;
     }
 
-    private String getEntityAttributeValue(EntityId entityId, String key) throws Exception {
+    private String getTenantAttributeValue(TenantId tenantId, String key) throws Exception {
         List<AttributeKvEntry> attributeKvEntries =
-                attributesService.find(getTenantId(), entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
+                attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
         if (attributeKvEntries != null && !attributeKvEntries.isEmpty()) {
             AttributeKvEntry kvEntry = attributeKvEntries.get(0);
             return kvEntry.getValueAsString();
@@ -523,11 +670,23 @@ public class AdminController extends BaseController {
         }
     }
 
-    private void saveEntityAttribute(EntityId entityId, String key, String value) throws Exception {
+    private void saveTenantAttribute(TenantId tenantId, String key, String value) throws Exception {
         List<AttributeKvEntry> attributes = new ArrayList<>();
         long ts = System.currentTimeMillis();
         attributes.add(new BaseAttributeKvEntry(new StringDataEntry(key, value), ts));
-        attributesService.save(getTenantId(), entityId, DataConstants.SERVER_SCOPE, attributes).get();
+        attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes).get();
     }
 
+     private void dropRefreshTokenIfProviderInfoChanged(JsonNode newJsonValue, JsonNode oldJsonValue) {
+        if (newJsonValue.has("enableOauth2") && newJsonValue.get("enableOauth2").asBoolean()){
+            if (!newJsonValue.get("providerId").equals(oldJsonValue.get("providerId")) ||
+                    !newJsonValue.get("clientId").equals(oldJsonValue.get("clientId")) ||
+                    !newJsonValue.get("clientSecret").equals(oldJsonValue.get("clientSecret")) ||
+                    !newJsonValue.get("redirectUri").equals(oldJsonValue.get("redirectUri")) ||
+                    (newJsonValue.has("providerTenantId") && !newJsonValue.get("providerTenantId").equals(oldJsonValue.get("providerTenantId")))){
+                ((ObjectNode) newJsonValue).put("refreshTokenGenerated", false);
+                ((ObjectNode) newJsonValue).remove("refreshToken");
+            }
+        }
+    }
 }

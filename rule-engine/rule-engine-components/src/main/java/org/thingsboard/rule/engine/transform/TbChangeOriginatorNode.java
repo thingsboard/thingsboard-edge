@@ -33,7 +33,6 @@ package org.thingsboard.rule.engine.transform;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -53,6 +52,7 @@ import org.thingsboard.server.common.msg.TbMsg;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Slf4j
 @RuleNode(
@@ -67,32 +67,37 @@ import java.util.List;
         configDirective = "tbTransformationNodeChangeOriginatorConfig",
         icon = "find_replace"
 )
-public class TbChangeOriginatorNode extends TbAbstractTransformNode {
+public class TbChangeOriginatorNode extends TbAbstractTransformNode<TbChangeOriginatorNodeConfiguration> {
 
-    protected static final String CUSTOMER_SOURCE = "CUSTOMER";
-    protected static final String TENANT_SOURCE = "TENANT";
-    protected static final String RELATED_SOURCE = "RELATED";
-    protected static final String ALARM_ORIGINATOR_SOURCE = "ALARM_ORIGINATOR";
-    protected static final String ENTITY_SOURCE = "ENTITY";
-
-    private TbChangeOriginatorNodeConfiguration config;
+    private static final String CUSTOMER_SOURCE = "CUSTOMER";
+    private static final String TENANT_SOURCE = "TENANT";
+    private static final String RELATED_SOURCE = "RELATED";
+    private static final String ALARM_ORIGINATOR_SOURCE = "ALARM_ORIGINATOR";
+    private static final String ENTITY_SOURCE = "ENTITY";
 
     @Override
-    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
-        this.config = TbNodeUtils.convert(configuration, TbChangeOriginatorNodeConfiguration.class);
+    protected TbChangeOriginatorNodeConfiguration loadNodeConfiguration(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+        var config = TbNodeUtils.convert(configuration, TbChangeOriginatorNodeConfiguration.class);
         validateConfig(config);
-        setConfig(config);
+        return config;
     }
 
     @Override
     protected ListenableFuture<List<TbMsg>> transform(TbContext ctx, TbMsg msg) {
-        ListenableFuture<? extends EntityId> newOriginator = getNewOriginator(ctx, msg);
-        return Futures.transform(newOriginator, n -> {
-            if (n == null || n.isNullUid()) {
-                return null;
+        ListenableFuture<? extends EntityId> newOriginatorFuture = getNewOriginator(ctx, msg);
+        return Futures.transformAsync(newOriginatorFuture, newOriginator -> {
+            if (newOriginator == null || newOriginator.isNullUid()) {
+                return Futures.immediateFailedFuture(new NoSuchElementException("Failed to find new originator!"));
             }
-            return Collections.singletonList((ctx.transformMsg(msg, msg.getType(), n, msg.getMetaData(), msg.getData())));
-        }, MoreExecutors.directExecutor());
+            return Futures.immediateFuture(
+                    Collections.singletonList(
+                            ctx.transformMsg(
+                                    msg,
+                                    msg.getType(),
+                                    newOriginator,
+                                    msg.getMetaData(),
+                                    msg.getData())));
+        }, ctx.getDbCallbackExecutor());
     }
 
     private ListenableFuture<? extends EntityId> getNewOriginator(TbContext ctx, TbMsg msg) {
@@ -128,8 +133,7 @@ public class TbChangeOriginatorNode extends TbAbstractTransformNode {
 
         if (conf.getOriginatorSource().equals(RELATED_SOURCE)) {
             if (conf.getRelationsQuery() == null) {
-                log.error("Related source for TbChangeOriginatorNode should have relations query. Actual [{}]",
-                        conf.getRelationsQuery());
+                log.error("Related source for TbChangeOriginatorNode should have relations query. Actual value is null!");
                 throw new IllegalArgumentException("Wrong config for RElated Source in TbChangeOriginatorNode" + conf.getOriginatorSource());
             }
         }
@@ -145,7 +149,6 @@ public class TbChangeOriginatorNode extends TbAbstractTransformNode {
             }
             EntitiesByNameAndTypeLoader.checkEntityType(EntityType.valueOf(conf.getEntityType()));
         }
-
     }
 
 }
