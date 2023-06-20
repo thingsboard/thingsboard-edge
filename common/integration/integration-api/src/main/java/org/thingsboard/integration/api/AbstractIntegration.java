@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
@@ -149,6 +150,11 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         return statistics;
     }
 
+    @Override
+    public ListenableFuture<Void> processAsync(T msg) {
+        throw new RuntimeException("Process async not implemented");
+    }
+
     protected <T> T getClientConfiguration(Integration configuration, Class<T> clazz) {
         JsonNode clientConfiguration = configuration.getConfiguration().get("clientConfiguration");
         return getClientConfiguration(clientConfiguration, clazz);
@@ -240,11 +246,11 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         return false;
     }
 
-    protected void persistDebug(IntegrationContext context, String type, UplinkContentType messageType, String message, String status, Exception exception) {
+    protected void persistDebug(IntegrationContext context, String type, UplinkContentType messageType, String message, String status, Throwable exception) {
         persistDebug(context, type, messageType.name(), message, status, exception);
     }
 
-    protected void persistDebug(IntegrationContext context, String type, String messageType, String message, String status, Exception exception) {
+    protected void persistDebug(IntegrationContext context, String type, String messageType, String message, String status, Throwable exception) {
         var event = IntegrationDebugEvent.builder()
                 .tenantId(configuration.getTenantId())
                 .entityId(configuration.getId().getId())
@@ -260,21 +266,22 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         context.saveEvent(event.build(), new DebugEventCallback());
     }
 
-    protected String toString(Exception e) {
+    protected String toString(Throwable e) {
         return ExceptionUtil.toString(e, configuration.getId(), context.isExceptionStackTraceEnabled());
     }
 
-    protected ListenableFuture<List<UplinkData>> convertToUplinkDataListAsync(IntegrationContext context, byte[] data, UplinkMetaData md) throws Exception {
+    protected ListenableFuture<List<UplinkData>> convertToUplinkDataListAsync(IntegrationContext context, byte[] data, UplinkMetaData md) {
         try {
             return this.uplinkConverter.convertUplink(context.getUplinkConverterContext(), data, md, context.getCallBackExecutorService());
-        } catch (Exception e) {
+        } catch (Throwable t) {
             if (log.isDebugEnabled()) {
                 log.debug("[{}][{}] Failed to apply uplink data converter function for data: {} and metadata: {}", configuration.getId(), configuration.getName(), Base64Utils.encodeToString(data), md);
             }
-            throw e;
+            return Futures.immediateFailedFuture(t);
         }
     }
 
+    //Please, prefer async method convertToUplinkDataListAsync
     protected List<UplinkData> convertToUplinkDataList(IntegrationContext context, byte[] data, UplinkMetaData md) throws Exception {
         return convertToUplinkDataListAsync(context, data, md).get();
     }
