@@ -85,7 +85,7 @@ public class TbDuplicateMsgToGroupNode extends TbAbstractDuplicateMsgToOriginato
         }
     }
 
-    private void validateConfig(TbContext ctx, TbDuplicateMsgToGroupNodeConfiguration conf) {
+    private void validateConfig(TbContext ctx, TbDuplicateMsgToGroupNodeConfiguration conf) throws TbNodeException {
         if (!conf.isEntityGroupIsMessageOriginator()) {
             if (conf.getEntityGroupId() == null || conf.getEntityGroupId().isNullUid()) {
                 log.error("TbDuplicateMsgToGroupNode configuration should have valid Entity Group Id");

@@ -34,6 +34,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.msg.MsgType;
+import org.thingsboard.server.common.msg.TbActorError;
 import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.TbActorStopReason;
 
@@ -84,9 +85,14 @@ public final class TbActorMailbox implements TbActorCtx {
                 }
             }
         } catch (Throwable t) {
-            log.debug("[{}] Failed to init actor, attempt: {}", selfId, attempt, t);
+            InitFailureStrategy strategy;
             int attemptIdx = attempt + 1;
-            InitFailureStrategy strategy = actor.onInitFailure(attempt, t);
+            if (isUnrecoverable(t)) {
+                strategy = InitFailureStrategy.stop();
+            } else {
+                log.debug("[{}] Failed to init actor, attempt: {}", selfId, attempt, t);
+                strategy = actor.onInitFailure(attempt, t);
+            }
             if (strategy.isStop() || (settings.getMaxActorInitAttempts() > 0 && attemptIdx > settings.getMaxActorInitAttempts())) {
                 log.info("[{}] Failed to init actor, attempt {}, going to stop attempts.", selfId, attempt, t);
                 stopReason = TbActorStopReason.INIT_FAILED;
@@ -101,6 +107,13 @@ public final class TbActorMailbox implements TbActorCtx {
                 dispatcher.getExecutor().execute(() -> tryInit(attemptIdx));
             }
         }
+    }
+
+    private static boolean isUnrecoverable(Throwable t) {
+        if (t instanceof TbActorException && t.getCause() != null) {
+            t = t.getCause();
+        }
+        return t instanceof TbActorError && ((TbActorError) t).isUnrecoverable();
     }
 
     private void enqueue(TbActorMsg msg, boolean highPriority) {

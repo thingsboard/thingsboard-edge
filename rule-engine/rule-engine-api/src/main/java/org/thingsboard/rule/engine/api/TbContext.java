@@ -226,7 +226,7 @@ public interface TbContext {
 
     void schedule(Runnable runnable, long delay, TimeUnit timeUnit);
 
-    void checkTenantEntity(EntityId entityId);
+    void checkTenantEntity(EntityId entityId) throws TbNodeException;
 
     boolean isLocalEntity(EntityId entityId);
 

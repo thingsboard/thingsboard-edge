@@ -145,7 +145,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
 
     protected abstract Map<EntityId, List<ListenableFuture<Optional<JsonObject>>>> doParentAggregations(TbContext ctx, EntityId parentEntityId);
 
-    private void validateConfig(TbContext ctx) {
+    private void validateConfig(TbContext ctx) throws TbNodeException {
         if (parentEntitiesQuery instanceof ParentEntitiesSingleEntity) {
             ctx.checkTenantEntity(((ParentEntitiesSingleEntity) parentEntitiesQuery).getEntityId());
         } else if (parentEntitiesQuery instanceof  ParentEntitiesGroup) {
