@@ -17,7 +17,6 @@ package org.thingsboard.server.service.transport;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -128,8 +127,6 @@ import static org.thingsboard.server.service.transport.BasicCredentialsValidatio
 @TbCoreComponent
 @RequiredArgsConstructor
 public class DefaultTransportApiService implements TransportApiService {
-
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     private static final Pattern X509_CERTIFICATE_TRIM_CHAIN_PATTERN = Pattern.compile("-----BEGIN CERTIFICATE-----\\s*.*?\\s*-----END CERTIFICATE-----");
 
@@ -353,8 +350,8 @@ public class DefaultTransportApiService implements TransportApiService {
                     metaData.putValue("gatewayId", gatewayId.toString());
 
                     DeviceId deviceId = device.getId();
-                    ObjectNode entityNode = mapper.valueToTree(device);
-                    TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, deviceId, customerId, metaData, TbMsgDataType.JSON, mapper.writeValueAsString(entityNode));
+                    JsonNode entityNode = JacksonUtil.valueToTree(device);
+                    TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, deviceId, customerId, metaData, TbMsgDataType.JSON, JacksonUtil.toString(entityNode));
                     tbClusterService.pushMsgToRuleEngine(tenantId, deviceId, tbMsg, null);
                     sendDeviceAddedMsgToCloud(tenantId, deviceId);
                 } else {
@@ -565,7 +562,7 @@ public class DefaultTransportApiService implements TransportApiService {
                 .setDeviceType(device.getType())
                 .setDeviceProfileIdMSB(device.getDeviceProfileId().getId().getMostSignificantBits())
                 .setDeviceProfileIdLSB(device.getDeviceProfileId().getId().getLeastSignificantBits())
-                .setAdditionalInfo(mapper.writeValueAsString(device.getAdditionalInfo()));
+                .setAdditionalInfo(JacksonUtil.toString(device.getAdditionalInfo()));
 
         PowerSavingConfiguration psmConfiguration = null;
         switch (device.getDeviceData().getTransportConfiguration().getType()) {

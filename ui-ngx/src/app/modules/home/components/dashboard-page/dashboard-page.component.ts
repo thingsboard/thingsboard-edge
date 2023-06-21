@@ -85,7 +85,6 @@ import { DialogService } from '@core/services/dialog.service';
 import { EntityService } from '@core/http/entity.service';
 import { AliasController } from '@core/api/alias-controller';
 import { Observable, of, Subscription } from 'rxjs';
-import { FooterFabButtons } from '@shared/components/footer-fab-buttons.component';
 import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
 import { DashboardService } from '@core/http/dashboard.service';
 import {
@@ -293,27 +292,6 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     }
   };
 
-  addWidgetFabButtons: FooterFabButtons = {
-    fabTogglerName: 'dashboard.add-widget',
-    fabTogglerIcon: 'add',
-    buttons: [
-      {
-        name: 'dashboard.create-new-widget',
-        icon: 'insert_drive_file',
-        onAction: ($event) => {
-          this.addWidget($event);
-        }
-      },
-      {
-        name: 'dashboard.import-widget',
-        icon: 'file_upload',
-        onAction: ($event) => {
-          this.importWidget($event);
-        }
-      }
-    ]
-  };
-
   updateBreadcrumbs = new EventEmitter();
 
   private rxSubscriptions = new Array<Subscription>();
@@ -354,7 +332,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
               private mobileService: MobileService,
               private fb: UntypedFormBuilder,
               private dialog: MatDialog,
-              private translate: TranslateService,
+              public translate: TranslateService,
               private popoverService: TbPopoverService,
               private renderer: Renderer2,
               private ngZone: NgZone,
@@ -583,7 +561,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   }
 
   public hideFullscreenButton(): boolean {
-    return this.widgetEditMode || this.iframeMode || this.forceFullscreen || this.singlePageMode;
+    return (this.widgetEditMode || this.iframeMode || this.forceFullscreen || this.singlePageMode || this.isEdit);
   }
 
   public toolbarAlwaysOpen(): boolean {
@@ -935,7 +913,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     this.openDashboardState(targetState);
   }
 
-  private importWidget($event: Event) {
+  public importWidget($event: Event) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -943,6 +921,10 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
       this.selectTargetLayout.bind(this), this.entityAliasesUpdated.bind(this), this.filtersUpdated.bind(this)).subscribe(
       (importData) => {
         if (importData) {
+          if (this.isAddingWidget) {
+            this.onAddWidgetClosed();
+            this.isAddingWidgetClosed = true;
+          }
           const widget = importData.widget;
           const layoutId = importData.layoutId;
           this.layouts[layoutId].layoutCtx.widgets.addWidgetId(widget.id);
@@ -1026,6 +1008,14 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
       this.dashboardCtx.stateController.preserveState();
       this.prevDashboard = deepClone(this.dashboard);
     } else {
+      if (this.isEditingWidget) {
+        this.onEditWidgetClosed();
+        this.isEditingWidgetClosed = true;
+      }
+      if (this.isAddingWidget) {
+        this.onAddWidgetClosed();
+        this.isAddingWidgetClosed = true;
+      }
       if (this.widgetEditMode) {
         if (revert) {
           this.dashboard = this.prevDashboard;
@@ -1096,6 +1086,11 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     if ($event) {
       $event.stopPropagation();
     }
+    if (this.isEditingWidget) {
+      this.onEditWidgetClosed();
+      this.isEditingWidgetClosed = true;
+      this.isAddingWidgetClosed = false;
+    }
     this.isAddingWidget = true;
     this.addingLayoutCtx = layoutCtx;
   }
@@ -1155,15 +1150,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     this.searchBundle = '';
     this.widgetComponentService.getWidgetInfo(widget.bundleAlias, widget.typeAlias, widget.isSystemType).subscribe(
       (widgetTypeInfo) => {
-        const config: WidgetConfig = JSON.parse(widgetTypeInfo.defaultConfig);
+        const config: WidgetConfig = this.dashboardUtils.widgetConfigFromWidgetType(widgetTypeInfo);
         config.title = 'New ' + widgetTypeInfo.widgetName;
-        config.datasources = [];
-        if (isDefinedAndNotNull(config.alarmSource)) {
-          config.alarmSource = {
-            type: DatasourceType.entity,
-            dataKeys: config.alarmSource.dataKeys || []
-          };
-        }
         let newWidget: Widget = {
           isSystemType: widget.isSystemType,
           bundleAlias: widget.bundleAlias,
@@ -1189,6 +1177,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
             data: {
               dashboard: this.dashboard,
               aliasController: this.dashboardCtx.aliasController,
+              stateController: this.dashboardCtx.stateController,
               widget: newWidget,
               widgetInfo: widgetTypeInfo
             }
@@ -1464,9 +1453,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     });
 
     const filterWidgetTypes = this.dashboardWidgetSelectComponent.filterWidgetTypes;
-    const widgetTypesList = Array.from(this.dashboardWidgetSelectComponent.widgetTypes.values()).map(type => {
-      return {type, display: filterWidgetTypes === null ? true : filterWidgetTypes.includes(type)};
-    });
+    const widgetTypesList = Array.from(this.dashboardWidgetSelectComponent.widgetTypes.values()).map(type =>
+      ({type, display: filterWidgetTypes === null ? true : filterWidgetTypes.includes(type)}));
 
     const providers: StaticProvider[] = [
       {
@@ -1530,14 +1518,12 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
           externalEntityId: this.dashboard.externalId || this.dashboard.id,
           entityId: this.dashboard.id,
           entityName: this.dashboard.name,
-          onBeforeCreateVersion: () => {
-            return this.dashboardService.saveDashboard(this.dashboard).pipe(
+          onBeforeCreateVersion: () => this.dashboardService.saveDashboard(this.dashboard).pipe(
               tap((dashboard) => {
                 this.dashboard = this.dashboardUtils.validateAndUpdateDashboard(dashboard);
                 this.prevDashboard = deepClone(this.dashboard);
               })
-            );
-          }
+            )
         }, {}, {}, {}, true);
       versionControlPopover.tbComponentRef.instance.popoverComponent = versionControlPopover;
       versionControlPopover.tbComponentRef.instance.versionRestored.subscribe(() => {
