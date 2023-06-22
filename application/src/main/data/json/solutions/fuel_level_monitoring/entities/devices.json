@@ -317,7 +317,7 @@
       },
       "tankCapacity": 165000,
       "tankShape": "Rectangle",
-      "sensorGap": 10,
+      "levelMeasurement": "Fill height",
       "sensorMeasurementSystem": "Metric",
       "tankCapacityOutput": "L",
       "tankDimensionUnits": "cm",
