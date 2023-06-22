@@ -314,14 +314,14 @@ public class ConverterController extends AutoCommitController {
                 if (targetIntegrationType == null || !converterDefaultMessages.containsKey(targetIntegrationType)) {
                     return null;
                 }
-                ObjectNode debugIn = objectMapper.createObjectNode();
-                ObjectNode metadata = objectMapper.createObjectNode();
+                ObjectNode debugIn = JacksonUtil.newObjectNode();
+                ObjectNode metadata = JacksonUtil.newObjectNode();
                 metadata.put(INTEGRATION_NAME, integrationName);
                 String inContent = converterDefaultMessages.get(targetIntegrationType);
                 if (converterDefaultMetadatas.containsKey(targetIntegrationType)) {
-                    metadata.setAll((ObjectNode) objectMapper.readTree(converterDefaultMetadatas.get(targetIntegrationType)));
+                    metadata.setAll(JacksonUtil.fromString(converterDefaultMetadatas.get(targetIntegrationType), ObjectNode.class));
                 }
-                debugIn.put("inMetadata", objectMapper.writeValueAsString(metadata));
+                debugIn.put("inMetadata", JacksonUtil.toString(metadata));
                 debugIn.put("inContent", inContent);
                 debugIn.put("inContentType", UplinkContentType.JSON.name());
                 result = debugIn;
