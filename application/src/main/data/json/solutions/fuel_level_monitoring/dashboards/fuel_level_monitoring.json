@@ -1007,7 +1007,7 @@
             "gmDefaultMapType": "roadmap",
             "mapProvider": "CartoDB.Positron",
             "useCustomProvider": true,
-            "customProviderTileUrl": "https://tiles.stadiamaps.com/tiles/outdoors/{z}/{x}/{y}{r}.png",
+            "customProviderTileUrl": "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
             "mapProviderHere": "HERE.normalDay",
             "credentials": {
               "useV3": true,
@@ -2372,7 +2372,7 @@
             "gmDefaultMapType": "roadmap",
             "mapProvider": "CartoDB.Positron",
             "useCustomProvider": true,
-            "customProviderTileUrl": "https://tiles.stadiamaps.com/tiles/outdoors/{z}/{x}/{y}{r}.png",
+            "customProviderTileUrl": "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
             "mapProviderHere": "HERE.normalDay",
             "credentials": {
               "app_id": "AhM6TzD9ThyK78CT3ptx",
