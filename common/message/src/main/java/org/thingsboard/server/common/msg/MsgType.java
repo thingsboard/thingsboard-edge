@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.msg;
 
+import lombok.Getter;
 import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
 import org.thingsboard.server.common.msg.queue.QueueToRuleEngineMsg;
 
@@ -43,7 +44,7 @@ public enum MsgType {
      *
      * See {@link PartitionChangeMsg}
      */
-    PARTITION_CHANGE_MSG,
+    PARTITION_CHANGE_MSG(true),
 
     APP_INIT_MSG,
 
@@ -123,7 +124,7 @@ public enum MsgType {
      * Message that is sent from the Device Actor to Rule Engine. Requires acknowledgement
      */
 
-    SESSION_TIMEOUT_MSG,
+    SESSION_TIMEOUT_MSG(true),
 
     STATS_PERSIST_TICK_MSG,
 
@@ -145,4 +146,14 @@ public enum MsgType {
     EDGE_SYNC_REQUEST_TO_EDGE_SESSION_MSG,
     EDGE_SYNC_RESPONSE_FROM_EDGE_SESSION_MSG;
 
+    @Getter
+    private final boolean ignoreOnStart;
+
+    MsgType() {
+        this.ignoreOnStart = false;
+    }
+
+    MsgType(boolean ignoreOnStart) {
+        this.ignoreOnStart = ignoreOnStart;
+    }
 }
