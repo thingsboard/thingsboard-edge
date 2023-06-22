@@ -31,13 +31,13 @@
 package org.thingsboard.server.dao.customer;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.CustomerInfo;
 import org.thingsboard.server.common.data.EntityType;
@@ -296,11 +296,11 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
                     //     publicCustomer.setParentCustomerId(new CustomerId(ownerId.getId()));
                     // }
                     // try {
-                    //     publicCustomer.setAdditionalInfo(new ObjectMapper().readValue("{ \"isPublic\": true }", JsonNode.class));
-                    // } catch (IOException e) {
+                    //     publicCustomer.setAdditionalInfo(JacksonUtil.fromString("{ \"isPublic\": true }", JsonNode.class));
+                    // } catch (IllegalArgumentException e) {
                     //     throw new IncorrectParameterException("Unable to create public customer.", e);
                     // }
-                    // publicCustomer = saveCustomerInternal(publicCustomer, true);
+                    // publicCustomer = saveCustomerInternal(publicCustomer);
                     // countService.publishCountEntityEvictEvent(publicCustomer.getTenantId(), EntityType.CUSTOMER);
                 }
                 return publicCustomer;
@@ -413,6 +413,12 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     @Override
     public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
         return Optional.ofNullable(findCustomerById(tenantId, new CustomerId(entityId.getId())));
+    }
+
+    @Transactional
+    @Override
+    public void deleteEntity(TenantId tenantId, EntityId id) {
+        deleteCustomer(tenantId, (CustomerId) id);
     }
 
     @Override

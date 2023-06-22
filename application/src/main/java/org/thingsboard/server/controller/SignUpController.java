@@ -31,7 +31,6 @@
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -54,6 +53,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.StringUtils;
@@ -98,8 +98,6 @@ public class SignUpController extends BaseController {
     private static final String PRIVACY_POLICY_ACCEPTED = "privacyPolicyAccepted";
 
     private static final String TERMS_OF_USE_ACCEPTED = "termsOfUseAccepted";
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private RestTemplate restTemplate;
 
@@ -199,7 +197,7 @@ public class SignUpController extends BaseController {
         user.setAuthority(Authority.CUSTOMER_USER);
         user.setTenantId(tenantId);
         user.setCustomerId(savedCustomer.getId());
-        ObjectNode objectNode = objectMapper.createObjectNode();
+        ObjectNode objectNode = JacksonUtil.newObjectNode();
         objectNode.put("lang", "en_US");
         if (!StringUtils.isEmpty(selfRegistrationParams.getDefaultDashboardId())) {
             objectNode.put("defaultDashboardId", selfRegistrationParams.getDefaultDashboardId());
@@ -433,7 +431,7 @@ public class SignUpController extends BaseController {
     private void setPrivacyPolicyAccepted(User user) {
         JsonNode additionalInfo = user.getAdditionalInfo();
         if (additionalInfo == null || !(additionalInfo instanceof ObjectNode)) {
-            additionalInfo = objectMapper.createObjectNode();
+            additionalInfo = JacksonUtil.newObjectNode();
         }
         ((ObjectNode) additionalInfo).put(PRIVACY_POLICY_ACCEPTED, true);
         user.setAdditionalInfo(additionalInfo);
@@ -472,8 +470,7 @@ public class SignUpController extends BaseController {
         securityUser = new SecurityUser(user, true, principal, getMergedUserPermissions(user, false));
         JwtPair tokenPair = tokenFactory.createTokenPair(securityUser);
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        ObjectNode tokenObject = objectMapper.createObjectNode();
+        ObjectNode tokenObject = JacksonUtil.newObjectNode();
         tokenObject.put("token", tokenPair.getToken());
         tokenObject.put("refreshToken", tokenPair.getRefreshToken());
         return tokenObject;
@@ -482,7 +479,7 @@ public class SignUpController extends BaseController {
     private void setTermsOfUseAccepted(User user) {
         JsonNode additionalInfo = user.getAdditionalInfo();
         if (additionalInfo == null || !(additionalInfo instanceof ObjectNode)) {
-            additionalInfo = objectMapper.createObjectNode();
+            additionalInfo = JacksonUtil.newObjectNode();
         }
         ((ObjectNode) additionalInfo).put(TERMS_OF_USE_ACCEPTED, true);
         user.setAdditionalInfo(additionalInfo);
@@ -522,8 +519,7 @@ public class SignUpController extends BaseController {
         securityUser = new SecurityUser(user, true, principal, getMergedUserPermissions(user, false));
         JwtPair tokenPair = tokenFactory.createTokenPair(securityUser);
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        ObjectNode tokenObject = objectMapper.createObjectNode();
+        ObjectNode tokenObject = JacksonUtil.newObjectNode();
         tokenObject.put("token", tokenPair.getToken());
         tokenObject.put("refreshToken", tokenPair.getRefreshToken());
         return tokenObject;

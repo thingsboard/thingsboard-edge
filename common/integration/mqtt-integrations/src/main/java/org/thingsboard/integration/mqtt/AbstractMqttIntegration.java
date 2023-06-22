@@ -37,6 +37,7 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -133,7 +134,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
     }
 
     protected List<MqttTopicFilter> getMqttTopicFilters(Integration configuration) throws JsonProcessingException {
-        return mapper.readValue(mapper.writeValueAsString(configuration.getConfiguration().get("topicFilters")),
+        return JacksonUtil.fromString(JacksonUtil.toString(configuration.getConfiguration().get("topicFilters")),
                 new TypeReference<>() {
                 });
     }
@@ -170,7 +171,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(), mapper.writeValueAsString(msg.toJson()), status, exception);
+                persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(msg.toJson()), status, exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }

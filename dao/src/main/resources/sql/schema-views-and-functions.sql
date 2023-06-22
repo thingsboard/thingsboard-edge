@@ -31,7 +31,7 @@
 
 CREATE OR REPLACE VIEW integration_info as
 SELECT created_time, id, tenant_id, name, type, debug_mode, enabled, is_remote,
-       allow_create_devices_or_assets, is_edge_template, search_text,
+       allow_create_devices_or_assets, is_edge_template,
        (SELECT cast(json_agg(element) as varchar)
         FROM (SELECT sum(se.e_messages_processed + se.e_errors_occurred) element
               FROM stats_event se

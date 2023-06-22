@@ -75,7 +75,7 @@ public class CustomerPageElements extends OtherPageElementsHelper {
     private static final String ASSIGNED_BTN = "//button[@type='submit']";
     private static final String HIDE_HOME_DASHBOARD_TOOLBAR = "//mat-checkbox[@formcontrolname='homeDashboardHideToolbar']//label";
     private static final String FILTER_BTN = "//tb-filters-edit";
-    private static final String TIME_BTN = "//tb-timewindow";
+    private static final String TIME_BTN = "//tb-timewindow[not(@hidelabel)]";
     private static final String CUSTOMER_ICON_HEADER = "//div[@class='tb-breadcrumb']/span[3]/a";
     private static final String CUSTOMER_USER_ICON_HEADER = "User groups";
     private static final String CUSTOMER_ASSETS_ICON_HEADER = "Assets";

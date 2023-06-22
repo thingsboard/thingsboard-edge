@@ -37,10 +37,10 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -49,7 +49,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 
 @ApiModel
 @EqualsAndHashCode(callSuper = true)
-public class Converter extends SearchTextBased<ConverterId> implements HasName, TenantEntity, ExportableEntity<ConverterId> {
+public class Converter extends BaseData<ConverterId> implements HasName, TenantEntity, ExportableEntity<ConverterId> {
 
     private static final long serialVersionUID = -1541581333235769915L;
 
@@ -166,11 +166,6 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
 
     public void setEdgeTemplate(boolean edgeTemplate) {
         this.edgeTemplate = edgeTemplate;
-    }
-
-    @Override
-    public String getSearchText() {
-        return getName();
     }
 
     @Override

@@ -167,12 +167,6 @@ public class Integration extends AbstractIntegration implements ExportableEntity
     }
 
     @Override
-    public String getSearchText() {
-        return getName();
-    }
-
-
-    @Override
     @JsonIgnore
     public EntityType getEntityType() {
         return EntityType.INTEGRATION;

@@ -83,4 +83,6 @@ public @interface RuleNode {
 
     RuleChainType[] ruleChainTypes() default {RuleChainType.CORE};
 
+    int version() default 0;
+
 }

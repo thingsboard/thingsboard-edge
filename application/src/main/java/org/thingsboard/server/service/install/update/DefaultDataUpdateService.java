@@ -30,10 +30,9 @@
  */
 package org.thingsboard.server.service.install.update;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -45,10 +44,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode;
-import org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNode;
-import org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2;
-import org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNode;
+import org.thingsboard.rule.engine.api.TbVersionedNode;
 import org.thingsboard.rule.engine.flow.TbRuleChainInputNode;
 import org.thingsboard.rule.engine.flow.TbRuleChainInputNodeConfiguration;
 import org.thingsboard.rule.engine.profile.TbDeviceProfileNode;
@@ -56,13 +52,13 @@ import org.thingsboard.rule.engine.profile.TbDeviceProfileNodeConfiguration;
 import org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNode;
 import org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNodeConfiguration;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.ShortCustomerInfo;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
@@ -110,11 +106,11 @@ import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileQueueConfiguration;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.common.data.wl.Favicon;
 import org.thingsboard.server.common.data.wl.PaletteSettings;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
-import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -146,9 +142,9 @@ import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
+import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
-import org.thingsboard.server.service.install.TbRuleEngineQueueConfigService;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -161,6 +157,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.StringUtils.isBlank;
@@ -169,8 +166,6 @@ import static org.thingsboard.server.common.data.StringUtils.isBlank;
 @Profile("install")
 @Slf4j
 public class DefaultDataUpdateService implements DataUpdateService {
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String WHITE_LABEL_PARAMS = "whiteLabelParams";
     private static final String LOGO_IMAGE = "logoImage";
@@ -259,7 +254,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private QueueService queueService;
 
     @Autowired
-    private TbRuleEngineQueueConfigService queueConfig;
+    private ComponentDiscoveryService componentDiscoveryService;
 
     @Autowired
     private EventService eventService;
@@ -274,6 +269,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     @Autowired
     private CloudEventDao cloudEventDao;
+
+    @Autowired
+    private IntegrationRateLimitsUpdater integrationRateLimitsUpdater;
 
     @Override
     public void updateData(String fromVersion) throws Exception {
@@ -317,7 +315,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     log.info("Updating data from version 3.4.0 to 3.4.1 ...");
                     eventService.migrateEvents();
                 }
-
                 break;
             case "3.4.1":
                 log.info("Updating data from version 3.4.1 to 3.4.2 ...");
@@ -355,6 +352,10 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     log.info("Skipping cloud events migration");
                 }
                 break;
+            case "3.5.1":
+                log.info("Updating data from version 3.5.1 to 3.5.2 ...");
+                integrationRateLimitsUpdater.updateEntities();
+                break;
             case "edge":
                 // remove this line in 4+ release
                 fixDuplicateSystemWidgetsBundles();
@@ -382,12 +383,57 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 for (ListenableFuture<WhiteLabelingParams> future : futures) {
                     future.get();
                 }
-
-                updateAnalyticsRuleNode();
+                // todo: update TbDuplicateMsgToGroupNode to use TbVersionedNode interface.
                 updateDuplicateMsgRuleNode();
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
+        }
+    }
+
+    @Override
+    public void upgradeRuleNodes() {
+        try {
+            log.info("Lookup rule nodes to upgrade ...");
+            var nodeClassToVersionMap = componentDiscoveryService.getVersionedNodes();
+            log.info("Found {} versioned nodes to check for upgrade!", nodeClassToVersionMap.size());
+            nodeClassToVersionMap.forEach(clazz -> {
+                var ruleNodeType = clazz.getClassName();
+                var ruleNodeTypeForLogs = clazz.getSimpleName();
+                var toVersion = clazz.getCurrentVersion();
+                log.info("Going to check for nodes with type: {} to upgrade to version: {}.", ruleNodeTypeForLogs, toVersion);
+                var ruleNodesToUpdate = new PageDataIterable<>(
+                        pageLink -> ruleChainService.findAllRuleNodesByTypeAndVersionLessThan(ruleNodeType, toVersion, pageLink), 1024
+                );
+                if (Iterables.isEmpty(ruleNodesToUpdate)) {
+                    log.info("There are no active nodes with type: {}, or all nodes with this type already set to latest version!", ruleNodeTypeForLogs);
+                } else {
+                    for (var ruleNode : ruleNodesToUpdate) {
+                        var ruleNodeId = ruleNode.getId();
+                        var oldConfiguration = ruleNode.getConfiguration();
+                        int fromVersion = ruleNode.getConfigurationVersion();
+                        log.info("Going to upgrade rule node with id: {} type: {} fromVersion: {} toVersion: {}",
+                                ruleNodeId, ruleNodeTypeForLogs, fromVersion, toVersion);
+                        try {
+                            var tbVersionedNode = (TbVersionedNode) clazz.getClazz().getDeclaredConstructor().newInstance();
+                            TbPair<Boolean, JsonNode> upgradeRuleNodeConfigurationResult = tbVersionedNode.upgrade(fromVersion, oldConfiguration);
+                            if (upgradeRuleNodeConfigurationResult.getFirst()) {
+                                ruleNode.setConfiguration(upgradeRuleNodeConfigurationResult.getSecond());
+                            }
+                            ruleNode.setConfigurationVersion(toVersion);
+                            ruleChainService.saveRuleNode(TenantId.SYS_TENANT_ID, ruleNode);
+                            log.info("Successfully upgrade rule node with id: {} type: {} fromVersion: {} toVersion: {}",
+                                    ruleNodeId, ruleNodeTypeForLogs, fromVersion, toVersion);
+                        } catch (Exception e) {
+                            log.warn("Failed to upgrade rule node with id: {} type: {} fromVersion: {} toVersion: {} due to: ",
+                                    ruleNodeId, ruleNodeTypeForLogs, fromVersion, toVersion, e);
+                        }
+                    }
+                }
+            });
+            log.info("Finished rule nodes upgrade!");
+        } catch (Exception e) {
+            log.error("Unexpected error during rule nodes upgrade: ", e);
         }
     }
 
@@ -495,9 +541,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
                                 attributesService.find(tenant.getTenantId(), tenant.getTenantId(), DataConstants.SERVER_SCOPE, DataConstants.EDGE_SETTINGS_ATTR_KEY).get();
                         if (attr.isPresent()) {
                             AttributeKvEntry edgeSettingsAttr = attr.get();
-                            ObjectNode tmp = (ObjectNode) objectMapper.readTree(edgeSettingsAttr.getValueAsString());
+                            ObjectNode tmp = (ObjectNode) JacksonUtil.toJsonNode(edgeSettingsAttr.getValueAsString());
                             tmp.remove("cloudType");
-                            StringDataEntry edgeSettingsKvEntry = new StringDataEntry(DataConstants.EDGE_SETTINGS_ATTR_KEY, objectMapper.writeValueAsString(tmp));
+                            StringDataEntry edgeSettingsKvEntry = new StringDataEntry(DataConstants.EDGE_SETTINGS_ATTR_KEY, JacksonUtil.toString(tmp));
                             BaseAttributeKvEntry edgeSettingAttr =
                                     new BaseAttributeKvEntry(edgeSettingsKvEntry, edgeSettingsAttr.getLastUpdateTs());
                             List<AttributeKvEntry> attributes =
@@ -576,33 +622,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
         } catch (Exception e) {
             log.error("Unable to update Tenant", e);
         }
-    }
-
-    private void updateAnalyticsRuleNode() {
-        List<String> ruleNodeNames = new ArrayList<>();
-        ruleNodeNames.add(TbSimpleAggMsgNode.class.getName());
-        ruleNodeNames.add(TbAlarmsCountNode.class.getName());
-        ruleNodeNames.add(TbAlarmsCountNodeV2.class.getName());
-        ruleNodeNames.add(TbAggLatestTelemetryNode.class.getName());
-
-        ruleNodeNames.forEach(ruleNodeName -> {
-            PageDataIterable<RuleNode> ruleNodesIterator = new PageDataIterable<>(link -> ruleChainService.findAllRuleNodesByType(ruleNodeName, link), 1024);
-            ruleNodesIterator.forEach(ruleNode -> {
-                JsonNode json = ruleNode.getConfiguration();
-                if (json != null && json.isObject()) {
-                    ObjectNode configNode = (ObjectNode) json;
-                    if (!configNode.has("outMsgType")) {
-                        RuleChain targetRuleChain = ruleChainService.findRuleChainById(TenantId.SYS_TENANT_ID, ruleNode.getRuleChainId());
-                        if (targetRuleChain != null) {
-                            TenantId tenantId = targetRuleChain.getTenantId();
-                            configNode.put("outMsgType", SessionMsgType.POST_TELEMETRY_REQUEST.name());
-                            ruleNode.setConfiguration(JacksonUtil.valueToTree(configNode));
-                            ruleChainService.saveRuleNode(tenantId, ruleNode);
-                        }
-                    }
-                }
-            });
-        });
     }
 
     private void updateDuplicateMsgRuleNode() {
@@ -714,7 +733,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                             md.getNodes().add(ruleNode);
                             md.setFirstNodeIndex(newIdx);
                             md.addConnectionInfo(newIdx, oldIdx, "Success");
-                            ruleChainService.saveRuleChainMetaData(tenant.getId(), md);
+                            ruleChainService.saveRuleChainMetaData(tenant.getId(), md, Function.identity());
                         }
                     } catch (Exception e) {
                         log.error("[{}] Unable to update Tenant: {}", tenant.getId(), tenant.getName(), e);
@@ -1206,8 +1225,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
             String json = whiteLabelParamsSettings.getJsonValue().get("value").asText();
             if (!StringUtils.isEmpty(json)) {
                 try {
-                    storedWl = objectMapper.readTree(json);
-                } catch (IOException e) {
+                    storedWl = JacksonUtil.toJsonNode(json);
+                } catch (IllegalArgumentException e) {
                     log.error("Unable to read System White Labeling Params!", e);
                 }
             }
@@ -1241,7 +1260,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private ListenableFuture<List<String>> updateTenantMailTemplates(TenantId tenantId) throws IOException {
         String mailTemplatesJsonString = getEntityAttributeValue(tenantId, MAIL_TEMPLATES);
         if (!StringUtils.isEmpty(mailTemplatesJsonString)) {
-            JsonNode oldMailTemplates = objectMapper.readTree(mailTemplatesJsonString);
+            JsonNode oldMailTemplates = JacksonUtil.toJsonNode(mailTemplatesJsonString);
             ObjectNode updatedMailTemplates = installScripts.updateMailTemplates(oldMailTemplates);
 
             if (oldMailTemplates.has(USE_SYSTEM_MAIL_SETTINGS)) {
@@ -1371,8 +1390,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 JsonNode faviconJson = storedWl.get("favicon");
                 Favicon favicon = null;
                 try {
-                    favicon = objectMapper.treeToValue(faviconJson, Favicon.class);
-                } catch (JsonProcessingException e) {
+                    favicon = JacksonUtil.treeToValue(faviconJson, Favicon.class);
+                } catch (IllegalArgumentException e) {
                     log.error("Unable to read Favicon from previous White Labeling Params!", e);
                 }
                 whiteLabelingParams.setFavicon(favicon);
@@ -1381,8 +1400,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 JsonNode paletteSettingsJson = storedWl.get("paletteSettings");
                 PaletteSettings paletteSettings = null;
                 try {
-                    paletteSettings = objectMapper.treeToValue(paletteSettingsJson, PaletteSettings.class);
-                } catch (JsonProcessingException e) {
+                    paletteSettings = JacksonUtil.treeToValue(paletteSettingsJson, PaletteSettings.class);
+                } catch (IllegalArgumentException e) {
                     log.error("Unable to read Palette Settings from previous White Labeling Params!", e);
                 }
                 whiteLabelingParams.setPaletteSettings(paletteSettings);
@@ -1428,8 +1447,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
         String value = getEntityAttributeValue(entityId, WHITE_LABEL_PARAMS);
         if (!StringUtils.isEmpty(value)) {
             try {
-                return objectMapper.readTree(value);
-            } catch (IOException e) {
+                return JacksonUtil.toJsonNode(value);
+            } catch (IllegalArgumentException e) {
                 log.error("Unable to read White Labeling Params from JSON!", e);
                 return null;
             }
@@ -1473,7 +1492,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
     }
 
-    private abstract static class WhiteLabelingPaginatedUpdater<I, D extends SearchTextBased<? extends UUIDBased>> {
+    private abstract static class WhiteLabelingPaginatedUpdater<I, D extends BaseDataWithAdditionalInfo<? extends UUIDBased>> {
 
         private static final int DEFAULT_LIMIT = 100;
         private int updated = 0;

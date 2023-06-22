@@ -84,7 +84,6 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
-import org.thingsboard.server.dao.alarm.AlarmCommentService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.converter.ConverterService;
@@ -98,7 +97,6 @@ import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.notification.NotificationRequestService;
 import org.thingsboard.server.dao.notification.NotificationRuleService;
-import org.thingsboard.server.dao.notification.NotificationService;
 import org.thingsboard.server.dao.notification.NotificationTargetService;
 import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
@@ -134,8 +132,6 @@ public class TenantIdLoaderTest {
     @Mock
     private RuleEngineAlarmService alarmService;
     @Mock
-    private AlarmCommentService alarmCommentService;
-    @Mock
     private RuleChainService ruleChainService;
     @Mock
     private EntityViewService entityViewService;
@@ -167,8 +163,6 @@ public class TenantIdLoaderTest {
     private NotificationTemplateService notificationTemplateService;
     @Mock
     private NotificationRequestService notificationRequestService;
-    @Mock
-    private NotificationService notificationService;
     @Mock
     private NotificationRuleService notificationRuleService;
     @Mock
@@ -464,9 +458,8 @@ public class TenantIdLoaderTest {
 
                 break;
             default:
-                throw new RuntimeException("Unexpected original EntityType " + entityType);
+                throw new RuntimeException("Unexpected originator EntityType " + entityType);
         }
-
     }
 
     private EntityId getEntityId(EntityType entityType) {

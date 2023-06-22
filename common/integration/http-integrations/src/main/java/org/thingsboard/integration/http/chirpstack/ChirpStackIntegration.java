@@ -38,6 +38,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -47,7 +49,6 @@ import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.http.basic.BasicHttpIntegration;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -151,7 +152,7 @@ public class ChirpStackIntegration extends BasicHttpIntegration<JsonHttpIntegrat
                         throw new ThingsboardException("FPort is missing in the downlink metadata!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
                     }
                     String payload = new String(downlink.getData(), StandardCharsets.UTF_8);
-                    ObjectNode body = mapper.createObjectNode();
+                    ObjectNode body = JacksonUtil.newObjectNode();
                     if (metadata.containsKey(CONFIRMED)) {
                         body.with(DEVICE_DOWNLINK_QUEUE).put(CONFIRMED, metadata.get(CONFIRMED));
                     }

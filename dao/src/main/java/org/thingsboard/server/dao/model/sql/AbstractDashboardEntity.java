@@ -30,27 +30,25 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.TypeDef;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.ShortCustomerInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.UUID;
 
@@ -59,11 +57,10 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @MappedSuperclass
-public abstract class AbstractDashboardEntity<T extends Dashboard> extends BaseSqlEntity<T> implements SearchTextEntity<T> {
+public abstract class AbstractDashboardEntity<T extends Dashboard> extends BaseSqlEntity<T> implements BaseEntity<T> {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final JavaType assignedCustomersType =
-            objectMapper.getTypeFactory().constructCollectionType(HashSet.class, ShortCustomerInfo.class);
+            JacksonUtil.constructCollectionType(HashSet.class, ShortCustomerInfo.class);
 
     @Column(name = ModelConstants.DASHBOARD_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -76,9 +73,6 @@ public abstract class AbstractDashboardEntity<T extends Dashboard> extends BaseS
 
     @Column(name = ModelConstants.DASHBOARD_IMAGE_PROPERTY)
     private String image;
-
-    @Column(name = ModelConstants.SEARCH_TEXT_PROPERTY)
-    private String searchText;
 
     @Column(name = ModelConstants.DASHBOARD_ASSIGNED_CUSTOMERS_PROPERTY)
     private String assignedCustomers;
@@ -111,8 +105,8 @@ public abstract class AbstractDashboardEntity<T extends Dashboard> extends BaseS
         this.image = dashboard.getImage();
         if (dashboard.getAssignedCustomers() != null) {
             try {
-                this.assignedCustomers = objectMapper.writeValueAsString(dashboard.getAssignedCustomers());
-            } catch (JsonProcessingException e) {
+                this.assignedCustomers = JacksonUtil.toString(dashboard.getAssignedCustomers());
+            } catch (IllegalArgumentException e) {
                 log.error("Unable to serialize assigned customers to string!", e);
             }
         }
@@ -121,16 +115,6 @@ public abstract class AbstractDashboardEntity<T extends Dashboard> extends BaseS
         if (dashboard.getExternalId() != null) {
             this.externalId = dashboard.getExternalId().getId();
         }
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return title;
-    }
-
-    @Override
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
     }
 
     protected Dashboard toDashboard() {
@@ -146,8 +130,8 @@ public abstract class AbstractDashboardEntity<T extends Dashboard> extends BaseS
         dashboard.setImage(image);
         if (!StringUtils.isEmpty(assignedCustomers)) {
             try {
-                dashboard.setAssignedCustomers(objectMapper.readValue(assignedCustomers, assignedCustomersType));
-            } catch (IOException e) {
+                dashboard.setAssignedCustomers(JacksonUtil.fromString(assignedCustomers, assignedCustomersType));
+            } catch (IllegalArgumentException e) {
                 log.warn("Unable to parse assigned customers!", e);
             }
         }

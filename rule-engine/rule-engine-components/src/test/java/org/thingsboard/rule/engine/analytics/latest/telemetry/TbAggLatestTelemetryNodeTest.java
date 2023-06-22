@@ -31,7 +31,7 @@
 package org.thingsboard.rule.engine.analytics.latest.telemetry;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
@@ -41,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
@@ -49,6 +50,7 @@ import org.mockito.internal.verification.Times;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.Stubber;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.analytics.incoming.MathFunction;
 import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesRelationsQuery;
@@ -73,6 +75,7 @@ import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
@@ -253,8 +256,7 @@ public class TbAggLatestTelemetryNodeTest {
         config.setPeriodValue(0);
         config.setOutMsgType(SessionMsgType.POST_TELEMETRY_REQUEST.name());
 
-        ObjectMapper mapper = new ObjectMapper();
-        nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
+        nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
         expectedAvgTempMap = new HashMap<>();
         expectedDeviceCountMap = new HashMap<>();
     }
@@ -415,6 +417,29 @@ public class TbAggLatestTelemetryNodeTest {
                 Assert.assertTrue(t.contains(invalidValue));
             }
         }
+    }
+
+    @Test
+    public void givenOldConfig_whenUpgrade_thenShouldReturnTrueResultWithNewConfig() throws Exception {
+        var node = new TbAggLatestTelemetryNode();
+        TbAggLatestTelemetryNodeConfiguration defaultConfig = new TbAggLatestTelemetryNodeConfiguration().defaultConfiguration();
+        String oldConfig = "{\"parentEntitiesQuery\":{\"type\":\"group\",\"entityGroupId\":null}," +
+                "\"periodTimeUnit\":\"MINUTES\",\"periodValue\":5,\"queueName\":null," +
+                "\"aggMappings\":[{\"source\":\"temperature\",\"sourceScope\":\"LATEST_TELEMETRY\"," +
+                "\"defaultValue\":0.0,\"target\":\"latestAvgTemperature\",\"aggFunction\":\"AVG\",\"filter\":null}]}";
+        TbPair<Boolean, JsonNode> upgrade = node.upgrade(0, JacksonUtil.toJsonNode(oldConfig));
+        Assertions.assertTrue(upgrade.getFirst());
+        Assertions.assertEquals(defaultConfig, JacksonUtil.treeToValue(upgrade.getSecond(), defaultConfig.getClass()));
+    }
+
+    @Test
+    public void givenNewConfigWithOldVersion_whenUpgrade_thenShouldReturnFalseResultWithTheSameConfig() throws Exception {
+        var node = new TbAggLatestTelemetryNode();
+        var defaultConfig = new TbAggLatestTelemetryNodeConfiguration().defaultConfiguration();
+        JsonNode expectedConfig = JacksonUtil.valueToTree(defaultConfig);
+        TbPair<Boolean, JsonNode> upgrade = node.upgrade(0, expectedConfig);
+        Assertions.assertFalse(upgrade.getFirst());
+        Assertions.assertEquals(defaultConfig, JacksonUtil.treeToValue(upgrade.getSecond(), defaultConfig.getClass()));
     }
 
     private void verifyMessage(TbMsg msg) {

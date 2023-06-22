@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, forwardRef, Input, OnInit } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -52,6 +52,10 @@ import { coerceBoolean } from '@shared/decorators/coercion';
   ]
 })
 export class ColorInputComponent extends PageComponent implements OnInit, ControlValueAccessor {
+
+  @Input()
+  @coerceBoolean()
+  asBoxInput = false;
 
   @Input()
   icon: string;
@@ -115,7 +119,8 @@ export class ColorInputComponent extends PageComponent implements OnInit, Contro
   constructor(protected store: Store<AppState>,
               private dialogs: DialogService,
               private translate: TranslateService,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private cd: ChangeDetectorRef) {
     super(store);
   }
 
@@ -174,6 +179,7 @@ export class ColorInputComponent extends PageComponent implements OnInit, Contro
           this.colorFormGroup.patchValue(
             {color}, {emitEvent: true}
           );
+          this.cd.markForCheck();
         }
       }
     );
@@ -181,5 +187,6 @@ export class ColorInputComponent extends PageComponent implements OnInit, Contro
 
   clear() {
     this.colorFormGroup.get('color').patchValue(null, {emitEvent: true});
+    this.cd.markForCheck();
   }
 }

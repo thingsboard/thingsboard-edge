@@ -30,11 +30,7 @@
  */
 package org.thingsboard.integration.tcpip;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.integration.api.util.ConvertUtil;
 
 import java.net.SocketAddress;
 
@@ -43,10 +39,4 @@ public class IpIntegrationMsg {
 
     private final SocketAddress address;
     private final byte[] payload;
-
-    public JsonNode toJson() {
-        ObjectNode json = JacksonUtil.newObjectNode();
-        ConvertUtil.putJson(json, payload);
-        return json;
-    }
 }

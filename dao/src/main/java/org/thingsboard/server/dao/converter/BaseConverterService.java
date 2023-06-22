@@ -198,6 +198,12 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     }
 
     @Override
+    @Transactional
+    public void deleteEntity(TenantId tenantId, EntityId id) {
+        deleteConverter(tenantId, (ConverterId) id);
+    }
+
+    @Override
     public EntityType getEntityType() {
         return EntityType.CONVERTER;
     }

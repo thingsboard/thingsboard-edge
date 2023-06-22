@@ -66,6 +66,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
@@ -156,7 +157,7 @@ public class RuleChainCloudProcessor extends BaseEdgeProcessor {
                         ruleChainMetadata.setFirstNodeIndex(ruleChainMetadataUpdateMsg.getFirstNodeIndex());
                     }
                     if (ruleChainMetadata.getNodes().size() > 0) {
-                        ruleChainService.saveRuleChainMetaData(tenantId, ruleChainMetadata);
+                        ruleChainService.saveRuleChainMetaData(tenantId, ruleChainMetadata, Function.identity());
                         tbClusterService.broadcastEntityStateChangeEvent(tenantId, ruleChainId, ComponentLifecycleEvent.UPDATED);
                     }
                     break;

@@ -129,4 +129,10 @@ public class SolutionTemplatesInstalledViewHelper extends SolutionTemplatesInsta
     public String getThingsBoardIntegration() {
         return getLink("Check redirect on ThingsBoard Integration documentation page", linkIntegration());
     }
+
+    public void goToMainDashboard() {
+        solutionTemplateInstalledPopUp();
+        jsClick(goToMainDashboardPageBtn());
+        waitUntilUrlContainsText("dashboards");
+    }
 }

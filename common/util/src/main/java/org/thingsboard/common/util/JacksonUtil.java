@@ -43,11 +43,14 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.CollectionType;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.thingsboard.server.common.data.kv.DataType;
 import org.thingsboard.server.common.data.kv.KvEntry;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -75,6 +78,10 @@ public class JacksonUtil {
             .configure(JsonWriteFeature.QUOTE_FIELD_NAMES.mappedFeature(), false)
             .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true)
             .build();
+
+    public static ObjectMapper getObjectMapperWithJavaTimeModule() {
+        return new ObjectMapper().registerModule(new JavaTimeModule());
+    }
 
     public static <T> T convertValue(Object fromValue, Class<T> toValueType) {
         try {
@@ -221,6 +228,15 @@ public class JacksonUtil {
         }
     }
 
+    public static JsonNode toJsonNode(File value) {
+        try {
+            return value != null ? OBJECT_MAPPER.readTree(value) : null;
+        } catch (IOException e) {
+            throw new IllegalArgumentException("The given File object value: "
+                    + value + " cannot be transformed to a JsonNode", e);
+        }
+    }
+
     public static ObjectNode newObjectNode() {
         return newObjectNode(OBJECT_MAPPER);
     }
@@ -314,6 +330,27 @@ public class JacksonUtil {
         HashMap<String, String> map = new HashMap<>();
         toFlatMap(node, "", map);
         return map;
+    }
+
+    public static <T> T fromReader(Reader reader, Class<T> clazz) {
+        try {
+            return reader != null ? OBJECT_MAPPER.readValue(reader, clazz) : null;
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Invalid request payload", e);
+        }
+    }
+
+    public static <T> void writeValue(Writer writer, T value) {
+        try {
+            OBJECT_MAPPER.writeValue(writer, value);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("The given writer value: "
+                    + writer + "cannot be wrote", e);
+        }
+    }
+
+    public static JavaType constructCollectionType(Class collectionClass, Class<?> elementClass) {
+        return OBJECT_MAPPER.getTypeFactory().constructCollectionType(collectionClass, elementClass);
     }
 
     private static void toFlatMap(JsonNode node, String currentPath, Map<String, String> map) {

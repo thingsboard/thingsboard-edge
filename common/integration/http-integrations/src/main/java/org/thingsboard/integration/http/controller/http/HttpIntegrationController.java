@@ -32,7 +32,6 @@ package org.thingsboard.integration.http.controller.http;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.annotations.ApiOperation;
@@ -75,8 +74,6 @@ import java.util.Optional;
 @SuppressWarnings("rawtypes")
 public class HttpIntegrationController extends BaseIntegrationController {
 
-    private static final ObjectMapper mapper = JacksonUtil.OBJECT_MAPPER;
-
     @ApiOperation(value = "Process request from HTTP integrations", hidden = true)
     @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.APPLICATION_OCTET_STREAM_VALUE})
     @ResponseStatus(value = HttpStatus.OK)
@@ -103,7 +100,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
         log.debug("[{}] Received multipart form request: {}", routingKey, request.getMultiFileMap().keySet());
 
         Map<String, String> requestHeaders = request.getRequestHeaders().toSingleValueMap();
-        ObjectNode msg = mapper.createObjectNode();
+        ObjectNode msg = JacksonUtil.newObjectNode();
         request.getMultiFileMap().forEach((fieldName, multipartFiles) -> {
             ArrayNode fileArrayNode = convertFilesToJsonFormat(multipartFiles);
             if (fileArrayNode.size() == 1) {
@@ -147,7 +144,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
                                                          @RequestHeader Map<String, String> requestHeaders) {
         log.debug("[{}] Received status check request", routingKey);
         return processRequest(routingKey, suffix,
-                new JsonHttpIntegrationMsg(requestHeaders, mapper.convertValue(requestParams, JsonNode.class), new DeferredResult<>()));
+                new JsonHttpIntegrationMsg(requestHeaders, JacksonUtil.convertValue(requestParams, JsonNode.class), new DeferredResult<>()));
     }
 
     @SuppressWarnings("unchecked")
@@ -161,15 +158,15 @@ public class HttpIntegrationController extends BaseIntegrationController {
     }
 
     private ArrayNode convertFilesToJsonFormat(List<MultipartFile> multipartFiles) {
-        ArrayNode fileArrayNode = mapper.createArrayNode();
+        ArrayNode fileArrayNode = JacksonUtil.newArrayNode();
         for (MultipartFile multipartFile : multipartFiles) {
             try (InputStream fileIS = multipartFile.getInputStream();) {
                 byte[] fileBytes = new byte[(int) multipartFile.getSize()];
                 fileIS.read(fileBytes, 0, fileBytes.length);
                 try {
-                    JsonNode jsonInterpretation = mapper.readTree(fileBytes);
+                    JsonNode jsonInterpretation = JacksonUtil.fromBytes(fileBytes);
                     fileArrayNode.add(jsonInterpretation);
-                } catch (JsonParseException e) {
+                } catch (IllegalArgumentException e) {
                     String stringInterpretation = Base64Utils.encodeToString(fileBytes);
                     fileArrayNode.add(stringInterpretation);
                 }
@@ -190,7 +187,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
         log.debug("[{}] Received status check request", routingKey);
         DeferredResult<ResponseEntity> result = new DeferredResult<>();
 
-        ObjectNode json = mapper.createObjectNode();
+        ObjectNode json = JacksonUtil.newObjectNode();
         if (requestParams.size() > 0) {
             requestParams.forEach(json::put);
         }

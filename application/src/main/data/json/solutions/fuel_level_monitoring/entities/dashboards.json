@@ -1,0 +1,8 @@
+[
+  {
+    "name": "Fuel Level Monitoring",
+    "file": "fuel_level_monitoring.json",
+    "group": "Fuel Level Monitoring",
+    "main": true
+  }
+]

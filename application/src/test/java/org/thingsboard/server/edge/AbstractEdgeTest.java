@@ -373,7 +373,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     private void validateMailAdminSettings(AdminSettingsUpdateMsg adminSettingsUpdateMsg) throws JsonProcessingException {
-        JsonNode jsonNode = mapper.readTree(adminSettingsUpdateMsg.getJsonValue());
+        JsonNode jsonNode = JacksonUtil.toJsonNode(adminSettingsUpdateMsg.getJsonValue());
         Assert.assertNotNull(jsonNode.get("mailFrom"));
         Assert.assertNotNull(jsonNode.get("smtpProtocol"));
         Assert.assertNotNull(jsonNode.get("smtpHost"));
@@ -382,7 +382,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     private void validateGeneralAdminSettings(AdminSettingsUpdateMsg adminSettingsUpdateMsg) throws JsonProcessingException {
-        JsonNode jsonNode = mapper.readTree(adminSettingsUpdateMsg.getJsonValue());
+        JsonNode jsonNode = JacksonUtil.toJsonNode(adminSettingsUpdateMsg.getJsonValue());
         Assert.assertNotNull(jsonNode.get("baseUrl"));
     }
 
