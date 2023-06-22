@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.http.HttpHeaders;
@@ -530,6 +529,9 @@ public class TbResourceControllerTest extends AbstractControllerTest {
     public void testDownloadTbResourceIfChangedAsPublicCustomer() throws Exception {
         loginTenantAdmin();
         Mockito.reset(tbClusterService, auditLogService);
+
+        // edge only - temporary method, to fix public customer tests
+        doPost("/api/customer/public");
 
         TbResource resource = new TbResource();
         resource.setResourceType(ResourceType.JS_MODULE);

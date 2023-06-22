@@ -46,6 +46,8 @@ import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.TenantProfileUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.TenantUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetTypeUpdateMsg;
@@ -65,6 +67,8 @@ import org.thingsboard.server.service.cloud.rpc.processor.QueueCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RelationCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RuleChainCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.TelemetryCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.TenantCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.TenantProfileCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.UserCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.WidgetBundleCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.WidgetTypeCloudProcessor;
@@ -138,6 +142,12 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
 
     @Autowired
     private QueueCloudProcessor queueCloudProcessor;
+
+    @Autowired
+    private TenantCloudProcessor tenantCloudProcessor;
+
+    @Autowired
+    private TenantProfileCloudProcessor tenantProfileCloudProcessor;
 
     @Autowired
     private DbCallbackExecutorService dbCallbackExecutorService;
@@ -276,6 +286,16 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             if (downlinkMsg.getQueueUpdateMsgCount() > 0) {
                 for (QueueUpdateMsg queueUpdateMsg : downlinkMsg.getQueueUpdateMsgList()) {
                     result.add(queueCloudProcessor.processQueueMsgFromCloud(tenantId, queueUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getTenantUpdateMsgCount() > 0) {
+                for (TenantUpdateMsg tenantUpdateMsg : downlinkMsg.getTenantUpdateMsgList()) {
+                    result.add(tenantCloudProcessor.processTenantMsgFromCloud(tenantId, tenantUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getTenantProfileUpdateMsgCount() > 0) {
+                for (TenantProfileUpdateMsg tenantProfileUpdateMsg : downlinkMsg.getTenantProfileUpdateMsgList()) {
+                    result.add(tenantProfileCloudProcessor.processTenantProfileMsgFromCloud(tenantId, tenantProfileUpdateMsg));
                 }
             }
             log.trace("Finished processing DownlinkMsg {}", downlinkMsg.getDownlinkMsgId());
