@@ -124,9 +124,9 @@ export class RuleChainPageComponent extends PageComponent
 
   @ViewChild('ruleChainMenuTrigger', {static: true}) ruleChainMenuTrigger: MatMenuTrigger;
 
-  readonly = true;
-
   @ViewChild('drawer') drawer: MatDrawer;
+
+  readonly = true;
 
   eventTypes = EventType;
 
