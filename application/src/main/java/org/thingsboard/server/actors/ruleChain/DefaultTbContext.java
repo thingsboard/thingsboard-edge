@@ -254,6 +254,12 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
+    public void enqueueForTellFailure(TbMsg tbMsg, Throwable th) {
+        TopicPartitionInfo tpi = resolvePartition(tbMsg);
+        enqueueForTellNext(tpi, tbMsg, Collections.singleton(TbRelationTypes.FAILURE), getFailureMessage(th), null, null);
+    }
+
+    @Override
     public void enqueueForTellNext(TbMsg tbMsg, String relationType) {
         TopicPartitionInfo tpi = resolvePartition(tbMsg);
         enqueueForTellNext(tpi, tbMsg, Collections.singleton(relationType), null, null, null);
@@ -346,16 +352,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
         if (nodeCtx.getSelf().isDebugMode()) {
             mainCtx.persistDebugOutput(nodeCtx.getTenantId(), nodeCtx.getSelf().getId(), msg, TbRelationTypes.FAILURE, th);
         }
-        String failureMessage;
-        if (th != null) {
-            if (!StringUtils.isEmpty(th.getMessage())) {
-                failureMessage = th.getMessage();
-            } else {
-                failureMessage = th.getClass().getSimpleName();
-            }
-        } else {
-            failureMessage = null;
-        }
+        String failureMessage = getFailureMessage(th);
         nodeCtx.getChainActor().tell(new RuleNodeToRuleChainTellNextMsg(nodeCtx.getSelf().getRuleChainId(),
                 nodeCtx.getSelf().getId(), Collections.singleton(TbRelationTypes.FAILURE),
                 msg, failureMessage));
@@ -774,6 +771,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
+    public boolean isExternalNodeForceAck() {
+        return mainCtx.isExternalNodeForceAck();
+    }
+
+    @Override
     public RuleEngineRpcService getRpcService() {
         return mainCtx.getTbRuleEngineDeviceRpcService();
     }
@@ -1040,6 +1042,20 @@ class DefaultTbContext implements TbContext, TbPeContext {
         if (!this.getTenantId().equals(TenantIdLoader.findTenantId(this, entityId))) {
             throw new TbNodeException("Entity with id: '" + entityId + "' specified in the configuration doesn't belong to the current tenant.", true);
         }
+    }
+
+    private static String getFailureMessage(Throwable th) {
+        String failureMessage;
+        if (th != null) {
+            if (!StringUtils.isEmpty(th.getMessage())) {
+                failureMessage = th.getMessage();
+            } else {
+                failureMessage = th.getClass().getSimpleName();
+            }
+        } else {
+            failureMessage = null;
+        }
+        return failureMessage;
     }
 
     private class SimpleTbQueueCallback implements TbQueueCallback {
