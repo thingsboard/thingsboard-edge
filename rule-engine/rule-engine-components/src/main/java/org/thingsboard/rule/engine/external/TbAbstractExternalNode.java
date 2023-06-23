@@ -28,35 +28,49 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.rule.engine.external;
 
-import lombok.Getter;
-import org.thingsboard.server.common.msg.TbActorError;
+import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.api.TbNode;
+import org.thingsboard.rule.engine.api.TbRelationTypes;
+import org.thingsboard.server.common.msg.TbMsg;
 
-/**
- * Created by ashvayka on 19.01.18.
- */
-public class TbNodeException extends Exception implements TbActorError {
+public abstract class TbAbstractExternalNode implements TbNode {
 
-    @Getter
-    private final boolean unrecoverable;
+    private boolean forceAck;
 
-    public TbNodeException(String message) {
-        this(message, false);
+    public void init(TbContext ctx) {
+        this.forceAck = ctx.isExternalNodeForceAck();
     }
 
-    public TbNodeException(String message, boolean unrecoverable) {
-        super(message);
-        this.unrecoverable = unrecoverable;
+    protected void tellSuccess(TbContext ctx, TbMsg tbMsg) {
+        if (forceAck) {
+            ctx.enqueueForTellNext(tbMsg.copyWithNewCtx(), TbRelationTypes.SUCCESS);
+        } else {
+            ctx.tellSuccess(tbMsg);
+        }
     }
 
-    public TbNodeException(Exception e) {
-        this(e, false);
+    protected void tellFailure(TbContext ctx, TbMsg tbMsg, Throwable t) {
+        if (forceAck) {
+            if (t == null) {
+                ctx.enqueueForTellNext(tbMsg.copyWithNewCtx(), TbRelationTypes.FAILURE);
+            } else {
+                ctx.enqueueForTellFailure(tbMsg.copyWithNewCtx(), t);
+            }
+        } else {
+            if (t == null) {
+                ctx.tellNext(tbMsg, TbRelationTypes.FAILURE);
+            } else {
+                ctx.tellFailure(tbMsg, t);
+            }
+        }
     }
 
-    public TbNodeException(Exception e, boolean unrecoverable) {
-        super(e);
-        this.unrecoverable = unrecoverable;
+    protected void ackIfNeeded(TbContext ctx, TbMsg msg) {
+        if (forceAck) {
+            ctx.ack(msg);
+        }
     }
 
 }
