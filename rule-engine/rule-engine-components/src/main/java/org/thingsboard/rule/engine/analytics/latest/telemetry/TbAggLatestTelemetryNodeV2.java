@@ -235,6 +235,7 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
 
     private void doCalculate(TbContext ctx, TbMsg msg, long ts, List<TbAggEntityData> childDataList) {
         if (childDataList.isEmpty()) {
+            ctx.ack(msg);
             return;
         }
         childDataList.forEach(TbAggEntityData::prepare);
