@@ -203,8 +203,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             postAttributesMsg.addAllKv(data.getAttributesUpdate().getKvList());
         }
         if (data.getConstants() != null) {
-            TransportProtos.PostAttributeMsg constantsAttributesMsg = processConstantsForEntity(entityName, data.getConstants());
-            postAttributesMsg.addAllKv(constantsAttributesMsg.getKvList());
+            List<TransportProtos.KeyValueProto> constantsKv = processConstantsForEntity(entityName, data.getConstants());
+            postAttributesMsg.addAllKv(constantsKv);
         }
         if (postAttributesMsg.getKvCount() > 0) {
             builder.setPostAttributesMsg(postAttributesMsg);
@@ -233,8 +233,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             postAttributesMsg.addAllKv(data.getAttributesUpdate().getKvList());
         }
         if (data.getConstants() != null) {
-            TransportProtos.PostAttributeMsg constantsAttributesMsg = processConstantsForEntity(entityName, data.getConstants());
-            postAttributesMsg.addAllKv(constantsAttributesMsg.getKvList());
+            List<TransportProtos.KeyValueProto> constantsKv = processConstantsForEntity(entityName, data.getConstants());
+            postAttributesMsg.addAllKv(constantsKv);
         }
         if (postAttributesMsg.getKvCount() > 0) {
             builder.setPostAttributesMsg(data.getAttributesUpdate());
@@ -242,21 +242,21 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         context.processUplinkData(builder.build(), null);
     }
 
-    private TransportProtos.PostAttributeMsg processConstantsForEntity(String entityName, TransportProtos.PostAttributeMsg constants) {
+    private List<TransportProtos.KeyValueProto> processConstantsForEntity(String entityName, TransportProtos.PostAttributeMsg constants) {
         List<TransportProtos.KeyValueProto> constantsKvList = constants.getKvList();
-        List<String> constantKeys = this.entityConstants.computeIfAbsent(entityName, k -> new ArrayList<>());
-        TransportProtos.PostAttributeMsg.Builder constantsAttributeMsg = TransportProtos.PostAttributeMsg.newBuilder();
+        List<String> integrationConstantKeys = this.entityConstants.computeIfAbsent(entityName, k -> new ArrayList<>());
+        List<TransportProtos.KeyValueProto> constantsKvForSaving = new ArrayList<>();
 
         for (TransportProtos.KeyValueProto constantKv : constantsKvList) {
-            String constantKvKey = constantKv.getKey();
-            if (!constantKeys.contains(constantKvKey)) {
-                constantsAttributeMsg.addKv(constantKv);
-                constantKeys.add(constantKvKey);
+            String constantKey = constantKv.getKey();
+            if (!integrationConstantKeys.contains(constantKey)) {
+                constantsKvForSaving.add(constantKv);
+                integrationConstantKeys.add(constantKey);
             }
         }
 
-        this.entityConstants.put(entityName, constantKeys);
-        return constantsAttributeMsg.build();
+        this.entityConstants.put(entityName, integrationConstantKeys);
+        return constantsKvForSaving;
     }
 
     protected void createEntityView(IntegrationContext context, UplinkData data, String viewName, String viewType, List<String> telemetryKeys) {
