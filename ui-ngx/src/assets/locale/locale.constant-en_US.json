@@ -1323,6 +1323,7 @@
     },
     "datakey": {
         "settings": "Settings",
+        "general": "General",
         "advanced": "Advanced",
         "key": "Key",
         "label": "Label",
@@ -5534,6 +5535,7 @@
         "drop-shadow": "Drop shadow",
         "enable-fullscreen": "Enable fullscreen",
         "enable-data-export": "Enable data export",
+        "data-export": "Data export",
         "background-color": "Background color",
         "text-color": "Text color",
         "padding": "Padding",
@@ -5598,7 +5600,6 @@
         "preview": "Preview",
         "set": "Set",
         "set-message": "Set message",
-        "card-title": "Card title",
         "advanced-title-style": "Advanced title style",
         "card-style": "Card style",
         "text": "Text",
@@ -6713,9 +6714,16 @@
             "scheduler-events-table-title": "Scheduler events table title",
             "force-default-event-type": "Force default event type",
             "columns": "Columns",
+            "column-settings": "Column settings",
             "remove-column": "Remove column",
             "add-column": "Add column",
-            "no-columns": "No columns configured"
+            "no-columns": "No columns configured",
+            "show-card-buttons": "Show card buttons",
+            "columns-to-display": "Columns to display",
+            "table-header": "Table header",
+            "header-buttons": "Header buttons",
+            "pagination": "Pagination",
+            "rows": "Rows"
         },
         "scheduler": {
             "enabled-scheduler-event-views": "Enabled scheduler events views",

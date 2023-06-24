@@ -43,6 +43,7 @@ import { Widget } from '@app/shared/models/widget.models';
 import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { EntityType } from '@shared/models/entity-type.models';
+import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 
 @Injectable()
 export class WidgetEditorDashboardResolver implements Resolve<Dashboard> {
@@ -77,6 +78,7 @@ const routes: Routes = [
   {
     path: 'dashboard/:dashboardId',
     component: DashboardPageComponent,
+    canDeactivate: [ConfirmOnExitGuard],
     data: {
       breadcrumb: {
         skip: true
@@ -96,6 +98,7 @@ const routes: Routes = [
   {
     path: 'widget-editor',
     component: DashboardPageComponent,
+    canDeactivate: [ConfirmOnExitGuard],
     data: {
       breadcrumb: {
         skip: true

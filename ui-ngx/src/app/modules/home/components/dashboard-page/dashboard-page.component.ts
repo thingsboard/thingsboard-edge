@@ -177,6 +177,7 @@ import { LayoutFixedSize, LayoutWidthType } from '@home/components/dashboard-pag
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { EntityType } from '@shared/models/entity-type.models';
+import { HasDirtyFlag } from '@core/guards/confirm-on-exit.guard';
 
 // @dynamic
 @Component({
@@ -186,7 +187,15 @@ import { EntityType } from '@shared/models/entity-type.models';
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DashboardPageComponent extends PageComponent implements IDashboardController, OnInit, AfterViewInit, OnDestroy {
+export class DashboardPageComponent extends PageComponent implements IDashboardController, HasDirtyFlag, OnInit, AfterViewInit, OnDestroy {
+
+  get isDirty(): boolean {
+    return this.isEdit;
+  }
+
+  set isDirty(value: boolean) {
+
+  }
 
   authState: AuthState = getCurrentAuthState(this.store);
 

@@ -91,6 +91,9 @@ export class DataKeysPanelComponent implements ControlValueAccessor, OnInit, OnC
   addKeyTitle: string;
 
   @Input()
+  keySettingsTitle: string;
+
+  @Input()
   removeKeyTitle: string;
 
   @Input()
@@ -125,6 +128,10 @@ export class DataKeysPanelComponent implements ControlValueAccessor, OnInit, OnC
 
   get datakeySettingsSchema(): JsonSettingsSchema {
     return this.widgetConfigComponent.modelValue?.dataKeySettingsSchema;
+  }
+
+  get dragEnabled(): boolean {
+    return this.keysFormArray().controls.length > 1;
   }
 
   private propagateChange = (_val: any) => {};
