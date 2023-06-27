@@ -78,8 +78,6 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected UplinkMetaData metadataTemplate;
     protected IntegrationStatistics integrationStatistics;
 
-    protected Map<String, List<String>> entityConstants;
-
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         this.configuration = params.getConfiguration();
@@ -98,7 +96,6 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         if (integrationStatistics == null) {
             this.integrationStatistics = new IntegrationStatistics(context);
         }
-        this.entityConstants = new HashMap<>();
     }
 
     public void setConfiguration(Integration configuration) {
@@ -198,16 +195,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         if (data.getTelemetry() != null) {
             builder.setPostTelemetryMsg(data.getTelemetry());
         }
-        TransportProtos.PostAttributeMsg.Builder postAttributesMsg = TransportProtos.PostAttributeMsg.newBuilder();
         if (data.getAttributesUpdate() != null) {
-            postAttributesMsg.addAllKv(data.getAttributesUpdate().getKvList());
-        }
-        if (data.getConstants() != null) {
-            List<TransportProtos.KeyValueProto> constantsKv = processConstantsForEntity(entityName, data.getConstants());
-            postAttributesMsg.addAllKv(constantsKv);
-        }
-        if (postAttributesMsg.getKvCount() > 0) {
-            builder.setPostAttributesMsg(postAttributesMsg);
+            builder.setPostAttributesMsg(data.getAttributesUpdate());
         }
         context.processUplinkData(builder.build(), null);
     }
@@ -228,35 +217,13 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         if (data.getTelemetry() != null) {
             builder.setPostTelemetryMsg(data.getTelemetry());
         }
-        TransportProtos.PostAttributeMsg.Builder postAttributesMsg = TransportProtos.PostAttributeMsg.newBuilder();
+        if (data.getTelemetry() != null) {
+            builder.setPostTelemetryMsg(data.getTelemetry());
+        }
         if (data.getAttributesUpdate() != null) {
-            postAttributesMsg.addAllKv(data.getAttributesUpdate().getKvList());
-        }
-        if (data.getConstants() != null) {
-            List<TransportProtos.KeyValueProto> constantsKv = processConstantsForEntity(entityName, data.getConstants());
-            postAttributesMsg.addAllKv(constantsKv);
-        }
-        if (postAttributesMsg.getKvCount() > 0) {
             builder.setPostAttributesMsg(data.getAttributesUpdate());
         }
         context.processUplinkData(builder.build(), null);
-    }
-
-    private List<TransportProtos.KeyValueProto> processConstantsForEntity(String entityName, TransportProtos.PostAttributeMsg constants) {
-        List<TransportProtos.KeyValueProto> constantsKvList = constants.getKvList();
-        List<String> integrationConstantKeys = this.entityConstants.computeIfAbsent(entityName, k -> new ArrayList<>());
-        List<TransportProtos.KeyValueProto> constantsKvForSaving = new ArrayList<>();
-
-        for (TransportProtos.KeyValueProto constantKv : constantsKvList) {
-            String constantKey = constantKv.getKey();
-            if (!integrationConstantKeys.contains(constantKey)) {
-                constantsKvForSaving.add(constantKv);
-                integrationConstantKeys.add(constantKey);
-            }
-        }
-
-        this.entityConstants.put(entityName, integrationConstantKeys);
-        return constantsKvForSaving;
     }
 
     protected void createEntityView(IntegrationContext context, UplinkData data, String viewName, String viewType, List<String> telemetryKeys) {

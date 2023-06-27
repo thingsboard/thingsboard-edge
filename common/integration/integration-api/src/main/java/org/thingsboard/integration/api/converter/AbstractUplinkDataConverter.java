@@ -53,7 +53,11 @@ import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -64,6 +68,9 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
 
     private static final String DEFAULT_DEVICE_TYPE = "default";
 
+    private Set<String> changeAwareKeys;
+    private Map<String, Map<String, Integer>> currentChangeAwareKeysPerEntities;
+
     public AbstractUplinkDataConverter(JsInvokeService jsInvokeService, TbelInvokeService tbelInvokeService) {
         super(jsInvokeService, tbelInvokeService);
     }
@@ -71,6 +78,8 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
     @Override
     public void init(Converter configuration) {
         this.configuration = configuration;
+        this.changeAwareKeys = new HashSet<>();
+        this.currentChangeAwareKeysPerEntities = new HashMap<>();
     }
 
     @Override
@@ -116,14 +125,17 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
 
         UplinkData.UplinkDataBuilder builder = UplinkData.builder();
         builder.isAsset(isAsset);
+        String entityName;
         if (isAsset) {
-            builder.assetName(src.get("assetName").getAsString());
+            entityName = src.get("assetName").getAsString();
+            builder.assetName(entityName);
             builder.assetType(src.get("assetType").getAsString());
             if (src.has("assetLabel")) {
                 builder.assetLabel(src.get("assetLabel").getAsString());
             }
         } else {
-            builder.deviceName(src.get("deviceName").getAsString());
+            entityName = src.get("deviceName").getAsString();
+            builder.deviceName(entityName);
             if (src.has("deviceType")) {
                 builder.deviceType(src.get("deviceType").getAsString());
             } else {
@@ -143,16 +155,55 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         if (src.has("telemetry")) {
             builder.telemetry(parseTelemetry(src.get("telemetry")));
         }
-        if (src.has("attributes")) {
-            builder.attributesUpdate(parseAttributesUpdate(src.get("attributes")));
+        if (src.has("changeAwareKeys")) {
+            src.get("changeAwareKeys").getAsJsonArray()
+                    .forEach(jsonElement -> this.changeAwareKeys.add(jsonElement.getAsString()));
         }
-        if (src.has("constants")) {
-            builder.constants(parseAttributesUpdate(src.get("constants")));
+        if (src.has("attributes")) {
+            JsonElement filteredAttributes = filterChangeAwareKeysForEntity(src.get("attributes").getAsJsonObject(), entityName);
+            builder.attributesUpdate(parseAttributesUpdate(filteredAttributes));
         }
 
         //TODO: add support of attribute requests and client-side RPC.
         return builder.build();
     }
+
+    private JsonElement filterChangeAwareKeysForEntity(JsonObject data, String entityName) {
+        JsonObject dataObject = new JsonObject();
+        Map<String, Integer> currentEntityKeyValues = this.currentChangeAwareKeysPerEntities.getOrDefault(entityName, new HashMap<>());
+
+        if (this.currentChangeAwareKeysPerEntities.containsKey(entityName)) {
+
+            for (Map.Entry<String, JsonElement> mapEntry : data.entrySet()) {
+                String key = mapEntry.getKey();
+                JsonElement value = mapEntry.getValue();
+
+                if (!this.changeAwareKeys.contains(key) ||
+                        !(currentEntityKeyValues.containsKey(key) && currentEntityKeyValues.get(key).equals(value.hashCode()))) {
+                    dataObject.add(key, value);
+                    if (currentEntityKeyValues.containsKey(key)) {
+                        currentEntityKeyValues.put(key, value.hashCode());
+                    }
+                }
+            }
+        } else {
+            for (Map.Entry<String, JsonElement> mapEntry : data.entrySet()) {
+                String key = mapEntry.getKey();
+                JsonElement value = mapEntry.getValue();
+
+                if (this.changeAwareKeys.contains(key)) {
+                    currentEntityKeyValues.put(key, value.hashCode());
+                }
+            }
+            this.currentChangeAwareKeysPerEntities.put(entityName, currentEntityKeyValues);
+            return data;
+        }
+
+        this.currentChangeAwareKeysPerEntities.put(entityName, currentEntityKeyValues);
+        return dataObject;
+    }
+
+
 
     private boolean getIsAssetAndVerify(JsonObject src) {
         boolean isAsset;

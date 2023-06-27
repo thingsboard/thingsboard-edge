@@ -87,9 +87,7 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
                     "   telemetry: {\n" +
                     "       temperature: data.temperature\n" +
                     "   },\n" +
-                    "   constants: {\n" +
-                    "       humidity: data.humidity\n" +
-                    "   }\n" +
+                    "   changeAwareKeys: [\"humidity\"]\n" +
                     "};\n" +
                     "function decodeToString(payload) {\n" +
                     "   return String.fromCharCode.apply(String, payload);\n" +
