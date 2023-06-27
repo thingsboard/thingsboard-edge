@@ -1381,7 +1381,9 @@
         "delta-calculation-result": "Delta calculation result",
         "delta-calculation-result-previous-value": "Previous value",
         "delta-calculation-result-delta-absolute": "Delta (absolute)",
-        "delta-calculation-result-delta-percent": "Delta (percent)"
+        "delta-calculation-result-delta-percent": "Delta (percent)",
+        "source": "Source",
+        "latest": "Latest"
     },
     "datasource": {
         "type": "Datasource type",
@@ -6732,7 +6734,9 @@
             "table-header": "Table header",
             "header-buttons": "Header buttons",
             "pagination": "Pagination",
-            "rows": "Rows"
+            "rows": "Rows",
+            "timeseries-column-error": "At least one timeseries column should be specified",
+            "table-tabs": "Table tabs"
         },
         "scheduler": {
             "enabled-scheduler-event-views": "Enabled scheduler events views",
