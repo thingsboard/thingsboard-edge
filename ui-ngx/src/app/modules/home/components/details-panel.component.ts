@@ -30,7 +30,6 @@
 ///
 
 import {
-  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   EventEmitter,
@@ -71,7 +70,12 @@ export class DetailsPanelComponent extends PageComponent implements OnDestroy {
       }
       this.theFormValue = value;
       if (this.theFormValue !== null) {
-        this.formSubscription = this.theFormValue.valueChanges.subscribe(() => this.cd.detectChanges());
+        this.formSubscription = this.theFormValue.valueChanges.subscribe(() => {
+          if (this.isReadOnly) {
+            this.switchToFirstTab.emit();
+          }
+          this.cd.detectChanges()
+        });
       }
     }
   }
@@ -88,6 +92,8 @@ export class DetailsPanelComponent extends PageComponent implements OnDestroy {
   applyDetails = new EventEmitter<void>();
   @Output()
   closeSearch = new EventEmitter<void>();
+  @Output()
+  switchToFirstTab = new EventEmitter<void>()
 
   isEditValue = false;
   showSearchPane = false;

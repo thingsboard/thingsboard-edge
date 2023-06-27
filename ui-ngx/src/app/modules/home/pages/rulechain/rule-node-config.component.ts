@@ -53,6 +53,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { JsonObjectEditComponent } from '@shared/components/json-object-edit.component';
 import { deepClone } from '@core/utils';
 import { RuleChainType } from '@shared/models/rule-chain.models';
+import { DebugRuleNodeEventBody } from '@shared/models/event.models';
 
 @Component({
   selector: 'tb-rule-node-config',
@@ -105,6 +106,13 @@ export class RuleNodeConfigComponent implements ControlValueAccessor, OnInit, On
 
   get nodeDefinition(): RuleNodeDefinition {
     return this.nodeDefinitionValue;
+  }
+
+  @Input()
+  set debugEventBody(debugEventBody: DebugRuleNodeEventBody) {
+    if (debugEventBody) {
+      this.definedConfigComponent?.testScript(debugEventBody);
+    }
   }
 
   definedDirectiveError: string;
