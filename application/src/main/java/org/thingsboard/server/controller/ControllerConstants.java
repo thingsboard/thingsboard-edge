@@ -259,7 +259,7 @@ public class ControllerConstants {
                     "    \"name\":\"Name_DeviceWithCredantial_AccessToken\",\n" +
                     "    \"label\":\"Label_DeviceWithCredantial_AccessToken\",\n" +
                     "    \"deviceProfileId\":{\n" +
-                    "      \"id\":\"9d9588c0-06c9-11ee-b618-19be30fdeb60\",\n" +
+                    "      \"id\":\"5636aba0-1022-11ee-9631-51fb57f69174\",\n" +
                     "      \"entityType\":\"DEVICE_PROFILE\"\n" +
                     "     }\n" +
                     "   },\n" +
@@ -282,7 +282,48 @@ public class ControllerConstants {
                     "   }\n" +
                     "}";
 
-   protected static final String CREDENTIALS_VALUE_LVM2M_RPK_DESCRIPTION =
+    protected static final String certificateValue = "\"-----BEGIN CERTIFICATE----- " +
+        "MIICMTCCAdegAwIBAgIUI9dBuwN6pTtK6uZ03rkiCwV4wEYwCgYIKoZIzj0EAwIwbjELMAkGA1UEBhMCVVMxETAPBgNVBAgMCE5ldyBZb3JrMRowGAYDVQQKDBFUaGluZ3NCb2FyZCwgSW5jLjEwMC4GA1UEAwwnZGV2aWNlQ2VydGlmaWNhdGVAWDUwOVByb3Zpc2lvblN0cmF0ZWd5MB4XDTIzMDMyOTE0NTYxN1oXDTI0MDMyODE0NTYxN1owbjELMAkGA1UEBhMCVVMxETAPBgNVBAgMCE5ldyBZb3JrMRowGAYDVQQKDBFUaGluZ3NCb2FyZCwgSW5jLjEwMC4GA1UEAwwnZGV2aWNlQ2VydGlmaWNhdGVAWDUwOVByb3Zpc2lvblN0cmF0ZWd5MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE9Zo791qKQiGNBm11r4ZGxh+w+ossZL3xc46ufq5QckQHP7zkD2XDAcmP5GvdkM1sBFN9AWaCkQfNnWmfERsOOKNTMFEwHQYDVR0OBBYEFFFc5uyCyglQoZiKhzXzMcQ3BKORMB8GA1UdIwQYMBaAFFFc5uyCyglQoZiKhzXzMcQ3BKORMA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwIDSAAwRQIhANbA9CuhoOifZMMmqkpuld+65CR+ItKdXeRAhLMZuccuAiB0FSQB34zMutXrZj1g8Gl5OkE7YryFHbei1z0SveHR8g== " +
+        "-----END CERTIFICATE-----\"";
+
+    protected static final String certificateId =  "\"84f5911765abba1f96bf4165604e9e90338fc6214081a8e623b6ff9669aedb27\"";
+
+    protected static final String DEVICE_WITH_DEVICE_CREDENTIALS_X509_CERTIFICATE_PARAM_DESCRIPTION =
+            "{\n" +
+                    "  \"device\": {\n" +
+                    "    \"name\":\"Name_DeviceWithCredantial_X509_Certificate\",\n" +
+                    "    \"label\":\"Label_DeviceWithCredantial_X509_Certificate\",\n" +
+                    "    \"deviceProfileId\":{\n" +
+                    "      \"id\":\"5636aba0-1022-11ee-9631-51fb57f69174\",\n" +
+                    "      \"entityType\":\"DEVICE_PROFILE\"\n" +
+                    "     }\n" +
+                    "   },\n" +
+                    "  \"credentials\": {\n" +
+                    "    \"credentialsType\": \"X509_CERTIFICATE\",\n" +
+                    "    \"credentialsId\": " + certificateId + ",\n" +
+                    "    \"credentialsValue\": " + certificateValue + "\n" +
+                    "   }\n" +
+                    "}";
+
+    protected static final String MQTT_BASIC_VALUE = "\"{\\\"clientId\\\":\\\"5euh5nzm34bjjh1efmlt\\\",\\\"userName\\\":\\\"onasd1lgwasmjl7v2v7h\\\",\\\"password\\\":\\\"b9xtm4ny8kt9zewaga5o\\\"}\"";
+
+    protected static final String DEVICE_WITH_DEVICE_CREDENTIALS_MQTT_BASIC_PARAM_DESCRIPTION =
+            "{\n" +
+                    "  \"device\": {\n" +
+                    "    \"name\":\"Name_DeviceWithCredantial_MQTT_Basic\",\n" +
+                    "    \"label\":\"Label_DeviceWithCredantial_MQTT_Basic\",\n" +
+                    "    \"deviceProfileId\":{\n" +
+                    "      \"id\":\"5636aba0-1022-11ee-9631-51fb57f69174\",\n" +
+                    "      \"entityType\":\"DEVICE_PROFILE\"\n" +
+                    "     }\n" +
+                    "   },\n" +
+                    "  \"credentials\": {\n" +
+                    "    \"credentialsType\": \"MQTT_BASIC\",\n" +
+                    "    \"credentialsValue\": " + MQTT_BASIC_VALUE + "\n" +
+                    "   }\n" +
+                    "}";
+
+    protected static final String CREDENTIALS_VALUE_LVM2M_RPK_DESCRIPTION =
        "       \"{" +
                    "\\\"client\\\":{ " +
                        "\\\"endpoint\\\":\\\"LwRpk00000000\\\", " +
@@ -319,15 +360,20 @@ public class ControllerConstants {
            "   }\n" +
            "}";
 
-   protected static final String DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_ACCESS_TOKEN_DESCRIPTION_MARKDOWN =
+    protected static final String DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_ACCESS_TOKEN_DESCRIPTION_MARKDOWN =
             MARKDOWN_CODE_BLOCK_START + DEVICE_WITH_DEVICE_CREDENTIALS_ACCESS_TOKEN_PARAM_DESCRIPTION + MARKDOWN_CODE_BLOCK_END;
 
-   protected static final String DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_ACCESS_TOKEN_DEFAULT_DESCRIPTION_MARKDOWN =
+    protected static final String DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_ACCESS_TOKEN_DEFAULT_DESCRIPTION_MARKDOWN =
             MARKDOWN_CODE_BLOCK_START + DEVICE_WITH_DEVICE_CREDENTIALS_ACCESS_TOKEN_DEFAULT_PARAM_DESCRIPTION + MARKDOWN_CODE_BLOCK_END;
 
-   protected static final String DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_LVM2M_RPK_DESCRIPTION_MARKDOWN =
-            MARKDOWN_CODE_BLOCK_START + DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_LVM2M_RPK_DESCRIPTION + MARKDOWN_CODE_BLOCK_END;
+    protected static final String DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_X509_CERTIFICATE_DESCRIPTION_MARKDOWN =
+            MARKDOWN_CODE_BLOCK_START + DEVICE_WITH_DEVICE_CREDENTIALS_X509_CERTIFICATE_PARAM_DESCRIPTION + MARKDOWN_CODE_BLOCK_END;
 
+    protected static final String DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_MQTT_BASIC_DESCRIPTION_MARKDOWN =
+            MARKDOWN_CODE_BLOCK_START + DEVICE_WITH_DEVICE_CREDENTIALS_MQTT_BASIC_PARAM_DESCRIPTION + MARKDOWN_CODE_BLOCK_END;
+
+    protected static final String DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_LVM2M_RPK_DESCRIPTION_MARKDOWN =
+            MARKDOWN_CODE_BLOCK_START + DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_LVM2M_RPK_DESCRIPTION + MARKDOWN_CODE_BLOCK_END;
 
     protected static final String FILTER_VALUE_TYPE = NEW_LINE + "## Value Type and Operations" + NEW_LINE +
             "Provides a hint about the data type of the entity field that is defined in the filter key. " +
