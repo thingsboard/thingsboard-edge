@@ -51,7 +51,7 @@ export class GatewayRemoteConfigurationDialogComponent extends DialogComponent<G
 
   gatewayName: string;
 
-  gatewayForm: FormControl;
+  gatewayControl: FormControl;
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
@@ -60,7 +60,7 @@ export class GatewayRemoteConfigurationDialogComponent extends DialogComponent<G
               private fb: FormBuilder) {
     super(store, router, dialogRef);
     this.gatewayName = this.data.gatewayName;
-    this.gatewayForm = this.fb.control(null);
+    this.gatewayControl = this.fb.control(null);
   }
 
   ngOnInit(): void {
