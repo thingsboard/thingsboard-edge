@@ -29,18 +29,17 @@ var result = {
 // assetType: assetType,
 // customerName: customerName,
    groupName: groupName,
+   changeAwareAttributeKeys: ['manufacturer'],
    attributes: {
        model: 'Model A',
        serialNumber: 'SN111',
-       integrationName: metadata['integrationName']
+       integrationName: metadata['integrationName'],
+       manufacturer: manufacturer
    },
    telemetry: {
        temperature: 42,
        humidity: 80,
        rawData: payloadStr
-   },
-   constants: {
-      manufacturer: manufacturer
    }
 };
 

@@ -7,8 +7,7 @@ var deviceType = data.deviceInfo.deviceProfileName;
 // expected output:
 //  {
 //    "attributes": {"attributeKey": "attributeValue"},
-//    "telemetry": {"telemetryKey": "telemetryValue"},
-//    "constants": {"constantKey": "constantValue"}
+//    "telemetry": {"telemetryKey": "telemetryValue"}
 //  }
 //
 // In the example - bytes will be saved as HEX string and also parsed as light level, battery level and PIR sensor value.
@@ -46,11 +45,10 @@ function decodePayload(input) {
     return output;
 }
 
-// --- attributes, telemetry and constants objects ---
+// --- attributes and telemetry objects ---
 var telemetry = {};
 var attributes = {};
-var constants = {};
-// --- attributes, telemetry and constants objects ---
+// --- attributes and telemetry objects ---
 
 // --- Timestamp parsing
 var dateString = data.time;
@@ -80,13 +78,16 @@ if (timestamp == -1) {
 }
 // --- Timestamp parsing
 
+// --- Change aware attributes will only be saved if they are different from those in the previous message
+var changeAwareAttributeKeys = ['tenantId', 'tenantName', 'applicationId', 'applicationName', 'deviceProfileId', 'deviceProfileName', 'devEui', 'fPort', 'devAddr', 'frequency', 'bandwidth', 'spreadingFactor', 'codeRate'];
+// --- Change aware attributes
+
 // You can add some keys manually to attributes or telemetry
 attributes.deduplicationId = data.deduplicationId;
 
 // You can exclude some keys from the result
-var excludeFromAttributesList = ["deviceName", "rxInfo", "txInfo", "confirmed", "data", "deduplicationId","time", "adr", "devAddr", "dr", "fCnt", "deviceInfo"];
+var excludeFromAttributesList = ["deviceName", "rxInfo", "confirmed", "data", "deduplicationId","time", "adr", "dr", "fCnt"];
 var excludeFromTelemetryList = ["data", "deviceInfo", "txInfo", "devAddr", "adr", "time", "fPort", "region_common_name", "region_config_id", "deduplicationId"];
-var excludeFromConstantsList = ["deviceName", "rxInfo", "deduplicationId", "confirmed", "data", "time", "adr", "dr", "fCnt", "fPort"];
 
 // Message parsing
 // To avoid paths in the decoded objects we passing false value to function as "pathInKey" argument.
@@ -94,9 +95,6 @@ var excludeFromConstantsList = ["deviceName", "rxInfo", "deduplicationId", "conf
 
 var telemetryData = toFlatMap(data, excludeFromTelemetryList, false);
 var attributesData = toFlatMap(data, excludeFromAttributesList, false);
-// Parsing constants (Data described in constants section will be saved to attributes only on first income for every device after integration start/restart)
-var constantsData = {};
-constantsData.putAll(toFlatMap(data, excludeFromConstantsList, false));
 
 var uplinkDataList = [];
 
@@ -112,40 +110,18 @@ if (customDecoding.?attributes.size() > 0) {
     attributes.putAll(customDecoding.attributes);
 }
 
-if (customDecoding.?constants.size() > 0) {
-    constants.putAll(customDecoding.constants);
-}
-
 telemetry.putAll(telemetryData);
 attributes.putAll(attributesData);
-constants.putAll(constantsData);
 
-var deviceInfo = {
+var result = {
     deviceName: deviceName,
     deviceType: deviceType,
+    changeAwareAttributeKeys: changeAwareAttributeKeys,
+    attributes: attributes,
     telemetry: {
         ts: timestamp,
         values: telemetry
-    },
-    attributes: attributes,
-    constants: constants
+    }
 };
 
-uplinkDataList.add(deviceInfo);
-
-if (data.cmd == "gw") {
-    foreach( gatewayInfo : data.gws ) {
-        var gatewayInfoMsg = {
-            deviceName: gatewayInfo.gweui,
-            deviceType: "LoraGateway",
-            attributes: {},
-            telemetry: {
-                "ts": gatewayInfo.ts,
-                "values": toFlatMap(gatewayInfo, ["ts", "time", "gweui"], false)
-            }
-        };
-        uplinkDataList.add(gatewayInfoMsg);
-    }
-}
-
-return uplinkDataList;
+return result;

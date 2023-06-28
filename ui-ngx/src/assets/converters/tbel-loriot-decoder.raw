@@ -8,8 +8,7 @@ var gatewayDeviceType = "LoraGateway";
 // expected output:
 //  {
 //    "attributes": {"attributeKey": "attributeValue"},
-//    "telemetry": {"telemetryKey": "telemetryValue"},
-//    "constants": {"constantKey": "constantValue"}
+//    "telemetry": {"telemetryKey": "telemetryValue"}
 //  }
 //
 // In the example - bytes will be saved as HEX string and also parsed as light level, battery level and PIR sensor value.
@@ -47,11 +46,10 @@ function decodePayload(input) {
     return output;
 }
 
-// --- attributes, telemetry and constants objects ---
+// --- attributes and telemetry objects ---
 var telemetry = {};
 var attributes = {};
-var constants = {};
-// --- attributes, telemetry and constants objects ---
+// --- attributes and telemetry objects ---
 
 // --- Timestamp parsing
 var timestamp = data.ts;
@@ -61,9 +59,13 @@ if (timestamp == -1) {
 }
 // --- Timestamp parsing
 
+// --- Change aware attributes will only be saved if they are different from those in the previous message
+var changeAwareAttributeKeys = ['fPort', 'dataRange', 'freq', 'offline'];
+// --- Change aware attributes
+
 // You can add some keys manually to attributes or telemetry
-attributes.f_port = data.port;
-constants.dr = data.dr;
+attributes.fPort = data.port;
+attributes.dataRange = data.dr;
 
 // You can exclude some keys from the result
 var excludeFromAttributesList = ["data", "gws", "EUI", "ts", "cmd", "port", "seqno", "fcnt", "toa", "dr", "ack", "bat", "snr", "rssi"];
@@ -75,7 +77,6 @@ var excludeFromTelemetryList = ["gws", "EUI", "ts", "freq", "port", "data", "cmd
 
 var telemetryData = toFlatMap(data, excludeFromTelemetryList, false);
 var attributesData = toFlatMap(data, excludeFromAttributesList, false);
-var constantsData = {};
 
 var uplinkDataList = [];
 
@@ -93,17 +94,16 @@ if (customDecoding.?attributes.size() > 0) {
 
 telemetry.putAll(telemetryData);
 attributes.putAll(attributesData);
-constants.putAll(constantsData);
 
 var deviceInfo = {
     deviceName: deviceName,
     deviceType: deviceType,
+    changeAwareAttributeKeys: changeAwareAttributeKeys,
+    attributes: attributes,
     telemetry: {
         ts: timestamp,
         values: telemetry
-    },
-    attributes: attributes,
-    constants: constants
+    }
 };
 
 uplinkDataList.add(deviceInfo);

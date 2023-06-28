@@ -5,16 +5,14 @@ var deviceType = data.deviceType != null ? data.deviceType : "default";
 var groupName = "Control room";
 var dateString = data.timestamp != null ? data.timestamp : "";
 
-// --- attributes, telemetry and constants objects ---
+// --- attributes and telemetry objects ---
 var telemetry = {};
 var attributes = {};
-var constants = {};
-// --- attributes, telemetry and constants objects ---
+// --- attributes and telemetry objects ---
 
 // --- Timestamp parsing
 var timestamp = new Date(dateString).getTime();
 if (timestamp == -1) {
-    // Specific data parsing for The Things Industries incoming message
     var secondsSeparatorIndex = dateString.lastIndexOf('.') + 1;
     var millisecondsEndIndex = dateString.lastIndexOf('+');
     if (millisecondsEndIndex == -1) {
@@ -39,26 +37,24 @@ if (timestamp == -1) {
 }
 // --- Timestamp parsing
 
-// You can add some keys manually to attributes, telemetry or constants
-constants.manufacturer = data.?metadata.manufacturer;
+// --- Change aware attributes will only be saved if they are different from those in the previous message
+var changeAwareAttributeKeys = ['manufacturer', 'version'];
+// --- Change aware attributes
+
+// You can add some keys manually to attributes or telemetry
 telemetry.receivedAlarms = data.alarms;
 
 // You can exclude some keys from the result
 var excludeFromTelemetryList = ["deviceId", "deviceType", "alarms", "location", "timestamp", "version", "manufacturer"];
-var excludeFromAttributesList = ["manufacturer", "batteryLevel", "batteryStatus"];
-// We don't want to parse constants automatically, because we added keys to constants manually
-// var excludeFromConstantsList = ["deviceId", "deviceType"];
+var excludeFromAttributesList = ["batteryLevel", "batteryStatus"];
 
 // Message parsing
 var telemetryData = {};
 var attributesData = {};
-var constantsData = {};
 // To avoid paths in the decoded objects we passing false value to function as "pathInKey" argument.
 // Warning: pathInKey can cause already found fields to be overwritten with the last value found, e.g. receive_at from uplink_message will be written receive_at in the root.
 telemetryData.putAll(toFlatMap(data, excludeFromTelemetryList, false));
 attributesData.putAll(toFlatMap(data.?metadata, excludeFromAttributesList, false));
-// Parsing constants (Data described in constants section will be saved to attributes only on first income for every device after integration start/restart)
-// constantsData.putAll(toFlatMap(data, excludeFromConstantsList, false));
 
 if (!telemetryData.isEmpty()) {
     telemetry.putAll(telemetryData);
@@ -66,20 +62,17 @@ if (!telemetryData.isEmpty()) {
 if (!attributesData.isEmpty()) {
     attributes.putAll(attributesData);
 }
-if (!constantsData.isEmpty()) {
-    constants.putAll(constantsData);
-}
 
 var result = {
     deviceName: deviceName,
     deviceType: deviceType,
     groupName: groupName,
+    changeAwareAttributeKeys: changeAwareAttributeKeys,
+    attributes: attributes,
     telemetry: {
         ts: timestamp,
         values: telemetry
-    },
-    attributes: attributes,
-    constants: constants
+    }
 };
 
 return result;

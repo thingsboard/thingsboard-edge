@@ -8,15 +8,14 @@ var deviceType = data.end_device_ids.application_ids.application_id;
 // expected output:
 //  {
 //    "attributes": {"attributeKey": "attributeValue"},
-//    "telemetry": {"telemetryKey": "telemetryValue"},
-//    "constants": {"constantKey": "constantValue"}
+//    "telemetry": {"telemetryKey": "telemetryValue"}
 //  }
 //
 // In the example - bytes will be saved as HEX string and also parsed as light level, battery level and PIR sensor value.
 //
 
 function decodeFrmPayload(input) {
-    var output = { attributes:{}, telemetry: {}, constants: {} };
+    var output = { attributes:{}, telemetry: {}};
     // --- Decoding code --- //
 
     output.telemetry.HEX_bytes = bytesToHex(input);
@@ -47,11 +46,10 @@ function decodeFrmPayload(input) {
     return output;
 }
 
-// --- attributes, telemetry and constants objects ---
+// --- attributes and telemetry objects ---
 var telemetry = {};
 var attributes = {};
-var constants = {};
-// --- attributes, telemetry and constants objects ---
+// --- attributes and telemetry objects ---
 
 // --- Timestamp parsing
 var dateString = data.uplink_message.received_at;
@@ -82,25 +80,28 @@ if (timestamp == -1) {
 }
 // --- Timestamp parsing
 
-// You can add some keys manually to attributes, telemetry or constants
-constants.dev_eui = data.end_device_ids.dev_eui;
-attributes.f_port = data.uplink_message.f_port;
+// --- Change aware attributes will only be saved if they are different from those in the previous message
+var changeAwareAttributeKeys = ['fPort', 'devEui', 'bandwidth', 'spreading_factor', 'coding_rate', 'frequency', 'net_id', 'tenant_id', 'cluster_id', 'cluster_address', 'tenant_address', 'device_id', 'application_id', 'join_eui', 'dev_addr'];
+// --- Change aware attributes
+
+// You can add some keys manually to attributes or telemetry
+attributes.devEui = data.end_device_ids.dev_eui;
+attributes.fPort = data.uplink_message.f_port;
 // We want to save correlation ids as single object, so we are excluding them from attributes parse and add manually
 attributes.correlation_ids = data.correlation_ids;
 
 // You can exclude some keys from the result
 var excludeFromTelemetryList = ["uplink_token", "gateway_id", "settings", "f_port", "time", "timestamp", "received_at", "network_ids"];
-var excludeFromConstantsList = ["uplink_token", "gateway_id", "f_port", "time", "timestamp", "received_at", "session_key_id"];
+var excludeFromAttributesList = ["uplink_token", "gateway_id", "f_port", "time", "timestamp", "received_at", "session_key_id", "dev_eui"];
 
 // Message parsing
 // To avoid paths in the decoded objects we passing false value to function as "pathInKey" argument.
 // Warning: pathInKey can cause already found fields to be overwritten with the last value found, e.g. receive_at from uplink_message will be written receive_at in the root.
 var telemetryData = toFlatMap(data.uplink_message, excludeFromTelemetryList, false);
-// Parsing constants (Data described in constants section will be saved to attributes only on first income for every device after integration start/restart)
-var constantsData = {};
-constantsData.putAll(toFlatMap(data.uplink_message.settings, excludeFromConstantsList, false));
-constantsData.putAll(toFlatMap(data.uplink_message.network_ids, excludeFromConstantsList, false));
-constantsData.putAll(toFlatMap(data.end_device_ids, excludeFromConstantsList, false));
+var attributesData = {};
+attributesData.putAll(toFlatMap(data.uplink_message.settings, excludeFromAttributesList, false));
+attributesData.putAll(toFlatMap(data.uplink_message.network_ids, excludeFromAttributesList, false));
+attributesData.putAll(toFlatMap(data.end_device_ids, excludeFromAttributesList, false));
 
 // Passing incoming bytes to decodeFrmPayload function, to get custom decoding
 var customDecoding = {};
@@ -117,22 +118,18 @@ if (customDecoding.?attributes.size() > 0) {
     attributes.putAll(customDecoding.attributes);
 }
 
-if (customDecoding.?constants.size() > 0) {
-    constants.putAll(customDecoding.constants);
-}
-
 telemetry.putAll(telemetryData);
-constants.putAll(constantsData);
+attributes.putAll(attributesData);
 
 var result = {
     deviceName: deviceName,
     deviceType: deviceType,
+    changeAwareAttributeKeys: changeAwareAttributeKeys,
+    attributes: attributes,
     telemetry: {
         ts: timestamp,
         values: telemetry
-    },
-    attributes: attributes,
-    constants: constants
+    }
 };
 
 return result;
