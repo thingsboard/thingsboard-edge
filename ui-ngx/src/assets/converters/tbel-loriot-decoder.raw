@@ -59,9 +59,9 @@ if (timestamp == -1) {
 }
 // --- Timestamp parsing
 
-// --- Change aware attributes will only be saved if they are different from those in the previous message
-var changeAwareAttributeKeys = ['fPort', 'dataRange', 'freq', 'offline'];
-// --- Change aware attributes
+// --- On value update attribute keys will only be saved if they are different from those in the previous message
+var onValueUpdateAttributeKeys = ['fPort', 'dataRange', 'freq', 'offline'];
+// --- On value update attribute keys
 
 // You can add some keys manually to attributes or telemetry
 attributes.fPort = data.port;
@@ -98,7 +98,7 @@ attributes.putAll(attributesData);
 var deviceInfo = {
     deviceName: deviceName,
     deviceType: deviceType,
-    changeAwareAttributeKeys: changeAwareAttributeKeys,
+    onValueUpdateAttributeKeys: onValueUpdateAttributeKeys,
     attributes: attributes,
     telemetry: {
         ts: timestamp,

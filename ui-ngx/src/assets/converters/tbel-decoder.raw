@@ -29,7 +29,7 @@ var result = {
 // assetType: assetType,
 // customerName: customerName,
    groupName: groupName,
-   changeAwareAttributeKeys: ['manufacturer'],
+   onValueUpdateAttributeKeys: ['manufacturer'],
    attributes: {
        model: 'Model A',
        serialNumber: 'SN111',

@@ -69,8 +69,8 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
 
     private static final String DEFAULT_DEVICE_TYPE = "default";
 
-    private Set<String> changeAwareAttributeKeys;
-    private Map<String, Map<String, Integer>> currentChangeAwareKeysPerEntities;
+    private Set<String> onValueUpdateAttributeKeys;
+    private Map<String, Map<String, Integer>> currentValuesForOnUpdateAttributeKeysPerEntities;
 
     public AbstractUplinkDataConverter(JsInvokeService jsInvokeService, TbelInvokeService tbelInvokeService) {
         super(jsInvokeService, tbelInvokeService);
@@ -79,8 +79,8 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
     @Override
     public void init(Converter configuration) {
         this.configuration = configuration;
-        this.changeAwareAttributeKeys = new HashSet<>();
-        this.currentChangeAwareKeysPerEntities = new HashMap<>();
+        this.onValueUpdateAttributeKeys = new HashSet<>();
+        this.currentValuesForOnUpdateAttributeKeysPerEntities = new HashMap<>();
     }
 
     @Override
@@ -156,16 +156,16 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         if (src.has("telemetry")) {
             builder.telemetry(parseTelemetry(src.get("telemetry")));
         }
-        if (src.has("changeAwareAttributeKeys")) {
-            src.get("changeAwareAttributeKeys").getAsJsonArray()
+        if (src.has("onValueUpdateAttributeKeys")) {
+            src.get("onValueUpdateAttributeKeys").getAsJsonArray()
                     .forEach(jsonElement -> {
                         String key = jsonElement.getAsString();
                         String mapKey = key.length() > 16 ? DigestUtils.sha1Hex(key) : key;
-                        this.changeAwareAttributeKeys.add(mapKey);
+                        this.onValueUpdateAttributeKeys.add(mapKey);
                     });
         }
         if (src.has("attributes")) {
-            JsonElement filteredAttributes = filterChangeAwareKeysForEntity(src.get("attributes").getAsJsonObject(), entityName);
+            JsonElement filteredAttributes = filterOnUpdateAttributeKeysForEntity(src.get("attributes").getAsJsonObject(), entityName);
             builder.attributesUpdate(parseAttributesUpdate(filteredAttributes));
         }
 
@@ -173,18 +173,18 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         return builder.build();
     }
 
-    private JsonElement filterChangeAwareKeysForEntity(JsonObject data, String entityName) {
+    private JsonElement filterOnUpdateAttributeKeysForEntity(JsonObject data, String entityName) {
         JsonObject dataObject = new JsonObject();
-        Map<String, Integer> currentEntityKeyValues = this.currentChangeAwareKeysPerEntities.getOrDefault(entityName, new HashMap<>());
+        Map<String, Integer> currentEntityKeyValues = this.currentValuesForOnUpdateAttributeKeysPerEntities.getOrDefault(entityName, new HashMap<>());
 
-        if (this.currentChangeAwareKeysPerEntities.containsKey(entityName)) {
+        if (this.currentValuesForOnUpdateAttributeKeysPerEntities.containsKey(entityName)) {
 
             for (Map.Entry<String, JsonElement> mapEntry : data.entrySet()) {
                 String key = mapEntry.getKey();
                 String mapKey = key.length() > 16 ? DigestUtils.sha1Hex(key) : key;
                 JsonElement value = mapEntry.getValue();
 
-                if (!this.changeAwareAttributeKeys.contains(mapKey) ||
+                if (!this.onValueUpdateAttributeKeys.contains(mapKey) ||
                         !(currentEntityKeyValues.containsKey(mapKey) && currentEntityKeyValues.get(mapKey).equals(value.hashCode()))) {
                     dataObject.add(key, value);
                     if (currentEntityKeyValues.containsKey(mapKey)) {
@@ -198,15 +198,15 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
                 String mapKey = key.length() > 16 ? DigestUtils.sha1Hex(key) : key;
                 JsonElement value = mapEntry.getValue();
 
-                if (this.changeAwareAttributeKeys.contains(mapKey)) {
+                if (this.onValueUpdateAttributeKeys.contains(mapKey)) {
                     currentEntityKeyValues.put(mapKey, value.hashCode());
                 }
             }
-            this.currentChangeAwareKeysPerEntities.put(entityName, currentEntityKeyValues);
+            this.currentValuesForOnUpdateAttributeKeysPerEntities.put(entityName, currentEntityKeyValues);
             return data;
         }
 
-        this.currentChangeAwareKeysPerEntities.put(entityName, currentEntityKeyValues);
+        this.currentValuesForOnUpdateAttributeKeysPerEntities.put(entityName, currentEntityKeyValues);
         return dataObject;
     }
 

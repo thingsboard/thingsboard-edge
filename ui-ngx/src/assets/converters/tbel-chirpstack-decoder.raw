@@ -78,9 +78,9 @@ if (timestamp == -1) {
 }
 // --- Timestamp parsing
 
-// --- Change aware attributes will only be saved if they are different from those in the previous message
-var changeAwareAttributeKeys = ['tenantId', 'tenantName', 'applicationId', 'applicationName', 'deviceProfileId', 'deviceProfileName', 'devEui', 'fPort', 'devAddr', 'frequency', 'bandwidth', 'spreadingFactor', 'codeRate'];
-// --- Change aware attributes
+// --- On value update attribute keys will only be saved if they are different from those in the previous message
+var onValueUpdateAttributeKeys = ['tenantId', 'tenantName', 'applicationId', 'applicationName', 'deviceProfileId', 'deviceProfileName', 'devEui', 'fPort', 'devAddr', 'frequency', 'bandwidth', 'spreadingFactor', 'codeRate'];
+// --- On value update attribute keys
 
 // You can add some keys manually to attributes or telemetry
 attributes.deduplicationId = data.deduplicationId;
@@ -116,7 +116,7 @@ attributes.putAll(attributesData);
 var result = {
     deviceName: deviceName,
     deviceType: deviceType,
-    changeAwareAttributeKeys: changeAwareAttributeKeys,
+    onValueUpdateAttributeKeys: onValueUpdateAttributeKeys,
     attributes: attributes,
     telemetry: {
         ts: timestamp,

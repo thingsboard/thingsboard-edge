@@ -80,9 +80,9 @@ if (timestamp == -1) {
 }
 // --- Timestamp parsing
 
-// --- Change aware attributes will only be saved if they are different from those in the previous message
-var changeAwareAttributeKeys = ['fPort', 'devEui', 'bandwidth', 'spreading_factor', 'coding_rate', 'frequency', 'net_id', 'tenant_id', 'cluster_id', 'cluster_address', 'device_id', 'application_id', 'join_eui', 'dev_addr'];
-// --- Change aware attributes
+// --- On value update attribute keys will only be saved if they are different from those in the previous message
+var onValueUpdateAttributeKeys = ['fPort', 'devEui', 'bandwidth', 'spreading_factor', 'coding_rate', 'frequency', 'net_id', 'tenant_id', 'cluster_id', 'cluster_address', 'device_id', 'application_id', 'join_eui', 'dev_addr'];
+// --- On value update attribute keys
 
 // You can add some keys manually to attributes or telemetry
 attributes.devEui = data.end_device_ids.dev_eui;
@@ -124,7 +124,7 @@ attributes.putAll(attributesData);
 var result = {
     deviceName: deviceName,
     deviceType: deviceType,
-    changeAwareAttributeKeys: changeAwareAttributeKeys,
+    onValueUpdateAttributeKeys: onValueUpdateAttributeKeys,
     attributes: attributes,
     telemetry: {
         ts: timestamp,
