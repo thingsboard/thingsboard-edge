@@ -80,14 +80,15 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
                     "var result = {\n" +
                     "   deviceName: deviceName,\n" +
                     "   deviceType: deviceType,\n" +
+                    "   changeAwareAttributeKeys: [\"humidity\"],\n" +
                     "   attributes: {\n" +
                     "       model: data.model,\n" +
                     "       serialNumber: data.param2,\n" +
+                    "       humidity: data.humidity\n" +
                     "   },\n" +
                     "   telemetry: {\n" +
                     "       temperature: data.temperature\n" +
-                    "   },\n" +
-                    "   changeAwareKeys: [\"humidity\"]\n" +
+                    "   }\n" +
                     "};\n" +
                     "function decodeToString(payload) {\n" +
                     "   return String.fromCharCode.apply(String, payload);\n" +
@@ -173,7 +174,7 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void checkConstantsUploadedAndNotUpdatedWithLocalIntegration() throws Exception {
+    public void checkChangeAwareAttributeUploadedAndNotUpdatedWithLocalIntegration() throws Exception {
         JsonNode config = defaultConfig(HTTPS_URL);
         integration = Integration.builder()
                 .type(HTTP)
@@ -191,28 +192,42 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
         integration = testRestClient.postIntegration(integration);
         waitUntilIntegrationStarted(integration.getId(), integration.getTenantId());
 
+        for (int i=0; i<4; i++) {
+            // Loop is required to update all nodes in cluster mode.
+            // Cluster mode has a corner case when change aware attributes can be updated on different nodes.
+            testRestClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, ATTRIBUTE_KEY, TELEMETRY_VALUE));
+        }
+
+        Thread.sleep(3000); // Wait for all attributes updated in cluster mode
+
+        List<JsonNode> attributes = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, ATTRIBUTE_KEY);
+        Assert.assertFalse(attributes.isEmpty());
+        Assert.assertEquals(attributes.get(0).get("value").asText(), TELEMETRY_VALUE);
+
+        long firstUpdateTs = attributes.get(0).get("lastUpdateTs").asLong();
+
         testRestClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, ATTRIBUTE_KEY, TELEMETRY_VALUE));
+
         Awaitility
                 .await()
                 .atMost(10, TimeUnit.SECONDS)
                 .until(() -> {
-                    List<JsonNode> attributes = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, ATTRIBUTE_KEY);
-                    Assert.assertFalse(attributes.isEmpty());
-                    Assert.assertEquals(attributes.get(0).get("key").asText(), ATTRIBUTE_KEY);
-                    Assert.assertEquals(attributes.get(0).get("value").asText(), TELEMETRY_VALUE);
+                    List<JsonNode> attrs = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, ATTRIBUTE_KEY);
+                    Assert.assertFalse(attrs.isEmpty());
+                    Assert.assertEquals(attrs.get(0).get("lastUpdateTs").asLong(), firstUpdateTs);
+                    Assert.assertEquals(attrs.get(0).get("value").asText(), TELEMETRY_VALUE);
                     return true;
                 });
 
         testRestClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, ATTRIBUTE_KEY, "35"));
-
         Awaitility
                 .await()
                 .atMost(10, TimeUnit.SECONDS)
                 .until(() -> {
-                    List<JsonNode> attributes = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, ATTRIBUTE_KEY);
-                    Assert.assertFalse(attributes.isEmpty());
-                    Assert.assertEquals(attributes.get(0).get("key").asText(), ATTRIBUTE_KEY);
-                    Assert.assertEquals(attributes.get(0).get("value").asText(), TELEMETRY_VALUE);
+                    List<JsonNode> attrs = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, ATTRIBUTE_KEY);
+                    Assert.assertFalse(attrs.isEmpty());
+                    Assert.assertNotEquals(attrs.get(0).get("lastUpdateTs").asLong(), firstUpdateTs);
+                    Assert.assertEquals(attrs.get(0).get("value").asText(), "35");
                     return true;
                 });
     }
