@@ -38,6 +38,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.UplinkContentType;
@@ -68,7 +69,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
 
     private static final String DEFAULT_DEVICE_TYPE = "default";
 
-    private Set<String> changeAwareKeys;
+    private Set<String> changeAwareAttributeKeys;
     private Map<String, Map<String, Integer>> currentChangeAwareKeysPerEntities;
 
     public AbstractUplinkDataConverter(JsInvokeService jsInvokeService, TbelInvokeService tbelInvokeService) {
@@ -78,7 +79,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
     @Override
     public void init(Converter configuration) {
         this.configuration = configuration;
-        this.changeAwareKeys = new HashSet<>();
+        this.changeAwareAttributeKeys = new HashSet<>();
         this.currentChangeAwareKeysPerEntities = new HashMap<>();
     }
 
@@ -155,9 +156,13 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         if (src.has("telemetry")) {
             builder.telemetry(parseTelemetry(src.get("telemetry")));
         }
-        if (src.has("changeAwareKeys")) {
-            src.get("changeAwareKeys").getAsJsonArray()
-                    .forEach(jsonElement -> this.changeAwareKeys.add(jsonElement.getAsString()));
+        if (src.has("changeAwareAttributeKeys")) {
+            src.get("changeAwareAttributeKeys").getAsJsonArray()
+                    .forEach(jsonElement -> {
+                        String key = jsonElement.getAsString();
+                        String mapKey = key.length() > 16 ? DigestUtils.sha1Hex(key) : key;
+                        this.changeAwareAttributeKeys.add(mapKey);
+                    });
         }
         if (src.has("attributes")) {
             JsonElement filteredAttributes = filterChangeAwareKeysForEntity(src.get("attributes").getAsJsonObject(), entityName);
@@ -176,23 +181,25 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
 
             for (Map.Entry<String, JsonElement> mapEntry : data.entrySet()) {
                 String key = mapEntry.getKey();
+                String mapKey = key.length() > 16 ? DigestUtils.sha1Hex(key) : key;
                 JsonElement value = mapEntry.getValue();
 
-                if (!this.changeAwareKeys.contains(key) ||
-                        !(currentEntityKeyValues.containsKey(key) && currentEntityKeyValues.get(key).equals(value.hashCode()))) {
+                if (!this.changeAwareAttributeKeys.contains(mapKey) ||
+                        !(currentEntityKeyValues.containsKey(mapKey) && currentEntityKeyValues.get(mapKey).equals(value.hashCode()))) {
                     dataObject.add(key, value);
-                    if (currentEntityKeyValues.containsKey(key)) {
-                        currentEntityKeyValues.put(key, value.hashCode());
+                    if (currentEntityKeyValues.containsKey(mapKey)) {
+                        currentEntityKeyValues.put(mapKey, value.hashCode());
                     }
                 }
             }
         } else {
             for (Map.Entry<String, JsonElement> mapEntry : data.entrySet()) {
                 String key = mapEntry.getKey();
+                String mapKey = key.length() > 16 ? DigestUtils.sha1Hex(key) : key;
                 JsonElement value = mapEntry.getValue();
 
-                if (this.changeAwareKeys.contains(key)) {
-                    currentEntityKeyValues.put(key, value.hashCode());
+                if (this.changeAwareAttributeKeys.contains(mapKey)) {
+                    currentEntityKeyValues.put(mapKey, value.hashCode());
                 }
             }
             this.currentChangeAwareKeysPerEntities.put(entityName, currentEntityKeyValues);
@@ -202,7 +209,6 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         this.currentChangeAwareKeysPerEntities.put(entityName, currentEntityKeyValues);
         return dataObject;
     }
-
 
 
     private boolean getIsAssetAndVerify(JsonObject src) {
