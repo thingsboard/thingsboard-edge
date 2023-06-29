@@ -131,7 +131,9 @@ export abstract class WebsocketService<T extends WsSubscriber> implements WsServ
       this.dataStream.next(cmds);
       this.checkToClose();
     }
-    this.tryOpenSocket();
+    if (this.subscribersCount > 0) {
+      this.tryOpenSocket();
+    }
   }
 
   private checkToClose() {

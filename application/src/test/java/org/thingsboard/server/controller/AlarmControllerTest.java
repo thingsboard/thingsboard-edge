@@ -966,29 +966,6 @@ public class AlarmControllerTest extends AbstractControllerTest {
         Assert.assertTrue("Created alarm doesn't match the found one!", equals);
     }
 
-    private EntityGroupInfo createSharedPublicEntityGroup(String name, EntityType entityType, EntityId ownerId) throws Exception {
-        EntityGroup entityGroup = new EntityGroup();
-        entityGroup.setName(name);
-        entityGroup.setType(entityType);
-        EntityGroupInfo groupInfo =
-                doPostWithResponse("/api/entityGroup", entityGroup, EntityGroupInfo.class);
-
-        ShareGroupRequest groupRequest = new ShareGroupRequest(
-                ownerId,
-                true,
-                null,
-                true,
-                null
-        );
-
-        doPost("/api/entityGroup/" + groupInfo.getId() + "/share", groupRequest)
-                .andExpect(status().isOk());
-
-        doPost("/api/entityGroup/" + groupInfo.getId() + "/makePublic")
-                .andExpect(status().isOk());
-        return doGet("/api/entityGroup/" + groupInfo.getUuidId(), EntityGroupInfo.class);
-    }
-
     @Test
     public void testDeleteAlarmWithDeleteRelationsOk() throws Exception {
         loginCustomerAdministrator();

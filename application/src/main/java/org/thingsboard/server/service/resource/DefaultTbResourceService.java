@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.service.resource;
 
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
@@ -37,6 +39,7 @@ import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TbResourceInfo;
+import org.thingsboard.server.common.data.TbResourceInfoFilter;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -50,6 +53,7 @@ import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 
+import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -87,13 +91,13 @@ public class DefaultTbResourceService extends AbstractTbEntityService implements
     }
 
     @Override
-    public PageData<TbResourceInfo> findAllTenantResourcesByTenantId(TenantId tenantId, PageLink pageLink) {
-        return resourceService.findAllTenantResourcesByTenantId(tenantId, pageLink);
+    public PageData<TbResourceInfo> findAllTenantResourcesByTenantId(TbResourceInfoFilter filter, PageLink pageLink) {
+        return resourceService.findAllTenantResourcesByTenantId(filter, pageLink);
     }
 
     @Override
-    public PageData<TbResourceInfo> findTenantResourcesByTenantId(TenantId tenantId, PageLink pageLink) {
-        return resourceService.findTenantResourcesByTenantId(tenantId, pageLink);
+    public PageData<TbResourceInfo> findTenantResourcesByTenantId(TbResourceInfoFilter filter, PageLink pageLink) {
+        return resourceService.findTenantResourcesByTenantId(filter, pageLink);
     }
 
     @Override
@@ -185,6 +189,8 @@ public class DefaultTbResourceService extends AbstractTbEntityService implements
         } else {
             resource.setResourceKey(resource.getFileName());
         }
+        HashCode hashCode = Hashing.sha256().hashBytes(Base64.getDecoder().decode(resource.getData().getBytes()));
+        resource.setEtag(hashCode.toString());
         return resourceService.saveResource(resource);
     }
 }

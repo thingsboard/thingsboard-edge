@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasOwnerId;
+import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -46,6 +47,7 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.HasId;
+import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
@@ -102,6 +104,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
         put(Resource.AUDIT_LOG, TenantAdminPermissions.genericPermissionChecker);
         put(Resource.DEVICE_PROFILE, profilePermissionChecker);
         put(Resource.ASSET_PROFILE, profilePermissionChecker);
+        put(Resource.TB_RESOURCE, customerResourcePermissionChecker);
     }
 
     private final PermissionChecker<AlarmId, Alarm> customerAlarmPermissionChecker = new PermissionChecker<>() {
@@ -288,6 +291,26 @@ public class CustomerUserPermissions extends AbstractPermissions {
             return user.getUserPermissions().hasGenericPermission(resource, operation);
         }
     };
+
+    private static final PermissionChecker customerResourcePermissionChecker =
+            new PermissionChecker<TbResourceId, TbResourceInfo>() {
+
+                @Override
+                @SuppressWarnings("unchecked")
+                public boolean hasPermission(SecurityUser user, Operation operation, TbResourceId resourceId, TbResourceInfo resource) {
+                    if (operation != Operation.READ) {
+                        return false;
+                    }
+                    if (resource.getResourceType() == null || !resource.getResourceType().isCustomerAccess()) {
+                        return false;
+                    }
+                    if (resource.getTenantId() == null || resource.getTenantId().isNullUid()) {
+                        return true;
+                    }
+                    return user.getTenantId().equals(resource.getTenantId());
+                }
+
+            };
 
     private final PermissionChecker customerEntityGroupPermissionChecker = new PermissionChecker() {
 

@@ -49,7 +49,7 @@ import static org.thingsboard.server.msa.ui.utils.Const.ALARM_RULES_DOCS_URL;
 import static org.thingsboard.server.msa.ui.utils.Const.CONNECTIVITY_DOCS_URL;
 import static org.thingsboard.server.msa.ui.utils.Const.DASHBOARD_GIDE_DOCS_URL;
 import static org.thingsboard.server.msa.ui.utils.Const.HTTP_API_DOCS_URL;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.REMOTE_FACILITY_RI_EDGE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.REMOTE_FACILITY_WI_EDGE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERING_CUSTOMER_A_CUSTOMER;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERING_CUSTOMER_B_CUSTOMER;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERING_CUSTOMER_GROUP;
@@ -224,7 +224,7 @@ public class WaterMeteringInstallTest extends AbstractSolutionTemplateTest {
                 .forEach(d -> assertIsDisplayed(dashboardPage.entity(d)));
 
         sideBarMenuView.goToInstances();
-        assertIsDisplayed(instancesPage.entity(REMOTE_FACILITY_RI_EDGE));
+        assertIsDisplayed(instancesPage.entity(REMOTE_FACILITY_WI_EDGE));
 
         sideBarMenuView.goToRuleChainTemplates();
         assertIsDisplayed(ruleChainTemplatesPage.entity(WATER_METERING_SOLUTION_MAIN_REMOTE_FACILITY_RULE_CHAIN));
@@ -400,7 +400,7 @@ public class WaterMeteringInstallTest extends AbstractSolutionTemplateTest {
                 .forEach(db -> dashboardPage.assertEntityIsNotPresent(db));
 
         sideBarMenuView.goToInstances();
-        instancesPage.assertEntityIsNotPresent(REMOTE_FACILITY_RI_EDGE);
+        instancesPage.assertEntityIsNotPresent(REMOTE_FACILITY_WI_EDGE);
 
         sideBarMenuView.goToRuleChainTemplates();
         ruleChainTemplatesPage.assertEntityIsNotPresent(WATER_METERING_SOLUTION_MAIN_REMOTE_FACILITY_RULE_CHAIN);
