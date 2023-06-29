@@ -307,13 +307,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 } else {
                     log.info("Skipping audit logs migration");
                 }
-                boolean skipEdgeEventsMigration = getEnv("TB_SKIP_EDGE_EVENTS_MIGRATION", false);
-                if (!skipEdgeEventsMigration) {
-                    log.info("Starting edge events migration. Can be skipped with TB_SKIP_EDGE_EVENTS_MIGRATION env variable set to true");
-                    edgeEventDao.migrateEdgeEvents();
-                } else {
-                    log.info("Skipping edge events migration");
-                }
+                migrateEdgeEvents("Starting edge events migration. ");
                 boolean skipBlobEntitiesMigration = getEnv("TB_SKIP_BLOB_ENTITIES_MIGRATION", false);
                 if (!skipBlobEntitiesMigration) {
                     log.info("Starting blob entities migration. Can be skipped with TB_SKIP_BLOB_ENTITIES_MIGRATION set to true");
@@ -325,6 +319,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
             case "3.5.1":
                 log.info("Updating data from version 3.5.1 to 3.5.2 ...");
                 integrationRateLimitsUpdater.updateEntities();
+                migrateEdgeEvents("Starting edge events migration - adding seq_id column. ");
                 break;
             case "ce":
                 log.info("Updating data ...");
@@ -350,6 +345,16 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
+        }
+    }
+
+    private void migrateEdgeEvents(String logPrefix) {
+        boolean skipEdgeEventsMigration = getEnv("TB_SKIP_EDGE_EVENTS_MIGRATION", false);
+        if (!skipEdgeEventsMigration) {
+            log.info(logPrefix + "Can be skipped with TB_SKIP_EDGE_EVENTS_MIGRATION env variable set to true");
+            edgeEventDao.migrateEdgeEvents();
+        } else {
+            log.info("Skipping edge events migration");
         }
     }
 
