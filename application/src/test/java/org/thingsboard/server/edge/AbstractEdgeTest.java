@@ -127,6 +127,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @TestPropertySource(properties = {
         "edges.enabled=true",
+        "queue.rule-engine.stats.enabled=false",
 })
 abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
@@ -213,14 +214,14 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
     @After
     public void afterTest() throws Exception {
+        try {
+            edgeImitator.disconnect();
+        } catch (Exception ignored){}
+
         loginSysAdmin();
 
         doDelete("/api/tenant/" + savedTenant.getUuidId())
                 .andExpect(status().isOk());
-
-        try {
-            edgeImitator.disconnect();
-        } catch (Exception ignored) {}
     }
 
     private void installation() {
