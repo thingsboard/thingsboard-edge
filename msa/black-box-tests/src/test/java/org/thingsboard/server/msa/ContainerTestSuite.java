@@ -145,7 +145,7 @@ public class ContainerTestSuite {
                                     "YOUR_REGION", getSysProp("blackBoxTests.awsRegion")));
                     break;
                 case "rabbitmq":
-                    composeFiles.add(new File(targetDir + "advanced/docker-compose.rabbitmq-server.yml"));
+                    composeFiles.add(new File(targetDir + "docker-compose.rabbitmq-server.yml"));
                     replaceInFile(targetDir, "queue-rabbitmq.env",
                             Map.of("localhost", "rabbitmq"));
                     break;
