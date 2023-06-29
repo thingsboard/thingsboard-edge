@@ -1323,6 +1323,7 @@
     },
     "datakey": {
         "settings": "Settings",
+        "general": "General",
         "advanced": "Advanced",
         "key": "Key",
         "label": "Label",
@@ -1380,7 +1381,9 @@
         "delta-calculation-result": "Delta calculation result",
         "delta-calculation-result-previous-value": "Previous value",
         "delta-calculation-result-delta-absolute": "Delta (absolute)",
-        "delta-calculation-result-delta-percent": "Delta (percent)"
+        "delta-calculation-result-delta-percent": "Delta (percent)",
+        "source": "Source",
+        "latest": "Latest"
     },
     "datasource": {
         "type": "Datasource type",
@@ -5536,6 +5539,7 @@
         "drop-shadow": "Drop shadow",
         "enable-fullscreen": "Enable fullscreen",
         "enable-data-export": "Enable data export",
+        "data-export": "Data export",
         "background-color": "Background color",
         "text-color": "Text color",
         "padding": "Padding",
@@ -5600,7 +5604,6 @@
         "preview": "Preview",
         "set": "Set",
         "set-message": "Set message",
-        "card-title": "Card title",
         "advanced-title-style": "Advanced title style",
         "card-style": "Card style",
         "text": "Text",
@@ -5728,6 +5731,8 @@
         "chart": {
             "common-settings": "Common settings",
             "enable-stacking-mode": "Enable stacking mode",
+            "selection": "Time range selection",
+            "enable-selection-mode": "Enable selection mode",
             "line-shadow-size": "Line shadow size",
             "display-smooth-lines": "Display smooth (curved) lines",
             "default-bar-width": "Default bar width for non-aggregated data (milliseconds)",
@@ -6715,9 +6720,18 @@
             "scheduler-events-table-title": "Scheduler events table title",
             "force-default-event-type": "Force default event type",
             "columns": "Columns",
+            "column-settings": "Column settings",
             "remove-column": "Remove column",
             "add-column": "Add column",
-            "no-columns": "No columns configured"
+            "no-columns": "No columns configured",
+            "show-card-buttons": "Show card buttons",
+            "columns-to-display": "Columns to display",
+            "table-header": "Table header",
+            "header-buttons": "Header buttons",
+            "pagination": "Pagination",
+            "rows": "Rows",
+            "timeseries-column-error": "At least one timeseries column should be specified",
+            "table-tabs": "Table tabs"
         },
         "scheduler": {
             "enabled-scheduler-event-views": "Enabled scheduler events views",

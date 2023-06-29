@@ -28,52 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-.tb-data-keys-table {
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding-bottom: 12px;
-  .tb-data-keys-header {
-    height: 48px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-    display: flex;
-    flex-direction: row;
-    place-content: center flex-start;
-    align-items: center;
-    gap: 12px;
-    padding-left: 12px;
-    .tb-data-keys-header-cell {
-      font-weight: 400;
-      font-size: 14px;
-      line-height: 20px;
-      letter-spacing: 0.2px;
-      color: rgba(0, 0, 0, 0.54);
-      &.tb-source-header {
-        width: 140px;
-      }
-      &.tb-color-header, &.tb-units-header, &.tb-decimals-header {
-        width: 60px;
-      }
-      &.tb-actions-header {
-        width: 114px;
-      }
-    }
-  }
-  .tb-data-keys-body {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  .tb-prompt {
-    height: 38px;
-  }
-}
+package org.thingsboard.server.common.msg;
 
-.tb-data-keys-table-row {
-  height: 38px;
-  display: flex;
-  flex-direction: row;
-  background: #fff;
+public interface TbActorError {
+
+    boolean isUnrecoverable();
+
 }

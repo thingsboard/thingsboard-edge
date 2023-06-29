@@ -44,6 +44,7 @@ import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
+import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.plugin.ComponentType;
@@ -68,23 +69,40 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 )
 public class TbTwilioVoiceNode implements TbNode {
 
+    private boolean forceAck;
     private TbTwilioVoiceNodeConfiguration config;
     private TwilioRestClient twilioRestClient;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+        this.forceAck = ctx.isExternalNodeForceAck();
         this.config = TbNodeUtils.convert(configuration, TbTwilioVoiceNodeConfiguration.class);
         this.twilioRestClient = new TwilioRestClient.Builder(this.config.getAccountSid(), this.config.getAccountToken()).build();
     }
 
     @Override
-    public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
+    public void onMsg(TbContext ctx, TbMsg msg) {
         withCallback(ctx.getExternalCallExecutor().executeAsync(() -> {
                     sendVoiceMessage(ctx, msg);
                     return null;
                 }),
-                ok -> ctx.tellNext(msg, SUCCESS),
-                fail -> ctx.tellFailure(msg, fail));
+                ok -> {
+                    if (forceAck) {
+                        ctx.enqueueForTellNext(msg.copyWithNewCtx(), TbRelationTypes.SUCCESS);
+                    } else {
+                        ctx.tellNext(msg, SUCCESS);
+                    }
+                },
+                fail -> {
+                    if (forceAck) {
+                        ctx.enqueueForTellFailure(msg.copyWithNewCtx(), fail);
+                    } else {
+                        ctx.tellFailure(msg, fail);
+                    }
+                });
+        if (forceAck) {
+            ctx.ack(msg);
+        }
     }
 
     private void sendVoiceMessage(TbContext ctx, TbMsg msg) throws Exception {
@@ -97,10 +115,10 @@ public class TbTwilioVoiceNode implements TbNode {
         }
 
         String payload = msg.getData();
-        payload = payload.substring(1, payload.length()-1);
+        payload = payload.substring(1, payload.length() - 1);
         Say.Language language = Say.Language.EN_US;
         for (Say.Language lang : Say.Language.values()) {
-            if (lang.toString().equals(config.getLanguage())){
+            if (lang.toString().equals(config.getLanguage())) {
                 language = lang;
                 break;
             }
@@ -108,7 +126,7 @@ public class TbTwilioVoiceNode implements TbNode {
 
         Say.Voice voice = Say.Voice.MAN;
         for (Say.Voice voiceIter : Say.Voice.values()) {
-            if (voiceIter.toString().equals(config.getVoice())){
+            if (voiceIter.toString().equals(config.getVoice())) {
                 voice = voiceIter;
                 break;
             }

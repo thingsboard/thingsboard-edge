@@ -63,8 +63,9 @@ import javax.net.ssl.SSLException;
 public class TbAzureIotHubNode extends TbMqttNode {
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+        super.init(ctx);
+        this.mqttNodeConfiguration = TbNodeUtils.convert(configuration, TbMqttNodeConfiguration.class);
         try {
-            this.mqttNodeConfiguration = TbNodeUtils.convert(configuration, TbMqttNodeConfiguration.class);
             mqttNodeConfiguration.setPort(8883);
             mqttNodeConfiguration.setCleanSession(true);
             ClientCredentials credentials = mqttNodeConfiguration.getCredentials();

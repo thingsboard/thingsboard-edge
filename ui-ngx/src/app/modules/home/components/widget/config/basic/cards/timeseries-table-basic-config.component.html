@@ -30,10 +30,8 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<ng-container [formGroup]="entitiesTableWidgetConfigForm">
-  <tb-timewindow-config-panel *ngIf="displayTimewindowConfig"
-                              [onlyHistoryTimewindow]="onlyHistoryTimewindow()"
-                              formControlName="timewindowConfig">
+<ng-container [formGroup]="timeseriesTableWidgetConfigForm">
+  <tb-timewindow-config-panel formControlName="timewindowConfig">
   </tb-timewindow-config-panel>
   <tb-datasources
     [configMode]="basicMode"
@@ -46,6 +44,7 @@
     keySettingsTitle="{{ 'widgets.table.column-settings' | translate }}"
     removeKeyTitle="{{ 'widgets.table.remove-column' | translate }}"
     noKeysText="{{ 'widgets.table.no-columns' | translate }}"
+    requiredKeysText="{{ 'widgets.table.timeseries-column-error' | translate }}"
     hideDataKeyColor
     [datasourceType]="datasource?.type"
     [deviceId]="datasource?.deviceId"
@@ -68,7 +67,7 @@
       </mat-slide-toggle>
       <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="16px">
         <tb-material-icon-select asBoxInput
-                                 [color]="entitiesTableWidgetConfigForm.get('iconColor').value"
+                                 [color]="timeseriesTableWidgetConfigForm.get('iconColor').value"
                                  formControlName="titleIcon">
         </tb-material-icon-select>
         <mat-divider vertical></mat-divider>

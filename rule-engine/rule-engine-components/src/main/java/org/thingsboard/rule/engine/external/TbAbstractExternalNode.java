@@ -28,52 +28,49 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-.tb-data-keys-table {
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding-bottom: 12px;
-  .tb-data-keys-header {
-    height: 48px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-    display: flex;
-    flex-direction: row;
-    place-content: center flex-start;
-    align-items: center;
-    gap: 12px;
-    padding-left: 12px;
-    .tb-data-keys-header-cell {
-      font-weight: 400;
-      font-size: 14px;
-      line-height: 20px;
-      letter-spacing: 0.2px;
-      color: rgba(0, 0, 0, 0.54);
-      &.tb-source-header {
-        width: 140px;
-      }
-      &.tb-color-header, &.tb-units-header, &.tb-decimals-header {
-        width: 60px;
-      }
-      &.tb-actions-header {
-        width: 114px;
-      }
-    }
-  }
-  .tb-data-keys-body {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  .tb-prompt {
-    height: 38px;
-  }
-}
+package org.thingsboard.rule.engine.external;
 
-.tb-data-keys-table-row {
-  height: 38px;
-  display: flex;
-  flex-direction: row;
-  background: #fff;
+import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.api.TbNode;
+import org.thingsboard.rule.engine.api.TbRelationTypes;
+import org.thingsboard.server.common.msg.TbMsg;
+
+public abstract class TbAbstractExternalNode implements TbNode {
+
+    private boolean forceAck;
+
+    public void init(TbContext ctx) {
+        this.forceAck = ctx.isExternalNodeForceAck();
+    }
+
+    protected void tellSuccess(TbContext ctx, TbMsg tbMsg) {
+        if (forceAck) {
+            ctx.enqueueForTellNext(tbMsg.copyWithNewCtx(), TbRelationTypes.SUCCESS);
+        } else {
+            ctx.tellSuccess(tbMsg);
+        }
+    }
+
+    protected void tellFailure(TbContext ctx, TbMsg tbMsg, Throwable t) {
+        if (forceAck) {
+            if (t == null) {
+                ctx.enqueueForTellNext(tbMsg.copyWithNewCtx(), TbRelationTypes.FAILURE);
+            } else {
+                ctx.enqueueForTellFailure(tbMsg.copyWithNewCtx(), t);
+            }
+        } else {
+            if (t == null) {
+                ctx.tellNext(tbMsg, TbRelationTypes.FAILURE);
+            } else {
+                ctx.tellFailure(tbMsg, t);
+            }
+        }
+    }
+
+    protected void ackIfNeeded(TbContext ctx, TbMsg msg) {
+        if (forceAck) {
+            ctx.ack(msg);
+        }
+    }
+
 }
