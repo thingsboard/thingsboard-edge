@@ -40,7 +40,7 @@ import { DeviceService } from '@core/http/device.service';
 import { TranslateService } from '@ngx-translate/core';
 import { AttributeData, AttributeScope } from '@shared/models/telemetry/telemetry.models';
 import { PageComponent } from '@shared/components/page.component';
-import { DialogService } from '@app/core/services/dialog.service';
+import { DialogService } from '@core/services/dialog.service';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { TbFlot } from '@home/components/widget/lib/flot-widget';
 import { ResizeObserver } from '@juggle/resize-observer';
@@ -54,6 +54,7 @@ import { PageLink } from '@shared/models/page/page-link';
 import { Direction, SortOrder } from '@shared/models/page/sort-order';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSort } from '@angular/material/sort';
+import { NULL_UUID } from '@shared/models/id/has-uuid';
 
 
 @Component({
@@ -72,7 +73,7 @@ export class GatewayStatisticsComponent extends PageComponent implements AfterVi
   @Input()
   public general: boolean;
 
-  public isNumericData: boolean = true;
+  public isNumericData: boolean = false;
   public chartInited: boolean;
   private flot: TbFlot;
   private flotCtx;
@@ -139,8 +140,8 @@ export class GatewayStatisticsComponent extends PageComponent implements AfterVi
     })
     this.init();
     if (this.ctx.defaultSubscription.datasources.length) {
-
       const gateway = this.ctx.defaultSubscription.datasources[0].entity;
+      if (gateway.id.id === NULL_UUID) return;
       if (!this.general) {
         this.attributeService.getEntityAttributes(gateway.id, AttributeScope.SHARED_SCOPE, ["general_configuration"]).subscribe((resp: AttributeData[]) => {
           if (resp && resp.length) {
@@ -284,7 +285,7 @@ export class GatewayStatisticsComponent extends PageComponent implements AfterVi
       return;
     }
     this.dataSource.data = this.subscription.data.length ? this.subscription.data[0].data : [];
-    this.isNumericData = this.dataSource.data.every(data => isNumber(data[1]));
+    this.isNumericData = this.dataSource.data.every(data => !isNaN(data[1]));
   }
 
 

@@ -37,7 +37,6 @@ import { DeviceCredentialsComponent } from '@home/components/device/device-crede
 import { DeviceCredentialsLwm2mComponent } from '@home/components/device/device-credentials-lwm2m.component';
 import { DeviceCredentialsLwm2mServerComponent } from '@home/components/device/device-credentials-lwm2m-server.component';
 import { DeviceCredentialsMqttBasicComponent } from '@home/components/device/device-credentials-mqtt-basic.component';
-import { DeviceExampleCommandComponent } from '@home/components/device/device-example-command.component';
 
 @NgModule({
   declarations: [
@@ -45,8 +44,7 @@ import { DeviceExampleCommandComponent } from '@home/components/device/device-ex
     DeviceCredentialsComponent,
     DeviceCredentialsLwm2mComponent,
     DeviceCredentialsLwm2mServerComponent,
-    DeviceCredentialsMqttBasicComponent,
-    DeviceExampleCommandComponent
+    DeviceCredentialsMqttBasicComponent
   ],
   imports: [
     CommonModule,
@@ -57,8 +55,7 @@ import { DeviceExampleCommandComponent } from '@home/components/device/device-ex
     DeviceCredentialsComponent,
     DeviceCredentialsLwm2mComponent,
     DeviceCredentialsLwm2mServerComponent,
-    DeviceCredentialsMqttBasicComponent,
-    DeviceExampleCommandComponent
+    DeviceCredentialsMqttBasicComponent
   ]
 })
 export class DeviceCredentialsModule { }

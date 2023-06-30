@@ -47,7 +47,6 @@ import {
   createDeviceProfileConfiguration,
   createDeviceProfileTransportConfiguration,
   Device,
-  DeviceCredentials,
   DeviceProfile,
   DeviceProfileInfo,
   DeviceProfileType,
@@ -92,7 +91,7 @@ export interface DeviceWizardDialogData {
 export class DeviceWizardDialogComponent extends
   DialogComponent<DeviceWizardDialogComponent, Device> implements OnDestroy, ErrorStateMatcher {
 
-  @ViewChild('addDeviceWizardStepper') addDeviceWizardStepper: MatStepper;
+  @ViewChild('addDeviceWizardStepper', {static: true}) addDeviceWizardStepper: MatStepper;
 
   resource = Resource;
 
@@ -106,7 +105,7 @@ export class DeviceWizardDialogComponent extends
 
   entityType = EntityType;
 
-  deviceTransportTypes = Object.values(DeviceTransportType) as DeviceTransportType[];
+  deviceTransportTypes = Object.values(DeviceTransportType);
 
   deviceTransportTypeTranslations = deviceTransportTypeTranslationMap;
 
@@ -134,10 +133,6 @@ export class DeviceWizardDialogComponent extends
   initialGroups: EntityInfoData[];
 
   serviceType = ServiceType.TB_RULE_ENGINE;
-
-  device: Device;
-
-  deviceCredentials: DeviceCredentials;
 
   private subscriptions: Subscription[] = [];
   private currentDeviceProfileTransportType = DeviceTransportType.DEFAULT;
@@ -330,15 +325,13 @@ export class DeviceWizardDialogComponent extends
   }
 
   add(): void {
-    if (this.deviceCredentials)  {
-      this.dialogRef.close(this.device);
-    } else if (this.allValid()) {
+    if (this.allValid()) {
       this.createDeviceProfile().pipe(
         mergeMap(profileId => this.createDevice(profileId)),
-        mergeMap(device => this.saveCredentials(device)),
+        mergeMap(device => this.saveCredentials(device))
       ).subscribe(
         (device) => {
-          this.device = device;
+          this.dialogRef.close(device);
         }
       );
     }
@@ -433,7 +426,6 @@ export class DeviceWizardDialogComponent extends
         mergeMap(
           (deviceCredentials) => {
             const deviceCredentialsValue = {...deviceCredentials, ...this.credentialsFormGroup.value.credential};
-            this.deviceCredentials = deviceCredentialsValue;
             return this.deviceService.saveDeviceCredentials(deviceCredentialsValue).pipe(
               catchError(e => {
                 this.addDeviceWizardStepper.selectedIndex = 1;
@@ -445,14 +437,8 @@ export class DeviceWizardDialogComponent extends
           }
         ),
         map(() => device));
-    } else {
-      return this.deviceService.getDeviceCredentials(device.id.id).pipe(
-        map((deviceCredentials) =>  {
-          this.deviceCredentials = deviceCredentials;
-          return device;
-        })
-      );
     }
+    return of(device);
   }
 
   allValid(): boolean {

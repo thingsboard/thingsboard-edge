@@ -302,13 +302,7 @@ import * as DeviceWizardDialogComponent from '@home/components/wizard/device-wiz
 import * as AlarmScheduleInfoComponent from '@home/components/profile/alarm/alarm-schedule-info.component';
 import * as AlarmScheduleDialogComponent from '@home/components/profile/alarm/alarm-schedule-dialog.component';
 import * as EditAlarmDetailsDialogComponent from '@home/components/profile/alarm/edit-alarm-details-dialog.component';
-import * as DeviceGatewayCommandComponent from '@shared/components/device/device-gateway-command.component';
 import * as GatewayRemoteConfigurationDialogComponent from '@shared/components/dialog/gateway-remote-configuration-dialog';
-import * as GatewayConfigurationComponent from '@shared/components/device/gateway-configuration.component';
-import * as GatewayConnectorComponent from '@shared/components/device/gateway-connectors.component';
-import * as GatewayLogsComponent from '@shared/components/device/gateway-logs.component';
-import * as GatewayStatisticsComponent from '@shared/components/device/gateway-statistics.component';
-import * as GatewayServiceRPCComponent from '@shared/components/device/gateway-service-rpc.component';
 
 import * as AlarmRuleConditionDialogComponent from '@home/components/profile/alarm/alarm-rule-condition-dialog.component';
 // eslint-disable-next-line max-len
@@ -479,12 +473,6 @@ class ModulesMap implements IModulesMap {
     '@shared/components/help.component': HelpComponent,
     '@shared/components/help-markdown.component': HelpMarkdownComponent,
     '@shared/components/help-popup.component': HelpPopupComponent,
-    '@shared/components/device/device-gateway-command.component': DeviceGatewayCommandComponent,
-    '@shared/components/device/gateway-configuration.component': GatewayConfigurationComponent,
-    '@shared/components/device/gateway-connectors.component': GatewayConnectorComponent,
-    '@shared/components/device/gateway-logs.component': GatewayLogsComponent,
-    '@shared/components/device/gateway-statistics.component': GatewayStatisticsComponent,
-    '@shared/components/device/gateway-service-rpc.component': GatewayServiceRPCComponent,
     '@shared/components/device/gateway-remote-configuration-dialog': GatewayRemoteConfigurationDialogComponent,
     '@shared/components/tb-checkbox.component': TbCheckboxComponent,
     '@shared/components/toast.directive': TbToast,

@@ -42,7 +42,7 @@ export interface GatewayRemoteConfigurationDialogData {
 }
 
 @Component({
-  selector: 'tb-activation-link-dialog',
+  selector: 'gateway-remote-configuration-dialog',
   templateUrl: './gateway-remote-configuration-dialog.html'
 })
 

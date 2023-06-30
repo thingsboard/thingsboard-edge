@@ -49,11 +49,12 @@ import { MatSort } from '@angular/material/sort';
 import { tap } from 'rxjs/operators';
 import { TelemetryWebsocketService } from '@core/ws/telemetry-websocket.service';
 import { MatTableDataSource } from '@angular/material/table';
-import { GatewayLogLevel } from '@shared/components/device/gateway-configuration.component';
+import { GatewayLogLevel } from '@home/components/widget/lib/device/gateway-configuration.component';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
-import { DialogService } from '@app/core/services/dialog.service';
+import { DialogService } from '@core/services/dialog.service';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { deepClone } from '@core/utils';
+import { NULL_UUID } from '@shared/models/id/has-uuid';
 
 
 export interface gatewayConnector {
@@ -176,6 +177,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
 
     this.viewsInited = true;
     if (this.device) {
+      if (this.device.id === NULL_UUID) return;
       forkJoin(this.attributeService.getEntityAttributes(this.device, AttributeScope.SHARED_SCOPE, ['active_connectors']),
         this.attributeService.getEntityAttributes(this.device, AttributeScope.SERVER_SCOPE, ['inactive_connectors'])).subscribe(attributes => {
         if (attributes.length) {
