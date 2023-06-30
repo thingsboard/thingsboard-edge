@@ -177,6 +177,8 @@ export interface WidgetTypeDescriptor {
   settingsDirective?: string;
   dataKeySettingsDirective?: string;
   latestDataKeySettingsDirective?: string;
+  hasBasicMode?: boolean;
+  basicModeDirective?: string;
   defaultConfig: string;
   sizeX: number;
   sizeY: number;
@@ -267,18 +269,16 @@ export interface LegendConfig {
   showLatest: boolean;
 }
 
-export function defaultLegendConfig(wType: widgetType): LegendConfig {
-  return {
-    direction: LegendDirection.column,
-    position: LegendPosition.bottom,
-    sortDataKeys: false,
-    showMin: false,
-    showMax: false,
-    showAvg: wType === widgetType.timeseries,
-    showTotal: false,
-    showLatest: false
-  };
-}
+export const defaultLegendConfig = (wType: widgetType): LegendConfig => ({
+  direction: LegendDirection.column,
+  position: LegendPosition.bottom,
+  sortDataKeys: false,
+  showMin: false,
+  showMax: false,
+  showAvg: wType === widgetType.timeseries,
+  showTotal: false,
+  showLatest: false
+});
 
 export enum ComparisonResultType {
   PREVIOUS_VALUE = 'PREVIOUS_VALUE',
@@ -334,8 +334,14 @@ export interface DataKey extends KeyInfo {
   _hash?: number;
 }
 
+export enum DataKeyConfigMode {
+  general = 'general',
+  advanced = 'advanced'
+}
+
 export enum DatasourceType {
   function = 'function',
+  device = 'device',
   entity = 'entity',
   entityCount = 'entityCount',
   alarmCount = 'alarmCount'
@@ -344,6 +350,7 @@ export enum DatasourceType {
 export const datasourceTypeTranslationMap = new Map<DatasourceType, string>(
   [
     [ DatasourceType.function, 'function.function' ],
+    [ DatasourceType.device, 'device.device' ],
     [ DatasourceType.entity, 'entity.entity' ],
     [ DatasourceType.entityCount, 'entity.entities-count' ],
     [ DatasourceType.alarmCount, 'entity.alarms-count' ]
@@ -359,6 +366,7 @@ export interface Datasource {
   entityType?: EntityType;
   entityId?: string;
   entityName?: string;
+  deviceId?: string;
   entityAliasId?: string;
   filterId?: string;
   unresolvedStateEntity?: boolean;
@@ -379,7 +387,7 @@ export interface Datasource {
   [key: string]: any;
 }
 
-export function datasourcesHasAggregation(datasources?: Array<Datasource>): boolean {
+export const datasourcesHasAggregation = (datasources?: Array<Datasource>): boolean => {
   if (datasources) {
     const foundDatasource = datasources.find(datasource => {
       const found = datasource.dataKeys && datasource.dataKeys.find(key => key.type === DataKeyType.timeseries &&
@@ -391,9 +399,9 @@ export function datasourcesHasAggregation(datasources?: Array<Datasource>): bool
     }
   }
   return false;
-}
+};
 
-export function datasourcesHasOnlyComparisonAggregation(datasources?: Array<Datasource>): boolean {
+export const datasourcesHasOnlyComparisonAggregation = (datasources?: Array<Datasource>): boolean => {
   if (!datasourcesHasAggregation(datasources)) {
     return false;
   }
@@ -408,7 +416,7 @@ export function datasourcesHasOnlyComparisonAggregation(datasources?: Array<Data
     }
   }
   return true;
-}
+};
 
 export interface FormattedData {
   $datasource: Datasource;
@@ -641,7 +649,13 @@ export interface WidgetSettings {
   [key: string]: any;
 }
 
+export enum WidgetConfigMode {
+  basic = 'basic',
+  advanced = 'advanced'
+}
+
 export interface WidgetConfig {
+  configMode?: WidgetConfigMode;
   title?: string;
   titleIcon?: string;
   showTitle?: boolean;
@@ -654,8 +668,6 @@ export interface WidgetConfig {
   enableDataExport?: boolean;
   useDashboardTimewindow?: boolean;
   displayTimewindow?: boolean;
-  showLegend?: boolean;
-  legendConfig?: LegendConfig;
   timewindow?: Timewindow;
   desktopHide?: boolean;
   mobileHide?: boolean;
@@ -740,7 +752,7 @@ export interface IWidgetSettingsComponent {
   [key: string]: any;
 }
 
-function removeEmptyWidgetSettings(settings: WidgetSettings): WidgetSettings {
+const removeEmptyWidgetSettings = (settings: WidgetSettings): WidgetSettings => {
   if (settings) {
     const keys = Object.keys(settings);
     for (const key of keys) {
@@ -751,7 +763,7 @@ function removeEmptyWidgetSettings(settings: WidgetSettings): WidgetSettings {
     }
   }
   return settings;
-}
+};
 
 @Directive()
 // eslint-disable-next-line @angular-eslint/directive-class-suffix

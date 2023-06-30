@@ -40,6 +40,7 @@ import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
+import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -64,11 +65,13 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 )
 public class TbTwilioSmsNode implements TbNode {
 
+    private boolean forceAck;
     private TbTwilioSmsNodeConfiguration config;
     private TwilioRestClient twilioRestClient;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+        this.forceAck = ctx.isExternalNodeForceAck();
         this.config = TbNodeUtils.convert(configuration, TbTwilioSmsNodeConfiguration.class);
         this.twilioRestClient = new TwilioRestClient.Builder(this.config.getAccountSid(), this.config.getAccountToken()).build();
     }
@@ -83,12 +86,23 @@ public class TbTwilioSmsNode implements TbNode {
                     }),
                     ok -> {
                         log.trace("[{}][{}] Successfully processed msg: {}", ctx.getTenantId().getId(), ctx.getSelfId().getId(), msg);
-                        ctx.tellNext(msg, SUCCESS);
+                        if (forceAck) {
+                            ctx.enqueueForTellNext(msg.copyWithNewCtx(), TbRelationTypes.SUCCESS);
+                        } else {
+                            ctx.tellNext(msg, SUCCESS);
+                        }
                     },
                     fail -> {
                         logFailure(ctx, msg, fail);
-                        ctx.tellFailure(msg, fail);
+                        if (forceAck) {
+                            ctx.enqueueForTellFailure(msg.copyWithNewCtx(), fail);
+                        } else {
+                            ctx.tellFailure(msg, fail);
+                        }
                     });
+            if (forceAck) {
+                ctx.ack(msg);
+            }
         } catch (Exception ex) {
             logFailure(ctx, msg, ex);
             ctx.tellFailure(msg, ex);

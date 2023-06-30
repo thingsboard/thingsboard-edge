@@ -69,7 +69,7 @@ public class SolutionTemplatesConstants {
     public static final String WATER_METERING_SHARED_DASHBOARD_GROUP = "Water Metering Shared";
 
     //Instances
-    public static final String REMOTE_FACILITY_RI_EDGE = "Remote Facility R1";
+    public static final String REMOTE_FACILITY_WI_EDGE = "Remote Facility W1";
 
     /**
      * Temperature & Humidity Sensors
@@ -98,6 +98,9 @@ public class SolutionTemplatesConstants {
     //Entity groups
     public static final String TEMPERATURE_HUMIDITY_SENSORS_DEVICE_GROUP = "Temperature & Humidity sensors";
     public static final String CUSTOMER_DASHBOARD_GROUP = "Customer dashboards";
+
+    //Instances
+    public static final String REMOTE_FACILITY_RI_EDGE = "Remote Facility R1";
 
     /**
      * Smart Retail

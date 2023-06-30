@@ -185,6 +185,8 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     private static final String CUSTOMER_USER_PASSWORD = "customer";
 
     protected static final String DIFFERENT_CUSTOMER_USER_EMAIL = "testdifferentcustomer@thingsboard.org";
+
+    protected static final String DIFFERENT_TENANT_CUSTOMER_USER_EMAIL = "testdifferenttenantcustomer@thingsboard.org";
     private static final String DIFFERENT_CUSTOMER_USER_PASSWORD = "diffcustomer";
 
     /**
@@ -210,9 +212,13 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected CustomerId tenantAdminCustomerId;
     protected CustomerId customerId;
     protected CustomerId differentCustomerId;
+
+    protected CustomerId differentTenantCustomerId;
     protected UserId customerUserId;
     protected UserId customerAdminUserId;
     protected UserId differentCustomerUserId;
+
+    protected UserId differentTenantCustomerUserId;
 
     @SuppressWarnings("rawtypes")
     private HttpMessageConverter mappingJackson2HttpMessageConverter;
@@ -388,7 +394,9 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected Tenant savedDifferentTenant;
     protected User savedDifferentTenantUser;
     private Customer savedDifferentCustomer;
+    private Customer savedDifferentTenantCustomer;
     protected User differentCustomerUser;
+    protected User differentTenantCustomerUser;
 
     protected void loginDifferentTenant() throws Exception {
         if (savedDifferentTenant != null) {
@@ -429,6 +437,24 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         }
     }
 
+    protected void loginDifferentTenantCustomer() throws Exception {
+        if (savedDifferentTenantCustomer != null) {
+            login(savedDifferentTenantCustomer.getEmail(), CUSTOMER_USER_PASSWORD);
+        } else {
+            createDifferentTenantCustomer();
+
+            loginDifferentTenant();
+            differentTenantCustomerUser = new User();
+            differentTenantCustomerUser.setAuthority(Authority.CUSTOMER_USER);
+            differentTenantCustomerUser.setTenantId(savedDifferentTenantCustomer.getTenantId());
+            differentTenantCustomerUser.setCustomerId(savedDifferentTenantCustomer.getId());
+            differentTenantCustomerUser.setEmail(DIFFERENT_TENANT_CUSTOMER_USER_EMAIL);
+
+            differentTenantCustomerUser = createUserAndLogin(differentTenantCustomerUser, DIFFERENT_CUSTOMER_USER_PASSWORD);
+            differentTenantCustomerUserId = differentTenantCustomerUser.getId();
+        }
+    }
+
     protected void createDifferentCustomer() throws Exception {
         loginTenantAdmin();
 
@@ -437,6 +463,18 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         savedDifferentCustomer = doPost("/api/customer", customer, Customer.class);
         Assert.assertNotNull(savedDifferentCustomer);
         differentCustomerId = savedDifferentCustomer.getId();
+
+        resetTokens();
+    }
+
+    protected void createDifferentTenantCustomer() throws Exception {
+        loginDifferentTenant();
+
+        Customer customer = new Customer();
+        customer.setTitle("Different tenant customer");
+        savedDifferentTenantCustomer = doPost("/api/customer", customer, Customer.class);
+        Assert.assertNotNull(savedDifferentTenantCustomer);
+        differentTenantCustomerId = savedDifferentTenantCustomer.getId();
 
         resetTokens();
     }
@@ -627,6 +665,13 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     protected ResultActions doGet(String urlTemplate, Object... urlVariables) throws Exception {
         MockHttpServletRequestBuilder getRequest = get(urlTemplate, urlVariables);
+        setJwtToken(getRequest);
+        return mockMvc.perform(getRequest);
+    }
+
+    protected ResultActions doGet(String urlTemplate, HttpHeaders httpHeaders, Object... urlVariables) throws Exception {
+        MockHttpServletRequestBuilder getRequest = get(urlTemplate, urlVariables);
+        getRequest.headers(httpHeaders);
         setJwtToken(getRequest);
         return mockMvc.perform(getRequest);
     }

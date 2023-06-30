@@ -177,6 +177,7 @@ CREATE TABLE IF NOT EXISTS component_descriptor (
     actions varchar(255),
     clazz varchar UNIQUE,
     configuration_descriptor varchar,
+    configuration_version int DEFAULT 0,
     name varchar(255),
     scope varchar(255),
     type varchar(255),
@@ -237,6 +238,7 @@ CREATE TABLE IF NOT EXISTS rule_node (
     created_time bigint NOT NULL,
     rule_chain_id uuid,
     additional_info varchar,
+    configuration_version int DEFAULT 0,
     configuration varchar(10000000),
     type varchar(255),
     name varchar(255),
@@ -862,6 +864,7 @@ CREATE TABLE IF NOT EXISTS resource (
     search_text varchar(255),
     file_name varchar(255) NOT NULL,
     data varchar,
+    etag varchar,
     CONSTRAINT resource_unq_key UNIQUE (tenant_id, resource_type, resource_key)
 );
 
@@ -884,6 +887,7 @@ CREATE TABLE IF NOT EXISTS edge (
 );
 
 CREATE TABLE IF NOT EXISTS edge_event (
+    seq_id INT GENERATED ALWAYS AS IDENTITY,
     id uuid NOT NULL,
     created_time bigint NOT NULL,
     edge_id uuid,
@@ -896,6 +900,7 @@ CREATE TABLE IF NOT EXISTS edge_event (
     entity_group_id uuid,
     ts bigint NOT NULL
 ) PARTITION BY RANGE(created_time);
+ALTER TABLE IF EXISTS edge_event ALTER COLUMN seq_id SET CYCLE;
 
 CREATE TABLE IF NOT EXISTS device_group_ota_package (
     id uuid NOT NULL CONSTRAINT entity_group_firmware_pkey PRIMARY KEY,

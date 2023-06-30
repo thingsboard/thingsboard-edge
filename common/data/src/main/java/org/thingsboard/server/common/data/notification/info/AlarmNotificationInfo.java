@@ -57,6 +57,8 @@ public class AlarmNotificationInfo implements RuleOriginatedNotificationInfo {
     private String alarmOriginatorName;
     private AlarmSeverity alarmSeverity;
     private AlarmStatus alarmStatus;
+    private boolean acknowledged;
+    private boolean cleared;
     private CustomerId alarmCustomerId;
 
     @Override

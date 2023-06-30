@@ -106,6 +106,9 @@ public class DefaultMailService implements MailService {
     @Autowired
     private PasswordResetExecutorService passwordResetExecutorService;
 
+    @Autowired
+    private TbMailContextComponent ctx;
+
     public DefaultMailService(AdminSettingsService adminSettingsService, AttributesService attributesService, BlobEntityService blobEntityService, TbApiUsageReportClient apiUsageClient) {
         this.adminSettingsService = adminSettingsService;
         this.attributesService = attributesService;
@@ -120,7 +123,7 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void sendTestMail(TenantId tenantId, JsonNode jsonConfig, String email) throws ThingsboardException {
-        JavaMailSenderImpl testMailSender = createMailSender(jsonConfig);
+        TbMailSender testMailSender = new TbMailSender(ctx, tenantId, jsonConfig);
         String mailFrom = getStringValue(jsonConfig, "mailFrom");
 
         JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
@@ -238,7 +241,7 @@ public class DefaultMailService implements MailService {
     private void sendMail(TenantId tenantId, String email,
                           String subject, String message) throws ThingsboardException {
         JsonNode jsonConfig = getConfig(tenantId, "mail");
-        JavaMailSenderImpl mailSender = createMailSender(jsonConfig);
+        TbMailSender mailSender = new TbMailSender(ctx, tenantId, jsonConfig);
         String mailFrom = getStringValue(jsonConfig, "mailFrom");
         sendMail(mailSender, mailFrom, email, subject, message, getTimeout(jsonConfig));
     }
@@ -247,7 +250,7 @@ public class DefaultMailService implements MailService {
     public void send(TenantId tenantId, CustomerId customerId, TbEmail tbEmail) throws ThingsboardException {
         ConfigEntry configEntry = getConfig(tenantId, "mail", allowSystemMailService);
         JsonNode jsonConfig = configEntry.jsonConfig;
-        JavaMailSenderImpl mailSender = createMailSender(jsonConfig);
+        TbMailSender mailSender = new TbMailSender(ctx, configEntry.isSystem ? TenantId.SYS_TENANT_ID : tenantId, jsonConfig);
         sendMail(tenantId, customerId, tbEmail, mailSender, false, getTimeout(jsonConfig));
     }
 
@@ -367,7 +370,7 @@ public class DefaultMailService implements MailService {
     @Override
     public void testConnection(TenantId tenantId) throws Exception {
         JsonNode jsonConfig = getConfig(tenantId, "mail");
-        JavaMailSenderImpl mailSender = createMailSender(jsonConfig);
+        TbMailSender mailSender = new TbMailSender(ctx, tenantId, jsonConfig);
         mailSender.testConnection();
     }
 
@@ -376,7 +379,7 @@ public class DefaultMailService implements MailService {
         try {
             ConfigEntry configEntry = getConfig(tenantId, "mail", allowSystemMailService);
             JsonNode jsonConfig = configEntry.jsonConfig;
-            createMailSender(jsonConfig);
+            new TbMailSender(ctx, tenantId, jsonConfig);
             return true;
         } catch (Exception e) {
             return false;
@@ -501,65 +504,6 @@ public class DefaultMailService implements MailService {
         }
     }
 
-    private JavaMailSenderImpl createMailSender(JsonNode jsonConfig) {
-        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost(getStringValue(jsonConfig, "smtpHost"));
-        mailSender.setPort(parsePort(getStringValue(jsonConfig, "smtpPort")));
-        mailSender.setUsername(getStringValue(jsonConfig, "username"));
-        mailSender.setPassword(getStringValue(jsonConfig, "password"));
-        mailSender.setJavaMailProperties(createJavaMailProperties(jsonConfig));
-        return mailSender;
-    }
-
-    private Properties createJavaMailProperties(JsonNode jsonConfig) {
-        Properties javaMailProperties = new Properties();
-        String protocol = getStringValue(jsonConfig, "smtpProtocol");
-        javaMailProperties.put("mail.transport.protocol", protocol);
-        javaMailProperties.put(MAIL_PROP + protocol + ".host", getStringValue(jsonConfig, "smtpHost"));
-        javaMailProperties.put(MAIL_PROP + protocol + ".port", getStringValue(jsonConfig, "smtpPort"));
-        javaMailProperties.put(MAIL_PROP + protocol + ".timeout", getStringValue(jsonConfig, "timeout"));
-        javaMailProperties.put(MAIL_PROP + protocol + ".auth", String.valueOf(StringUtils.isNotEmpty(getStringValue(jsonConfig, "username"))));
-        boolean enableTls = false;
-        if (jsonConfig.has("enableTls")) {
-            if (jsonConfig.get("enableTls").isBoolean() && jsonConfig.get("enableTls").booleanValue()) {
-                enableTls = true;
-            } else if (jsonConfig.get("enableTls").isTextual()) {
-                enableTls = "true".equalsIgnoreCase(jsonConfig.get("enableTls").asText());
-            }
-        }
-        javaMailProperties.put(MAIL_PROP + protocol + ".starttls.enable", enableTls);
-        if (enableTls && jsonConfig.has("tlsVersion") && !jsonConfig.get("tlsVersion").isNull()) {
-            String tlsVersion = jsonConfig.get("tlsVersion").asText();
-            if (StringUtils.isNoneEmpty(tlsVersion)) {
-                javaMailProperties.put(MAIL_PROP + protocol + ".ssl.protocols", tlsVersion);
-            }
-        }
-
-        boolean enableProxy = jsonConfig.has("enableProxy") && jsonConfig.get("enableProxy").asBoolean();
-
-        if (enableProxy) {
-            javaMailProperties.put(MAIL_PROP + protocol + ".proxy.host", jsonConfig.get("proxyHost").asText());
-            javaMailProperties.put(MAIL_PROP + protocol + ".proxy.port", jsonConfig.get("proxyPort").asText());
-            String proxyUser = jsonConfig.get("proxyUser").asText();
-            if (StringUtils.isNoneEmpty(proxyUser)) {
-                javaMailProperties.put(MAIL_PROP + protocol + ".proxy.user", proxyUser);
-            }
-            String proxyPassword = jsonConfig.get("proxyPassword").asText();
-            if (StringUtils.isNoneEmpty(proxyPassword)) {
-                javaMailProperties.put(MAIL_PROP + protocol + ".proxy.password", proxyPassword);
-            }
-        }
-
-        return javaMailProperties;
-    }
-
-    private int parsePort(String strPort) {
-        try {
-            return Integer.valueOf(strPort);
-        } catch (NumberFormatException e) {
-            throw new IncorrectParameterException(String.format("Invalid smtp port value: %s", strPort));
-        }
-    }
 
     private String getStringValue(JsonNode jsonNode, String key) {
         if (jsonNode.has(key)) {

@@ -31,8 +31,8 @@
 package org.thingsboard.server.common.data.id;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.thingsboard.server.common.data.EntityType;
 
 import java.util.UUID;
@@ -50,7 +50,7 @@ public class SchedulerEventId extends UUIDBased implements EntityId {
         return new SchedulerEventId(UUID.fromString(schedulerEventId));
     }
 
-    @JsonIgnore
+    @Schema(required = true, description = "string", example = "SCHEDULER_EVENT", allowableValues = "SCHEDULER_EVENT")
     @Override
     public EntityType getEntityType() {
         return EntityType.SCHEDULER_EVENT;

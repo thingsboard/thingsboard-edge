@@ -29,6 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 @import './rule-node-colors';
+@import "../../../../../scss/constants";
 
 .tb-rulechain {
   width: 100%;
@@ -69,20 +70,43 @@
     z-index: 2;
   }
 
-  section.tb-header-buttons.tb-library-open {
+  .tb-library-node-btn {
+    width: 20px;
+    height: 90px;
     position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 2;
-    pointer-events: none;
-    .mdc-fab.tb-btn-open-library {
-      top: 0;
+    top: 50%;
+    z-index: 1000;
+    opacity: 0.5;
+    border-radius: 0 15px 15px 0 !important;
+    transform: translateY(-50%);
+    &-icon {
+      transition: transform 0.4s !important;
+      &-toggled {
+        transform: rotateZ(180deg);
+      }
+    }
+    &:before {
+      width: 20px;
+      height: 30px;
+      top: -28px;
       left: 0;
-      width: 36px;
-      height: 36px;
-      margin: 4px 0 0 4px;
-      line-height: 36px;
-      opacity: .5;
+      content: "";
+      pointer-events: none;
+      border-radius: 0 0 0 15px;
+      box-shadow: -10px 0px 0 0px var(--tb-primary-500);
+      border: none;
+    }
+    &:after {
+      position: absolute;
+      width: 20px;
+      height: 30px;
+      bottom: -28px;
+      left: 0;
+      content: "";
+      pointer-events: none;
+      border-top-left-radius: 15px;
+      box-shadow: -10px 0px 0px 0px var(--tb-primary-500);
+      border: none;
     }
   }
 
@@ -92,8 +116,7 @@
     min-width: 250px;
 
     .mat-toolbar {
-      height: 48px;
-      min-height: 48px;
+      height: min-content;
       padding: 0;
 
       .mat-toolbar-tools {
@@ -175,6 +198,7 @@
     .fc-node {
       border-radius: 8px;
       &.fc-selected {
+        z-index: 2;
         &:not(.fc-edit) {
           margin: -3px;
           border: solid 3px #f00;

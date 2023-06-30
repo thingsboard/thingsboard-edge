@@ -77,6 +77,8 @@ import org.thingsboard.server.common.data.query.EntityListFilter;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
+import org.thingsboard.server.common.data.notification.rule.trigger.DeviceActivityTrigger;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
@@ -170,6 +172,7 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
     private final EntityQueryRepository entityQueryRepository;
     private final DbTypeInfoComponent dbTypeInfoComponent;
     private final TbApiUsageReportClient apiUsageReportClient;
+    private final NotificationRuleProcessor notificationRuleProcessor;
     @Autowired @Lazy
     private TelemetrySubscriptionService tsSubService;
 
@@ -266,8 +269,7 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
             state.setLastActivityTime(lastReportedActivity);
             if (!state.isActive()) {
                 state.setActive(true);
-                save(deviceId, ACTIVITY_STATE, true);
-                pushRuleEngineMessage(stateData, ACTIVITY_EVENT);
+                onDeviceActivityStatusChange(deviceId, true, stateData);
             }
         } else {
             log.debug("updateActivityState - fetched state IN NULL for device {}, lastReportedActivity {}", deviceId, lastReportedActivity);
@@ -503,9 +505,8 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
                 if (partitionService.resolve(ServiceType.TB_CORE, stateData.getTenantId(), deviceId).isMyPartition()) {
                     state.setActive(false);
                     state.setLastInactivityAlarmTime(ts);
-                    save(deviceId, ACTIVITY_STATE, false);
+                    onDeviceActivityStatusChange(deviceId, false, stateData);
                     save(deviceId, INACTIVITY_ALARM_TIME, ts);
-                    pushRuleEngineMessage(stateData, INACTIVITY_EVENT);
                 } else {
                     cleanupEntity(deviceId);
                 }
@@ -543,6 +544,19 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
             log.warn("[{}] Failed to fetch device state!", deviceId, e);
             throw new RuntimeException(e);
         }
+    }
+
+    private void onDeviceActivityStatusChange(DeviceId deviceId, boolean active, DeviceStateData stateData) {
+        save(deviceId, ACTIVITY_STATE, active);
+        pushRuleEngineMessage(stateData, active ? ACTIVITY_EVENT : INACTIVITY_EVENT);
+        TbMsgMetaData metaData = stateData.getMetaData();
+        notificationRuleProcessor.process(DeviceActivityTrigger.builder()
+                .tenantId(stateData.getTenantId()).customerId(stateData.getCustomerId())
+                .deviceId(deviceId).active(active)
+                .deviceName(metaData.getValue("deviceName"))
+                .deviceType(metaData.getValue("deviceType"))
+                .deviceLabel(metaData.getValue("deviceLabel"))
+                .build());
     }
 
     private boolean cleanDeviceStateIfBelongsExternalPartition(TenantId tenantId, final DeviceId deviceId) {

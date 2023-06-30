@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainOutputLabelsUsage;
 import org.thingsboard.server.common.data.rule.RuleChainUpdateResult;
+import org.thingsboard.server.common.data.rule.RuleNode;
 
 import java.util.List;
 import java.util.Set;
@@ -72,4 +73,6 @@ public interface TbRuleChainService {
     RuleChain setAutoAssignToEdgeRuleChain(TenantId tenantId, RuleChain ruleChain, User user) throws ThingsboardException;
 
     RuleChain unsetAutoAssignToEdgeRuleChain(TenantId tenantId, RuleChain ruleChain, User user) throws ThingsboardException;
+
+    RuleNode updateRuleNodeConfiguration(RuleNode ruleNode);
 }

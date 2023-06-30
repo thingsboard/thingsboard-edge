@@ -81,6 +81,7 @@ import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.JsonDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.common.data.limit.LimitedApi;
 import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
@@ -102,7 +103,6 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
-import org.thingsboard.server.dao.util.limits.LimitedApi;
 import org.thingsboard.server.dao.util.limits.RateLimitService;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
@@ -830,7 +830,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             log.trace("[{}] Processing msg: {}", toId(sessionInfo), msg);
         }
         TenantId tenantId = new TenantId(new UUID(sessionInfo.getTenantIdMSB(), sessionInfo.getTenantIdLSB()));
-        if (!rateLimitService.checkRateLimit(LimitedApi.INTEGRATION_MSGS, tenantId)) {
+        if (!rateLimitService.checkRateLimit(LimitedApi.INTEGRATION_MSGS_PER_TENANT, tenantId)) {
             if (callback != null) {
                 callback.onError(new TbRateLimitsException(EntityType.TENANT));
             }
@@ -840,7 +840,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             return false;
         }
         DeviceId deviceId = new DeviceId(new UUID(sessionInfo.getDeviceIdMSB(), sessionInfo.getDeviceIdLSB()));
-        if (!rateLimitService.checkRateLimit(LimitedApi.INTEGRATION_MSGS, tenantId, deviceId)) {
+        if (!rateLimitService.checkRateLimit(LimitedApi.INTEGRATION_MSGS_PER_DEVICE, tenantId, deviceId)) {
             if (callback != null) {
                 callback.onError(new TbRateLimitsException(EntityType.DEVICE));
             }

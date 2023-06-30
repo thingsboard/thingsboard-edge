@@ -64,6 +64,8 @@ public class RuleNode extends BaseDataWithAdditionalInfo<RuleNodeId> implements 
     private boolean debugMode;
     @Schema(description = "Enable/disable singleton mode. ", example = "false")
     private boolean singletonMode;
+    @Schema(description = "Version of rule node configuration. ", example = "0")
+    private int configurationVersion;
     @Schema(description = "JSON with the rule node configuration. Structure depends on the rule node implementation.",implementation = com.fasterxml.jackson.databind.JsonNode.class)
     private transient JsonNode configuration;
     @JsonIgnore
