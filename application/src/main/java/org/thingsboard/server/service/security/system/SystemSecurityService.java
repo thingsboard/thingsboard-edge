@@ -42,7 +42,7 @@ import org.thingsboard.server.common.data.security.model.mfa.PlatformTwoFaSettin
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 public interface SystemSecurityService {
 

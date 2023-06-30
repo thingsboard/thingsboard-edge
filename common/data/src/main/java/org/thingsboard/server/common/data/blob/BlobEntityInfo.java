@@ -32,7 +32,7 @@ package org.thingsboard.server.common.data.blob;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
@@ -53,18 +53,18 @@ public class BlobEntityInfo extends BaseDataWithAdditionalInfo<BlobEntityId> imp
 
     private static final long serialVersionUID = 2807223040519549363L;
 
-    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "JSON object with Tenant Id", accessMode = Schema.AccessMode.READ_ONLY)
     private TenantId tenantId;
-    @ApiModelProperty(position = 4, value = "JSON object with Customer Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "JSON object with Customer Id", accessMode = Schema.AccessMode.READ_ONLY)
     private CustomerId customerId;
     @Length(fieldName = "name")
-    @ApiModelProperty(position = 6, value = "blob entity name", accessMode = ApiModelProperty.AccessMode.READ_ONLY, example = "report-2021-10-29_14:00:00.pdf")
+    @Schema(description = "blob entity name", accessMode = Schema.AccessMode.READ_ONLY, example = "report-2021-10-29_14:00:00.pdf")
     private String name;
     @Length(fieldName = "type")
-    @ApiModelProperty(position = 7, value = "blob entity type", accessMode = ApiModelProperty.AccessMode.READ_ONLY, example = "report")
+    @Schema(description = "blob entity type", accessMode = Schema.AccessMode.READ_ONLY, example = "report")
     private String type;
     @Length(fieldName = "contentType")
-    @ApiModelProperty(position = 8, value = "blob content type", accessMode = ApiModelProperty.AccessMode.READ_ONLY, example = "application/pdf", allowableValues = "application/pdf, image/jpeg, image/png")
+    @Schema(description = "blob content type", accessMode = Schema.AccessMode.READ_ONLY, example = "application/pdf", allowableValues = "application/pdf, image/jpeg, image/png")
     private String contentType;
 
     public BlobEntityInfo() {
@@ -84,14 +84,14 @@ public class BlobEntityInfo extends BaseDataWithAdditionalInfo<BlobEntityId> imp
         this.contentType = blobEntityInfo.getContentType();
     }
 
-    @ApiModelProperty(position = 1, value = "JSON object with the blob entity Id. " +
+    @Schema(description = "JSON object with the blob entity Id. " +
             "Referencing non-existing blob entity Id will cause error")
     @Override
     public BlobEntityId getId() {
         return super.getId();
     }
 
-    @ApiModelProperty(position = 2, value = "Timestamp of the blob entity creation, in milliseconds", example = "1609459200000", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Timestamp of the blob entity creation, in milliseconds", example = "1609459200000", accessMode = Schema.AccessMode.READ_ONLY)
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();
@@ -102,7 +102,7 @@ public class BlobEntityInfo extends BaseDataWithAdditionalInfo<BlobEntityId> imp
         return name;
     }
 
-    @ApiModelProperty(position = 9, value = "Additional parameters of the blob entity", dataType = "com.fasterxml.jackson.databind.JsonNode")
+    @Schema(description = "Additional parameters of the blob entity", implementation = com.fasterxml.jackson.databind.JsonNode.class)
     @Override
     public JsonNode getAdditionalInfo() {
         return super.getAdditionalInfo();
@@ -115,7 +115,7 @@ public class BlobEntityInfo extends BaseDataWithAdditionalInfo<BlobEntityId> imp
         return EntityType.BLOB_ENTITY;
     }
 
-    @ApiModelProperty(position = 5, value = "JSON object with Customer or Tenant Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "JSON object with Customer or Tenant Id", accessMode = Schema.AccessMode.READ_ONLY)
     @Override
     public EntityId getOwnerId() {
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;

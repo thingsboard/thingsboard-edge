@@ -34,8 +34,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonParseException;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -72,6 +74,7 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.converter.TbConverterService;
@@ -88,7 +91,6 @@ import java.util.stream.Collectors;
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_CONFIGURATION_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_DEBUG_INPUT_DEFINITION;
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_ID_PARAM_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_SORT_PROPERTY_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_TEXT_SEARCH_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
@@ -96,7 +98,6 @@ import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_DELETE_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
-import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
@@ -122,11 +123,11 @@ public class ConverterController extends AutoCommitController {
             notes = "Fetch the Converter object based on the provided Converter Id. " +
                     "The server checks that the converter is owned by the same tenant. "
                     + NEW_LINE + RBAC_READ_CHECK
-            , produces = MediaType.APPLICATION_JSON_VALUE)
+            , responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter/{converterId}", method = RequestMethod.GET)
     @ResponseBody
-    public Converter getConverterById(@ApiParam(required = true, value = CONVERTER_ID_PARAM_DESCRIPTION)
+    public Converter getConverterById(@Parameter(required = true, description = CONVERTER_ID_PARAM_DESCRIPTION)
                                       @PathVariable(CONVERTER_ID) String strConverterId) throws ThingsboardException {
         checkParameter(CONVERTER_ID, strConverterId);
         ConverterId converterId = new ConverterId(toUUID(strConverterId));
@@ -141,11 +142,11 @@ public class ConverterController extends AutoCommitController {
                     "Converter name is unique in the scope of tenant. " + NEW_LINE +
                     CONVERTER_CONFIGURATION_DESCRIPTION +
                     "Remove 'id', 'tenantId' from the request body example (below) to create new converter entity. " +
-                    TENANT_AUTHORITY_PARAGRAPH, produces = MediaType.APPLICATION_JSON_VALUE)
+                    TENANT_AUTHORITY_PARAGRAPH, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter", method = RequestMethod.POST)
     @ResponseBody
-    public Converter saveConverter(@ApiParam(required = true, value = "A JSON value representing the converter.") @RequestBody Converter converter) throws Exception {
+    public Converter saveConverter(@Parameter(required = true, description = "A JSON value representing the converter.") @RequestBody Converter converter) throws Exception {
         converter.setTenantId(getCurrentUser().getTenantId());
         checkEntity(converter.getId(), converter, Resource.CONVERTER, null);
         return tbConverterService.save(converter, getCurrentUser());
@@ -153,22 +154,22 @@ public class ConverterController extends AutoCommitController {
 
     @ApiOperation(value = "Get Converters (getConverters)",
             notes = "Returns a page of converters owned by tenant. " +
-                    PAGE_DATA_PARAMETERS + NEW_LINE + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+                    PAGE_DATA_PARAMETERS + NEW_LINE + RBAC_READ_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converters", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<Converter> getConverters(
-            @ApiParam(value = "Fetch edge template converters")
+            @Parameter(description = "Fetch edge template converters")
             @RequestParam(value = "isEdgeTemplate", required = false, defaultValue = "false") boolean isEdgeTemplate,
-            @ApiParam(required = true, value = PAGE_SIZE_DESCRIPTION, allowableValues = "range[1, infinity]")
+            @Parameter(required = true, description = PAGE_SIZE_DESCRIPTION, schema = @Schema(minimum = "1"))
             @RequestParam int pageSize,
-            @ApiParam(required = true, value = PAGE_NUMBER_DESCRIPTION, allowableValues = "range[0, infinity]")
+            @Parameter(required = true, description = PAGE_NUMBER_DESCRIPTION, schema = @Schema(minimum = "0"))
             @RequestParam int page,
-            @ApiParam(value = CONVERTER_TEXT_SEARCH_DESCRIPTION)
+            @Parameter(description = CONVERTER_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
-            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = CONVERTER_SORT_PROPERTY_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {"createdTime", "name", "type", "debugMode"}))
             @RequestParam(required = false) String sortProperty,
-            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         accessControlService.checkPermission(getCurrentUser(), Resource.CONVERTER, Operation.READ);
         TenantId tenantId = getCurrentUser().getTenantId();
@@ -187,7 +188,7 @@ public class ConverterController extends AutoCommitController {
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter/{converterId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
-    public void deleteConverter(@ApiParam(required = true, value = CONVERTER_ID_PARAM_DESCRIPTION) @PathVariable(CONVERTER_ID) String strConverterId) throws ThingsboardException {
+    public void deleteConverter(@Parameter(required = true, description = CONVERTER_ID_PARAM_DESCRIPTION) @PathVariable(CONVERTER_ID) String strConverterId) throws ThingsboardException {
         checkParameter(CONVERTER_ID, strConverterId);
         ConverterId converterId = new ConverterId(toUUID(strConverterId));
         Converter converter = checkConverterId(converterId, Operation.DELETE);
@@ -197,11 +198,11 @@ public class ConverterController extends AutoCommitController {
     @ApiOperation(value = "Get latest debug input event (getLatestConverterDebugInput)",
             notes = "Returns a JSON object of the latest debug event representing the input message the converter processed. " + NEW_LINE +
                     CONVERTER_DEBUG_INPUT_DEFINITION +
-                    NEW_LINE + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+                    NEW_LINE + RBAC_READ_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter/{converterId}/debugIn", method = RequestMethod.GET)
     @ResponseBody
-    public JsonNode getLatestConverterDebugInput(@ApiParam(required = true, value = CONVERTER_ID_PARAM_DESCRIPTION)
+    public JsonNode getLatestConverterDebugInput(@Parameter(required = true, description = CONVERTER_ID_PARAM_DESCRIPTION)
                                                  @PathVariable(CONVERTER_ID) String strConverterId) throws Exception {
         checkParameter(CONVERTER_ID, strConverterId);
         ConverterId converterId = new ConverterId(toUUID(strConverterId));
@@ -255,14 +256,14 @@ public class ConverterController extends AutoCommitController {
     @ApiOperation(value = "Test converter function (testUpLinkConverter)",
             notes = "Returns a JSON object representing the result of the processed incoming message. " + NEW_LINE +
                     TEST_UPLINK_CONVERTER_DEFINITION
-            , produces = MediaType.APPLICATION_JSON_VALUE)
+            , responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter/testUpLink", method = RequestMethod.POST)
     @ResponseBody
     public JsonNode testUpLinkConverter(
-            @ApiParam(value = "Script language: JS or TBEL")
+            @Parameter(description = "Script language: JS or TBEL")
             @RequestParam(required = false) ScriptLanguage scriptLang,
-            @ApiParam(required = true, value = "A JSON value representing the input to the converter function.")
+            @Parameter(required = true, description = "A JSON value representing the input to the converter function.")
             @RequestBody JsonNode inputParams) throws ThingsboardException {
         String payloadBase64 = inputParams.get("payload").asText();
         byte[] payload = Base64.getDecoder().decode(payloadBase64);
@@ -296,14 +297,14 @@ public class ConverterController extends AutoCommitController {
     @ApiOperation(value = "Test converter function (testDownLinkConverter)",
             notes = "Returns a JSON object representing the result of the processed incoming message. " + NEW_LINE +
                     TEST_DOWNLINK_CONVERTER_DEFINITION
-            , produces = MediaType.APPLICATION_JSON_VALUE)
+            , responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter/testDownLink", method = RequestMethod.POST)
     @ResponseBody
     public JsonNode testDownLinkConverter(
-            @ApiParam(value = "Script language: JS or TBEL")
+            @Parameter(description = "Script language: JS or TBEL")
             @RequestParam(required = false) ScriptLanguage scriptLang,
-            @ApiParam(required = true, value = "A JSON value representing the input to the converter function.")
+            @Parameter(required = true, description = "A JSON value representing the input to the converter function.")
             @RequestBody JsonNode inputParams) throws Exception {
         String data = inputParams.get("msg").asText();
         JsonNode metadata = inputParams.get("metadata");
@@ -378,12 +379,12 @@ public class ConverterController extends AutoCommitController {
 
     @ApiOperation(value = "Get Converters By Ids (getConvertersByIds)",
             notes = "Requested converters must be owned by tenant which is performing the request. " +
-                    NEW_LINE + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+                    NEW_LINE + RBAC_READ_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converters", params = {"converterIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<Converter> getConvertersByIds(
-            @ApiParam(value = "A list of converter ids, separated by comma ','", required = true)
+            @Parameter(description = "A list of converter ids, separated by comma ','", required = true)
             @RequestParam("converterIds") String[] strConverterIds) throws Exception {
         checkArrayParameter("converterIds", strConverterIds);
         if (!accessControlService.hasPermission(getCurrentUser(), Resource.CONVERTER, Operation.READ)) {

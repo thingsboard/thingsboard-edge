@@ -32,6 +32,7 @@ package org.thingsboard.server.queue.discovery;
 
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
@@ -50,7 +51,6 @@ import org.thingsboard.server.queue.discovery.event.ServiceListChangedEvent;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.util.AfterStartUp;
 
-import javax.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -419,7 +419,7 @@ public class HashPartitionService implements PartitionService {
         return server.getServiceTypesList().stream().map(String::toUpperCase).map(ServiceType::valueOf).anyMatch(st -> st.equals(type));
     }
 
-    private TenantId getIsolatedOrSystemTenantId(ServiceType serviceType, TenantId tenantId) {
+    protected TenantId getIsolatedOrSystemTenantId(ServiceType serviceType, TenantId tenantId) {
         return isIsolated(serviceType, tenantId) ? tenantId : TenantId.SYS_TENANT_ID;
     }
 

@@ -32,8 +32,10 @@ package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -84,6 +86,7 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.permission.ShareGroupRequest;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.dao.owner.OwnerService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.entity.group.TbEntityGroupService;
@@ -102,7 +105,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import static org.thingsboard.server.common.data.group.EntityGroup.EDGE_ENTITY_GROUP_TYPE_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.EDGE_ASSIGN_RECEIVE_STEP_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.EDGE_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.EDGE_UNASSIGN_RECEIVE_STEP_DESCRIPTION;
@@ -122,7 +124,6 @@ import static org.thingsboard.server.controller.ControllerConstants.RBAC_GROUP_R
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_GROUP_WRITE_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_WRITE_CHECK;
-import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
@@ -164,7 +165,7 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroup/{entityGroupId}", method = RequestMethod.GET)
     @ResponseBody
     public EntityGroupInfo getEntityGroupById(
-            @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
         checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
         EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
@@ -180,7 +181,7 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroupInfo/{entityGroupId}", method = RequestMethod.GET)
     @ResponseBody
     public EntityInfo getEntityGroupEntityInfoById(
-            @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
         checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
         EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
@@ -197,13 +198,13 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroup/{ownerType}/{ownerId}/{groupType}/{groupName}", method = RequestMethod.GET)
     @ResponseBody
     public EntityGroupInfo getEntityGroupByOwnerAndNameAndType(
-            @ApiParam(value = OWNER_TYPE_DESCRIPTION, required = true, allowableValues = "TENANT,CUSTOMER")
+            @Parameter(description = OWNER_TYPE_DESCRIPTION, required = true, schema = @Schema(allowableValues = {"TENANT", "CUSTOMER"}))
             @PathVariable("ownerType") String strOwnerType,
-            @ApiParam(value = OWNER_ID_DESCRIPTION, required = true, example = "784f394c-42b6-435a-983c-b7beff2784f9")
+            @Parameter(description = OWNER_ID_DESCRIPTION, required = true, example = "784f394c-42b6-435a-983c-b7beff2784f9")
             @PathVariable("ownerId") String strOwnerId,
-            @ApiParam(value = "Entity Group type", required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @Parameter(description = "Entity Group type", required = true, schema = @Schema(allowableValues = {"CUSTOMER", "ASSET", "DEVICE", "USER", "ENTITY_VIEW", "DASHBOARD", "EDGE"}))
             @PathVariable("groupType") String strGroupType,
-            @ApiParam(value = "Entity Group name", required = true)
+            @Parameter(description = "Entity Group name", required = true)
             @PathVariable("groupName") String groupName) throws ThingsboardException {
         checkParameter("ownerId", strOwnerId);
         checkParameter("ownerType", strOwnerType);
@@ -232,7 +233,7 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroup", method = RequestMethod.POST)
     @ResponseBody
     public EntityGroupInfo saveEntityGroup(
-            @ApiParam(value = "A JSON value representing the entity group.", required = true)
+            @Parameter(description = "A JSON value representing the entity group.", required = true)
             @RequestBody EntityGroup entityGroup) throws Exception {
         SecurityUser currentUser = getCurrentUser();
         checkEntityGroupType(entityGroup.getType());
@@ -265,7 +266,7 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroup/{entityGroupId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteEntityGroup(
-            @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId) throws Exception {
         checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
         EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
@@ -297,9 +298,9 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroups/{groupType}", method = RequestMethod.GET)
     @ResponseBody
     public List<EntityGroupInfo> getEntityGroupsByType(
-            @ApiParam(value = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @Parameter(description = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, schema = @Schema(allowableValues = {"CUSTOMER", "ASSET", "DEVICE", "USER", "ENTITY_VIEW", "DASHBOARD", "EDGE"}))
             @PathVariable("groupType") String strGroupType,
-            @ApiParam(value = ENTITY_GROUP_INCLUDE_SHARED_DESCRIPTION)
+            @Parameter(description = ENTITY_GROUP_INCLUDE_SHARED_DESCRIPTION)
             @RequestParam(required = false) Boolean includeShared) throws ThingsboardException {
         EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
         MergedGroupTypePermissionInfo groupTypePermissionInfo = getCurrentUser().getUserPermissions().getReadGroupPermissions().get(groupType);
@@ -332,19 +333,19 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroups/{groupType}", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<EntityGroupInfo> getEntityGroupsByTypeAndPageLink(
-            @ApiParam(value = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @Parameter(description = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, schema = @Schema(allowableValues = {"CUSTOMER", "ASSET", "DEVICE", "USER", "ENTITY_VIEW", "DASHBOARD", "EDGE"}))
             @PathVariable("groupType") String strGroupType,
-            @ApiParam(value = ENTITY_GROUP_INCLUDE_SHARED_DESCRIPTION)
+            @Parameter(description = ENTITY_GROUP_INCLUDE_SHARED_DESCRIPTION)
             @RequestParam(required = false) Boolean includeShared,
-            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
+            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true, schema = @Schema(minimum = "1"))
             @RequestParam int pageSize,
-            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
+            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true, schema = @Schema(minimum = "0"))
             @RequestParam int page,
-            @ApiParam(value = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
+            @Parameter(description = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
-            @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
+            @Parameter(description = SORT_PROPERTY_DESCRIPTION)
             @RequestParam(required = false) String sortProperty,
-            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
@@ -376,19 +377,19 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroupInfos/{groupType}", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<EntityInfo> getEntityGroupEntityInfosByTypeAndPageLink(
-            @ApiParam(value = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @Parameter(description = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, schema = @Schema(allowableValues = {"CUSTOMER", "ASSET", "DEVICE", "USER", "ENTITY_VIEW", "DASHBOARD", "EDGE"}))
             @PathVariable("groupType") String strGroupType,
-            @ApiParam(value = ENTITY_GROUP_INCLUDE_SHARED_DESCRIPTION)
+            @Parameter(description = ENTITY_GROUP_INCLUDE_SHARED_DESCRIPTION)
             @RequestParam(required = false) Boolean includeShared,
-            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
+            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true, schema = @Schema(minimum = "1"))
             @RequestParam int pageSize,
-            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
+            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true, schema = @Schema(minimum = "0"))
             @RequestParam int page,
-            @ApiParam(value = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
+            @Parameter(description = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
-            @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
+            @Parameter(description = SORT_PROPERTY_DESCRIPTION)
             @RequestParam(required = false) String sortProperty,
-            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
@@ -420,7 +421,7 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroups/{groupType}/shared", method = RequestMethod.GET)
     @ResponseBody
     public List<EntityGroupInfo> getSharedEntityGroupsByType(
-            @ApiParam(value = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @Parameter(description = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, schema = @Schema(allowableValues = {"CUSTOMER", "ASSET", "DEVICE", "USER", "ENTITY_VIEW", "DASHBOARD", "EDGE"}))
             @PathVariable("groupType") String strGroupType) throws ThingsboardException {
         EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
         MergedGroupTypePermissionInfo groupTypePermissionInfo = getCurrentUser().getUserPermissions().getReadGroupPermissions().get(groupType);
@@ -441,17 +442,17 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroups/{groupType}/shared", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<EntityGroupInfo> getSharedEntityGroupsByTypeAndPageLink(
-            @ApiParam(value = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @Parameter(description = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, schema = @Schema(allowableValues = {"CUSTOMER", "ASSET", "DEVICE", "USER", "ENTITY_VIEW", "DASHBOARD", "EDGE"}))
             @PathVariable("groupType") String strGroupType,
-            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
+            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true, schema = @Schema(minimum = "1"))
             @RequestParam int pageSize,
-            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
+            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true, schema = @Schema(minimum = "0"))
             @RequestParam int page,
-            @ApiParam(value = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
+            @Parameter(description = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
-            @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
+            @Parameter(description = SORT_PROPERTY_DESCRIPTION)
             @RequestParam(required = false) String sortProperty,
-            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
@@ -472,17 +473,17 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroupInfos/{groupType}/shared", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<EntityInfo> getSharedEntityGroupEntityInfosByTypeAndPageLink(
-            @ApiParam(value = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @Parameter(description = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, schema = @Schema(allowableValues = {"CUSTOMER", "ASSET", "DEVICE", "USER", "ENTITY_VIEW", "DASHBOARD", "EDGE"}))
             @PathVariable("groupType") String strGroupType,
-            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
+            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true, schema = @Schema(minimum = "1"))
             @RequestParam int pageSize,
-            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
+            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true, schema = @Schema(minimum = "0"))
             @RequestParam int page,
-            @ApiParam(value = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
+            @Parameter(description = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
-            @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
+            @Parameter(description = SORT_PROPERTY_DESCRIPTION)
             @RequestParam(required = false) String sortProperty,
-            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
@@ -503,11 +504,11 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroups/{ownerType}/{ownerId}/{groupType}", method = RequestMethod.GET)
     @ResponseBody
     public List<EntityGroupInfo> getEntityGroupsByOwnerAndType(
-            @ApiParam(value = OWNER_TYPE_DESCRIPTION, required = true, allowableValues = "TENANT,CUSTOMER")
+            @Parameter(description = OWNER_TYPE_DESCRIPTION, required = true, schema = @Schema(allowableValues = {"TENANT", "CUSTOMER"}))
             @PathVariable("ownerType") String strOwnerType,
-            @ApiParam(value = OWNER_ID_DESCRIPTION, required = true, example = "784f394c-42b6-435a-983c-b7beff2784f9")
+            @Parameter(description = OWNER_ID_DESCRIPTION, required = true, example = "784f394c-42b6-435a-983c-b7beff2784f9")
             @PathVariable("ownerId") String strOwnerId,
-            @ApiParam(value = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @Parameter(description = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, schema = @Schema(allowableValues = {"CUSTOMER", "ASSET", "DEVICE", "USER", "ENTITY_VIEW", "DASHBOARD", "EDGE"}))
             @PathVariable("groupType") String strGroupType) throws ThingsboardException {
         checkParameter("ownerId", strOwnerId);
         checkParameter("ownerType", strOwnerType);
@@ -532,21 +533,21 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroups/{ownerType}/{ownerId}/{groupType}", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<EntityGroupInfo> getEntityGroupsByOwnerAndTypeAndPageLink(
-            @ApiParam(value = OWNER_TYPE_DESCRIPTION, required = true, allowableValues = "TENANT,CUSTOMER")
+            @Parameter(description = OWNER_TYPE_DESCRIPTION, required = true, schema = @Schema(allowableValues = {"TENANT", "CUSTOMER"}))
             @PathVariable("ownerType") String strOwnerType,
-            @ApiParam(value = OWNER_ID_DESCRIPTION, required = true, example = "784f394c-42b6-435a-983c-b7beff2784f9")
+            @Parameter(description = OWNER_ID_DESCRIPTION, required = true, example = "784f394c-42b6-435a-983c-b7beff2784f9")
             @PathVariable("ownerId") String strOwnerId,
-            @ApiParam(value = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @Parameter(description = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, schema = @Schema(allowableValues = {"CUSTOMER", "ASSET", "DEVICE", "USER", "ENTITY_VIEW", "DASHBOARD", "EDGE"}))
             @PathVariable("groupType") String strGroupType,
-            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
+            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true, schema = @Schema(minimum = "1"))
             @RequestParam int pageSize,
-            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
+            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true, schema = @Schema(minimum = "0"))
             @RequestParam int page,
-            @ApiParam(value = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
+            @Parameter(description = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
-            @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
+            @Parameter(description = SORT_PROPERTY_DESCRIPTION)
             @RequestParam(required = false) String sortProperty,
-            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
             @RequestParam(required = false) String sortOrder
     ) throws ThingsboardException {
         checkParameter("ownerId", strOwnerId);
@@ -571,21 +572,21 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroupInfos/{ownerType}/{ownerId}/{groupType}", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<EntityInfo> getEntityGroupEntityInfosByOwnerAndTypeAndPageLink(
-            @ApiParam(value = OWNER_TYPE_DESCRIPTION, required = true, allowableValues = "TENANT,CUSTOMER")
+            @Parameter(description = OWNER_TYPE_DESCRIPTION, required = true, schema = @Schema(allowableValues = {"TENANT", "CUSTOMER"}))
             @PathVariable("ownerType") String strOwnerType,
-            @ApiParam(value = OWNER_ID_DESCRIPTION, required = true, example = "784f394c-42b6-435a-983c-b7beff2784f9")
+            @Parameter(description = OWNER_ID_DESCRIPTION, required = true, example = "784f394c-42b6-435a-983c-b7beff2784f9")
             @PathVariable("ownerId") String strOwnerId,
-            @ApiParam(value = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @Parameter(description = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, schema = @Schema(allowableValues = {"CUSTOMER", "ASSET", "DEVICE", "USER", "ENTITY_VIEW", "DASHBOARD", "EDGE"}))
             @PathVariable("groupType") String strGroupType,
-            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
+            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true, schema = @Schema(minimum = "1"))
             @RequestParam int pageSize,
-            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
+            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true, schema = @Schema(minimum = "0"))
             @RequestParam int page,
-            @ApiParam(value = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
+            @Parameter(description = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
-            @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
+            @Parameter(description = SORT_PROPERTY_DESCRIPTION)
             @RequestParam(required = false) String sortProperty,
-            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
             @RequestParam(required = false) String sortOrder
     ) throws ThingsboardException {
         checkParameter("ownerId", strOwnerId);
@@ -610,21 +611,21 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroupsHierarchy/{ownerType}/{ownerId}/{groupType}", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<EntityGroupInfo> getEntityGroupsHierarchyByOwnerAndTypeAndPageLink(
-            @ApiParam(value = OWNER_TYPE_DESCRIPTION, required = true, allowableValues = "TENANT,CUSTOMER")
+            @Parameter(description = OWNER_TYPE_DESCRIPTION, required = true, schema = @Schema(allowableValues = {"TENANT", "CUSTOMER"}))
             @PathVariable("ownerType") String strOwnerType,
-            @ApiParam(value = OWNER_ID_DESCRIPTION, required = true, example = "784f394c-42b6-435a-983c-b7beff2784f9")
+            @Parameter(description = OWNER_ID_DESCRIPTION, required = true, example = "784f394c-42b6-435a-983c-b7beff2784f9")
             @PathVariable("ownerId") String strOwnerId,
-            @ApiParam(value = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @Parameter(description = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, schema = @Schema(allowableValues = {"CUSTOMER", "ASSET", "DEVICE", "USER", "ENTITY_VIEW", "DASHBOARD", "EDGE"}))
             @PathVariable("groupType") String strGroupType,
-            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
+            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true, schema = @Schema(minimum = "1"))
             @RequestParam int pageSize,
-            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
+            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true, schema = @Schema(minimum = "0"))
             @RequestParam int page,
-            @ApiParam(value = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
+            @Parameter(description = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
-            @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
+            @Parameter(description = SORT_PROPERTY_DESCRIPTION)
             @RequestParam(required = false) String sortProperty,
-            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
             @RequestParam(required = false) String sortOrder
     ) throws ThingsboardException {
         checkParameter("ownerId", strOwnerId);
@@ -653,21 +654,21 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroupInfosHierarchy/{ownerType}/{ownerId}/{groupType}", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<EntityInfo> getEntityGroupEntityInfosHierarchyByOwnerAndTypeAndPageLink(
-            @ApiParam(value = OWNER_TYPE_DESCRIPTION, required = true, allowableValues = "TENANT,CUSTOMER")
+            @Parameter(description = OWNER_TYPE_DESCRIPTION, required = true, schema = @Schema(allowableValues = {"TENANT", "CUSTOMER"}))
             @PathVariable("ownerType") String strOwnerType,
-            @ApiParam(value = OWNER_ID_DESCRIPTION, required = true, example = "784f394c-42b6-435a-983c-b7beff2784f9")
+            @Parameter(description = OWNER_ID_DESCRIPTION, required = true, example = "784f394c-42b6-435a-983c-b7beff2784f9")
             @PathVariable("ownerId") String strOwnerId,
-            @ApiParam(value = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @Parameter(description = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, schema = @Schema(allowableValues = {"CUSTOMER", "ASSET", "DEVICE", "USER", "ENTITY_VIEW", "DASHBOARD", "EDGE"}))
             @PathVariable("groupType") String strGroupType,
-            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
+            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true, schema = @Schema(minimum = "1"))
             @RequestParam int pageSize,
-            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
+            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true, schema = @Schema(minimum = "0"))
             @RequestParam int page,
-            @ApiParam(value = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
+            @Parameter(description = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
-            @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
+            @Parameter(description = SORT_PROPERTY_DESCRIPTION)
             @RequestParam(required = false) String sortProperty,
-            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
             @RequestParam(required = false) String sortOrder
     ) throws ThingsboardException {
         checkParameter("ownerId", strOwnerId);
@@ -696,11 +697,11 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroup/all/{ownerType}/{ownerId}/{groupType}", method = RequestMethod.GET)
     @ResponseBody
     public EntityGroupInfo getEntityGroupAllByOwnerAndType(
-            @ApiParam(value = OWNER_TYPE_DESCRIPTION, required = true, allowableValues = "TENANT,CUSTOMER")
+            @Parameter(description = OWNER_TYPE_DESCRIPTION, required = true, schema = @Schema(allowableValues = {"TENANT", "CUSTOMER"}))
             @PathVariable("ownerType") String strOwnerType,
-            @ApiParam(value = OWNER_ID_DESCRIPTION, required = true, example = "784f394c-42b6-435a-983c-b7beff2784f9")
+            @Parameter(description = OWNER_ID_DESCRIPTION, required = true, example = "784f394c-42b6-435a-983c-b7beff2784f9")
             @PathVariable("ownerId") String strOwnerId,
-            @ApiParam(value = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @Parameter(description = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, schema = @Schema(allowableValues = {"CUSTOMER", "ASSET", "DEVICE", "USER", "ENTITY_VIEW", "DASHBOARD", "EDGE"}))
             @PathVariable("groupType") String strGroupType) throws ThingsboardException {
         checkParameter("ownerId", strOwnerId);
         checkParameter("ownerType", strOwnerType);
@@ -724,9 +725,9 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroup/{entityGroupId}/addEntities", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     public void addEntitiesToEntityGroup(
-            @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId,
-            @ApiParam(value = "A list of entity ids", required = true)
+            @Parameter(description = "A list of entity ids", required = true)
             @RequestBody String[] strEntityIds) throws ThingsboardException {
         checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
         checkArrayParameter("entityIds", strEntityIds);
@@ -785,9 +786,9 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroup/{entityGroupId}/deleteEntities", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     public void removeEntitiesFromEntityGroup(
-            @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId,
-            @ApiParam(value = "A list of entity ids", required = true)
+            @Parameter(description = "A list of entity ids", required = true)
             @RequestBody String[] strEntityIds) throws ThingsboardException {
         checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
         checkArrayParameter("entityIds", strEntityIds);
@@ -847,9 +848,9 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroup/{entityGroupId}/{entityId}", method = RequestMethod.GET)
     @ResponseBody
     public ShortEntityView getGroupEntity(
-            @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId,
-            @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(ENTITY_ID) String strEntityId) throws ThingsboardException {
         checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
         checkParameter("entityId", strEntityId);
@@ -873,17 +874,17 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroup/{entityGroupId}/entities", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<ShortEntityView> getEntities(
-            @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
-            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
+            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true, schema = @Schema(minimum = "1"))
             @RequestParam int pageSize,
-            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
+            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true, schema = @Schema(minimum = "0"))
             @RequestParam int page,
-            @ApiParam(value = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
+            @Parameter(description = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
-            @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
+            @Parameter(description = SORT_PROPERTY_DESCRIPTION)
             @RequestParam(required = false) String sortProperty,
-            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
             @RequestParam(required = false) String sortOrder
     ) throws ThingsboardException {
         checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
@@ -906,9 +907,9 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroups/{entityType}/{entityId}", method = RequestMethod.GET)
     @ResponseBody
     public List<EntityGroupId> getEntityGroupsForEntity(
-            @ApiParam(value = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @Parameter(description = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, schema = @Schema(allowableValues = {"CUSTOMER", "ASSET", "DEVICE", "USER", "ENTITY_VIEW", "DASHBOARD", "EDGE"}))
             @PathVariable("entityType") String strEntityType,
-            @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable("entityId") String strEntityId) throws ThingsboardException, ExecutionException, InterruptedException {
         checkParameter("entityType", strEntityType);
         checkParameter("entityId", strEntityId);
@@ -926,7 +927,7 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroups", params = {"entityGroupIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<EntityGroupInfo> getEntityGroupsByIds(
-            @ApiParam(value = "A list of group ids, separated by comma ','")
+            @Parameter(description = "A list of group ids, separated by comma ','")
             @RequestParam("entityGroupIds") String[] strEntityGroupIds) throws ThingsboardException {
         checkArrayParameter("entityGroupIds", strEntityGroupIds);
         SecurityUser user = getCurrentUser();
@@ -948,7 +949,7 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroupInfos", params = {"entityGroupIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<EntityInfo> getEntityGroupEntityInfosByIds(
-            @ApiParam(value = "A list of group ids, separated by comma ','")
+            @Parameter(description = "A list of group ids, separated by comma ','")
             @RequestParam("entityGroupIds") String[] strEntityGroupIds) throws ThingsboardException {
         checkArrayParameter("entityGroupIds", strEntityGroupIds);
         SecurityUser user = getCurrentUser();
@@ -970,15 +971,15 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/owners", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<ContactBased<?>> getOwners(
-            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
+            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true, schema = @Schema(minimum = "1"))
             @RequestParam int pageSize,
-            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
+            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true, schema = @Schema(minimum = "0"))
             @RequestParam int page,
-            @ApiParam(value = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
+            @Parameter(description = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
-            @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
+            @Parameter(description = SORT_PROPERTY_DESCRIPTION)
             @RequestParam(required = false) String sortProperty,
-            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
             @RequestParam(required = false) String sortOrder) throws ThingsboardException, ExecutionException, InterruptedException {
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         List<ContactBased<?>> owners = new ArrayList<>();
@@ -1017,15 +1018,15 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/ownerInfos", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<EntityInfo> getOwnerInfos(
-            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
+            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true, schema = @Schema(minimum = "1"))
             @RequestParam int pageSize,
-            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
+            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true, schema = @Schema(minimum = "0"))
             @RequestParam int page,
-            @ApiParam(value = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
+            @Parameter(description = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
-            @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
+            @Parameter(description = SORT_PROPERTY_DESCRIPTION)
             @RequestParam(required = false) String sortProperty,
-            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
@@ -1053,9 +1054,9 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/ownerInfo/{ownerType}/{ownerId}", method = RequestMethod.GET)
     @ResponseBody
     public EntityInfo getOwnerInfo(
-            @ApiParam(value = OWNER_TYPE_DESCRIPTION, required = true, allowableValues = "TENANT,CUSTOMER")
+            @Parameter(description = OWNER_TYPE_DESCRIPTION, required = true, schema = @Schema(allowableValues = {"TENANT", "CUSTOMER"}))
             @PathVariable("ownerType") String strOwnerType,
-            @ApiParam(value = OWNER_ID_DESCRIPTION, required = true, example = "784f394c-42b6-435a-983c-b7beff2784f9")
+            @Parameter(description = OWNER_ID_DESCRIPTION, required = true, example = "784f394c-42b6-435a-983c-b7beff2784f9")
             @PathVariable("ownerId") String strOwnerId) throws ThingsboardException {
 
         checkParameter("ownerId", strOwnerId);
@@ -1082,7 +1083,7 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroup/{entityGroupId}/makePublic", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     public void makeEntityGroupPublic(
-            @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
         checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
 
@@ -1113,7 +1114,7 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroup/{entityGroupId}/makePrivate", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     public void makeEntityGroupPrivate(
-            @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
         checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
 
@@ -1144,9 +1145,9 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroup/{entityGroupId}/share", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     public void shareEntityGroup(
-            @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId,
-            @ApiParam(value = "The Share Group Request JSON", required = true)
+            @Parameter(description = "The Share Group Request JSON", required = true)
             @RequestBody ShareGroupRequest shareGroupRequest) throws ThingsboardException {
         checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
         EntityGroup entityGroup;
@@ -1211,11 +1212,11 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroup/{entityGroupId}/{userGroupId}/{roleId}/share", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     public void shareEntityGroupToChildOwnerUserGroup(
-            @ApiParam(value = "A string value representing the Entity Group Id that you would like to share. For example, '784f394c-42b6-435a-983c-b7beff2784f9'", required = true)
+            @Parameter(description = "A string value representing the Entity Group Id that you would like to share. For example, '784f394c-42b6-435a-983c-b7beff2784f9'", required = true)
             @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId,
-            @ApiParam(value = "A string value representing the Entity(User) Group Id that you would like to share with. For example, '784f394c-42b6-435a-983c-b7beff2784f9'", required = true)
+            @Parameter(description = "A string value representing the Entity(User) Group Id that you would like to share with. For example, '784f394c-42b6-435a-983c-b7beff2784f9'", required = true)
             @PathVariable("userGroupId") String strUserGroupId,
-            @ApiParam(value = "A string value representing the Role Id that describes set of permissions you would like to share (read, write, etc). For example, '784f394c-42b6-435a-983c-b7beff2784f9'", required = true)
+            @Parameter(description = "A string value representing the Role Id that describes set of permissions you would like to share (read, write, etc). For example, '784f394c-42b6-435a-983c-b7beff2784f9'", required = true)
             @PathVariable("roleId") String strRoleId) throws ThingsboardException, IOException {
         checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
         checkParameter("userGroupId", strUserGroupId);
@@ -1275,15 +1276,15 @@ public class EntityGroupController extends AutoCommitController {
                     "Third, once entity group will be delivered to edge service, edge will request entities of this group to be send to edge. " +
                     "Once entities will be delivered to edge service, they are going to be available for usage on remote edge instance." +
                     TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_WRITE_CHECK,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edge/{edgeId}/entityGroup/{entityGroupId}/{groupType}", method = RequestMethod.POST)
     @ResponseBody
-    public EntityGroup assignEntityGroupToEdge(@ApiParam(value = EDGE_ID_PARAM_DESCRIPTION)
+    public EntityGroup assignEntityGroupToEdge(@Parameter(description = EDGE_ID_PARAM_DESCRIPTION)
                                                @PathVariable(EDGE_ID) String strEdgeId,
-                                               @ApiParam(value = "EntityGroup type", required = true, allowableValues = EDGE_ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+                                               @Parameter(description = "EntityGroup type", required = true, schema = @Schema(allowableValues = {"ASSET", "DEVICE", "USER", "ENTITY_VIEW", "DASHBOARD"}))
                                                @PathVariable("groupType") String strGroupType,
-                                               @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION)
+                                               @Parameter(description = ENTITY_GROUP_ID_PARAM_DESCRIPTION)
                                                @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
         checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
@@ -1318,15 +1319,15 @@ public class EntityGroupController extends AutoCommitController {
                     EDGE_UNASSIGN_RECEIVE_STEP_DESCRIPTION +
                     "Third, once 'unassign' command will be delivered to edge service, it's going to remove entity group and entities inside this group locally." +
                     TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_WRITE_CHECK,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edge/{edgeId}/entityGroup/{entityGroupId}/{groupType}", method = RequestMethod.DELETE)
     @ResponseBody
-    public EntityGroup unassignEntityGroupFromEdge(@ApiParam(value = EDGE_ID_PARAM_DESCRIPTION)
+    public EntityGroup unassignEntityGroupFromEdge(@Parameter(description = EDGE_ID_PARAM_DESCRIPTION)
                                                    @PathVariable(EDGE_ID) String strEdgeId,
-                                                   @ApiParam(value = "EntityGroup type", required = true, allowableValues = EDGE_ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+                                                   @Parameter(description = "EntityGroup type", required = true, schema = @Schema(allowableValues = {"ASSET", "DEVICE", "USER", "ENTITY_VIEW", "DASHBOARD"}))
                                                    @PathVariable("groupType") String strGroupType,
-                                                   @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION)
+                                                   @Parameter(description = ENTITY_GROUP_ID_PARAM_DESCRIPTION)
                                                    @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
         checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
@@ -1361,9 +1362,9 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/allEntityGroups/edge/{edgeId}/{groupType}", method = RequestMethod.GET)
     @ResponseBody
     public List<EntityGroupInfo> getAllEdgeEntityGroups(
-            @ApiParam(value = EDGE_ID_PARAM_DESCRIPTION)
+            @Parameter(description = EDGE_ID_PARAM_DESCRIPTION)
             @PathVariable("edgeId") String strEdgeId,
-            @ApiParam(value = "EntityGroup type", required = true, allowableValues = EDGE_ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @Parameter(description = "EntityGroup type", required = true, schema = @Schema(allowableValues = {"ASSET", "DEVICE", "USER", "ENTITY_VIEW", "DASHBOARD"}))
             @PathVariable("groupType") String strGroupType) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
         EdgeId edgeId = new EdgeId(UUID.fromString(strEdgeId));
@@ -1387,19 +1388,19 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroups/edge/{edgeId}/{groupType}", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<EntityGroupInfo> getEdgeEntityGroups(
-            @ApiParam(value = EDGE_ID_PARAM_DESCRIPTION)
+            @Parameter(description = EDGE_ID_PARAM_DESCRIPTION)
             @PathVariable(EDGE_ID) String strEdgeId,
-            @ApiParam(value = "EntityGroup type", required = true, allowableValues = EDGE_ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @Parameter(description = "EntityGroup type", required = true, schema = @Schema(allowableValues = {"ASSET", "DEVICE", "USER", "ENTITY_VIEW", "DASHBOARD"}))
             @PathVariable("groupType") String strGroupType,
-            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
+            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true, schema = @Schema(minimum = "1"))
             @RequestParam int pageSize,
-            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
+            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true, schema = @Schema(minimum = "0"))
             @RequestParam int page,
-            @ApiParam(value = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
+            @Parameter(description = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
-            @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
+            @Parameter(description = SORT_PROPERTY_DESCRIPTION)
             @RequestParam(required = false) String sortProperty,
-            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
         EdgeId edgeId = new EdgeId(UUID.fromString(strEdgeId));

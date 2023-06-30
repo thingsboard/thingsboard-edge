@@ -82,7 +82,8 @@ public class DefaultNotificationRuleProcessor implements NotificationRuleProcess
     private final NotificationDeduplicationService deduplicationService;
     private final PartitionService partitionService;
     private final RateLimitService rateLimitService;
-    @Autowired @Lazy
+    @Autowired
+    @Lazy
     private NotificationCenter notificationCenter;
     private final NotificationExecutorService notificationExecutor;
 

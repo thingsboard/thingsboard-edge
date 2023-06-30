@@ -46,12 +46,12 @@ public interface DeviceInfoRepository extends JpaRepository<DeviceInfoEntity, UU
     @Query("SELECT d FROM DeviceInfoEntity d " +
             "WHERE d.tenantId = :tenantId " +
             "AND (" +
-            "((:customerId IS NULL AND (:includeCustomers) IS TRUE)) " +
-            "OR ((:customerId IS NULL AND (:includeCustomers) IS FALSE) AND (d.customerId IS NULL OR d.customerId = '13814000-1dd2-11b2-8080-808080808080')) " +
+            "((:customerId IS NULL AND (:includeCustomers) = TRUE)) " +
+            "OR ((:customerId IS NULL AND (:includeCustomers) = FALSE) AND (d.customerId IS NULL OR d.customerId = uuid('13814000-1dd2-11b2-8080-808080808080'))) " +
             "OR (:customerId IS NOT NULL AND d.customerId = uuid(:customerId)) " +
             ") " +
             "AND (:deviceProfileId IS NULL OR d.deviceProfileId = uuid(:deviceProfileId)) " +
-            "AND ((:filterByActive) IS FALSE OR d.active = :deviceActive) " +
+            "AND ((:filterByActive) = FALSE OR d.active = :deviceActive) " +
             "AND (LOWER(d.name) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
             "OR LOWER(d.label) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
             "OR LOWER(d.type) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +

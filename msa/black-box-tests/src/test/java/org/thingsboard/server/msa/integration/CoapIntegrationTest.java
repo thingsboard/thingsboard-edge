@@ -47,7 +47,7 @@ import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
-import javax.xml.bind.DatatypeConverter;
+import jakarta.xml.bind.DatatypeConverter;
 import java.io.IOException;
 
 import static ch.qos.logback.core.encoder.ByteArrayUtil.hexStringToByteArray;

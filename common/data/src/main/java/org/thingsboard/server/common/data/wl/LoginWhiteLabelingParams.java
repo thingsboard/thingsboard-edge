@@ -31,7 +31,7 @@
 package org.thingsboard.server.common.data.wl;
 
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -39,19 +39,19 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode
 public class LoginWhiteLabelingParams extends WhiteLabelingParams {
 
-    @ApiModelProperty(position = 16, value = "Login page background color", example = "#d90f0f")
+    @Schema(description = "Login page background color", example = "#d90f0f")
     private String pageBackgroundColor;
-    @ApiModelProperty(position = 17, value = "Enable/Disable dark foreground")
+    @Schema(description = "Enable/Disable dark foreground")
     private boolean darkForeground;
-    @ApiModelProperty(position = 18, value = "Domain name of the login page", example = "iot.mycompany.com")
+    @Schema(description = "Domain name of the login page", example = "iot.mycompany.com")
     private String domainName;
-    @ApiModelProperty(position = 19, value = "Base URL for the activation link, etc", example = "https://iot.mycompany.com")
+    @Schema(description = "Base URL for the activation link, etc", example = "https://iot.mycompany.com")
     private String baseUrl;
-    @ApiModelProperty(position = 20, value = "Prohibit use of other URLs. It is recommended to enable this setting", example = "true")
+    @Schema(description = "Prohibit use of other URLs. It is recommended to enable this setting", example = "true")
     private boolean prohibitDifferentUrl;
-    @ApiModelProperty(position = 21, value = "Id of the settings object that store this parameters")
+    @Schema(description = "Id of the settings object that store this parameters")
     private String adminSettingsId;
-    @ApiModelProperty(position = 22, value = "Show platform name and version on login page")
+    @Schema(description = "Show platform name and version on login page")
     private Boolean showNameBottom;
 
     public LoginWhiteLabelingParams merge(LoginWhiteLabelingParams otherWlParams) {

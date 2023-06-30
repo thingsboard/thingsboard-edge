@@ -34,8 +34,7 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -44,13 +43,13 @@ import org.thingsboard.server.common.data.id.HasId;
 import java.util.HashMap;
 import java.util.Map;
 
-@ApiModel
+@Schema
 @NoArgsConstructor
 public class ShortEntityView implements HasId<EntityId>, HasName {
 
-    @ApiModelProperty(position = 1, value = "Entity Id object", required = true, accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Entity Id object", required = true, accessMode = Schema.AccessMode.READ_ONLY)
     private EntityId id;
-    @ApiModelProperty(position = 2, value = "Map of entity fields that is configurable in the Entity Group", required = true, accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Map of entity fields that is configurable in the Entity Group", required = true, accessMode = Schema.AccessMode.READ_ONLY)
     private Map<String, String> properties = new HashMap<>();
 
     @JsonIgnore
@@ -76,7 +75,7 @@ public class ShortEntityView implements HasId<EntityId>, HasName {
         this.properties.put(name, value);
     }
 
-    @ApiModelProperty(position = 3, value = "Name of the entity", required = true, accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Name of the entity", required = true, accessMode = Schema.AccessMode.READ_ONLY)
     @Override
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String getName() {

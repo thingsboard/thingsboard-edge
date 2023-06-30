@@ -30,29 +30,25 @@
  */
 package org.thingsboard.server.service.report;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.ssl.SslContextBuilder;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.AsyncClientHttpRequest;
-import org.springframework.http.client.Netty4ClientHttpRequestFactory;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.util.concurrent.ListenableFutureCallback;
-import org.springframework.web.client.AsyncRequestCallback;
-import org.springframework.web.client.AsyncRestTemplate;
-import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.reactive.function.client.ExchangeFilterFunctions;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.server.common.data.Customer;
@@ -79,11 +75,11 @@ import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.model.token.AccessJwtToken;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
+import reactor.netty.http.client.HttpClient;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.net.ssl.SSLException;
-import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -98,7 +94,6 @@ import java.util.regex.Pattern;
 
 @Service
 @Slf4j
-@SuppressWarnings("deprecation")
 @RequiredArgsConstructor
 public class DefaultReportService implements ReportService {
 
@@ -123,17 +118,27 @@ public class DefaultReportService implements ReportService {
     private final RateLimitService rateLimitService;
 
     private EventLoopGroup eventLoopGroup;
-    private AsyncRestTemplate httpClient;
+    private WebClient webClient;
 
     @PostConstruct
     public void init() {
         try {
             this.eventLoopGroup = new NioEventLoopGroup();
-            Netty4ClientHttpRequestFactory nettyFactory = new Netty4ClientHttpRequestFactory(this.eventLoopGroup);
-            nettyFactory.setSslContext(SslContextBuilder.forClient().build());
-            nettyFactory.setMaxResponseSize(maxResponseSize);
-            httpClient = new AsyncRestTemplate(nettyFactory);
-        } catch (SSLException e) {
+            HttpClient httpClient = HttpClient.create()
+                    .runOn(eventLoopGroup)
+                    .secure(t -> {
+                        try {
+                            t.sslContext(SslContextBuilder.forClient().build());
+                        } catch (SSLException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+
+            this.webClient = WebClient.builder()
+                    .filter(ExchangeFilterFunctions.limitResponseSize(maxResponseSize))
+                    .clientConnector(new ReactorClientHttpConnector(httpClient))
+                    .build();
+        } catch (Exception e) {
             log.error("Can't initialize report service due to {}", e.getMessage(), e);
             throw new RuntimeException(e);
         }
@@ -200,27 +205,31 @@ public class DefaultReportService implements ReportService {
         }
         String endpointUrl = reportsServerEndpointUrl + "/dashboardReport";
 
-        org.springframework.util.concurrent.ListenableFuture<ReportData> reportDataFuture = httpClient.execute(endpointUrl, HttpMethod.POST,
-                new ReportRequestCallback(dashboardReportRequest), responseExtractor);
-        reportDataFuture.addCallback(new ListenableFutureCallback<ReportData>() {
-            @Override
-            public void onSuccess(ReportData result) {
-                try {
-                    onSuccess.accept(result);
-                } catch (Throwable th) {
-                    onFailure(th);
-                }
-            }
+        byte[] requestBody = JacksonUtil.writeValueAsBytes(dashboardReportRequest);
 
-            @Override
-            public void onFailure(Throwable t) {
-                if (t instanceof RestClientResponseException) {
-                    onFailure.accept(new ThingsboardException(((RestClientResponseException) t).getStatusText(), ThingsboardErrorCode.GENERAL));
-                } else {
-                    onFailure.accept(t);
-                }
-            }
-        });
+        webClient.post()
+                .uri(endpointUrl)
+                .headers(headers -> prepareHeaders(headers, requestBody))
+                .bodyValue(requestBody)
+                .retrieve()
+                .toEntity(byte[].class)
+                .subscribe(responseEntity -> {
+                    try {
+                        onSuccess.accept(extractResponse(responseEntity));
+                    } catch (Throwable t) {
+                        processError(onFailure, t);
+                    }
+                }, t -> {
+                    processError(onFailure, t);
+                });
+    }
+
+    private void processError(Consumer<Throwable> onFailure, Throwable t) {
+        if (t instanceof RestClientResponseException) {
+            onFailure.accept(new ThingsboardException(((RestClientResponseException) t).getStatusText(), ThingsboardErrorCode.GENERAL));
+        } else {
+            onFailure.accept(t);
+        }
     }
 
     private JsonNode createDashboardReportRequest(TenantId tenantId, ReportConfig reportConfig) {
@@ -304,39 +313,22 @@ public class DefaultReportService implements ReportService {
         return jwtTokenFactory.createAccessJwtToken(securityUser);
     }
 
-    final ResponseExtractor<ReportData> responseExtractor = response -> {
+    private ReportData extractResponse(ResponseEntity<byte[]> responseEntity) throws UnsupportedEncodingException {
         ReportData reportData = new ReportData();
-        reportData.setData(IOUtils.toByteArray(response.getBody()));
-        reportData.setContentType(response.getHeaders().getContentType().toString());
-        String disposition = response.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION);
+        reportData.setData(responseEntity.getBody());
+        reportData.setContentType(responseEntity.getHeaders().getContentType().toString());
+        String disposition = responseEntity.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION);
         String fileName = disposition.replaceFirst("(?i)^.*filename=\"?([^\"]+)\"?.*$", "$1");
         fileName = URLDecoder.decode(fileName, "ISO_8859_1");
         reportData.setName(fileName);
         return reportData;
-    };
+    }
 
-    final class ReportRequestCallback implements AsyncRequestCallback {
-
-        private JsonNode body;
-
-        public ReportRequestCallback(JsonNode body) {
-            this.body = body;
-        }
-
-        @Override
-        public void doWithRequest(AsyncClientHttpRequest request) throws IOException {
-            request.getHeaders().setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM, MediaType.ALL));
-            request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-            byte[] json = getRequestBytes();
-            request.getHeaders().setContentLength(json.length);
-            request.getHeaders().setConnection("keep-alive");
-            request.getBody().write(json);
-        }
-
-        byte[] getRequestBytes() throws JsonProcessingException {
-            return JacksonUtil.writeValueAsBytes(body);
-        }
-
+    private void prepareHeaders(HttpHeaders headers, byte[] json) {
+        headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM, MediaType.ALL));
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentLength(json.length);
+        headers.setConnection("keep-alive");
     }
 
 }

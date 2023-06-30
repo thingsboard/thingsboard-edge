@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.solutions;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -38,7 +39,6 @@ import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemp
 import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemplateInfo;
 import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemplateInstructions;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 public interface SolutionService {

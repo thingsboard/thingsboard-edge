@@ -35,8 +35,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Streams;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -47,7 +47,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
-import javax.validation.Valid;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -55,7 +54,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@ApiModel
+@Schema
 @EqualsAndHashCode(callSuper = true)
 public class Dashboard extends BaseData<DashboardId> implements GroupEntity<DashboardId>, HasName, HasTenantId, HasTitle, ExportableEntity<DashboardId> {
 
@@ -106,7 +105,7 @@ public class Dashboard extends BaseData<DashboardId> implements GroupEntity<Dash
         this.externalId = dashboard.getExternalId();
     }
 
-    @ApiModelProperty(position = 1, value = "JSON object with the dashboard Id. " +
+    @Schema(description = "JSON object with the dashboard Id. " +
             "Specify existing dashboard Id to update the dashboard. " +
             "Referencing non-existing dashboard id will cause error. " +
             "Omit this field to create new dashboard.")
@@ -115,13 +114,13 @@ public class Dashboard extends BaseData<DashboardId> implements GroupEntity<Dash
         return super.getId();
     }
 
-    @ApiModelProperty(position = 2, value = "Timestamp of the dashboard creation, in milliseconds", example = "1609459200000", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Timestamp of the dashboard creation, in milliseconds", example = "1609459200000", accessMode = Schema.AccessMode.READ_ONLY)
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();
     }
 
-    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id. Tenant Id of the dashboard can't be changed.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "JSON object with Tenant Id. Tenant Id of the dashboard can't be changed.", accessMode = Schema.AccessMode.READ_ONLY)
     public TenantId getTenantId() {
         return tenantId;
     }
@@ -130,7 +129,7 @@ public class Dashboard extends BaseData<DashboardId> implements GroupEntity<Dash
         this.tenantId = tenantId;
     }
 
-    @ApiModelProperty(position = 4, value = "JSON object with Customer Id. ")
+    @Schema(description = "JSON object with Customer Id. ")
     public CustomerId getCustomerId() {
         return customerId;
     }
@@ -139,7 +138,7 @@ public class Dashboard extends BaseData<DashboardId> implements GroupEntity<Dash
         this.customerId = customerId;
     }
 
-    @ApiModelProperty(position = 5, value = "JSON object with Customer or Tenant Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "JSON object with Customer or Tenant Id", accessMode = Schema.AccessMode.READ_ONLY)
     @Override
     public EntityId getOwnerId() {
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
@@ -154,7 +153,7 @@ public class Dashboard extends BaseData<DashboardId> implements GroupEntity<Dash
         }
     }
 
-    @ApiModelProperty(position = 6, value = "Title of the dashboard.")
+    @Schema(description = "Title of the dashboard.")
     public String getTitle() {
         return title;
     }
@@ -163,7 +162,7 @@ public class Dashboard extends BaseData<DashboardId> implements GroupEntity<Dash
         this.title = title;
     }
 
-    @ApiModelProperty(position = 7, value = "Thumbnail picture for rendering of the dashboards in a grid view on mobile devices.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Thumbnail picture for rendering of the dashboards in a grid view on mobile devices.", accessMode = Schema.AccessMode.READ_ONLY)
     public String getImage() {
         return image;
     }
@@ -172,7 +171,7 @@ public class Dashboard extends BaseData<DashboardId> implements GroupEntity<Dash
         this.image = image;
     }
 
-    @ApiModelProperty(position = 8, value = "List of assigned customers with their info.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "List of assigned customers with their info.", accessMode = Schema.AccessMode.READ_ONLY)
     public Set<ShortCustomerInfo> getAssignedCustomers() {
         return assignedCustomers;
     }
@@ -181,7 +180,7 @@ public class Dashboard extends BaseData<DashboardId> implements GroupEntity<Dash
         this.assignedCustomers = assignedCustomers;
     }
 
-    @ApiModelProperty(position = 9, value = "Hide dashboard from mobile devices. Useful if the dashboard is not designed for small screens.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Hide dashboard from mobile devices. Useful if the dashboard is not designed for small screens.", accessMode = Schema.AccessMode.READ_ONLY)
     public boolean isMobileHide() {
         return mobileHide;
     }
@@ -190,7 +189,7 @@ public class Dashboard extends BaseData<DashboardId> implements GroupEntity<Dash
         this.mobileHide = mobileHide;
     }
 
-    @ApiModelProperty(position = 10, value = "Order on mobile devices. Useful to adjust sorting of the dashboards for mobile applications", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Order on mobile devices. Useful to adjust sorting of the dashboards for mobile applications", accessMode = Schema.AccessMode.READ_ONLY)
     public Integer getMobileOrder() {
         return mobileOrder;
     }
@@ -200,17 +199,17 @@ public class Dashboard extends BaseData<DashboardId> implements GroupEntity<Dash
     }
 
 
-    @ApiModelProperty(position = 11, value = "Same as title of the dashboard. Read-only field. Update the 'title' to change the 'name' of the dashboard.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Same as title of the dashboard. Read-only field. Update the 'title' to change the 'name' of the dashboard.", accessMode = Schema.AccessMode.READ_ONLY)
     @Override
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String getName() {
         return title;
     }
 
-    @ApiModelProperty(position = 12, value = "JSON object with main configuration of the dashboard: layouts, widgets, aliases, etc. " +
+    @Schema(description = "JSON object with main configuration of the dashboard: layouts, widgets, aliases, etc. " +
             "The JSON structure of the dashboard configuration is quite complex. " +
             "The easiest way to learn it is to export existing dashboard to JSON."
-            , dataType = "com.fasterxml.jackson.databind.JsonNode")
+            , implementation = com.fasterxml.jackson.databind.JsonNode.class)
     public JsonNode getConfiguration() {
         return configuration;
     }

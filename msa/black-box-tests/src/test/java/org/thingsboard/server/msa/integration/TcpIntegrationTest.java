@@ -65,7 +65,7 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
-import javax.xml.bind.DatatypeConverter;
+import jakarta.xml.bind.DatatypeConverter;
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.util.Objects;

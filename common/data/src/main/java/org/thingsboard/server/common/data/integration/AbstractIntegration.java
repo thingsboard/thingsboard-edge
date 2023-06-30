@@ -31,8 +31,7 @@
 package org.thingsboard.server.common.data.integration;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.BaseData;
@@ -44,7 +43,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
-@ApiModel
+@Schema
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 public abstract class AbstractIntegration extends BaseData<IntegrationId> implements HasName, TenantEntity {
@@ -82,7 +81,7 @@ public abstract class AbstractIntegration extends BaseData<IntegrationId> implem
         this.isEdgeTemplate = integration.isEdgeTemplate();
     }
 
-    @ApiModelProperty(position = 1, value = "JSON object with the Integration Id. " +
+    @Schema(description = "JSON object with the Integration Id. " +
             "Specify this field to update the Integration. " +
             "Referencing non-existing Integration Id will cause error. " +
             "Omit this field to create new Integration.")
@@ -91,13 +90,13 @@ public abstract class AbstractIntegration extends BaseData<IntegrationId> implem
         return super.getId();
     }
 
-    @ApiModelProperty(position = 2, value = "Timestamp of the integration creation, in milliseconds", example = "1609459200000", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Timestamp of the integration creation, in milliseconds", example = "1609459200000", accessMode = Schema.AccessMode.READ_ONLY)
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();
     }
 
-    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "JSON object with Tenant Id", accessMode = Schema.AccessMode.READ_ONLY)
     public TenantId getTenantId() {
         return tenantId;
     }
@@ -106,7 +105,7 @@ public abstract class AbstractIntegration extends BaseData<IntegrationId> implem
         this.tenantId = tenantId;
     }
 
-    @ApiModelProperty(position = 7, required = true, value = "The type of the integration")
+    @Schema(required = true, description = "The type of the integration")
     public IntegrationType getType() {
         return type;
     }
@@ -115,7 +114,7 @@ public abstract class AbstractIntegration extends BaseData<IntegrationId> implem
         this.type = type;
     }
 
-    @ApiModelProperty(position = 8, value = "Boolean flag to enable/disable saving received messages as debug events")
+    @Schema(description = "Boolean flag to enable/disable saving received messages as debug events")
     public boolean isDebugMode() {
         return debugMode;
     }
@@ -124,7 +123,7 @@ public abstract class AbstractIntegration extends BaseData<IntegrationId> implem
         this.debugMode = debugMode;
     }
 
-    @ApiModelProperty(position = 9, value = "Boolean flag to enable/disable the integration")
+    @Schema(description = "Boolean flag to enable/disable the integration")
     public Boolean isEnabled() {
         return !(enabled == null) && enabled;
     }
@@ -133,7 +132,7 @@ public abstract class AbstractIntegration extends BaseData<IntegrationId> implem
         this.enabled = enabled;
     }
 
-    @ApiModelProperty(position = 10, value = "Boolean flag to enable/disable the integration to be executed remotely. Remote integration is launched in a separate microservice. " +
+    @Schema(description = "Boolean flag to enable/disable the integration to be executed remotely. Remote integration is launched in a separate microservice. " +
             "Local integration is executed by the platform core")
     public Boolean isRemote() {
         return !(isRemote == null) && isRemote;
@@ -143,7 +142,7 @@ public abstract class AbstractIntegration extends BaseData<IntegrationId> implem
         isRemote = remote;
     }
 
-    @ApiModelProperty(position = 11, value = "Boolean flag to allow/disallow the integration to create devices or assets that send message and do not exist in the system yet")
+    @Schema(description = "Boolean flag to allow/disallow the integration to create devices or assets that send message and do not exist in the system yet")
     public Boolean isAllowCreateDevicesOrAssets() {
         return !(allowCreateDevicesOrAssets == null) && allowCreateDevicesOrAssets;
     }
@@ -152,7 +151,7 @@ public abstract class AbstractIntegration extends BaseData<IntegrationId> implem
         allowCreateDevicesOrAssets = allow;
     }
 
-    @ApiModelProperty(position = 15, required = true, value = "Integration Name", example = "Http Integration")
+    @Schema(required = true, description = "Integration Name", example = "Http Integration")
     @Override
     public String getName() {
         return name;
@@ -162,7 +161,7 @@ public abstract class AbstractIntegration extends BaseData<IntegrationId> implem
         this.name = name;
     }
 
-    @ApiModelProperty(position = 16, value = "Boolean flag that specifies that is regular or edge template integration")
+    @Schema(description = "Boolean flag that specifies that is regular or edge template integration")
     public boolean isEdgeTemplate() {
         return isEdgeTemplate;
     }

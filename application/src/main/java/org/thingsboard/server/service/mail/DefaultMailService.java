@@ -31,6 +31,9 @@
 package org.thingsboard.server.service.mail;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.activation.DataSource;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.util.ByteArrayDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,9 +70,6 @@ import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 
-import javax.activation.DataSource;
-import javax.mail.internet.MimeMessage;
-import javax.mail.util.ByteArrayDataSource;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -294,7 +294,7 @@ public class DefaultMailService implements MailService {
                     for (String imgId : tbEmail.getImages().keySet()) {
                         String imgValue = tbEmail.getImages().get(imgId);
                         String value = imgValue.replaceFirst("^data:image/[^;]*;base64,?", "");
-                        byte[] bytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(value);
+                        byte[] bytes = jakarta.xml.bind.DatatypeConverter.parseBase64Binary(value);
                         String contentType = helper.getFileTypeMap().getContentType(imgId);
                         InputStreamSource iss = () -> new ByteArrayInputStream(bytes);
                         helper.addInline(imgId, iss, contentType);

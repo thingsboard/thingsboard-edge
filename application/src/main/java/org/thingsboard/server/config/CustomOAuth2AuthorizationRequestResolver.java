@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.config;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
@@ -57,7 +58,6 @@ import org.thingsboard.server.service.security.auth.oauth2.TbOAuth2ParameterName
 import org.thingsboard.server.service.security.model.token.OAuth2AppTokenFactory;
 import org.thingsboard.server.utils.MiscUtils;
 
-import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -128,7 +128,6 @@ public class CustomOAuth2AuthorizationRequestResolver implements OAuth2Authoriza
         return request.getParameter("appToken");
     }
 
-    @SuppressWarnings("deprecation")
     private OAuth2AuthorizationRequest resolve(HttpServletRequest request, String registrationId, String redirectUriAction, String appPackage, String appToken) {
         if (registrationId == null) {
             return null;
@@ -169,8 +168,6 @@ public class CustomOAuth2AuthorizationRequestResolver implements OAuth2Authoriza
                 addPkceParameters(attributes, additionalParameters);
             }
             builder.additionalParameters(additionalParameters);
-        } else if (AuthorizationGrantType.IMPLICIT.equals(clientRegistration.getAuthorizationGrantType())) {
-            builder = OAuth2AuthorizationRequest.implicit();
         } else {
             throw new IllegalArgumentException("Invalid Authorization Grant Type ("  +
                     clientRegistration.getAuthorizationGrantType().getValue() +

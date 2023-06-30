@@ -30,8 +30,9 @@
  */
 package org.thingsboard.server.controller;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -57,6 +58,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
+import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.List;
@@ -87,13 +89,13 @@ public class GroupPermissionController extends BaseController {
 
     @ApiOperation(value = "Get Group Permission (getGroupPermissionById)",
             notes = "Fetch the Group Permission object based on the provided Group Permission Id. " +
-                    GROUP_PERMISSION_DESCRIPTION + RBAC_READ_CHECK
-            , produces = MediaType.APPLICATION_JSON_VALUE)
+                    GROUP_PERMISSION_DESCRIPTION + RBAC_READ_CHECK,
+            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/groupPermission/{groupPermissionId}", method = RequestMethod.GET)
     @ResponseBody
     public GroupPermission getGroupPermissionById(
-            @ApiParam(value = GROUP_PERMISSION_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = GROUP_PERMISSION_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(GROUP_PERMISSION_ID) String strGroupPermissionId) throws ThingsboardException {
         checkParameter(GROUP_PERMISSION_ID, strGroupPermissionId);
         return checkGroupPermissionId(new GroupPermissionId(toUUID(strGroupPermissionId)), Operation.READ);
@@ -102,14 +104,14 @@ public class GroupPermissionController extends BaseController {
     @ApiOperation(value = "Get Group Permission Info (getGroupPermissionInfoById)",
             notes = "Fetch the Group Permission Info object based on the provided Group Permission Id and the flag that controls what additional information to load: User or Entity Group. " +
                     GROUP_PERMISSION_INFO_DESCRIPTION + RBAC_READ_CHECK
-            , produces = MediaType.APPLICATION_JSON_VALUE)
+            , responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/groupPermission/info/{groupPermissionId}", method = RequestMethod.GET)
     @ResponseBody
     public GroupPermissionInfo getGroupPermissionInfoById(
-            @ApiParam(value = GROUP_PERMISSION_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = GROUP_PERMISSION_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(GROUP_PERMISSION_ID) String strGroupPermissionId,
-            @ApiParam(value = "Load additional information about User('true') or Entity Group('false).", required = true)
+            @Parameter(description = "Load additional information about User('true') or Entity Group('false).", required = true)
             @RequestParam boolean isUserGroup) throws ThingsboardException {
         checkParameter(GROUP_PERMISSION_ID, strGroupPermissionId);
         return checkGroupPermissionInfoId(new GroupPermissionId(toUUID(strGroupPermissionId)), Operation.READ, isUserGroup);
@@ -120,12 +122,12 @@ public class GroupPermissionController extends BaseController {
                     "The newly created Group Permission id will be present in the response. " +
                     "Specify existing Group Permission id to update the permission. " +
                     "Referencing non-existing Group Permission Id will cause 'Not Found' error." +
-                    "\n\n" + GROUP_PERMISSION_DESCRIPTION + ControllerConstants.RBAC_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+                    "\n\n" + GROUP_PERMISSION_DESCRIPTION + ControllerConstants.RBAC_WRITE_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/groupPermission", method = RequestMethod.POST)
     @ResponseBody
     public GroupPermission saveGroupPermission(
-            @ApiParam(value = "A JSON value representing the group permission.", required = true)
+            @Parameter(description = "A JSON value representing the group permission.", required = true)
             @RequestBody GroupPermission groupPermission) throws ThingsboardException {
         try {
             groupPermission.setTenantId(getCurrentUser().getTenantId());
@@ -170,7 +172,7 @@ public class GroupPermissionController extends BaseController {
     @RequestMapping(value = "/groupPermission/{groupPermissionId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteGroupPermission(
-            @ApiParam(value = GROUP_PERMISSION_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = GROUP_PERMISSION_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(GROUP_PERMISSION_ID) String strGroupPermissionId) throws ThingsboardException {
         checkParameter(GROUP_PERMISSION_ID, strGroupPermissionId);
         try {
@@ -204,12 +206,13 @@ public class GroupPermissionController extends BaseController {
 
     @ApiOperation(value = "Get group permissions by User Group Id (getUserGroupPermissions)",
             notes = "Returns a list of group permission objects that belongs to specified User Group Id. " +
-                    GROUP_PERMISSION_INFO_DESCRIPTION + "\n\n" + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+                    GROUP_PERMISSION_INFO_DESCRIPTION + "\n\n" + RBAC_READ_CHECK,
+            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/userGroup/{userGroupId}/groupPermissions", method = RequestMethod.GET)
     @ResponseBody
     public List<GroupPermissionInfo> getUserGroupPermissions(
-            @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable("userGroupId") String strUserGroupId) throws ThingsboardException, ExecutionException, InterruptedException {
         TenantId tenantId = getCurrentUser().getTenantId();
         EntityGroupId userGroupId = new EntityGroupId(UUID.fromString(strUserGroupId));
@@ -221,12 +224,13 @@ public class GroupPermissionController extends BaseController {
 
     @ApiOperation(value = "Load User Group Permissions (loadUserGroupPermissionInfos)",
             notes = "Enrich a list of group permission objects with the information about Role, User and Entity Groups. " +
-                    GROUP_PERMISSION_INFO_DESCRIPTION + "\n\n" + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+                    GROUP_PERMISSION_INFO_DESCRIPTION + "\n\n" + RBAC_READ_CHECK,
+            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/userGroup/groupPermissions/info", method = RequestMethod.POST)
     @ResponseBody
     public List<GroupPermissionInfo> loadUserGroupPermissionInfos(
-            @ApiParam(value = "JSON array of group permission objects", required = true)
+            @Parameter(description = "JSON array of group permission objects", required = true)
             @RequestBody List<GroupPermission> permissions) throws ThingsboardException, ExecutionException, InterruptedException {
         TenantId tenantId = getCurrentUser().getTenantId();
         accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, Operation.READ);
@@ -236,12 +240,13 @@ public class GroupPermissionController extends BaseController {
 
     @ApiOperation(value = "Get group permissions by Entity Group Id (getEntityGroupPermissions)",
             notes = "Returns a list of group permission objects that is assigned for the specified Entity Group Id. " +
-                    GROUP_PERMISSION_INFO_DESCRIPTION + "\n\n" + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+                    GROUP_PERMISSION_INFO_DESCRIPTION + "\n\n" + RBAC_READ_CHECK,
+            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/groupPermissions", method = RequestMethod.GET)
     @ResponseBody
     public List<GroupPermissionInfo> getEntityGroupPermissions(
-            @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable("entityGroupId") String strEntityGroupId) throws ThingsboardException, ExecutionException, InterruptedException {
         TenantId tenantId = getCurrentUser().getTenantId();
         EntityGroupId entityGroupId = new EntityGroupId(UUID.fromString(strEntityGroupId));

@@ -30,8 +30,9 @@
  */
 package org.thingsboard.server.controller;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -50,11 +51,11 @@ import org.thingsboard.server.common.data.oauth2.OAuth2Info;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.dao.oauth2.OAuth2Configuration;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.utils.MiscUtils;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -76,13 +77,13 @@ public class OAuth2Controller extends BaseController {
     @RequestMapping(value = "/noauth/oauth2Clients", method = RequestMethod.POST)
     @ResponseBody
     public List<OAuth2ClientInfo> getOAuth2Clients(HttpServletRequest request,
-                                                   @ApiParam(value = "Mobile application package name, to find OAuth2 clients " +
+                                                   @Parameter(description = "Mobile application package name, to find OAuth2 clients " +
                                                            "where there is configured mobile application with such package name")
                                                    @RequestParam(required = false) String pkgName,
-                                                   @ApiParam(value = "Platform type to search OAuth2 clients for which " +
+                                                   @Parameter(description = "Platform type to search OAuth2 clients for which " +
                                                            "the usage with this platform type is allowed in the settings. " +
                                                            "If platform type is not one of allowable values - it will just be ignored",
-                                                           allowableValues = "WEB, ANDROID, IOS")
+                                                           schema = @Schema(allowableValues = "WEB, ANDROID, IOS"))
                                                    @RequestParam(required = false) String platform) throws ThingsboardException {
         if (log.isDebugEnabled()) {
             log.debug("Executing getOAuth2Clients: [{}][{}][{}]", request.getScheme(), request.getServerName(), request.getServerPort());
@@ -96,7 +97,8 @@ public class OAuth2Controller extends BaseController {
         if (StringUtils.isNotEmpty(platform)) {
             try {
                 platformType = PlatformType.valueOf(platform);
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         }
         return oAuth2Service.getOAuth2Clients(MiscUtils.getScheme(request), MiscUtils.getDomainNameAndPort(request), pkgName, platformType);
     }

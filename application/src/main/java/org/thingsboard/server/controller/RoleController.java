@@ -30,8 +30,10 @@
  */
 package org.thingsboard.server.controller;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -58,6 +60,7 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
@@ -74,9 +77,7 @@ import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DE
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_DELETE_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.ROLE_ID_PARAM_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.ROLE_SORT_PROPERTY_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.ROLE_TEXT_SEARCH_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
@@ -140,12 +141,12 @@ public class RoleController extends AutoCommitController {
     @ApiOperation(value = "Get Role by Id (getRoleById)",
             notes = "Fetch the Role object based on the provided Role Id. " +
                     ROLE_SHORT_DESCRIPTION + RBAC_READ_CHECK
-            , produces = MediaType.APPLICATION_JSON_VALUE)
+            , responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/role/{roleId}", method = RequestMethod.GET)
     @ResponseBody
     public Role getRoleById(
-            @ApiParam(value = ROLE_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = ROLE_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(ROLE_ID) String strRoleId) throws ThingsboardException {
         checkParameter(ROLE_ID, strRoleId);
         return checkRoleId(new RoleId(toUUID(strRoleId)), Operation.READ);
@@ -157,12 +158,12 @@ public class RoleController extends AutoCommitController {
                     "Specify existing Role id to update the permission. " +
                     "Referencing non-existing Group Permission Id will cause 'Not Found' error." +
                     "\n\n" + ROLE_SHORT_DESCRIPTION + "\n\n" + ROLE_PERMISSIONS_DESCRIPTION +
-                    ControllerConstants.RBAC_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+                    ControllerConstants.RBAC_WRITE_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/role", method = RequestMethod.POST)
     @ResponseBody
     public Role saveRole(
-            @ApiParam(value = "A JSON value representing the role.", required = true)
+            @Parameter(description = "A JSON value representing the role.", required = true)
             @RequestBody Role role) throws Exception {
         SecurityUser currentUser = getCurrentUser();
         try {
@@ -198,7 +199,7 @@ public class RoleController extends AutoCommitController {
     @RequestMapping(value = "/role/{roleId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteRole(
-            @ApiParam(value = ROLE_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = ROLE_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(ROLE_ID) String strRoleId) throws Exception {
         checkParameter(ROLE_ID, strRoleId);
         try {
@@ -230,17 +231,17 @@ public class RoleController extends AutoCommitController {
     @RequestMapping(value = "/roles", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<Role> getRoles(
-            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
+            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true, schema = @Schema(minimum = "1"))
             @RequestParam int pageSize,
-            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
+            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true, schema = @Schema(minimum = "0"))
             @RequestParam int page,
-            @ApiParam(value = "Type of the role", allowableValues = "GENERIC, GROUP")
+            @Parameter(description = "Type of the role", schema = @Schema(allowableValues = "GENERIC, GROUP"))
             @RequestParam(required = false) String type,
-            @ApiParam(value = ROLE_TEXT_SEARCH_DESCRIPTION)
+            @Parameter(description = ROLE_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
-            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = ROLE_SORT_PROPERTY_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {"createdTime", "name", "type", "description"}))
             @RequestParam(required = false) String sortProperty,
-            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         accessControlService.checkPermission(getCurrentUser(), Resource.ROLE, Operation.READ);
         TenantId tenantId = getCurrentUser().getTenantId();
@@ -262,12 +263,12 @@ public class RoleController extends AutoCommitController {
     }
 
     @ApiOperation(value = "Get Roles By Ids (getRolesByIds)",
-            notes = "Returns the list of rows based on their ids. " + "\n\n" + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+            notes = "Returns the list of rows based on their ids. " + "\n\n" + RBAC_READ_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/roles", params = {"roleIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<Role> getRolesByIds(
-            @ApiParam(value = "A list of role ids, separated by comma ','")
+            @Parameter(description = "A list of role ids, separated by comma ','")
             @RequestParam("roleIds") String[] strRoleIds) throws Exception {
         checkArrayParameter("roleIds", strRoleIds);
         if (!accessControlService.hasPermission(getCurrentUser(), Resource.ROLE, Operation.READ)) {

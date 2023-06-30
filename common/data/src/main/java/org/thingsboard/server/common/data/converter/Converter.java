@@ -32,8 +32,7 @@ package org.thingsboard.server.common.data.converter;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -47,7 +46,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
-@ApiModel
+@Schema
 @EqualsAndHashCode(callSuper = true)
 public class Converter extends BaseData<ConverterId> implements HasName, TenantEntity, ExportableEntity<ConverterId> {
 
@@ -64,7 +63,8 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
     private JsonNode additionalInfo;
     private boolean edgeTemplate;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private ConverterId externalId;
 
     public Converter() {
@@ -87,7 +87,7 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
         this.edgeTemplate = converter.isEdgeTemplate();
     }
 
-    @ApiModelProperty(position = 1, value = "JSON object with the Converter Id. " +
+    @Schema(description = "JSON object with the Converter Id. " +
             "Specify this field to update the Converter. " +
             "Referencing non-existing Converter Id will cause error. " +
             "Omit this field to create new Converter.")
@@ -96,13 +96,13 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
         return super.getId();
     }
 
-    @ApiModelProperty(position = 2, value = "Timestamp of the converter creation, in milliseconds", example = "1609459200000", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Timestamp of the converter creation, in milliseconds", example = "1609459200000", accessMode = Schema.AccessMode.READ_ONLY)
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();
     }
 
-    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "JSON object with Tenant Id", accessMode = Schema.AccessMode.READ_ONLY)
     public TenantId getTenantId() {
         return tenantId;
     }
@@ -111,7 +111,7 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
         this.tenantId = tenantId;
     }
 
-    @ApiModelProperty(position = 4, required = true, value = "Unique Converter Name in scope of Tenant", example = "Http Converter")
+    @Schema(required = true, description = "Unique Converter Name in scope of Tenant", example = "Http Converter")
     @Override
     public String getName() {
         return name;
@@ -121,7 +121,7 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
         this.name = name;
     }
 
-    @ApiModelProperty(position = 5, required = true, value = "The type of the converter to process incoming or outgoing messages")
+    @Schema(required = true, description = "The type of the converter to process incoming or outgoing messages")
     public ConverterType getType() {
         return type;
     }
@@ -130,7 +130,7 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
         this.type = type;
     }
 
-    @ApiModelProperty(position = 6, value = "Boolean flag to enable/disable saving received messages as debug events")
+    @Schema(description = "Boolean flag to enable/disable saving received messages as debug events")
     public boolean isDebugMode() {
         return debugMode;
     }
@@ -139,7 +139,7 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
         this.debugMode = debugMode;
     }
 
-    @ApiModelProperty(position = 7, value = "JSON object representing converter configuration. It should contain one of two possible fields: 'decoder' or 'encoder'. " +
+    @Schema(description = "JSON object representing converter configuration. It should contain one of two possible fields: 'decoder' or 'encoder'. " +
             "The former is used when the converter has UPLINK type, the latter is used - when DOWNLINK type. " +
             "It can contain both 'decoder' and 'encoder' fields, when the correct one is specified for the appropriate converter type, another one can be set to 'null'")
     public JsonNode getConfiguration() {
@@ -150,7 +150,7 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
         this.configuration = configuration;
     }
 
-    @ApiModelProperty(position = 8, value = "Additional parameters of the converter", dataType = "com.fasterxml.jackson.databind.JsonNode")
+    @Schema(description = "Additional parameters of the converter", implementation = com.fasterxml.jackson.databind.JsonNode.class)
     public JsonNode getAdditionalInfo() {
         return additionalInfo;
     }
@@ -159,7 +159,7 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
         this.additionalInfo = additionalInfo;
     }
 
-    @ApiModelProperty(position = 9, value = "Boolean flag that specifies that is regular or edge template converter")
+    @Schema(description = "Boolean flag that specifies that is regular or edge template converter")
     public boolean isEdgeTemplate() {
         return edgeTemplate;
     }
