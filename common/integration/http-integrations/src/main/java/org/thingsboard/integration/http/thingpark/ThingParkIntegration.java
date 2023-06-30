@@ -54,7 +54,6 @@ import org.thingsboard.server.common.msg.TbMsg;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 
-import javax.net.ssl.SSLException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -70,7 +69,6 @@ import java.util.concurrent.TimeUnit;
  * Created by ashvayka on 02.12.17.
  */
 @Slf4j
-@SuppressWarnings("deprecation")
 public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkIntegrationMsg> {
 
     private static final ThreadLocal<SimpleDateFormat> ISO8601 = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
@@ -102,7 +100,8 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
         if (downlinkConverter != null) {
             downlinkUrl = json.has("downlinkUrl") ? json.get("downlinkUrl").asText() : DEFAULT_DOWNLINK_URL;
 
-            HttpClient httpClient = HttpClient.create();
+            HttpClient httpClient = HttpClient.create()
+                    .runOn(context.getEventLoopGroup());
             SslContext sslContext = SslContextBuilder.forClient().build();
             httpClient.secure(t -> t.sslContext(sslContext));
 

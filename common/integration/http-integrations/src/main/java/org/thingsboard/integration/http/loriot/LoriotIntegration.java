@@ -60,7 +60,6 @@ import org.thingsboard.server.common.msg.TbMsg;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 
-import javax.net.ssl.SSLException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
@@ -68,7 +67,6 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-@SuppressWarnings("deprecation")
 public class LoriotIntegration extends BasicHttpIntegration<JsonHttpIntegrationMsg> {
     private static final String EUI = "EUI";
     private static final String PORT = "port";
@@ -101,7 +99,8 @@ public class LoriotIntegration extends BasicHttpIntegration<JsonHttpIntegrationM
                 createApplicationOutputIfNotExist();
             }
             if (loriotConfiguration.isSendDownlink()) {
-                HttpClient httpClient = HttpClient.create();
+                HttpClient httpClient = HttpClient.create()
+                        .runOn(context.getEventLoopGroup());
                 SslContext sslContext = SslContextBuilder.forClient().build();
                 httpClient.secure(t -> t.sslContext(sslContext));
 

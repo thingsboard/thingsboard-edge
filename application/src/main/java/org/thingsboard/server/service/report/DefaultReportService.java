@@ -32,6 +32,8 @@ package org.thingsboard.server.service.report;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.ssl.SslContextBuilder;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -75,6 +77,7 @@ import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 import reactor.netty.http.client.HttpClient;
 
+import javax.annotation.PreDestroy;
 import javax.net.ssl.SSLException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -84,13 +87,13 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.TimeZone;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
 @Slf4j
-@SuppressWarnings("deprecation")
 @RequiredArgsConstructor
 public class DefaultReportService implements ReportService {
 
@@ -114,12 +117,15 @@ public class DefaultReportService implements ReportService {
     private final UserPermissionsService userPermissionsService;
     private final RateLimitService rateLimitService;
 
+    private EventLoopGroup eventLoopGroup;
     private WebClient webClient;
 
     @PostConstruct
     public void init() {
         try {
+            this.eventLoopGroup = new NioEventLoopGroup();
             HttpClient httpClient = HttpClient.create()
+                    .runOn(eventLoopGroup)
                     .secure(t -> {
                         try {
                             t.sslContext(SslContextBuilder.forClient().build());
@@ -135,6 +141,13 @@ public class DefaultReportService implements ReportService {
         } catch (Exception e) {
             log.error("Can't initialize report service due to {}", e.getMessage(), e);
             throw new RuntimeException(e);
+        }
+    }
+
+    @PreDestroy
+    public void destroy() {
+        if (this.eventLoopGroup != null) {
+            this.eventLoopGroup.shutdownGracefully(0, 5, TimeUnit.SECONDS);
         }
     }
 
