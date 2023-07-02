@@ -168,6 +168,8 @@ public interface TbContext {
 
     void enqueueForTellFailure(TbMsg msg, String failureMessage);
 
+    void enqueueForTellFailure(TbMsg tbMsg, Throwable t);
+
     void enqueueForTellNext(TbMsg msg, String relationType);
 
     void enqueueForTellNext(TbMsg msg, Set<String> relationTypes);
@@ -211,7 +213,7 @@ public interface TbContext {
 
     void schedule(Runnable runnable, long delay, TimeUnit timeUnit);
 
-    void checkTenantEntity(EntityId entityId);
+    void checkTenantEntity(EntityId entityId) throws TbNodeException;
 
     boolean isLocalEntity(EntityId entityId);
 
@@ -304,6 +306,8 @@ public interface TbContext {
     NotificationRuleService getNotificationRuleService();
 
     SlackService getSlackService();
+
+    boolean isExternalNodeForceAck();
 
     /**
      * Creates JS Script Engine
