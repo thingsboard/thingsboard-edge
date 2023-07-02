@@ -239,15 +239,15 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     log.info("Skipping cloud events migration");
                 }
                 break;
+            case "3.5.1":
+                log.info("Updating data from version 3.5.1 to 3.5.2 ...");
+                break;
             case "edge":
                 // remove this line in 4+ release
                 fixDuplicateSystemWidgetsBundles();
 
                 // reset full sync required - to upload latest widgets from cloud
                 tenantsFullSyncRequiredUpdater.updateEntities(null);
-                break;
-            case "3.5.1":
-                log.info("Updating data from version 3.5.1 to 3.5.2 ...");
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);

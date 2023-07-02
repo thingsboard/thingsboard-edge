@@ -271,6 +271,7 @@ public class ThingsboardInstallService {
                             // DefaultDataUpdateService must be updated as well
                             // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to 'edge' version
                             dataUpdateService.updateData("edge");
+
                             //TODO DON'T FORGET to update switch statement in the CacheCleanupService if you need to clear the cache
                             break;
                         default:

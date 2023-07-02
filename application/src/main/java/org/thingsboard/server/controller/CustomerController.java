@@ -201,7 +201,7 @@ public class CustomerController extends BaseController {
             publicCustomer = new Customer();
             publicCustomer.setTenantId(getTenantId());
             publicCustomer.setTitle(CustomerServiceImpl.PUBLIC_CUSTOMER_TITLE);
-            publicCustomer.setAdditionalInfo(JacksonUtil.OBJECT_MAPPER.readValue("{ \"isPublic\": true }", JsonNode.class));
+            publicCustomer.setAdditionalInfo(JacksonUtil.fromString("{ \"isPublic\": true }", JsonNode.class));
             return customerService.saveCustomer(publicCustomer, false);
         }
     }
