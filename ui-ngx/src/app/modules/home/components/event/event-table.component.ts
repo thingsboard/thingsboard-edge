@@ -72,6 +72,9 @@ export class EventTableComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input()
   debugEventTypes: Array<DebugEventType>;
 
+  @Input()
+  isReadOnly: boolean = false;
+
   activeValue = false;
   dirtyValue = false;
   entityIdValue: EntityId;
@@ -160,6 +163,7 @@ export class EventTableComponent implements OnInit, AfterViewInit, OnDestroy {
       this.viewContainerRef,
       this.cd,
       this.nodeScriptTestService,
+      this.isReadOnly,
       this.ruleNodeTestButtonLabel,
       this.debugEventSelected
     );

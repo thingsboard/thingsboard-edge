@@ -138,7 +138,8 @@
                                 [tenantId]="ruleChain.tenantId.id"
                                 [entityId]="editingRuleNode.ruleNodeId"
                                 [ruleNodeTestButtonLabel]="ruleNodeTestButtonLabel"
-                                (debugEventSelected)="onDebugEventSelected($event)">
+                                (debugEventSelected)="onDebugEventSelected($event)"
+                                [isReadOnly]="readonly">
                 </tb-event-table>
               </mat-tab>
               <mat-tab label="{{ 'rulenode.help' | translate }}">

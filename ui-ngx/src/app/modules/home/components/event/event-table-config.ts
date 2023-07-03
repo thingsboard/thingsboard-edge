@@ -103,6 +103,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               private viewContainerRef: ViewContainerRef,
               private cd: ChangeDetectorRef,
               private nodeScriptTestService: NodeScriptTestService,
+              private isReadOnly: boolean,
               public testButtonLabel?: string,
               private debugEventSelected?: EventEmitter<DebugRuleNodeEventBody>) {
     super();
@@ -455,7 +456,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
     this.cellActionDescriptors = [];
     switch (this.eventType) {
       case DebugEventType.DEBUG_RULE_NODE:
-        if (this.testButtonLabel) {
+        if (this.testButtonLabel && !this.isReadOnly) {
           this.cellActionDescriptors.push({
             name: this.translate.instant('rulenode.test-with-this-message', {test: this.testButtonLabel}),
             icon: 'bug_report',
