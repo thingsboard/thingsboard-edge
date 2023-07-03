@@ -302,7 +302,6 @@ import * as DeviceWizardDialogComponent from '@home/components/wizard/device-wiz
 import * as AlarmScheduleInfoComponent from '@home/components/profile/alarm/alarm-schedule-info.component';
 import * as AlarmScheduleDialogComponent from '@home/components/profile/alarm/alarm-schedule-dialog.component';
 import * as EditAlarmDetailsDialogComponent from '@home/components/profile/alarm/edit-alarm-details-dialog.component';
-import * as GatewayRemoteConfigurationDialogComponent from '@shared/components/dialog/gateway-remote-configuration-dialog';
 
 import * as AlarmRuleConditionDialogComponent from '@home/components/profile/alarm/alarm-rule-condition-dialog.component';
 // eslint-disable-next-line max-len
@@ -473,7 +472,6 @@ class ModulesMap implements IModulesMap {
     '@shared/components/help.component': HelpComponent,
     '@shared/components/help-markdown.component': HelpMarkdownComponent,
     '@shared/components/help-popup.component': HelpPopupComponent,
-    '@shared/components/device/gateway-remote-configuration-dialog': GatewayRemoteConfigurationDialogComponent,
     '@shared/components/tb-checkbox.component': TbCheckboxComponent,
     '@shared/components/toast.directive': TbToast,
     '@shared/components/tb-error.component': TbErrorComponent,
