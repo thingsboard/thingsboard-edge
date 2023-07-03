@@ -28,24 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.edge;
+package org.thingsboard.server.cache.resourceInfo;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.CacheSpecsMap;
+import org.thingsboard.server.cache.RedisTbTransactionalCache;
+import org.thingsboard.server.cache.TBRedisCacheConfiguration;
+import org.thingsboard.server.cache.TbFSTRedisSerializer;
+import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.TbResourceInfo;
 
-public interface EdgeEventService {
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "redis")
+@Service("ResourceInfoCache")
+public class ResourceInfoRedisCache extends RedisTbTransactionalCache<ResourceInfoCacheKey, TbResourceInfo> {
 
-    ListenableFuture<Void> saveAsync(EdgeEvent edgeEvent);
-
-    PageData<EdgeEvent> findEdgeEvents(TenantId tenantId, EdgeId edgeId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink);
-
-    /**
-     * Executes stored procedure to cleanup old edge events.
-     * @param ttl the ttl for edge events in seconds
-     */
-    void cleanupEvents(long ttl);
+    public ResourceInfoRedisCache(TBRedisCacheConfiguration configuration, CacheSpecsMap cacheSpecsMap, RedisConnectionFactory connectionFactory) {
+        super(CacheConstants.RESOURCE_INFO_CACHE, cacheSpecsMap, connectionFactory, configuration, new TbFSTRedisSerializer<>());
+    }
 }

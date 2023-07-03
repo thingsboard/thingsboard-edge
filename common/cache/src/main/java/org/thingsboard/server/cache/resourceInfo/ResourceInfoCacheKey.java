@@ -28,24 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.edge;
+package org.thingsboard.server.cache.resourceInfo;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.id.EdgeId;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
 
-public interface EdgeEventService {
+import java.io.Serializable;
 
-    ListenableFuture<Void> saveAsync(EdgeEvent edgeEvent);
+@Getter
+@EqualsAndHashCode
+@RequiredArgsConstructor
+@Builder
+public class ResourceInfoCacheKey implements Serializable {
 
-    PageData<EdgeEvent> findEdgeEvents(TenantId tenantId, EdgeId edgeId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink);
+    private final TenantId tenantId;
+    private final TbResourceId tbResourceId;
 
-    /**
-     * Executes stored procedure to cleanup old edge events.
-     * @param ttl the ttl for edge events in seconds
-     */
-    void cleanupEvents(long ttl);
+    @Override
+    public String toString() {
+        return tenantId + "_" + tbResourceId;
+    }
 }

@@ -28,24 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.edge;
+package org.thingsboard.server.cache.resourceInfo;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cache.CacheManager;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
+import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.TbResourceInfo;
 
-public interface EdgeEventService {
 
-    ListenableFuture<Void> saveAsync(EdgeEvent edgeEvent);
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
+@Service("ResourceInfoCache")
+public class ResourceInfoCaffeineCache extends CaffeineTbTransactionalCache<ResourceInfoCacheKey, TbResourceInfo> {
 
-    PageData<EdgeEvent> findEdgeEvents(TenantId tenantId, EdgeId edgeId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink);
+    public ResourceInfoCaffeineCache(CacheManager cacheManager) {
+        super(cacheManager, CacheConstants.RESOURCE_INFO_CACHE);
+    }
 
-    /**
-     * Executes stored procedure to cleanup old edge events.
-     * @param ttl the ttl for edge events in seconds
-     */
-    void cleanupEvents(long ttl);
 }
