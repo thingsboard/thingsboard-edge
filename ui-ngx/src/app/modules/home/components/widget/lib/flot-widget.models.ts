@@ -151,6 +151,7 @@ export interface TbFlotYAxisSettings {
 
 export interface TbFlotBaseSettings {
   stack: boolean;
+  enableSelection: boolean;
   shadowSize: number;
   fontColor: string;
   fontSize: number;

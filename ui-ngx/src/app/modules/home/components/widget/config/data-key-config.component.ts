@@ -37,7 +37,7 @@ import {
   ComparisonResultType,
   comparisonResultTypeTranslationMap,
   DataKey,
-  dataKeyAggregationTypeHintTranslationMap,
+  dataKeyAggregationTypeHintTranslationMap, DataKeyConfigMode,
   Widget,
   widgetType
 } from '@shared/models/widget.models';
@@ -88,6 +88,8 @@ import { coerceBoolean } from '@shared/decorators/coercion';
 })
 export class DataKeyConfigComponent extends PageComponent implements OnInit, ControlValueAccessor, Validator {
 
+  dataKeyConfigModes = DataKeyConfigMode;
+
   dataKeyTypes = DataKeyType;
 
   widgetTypes = widgetType;
@@ -105,6 +107,9 @@ export class DataKeyConfigComponent extends PageComponent implements OnInit, Con
   comparisonResults = Object.keys(ComparisonResultType);
 
   comparisonResultTypeTranslations = comparisonResultTypeTranslationMap;
+
+  @Input()
+  dataKeyConfigMode: DataKeyConfigMode;
 
   @Input()
   deviceId: string;
@@ -157,7 +162,7 @@ export class DataKeyConfigComponent extends PageComponent implements OnInit, Con
   @ViewChild('funcBodyEdit') funcBodyEdit: JsFuncComponent;
   @ViewChild('postFuncBodyEdit') postFuncBodyEdit: JsFuncComponent;
 
-  displayAdvanced = false;
+  hasAdvanced = false;
 
   modelValue: DataKey;
 
@@ -208,7 +213,7 @@ export class DataKeyConfigComponent extends PageComponent implements OnInit, Con
     }
     if (this.dataKeySettingsSchema && this.dataKeySettingsSchema.schema ||
       this.dataKeySettingsDirective && this.dataKeySettingsDirective.length) {
-      this.displayAdvanced = true;
+      this.hasAdvanced = true;
       this.dataKeySettingsData = {
         schema: this.dataKeySettingsSchema?.schema || {
           type: 'object',
@@ -306,7 +311,7 @@ export class DataKeyConfigComponent extends PageComponent implements OnInit, Con
     }
     this.dataKeyFormGroup.patchValue(this.modelValue, {emitEvent: false});
     this.updateValidators();
-    if (this.displayAdvanced) {
+    if (this.hasAdvanced) {
       this.dataKeySettingsData.model = this.modelValue.settings;
       this.dataKeySettingsFormGroup.patchValue({
         settings: this.dataKeySettingsData
@@ -385,7 +390,7 @@ export class DataKeyConfigComponent extends PageComponent implements OnInit, Con
 
   private updateModel() {
     this.modelValue = {...this.modelValue, ...this.dataKeyFormGroup.value};
-    if (this.displayAdvanced) {
+    if (this.hasAdvanced) {
       this.modelValue.settings = this.dataKeySettingsFormGroup.get('settings').value.model;
     }
     if (this.modelValue.name) {
@@ -464,7 +469,7 @@ export class DataKeyConfigComponent extends PageComponent implements OnInit, Con
         }
       };
     }
-    if (this.displayAdvanced && (!this.dataKeySettingsFormGroup.valid || !this.modelValue.settings)) {
+    if (this.hasAdvanced && (!this.dataKeySettingsFormGroup.valid || !this.modelValue.settings)) {
       return {
         dataKeySettings: {
           valid: false
