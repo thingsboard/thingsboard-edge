@@ -42,6 +42,7 @@ import {
 } from '@shared/models/widget.models';
 import { WidgetConfigComponent } from '@home/components/widget/widget-config.component';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
+import { getTimewindowConfig } from '@home/components/widget/config/timewindow-config-panel.component';
 
 @Component({
   selector: 'tb-simple-card-basic-config',
@@ -78,11 +79,7 @@ export class SimpleCardBasicConfigComponent extends BasicWidgetConfigComponent {
 
   protected onConfigSet(configData: WidgetConfigComponentData) {
     this.simpleCardWidgetConfigForm = this.fb.group({
-      timewindowConfig: [{
-        useDashboardTimewindow: configData.config.useDashboardTimewindow,
-        displayTimewindow: configData.config.useDashboardTimewindow,
-        timewindow: configData.config.timewindow
-      }, []],
+      timewindowConfig: [getTimewindowConfig(configData.config), []],
       datasources: [configData.config.datasources, []],
       label: [this.getDataKeyLabel(configData.config.datasources), []],
       labelPosition: [configData.config.settings?.labelPosition, []],

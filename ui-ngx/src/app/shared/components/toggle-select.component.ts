@@ -29,78 +29,38 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, EventEmitter, forwardRef, Input, OnInit, Output } from '@angular/core';
-import {
-  AbstractControl,
-  ControlValueAccessor,
-  UntypedFormBuilder,
-  UntypedFormGroup,
-  NG_VALUE_ACCESSOR,
-  Validators
-} from '@angular/forms';
-import { PageComponent } from '@shared/components/page.component';
+import { Component, forwardRef, Input } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { TranslateService } from '@ngx-translate/core';
-
-export interface DataKeySelectOption {
-  value: string;
-  label?: string;
-}
-
-export const dataKeySelectOptionValidator = (control: AbstractControl) => {
-    const selectOption: DataKeySelectOption = control.value;
-    if (!selectOption || !selectOption.value) {
-      return {
-        dataKeySelectOption: true
-      };
-    }
-    return null;
-};
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { _ToggleBase, ToggleHeaderAppearance } from '@shared/components/toggle-header.component';
 
 @Component({
-  selector: 'tb-datakey-select-option',
-  templateUrl: './datakey-select-option.component.html',
-  styleUrls: ['./datakey-select-option.component.scss'],
+  selector: 'tb-toggle-select',
+  templateUrl: './toggle-select.component.html',
+  styleUrls: [],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => DataKeySelectOptionComponent),
+      useExisting: forwardRef(() => ToggleSelectComponent),
       multi: true
     }
   ]
 })
-export class DataKeySelectOptionComponent extends PageComponent implements OnInit, ControlValueAccessor {
+export class ToggleSelectComponent extends _ToggleBase implements ControlValueAccessor {
 
   @Input()
   disabled: boolean;
 
   @Input()
-  expanded = false;
+  appearance: ToggleHeaderAppearance = 'stroked';
 
-  @Output()
-  removeSelectOption = new EventEmitter();
-
-  private modelValue: DataKeySelectOption;
+  modelValue: any;
 
   private propagateChange = null;
 
-  public selectOptionFormGroup: UntypedFormGroup;
-
-  constructor(protected store: Store<AppState>,
-              private translate: TranslateService,
-              private fb: UntypedFormBuilder) {
+  constructor(protected store: Store<AppState>) {
     super(store);
-  }
-
-  ngOnInit(): void {
-    this.selectOptionFormGroup = this.fb.group({
-      value: [null, [Validators.required]],
-      label: [null, []]
-    });
-    this.selectOptionFormGroup.valueChanges.subscribe(() => {
-      this.updateModel();
-    });
   }
 
   registerOnChange(fn: any): void {
@@ -112,22 +72,13 @@ export class DataKeySelectOptionComponent extends PageComponent implements OnIni
 
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
-    if (isDisabled) {
-      this.selectOptionFormGroup.disable({emitEvent: false});
-    } else {
-      this.selectOptionFormGroup.enable({emitEvent: false});
-    }
   }
 
-  writeValue(value: DataKeySelectOption): void {
+  writeValue(value: any): void {
     this.modelValue = value;
-    this.selectOptionFormGroup.patchValue(
-      value, {emitEvent: false}
-    );
   }
 
-  private updateModel() {
-    const value: DataKeySelectOption = this.selectOptionFormGroup.value;
+  updateModel(value: any) {
     this.modelValue = value;
     this.propagateChange(this.modelValue);
   }

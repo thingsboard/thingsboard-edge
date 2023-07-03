@@ -169,8 +169,7 @@ export class DataKeyRowComponent implements ControlValueAccessor, OnInit, OnChan
   }
 
   get hasAdditionalLatestDataKeys(): boolean {
-    return this.widgetConfigComponent.widgetType === widgetType.timeseries &&
-      this.widgetConfigComponent.modelValue?.typeParameters?.hasAdditionalLatestDataKeys;
+    return this.dataKeysPanelComponent.hasAdditionalLatestDataKeys;
   }
 
   get widget(): Widget {

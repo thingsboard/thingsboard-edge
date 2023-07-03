@@ -30,34 +30,11 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-flot-threshold">
-  <mat-expansion-panel class="tb-settings tb-flot-threshold-settings" fxFlex [formGroup]="thresholdFormGroup" [(expanded)]="expanded">
-    <mat-expansion-panel-header class="fill-width">
-      <div class="tb-threshold-header">
-        <div class="tb-threshold-text">{{ thresholdText() }}</div>
-        <mat-divider vertical></mat-divider>
-        <tb-color-input asBoxInput
-                        formControlName="color">
-        </tb-color-input>
-        <mat-divider vertical></mat-divider>
-      </div>
-    </mat-expansion-panel-header>
-    <ng-template matExpansionPanelContent>
-      <tb-value-source [aliasController]="aliasController" formControlName="valueSource"></tb-value-source>
-      <div class="tb-widget-config-row space-between">
-        <div translate>widgets.chart.line-width</div>
-        <mat-form-field appearance="outline" class="number" subscriptSizing="dynamic">
-          <input matInput formControlName="lineWidth" type="number" min="0" placeholder="{{ 'widget-config.set' | translate }}">
-          <span matSuffix>px</span>
-        </mat-form-field>
-      </div>
-    </ng-template>
-  </mat-expansion-panel>
-  <button *ngIf="!disabled" mat-icon-button
-          type="button"
-          (click)="removeThreshold.emit()"
-          matTooltip="{{ 'action.remove' | translate }}"
-          matTooltipPosition="above">
-    <mat-icon>delete</mat-icon>
-  </button>
-</div>
+<tb-toggle-header
+  ignoreMdLgSize="true"
+  useSelectOnMdLg="false"
+  [appearance]="appearance"
+  [options]="options"
+  [value]="modelValue"
+  (valueChange)="updateModel($event)">
+</tb-toggle-header>
