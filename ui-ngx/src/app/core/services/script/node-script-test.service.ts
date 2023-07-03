@@ -76,7 +76,8 @@ export class NodeScriptTestService {
       try {
         msg = JSON.parse(eventBody.data);
       } catch (e) {}
-    } else {
+    }
+    if (!msg) {
       msg = {
         temperature: 22.4,
         humidity: 78
@@ -86,7 +87,8 @@ export class NodeScriptTestService {
       try {
         metadata = JSON.parse(eventBody.metadata);
       } catch (e) {}
-    } else {
+    }
+    if (!metadata) {
       metadata = {
         deviceName: 'Test Device',
         deviceType: 'default',
