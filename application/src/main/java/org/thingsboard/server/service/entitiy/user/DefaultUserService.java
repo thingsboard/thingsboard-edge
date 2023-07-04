@@ -33,6 +33,7 @@ package org.thingsboard.server.service.entitiy.user;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
@@ -89,7 +90,7 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
                     entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), savedUser.getId());
                     notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, customerId, savedUser.getId(),
                             savedUser, user, ActionType.ADDED_TO_ENTITY_GROUP, false, null);
-                } else if (!entityGroups.isEmpty() && tbUser.getId() == null) {
+                } else if (!CollectionUtils.isEmpty(entityGroups) && tbUser.getId() == null) {
                     for (EntityGroup entityGroup : entityGroups) {
                         entityGroupService.addEntityToEntityGroup(tenantId, entityGroup.getId(), savedUser.getId());
                         notificationEntityService.notifyAddToEntityGroup(tenantId, savedUser.getId(), savedUser, customerId,
