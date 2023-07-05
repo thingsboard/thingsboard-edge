@@ -80,7 +80,7 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
                     "var result = {\n" +
                     "   deviceName: deviceName,\n" +
                     "   deviceType: deviceType,\n" +
-                    "   onValueUpdateAttributeKeys: [\"humidity\"],\n" +
+                    "   onValueUpdateKeys: [\"humidity\"],\n" +
                     "   attributes: {\n" +
                     "       model: data.model,\n" +
                     "       serialNumber: data.param2,\n" +
@@ -194,7 +194,7 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
 
         for (int i=0; i<4; i++) {
             // Loop is required to update all nodes in cluster mode.
-            // Cluster mode has a corner case when values for keys in onValueUpdateAttributeKeys can be updated on different nodes.
+            // Cluster mode has a corner case when values for keys in onValueUpdateKeys can be updated on different nodes.
             testRestClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, ATTRIBUTE_KEY, TELEMETRY_VALUE));
         }
 

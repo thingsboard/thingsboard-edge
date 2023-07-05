@@ -29,7 +29,6 @@ var result = {
 // assetType: assetType,
 // customerName: customerName,
    groupName: groupName,
-   onValueUpdateAttributeKeys: ['manufacturer'],
    attributes: {
        model: 'Model A',
        serialNumber: 'SN111',

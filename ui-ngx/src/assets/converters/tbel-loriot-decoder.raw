@@ -59,10 +59,6 @@ if (timestamp == -1) {
 }
 // --- Timestamp parsing
 
-// --- On value update attribute keys will only be saved if they are different from those in the previous message
-var onValueUpdateAttributeKeys = ['fPort', 'dataRange', 'freq', 'offline'];
-// --- On value update attribute keys
-
 // You can add some keys manually to attributes or telemetry
 attributes.fPort = data.port;
 attributes.dataRange = data.dr;
@@ -98,7 +94,6 @@ attributes.putAll(attributesData);
 var deviceInfo = {
     deviceName: deviceName,
     deviceType: deviceType,
-    onValueUpdateAttributeKeys: onValueUpdateAttributeKeys,
     attributes: attributes,
     telemetry: {
         ts: timestamp,

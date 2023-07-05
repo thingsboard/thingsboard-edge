@@ -64,6 +64,8 @@ import { isDefinedAndNotNull } from '@core/utils';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { takeUntil } from 'rxjs/operators';
 import { Observable, Subject } from 'rxjs';
+import {MatChipInputEvent} from "@angular/material/chips";
+import {COMMA, ENTER, SEMICOLON} from "@angular/cdk/keycodes";
 
 @Component({
   selector: 'tb-converter',
@@ -106,6 +108,8 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
 
   scriptLanguage = ScriptLanguage;
 
+  readonly separatorKeysCodes: number[] = [ENTER, COMMA, SEMICOLON];
+
   private destroy$: Subject<void>;
 
   constructor(protected store: Store<AppState>,
@@ -142,6 +146,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
             tbelDecoder: [entity && entity.configuration ? entity.configuration.tbelDecoder : null],
             encoder: [entity && entity.configuration ? entity.configuration.encoder : null],
             tbelEncoder: [entity && entity.configuration ? entity.configuration.tbelEncoder : null],
+            onValueUpdateKeys: [entity && entity.configuration ? entity.configuration.onValueUpdateKeys : []],
           }
         ),
         additionalInfo: this.fb.group(
@@ -185,11 +190,12 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     const converterType: ConverterType = form.get('type').value;
     if (converterType) {
       if (converterType === ConverterType.UPLINK) {
-        form.get('configuration').get('encoder').patchValue(null, {emitEvent: false});
-        form.get('configuration').get('tbelEncoder').patchValue(null, {emitEvent: false});
-      } else {
         form.get('configuration').get('decoder').patchValue(null, {emitEvent: false});
         form.get('configuration').get('tbelDecoder').patchValue(null, {emitEvent: false});
+        form.get('configuration').get('onValueUpdateKeys').patchValue(null, {emitEvent: false});
+      } else {
+        form.get('configuration').get('encoder').patchValue(null, {emitEvent: false});
+        form.get('configuration').get('tbelEncoder').patchValue(null, {emitEvent: false});
       }
       this.setupDefaultScriptBody(form, converterType, this.integrationType);
     }
@@ -237,11 +243,46 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
           decoder: entity.configuration ? entity.configuration.decoder : null,
           tbelDecoder: entity.configuration ? entity.configuration.tbelDecoder : null,
           encoder: entity.configuration ? entity.configuration.encoder : null,
-          tbelEncoder: entity.configuration ? entity.configuration.tbelEncoder : null
+          tbelEncoder: entity.configuration ? entity.configuration.tbelEncoder : null,
+          onValueUpdateKeys: entity.configuration ? entity.configuration.onValueUpdateKeys : []
         }
     });
     this.entityForm.patchValue({additionalInfo: {description: entity.additionalInfo ? entity.additionalInfo.description : ''}});
     this.checkIsNewConverter(entity, this.entityForm);
+  }
+
+  public keysList(): string[] {
+    return this.entityForm.get('configuration.onValueUpdateKeys').value;
+  }
+
+  public removeKey(type: string): void {
+    const keys: string[] = this.entityForm.get('configuration.onValueUpdateKeys').value;
+    const index = keys.indexOf(type);
+    if (index >= 0) {
+      keys.splice(index, 1);
+      this.entityForm.get('configuration.onValueUpdateKeys').setValue(keys);
+      this.entityForm.get('configuration.onValueUpdateKeys').markAsDirty();
+    }
+  }
+
+  public addKey(event: MatChipInputEvent): void {
+    const input = event.chipInput.inputElement;
+    const value = event.value;
+
+    let keys: string[] = this.entityForm.get('configuration.onValueUpdateKeys').value;
+
+    if ((value || '').trim()) {
+      if (!keys) {
+        keys = [];
+      }
+      keys.push(value.trim());
+      this.entityForm.get('configuration.onValueUpdateKeys').setValue(keys);
+      this.entityForm.get('configuration.onValueUpdateKeys').markAsDirty();
+    }
+
+    if (input) {
+      input.value = '';
+    }
   }
 
   onConverterIdCopied($event) {

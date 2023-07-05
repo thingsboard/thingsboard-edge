@@ -56,7 +56,7 @@ export const DecoderMap = new Map<string, string>([
   [IntegrationType.SIGFOX, tbelSigfoxDecoderTemplate],
   [IntegrationType.AZURE_IOT_HUB, tbelAzureDecoderTemplate],
   [IntegrationType.AZURE_EVENT_HUB, tbelAzureDecoderTemplate],
-  [IntegrationType.AZURE_EVENT_HUB, tbelAzureDecoderTemplate],
+  [IntegrationType.AZURE_SERVICE_BUS, tbelAzureDecoderTemplate],
   [IntegrationType.AWS_IOT, tbelAWSIOTDecoderTemplate]
 ]);
 

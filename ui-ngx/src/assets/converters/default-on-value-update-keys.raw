@@ -1,0 +1,12 @@
+{
+  "DEFAULT": ["manufacturer"],
+  "CHIRPSTACK" : ["tenantId", "tenantName", "applicationId", "applicationName", "deviceProfileId", "deviceProfileName", "devEui", "fPort", "devAddr", "frequency", "bandwidth", "spreadingFactor", "codeRate"],
+  "LORIOT" : ["fPort", "dataRange", "freq", "offline"],
+  "TTI" : ["fPort", "devEui", "bandwidth", "spreading_factor", "coding_rate", "frequency", "net_id", "tenant_id", "cluster_id", "cluster_address", "device_id", "application_id", "join_eui", "dev_addr", "tenant_address"],
+  "TTN" : ["fPort", "devEui", "bandwidth", "spreading_factor", "coding_rate", "frequency", "net_id", "tenant_id", "cluster_id", "cluster_address", "device_id", "application_id", "join_eui", "dev_addr"],
+  "SIGFOX" : ["sigfoxId", "deviceTypeId", "autoCalibration", "zeroPointAdjusted", "transmitPower", "powerControl", "fwVersion"],
+  "AZURE_IOT_HUB" : ["manufacturer", "version"],
+  "AZURE_EVENT_HUB" : ["manufacturer", "version"],
+  "AZURE_SERVICE_BUS" : ["manufacturer", "version"],
+  "AWS_IOT" : ["deviceId"]
+}

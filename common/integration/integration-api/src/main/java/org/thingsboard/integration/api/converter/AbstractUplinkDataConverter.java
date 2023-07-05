@@ -31,6 +31,7 @@
 package org.thingsboard.integration.api.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.JsonElement;
@@ -48,6 +49,7 @@ import org.thingsboard.script.api.js.JsInvokeService;
 import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
 
@@ -69,8 +71,10 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
 
     private static final String DEFAULT_DEVICE_TYPE = "default";
 
-    private Set<String> onValueUpdateAttributeKeys;
-    private Map<String, Map<String, Integer>> currentValuesForOnUpdateAttributeKeysPerEntities;
+    private static final int MAX_ALLOWED_STRING_LENGTH = 32;
+
+    private Set<String> onValueUpdateKeys;
+    private Map<String, Map<String, String>> currentOnValueUpdatePerEntity;
 
     public AbstractUplinkDataConverter(JsInvokeService jsInvokeService, TbelInvokeService tbelInvokeService) {
         super(jsInvokeService, tbelInvokeService);
@@ -79,13 +83,20 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
     @Override
     public void init(Converter configuration) {
         this.configuration = configuration;
-        this.onValueUpdateAttributeKeys = new HashSet<>();
-        this.currentValuesForOnUpdateAttributeKeysPerEntities = new HashMap<>();
+        JsonNode configurationNode = configuration.getConfiguration();
+        this.onValueUpdateKeys = new HashSet<>();
+
+        if (configurationNode.has("onValueUpdateKeys") && configurationNode.get("onValueUpdateKeys").isArray()) {
+            for (JsonNode key : configurationNode.get("onValueUpdateKeys")) {
+                this.onValueUpdateKeys.add(getAllowedValue(key.asText()));
+            }
+        }
+
+        this.currentOnValueUpdatePerEntity = new HashMap<>();
     }
 
     @Override
-    public ListenableFuture<List<UplinkData>> convertUplink(ConverterContext context, byte[] data, UplinkMetaData metadata,
-                                                            ExecutorService callBackExecutorService) throws Exception {
+    public ListenableFuture<List<UplinkData>> convertUplink(ConverterContext context, byte[] data, UplinkMetaData metadata, ExecutorService callBackExecutorService) throws Exception {
         long startTime = System.currentTimeMillis();
         ListenableFuture<String> convertFuture = doConvertUplink(data, metadata);
         ListenableFuture<List<UplinkData>> result = Futures.transform(convertFuture, rawResult -> {
@@ -153,63 +164,97 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         if (src.has("groupName")) {
             builder.groupName(src.get("groupName").getAsString());
         }
+
+        Map<String, String> currentOnValueUpdate = new HashMap<>(this.currentOnValueUpdatePerEntity.getOrDefault(entityName, new HashMap<>()));
+        HashMap<String, String> telemetryOriginOnValueUpdate = new HashMap<>(currentOnValueUpdate);
+        HashMap<String, String> attributeOriginOnValueUpdate = new HashMap<>(currentOnValueUpdate);
         if (src.has("telemetry")) {
-            builder.telemetry(parseTelemetry(src.get("telemetry")));
-        }
-        if (src.has("onValueUpdateAttributeKeys")) {
-            src.get("onValueUpdateAttributeKeys").getAsJsonArray()
-                    .forEach(jsonElement -> {
-                        String key = jsonElement.getAsString();
-                        String mapKey = key.length() > 16 ? DigestUtils.sha1Hex(key) : key;
-                        this.onValueUpdateAttributeKeys.add(mapKey);
-                    });
+            PostTelemetryMsg parsedTelemetry = parseTelemetry(src.get("telemetry"));
+            if (!this.onValueUpdateKeys.isEmpty()) {
+                parsedTelemetry = filterTelemetryOnKeyValueUpdate(parsedTelemetry, currentOnValueUpdate, telemetryOriginOnValueUpdate);
+            }
+            builder.telemetry(parsedTelemetry);
         }
         if (src.has("attributes")) {
-            JsonElement filteredAttributes = filterOnUpdateAttributeKeysForEntity(src.get("attributes").getAsJsonObject(), entityName);
-            builder.attributesUpdate(parseAttributesUpdate(filteredAttributes));
+            PostAttributeMsg attributes = parseAttributesUpdate(src.get("attributes"));
+            if (!this.onValueUpdateKeys.isEmpty()) {
+                attributes = filterAttributeOnKeyValueUpdate(attributes, currentOnValueUpdate, attributeOriginOnValueUpdate);
+            }
+            builder.attributesUpdate(attributes);
+        }
+
+        if (!currentOnValueUpdate.isEmpty()) {
+            this.currentOnValueUpdatePerEntity.put(entityName, currentOnValueUpdate);
         }
 
         //TODO: add support of attribute requests and client-side RPC.
         return builder.build();
     }
 
-    private JsonElement filterOnUpdateAttributeKeysForEntity(JsonObject data, String entityName) {
-        JsonObject dataObject = new JsonObject();
-        Map<String, Integer> currentEntityKeyValues = this.currentValuesForOnUpdateAttributeKeysPerEntities.getOrDefault(entityName, new HashMap<>());
+    private PostTelemetryMsg filterTelemetryOnKeyValueUpdate(PostTelemetryMsg telemetry, Map<String, String> currentEntityKeyValues, Map<String, String> originalValues) {
+        PostTelemetryMsg.Builder filteredTelemetryBuilder = PostTelemetryMsg.newBuilder();
+        for (TransportProtos.TsKvListProto tsKvList : telemetry.getTsKvListList()) {
+            TransportProtos.TsKvListProto.Builder filteredTsKvListBuilder = TransportProtos.TsKvListProto.newBuilder().setTs(tsKvList.getTs());
 
-        if (this.currentValuesForOnUpdateAttributeKeysPerEntities.containsKey(entityName)) {
+            List<TransportProtos.KeyValueProto> filtered = filterKeyValue(currentEntityKeyValues, tsKvList.getKvList(), originalValues);
+            filteredTsKvListBuilder.addAllKv(filtered);
 
-            for (Map.Entry<String, JsonElement> mapEntry : data.entrySet()) {
-                String key = mapEntry.getKey();
-                String mapKey = key.length() > 16 ? DigestUtils.sha1Hex(key) : key;
-                JsonElement value = mapEntry.getValue();
-
-                if (!this.onValueUpdateAttributeKeys.contains(mapKey) ||
-                        !(currentEntityKeyValues.containsKey(mapKey) && currentEntityKeyValues.get(mapKey).equals(value.hashCode()))) {
-                    dataObject.add(key, value);
-                    if (currentEntityKeyValues.containsKey(mapKey)) {
-                        currentEntityKeyValues.put(mapKey, value.hashCode());
-                    }
-                }
+            if (!filteredTsKvListBuilder.getKvList().isEmpty()) {
+                filteredTelemetryBuilder.addTsKvList(filteredTsKvListBuilder.build());
             }
-        } else {
-            for (Map.Entry<String, JsonElement> mapEntry : data.entrySet()) {
-                String key = mapEntry.getKey();
-                String mapKey = key.length() > 16 ? DigestUtils.sha1Hex(key) : key;
-                JsonElement value = mapEntry.getValue();
-
-                if (this.onValueUpdateAttributeKeys.contains(mapKey)) {
-                    currentEntityKeyValues.put(mapKey, value.hashCode());
-                }
-            }
-            this.currentValuesForOnUpdateAttributeKeysPerEntities.put(entityName, currentEntityKeyValues);
-            return data;
         }
 
-        this.currentValuesForOnUpdateAttributeKeysPerEntities.put(entityName, currentEntityKeyValues);
-        return dataObject;
+        return !currentEntityKeyValues.isEmpty() ? filteredTelemetryBuilder.build() : telemetry;
     }
 
+    private PostAttributeMsg filterAttributeOnKeyValueUpdate(PostAttributeMsg attributes, Map<String, String> currentEntityKeyValues, Map<String, String> originalValues) {
+        PostAttributeMsg.Builder filteredAttributesBuilder = PostAttributeMsg.newBuilder();
+        List<TransportProtos.KeyValueProto> filtered = filterKeyValue(currentEntityKeyValues, attributes.getKvList(), originalValues);
+        filteredAttributesBuilder.addAllKv(filtered);
+        return !currentEntityKeyValues.isEmpty() ? filteredAttributesBuilder.build() : attributes;
+    }
+
+    private List<TransportProtos.KeyValueProto> filterKeyValue(Map<String, String> currentEntityKeyValues, List<TransportProtos.KeyValueProto> kvList, Map<String, String> originalValues) {
+        List<TransportProtos.KeyValueProto> filtered = new ArrayList<>();
+        for (TransportProtos.KeyValueProto keyValue : kvList) {
+            String key = getAllowedValue(keyValue.getKey());
+            boolean isOnValueUpdate = this.onValueUpdateKeys.contains(key);
+            if (isOnValueUpdate) {
+                String value = getValueAsAllowedString(keyValue);
+
+                boolean shouldAddToResult = originalValues.isEmpty() ||
+                        (!this.onValueUpdateKeys.contains(key) ||
+                        !originalValues.containsKey(key) ||
+                        !originalValues.get(key).equals(value));
+                if (shouldAddToResult) {
+                    filtered.add(keyValue);
+                    if (!originalValues.containsKey(key) || !originalValues.get(key).equals(value)) {
+                        currentEntityKeyValues.put(key, value);
+                    }
+                }
+            } else {
+                filtered.add(keyValue);
+            }
+        }
+        return filtered;
+    }
+
+    private String getValueAsAllowedString(TransportProtos.KeyValueProto keyValueProto) {
+        switch (keyValueProto.getType()) {
+            case STRING_V:
+                return getAllowedValue(keyValueProto.getStringV());
+            case JSON_V:
+                return getAllowedValue(keyValueProto.getJsonV());
+            case DOUBLE_V:
+                return getAllowedValue(String.valueOf(keyValueProto.getDoubleV()));
+            case LONG_V:
+                return getAllowedValue(String.valueOf(keyValueProto.getLongV()));
+            case BOOLEAN_V:
+                return getAllowedValue(String.valueOf(keyValueProto.getBoolV()));
+            default:
+                return null;
+        }
+    }
 
     private boolean getIsAssetAndVerify(JsonObject src) {
         boolean isAsset;
@@ -265,5 +310,9 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
 
     private String getTypeUplink(byte[] inMessage) throws JsonProcessingException {
         return (inMessage != null && inMessage.length > 23 && Arrays.equals(Arrays.copyOfRange(inMessage, 1, 23), JacksonUtil.writeValueAsBytes("DevEUI_downlink_Sent"))) ? "Downlink_Sent" : "Uplink";
+    }
+
+    private String getAllowedValue(String incoming) {
+        return incoming.length() > MAX_ALLOWED_STRING_LENGTH ? DigestUtils.sha1Hex(incoming) : incoming;
     }
 }

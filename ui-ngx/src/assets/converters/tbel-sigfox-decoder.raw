@@ -31,7 +31,6 @@ var result = {
     // Use deviceName and deviceType or assetName and assetType, but not both.
     deviceName: deviceName,
     deviceType: deviceType,
-    onValueUpdateAttributeKeys: ['sigfoxId', 'deviceTypeId', 'autoCalibration', 'zeroPointAdjusted', 'transmitPower', 'powerControl', 'fwVersion'],
     attributes: {
         sigfoxId: json.device,
         deviceTypeId: json.deviceTypeId,
