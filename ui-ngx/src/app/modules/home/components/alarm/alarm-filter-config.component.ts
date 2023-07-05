@@ -44,7 +44,7 @@ import {
   ViewContainerRef
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { AlarmFilterConfig } from '@shared/models/query/query.models';
+import { AlarmFilterConfig, alarmFilterConfigEquals } from '@shared/models/query/query.models';
 import { coerceBoolean } from '@shared/decorators/coercion';
 import { ConnectedPosition, Overlay, OverlayConfig, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
@@ -58,6 +58,7 @@ import {
 import { MatChipInputEvent } from '@angular/material/chips';
 import { COMMA, ENTER, SEMICOLON } from '@angular/cdk/keycodes';
 import { TranslateService } from '@ngx-translate/core';
+import { deepClone } from '@core/utils';
 
 export const ALARM_FILTER_CONFIG_DATA = new InjectionToken<any>('AlarmFilterConfigData');
 
@@ -65,6 +66,7 @@ export interface AlarmFilterConfigData {
   panelMode: boolean;
   userMode: boolean;
   alarmFilterConfig: AlarmFilterConfig;
+  initialAlarmFilterConfig?: AlarmFilterConfig;
 }
 
 // @dynamic
@@ -98,6 +100,9 @@ export class AlarmFilterConfigComponent implements OnInit, OnDestroy, ControlVal
   @coerceBoolean()
   @Input()
   propagatedFilter = true;
+
+  @Input()
+  initialAlarmFilterConfig: AlarmFilterConfig;
 
   panelMode = false;
 
@@ -143,6 +148,10 @@ export class AlarmFilterConfigComponent implements OnInit, OnDestroy, ControlVal
       this.panelMode = this.data.panelMode;
       this.userMode = this.data.userMode;
       this.alarmFilterConfig = this.data.alarmFilterConfig;
+      this.initialAlarmFilterConfig = this.data.initialAlarmFilterConfig;
+      if (this.panelMode && !this.initialAlarmFilterConfig) {
+        this.initialAlarmFilterConfig = deepClone(this.alarmFilterConfig);
+      }
     }
     this.alarmFilterConfigForm = this.fb.group({
       statusList: [null, []],
@@ -184,6 +193,9 @@ export class AlarmFilterConfigComponent implements OnInit, OnDestroy, ControlVal
 
   writeValue(alarmFilterConfig?: AlarmFilterConfig): void {
     this.alarmFilterConfig = alarmFilterConfig;
+    if (!this.initialAlarmFilterConfig && alarmFilterConfig) {
+      this.initialAlarmFilterConfig = deepClone(alarmFilterConfig);
+    }
     this.updateButtonDisplayValue();
     this.updateAlarmConfigForm(alarmFilterConfig);
   }
@@ -229,6 +241,7 @@ export class AlarmFilterConfigComponent implements OnInit, OnDestroy, ControlVal
 
   update() {
     this.alarmConfigUpdated(this.alarmFilterConfigForm.value);
+    this.alarmFilterConfigForm.markAsPristine();
     if (this.panelMode) {
       this.panelResult = this.alarmFilterConfig;
     }
@@ -236,6 +249,25 @@ export class AlarmFilterConfigComponent implements OnInit, OnDestroy, ControlVal
       this.overlayRef.dispose();
     } else {
       this.alarmFilterOverlayRef.dispose();
+    }
+  }
+
+  reset() {
+    if (this.initialAlarmFilterConfig) {
+      if (this.buttonMode || this.panelMode) {
+        const alarmFilterConfig = this.alarmFilterConfigFromFormValue(this.alarmFilterConfigForm.value);
+        if (!alarmFilterConfigEquals(alarmFilterConfig, this.initialAlarmFilterConfig)) {
+          this.updateAlarmConfigForm(this.initialAlarmFilterConfig);
+          this.alarmFilterConfigForm.markAsDirty();
+        }
+      } else {
+        if (!alarmFilterConfigEquals(this.alarmFilterConfig, this.initialAlarmFilterConfig)) {
+          this.alarmFilterConfig = this.initialAlarmFilterConfig;
+          this.updateButtonDisplayValue();
+          this.updateAlarmConfigForm(this.alarmFilterConfig);
+          this.propagateChange(this.alarmFilterConfig);
+        }
+      }
     }
   }
 
@@ -285,7 +317,13 @@ export class AlarmFilterConfigComponent implements OnInit, OnDestroy, ControlVal
   }
 
   private alarmConfigUpdated(formValue: any) {
-    this.alarmFilterConfig = {
+    this.alarmFilterConfig = this.alarmFilterConfigFromFormValue(formValue);
+    this.updateButtonDisplayValue();
+    this.propagateChange(this.alarmFilterConfig);
+  }
+
+  private alarmFilterConfigFromFormValue(formValue: any): AlarmFilterConfig {
+    return {
       statusList: formValue.statusList,
       severityList: formValue.severityList,
       typeList: formValue.typeList,
@@ -293,8 +331,6 @@ export class AlarmFilterConfigComponent implements OnInit, OnDestroy, ControlVal
       assignedToCurrentUser: formValue.assigneeId === AlarmAssigneeOption.currentUser,
       assigneeId: formValue.assigneeId?.id ? formValue.assigneeId : null
     };
-    this.updateButtonDisplayValue();
-    this.propagateChange(this.alarmFilterConfig);
   }
 
   private updateButtonDisplayValue() {

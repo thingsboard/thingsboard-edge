@@ -405,7 +405,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
     this.pageLink.pageSize = this.displayPagination ? this.defaultPageSize : 1024;
 
-    const alarmFilter = this.entityService.resolveAlarmFilter(this.widgetConfig.alarmFilterConfig);
+    const alarmFilter = this.entityService.resolveAlarmFilter(this.widgetConfig.alarmFilterConfig, false);
     this.pageLink = {...this.pageLink, ...alarmFilter};
 
     this.noDataDisplayMessageText =
@@ -646,7 +646,8 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
             searchPropagatedAlarms: this.pageLink.searchPropagatedAlarms,
             assignedToCurrentUser,
             assigneeId
-          }
+          },
+          initialAlarmFilterConfig: deepClone(this.widgetConfig.alarmFilterConfig)
         } as AlarmFilterConfigData
       },
       {
@@ -660,7 +661,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     componentRef.onDestroy(() => {
       if (componentRef.instance.panelResult) {
         const result = componentRef.instance.panelResult;
-        const alarmFilter = this.entityService.resolveAlarmFilter(result);
+        const alarmFilter = this.entityService.resolveAlarmFilter(result, false);
         this.pageLink = {...this.pageLink, ...alarmFilter};
         this.resetPageIndex();
         this.updateData();
