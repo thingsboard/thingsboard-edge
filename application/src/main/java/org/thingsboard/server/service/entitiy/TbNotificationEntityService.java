@@ -81,32 +81,19 @@ public interface TbNotificationEntityService {
                                                                     List<EdgeId> relatedEdgeIds,
                                                                     User user, Object... additionalInfo);
 
-    void notifyDeleteAlarm(TenantId tenantId, Alarm alarm, EntityId originatorId, CustomerId customerId,
-                           List<EdgeId> relatedEdgeIds, User user, String body, Object... additionalInfo);
-
     <E extends HasName, I extends EntityId> void notifyCreateOrUpdateEntity(TenantId tenantId, I entityId, E entity,
                                                                             CustomerId customerId, ActionType actionType,
                                                                             User user, Object... additionalInfo);
 
-    void notifyDeleteRuleChain(TenantId tenantId, RuleChain ruleChain,
-                               List<EdgeId> relatedEdgeIds, User user);
-
     <I extends EntityId> void notifySendMsgToEdgeService(TenantId tenantId, I entityId, EdgeEventType edgeEventType,
                                                          EdgeEventActionType edgeEventActionType);
-
-    <I extends EntityId> void notifySendMsgToEdgeService(TenantId tenantId, I entityId, EdgeEventActionType edgeEventActionType);
-
-    <E extends HasName, I extends EntityId> void notifyAssignOrUnassignEntityToEdge(TenantId tenantId, I entityId,
-                                                                                    CustomerId customerId, EdgeId edgeId,
-                                                                                    E entity, ActionType actionType,
-                                                                                    User user, Object... additionalInfo);
 
     void notifyCreateOrUpdateTenant(Tenant tenant, ComponentLifecycleEvent event);
 
     void notifyDeleteTenant(Tenant tenant);
 
     void notifyDeleteDevice(TenantId tenantId, DeviceId deviceId, CustomerId customerId, Device device,
-                            List<EdgeId> relatedEdgeIds, User user, Object... additionalInfo);
+                            User user, Object... additionalInfo);
 
     void notifyUpdateDeviceCredentials(TenantId tenantId, DeviceId deviceId, CustomerId customerId, Device device,
                                        DeviceCredentials deviceCredentials, User user);
@@ -127,6 +114,6 @@ public interface TbNotificationEntityService {
                                                                               ActionType actionType, boolean sendNotifyMsgToEdge,
                                                                               Exception e, Object... additionalInfo);
 
-    void notifyRelation(TenantId tenantId, CustomerId customerId, EntityRelation relation, User user,
-                        ActionType actionType, Object... additionalInfo);
+    void logEntityRelationAction(TenantId tenantId, CustomerId customerId, EntityRelation relation, User user,
+                                 ActionType actionType, Object... additionalInfo);
 }

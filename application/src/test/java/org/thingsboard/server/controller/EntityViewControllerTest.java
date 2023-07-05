@@ -73,9 +73,8 @@ import org.thingsboard.server.common.data.query.EntityKey;
 import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.dao.entityview.EntityViewDao;
-import org.thingsboard.server.exception.DataValidationException;
-import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -179,7 +178,7 @@ public class EntityViewControllerTest extends AbstractControllerTest {
         testBroadcastEntityStateChangeEventTime(foundEntityView.getId(), tenantId, 1);
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(foundEntityView, foundEntityView,
                 tenantId, tenantAdminCustomerId, tenantAdminUserId, TENANT_ADMIN_EMAIL,
-                ActionType.ADDED, ActionType.ADDED, 1, 0, 1);
+                ActionType.ADDED, ActionType.ADDED, 1, 1, 1);
         Mockito.reset(tbClusterService, auditLogService);
 
         savedView.setName("New test entity view");

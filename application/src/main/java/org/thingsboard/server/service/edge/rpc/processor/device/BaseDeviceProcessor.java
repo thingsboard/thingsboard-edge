@@ -67,6 +67,8 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
         boolean deviceNameUpdated = false;
         deviceCreationLock.lock();
         try {
+            edgeSynchronizationManager.getSync().set(true);
+
             Device device = deviceService.findDeviceById(tenantId, deviceId);
             String deviceName = deviceUpdateMsg.getName();
             if (device == null) {
@@ -118,8 +120,9 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
                 entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
             }
             safeAddToEntityGroup(tenantId, deviceUpdateMsg, deviceId);
-            tbClusterService.onDeviceUpdated(savedDevice, created ? null : device, false);
+            tbClusterService.onDeviceUpdated(savedDevice, created ? null : device);
         } finally {
+            edgeSynchronizationManager.getSync().remove();
             deviceCreationLock.unlock();
         }
         return Pair.of(created, deviceNameUpdated);
@@ -142,6 +145,8 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
                 log.debug("Updating device credentials for device [{}]. New device credentials Id [{}], value [{}]",
                         device.getName(), deviceCredentialsUpdateMsg.getCredentialsId(), deviceCredentialsUpdateMsg.getCredentialsValue());
                 try {
+                    edgeSynchronizationManager.getSync().set(true);
+
                     DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, device.getId());
                     deviceCredentials.setCredentialsType(DeviceCredentialsType.valueOf(deviceCredentialsUpdateMsg.getCredentialsType()));
                     deviceCredentials.setCredentialsId(deviceCredentialsUpdateMsg.getCredentialsId());
@@ -152,6 +157,8 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
                     log.error("Can't update device credentials for device [{}], deviceCredentialsUpdateMsg [{}]",
                             device.getName(), deviceCredentialsUpdateMsg, e);
                     throw new RuntimeException(e);
+                } finally {
+                    edgeSynchronizationManager.getSync().remove();
                 }
             } else {
                 log.warn("Can't find device by id [{}], deviceCredentialsUpdateMsg [{}]", deviceId, deviceCredentialsUpdateMsg);

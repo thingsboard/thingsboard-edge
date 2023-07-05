@@ -40,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmApiCallResult;
@@ -55,9 +56,11 @@ import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.alarm.AlarmStatusFilter;
 import org.thingsboard.server.common.data.alarm.AlarmUpdateRequest;
 import org.thingsboard.server.common.data.alarm.EntityAlarm;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ApiUsageLimitsExceededException;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -74,6 +77,8 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityService;
+import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.owner.OwnerService;
 import org.thingsboard.server.dao.service.ConstraintValidator;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -110,7 +115,12 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
     @Override
     public AlarmApiCallResult updateAlarm(AlarmUpdateRequest request) {
         validateAlarmRequest(request);
-        return withPropagated(alarmDao.updateAlarm(request));
+        var result = withPropagated(alarmDao.updateAlarm(request));
+        if (result.isModified()) {
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getAlarm().getTenantId())
+                    .entityId(result.getAlarm().getId()).build());
+        }
+        return result;
     }
 
     @Override
@@ -132,17 +142,23 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
         if (!result.isSuccessful() && !alarmCreationEnabled) {
             throw new ApiUsageLimitsExceededException("Alarms creation is disabled");
         }
+        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getAlarm().getTenantId())
+                .entityId(result.getAlarm().getId()).added(true).build());
         return withPropagated(result);
     }
 
     @Override
     public AlarmApiCallResult acknowledgeAlarm(TenantId tenantId, AlarmId alarmId, long ackTs) {
-        return withPropagated(alarmDao.acknowledgeAlarm(tenantId, alarmId, ackTs));
+        var result = withPropagated(alarmDao.acknowledgeAlarm(tenantId, alarmId, ackTs));
+        eventPublisher.publishEvent(new ActionEntityEvent(tenantId, null, result.getAlarm().getId(), null, ActionType.ALARM_ACK));
+        return result;
     }
 
     @Override
     public AlarmApiCallResult clearAlarm(TenantId tenantId, AlarmId alarmId, long clearTs, JsonNode details) {
-        return withPropagated(alarmDao.clearAlarm(tenantId, alarmId, clearTs, details));
+        var result = withPropagated(alarmDao.clearAlarm(tenantId, alarmId, clearTs, details));
+        eventPublisher.publishEvent(new ActionEntityEvent(tenantId, null, result.getAlarm().getId(), null, ActionType.ALARM_CLEAR));
+        return result;
     }
 
     @Override
@@ -206,8 +222,14 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
         if (alarm == null) {
             return AlarmApiCallResult.builder().successful(false).build();
         } else {
-            deleteEntityRelations(tenantId, alarm.getId());
+            List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, alarm.getOriginator());
+            deleteEntityRelations(tenantId, alarm.getOriginator());
             alarmDao.removeById(tenantId, alarm.getUuidId());
+            if (!CollectionUtils.isEmpty(relatedEdgeIds)) {
+                for (EdgeId relatedEdgeId : relatedEdgeIds) {
+                    eventPublisher.publishEvent(new ActionEntityEvent(tenantId, relatedEdgeId, alarmId, JacksonUtil.toString(alarm), ActionType.DELETED));
+                }
+            }
             return AlarmApiCallResult.builder().alarm(alarm).deleted(true).successful(true).build();
         }
     }
@@ -328,12 +350,16 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
 
     @Override
     public AlarmApiCallResult assignAlarm(TenantId tenantId, AlarmId alarmId, UserId assigneeId, long assignTime) {
-        return withPropagated(alarmDao.assignAlarm(tenantId, alarmId, assigneeId, assignTime));
+        var result = withPropagated(alarmDao.assignAlarm(tenantId, alarmId, assigneeId, assignTime));
+        eventPublisher.publishEvent(new ActionEntityEvent(tenantId, null, result.getAlarm().getId(), null, ActionType.ALARM_ASSIGNED));
+        return result;
     }
 
     @Override
     public AlarmApiCallResult unassignAlarm(TenantId tenantId, AlarmId alarmId, long unassignTime) {
-        return withPropagated(alarmDao.unassignAlarm(tenantId, alarmId, unassignTime));
+        var result = withPropagated(alarmDao.unassignAlarm(tenantId, alarmId, unassignTime));
+        eventPublisher.publishEvent(new ActionEntityEvent(tenantId, null, result.getAlarm().getId(), null, ActionType.ALARM_UNASSIGNED));
+        return result;
     }
 
     @Override

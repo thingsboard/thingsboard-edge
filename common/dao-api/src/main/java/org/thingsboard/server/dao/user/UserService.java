@@ -64,7 +64,7 @@ public interface UserService extends EntityDaoService {
 
     User changeOwner(User user, EntityId targetOwnerId);
 
-	User saveUser(User user);
+	User saveUser(TenantId tenantId, User user);
 
 	UserCredentials findUserCredentialsByUserId(TenantId tenantId, UserId userId);
 

@@ -60,8 +60,8 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.customer.CustomerDao;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -136,9 +136,9 @@ public class CustomerControllerTest extends AbstractControllerTest {
 
         Customer savedCustomer = doPost("/api/customer", customer, Customer.class);
 
-        testNotifyManyEntityManyTimeMsgToEdgeServiceNever(savedCustomer, savedCustomer,
-                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, 1);
+        testNotifyEntityEntityGroupNullAllOneTime(savedCustomer, savedCustomer.getId(), savedCustomer.getId(), savedCustomer.getTenantId(),
+                new CustomerId(CustomerId.NULL_UUID), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.ADDED);
 
         Assert.assertNotNull(savedCustomer);
         Assert.assertNotNull(savedCustomer.getId());
@@ -283,7 +283,7 @@ public class CustomerControllerTest extends AbstractControllerTest {
 
         testNotifyEntityAllOneTimeLogEntityActionEntityEqClass(savedCustomer, savedCustomer.getId(),
                 savedCustomer.getId(), savedCustomer.getTenantId(), savedCustomer.getId(), tenantAdmin.getId(),
-                tenantAdmin.getEmail(), ActionType.DELETED, savedCustomer.getId().getId().toString());
+                tenantAdmin.getEmail(), ActionType.DELETED, ActionType.DELETED, savedCustomer.getId().getId().toString());
     }
 
     @Test
@@ -313,7 +313,7 @@ public class CustomerControllerTest extends AbstractControllerTest {
 
         testNotifyEntityAllOneTimeLogEntityActionEntityEqClass(savedCustomer, savedCustomer.getId(),
                 savedCustomer.getId(), savedCustomer.getTenantId(), savedCustomer.getId(), tenantAdmin.getId(),
-                tenantAdmin.getEmail(), ActionType.DELETED, savedCustomer.getId().getId().toString());
+                tenantAdmin.getEmail(), ActionType.DELETED, ActionType.DELETED, savedCustomer.getId().getId().toString());
 
         String customerIdStr = savedCustomer.getId().getId().toString();
         doGet("/api/customer/" + customerIdStr)
@@ -377,7 +377,7 @@ public class CustomerControllerTest extends AbstractControllerTest {
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new Customer(), new Customer(),
                 tenantId, tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, ActionType.ADDED, cntEntity, 0, cntEntity);
+                ActionType.ADDED, ActionType.ADDED, cntEntity, cntEntity, cntEntity);
 
         List<Customer> loadedCustomers = new ArrayList<>(135);
         PageLink pageLink = new PageLink(23);

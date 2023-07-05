@@ -86,7 +86,6 @@ import org.thingsboard.server.common.data.blob.BlobEntityWithCustomerInfo;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.edge.EdgeInfo;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -201,8 +200,6 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.action.EntityActionService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.edge.EdgeLicenseService;
-import org.thingsboard.server.service.edge.instructions.EdgeInstallService;
-import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
 import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
 import org.thingsboard.server.service.entitiy.user.TbUserSettingsService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
@@ -410,12 +407,6 @@ public abstract class BaseController {
 
     @Autowired(required = false)
     protected EdgeService edgeService;
-
-    @Autowired(required = false)
-    protected EdgeRpcService edgeRpcService;
-
-    @Autowired(required = false)
-    protected EdgeInstallService edgeInstallService;
 
     @Autowired(required = false)
     protected EdgeLicenseService edgeLicenseService;
@@ -1230,7 +1221,7 @@ public abstract class BaseController {
                         log.warn("[{}][{}] Failed to push change owner event to core: {} {}", tenantId, entityId, previousOwnerId, e);
                     }
                 }
-                sendNotificationMsgToEdge(tenantId, edgeId, entityId, body, null, EdgeEventActionType.CHANGE_OWNER);
+                sendNotificationMsgToEdge(tenantId, edgeId, entityId, body, EdgeEventActionType.CHANGE_OWNER);
             }
         }
     }
@@ -1238,7 +1229,7 @@ public abstract class BaseController {
     protected void sendDeleteNotificationMsg(TenantId tenantId, EntityId entityId, List<EdgeId> edgeIds) {
         if (edgeIds != null && !edgeIds.isEmpty()) {
             for (EdgeId edgeId : edgeIds) {
-                sendNotificationMsgToEdge(tenantId, edgeId, entityId, null, null, EdgeEventActionType.DELETED);
+                sendNotificationMsgToEdge(tenantId, edgeId, entityId, null, EdgeEventActionType.DELETED);
             }
         }
     }
@@ -1268,29 +1259,29 @@ public abstract class BaseController {
     }
 
     protected void sendEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action) {
-        sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action);
+        sendNotificationMsgToEdge(tenantId, null, entityId, null, action);
     }
 
     protected void sendEntityAssignToEdgeNotificationMsg(TenantId tenantId, EdgeId edgeId, EntityId entityId, EdgeEventActionType action) {
-        sendNotificationMsgToEdge(tenantId, edgeId, entityId, null, null, action);
+        sendNotificationMsgToEdge(tenantId, edgeId, entityId, null, action);
     }
 
     protected void sendEntityAssignToEdgeNotificationMsg(TenantId tenantId, EdgeId edgeId, EntityId entityId, EntityType groupType, EdgeEventActionType action) {
-        sendNotificationMsgToEdge(tenantId, edgeId, entityId, null, null, action, groupType, null);
+        sendNotificationMsgToEdge(tenantId, edgeId, entityId, action, groupType, null);
     }
 
     protected void sendGroupEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action, EntityGroupId entityGroupId) {
-        sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action, entityId.getEntityType(), entityGroupId);
+        sendNotificationMsgToEdge(tenantId, null, entityId, action, entityId.getEntityType(), entityGroupId);
     }
 
-    private void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
-                                           EdgeEventType type, EdgeEventActionType action,
+    private void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId,
+                                           EdgeEventActionType action,
                                            EntityType entityGroupType, EntityGroupId entityGroupId) {
-        tbClusterService.sendNotificationMsgToEdge(tenantId, edgeId, entityId, body, type, action, entityGroupType, entityGroupId);
+        tbClusterService.sendNotificationMsgToEdge(tenantId, edgeId, entityId, null, null, action, entityGroupType, entityGroupId);
     }
 
-    private void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body, EdgeEventType type, EdgeEventActionType action) {
-        tbClusterService.sendNotificationMsgToEdge(tenantId, edgeId, entityId, body, type, action);
+    private void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body, EdgeEventActionType action) {
+        tbClusterService.sendNotificationMsgToEdge(tenantId, edgeId, entityId, body, null, action);
     }
 
     protected List<EdgeId> findRelatedEdgeIds(TenantId tenantId, EntityId entityId) {

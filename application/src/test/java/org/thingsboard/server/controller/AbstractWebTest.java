@@ -111,6 +111,7 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -205,6 +206,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected String username;
 
     protected TenantId tenantId;
+    protected TenantProfileId tenantProfileId;
     protected UserId tenantAdminUserId;
     protected User tenantAdminUser;
     protected CustomerId tenantAdminCustomerId;
@@ -285,11 +287,16 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         }
         loginSysAdmin();
 
+        // 2023-06-29 17:44:36,386 [main] ERROR o.h.e.jdbc.spi.SqlExceptionHelper - ERROR: duplicate key value violates unique constraint "ts_key_id_pkey"
+        // Detail: Key (key)=(transportApiState) already exists.
+        Thread.sleep(1000);
+
         Tenant tenant = new Tenant();
         tenant.setTitle(TEST_TENANT_NAME);
         Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);
         Assert.assertNotNull(savedTenant);
         tenantId = savedTenant.getId();
+        tenantProfileId = savedTenant.getTenantProfileId();
 
         tenantAdminUser = new User();
         tenantAdminUser.setAuthority(Authority.TENANT_ADMIN);

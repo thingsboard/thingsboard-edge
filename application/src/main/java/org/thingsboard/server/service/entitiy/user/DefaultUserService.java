@@ -79,7 +79,7 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
         ActionType actionType = tbUser.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         try {
             boolean sendEmail = tbUser.getId() == null && sendActivationMail;
-            User savedUser = checkNotNull(userService.saveUser(tbUser));
+            User savedUser = checkNotNull(userService.saveUser(tenantId, tbUser));
 
             // Sys Admins do not have entity groups
             if (!tbUser.isSystemAdmin()) {
@@ -99,22 +99,19 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
             }
 
             if (sendEmail) {
-                User authUser = user;
-                UserCredentials userCredentials = userService.findUserCredentialsByUserId(authUser.getTenantId(), savedUser.getId());
-                String baseUrl = systemSecurityService.getBaseUrl(authUser.getAuthority(), tenantId, authUser.getCustomerId(), request);
+                UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), savedUser.getId());
+                String baseUrl = systemSecurityService.getBaseUrl(user.getAuthority(), tenantId, user.getCustomerId(), request);
                 String activateUrl = String.format(ACTIVATE_URL_PATTERN, baseUrl,
                         userCredentials.getActivateToken());
                 String email = savedUser.getEmail();
                 try {
                     mailService.sendActivationEmail(tenantId, activateUrl, email);
                 } catch (ThingsboardException e) {
-                    userService.deleteUser(authUser.getTenantId(), savedUser.getId());
+                    userService.deleteUser(user.getTenantId(), savedUser.getId());
                     throw e;
                 }
             }
-            boolean sendMsgToEdge = actionType.equals(ActionType.UPDATED);
-            notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, customerId, savedUser.getId(),
-                    savedUser, user, actionType, sendMsgToEdge, null);
+            notificationEntityService.logEntityAction(tenantId, savedUser.getId(), savedUser, customerId, actionType, user);
             return savedUser;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.USER), tbUser, actionType, user, e);
@@ -124,6 +121,7 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
 
     @Override
     public void delete(TenantId tenantId, CustomerId customerId, User tbUser, User user) throws ThingsboardException {
+        ActionType actionType = ActionType.DELETED;
         UserId userId = tbUser.getId();
 
         try {
@@ -131,9 +129,10 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
             userService.deleteUser(tenantId, userId);
             notificationEntityService.notifyDeleteEntity(tenantId, userId, tbUser, customerId,
                     ActionType.DELETED, relatedEdgeIds, user, customerId.toString());
+            notificationEntityService.logEntityAction(tenantId, userId, tbUser, customerId, actionType, user, customerId.toString());
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.USER),
-                    ActionType.DELETED, user, e, userId.toString());
+                    actionType, user, e, userId.toString());
             throw e;
         }
     }

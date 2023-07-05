@@ -28,27 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.entity;
+package org.thingsboard.server.dao.edge;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.thingsboard.server.cache.TbTransactionalCache;
+public interface EdgeSynchronizationManager {
 
-import java.io.Serializable;
+    ThreadLocal<Boolean> getSync();
 
-public abstract class AbstractCachedEntityService<K extends Serializable, V extends Serializable, E> extends AbstractEntityService {
-
-    @Autowired
-    protected TbTransactionalCache<K, V> cache;
-
-    protected void publishEvictEvent(E event) {
-        if (TransactionSynchronizationManager.isActualTransactionActive()) {
-            eventPublisher.publishEvent(event);
-        } else {
-            handleEvictEvent(event);
-        }
-    }
-
-    public abstract void handleEvictEvent(E event);
-
+    boolean isSync();
 }

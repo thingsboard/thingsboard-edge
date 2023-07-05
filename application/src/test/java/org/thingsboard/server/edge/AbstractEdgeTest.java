@@ -55,8 +55,6 @@ import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.SaveOtaPackageInfoRequest;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
@@ -94,7 +92,6 @@ import org.thingsboard.server.common.data.query.NumericFilterPredicate;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
-import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
@@ -127,15 +124,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @TestPropertySource(properties = {
         "edges.enabled=true",
-        "queue.rule-engine.stats.enabled=false",
+        "queue.rule-engine.stats.enabled=false"
 })
 abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
     protected static final String THERMOSTAT_DEVICE_PROFILE_NAME = "Thermostat";
-
-    protected Tenant savedTenant;
-    protected TenantId tenantId;
-    protected User tenantAdmin;
 
     protected DeviceProfile thermostatDeviceProfile;
 
@@ -152,37 +145,24 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     protected TbClusterService clusterService;
 
     @Before
-    public void beforeTest() throws Exception {
+    public void setupEdgeTest() throws Exception {
         loginSysAdmin();
 
         doPost("/api/whiteLabel/loginWhiteLabelParams", new LoginWhiteLabelingParams(), LoginWhiteLabelingParams.class);
         doPost("/api/whiteLabel/whiteLabelParams", new WhiteLabelingParams(), WhiteLabelingParams.class);
         doPost("/api/customTranslation/customTranslation", new CustomTranslation(), CustomTranslation.class);
 
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        savedTenant = doPost("/api/tenant", tenant, Tenant.class);
-        tenantId = savedTenant.getId();
-        Assert.assertNotNull(savedTenant);
+        loginTenantAdmin();
 
-        tenantAdmin = new User();
-        tenantAdmin.setAuthority(Authority.TENANT_ADMIN);
-        tenantAdmin.setTenantId(savedTenant.getId());
-        tenantAdmin.setEmail("tenant2@thingsboard.org");
-        tenantAdmin.setFirstName("Joe");
-        tenantAdmin.setLastName("Downs");
-
-        tenantAdmin = createUserAndLogin(tenantAdmin, "testPassword1");
+        installation();
 
         // sleep 0.5 second to avoid CREDENTIALS updated message for the user
         // user credentials is going to be stored and updated event pushed to edge notification service
         // while service will be processing this event edge could be already added and additional message will be pushed
         Thread.sleep(500);
 
-        installation();
-
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.expectMessageAmount(17);
+        edgeImitator.expectMessageAmount(16);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();
@@ -213,25 +193,19 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     @After
-    public void afterTest() throws Exception {
+    public void teardownEdgeTest() {
         try {
             edgeImitator.disconnect();
-        } catch (Exception ignored){}
-
-        loginSysAdmin();
-
-        doDelete("/api/tenant/" + savedTenant.getUuidId())
-                .andExpect(status().isOk());
+        } catch (Exception ignored) {}
     }
 
     private void installation() {
-        edge = doPost("/api/edge", constructEdge("Test Edge", "test"), Edge.class);
-
         thermostatDeviceProfile = this.createDeviceProfile(THERMOSTAT_DEVICE_PROFILE_NAME,
                 createMqttDeviceProfileTransportConfiguration(new JsonTransportPayloadConfiguration(), false));
-
         extendDeviceProfileData(thermostatDeviceProfile);
         thermostatDeviceProfile = doPost("/api/deviceProfile", thermostatDeviceProfile, DeviceProfile.class);
+
+        edge = doPost("/api/edge", constructEdge("Test Edge", "test"), Edge.class);
     }
 
     protected void extendDeviceProfileData(DeviceProfile deviceProfile) {

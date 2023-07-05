@@ -134,14 +134,14 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
 
     protected void testNotifyEntityAllOneTimeLogEntityActionEntityEqClass(HasName entity, EntityId entityId, EntityId originatorId,
                                                                           TenantId tenantId, CustomerId customerId, UserId userId, String userName,
-                                                                          ActionType actionType, Object... additionalInfo) {
-        testNotifyEntityAllNTimeLogEntityActionEntityEqClass(entity, entityId, originatorId, tenantId, customerId, userId, userName, actionType, 1, 1, additionalInfo);
+                                                                          ActionType actionType, ActionType actionTypeEdge, Object... additionalInfo) {
+        testNotifyEntityAllNTimeLogEntityActionEntityEqClass(entity, entityId, originatorId, tenantId, customerId, userId, userName, actionType, actionTypeEdge, 1, 1, additionalInfo);
     }
 
     protected void testNotifyEntityAllNTimeLogEntityActionEntityEqClass(HasName entity, EntityId entityId, EntityId originatorId,
                                                                           TenantId tenantId, CustomerId customerId, UserId userId, String userName,
-                                                                          ActionType actionType, int cntTime, int edgeCntTime, Object... additionalInfo) {
-        testNotificationMsgToEdgeServiceTime(entityId, tenantId, actionType, edgeCntTime);
+                                                                          ActionType actionType, ActionType actionTypeEdge, int cntTime, int edgeCntTime, Object... additionalInfo) {
+        testNotificationMsgToEdgeServiceTime(entityId, tenantId, actionTypeEdge, edgeCntTime);
         testLogEntityActionEntityEqClass(entity, originatorId, tenantId, customerId, userId, userName, actionType, cntTime, additionalInfo);
         ArgumentMatcher<EntityId> matcherOriginatorId = argument -> argument.equals(originatorId);
         testPushMsgToRuleEngineTime(matcherOriginatorId, tenantId, entity, cntTime);

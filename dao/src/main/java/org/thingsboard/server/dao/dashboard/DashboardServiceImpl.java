@@ -54,6 +54,7 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
@@ -64,9 +65,9 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.customer.CustomerDao;
-import org.thingsboard.server.dao.edge.EdgeDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityCountService;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
@@ -102,9 +103,6 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
 
     @Autowired
     private CustomerDao customerDao;
-
-    @Autowired
-    private EdgeDao edgeDao;
 
     @Autowired
     private DataValidator<Dashboard> dashboardValidator;
@@ -183,6 +181,8 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
                 countService.publishCountEntityEvictEvent(savedDashboard.getTenantId(), EntityType.DASHBOARD);
             }
             publishEvictEvent(new DashboardTitleEvictEvent(savedDashboard.getId()));
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedDashboard.getTenantId())
+                    .entityId(savedDashboard.getId()).added(dashboard.getId() == null).build());
             return savedDashboard;
         } catch (Exception e) {
             if (dashboard.getId() != null) {
@@ -241,11 +241,13 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     public void deleteDashboard(TenantId tenantId, DashboardId dashboardId) {
         log.trace("Executing deleteDashboard [{}]", dashboardId);
         Validator.validateId(dashboardId, INCORRECT_DASHBOARD_ID + dashboardId);
+        List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, dashboardId);
         deleteEntityRelations(tenantId, dashboardId);
         try {
             dashboardDao.removeById(tenantId, dashboardId.getId());
             publishEvictEvent(new DashboardTitleEvictEvent(dashboardId));
             countService.publishCountEntityEvictEvent(tenantId, EntityType.DASHBOARD);
+            publishDeleteEvent(tenantId, dashboardId, relatedEdgeIds);
         } catch (Exception t) {
             ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
             if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("fk_default_dashboard_device_profile")) {
@@ -457,9 +459,8 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
                     objNode.put("targetDashboardId", replacement.getId().toString());
                 }
             } else {
-                Iterator<JsonNode> childIter = node.iterator();
-                while (childIter.hasNext()) {
-                    searchDashboardIdRecursive(idMapping, childIter.next());
+                for (JsonNode jsonNode : node) {
+                    searchDashboardIdRecursive(idMapping, jsonNode);
                 }
             }
         } catch (Exception e) {
@@ -481,7 +482,7 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
                 } else {
                     replaceDashboardIds(dashboards);
                 }
-                dashboards.stream().forEach(d -> saveDashboardToEntityGroup(tenantId, entityGroupId, d));
+                dashboards.forEach(d -> saveDashboardToEntityGroup(tenantId, entityGroupId, d));
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
                 throw new ThingsboardException(e.getMessage(), e, ThingsboardErrorCode.GENERAL);
@@ -489,7 +490,7 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         } else {
             try {
                 replaceDashboardIds(dashboards);
-                dashboards.stream().forEach(d -> saveDashboardToEntityGroup(tenantId, entityGroupId, d));
+                dashboards.forEach(d -> saveDashboardToEntityGroup(tenantId, entityGroupId, d));
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
                 throw new ThingsboardException(e.getMessage(), e, ThingsboardErrorCode.GENERAL);

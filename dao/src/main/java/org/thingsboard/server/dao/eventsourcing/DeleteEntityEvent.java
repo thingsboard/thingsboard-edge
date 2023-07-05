@@ -28,27 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.entity;
+package org.thingsboard.server.dao.eventsourcing;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.thingsboard.server.cache.TbTransactionalCache;
+import lombok.Builder;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 
-import java.io.Serializable;
-
-public abstract class AbstractCachedEntityService<K extends Serializable, V extends Serializable, E> extends AbstractEntityService {
-
-    @Autowired
-    protected TbTransactionalCache<K, V> cache;
-
-    protected void publishEvictEvent(E event) {
-        if (TransactionSynchronizationManager.isActualTransactionActive()) {
-            eventPublisher.publishEvent(event);
-        } else {
-            handleEvictEvent(event);
-        }
-    }
-
-    public abstract void handleEvictEvent(E event);
-
+@Builder
+@Data
+public class DeleteEntityEvent {
+    final TenantId tenantId;
+    final EntityId entityId;
+    final EdgeId edgeId;
 }
