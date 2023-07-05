@@ -162,8 +162,6 @@ export class DeviceWizardDialogComponent extends DialogComponent<DeviceWizardDia
         return 'device.wizard.device-details';
       case 1:
         return 'device.credentials';
-      case 2:
-        return 'entity-group.owner-and-groups';
     }
   }
 
