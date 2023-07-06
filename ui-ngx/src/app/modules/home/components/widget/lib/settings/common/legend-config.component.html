@@ -31,7 +31,7 @@
 
 -->
 <ng-container [formGroup]="legendConfigForm">
-  <div class="tb-widget-config-row space-between">
+  <div class="tb-form-row space-between">
     <div>{{ 'legend.direction' | translate }}</div>
     <mat-form-field class="medium-width" appearance="outline" subscriptSizing="dynamic">
       <mat-select formControlName="direction">
@@ -41,7 +41,7 @@
       </mat-select>
     </mat-form-field>
   </div>
-  <div class="tb-widget-config-row space-between">
+  <div class="tb-form-row space-between">
     <div>{{ 'legend.position' | translate }}</div>
     <mat-form-field class="medium-width" appearance="outline" subscriptSizing="dynamic">
       <mat-select formControlName="position">
@@ -53,7 +53,7 @@
       </mat-select>
     </mat-form-field>
   </div>
-  <div class="tb-widget-config-row space-between">
+  <div class="tb-form-row space-between">
     <div translate>legend.show-values</div>
     <mat-chip-listbox multiple formControlName="showValues">
       <mat-chip-option value="min">{{ 'legend.min-option' | translate }}</mat-chip-option>
