@@ -32,6 +32,7 @@ package org.thingsboard.integration.api.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.JsonElement;
@@ -62,6 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 
 /**
  * Created by ashvayka on 18.12.17.
@@ -73,8 +75,9 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
 
     private static final int MAX_ALLOWED_STRING_LENGTH = 32;
 
-    private Set<String> onValueUpdateKeys;
-    private Map<String, Map<String, String>> currentOnValueUpdatePerEntity;
+    private Set<String> onValueUpdateKeys = new HashSet<>();
+    private Map<String, Map<String, String>> currentOnValueUpdateTelemetryPerEntity = new HashMap<>();
+    private Map<String, Map<String, String>> currentOnValueUpdateAttributesPerEntity = new HashMap<>();
 
     public AbstractUplinkDataConverter(JsInvokeService jsInvokeService, TbelInvokeService tbelInvokeService) {
         super(jsInvokeService, tbelInvokeService);
@@ -84,15 +87,25 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
     public void init(Converter configuration) {
         this.configuration = configuration;
         JsonNode configurationNode = configuration.getConfiguration();
-        this.onValueUpdateKeys = new HashSet<>();
 
-        if (configurationNode.has("onValueUpdateKeys") && configurationNode.get("onValueUpdateKeys").isArray()) {
-            for (JsonNode key : configurationNode.get("onValueUpdateKeys")) {
-                this.onValueUpdateKeys.add(getAllowedValue(key.asText()));
-            }
+        Set<String> keysForRemoval = this.onValueUpdateKeys;
+        this.onValueUpdateKeys = new HashSet<>();
+        JsonNode onValueUpdateKeysNode = configurationNode.get("onValueUpdateKeys");
+
+        if (onValueUpdateKeysNode != null && onValueUpdateKeysNode.isArray()) {
+            onValueUpdateKeysNode.elements().forEachRemaining(key -> this.onValueUpdateKeys.add(getAllowedValue(key.asText())));
         }
 
-        this.currentOnValueUpdatePerEntity = new HashMap<>();
+        keysForRemoval.removeAll(this.onValueUpdateKeys);
+
+        this.currentOnValueUpdateTelemetryPerEntity.values().forEach(entityKeys -> {
+            entityKeys.keySet().retainAll(this.onValueUpdateKeys);
+            entityKeys.keySet().removeAll(keysForRemoval);
+        });
+        this.currentOnValueUpdateAttributesPerEntity.values().forEach(entityKeys -> {
+            entityKeys.keySet().retainAll(this.onValueUpdateKeys);
+            entityKeys.keySet().removeAll(keysForRemoval);
+        });
     }
 
     @Override
@@ -165,38 +178,41 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
             builder.groupName(src.get("groupName").getAsString());
         }
 
-        Map<String, String> currentOnValueUpdate = new HashMap<>(this.currentOnValueUpdatePerEntity.getOrDefault(entityName, new HashMap<>()));
-        HashMap<String, String> telemetryOriginOnValueUpdate = new HashMap<>(currentOnValueUpdate);
-        HashMap<String, String> attributeOriginOnValueUpdate = new HashMap<>(currentOnValueUpdate);
+        Map<String, String> currentOnValueTelemetryUpdate = new HashMap<>(this.currentOnValueUpdateTelemetryPerEntity.getOrDefault(entityName, new HashMap<>()));
+        Map<String, String> currentOnValueAttributesUpdate = new HashMap<>(this.currentOnValueUpdateAttributesPerEntity.getOrDefault(entityName, new HashMap<>()));
         if (src.has("telemetry")) {
             PostTelemetryMsg parsedTelemetry = parseTelemetry(src.get("telemetry"));
             if (!this.onValueUpdateKeys.isEmpty()) {
-                parsedTelemetry = filterTelemetryOnKeyValueUpdate(parsedTelemetry, currentOnValueUpdate, telemetryOriginOnValueUpdate);
+                parsedTelemetry = filterTelemetryOnKeyValueUpdate(parsedTelemetry, currentOnValueTelemetryUpdate);
             }
             builder.telemetry(parsedTelemetry);
         }
         if (src.has("attributes")) {
             PostAttributeMsg attributes = parseAttributesUpdate(src.get("attributes"));
             if (!this.onValueUpdateKeys.isEmpty()) {
-                attributes = filterAttributeOnKeyValueUpdate(attributes, currentOnValueUpdate, attributeOriginOnValueUpdate);
+                attributes = filterAttributeOnKeyValueUpdate(attributes, currentOnValueAttributesUpdate);
             }
             builder.attributesUpdate(attributes);
         }
 
-        if (!currentOnValueUpdate.isEmpty()) {
-            this.currentOnValueUpdatePerEntity.put(entityName, currentOnValueUpdate);
+        if (!currentOnValueTelemetryUpdate.isEmpty()) {
+            this.currentOnValueUpdateTelemetryPerEntity.put(entityName, currentOnValueTelemetryUpdate);
+        }
+
+        if (!currentOnValueAttributesUpdate.isEmpty()) {
+            this.currentOnValueUpdateAttributesPerEntity.put(entityName, currentOnValueAttributesUpdate);
         }
 
         //TODO: add support of attribute requests and client-side RPC.
         return builder.build();
     }
 
-    private PostTelemetryMsg filterTelemetryOnKeyValueUpdate(PostTelemetryMsg telemetry, Map<String, String> currentEntityKeyValues, Map<String, String> originalValues) {
+    private PostTelemetryMsg filterTelemetryOnKeyValueUpdate(PostTelemetryMsg telemetry, Map<String, String> currentEntityKeyValues) {
         PostTelemetryMsg.Builder filteredTelemetryBuilder = PostTelemetryMsg.newBuilder();
         for (TransportProtos.TsKvListProto tsKvList : telemetry.getTsKvListList()) {
             TransportProtos.TsKvListProto.Builder filteredTsKvListBuilder = TransportProtos.TsKvListProto.newBuilder().setTs(tsKvList.getTs());
 
-            List<TransportProtos.KeyValueProto> filtered = filterKeyValue(currentEntityKeyValues, tsKvList.getKvList(), originalValues);
+            List<TransportProtos.KeyValueProto> filtered = filterKeyValue(currentEntityKeyValues, tsKvList.getKvList());
             filteredTsKvListBuilder.addAllKv(filtered);
 
             if (!filteredTsKvListBuilder.getKvList().isEmpty()) {
@@ -207,14 +223,14 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         return !currentEntityKeyValues.isEmpty() ? filteredTelemetryBuilder.build() : telemetry;
     }
 
-    private PostAttributeMsg filterAttributeOnKeyValueUpdate(PostAttributeMsg attributes, Map<String, String> currentEntityKeyValues, Map<String, String> originalValues) {
+    private PostAttributeMsg filterAttributeOnKeyValueUpdate(PostAttributeMsg attributes, Map<String, String> currentEntityKeyValues) {
         PostAttributeMsg.Builder filteredAttributesBuilder = PostAttributeMsg.newBuilder();
-        List<TransportProtos.KeyValueProto> filtered = filterKeyValue(currentEntityKeyValues, attributes.getKvList(), originalValues);
+        List<TransportProtos.KeyValueProto> filtered = filterKeyValue(currentEntityKeyValues, attributes.getKvList());
         filteredAttributesBuilder.addAllKv(filtered);
         return !currentEntityKeyValues.isEmpty() ? filteredAttributesBuilder.build() : attributes;
     }
 
-    private List<TransportProtos.KeyValueProto> filterKeyValue(Map<String, String> currentEntityKeyValues, List<TransportProtos.KeyValueProto> kvList, Map<String, String> originalValues) {
+    private List<TransportProtos.KeyValueProto> filterKeyValue(Map<String, String> currentEntityKeyValues, List<TransportProtos.KeyValueProto> kvList) {
         List<TransportProtos.KeyValueProto> filtered = new ArrayList<>();
         for (TransportProtos.KeyValueProto keyValue : kvList) {
             String key = getAllowedValue(keyValue.getKey());
@@ -222,13 +238,13 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
             if (isOnValueUpdate) {
                 String value = getValueAsAllowedString(keyValue);
 
-                boolean shouldAddToResult = originalValues.isEmpty() ||
+                boolean shouldAddToResult = currentEntityKeyValues.isEmpty() ||
                         (!this.onValueUpdateKeys.contains(key) ||
-                        !originalValues.containsKey(key) ||
-                        !originalValues.get(key).equals(value));
+                        !currentEntityKeyValues.containsKey(key) ||
+                        !currentEntityKeyValues.get(key).equals(value));
                 if (shouldAddToResult) {
                     filtered.add(keyValue);
-                    if (!originalValues.containsKey(key) || !originalValues.get(key).equals(value)) {
+                    if (!currentEntityKeyValues.containsKey(key) || !currentEntityKeyValues.get(key).equals(value)) {
                         currentEntityKeyValues.put(key, value);
                     }
                 }
