@@ -33,6 +33,7 @@ package org.thingsboard.server.controller;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -42,7 +43,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -50,6 +51,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
@@ -68,6 +70,9 @@ public class CustomTranslationController extends BaseController {
 
     @Autowired
     private CustomTranslationService customTranslationService;
+
+    @Autowired
+    protected ApplicationEventPublisher eventPublisher;
 
     @ApiOperation(value = "Get end-user Custom Translation configuration (getCustomTranslation)",
             notes = "Fetch the Custom Translation map for the end user. The custom translation is configured in the white labeling parameters. " +
@@ -137,8 +142,8 @@ public class CustomTranslationController extends BaseController {
         } else if (Authority.CUSTOMER_USER.equals(authority)) {
             savedCustomTranslation = customTranslationService.saveCustomerCustomTranslation(getTenantId(), getCurrentUser().getCustomerId(), customTranslation);
         }
-        notificationEntityService.notifySendMsgToEdgeService(getCurrentUser().getTenantId(),
-                getCurrentUser().getOwnerId(), EdgeEventType.CUSTOM_TRANSLATION, EdgeEventActionType.UPDATED);
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(getTenantId()).entityId(getCurrentUser().getOwnerId())
+                .type(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
         return savedCustomTranslation;
     }
 

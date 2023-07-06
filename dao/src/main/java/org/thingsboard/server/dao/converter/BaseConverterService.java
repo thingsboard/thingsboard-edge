@@ -47,6 +47,8 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityCountService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.exception.DataValidationException;
@@ -84,6 +86,10 @@ public class BaseConverterService extends AbstractEntityService implements Conve
             Converter savedConverter = converterDao.save(converter.getTenantId(), converter);
             if (converter.getId() == null) {
                 entityCountService.publishCountEntityEvictEvent(converter.getTenantId(), EntityType.CONVERTER);
+            }
+            if (converter.isEdgeTemplate()) {
+                eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(converter.getTenantId())
+                        .entityId(converter.getId()).added(converter.getId() == null).build());
             }
             return savedConverter;
         } catch (Exception t) {
@@ -155,6 +161,7 @@ public class BaseConverterService extends AbstractEntityService implements Conve
                 throw t;
             }
         }
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(converterId).edgeId(null).build());
         deleteEntityRelations(tenantId, converterId);
         entityCountService.publishCountEntityEvictEvent(tenantId, EntityType.CONVERTER);
     }

@@ -136,7 +136,7 @@ public class UserControllerTest extends AbstractControllerTest {
                 ActionType.ADDED_TO_ENTITY_GROUP, ActionType.ADDED_TO_ENTITY_GROUP, 1, 0, 2);
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(foundUser, foundUser,
                 SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL,
-                ActionType.ADDED, ActionType.ADDED, 1, 0, 2);
+                ActionType.ADDED, ActionType.ADDED, 1, 1, 2);
         Mockito.reset(tbClusterService, auditLogService);
 
         resetTokens();
@@ -175,7 +175,7 @@ public class UserControllerTest extends AbstractControllerTest {
 
         testNotifyEntityAllNTimeLogEntityActionEntityEqClass(foundUser, foundUser.getId(), foundUser.getId(),
                 SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL,
-                ActionType.DELETED, ActionType.DELETED, 1, 0, SYSTEM_TENANT.getId().toString());
+                ActionType.DELETED, ActionType.DELETED, 1, 1, SYSTEM_TENANT.getId().toString());
     }
 
     @Test
@@ -461,7 +461,7 @@ public class UserControllerTest extends AbstractControllerTest {
         testManyUser.setTenantId(tenantId);
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(testManyUser, testManyUser,
                 SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL,
-                ActionType.ADDED, ActionType.ADDED, cntEntity, 0, cntEntity * 2);
+                ActionType.ADDED, ActionType.ADDED, cntEntity, cntEntity, cntEntity * 2);
 
         List<User> loadedTenantAdmins = new ArrayList<>();
         PageLink pageLink = new PageLink(33);

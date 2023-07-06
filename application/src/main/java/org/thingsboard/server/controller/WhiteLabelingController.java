@@ -33,6 +33,7 @@ package org.thingsboard.server.controller;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -43,7 +44,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -53,6 +54,7 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
@@ -72,6 +74,9 @@ public class WhiteLabelingController extends BaseController {
 
     @Autowired
     private WhiteLabelingService whiteLabelingService;
+
+    @Autowired
+    protected ApplicationEventPublisher eventPublisher;
 
     @ApiOperation(value = "Get White Labeling parameters",
             notes = "Returns white-labeling parameters for the current user.", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -181,8 +186,8 @@ public class WhiteLabelingController extends BaseController {
         } else if (Authority.CUSTOMER_USER.equals(authority)) {
             savedWhiteLabelingParams = whiteLabelingService.saveCustomerWhiteLabelingParams(getTenantId(), getCurrentUser().getCustomerId(), whiteLabelingParams).get();
         }
-        notificationEntityService.notifySendMsgToEdgeService(getCurrentUser().getTenantId(),
-                getCurrentUser().getOwnerId(), EdgeEventType.WHITE_LABELING, EdgeEventActionType.UPDATED);
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(getTenantId()).entityId(getCurrentUser().getOwnerId())
+                .type(EdgeEventType.WHITE_LABELING).actionType(ActionType.UPDATED).build());
         return savedWhiteLabelingParams;
     }
 
@@ -205,8 +210,8 @@ public class WhiteLabelingController extends BaseController {
         } else if (Authority.CUSTOMER_USER.equals(authority)) {
             savedLoginWhiteLabelingParams = whiteLabelingService.saveCustomerLoginWhiteLabelingParams(getTenantId(), getCurrentUser().getCustomerId(), loginWhiteLabelingParams);
         }
-        notificationEntityService.notifySendMsgToEdgeService(getCurrentUser().getTenantId(),
-                getCurrentUser().getOwnerId(), EdgeEventType.LOGIN_WHITE_LABELING, EdgeEventActionType.UPDATED);
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(getTenantId()).entityId(getCurrentUser().getOwnerId())
+                .type(EdgeEventType.LOGIN_WHITE_LABELING).actionType(ActionType.UPDATED).build());
         return savedLoginWhiteLabelingParams;
     }
 

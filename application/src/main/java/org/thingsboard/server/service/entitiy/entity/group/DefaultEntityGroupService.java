@@ -74,27 +74,25 @@ public class DefaultEntityGroupService extends AbstractTbEntityService implement
             EntityGroup savedEntityGroup = checkNotNull(entityGroupService.saveEntityGroup(tenantId, parentEntityId, entityGroup));
             autoCommit(user, savedEntityGroup.getType(), savedEntityGroup.getId());
 
-            boolean sendMsgToEdge = actionType.equals(ActionType.UPDATED);
-            notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, savedEntityGroup.getId(),
-                    savedEntityGroup, user, actionType, sendMsgToEdge, null);
+            notificationEntityService.logEntityAction(tenantId, savedEntityGroup.getId(), savedEntityGroup, null, actionType, user);
             return checkNotNull(entityGroupService.findEntityGroupInfoById(tenantId, savedEntityGroup.getId()));
         } catch (Exception e) {
-            notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, emptyId(EntityType.ENTITY_GROUP),
-                    entityGroup, user, actionType, false, e);
+            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.ENTITY_GROUP), entityGroup, null, actionType, user, e);
             throw e;
         }
     }
 
     @Override
     public void delete(TenantId tenantId, List<EdgeId> relatedEdgeIds, EntityGroup entityGroup, User user) throws ThingsboardException {
+        ActionType actionType = ActionType.DELETED;
         EntityGroupId entityGroupId = entityGroup.getId();
         try {
             entityGroupService.deleteEntityGroup(tenantId, entityGroupId);
-            notificationEntityService.notifyDeleteEntity(tenantId, entityGroupId, entityGroup, null,
-                    ActionType.DELETED, relatedEdgeIds, user, entityGroupId.getId().toString());
+            notificationEntityService.logEntityAction(tenantId, entityGroupId, entityGroup, null,
+                    actionType, user, entityGroupId.getId().toString());
         } catch (Exception e) {
-            notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, emptyId(EntityType.ENTITY_GROUP),
-                    entityGroup, user, ActionType.DELETED, false, e, entityGroupId.getId().toString());
+            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.ENTITY_GROUP), entityGroup,
+                    null, actionType, user, e, entityGroupId.getId().toString());
             throw e;
         }
     }

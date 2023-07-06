@@ -62,8 +62,7 @@ public class DefaultTbConverterService extends AbstractTbEntityService implement
                         actionType.equals(ActionType.ADDED) ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
             }
 
-            notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, savedConverter.getId(), savedConverter,
-                    user, actionType, (converter.isEdgeTemplate() && ActionType.UPDATED.equals(actionType)), null);
+            notificationEntityService.logEntityAction(tenantId, savedConverter.getId(), savedConverter, null, actionType, user);
             return savedConverter;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.CONVERTER), converter,
@@ -74,6 +73,7 @@ public class DefaultTbConverterService extends AbstractTbEntityService implement
 
     @Override
     public void delete(Converter converter, User user) {
+        ActionType actionType = ActionType.DELETED;
         TenantId tenantId = converter.getTenantId();
         ConverterId converterId = converter.getId();
         try {
@@ -84,12 +84,11 @@ public class DefaultTbConverterService extends AbstractTbEntityService implement
                 tbClusterService.broadcastEntityStateChangeEvent(tenantId, converterId, ComponentLifecycleEvent.DELETED);
             }
 
-            notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, converter.getId(), converter,
-                    user, ActionType.DELETED, false, null, converterId.getId().toString());
+            notificationEntityService.logEntityAction(tenantId, converter.getId(), converter, null, actionType, user);
 
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.CONVERTER),
-                    ActionType.DELETED, user, e, converterId.getId().toString());
+                    actionType, user, e, converterId.getId().toString());
             throw e;
         }
     }

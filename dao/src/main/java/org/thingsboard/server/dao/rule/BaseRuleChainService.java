@@ -620,7 +620,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
         }
         if (!ruleChainId.equals(edge.getRootRuleChainId())) {
             eventPublisher.publishEvent(new ActionEntityEvent(tenantId, edgeId, ruleChainId,
-                    null, ActionType.ASSIGNED_TO_EDGE));
+                    null, null, ActionType.ASSIGNED_TO_EDGE));
         }
         return ruleChain;
     }
@@ -642,7 +642,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
             throw new RuntimeException(e);
         }
         eventPublisher.publishEvent(new ActionEntityEvent(tenantId, edgeId, ruleChainId,
-                null, ActionType.UNASSIGNED_FROM_EDGE));
+                null, null, ActionType.UNASSIGNED_FROM_EDGE));
         return ruleChain;
     }
 

@@ -40,8 +40,10 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.util.CollectionUtils;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.TbStopWatch;
@@ -94,6 +96,7 @@ import org.thingsboard.server.common.data.util.ThrowingRunnable;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.edge.EdgeService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.exception.DeviceCredentialsValidationException;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.owner.OwnerService;
@@ -153,6 +156,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     private final OwnerService ownersService;
     private final EntityGroupService groupService;
     private final TbTransactionalCache<UUID, VersionControlTaskCacheEntry> taskCache;
+    private final ApplicationEventPublisher eventPublisher;
 
     private ListeningExecutorService executor;
 
@@ -738,8 +742,9 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 exportableEntitiesService.removeById(ctx.getTenantId(), entity.getId());
 
                 ctx.addEventCallback(() -> {
-                    entityNotificationService.notifyDeleteEntity(ctx.getTenantId(), entity.getId(),
-                            entity, null, ActionType.DELETED, relatedEdgeIds, ctx.getUser());
+                    entityNotificationService.logEntityAction(ctx.getTenantId(), entity.getId(), entity, null,
+                            ActionType.DELETED, ctx.getUser());
+                    publishDeleteEntities(ctx.getTenantId(), entity.getId(), relatedEdgeIds);
                 });
                 ctx.registerDeleted(entityType, false);
             }
@@ -755,8 +760,9 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 exportableEntitiesService.removeById(ctx.getTenantId(), entity.getId());
 
                 ctx.addEventCallback(() -> {
-                    entityNotificationService.notifyDeleteEntity(ctx.getTenantId(), entity.getId(),
-                            entity, null, ActionType.DELETED, relatedEdgeIds, ctx.getUser());
+                    entityNotificationService.logEntityAction(ctx.getTenantId(), entity.getId(), entity, null,
+                            ActionType.DELETED, ctx.getUser());
+                    publishDeleteEntities(ctx.getTenantId(), entity.getId(), relatedEdgeIds);
                 });
                 ctx.registerDeleted(entityType, true);
             }
@@ -1015,6 +1021,18 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
 
     private void persistToCache(EntitiesImportCtx ctx) {
         cachePut(ctx.getRequestId(), VersionLoadResult.success(new ArrayList<>(ctx.getResults().values())));
+    }
+
+    private void publishDeleteEntities(TenantId tenantId, EntityId entityId, List<EdgeId> relatedEdgeIds) {
+        if (EntityType.CUSTOMER.equals(entityId.getEntityType())) { // send notification to all edges in customer hierarchy
+            eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(entityId).edgeId(null));
+        } else {
+            if (!CollectionUtils.isEmpty(relatedEdgeIds)) {
+                for (EdgeId relatedEdgeId : relatedEdgeIds) {
+                    eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(entityId).edgeId(relatedEdgeId).build());
+                }
+            }
+        }
     }
 
 }

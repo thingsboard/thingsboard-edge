@@ -40,7 +40,6 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.Authority;
@@ -87,8 +86,8 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
                 if (tbUser.getId() == null && authority == Authority.SYS_ADMIN) {
                     EntityGroup admins = entityGroupService.findOrCreateTenantAdminsGroup(savedUser.getTenantId());
                     entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), savedUser.getId());
-                    notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, customerId, savedUser.getId(),
-                            savedUser, user, ActionType.ADDED_TO_ENTITY_GROUP, false, null);
+                    notificationEntityService.logEntityAction(tenantId, savedUser.getId(), savedUser, customerId,
+                            ActionType.ADDED_TO_ENTITY_GROUP, user);
                 } else if (!entityGroups.isEmpty() && tbUser.getId() == null) {
                     for (EntityGroup entityGroup : entityGroups) {
                         entityGroupService.addEntityToEntityGroup(tenantId, entityGroup.getId(), savedUser.getId());
@@ -125,10 +124,7 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
         UserId userId = tbUser.getId();
 
         try {
-            List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, userId);
             userService.deleteUser(tenantId, userId);
-            notificationEntityService.notifyDeleteEntity(tenantId, userId, tbUser, customerId,
-                    ActionType.DELETED, relatedEdgeIds, user, customerId.toString());
             notificationEntityService.logEntityAction(tenantId, userId, tbUser, customerId, actionType, user, customerId.toString());
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.USER),

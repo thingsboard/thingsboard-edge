@@ -186,7 +186,7 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
         ObjectNode isRootBody = JacksonUtil.newObjectNode();
         isRootBody.put(EDGE_IS_ROOT_BODY_KEY, Boolean.TRUE);
         eventPublisher.publishEvent(new ActionEntityEvent(tenantId, edge.getId(), ruleChainId,
-                JacksonUtil.toString(isRootBody), ActionType.UPDATED));
+                JacksonUtil.toString(isRootBody), null, ActionType.UPDATED));
         return savedEdge;
     }
 
