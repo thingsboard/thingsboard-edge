@@ -278,15 +278,11 @@ import * as TenantProfileDataComponent from '@home/components/profile/tenant-pro
 import * as DefaultDeviceProfileConfigurationComponent from '@home/components/profile/device/default-device-profile-configuration.component';
 import * as DeviceProfileConfigurationComponent from '@home/components/profile/device/device-profile-configuration.component';
 import * as DeviceProfileComponent from '@home/components/profile/device-profile.component';
-// eslint-disable-next-line max-len
 import * as DefaultDeviceProfileTransportConfigurationComponent from '@home/components/profile/device/default-device-profile-transport-configuration.component';
-// eslint-disable-next-line max-len
 import * as DeviceProfileTransportConfigurationComponent from '@home/components/profile/device/device-profile-transport-configuration.component';
 import * as DeviceProfileDialogComponent from '@home/components/profile/device-profile-dialog.component';
 import * as DeviceProfileAutocompleteComponent from '@home/components/profile/device-profile-autocomplete.component';
-// eslint-disable-next-line max-len
 import * as MqttDeviceProfileTransportConfigurationComponent from '@home/components/profile/device/mqtt-device-profile-transport-configuration.component';
-// eslint-disable-next-line max-len
 import * as CoapDeviceProfileTransportConfigurationComponent from '@home/components/profile/device/coap-device-profile-transport-configuration.component';
 import * as DeviceProfileAlarmsComponent from '@home/components/profile/alarm/device-profile-alarms.component';
 import * as DeviceProfileAlarmComponent from '@home/components/profile/alarm/device-profile-alarm.component';
@@ -302,7 +298,6 @@ import * as DeviceWizardDialogComponent from '@home/components/wizard/device-wiz
 import * as AlarmScheduleInfoComponent from '@home/components/profile/alarm/alarm-schedule-info.component';
 import * as AlarmScheduleDialogComponent from '@home/components/profile/alarm/alarm-schedule-dialog.component';
 import * as EditAlarmDetailsDialogComponent from '@home/components/profile/alarm/edit-alarm-details-dialog.component';
-
 import * as AlarmRuleConditionDialogComponent from '@home/components/profile/alarm/alarm-rule-condition-dialog.component';
 // eslint-disable-next-line max-len
 import * as DefaultTenantProfileConfigurationComponent from '@home/components/profile/tenant/default-tenant-profile-configuration.component';
