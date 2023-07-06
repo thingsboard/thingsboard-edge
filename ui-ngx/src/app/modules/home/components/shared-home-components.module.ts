@@ -63,7 +63,7 @@ import { AlarmAssigneeComponent } from '@home/components/alarm/alarm-assignee.co
     AlarmCommentDialogComponent,
     AlarmAssigneeComponent,
     BlobEntitiesComponent,
-    SchedulerEventModule,
+    SchedulerEventModule
   ]
 })
 export class SharedHomeComponentsModule { }
