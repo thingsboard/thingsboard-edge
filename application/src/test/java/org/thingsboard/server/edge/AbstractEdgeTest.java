@@ -162,7 +162,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Thread.sleep(500);
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.expectMessageAmount(16);
+        edgeImitator.expectMessageAmount(18);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();
@@ -267,7 +267,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         // - 1 message from public customer user group
         validateEntityGroups();
 
-        // 3 messages
+        // 5 messages
         // - 2 messages from fetcher
         // - 1 message from public customer role
         validateRoles();
@@ -286,8 +286,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         List<DeviceProfileUpdateMsg> deviceProfileUpdateMsgList = edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class);
         // default msg
         // thermostat msg from fetcher
-        // thermostat msg from controller
-        Assert.assertEquals(3, deviceProfileUpdateMsgList.size());
+        Assert.assertEquals(2, deviceProfileUpdateMsgList.size());
         Optional<DeviceProfileUpdateMsg> thermostatProfileUpdateMsgOpt =
                 deviceProfileUpdateMsgList.stream().filter(dfum -> THERMOSTAT_DEVICE_PROFILE_NAME.equals(dfum.getName())).findAny();
         Assert.assertTrue(thermostatProfileUpdateMsgOpt.isPresent());
@@ -396,7 +395,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
     private void validateRoles() {
         List<RoleProto> roleProtoList = edgeImitator.findAllMessagesByType(RoleProto.class);
-        Assert.assertEquals(3, roleProtoList.size());
+        Assert.assertEquals(5, roleProtoList.size());
     }
 
     private void validatePublicCustomer() throws Exception {

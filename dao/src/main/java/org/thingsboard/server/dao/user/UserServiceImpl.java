@@ -310,7 +310,6 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         eventPublisher.publishEvent(new UserCredentialsInvalidationEvent(userId));
         countService.publishCountEntityEvictEvent(tenantId, EntityType.USER);
         publishDeleteEvent(tenantId, userId, relatedEdgeIds);
-        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(userId).build());
     }
 
     @Override
