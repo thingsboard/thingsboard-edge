@@ -246,6 +246,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         apiUsageStateService.deleteApiUsageStateByEntityId(customerId);
         customerDao.removeById(tenantId, customerId.getId());
         countService.publishCountEntityEvictEvent(tenantId, EntityType.CUSTOMER);
+        publishDeleteEvent(tenantId, customerId, null);
     }
 
     private List<CustomerId> fetchSubcustomers(TenantId tenantId, CustomerId customerId) throws Exception {
