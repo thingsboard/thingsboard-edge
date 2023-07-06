@@ -243,6 +243,7 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
       color: [null, []],
       padding: [null, []],
       margin: [null, []],
+      borderRadius: [null, []],
       widgetStyle: [null, []],
       widgetCss: [null, []],
       titleStyle: [null, []],
@@ -504,6 +505,7 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
           color: config.color,
           padding: config.padding,
           margin: config.margin,
+          borderRadius: config.borderRadius,
           widgetStyle: isDefined(config.widgetStyle) ? config.widgetStyle : {},
           widgetCss: isDefined(config.widgetCss) ? config.widgetCss : '',
           titleStyle: isDefined(config.titleStyle) ? config.titleStyle : {

@@ -51,8 +51,7 @@ import {
   PowerMode
 } from '@home/components/profile/device/lwm2m/lwm2m-profile-config.models';
 import { PageLink } from '@shared/models/page/page-link';
-import { isDefinedAndNotNull, isNotEmptyStr } from '@core/utils';
-import { EdgeId } from '@shared/models/id/edge-id';
+import { isDefinedAndNotNull } from '@core/utils';
 
 export enum DeviceProfileType {
   DEFAULT = 'DEFAULT',
@@ -721,7 +720,7 @@ export interface Device extends BaseData<DeviceId>, ExportableEntity<DeviceId> {
   tenantId?: TenantId;
   customerId?: CustomerId;
   name?: string;
-  type: string;
+  type?: string;
   label?: string;
   firmwareId?: OtaPackageId;
   softwareId?: OtaPackageId;

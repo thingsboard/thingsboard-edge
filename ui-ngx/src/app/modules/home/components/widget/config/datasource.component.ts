@@ -169,6 +169,8 @@ export class DatasourceComponent implements ControlValueAccessor, OnInit, Valida
   datasourceTypes: Array<DatasourceType> = [];
   datasourceTypesTranslations = datasourceTypeTranslationMap;
 
+  alarmSearchStatus = AlarmSearchStatus;
+
   datasourceFormGroup: UntypedFormGroup;
 
   private propagateChange = (_val: any) => {};

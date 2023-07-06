@@ -195,6 +195,7 @@ import * as ProtobufContentComponent from '@shared/components/protobuf-content.c
 import * as SlackConversationAutocompleteComponent from '@shared/components/slack-conversation-autocomplete.component';
 import * as StringItemsListComponent from '@shared/components/string-items-list.component';
 import * as ToggleHeaderComponent from '@shared/components/toggle-header.component';
+import * as ToggleSelectComponent from '@shared/components/toggle-select.component';
 import * as EntityGroupAutocompleteComponent from '@shared/components/group/entity-group-autocomplete.component';
 import * as OwnerAutocompleteComponent from '@shared/components/group/owner-autocomplete.component';
 import * as EntityGroupSelectComponent from '@shared/components/group/entity-group-select.component';
@@ -536,6 +537,7 @@ class ModulesMap implements IModulesMap {
     '@shared/components/slack-conversation-autocomplete.component': SlackConversationAutocompleteComponent,
     '@shared/components/string-items-list.component': StringItemsListComponent,
     '@shared/components/toggle-header.component': ToggleHeaderComponent,
+      '@shared/components/toggle-select.component': ToggleSelectComponent,
     '@shared/components/group/entity-group-autocomplete.component': EntityGroupAutocompleteComponent,
     '@shared/components/group/owner-autocomplete.component': OwnerAutocompleteComponent,
     '@shared/components/group/entity-group-select.component': EntityGroupSelectComponent,
