@@ -199,7 +199,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 log.info("Updating data from version 3.3.4 to 3.4.0 ...");
                 tenantsProfileQueueConfigurationUpdater.updateEntities();
                 rateLimitsUpdater.updateEntities();
-
                 break;
             case "3.4.0":
                 boolean skipEventsMigration = getEnv("TB_SKIP_EVENTS_MIGRATION", false);
@@ -207,7 +206,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     log.info("Updating data from version 3.4.0 to 3.4.1 ...");
                     eventService.migrateEvents();
                 }
-
                 break;
             case "3.4.1":
                 log.info("Updating data from version 3.4.1 to 3.4.2 ...");
@@ -219,13 +217,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 } else {
                     log.info("Skipping audit logs migration");
                 }
-                boolean skipEdgeEventsMigration = getEnv("TB_SKIP_EDGE_EVENTS_MIGRATION", false);
-                if (!skipEdgeEventsMigration) {
-                    log.info("Starting edge events migration. Can be skipped with TB_SKIP_EDGE_EVENTS_MIGRATION env variable set to true");
-                    edgeEventDao.migrateEdgeEvents();
-                } else {
-                    log.info("Skipping edge events migration");
-                }
+                migrateEdgeEvents("Starting edge events migration. ");
 
                 break;
             case "3.4.4":
@@ -241,6 +233,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 break;
             case "3.5.1":
                 log.info("Updating data from version 3.5.1 to 3.5.2 ...");
+                migrateEdgeEvents("Starting edge events migration - adding seq_id column. ");
                 break;
             case "edge":
                 // remove this line in 4+ release
@@ -251,6 +244,16 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
+        }
+    }
+
+    private void migrateEdgeEvents(String logPrefix) {
+        boolean skipEdgeEventsMigration = getEnv("TB_SKIP_EDGE_EVENTS_MIGRATION", false);
+        if (!skipEdgeEventsMigration) {
+            log.info(logPrefix + "Can be skipped with TB_SKIP_EDGE_EVENTS_MIGRATION env variable set to true");
+            edgeEventDao.migrateEdgeEvents();
+        } else {
+            log.info("Skipping edge events migration");
         }
     }
 

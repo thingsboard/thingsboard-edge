@@ -49,6 +49,7 @@ import { AddDeviceProfileDialogComponent, AddDeviceProfileDialogData } from './a
 import { emptyPageData } from '@shared/models/page/page-data';
 import { getEntityDetailsPageURL } from '@core/utils';
 import { SubscriptSizing } from '@angular/material/form-field';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-device-profile-autocomplete',
@@ -70,6 +71,7 @@ export class DeviceProfileAutocompleteComponent implements ControlValueAccessor,
   subscriptSizing: SubscriptSizing = 'fixed';
 
   @Input()
+  @coerceBoolean()
   selectDefaultProfile = false;
 
   @Input()
@@ -79,10 +81,18 @@ export class DeviceProfileAutocompleteComponent implements ControlValueAccessor,
   displayAllOnEmpty = false;
 
   @Input()
-  editProfileEnabled = true;
+  @coerceBoolean()
+  // @voba - edge read-only
+  editProfileEnabled = false;
 
   @Input()
-  addNewProfile = true;
+  @coerceBoolean()
+  // @voba - edge read-only
+  addNewProfile = false;
+
+  @Input()
+  @coerceBoolean()
+  showCreateNewButton = false;
 
   @Input()
   showDetailsPageLink = false;
@@ -90,14 +100,9 @@ export class DeviceProfileAutocompleteComponent implements ControlValueAccessor,
   @Input()
   transportType: DeviceTransportType = null;
 
-  private requiredValue: boolean;
-  get required(): boolean {
-    return this.requiredValue;
-  }
   @Input()
-  set required(value: boolean) {
-    this.requiredValue = coerceBooleanProperty(value);
-  }
+  @coerceBoolean()
+  required = false;
 
   @Input()
   disabled: boolean;
