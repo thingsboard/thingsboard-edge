@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.EdgeId;
@@ -53,6 +54,8 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.entity.EntityCountService;
+import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
@@ -101,6 +104,10 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
             publishEvictEvent(new IntegrationCacheEvictEvent(result.getId()));
             if (integration.getId() == null) {
                 entityCountService.publishCountEntityEvictEvent(integration.getTenantId(), EntityType.INTEGRATION);
+            }
+            if (result.isEdgeTemplate()) {
+                eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getTenantId()).entityId(result.getId())
+                        .added(integration.getId() == null).build());
             }
             return result;
         } catch (Exception t) {
@@ -201,6 +208,17 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     }
 
     @Override
+    public void deleteIntegration(TenantId tenantId, IntegrationId integrationId, boolean isEdgeTemplate) {
+        if (isEdgeTemplate) {
+            List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, integrationId);
+            deleteIntegration(tenantId, integrationId);
+            publishDeleteEvent(tenantId, integrationId, relatedEdgeIds);
+        } else {
+            deleteIntegration(tenantId, integrationId);
+        }
+    }
+
+    @Override
     @Transactional
     public void deleteIntegrationsByTenantId(TenantId tenantId) {
         log.trace("Executing deleteIntegrationsByTenantId, tenantId [{}]", tenantId);
@@ -238,6 +256,8 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
             log.warn("[{}] Failed to create integration relation. Edge Id: [{}]", integrationId, edgeId);
             throw new RuntimeException(e);
         }
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(integrationId)
+                .actionType(ActionType.ASSIGNED_TO_EDGE).build());
         return integration;
     }
 
@@ -254,6 +274,8 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
             log.warn("[{}] Failed to delete integration relation. Edge Id: [{}]", integrationId, edgeId);
             throw new RuntimeException(e);
         }
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(integrationId)
+                .actionType(ActionType.UNASSIGNED_FROM_EDGE).build());
         return integration;
     }
 

@@ -73,6 +73,8 @@ public interface IntegrationService extends EntityDaoService {
 
     void deleteIntegration(TenantId tenantId, IntegrationId integrationId);
 
+    void deleteIntegration(TenantId tenantId, IntegrationId integrationId, boolean isEdgeTemplate);
+
     void deleteIntegrationsByTenantId(TenantId tenantId);
 
     Long countCoreIntegrations();

@@ -141,7 +141,7 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
     }
 
     @Override
-    public void notifyCreateOrUpdateAlarm(AlarmInfo alarm, ActionType actionType, User user, Object... additionalInfo) {
+    public void logCreateOrUpdateAlarm(AlarmInfo alarm, ActionType actionType, User user, Object... additionalInfo) {
         logEntityAction(alarm.getTenantId(), alarm.getOriginator(), alarm, alarm.getCustomerId(), actionType, user, additionalInfo);
     }
 
@@ -167,19 +167,8 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
     }
 
     @Override
-    public void notifyAlarmComment(Alarm alarm, AlarmComment alarmComment, ActionType actionType, User user) {
+    public void logAlarmComment(Alarm alarm, AlarmComment alarmComment, ActionType actionType, User user) {
         logEntityAction(alarm.getTenantId(), alarm.getId(), alarm, alarm.getCustomerId(), actionType, user, alarmComment);
-    }
-
-    @Override
-    public <E extends HasName, I extends EntityId> void notifyCreateOrUpdateOrDelete(TenantId tenantId, CustomerId customerId,
-                                                                                     I entityId, E entity, User user,
-                                                                                     ActionType actionType, boolean sendNotifyMsgToEdge, Exception e,
-                                                                                     Object... additionalInfo) {
-        logEntityAction(tenantId, entityId, entity, customerId, actionType, user, e, additionalInfo);
-        if (sendNotifyMsgToEdge) {
-            tbClusterService.sendNotificationMsgToEdge(tenantId, null, entityId, null, null, edgeTypeByActionType(actionType));
-        }
     }
 
     @Override

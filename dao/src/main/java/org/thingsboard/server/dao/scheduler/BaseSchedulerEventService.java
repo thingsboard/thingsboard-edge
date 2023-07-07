@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
@@ -52,6 +53,9 @@ import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerIn
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityCountService;
+import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.exception.DataValidationException;
@@ -170,6 +174,8 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
         if (schedulerEvent.getId() == null) {
             entityCountService.publishCountEntityEvictEvent(schedulerEvent.getTenantId(), EntityType.SCHEDULER_EVENT);
         }
+        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(schedulerEvent.getTenantId())
+                .entityId(savedSchedulerEvent.getId()).added(schedulerEvent.getId() == null).build());
         return savedSchedulerEvent;
     }
 
@@ -180,6 +186,7 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
         deleteEntityRelations(tenantId, schedulerEventId);
         schedulerEventDao.removeById(tenantId, schedulerEventId.getId());
         entityCountService.publishCountEntityEvictEvent(tenantId, EntityType.SCHEDULER_EVENT);
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(schedulerEventId).build());
     }
 
     @Override
@@ -216,6 +223,8 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
             log.warn("[{}] Failed to create scheduler event relation. Edge Id: [{}]", schedulerEventId, edgeId);
             throw new RuntimeException(e);
         }
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(schedulerEventId)
+                .actionType(ActionType.ASSIGNED_TO_EDGE).build());
         return schedulerEventInfo;
     }
 
@@ -232,6 +241,8 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
             log.warn("[{}] Failed to delete scheduler event relation. Edge group id: [{}]", schedulerEventId, edgeId);
             throw new RuntimeException(e);
         }
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(schedulerEventId)
+                .actionType(ActionType.ASSIGNED_TO_EDGE).build());
         return schedulerEventInfo;
     }
 

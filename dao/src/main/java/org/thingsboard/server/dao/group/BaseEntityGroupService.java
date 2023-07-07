@@ -705,6 +705,14 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             return entityRelation;
         }).collect(Collectors.toList());
         relationService.saveRelations(tenantId, relations);
+        for (EntityId entityId : entityIds) {
+            eventPublisher.publishEvent(ActionEntityEvent.builder()
+                    .tenantId(tenantId)
+                    .entityId(entityId)
+                    .actionType(ActionType.ADDED_TO_ENTITY_GROUP)
+                    .entityGroupType(entityId.getEntityType())
+                    .entityGroupId(entityGroupId).build());
+        }
     }
 
     @Override
@@ -730,6 +738,12 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
         relationService.deleteRelation(tenantId, entityGroupId, entityId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP);
+        eventPublisher.publishEvent(ActionEntityEvent.builder()
+                .tenantId(tenantId)
+                .entityId(entityId)
+                .actionType(ActionType.REMOVED_FROM_ENTITY_GROUP)
+                .entityGroupType(entityId.getEntityType())
+                .entityGroupId(entityGroupId).build());
     }
 
     @Override
@@ -941,6 +955,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             log.warn("[{}] Failed to create entity group relation. Edge Id: [{}]", entityGroupId, edgeId);
             throw new RuntimeException(e);
         }
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(entityGroupId)
+                .actionType(ActionType.ASSIGNED_TO_EDGE).entityGroupType(groupType).build());
         return entityGroup;
     }
 
@@ -958,6 +974,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             log.warn("[{}] Failed to delete entity group relation. Edge id: [{}]", entityGroupId, edgeId);
             throw new RuntimeException(e);
         }
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(entityGroupId)
+                .actionType(ActionType.UNASSIGNED_FROM_EDGE).entityGroupType(groupType).build());
         return entityGroup;
     }
 

@@ -43,7 +43,6 @@ import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -55,7 +54,6 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -83,7 +81,7 @@ public class DefaultEntityGroupService extends AbstractTbEntityService implement
     }
 
     @Override
-    public void delete(TenantId tenantId, List<EdgeId> relatedEdgeIds, EntityGroup entityGroup, User user) throws ThingsboardException {
+    public void delete(TenantId tenantId, EntityGroup entityGroup, User user) throws ThingsboardException {
         ActionType actionType = ActionType.DELETED;
         EntityGroupId entityGroupId = entityGroup.getId();
         try {

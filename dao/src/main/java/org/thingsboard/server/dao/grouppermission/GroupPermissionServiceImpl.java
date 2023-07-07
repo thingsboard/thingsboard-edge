@@ -54,6 +54,8 @@ import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.group.EntityGroupDao;
 import org.thingsboard.server.dao.role.RoleDao;
@@ -98,7 +100,10 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
     public GroupPermission saveGroupPermission(TenantId tenantId, GroupPermission groupPermission) {
         log.trace("Executing save groupPermission [{}]", groupPermission);
         groupPermissionValidator.validate(groupPermission, GroupPermission::getTenantId);
-        return groupPermissionDao.save(tenantId, groupPermission);
+        GroupPermission savedGroupPermission = groupPermissionDao.save(tenantId, groupPermission);
+        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entityId(savedGroupPermission.getId())
+                .added(groupPermission.getId() == null).build());
+        return savedGroupPermission;
     }
 
     @Override
@@ -250,6 +255,7 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
             }
         }
         deleteEntityRelations(tenantId, groupPermissionId);
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(groupPermissionId).build());
         groupPermissionDao.removeById(tenantId, groupPermissionId.getId());
     }
 

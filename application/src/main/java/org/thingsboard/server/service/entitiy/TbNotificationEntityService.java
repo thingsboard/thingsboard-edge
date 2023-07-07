@@ -42,7 +42,6 @@ import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
@@ -83,15 +82,9 @@ public interface TbNotificationEntityService {
     void notifyCreateOrUpdateOrDeleteEdge(TenantId tenantId, EdgeId edgeId, CustomerId customerId, Edge edge, ActionType actionType,
                                           User user, Object... additionalInfo);
 
-    void notifyCreateOrUpdateAlarm(AlarmInfo alarm, ActionType actionType, User user, Object... additionalInfo);
+    void logCreateOrUpdateAlarm(AlarmInfo alarm, ActionType actionType, User user, Object... additionalInfo);
 
-    void notifyAlarmComment(Alarm alarm, AlarmComment alarmComment, ActionType actionType, User user);
-
-
-    <E extends HasName, I extends EntityId> void notifyCreateOrUpdateOrDelete(TenantId tenantId, CustomerId customerId,
-                                                                              I entityId, E entity, User user,
-                                                                              ActionType actionType, boolean sendNotifyMsgToEdge,
-                                                                              Exception e, Object... additionalInfo);
+    void logAlarmComment(Alarm alarm, AlarmComment alarmComment, ActionType actionType, User user);
 
     void logEntityRelationAction(TenantId tenantId, CustomerId customerId, EntityRelation relation, User user,
                                  ActionType actionType, Object... additionalInfo);
