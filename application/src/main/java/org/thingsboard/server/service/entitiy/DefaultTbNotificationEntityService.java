@@ -220,6 +220,10 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
                 return EdgeEventActionType.UNASSIGNED_FROM_EDGE;
             case CREDENTIALS_UPDATED:
                 return EdgeEventActionType.CREDENTIALS_UPDATED;
+            case ADDED_TO_ENTITY_GROUP:
+                return EdgeEventActionType.ADDED_TO_ENTITY_GROUP;
+            case REMOVED_FROM_ENTITY_GROUP:
+                return EdgeEventActionType.REMOVED_FROM_ENTITY_GROUP;
             default:
                 return null;
         }

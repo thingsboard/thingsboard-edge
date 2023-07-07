@@ -95,8 +95,6 @@ public class DefaultTbEntityViewService extends AbstractTbEntityService implemen
             this.updateEntityViewAttributes(tenantId, savedEntityView, existingEntityView, user);
             createOrUpdateGroupEntity(tenantId, savedEntityView, entityGroups, actionType, user);
             autoCommit(user, savedEntityView.getId());
-            notificationEntityService.logEntityAction(savedEntityView.getTenantId(), savedEntityView.getId(), savedEntityView,
-                    null, actionType, user);
             localCache.computeIfAbsent(savedEntityView.getTenantId(), (k) -> new ConcurrentReferenceHashMap<>()).clear();
             tbClusterService.broadcastEntityStateChangeEvent(savedEntityView.getTenantId(), savedEntityView.getId(),
                     entityView.getId() == null ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);

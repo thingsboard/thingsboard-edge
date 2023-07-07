@@ -136,7 +136,7 @@ public abstract class AbstractTbEntityService {
     }
 
     protected <I extends EntityId, T extends GroupEntity<I>> void createOrUpdateGroupEntity(TenantId tenantId, T entity, List<EntityGroup> entityGroups,
-                                                                                            ActionType actionType, User user) throws ThingsboardException {
+                                                                                            ActionType actionType, User user) {
         EntityId entityId = entity.getId();
         CustomerId customerId = entity.getCustomerId();
         if (entityGroups != null && actionType == ActionType.ADDED) {

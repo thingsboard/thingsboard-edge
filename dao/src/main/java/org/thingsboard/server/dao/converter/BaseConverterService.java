@@ -89,7 +89,7 @@ public class BaseConverterService extends AbstractEntityService implements Conve
             }
             if (converter.isEdgeTemplate()) {
                 eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(converter.getTenantId())
-                        .entityId(converter.getId()).added(converter.getId() == null).build());
+                        .entityId(savedConverter.getId()).added(converter.getId() == null).build());
             }
             return savedConverter;
         } catch (Exception t) {

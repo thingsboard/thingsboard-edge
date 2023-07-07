@@ -242,7 +242,7 @@ public class SignUpController extends BaseController {
                 signUpRequest.getEmail(), false, selfRegistrationParams.getNotificationEmail());
 
         notificationEntityService.logEntityAction(tenantId, savedCustomer.getId(), savedCustomer, savedCustomer.getId(),
-                ActionType.ADDED, user);
+                ActionType.ADDED, null);
         notificationEntityService.logEntityAction(tenantId, savedUser.getId(), savedUser, savedUser.getCustomerId(),
                 ActionType.ADDED, null);
         notificationEntityService.logEntityAction(tenantId, savedUser.getId(), savedUser, savedCustomer.getId(),
