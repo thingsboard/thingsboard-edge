@@ -61,6 +61,7 @@ public class AssetCloudProcessor extends BaseEdgeProcessor {
         CustomerId customerId = safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId);
         assetCreationLock.lock();
         try {
+            edgeSynchronizationManager.getSync().set(true);
             Asset asset = assetService.findAssetById(tenantId, assetId);
             boolean created = false;
             if (asset == null) {
@@ -82,6 +83,7 @@ public class AssetCloudProcessor extends BaseEdgeProcessor {
             }
             assetService.saveAsset(asset, false);
         } finally {
+            edgeSynchronizationManager.getSync().remove();
             assetCreationLock.unlock();
         }
     }

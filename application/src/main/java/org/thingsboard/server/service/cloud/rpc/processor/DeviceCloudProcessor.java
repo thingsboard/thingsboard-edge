@@ -58,22 +58,27 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                                                             Long queueStartTs) {
         log.trace("[{}] executing processDeviceMsgFromCloud [{}]", tenantId, deviceUpdateMsg);
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
-        switch (deviceUpdateMsg.getMsgType()) {
-            case ENTITY_CREATED_RPC_MESSAGE:
-            case ENTITY_UPDATED_RPC_MESSAGE:
-                saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, edgeCustomerId, queueStartTs);
-                return Futures.transformAsync(requestForAdditionalData(tenantId, deviceId, queueStartTs),
-                        ignored -> cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_REQUEST,
-                        deviceId, null, queueStartTs), dbCallbackExecutorService);
-            case ENTITY_DELETED_RPC_MESSAGE:
-                Device deviceById = deviceService.findDeviceById(tenantId, deviceId);
-                if (deviceById != null) {
-                    deviceService.deleteDevice(tenantId, deviceId);
-                }
-                return Futures.immediateFuture(null);
-            case UNRECOGNIZED:
-            default:
-                return handleUnsupportedMsgType(deviceUpdateMsg.getMsgType());
+        try {
+            edgeSynchronizationManager.getSync().set(true);
+            switch (deviceUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE:
+                case ENTITY_UPDATED_RPC_MESSAGE:
+                    saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, edgeCustomerId, queueStartTs);
+                    return Futures.transformAsync(requestForAdditionalData(tenantId, deviceId, queueStartTs),
+                            ignored -> cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_REQUEST,
+                            deviceId, null, queueStartTs), dbCallbackExecutorService);
+                case ENTITY_DELETED_RPC_MESSAGE:
+                    Device deviceById = deviceService.findDeviceById(tenantId, deviceId);
+                    if (deviceById != null) {
+                        deviceService.deleteDevice(tenantId, deviceId);
+                    }
+                    return Futures.immediateFuture(null);
+                case UNRECOGNIZED:
+                default:
+                    return handleUnsupportedMsgType(deviceUpdateMsg.getMsgType());
+            }
+        } finally {
+            edgeSynchronizationManager.getSync().remove();
         }
     }
 
