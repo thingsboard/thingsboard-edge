@@ -67,14 +67,6 @@ public interface TbNotificationEntityService {
                                                                  ActionType actionType, User user, Exception e,
                                                                  Object... additionalInfo);
 
-    <E extends HasName, I extends EntityId> void notifyAddToEntityGroup(TenantId tenantId, I entityId, E entity,
-                                                                        CustomerId customerId, EntityGroupId entityGroupId,
-                                                                        User user, Object... additionalInfo);
-
-    <E extends HasName, I extends EntityId> void notifyCreateOrUpdateEntity(TenantId tenantId, I entityId, E entity,
-                                                                            CustomerId customerId, ActionType actionType,
-                                                                            User user, Object... additionalInfo);
-
     void notifyCreateOrUpdateTenant(Tenant tenant, ComponentLifecycleEvent event);
 
     void notifyDeleteTenant(Tenant tenant);

@@ -352,11 +352,7 @@ public class EntityActionService {
     }
 
     public void sendEntityNotificationMsgToEdge(TenantId tenantId, EntityId entityId, EdgeEventActionType action) {
-        tbClusterService.sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action, null, null);
-    }
-
-    public void sendGroupEntityNotificationMsgToEdge(TenantId tenantId, EntityId entityId, EntityGroupId entityGroupId, EdgeEventActionType action) {
-        tbClusterService.sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action, entityId.getEntityType(), entityGroupId);
+        tbClusterService.sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action);
     }
 
     public <E extends HasName, I extends EntityId> void logEntityAction(User user, I entityId, E entity, CustomerId customerId,

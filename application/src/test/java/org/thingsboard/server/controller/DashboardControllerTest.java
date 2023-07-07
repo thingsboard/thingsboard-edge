@@ -129,7 +129,7 @@ public class DashboardControllerTest extends AbstractControllerTest {
 
         Dashboard savedDashboard = doPost("/api/dashboard", dashboard, Dashboard.class);
 
-        testNotifyEntityOneTimeMsgToEdgeServiceNever(savedDashboard, savedDashboard.getId(), savedDashboard.getId(), savedTenant.getId(),
+        testNotifyEntityEntityGroupNullAllOneTime(savedDashboard, savedDashboard.getId(), savedDashboard.getId(), savedTenant.getId(),
                 tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED);
 
         Assert.assertNotNull(savedDashboard);

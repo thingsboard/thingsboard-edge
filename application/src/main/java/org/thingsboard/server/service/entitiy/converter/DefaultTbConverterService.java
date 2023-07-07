@@ -84,7 +84,8 @@ public class DefaultTbConverterService extends AbstractTbEntityService implement
                 tbClusterService.broadcastEntityStateChangeEvent(tenantId, converterId, ComponentLifecycleEvent.DELETED);
             }
 
-            notificationEntityService.logEntityAction(tenantId, converter.getId(), converter, null, actionType, user);
+            notificationEntityService.logEntityAction(tenantId, converter.getId(), converter, null,
+                    actionType, user, converter.getId().toString());
 
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.CONVERTER),

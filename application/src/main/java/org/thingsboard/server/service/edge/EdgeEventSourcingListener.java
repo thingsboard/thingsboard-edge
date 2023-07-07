@@ -102,7 +102,8 @@ public class EdgeEventSourcingListener {
         }
         log.trace("[{}] EntityActionEvent called: {}", event.getEntityId().getEntityType(), event);
         tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), event.getEdgeId(), event.getEntityId(),
-                event.getBody(), event.getType(), edgeTypeByActionType(event.getActionType()));
+                event.getBody(), event.getType(), edgeTypeByActionType(event.getActionType()),
+                event.getEntityGroupType(), event.getEntityGroupId());
     }
 
     @TransactionalEventListener(fallbackExecution = true)

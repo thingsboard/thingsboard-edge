@@ -91,8 +91,8 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
                 } else if (!entityGroups.isEmpty() && tbUser.getId() == null) {
                     for (EntityGroup entityGroup : entityGroups) {
                         entityGroupService.addEntityToEntityGroup(tenantId, entityGroup.getId(), savedUser.getId());
-                        notificationEntityService.notifyAddToEntityGroup(tenantId, savedUser.getId(), savedUser, customerId,
-                                entityGroup.getId(), user, savedUser.getId().toString(), entityGroup.getId().toString(), entityGroup.getName());
+                        notificationEntityService.logEntityAction(tenantId, savedUser.getId(), savedUser, customerId,
+                                ActionType.ADDED_TO_ENTITY_GROUP, user, savedUser.getId().toString(), entityGroup.getId().toString(), entityGroup.getName());
                     }
                 }
             }

@@ -125,7 +125,7 @@ public abstract class AbstractEntityService {
 
     protected void publishDeleteEvent(TenantId tenantId, EntityId entityId, List<EdgeId> relatedEdgeIds) {
         if (EntityType.CUSTOMER.equals(entityId.getEntityType())) { // send notification to all edges in customer hierarchy
-            eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(entityId).edgeId(null));
+            eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(entityId).edgeId(null).build());
         } else {
             if (!CollectionUtils.isEmpty(relatedEdgeIds)) {
                 for (EdgeId relatedEdgeId : relatedEdgeIds) {
