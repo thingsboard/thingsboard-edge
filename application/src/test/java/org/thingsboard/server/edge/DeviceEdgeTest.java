@@ -84,6 +84,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DaoSqlTest
 public class DeviceEdgeTest extends AbstractEdgeTest {
 
+    private static final String DEFAULT_DEVICE_TYPE = "default";
+
     @Test
     @Ignore
     public void testDevices() throws Exception {
@@ -110,7 +112,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
 
         // create device #2 and assign to edge
         edgeImitator.expectMessageAmount(2);
-        savedDevice = saveDevice("Edge Device 3", "Default");
+        savedDevice = saveDevice("Edge Device 3", DEFAULT_DEVICE_TYPE);
         doPost("/api/edge/" + edge.getUuidId()
                 + "/device/" + savedDevice.getUuidId(), Device.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
@@ -269,7 +271,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     public void testDeviceReachedMaximumAllowedOnCloud() throws Exception {
         // update tenant profile configuration
         loginSysAdmin();
-        TenantProfile tenantProfile = doGet("/api/tenantProfile/" + savedTenant.getTenantProfileId().getId(), TenantProfile.class);
+        TenantProfile tenantProfile = doGet("/api/tenantProfile/" + tenantProfileId.getId(), TenantProfile.class);
         DefaultTenantProfileConfiguration profileConfiguration =
                 (DefaultTenantProfileConfiguration) tenantProfile.getProfileData().getConfiguration();
         profileConfiguration.setMaxDevices(1);
@@ -285,7 +287,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
         deviceUpdateMsgBuilder.setIdMSB(uuid.getMostSignificantBits());
         deviceUpdateMsgBuilder.setIdLSB(uuid.getLeastSignificantBits());
         deviceUpdateMsgBuilder.setName("Edge Device");
-        deviceUpdateMsgBuilder.setType("default");
+        deviceUpdateMsgBuilder.setType(DEFAULT_DEVICE_TYPE);
         deviceUpdateMsgBuilder.setMsgType(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE);
         uplinkMsgBuilder.addDeviceUpdateMsg(deviceUpdateMsgBuilder.build());
 
@@ -490,7 +492,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     @Ignore
     public void testSendDeviceToCloudWithNameThatAlreadyExistsOnCloud() throws Exception {
         String deviceOnCloudName = StringUtils.randomAlphanumeric(15);
-        Device deviceOnCloud = saveDevice(deviceOnCloudName, "Default");
+        Device deviceOnCloud = saveDevice(deviceOnCloudName, DEFAULT_DEVICE_TYPE);
 
         UUID uuid = Uuids.timeBased();
 

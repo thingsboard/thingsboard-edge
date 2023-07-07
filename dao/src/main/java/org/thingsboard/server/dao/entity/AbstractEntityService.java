@@ -18,7 +18,9 @@ package org.thingsboard.server.dao.entity;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.util.CollectionUtils;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.EdgeId;
@@ -29,6 +31,7 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.relation.RelationService;
 
@@ -42,6 +45,9 @@ public abstract class AbstractEntityService {
 
     public static final String INCORRECT_EDGE_ID = "Incorrect edgeId ";
     public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
+
+    @Autowired
+    protected ApplicationEventPublisher eventPublisher;
 
     @Lazy
     @Autowired
@@ -123,4 +129,11 @@ public abstract class AbstractEntityService {
         }
     }
 
+    protected void publishDeleteEvent(TenantId tenantId, EntityId entityId, List<EdgeId> relatedEdgeIds) {
+        if (!CollectionUtils.isEmpty(relatedEdgeIds)) {
+            for (EdgeId relatedEdgeId : relatedEdgeIds) {
+                eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(entityId).edgeId(relatedEdgeId).build());
+            }
+        }
+    }
 }
