@@ -5189,6 +5189,15 @@
         "just-now": "Just now",
         "ago": "ago"
     },
+    "unit": {
+        "celsius": "Celsius",
+        "kelvin": "Kelvin",
+        "fahrenheit": "Fahrenheit",
+        "percentage": "Percentage",
+        "second": "Second",
+        "minute": "Minute",
+        "hour": "Hour"
+    },
     "user": {
         "all": "All",
         "all-users": "All users",

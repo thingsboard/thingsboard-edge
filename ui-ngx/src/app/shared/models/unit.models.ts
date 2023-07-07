@@ -29,55 +29,57 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
-import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, UntypedFormBuilder } from '@angular/forms';
-
-@Component({
-  selector: 'tb-widget-units',
-  templateUrl: './widget-units.component.html',
-  styleUrls: [],
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => WidgetUnitsComponent),
-      multi: true
-    }
-  ]
-})
-export class WidgetUnitsComponent implements ControlValueAccessor, OnInit {
-
-  @Input()
-  disabled: boolean;
-
-  unitsFormControl: FormControl;
-
-  private propagateChange = (_val: any) => {};
-
-  constructor(private fb: UntypedFormBuilder) {
-  }
-
-  ngOnInit() {
-    this.unitsFormControl = this.fb.control('', []);
-    this.unitsFormControl.valueChanges.subscribe(val => this.propagateChange(val));
-  }
-
-  writeValue(units?: string): void {
-    this.unitsFormControl.patchValue(units, {emitEvent: false});
-  }
-
-  registerOnChange(fn: any): void {
-    this.propagateChange = fn;
-  }
-
-  registerOnTouched(fn: any): void {
-  }
-
-  setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
-    if (this.disabled) {
-      this.unitsFormControl.disable({emitEvent: false});
-    } else {
-      this.unitsFormControl.enable({emitEvent: false});
-    }
-  }
+export interface Unit {
+  name: string;
+  symbol: string;
+  tags: string[];
 }
+
+export const units: Array<Unit> = [
+  {
+    name: 'unit.celsius',
+    symbol: '°C',
+    tags: ['temperature']
+  },
+  {
+    name: 'unit.kelvin',
+    symbol: 'K',
+    tags: ['temperature']
+  },
+  {
+    name: 'unit.fahrenheit',
+    symbol: '°F',
+    tags: ['temperature']
+  },
+  {
+    name: 'unit.percentage',
+    symbol: '%',
+    tags: ['percentage']
+  },
+  {
+    name: 'unit.second',
+    symbol: 's',
+    tags: ['time']
+  },
+  {
+    name: 'unit.minute',
+    symbol: 'min',
+    tags: ['time']
+  },
+  {
+    name: 'unit.hour',
+    symbol: 'h',
+    tags: ['time']
+  }
+];
+
+export const unitBySymbol = (symbol: string): Unit => units.find(u => u.symbol === symbol);
+
+const searchUnitTags = (unit: Unit, searchText: string): boolean =>
+  !!unit.tags.find(t => t.toUpperCase().includes(searchText.toUpperCase()));
+
+export const searchUnits = (_units: Array<Unit>, searchText: string): Array<Unit> => _units.filter(
+    u => u.symbol.toUpperCase().includes(searchText.toUpperCase()) ||
+      u.name.toUpperCase().includes(searchText.toUpperCase()) ||
+      searchUnitTags(u, searchText)
+);
