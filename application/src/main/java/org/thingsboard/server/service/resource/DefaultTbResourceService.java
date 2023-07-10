@@ -50,6 +50,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.exception.DataValidationException;
+import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 
@@ -70,9 +71,11 @@ import static org.thingsboard.server.utils.LwM2mObjectModelUtils.toLwm2mResource
 public class DefaultTbResourceService extends AbstractTbEntityService implements TbResourceService {
 
     private final ResourceService resourceService;
+    private final WidgetTypeService widgetTypeService;
 
-    public DefaultTbResourceService(ResourceService resourceService) {
+    public DefaultTbResourceService(ResourceService resourceService, WidgetTypeService widgetTypeService) {
         this.resourceService = resourceService;
+        this.widgetTypeService = widgetTypeService;
     }
 
     @Override
