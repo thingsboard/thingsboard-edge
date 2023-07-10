@@ -161,7 +161,7 @@ public class BaseConverterService extends AbstractEntityService implements Conve
                 throw t;
             }
         }
-        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(converterId).edgeId(null).build());
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(converterId).build());
         deleteEntityRelations(tenantId, converterId);
         entityCountService.publishCountEntityEvictEvent(tenantId, EntityType.CONVERTER);
     }

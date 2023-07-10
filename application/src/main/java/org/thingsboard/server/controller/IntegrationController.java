@@ -278,7 +278,7 @@ public class IntegrationController extends AutoCommitController {
             IntegrationId integrationId = new IntegrationId(toUUID(strIntegrationId));
             Integration integration = checkIntegrationId(integrationId, Operation.DELETE);
 
-            integrationService.deleteIntegration(getTenantId(), integrationId, integration.isEdgeTemplate());
+            integrationService.deleteIntegration(getTenantId(), integrationId);
 
             if (!integration.isEdgeTemplate()) {
                 tbClusterService.broadcastEntityStateChangeEvent(integration.getTenantId(), integration.getId(), ComponentLifecycleEvent.DELETED);

@@ -35,7 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.util.CollectionUtils;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -124,13 +123,9 @@ public abstract class AbstractEntityService {
     }
 
     protected void publishDeleteEvent(TenantId tenantId, EntityId entityId, List<EdgeId> relatedEdgeIds) {
-        if (EntityType.CUSTOMER.equals(entityId.getEntityType())) { // send notification to all edges in customer hierarchy
-            eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(entityId).edgeId(null).build());
-        } else {
-            if (!CollectionUtils.isEmpty(relatedEdgeIds)) {
-                for (EdgeId relatedEdgeId : relatedEdgeIds) {
-                    eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(entityId).edgeId(relatedEdgeId).build());
-                }
+        if (!CollectionUtils.isEmpty(relatedEdgeIds)) {
+            for (EdgeId relatedEdgeId : relatedEdgeIds) {
+                eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(entityId).edgeId(relatedEdgeId).build());
             }
         }
     }

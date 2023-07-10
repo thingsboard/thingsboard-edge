@@ -201,21 +201,12 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     public void deleteIntegration(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing deleteIntegration [{}]", integrationId);
         validateId(integrationId, INCORRECT_INTEGRATION_ID + integrationId);
+        List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, integrationId);
         deleteEntityRelations(tenantId, integrationId);
         integrationDao.removeById(tenantId, integrationId.getId());
         publishEvictEvent(new IntegrationCacheEvictEvent(integrationId));
         entityCountService.publishCountEntityEvictEvent(tenantId, EntityType.INTEGRATION);
-    }
-
-    @Override
-    public void deleteIntegration(TenantId tenantId, IntegrationId integrationId, boolean isEdgeTemplate) {
-        if (isEdgeTemplate) {
-            List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, integrationId);
-            deleteIntegration(tenantId, integrationId);
-            publishDeleteEvent(tenantId, integrationId, relatedEdgeIds);
-        } else {
-            deleteIntegration(tenantId, integrationId);
-        }
+        publishDeleteEvent(tenantId, integrationId, relatedEdgeIds);
     }
 
     @Override
