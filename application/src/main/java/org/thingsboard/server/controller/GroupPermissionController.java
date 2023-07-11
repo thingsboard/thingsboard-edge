@@ -149,7 +149,7 @@ public class GroupPermissionController extends BaseController {
                 checkEntityGroupId(groupPermission.getEntityGroupId(), Operation.WRITE);
             }
 
-            boolean alreadyAssigned = isAlreadyAssigned(getTenantId(), role, groupPermission);
+            boolean alreadyAssigned = isAlreadyAssigned(getTenantId(), groupPermission);
             if (alreadyAssigned) {
                 throw new ThingsboardException("Role is already assigned to user group!", ThingsboardErrorCode.INVALID_ARGUMENTS);
             }
@@ -270,13 +270,14 @@ public class GroupPermissionController extends BaseController {
         return groupPermissions;
     }
 
-    private boolean isAlreadyAssigned(TenantId tenantId, Role role, GroupPermission groupPermission) {
-        if (role.getType() == RoleType.GENERIC) {
-            return groupPermissionService.findGroupPermissionByTenantIdAndUserGroupIdAndRoleId(tenantId, groupPermission.getUserGroupId(), role.getId(), new PageLink(1)).getTotalElements() > 0;
-        } else if (role.getType() == RoleType.GROUP) {
-            return groupPermissionService.findGroupPermissionByTenantIdAndEntityGroupIdAndUserGroupIdAndRoleId(tenantId, groupPermission.getEntityGroupId(), groupPermission.getUserGroupId(), role.getId(), new PageLink(1)).getTotalElements() > 0;
+    private boolean isAlreadyAssigned(TenantId tenantId, GroupPermission groupPermission) {
+        if (groupPermission.getEntityGroupId() != null) {
+            return groupPermissionService.findGroupPermissionByTenantIdAndEntityGroupIdAndUserGroupIdAndRoleId(tenantId,
+                    groupPermission.getEntityGroupId(), groupPermission.getUserGroupId(), groupPermission.getRoleId(), new PageLink(1)).getTotalElements() > 0;
+        } else {
+            return groupPermissionService.findGroupPermissionByTenantIdAndUserGroupIdAndRoleId(tenantId,
+                    groupPermission.getUserGroupId(), groupPermission.getRoleId(), new PageLink(1)).getTotalElements() > 0;
         }
-        return false;
     }
 
 }
