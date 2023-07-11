@@ -38,10 +38,12 @@ import { WidgetConfigComponentData } from '@home/models/widget-component.models'
 import {
   Datasource,
   datasourcesHasAggregation,
-  datasourcesHasOnlyComparisonAggregation,
+  datasourcesHasOnlyComparisonAggregation, WidgetConfig,
 } from '@shared/models/widget.models';
 import { WidgetConfigComponent } from '@home/components/widget/widget-config.component';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
+import { getTimewindowConfig } from '@home/components/widget/config/timewindow-config-panel.component';
+import { isUndefined } from '@core/utils';
 
 @Component({
   selector: 'tb-simple-card-basic-config',
@@ -78,16 +80,13 @@ export class SimpleCardBasicConfigComponent extends BasicWidgetConfigComponent {
 
   protected onConfigSet(configData: WidgetConfigComponentData) {
     this.simpleCardWidgetConfigForm = this.fb.group({
-      timewindowConfig: [{
-        useDashboardTimewindow: configData.config.useDashboardTimewindow,
-        displayTimewindow: configData.config.useDashboardTimewindow,
-        timewindow: configData.config.timewindow
-      }, []],
+      timewindowConfig: [getTimewindowConfig(configData.config), []],
       datasources: [configData.config.datasources, []],
       label: [this.getDataKeyLabel(configData.config.datasources), []],
       labelPosition: [configData.config.settings?.labelPosition, []],
       units: [configData.config.units, []],
       decimals: [configData.config.decimals, []],
+      cardButtons: [this.getCardButtons(configData.config), []],
       color: [configData.config.color, []],
       backgroundColor: [configData.config.backgroundColor, []],
       actions: [configData.config.actions || {}, []]
@@ -103,9 +102,10 @@ export class SimpleCardBasicConfigComponent extends BasicWidgetConfigComponent {
     this.widgetConfig.config.actions = config.actions;
     this.widgetConfig.config.units = config.units;
     this.widgetConfig.config.decimals = config.decimals;
+    this.widgetConfig.config.settings = this.widgetConfig.config.settings || {};
+    this.setCardButtons(config.cardButtons, this.widgetConfig.config);
     this.widgetConfig.config.color = config.color;
     this.widgetConfig.config.backgroundColor = config.backgroundColor;
-    this.widgetConfig.config.settings = this.widgetConfig.config.settings || {};
     this.widgetConfig.config.settings.labelPosition = config.labelPosition;
     return this.widgetConfig;
   }
@@ -127,6 +127,22 @@ export class SimpleCardBasicConfigComponent extends BasicWidgetConfigComponent {
         dataKeys[0].label = label;
       }
     }
+  }
+
+  private getCardButtons(config: WidgetConfig): string[] {
+    const buttons: string[] = [];
+    if (isUndefined(config.enableDataExport) || config.enableDataExport) {
+      buttons.push('dataExport');
+    }
+    if (isUndefined(config.enableFullscreen) || config.enableFullscreen) {
+      buttons.push('fullscreen');
+    }
+    return buttons;
+  }
+
+  private setCardButtons(buttons: string[], config: WidgetConfig) {
+    config.enableDataExport = buttons.includes('dataExport');
+    config.enableFullscreen = buttons.includes('fullscreen');
   }
 
 }

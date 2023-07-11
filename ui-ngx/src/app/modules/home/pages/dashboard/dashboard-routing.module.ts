@@ -54,6 +54,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
+import { Resource } from '@shared/models/security.models';
 
 @Injectable()
 export class DashboardResolver implements Resolve<Dashboard> {
@@ -84,7 +85,7 @@ const dashboardBreadcumbLabelFunction: BreadCrumbLabelFunction<DashboardPageComp
       utils ? utils.customTranslation(component.dashboard.title, component.dashboard.title) : component.dashboard.title
   );
 
-const dashboardRoute = (entityGroup: any, singlePageMode = false): Route =>
+const dashboardRoute = (entityGroup: any, singlePageMode = false, isAllPage = false): Route =>
   ({
     path: ':dashboardId',
     component: DashboardPageComponent,
@@ -97,7 +98,9 @@ const dashboardRoute = (entityGroup: any, singlePageMode = false): Route =>
       } as BreadCrumbConfig<DashboardPageComponent>,
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       canActivate: (userPermissionsService: UserPermissionsService): boolean =>
-        userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD),
+        isAllPage ?
+          userPermissionsService.hasReadGenericPermission(Resource.DASHBOARD) :
+          userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD),
       title: 'dashboard.dashboard',
       hideTabs: true,
       widgetEditMode: false,
@@ -219,7 +222,7 @@ export const dashboardsRoute = (root = false): Route => {
               entityGroup: EntityGroupResolver
             }
           },
-          dashboardRoute(EntityGroupResolver, false)
+          dashboardRoute(EntityGroupResolver, false, true)
         ]
       },
       dashboardGroupsRoute

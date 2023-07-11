@@ -155,6 +155,22 @@ export class DeviceService {
     return this.http.post<Device>(url, device, defaultHttpOptionsFromConfig(config));
   }
 
+  public saveDeviceWithCredentials(device: Device, credentials: DeviceCredentials,
+                                   entityGroupIds?: string | string[], config?: RequestConfig): Observable<Device> {
+    let url = '/api/device-with-credentials';
+    if (entityGroupIds) {
+      if (Array.isArray(entityGroupIds)) {
+        url += `?entityGroupIds=${entityGroupIds.join(',')}`;
+      } else {
+        url += `?entityGroupId=${entityGroupIds}`;
+      }
+    }
+    return this.http.post<Device>(url, {
+      device,
+      credentials
+    }, defaultHttpOptionsFromConfig(config));
+  }
+
   public deleteDevice(deviceId: string, config?: RequestConfig) {
     return this.http.delete(`/api/device/${deviceId}`, defaultHttpOptionsFromConfig(config));
   }

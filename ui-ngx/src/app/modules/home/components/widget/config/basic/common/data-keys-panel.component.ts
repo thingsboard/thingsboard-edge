@@ -115,6 +115,18 @@ export class DataKeysPanelComponent implements ControlValueAccessor, OnInit, OnC
   @coerceBoolean()
   hideDataKeyColor = false;
 
+  @Input()
+  @coerceBoolean()
+  hideUnits = false;
+
+  @Input()
+  @coerceBoolean()
+  hideDecimals = false;
+
+  @Input()
+  @coerceBoolean()
+  hideSourceSelection = false;
+
   dataKeyType: DataKeyType;
   alarmKeys: Array<DataKey>;
   functionTypeKeys: Array<DataKey>;
@@ -132,7 +144,7 @@ export class DataKeysPanelComponent implements ControlValueAccessor, OnInit, OnC
   }
 
   get hasAdditionalLatestDataKeys(): boolean {
-    return this.widgetConfigComponent.widgetType === widgetType.timeseries &&
+    return !this.hideSourceSelection && this.widgetConfigComponent.widgetType === widgetType.timeseries &&
       this.widgetConfigComponent.modelValue?.typeParameters?.hasAdditionalLatestDataKeys;
   }
 
