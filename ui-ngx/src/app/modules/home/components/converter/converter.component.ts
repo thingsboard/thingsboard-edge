@@ -251,40 +251,6 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     this.checkIsNewConverter(entity, this.entityForm);
   }
 
-  public keysList(): string[] {
-    return this.entityForm.get('configuration.onValueUpdateKeys').value;
-  }
-
-  public removeKey(type: string): void {
-    const keys: string[] = this.entityForm.get('configuration.onValueUpdateKeys').value;
-    const index = keys.indexOf(type);
-    if (index >= 0) {
-      keys.splice(index, 1);
-      this.entityForm.get('configuration.onValueUpdateKeys').setValue(keys);
-      this.entityForm.get('configuration.onValueUpdateKeys').markAsDirty();
-    }
-  }
-
-  public addKey(event: MatChipInputEvent): void {
-    const input = event.chipInput.inputElement;
-    const value = event.value;
-
-    let keys: string[] = this.entityForm.get('configuration.onValueUpdateKeys').value;
-
-    if ((value || '').trim()) {
-      if (!keys) {
-        keys = [];
-      }
-      keys.push(value.trim());
-      this.entityForm.get('configuration.onValueUpdateKeys').setValue(keys);
-      this.entityForm.get('configuration.onValueUpdateKeys').markAsDirty();
-    }
-
-    if (input) {
-      input.value = '';
-    }
-  }
-
   onConverterIdCopied($event) {
     this.store.dispatch(new ActionNotificationShow(
       {
