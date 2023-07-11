@@ -169,6 +169,7 @@ public class EntityServiceTest extends AbstractServiceTest {
         genericPermissions.put(Resource.resourceFromEntityType(EntityType.DEVICE), Collections.singleton(Operation.ALL));
         genericPermissions.put(Resource.resourceFromEntityType(EntityType.ASSET), Collections.singleton(Operation.ALL));
         genericPermissions.put(Resource.DEVICE_GROUP, Collections.singleton(Operation.ALL));
+        genericPermissions.put(Resource.USER, Collections.singleton(Operation.ALL));
         mergedUserPermissionsPE = new MergedUserPermissions(genericPermissions, Collections.emptyMap());
     }
 
@@ -366,7 +367,7 @@ public class EntityServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testCountHierarchicalUserEntitiesByQuery() throws InterruptedException {
+    public void testCountHierarchicalUserEntitiesByQuery() {
         List<User> users = new ArrayList<>();
         createTestUserRelations(tenantId, users);
 
@@ -379,9 +380,9 @@ public class EntityServiceTest extends AbstractServiceTest {
 
         EntityDataQuery query = new EntityDataQuery(filter, pageLink, entityFields, null, null);
 
-        PageData<EntityData> entityDataByQuery = entityService.findEntityDataByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), query);
+        PageData<EntityData> entityDataByQuery = entityService.findEntityDataByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissionsPE, query);
         List<EntityData> data = entityDataByQuery.getData();
-        Assert.assertEquals(data.size(), 5);
+        Assert.assertEquals(5, data.size());
         data.forEach(entityData -> Assert.assertNotNull(entityData.getLatest().get(EntityKeyType.ENTITY_FIELD).get("phone")));
 
     }
