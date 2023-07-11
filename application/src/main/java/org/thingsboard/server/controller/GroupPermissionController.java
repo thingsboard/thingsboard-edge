@@ -47,10 +47,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -145,6 +147,11 @@ public class GroupPermissionController extends BaseController {
                     throw new IllegalArgumentException("Can't assign Generic Role to entity group!");
                 }
                 checkEntityGroupId(groupPermission.getEntityGroupId(), Operation.WRITE);
+            }
+
+            boolean alreadyAssigned = isAlreadyAssigned(getTenantId(), role, groupPermission);
+            if (alreadyAssigned) {
+                throw new ThingsboardException("Role is already assigned to user group!", ThingsboardErrorCode.INVALID_ARGUMENTS);
             }
 
             GroupPermission savedGroupPermission = checkNotNull(groupPermissionService.saveGroupPermission(getTenantId(), groupPermission));
@@ -261,6 +268,15 @@ public class GroupPermissionController extends BaseController {
             }
         }
         return groupPermissions;
+    }
+
+    private boolean isAlreadyAssigned(TenantId tenantId, Role role, GroupPermission groupPermission) {
+        if (role.getType() == RoleType.GENERIC) {
+            return groupPermissionService.findGroupPermissionByTenantIdAndUserGroupIdAndRoleId(tenantId, groupPermission.getUserGroupId(), role.getId(), new PageLink(1)).getTotalElements() > 0;
+        } else if (role.getType() == RoleType.GROUP) {
+            return groupPermissionService.findGroupPermissionByTenantIdAndEntityGroupIdAndUserGroupIdAndRoleId(tenantId, groupPermission.getEntityGroupId(), groupPermission.getUserGroupId(), role.getId(), new PageLink(1)).getTotalElements() > 0;
+        }
+        return false;
     }
 
 }
