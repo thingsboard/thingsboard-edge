@@ -136,23 +136,13 @@
             {{ (entityForm.get('type').value === converterType.UPLINK ? 'converter.test-decoder-fuction' : 'converter.test-encoder-fuction') | translate }}
           </button>
         </div>
-        <div *ngIf="entityForm.get('type').value === converterType.UPLINK">
-          <mat-form-field fxFlex class="mat-block" floatLabel="always">
-            <mat-label translate>converter.on-value-update-keys-list</mat-label>
-            <mat-chip-grid #keysChipList formControlName="onValueUpdateKeys">
-              <mat-chip-row *ngFor="let key of keysList()"
-                            [removable]="true" (removed)="removeKey(key)">
-                {{key}}
-                <mat-icon matChipRemove>cancel</mat-icon>
-              </mat-chip-row>
-              <input [matChipInputFor]="keysChipList"
-                     [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-                     matChipInputAddOnBlur
-                     (matChipInputTokenEnd)="addKey($event)">
-            </mat-chip-grid>
-          </mat-form-field>
-          <div class="tb-hint" translate>converter.on-value-update-keys-list-hint</div>
-        </div>
+        <tb-string-items-list *ngIf="entityForm.get('type').value === converterType.UPLINK" style="margin-bottom: 16px;"
+                              subscriptSizing="dynamic"
+                              [label]="'converter.on-value-update-keys-list' | translate"
+                              [hint]="'converter.on-value-update-keys-list-hint' | translate"
+                              [placeholder]="'converter.add-key' | translate"
+                              formControlName="onValueUpdateKeys">
+        </tb-string-items-list>
       </div>
       <div formGroupName="additionalInfo" fxLayout="column">
         <mat-form-field class="mat-block">

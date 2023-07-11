@@ -33,7 +33,7 @@ import { ChangeDetectorRef, Component, Inject, Input, OnDestroy, Optional } from
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../entity/entity.component';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import {
@@ -41,7 +41,8 @@ import {
   ConverterDebugInput,
   ConverterType,
   converterTypeTranslationMap,
-  DecoderMap, LatestConverterParameters
+  DecoderMap,
+  LatestConverterParameters
 } from '@shared/models/converter.models';
 
 import jsDecoderTemplate from '!raw-loader!src/assets/converters/js-decoder.raw';
@@ -57,15 +58,12 @@ import {
 } from '@home/components/converter/converter-test-dialog.component';
 import { ScriptLanguage } from '@shared/models/rule-node.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
-import {
-  IntegrationType
-} from '@shared/models/integration.models';
+import { IntegrationType } from '@shared/models/integration.models';
 import { isDefinedAndNotNull } from '@core/utils';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { takeUntil } from 'rxjs/operators';
 import { Observable, Subject } from 'rxjs';
-import {MatChipInputEvent} from "@angular/material/chips";
-import {COMMA, ENTER, SEMICOLON} from "@angular/cdk/keycodes";
+import { COMMA, ENTER, SEMICOLON } from "@angular/cdk/keycodes";
 
 @Component({
   selector: 'tb-converter',
@@ -249,40 +247,6 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     });
     this.entityForm.patchValue({additionalInfo: {description: entity.additionalInfo ? entity.additionalInfo.description : ''}});
     this.checkIsNewConverter(entity, this.entityForm);
-  }
-
-  public keysList(): string[] {
-    return this.entityForm.get('configuration.onValueUpdateKeys').value;
-  }
-
-  public removeKey(type: string): void {
-    const keys: string[] = this.entityForm.get('configuration.onValueUpdateKeys').value;
-    const index = keys.indexOf(type);
-    if (index >= 0) {
-      keys.splice(index, 1);
-      this.entityForm.get('configuration.onValueUpdateKeys').setValue(keys);
-      this.entityForm.get('configuration.onValueUpdateKeys').markAsDirty();
-    }
-  }
-
-  public addKey(event: MatChipInputEvent): void {
-    const input = event.chipInput.inputElement;
-    const value = event.value;
-
-    let keys: string[] = this.entityForm.get('configuration.onValueUpdateKeys').value;
-
-    if ((value || '').trim()) {
-      if (!keys) {
-        keys = [];
-      }
-      keys.push(value.trim());
-      this.entityForm.get('configuration.onValueUpdateKeys').setValue(keys);
-      this.entityForm.get('configuration.onValueUpdateKeys').markAsDirty();
-    }
-
-    if (input) {
-      input.value = '';
-    }
   }
 
   onConverterIdCopied($event) {
