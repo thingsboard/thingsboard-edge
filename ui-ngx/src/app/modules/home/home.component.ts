@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, ElementRef, Inject, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { combineLatest, fromEvent, Observable } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { debounceTime, distinctUntilChanged, map, share, tap } from 'rxjs/operators';
@@ -42,10 +42,10 @@ import { MediaBreakpoints } from '@shared/models/constants';
 import screenfull from 'screenfull';
 import { MatSidenav } from '@angular/material/sidenav';
 import { AuthState } from '@core/auth/auth.models';
-import { WINDOW } from '@core/services/window.service';
 import { instanceOfSearchableComponent, ISearchableComponent } from '@home/models/searchable-component.models';
 import { ActiveComponentService } from '@core/services/active-component.service';
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
+import { Router } from '@angular/router';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { TranslateService } from '@ngx-translate/core';
 
@@ -80,10 +80,10 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
   hideLoadingBar = false;
 
   constructor(protected store: Store<AppState>,
-              @Inject(WINDOW) private window: Window,
               private activeComponentService: ActiveComponentService,
               public wl: WhiteLabelingService,
               public translate: TranslateService,
+              private router: Router,
               public breakpointObserver: BreakpointObserver) {
     super(store);
   }
@@ -137,7 +137,8 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
   }
 
   goBack() {
-    this.window.history.back();
+    const dashboardId = this.authState.userDetails.additionalInfo.defaultDashboardId;
+    this.router.navigate(['dashboard', dashboardId]).then(() => {});
   }
 
   activeComponentChanged(activeComponent: any) {

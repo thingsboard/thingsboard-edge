@@ -55,7 +55,7 @@ export class UserProfileResolver implements Resolve<User> {
   }
 }
 
-const routes: Routes = [
+export const profileRoutes: Routes = [
   {
     path: 'profile',
     component: ProfileComponent,
@@ -71,6 +71,13 @@ const routes: Routes = [
     resolve: {
       user: UserProfileResolver
     }
+  }
+];
+
+const routes: Routes = [
+  {
+    path: 'profile',
+    redirectTo: 'account/profile'
   }
 ];
 
