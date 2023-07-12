@@ -106,21 +106,21 @@ export class EventTableComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  private ruleNodeTestButtonLabelValue: string;
+  private functionTestButtonLabelValue: string;
 
-  get ruleNodeTestButtonLabel(): string {
-    return this.ruleNodeTestButtonLabelValue;
+  get functionTestButtonLabel(): string {
+    return this.functionTestButtonLabelValue;
   }
 
   @Input()
-  set ruleNodeTestButtonLabel(value: string) {
+  set functionTestButtonLabel(value: string) {
     if (isNotEmptyStr(value)) {
-      this.ruleNodeTestButtonLabelValue = value;
+      this.functionTestButtonLabelValue = value;
     } else {
-      this.ruleNodeTestButtonLabelValue = '';
+      this.functionTestButtonLabelValue = '';
     }
     if (this.eventTableConfig) {
-      this.eventTableConfig.testButtonLabel = this.ruleNodeTestButtonLabel;
+      this.eventTableConfig.testButtonLabel = this.functionTestButtonLabel;
       this.eventTableConfig.updateCellAction();
     }
   }
@@ -161,7 +161,7 @@ export class EventTableComponent implements OnInit, AfterViewInit, OnDestroy {
       this.viewContainerRef,
       this.cd,
       this.isReadOnly,
-      this.ruleNodeTestButtonLabel,
+      this.functionTestButtonLabel,
       this.debugEventSelected
     );
   }
