@@ -48,8 +48,11 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -282,11 +285,11 @@ public abstract class BaseEdgeProcessor {
     protected DbCallbackExecutorService dbCallbackExecutorService;
 
     protected ListenableFuture<Void> saveEdgeEvent(TenantId tenantId,
-                                                     EdgeId edgeId,
-                                                     EdgeEventType type,
-                                                     EdgeEventActionType action,
-                                                     EntityId entityId,
-                                                     JsonNode body) {
+                                                   EdgeId edgeId,
+                                                   EdgeEventType type,
+                                                   EdgeEventActionType action,
+                                                   EntityId entityId,
+                                                   JsonNode body) {
         log.debug("Pushing event to edge queue. tenantId [{}], edgeId [{}], type[{}], " +
                         "action [{}], entityId [{}], body [{}]",
                 tenantId, edgeId, type, action, entityId, body);
@@ -607,5 +610,29 @@ public abstract class BaseEdgeProcessor {
                     EdgeEventActionType.ENTITY_VIEW_REQUEST, entityId, null, queueStartTs));
         }
         return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
+    }
+
+    protected void createRelationFromEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId) {
+        EntityRelation relation = new EntityRelation();
+        relation.setFrom(edgeId);
+        relation.setTo(entityId);
+        relation.setTypeGroup(RelationTypeGroup.COMMON);
+        relation.setType(EntityRelation.EDGE_TYPE);
+        relationService.saveRelation(tenantId, relation);
+    }
+
+    protected TbMsgMetaData getActionTbMsgMetaData(Edge edge, CustomerId customerId) {
+        TbMsgMetaData metaData = getTbMsgMetaData(edge);
+        if (customerId != null && !customerId.isNullUid()) {
+            metaData.putValue("customerId", customerId.toString());
+        }
+        return metaData;
+    }
+
+    private TbMsgMetaData getTbMsgMetaData(Edge edge) {
+        TbMsgMetaData metaData = new TbMsgMetaData();
+        metaData.putValue("edgeId", edge.getId().toString());
+        metaData.putValue("edgeName", edge.getName());
+        return metaData;
     }
 }
