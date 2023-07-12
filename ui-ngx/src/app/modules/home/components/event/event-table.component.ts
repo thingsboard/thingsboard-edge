@@ -32,10 +32,12 @@
 import {
   AfterViewInit,
   ChangeDetectorRef,
-  Component, EventEmitter,
+  Component,
+  EventEmitter,
   Input,
   OnDestroy,
-  OnInit, Output,
+  OnInit,
+  Output,
   ViewChild,
   ViewContainerRef
 } from '@angular/core';

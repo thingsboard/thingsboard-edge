@@ -214,19 +214,20 @@ export class ConverterComponent extends EntityComponent<Converter> {
       }));
   }
 
-  openConverterTestDialog(isDecoder: boolean) {
+  openConverterTestDialog() {
     if (this.entity.id) {
       this.converterService.getLatestConverterDebugInput(this.entity.id.id).subscribe(
         (debugIn) => {
-          this.showConverterTestDialog(isDecoder, debugIn);
+          this.showConverterTestDialog(debugIn);
         }
       );
     } else {
-      this.showConverterTestDialog(isDecoder, null);
+      this.showConverterTestDialog(null);
     }
   }
 
-  showConverterTestDialog(isDecoder: boolean, debugIn: ConverterDebugInput) {
+  showConverterTestDialog(debugIn: ConverterDebugInput, setFirstTab = false) {
+    const isDecoder = this.entityForm.get('type').value === ConverterType.UPLINK
     const scriptLang: ScriptLanguage = this.entityForm.get('configuration').get('scriptLang').value;
     let targetField;
     if (scriptLang === ScriptLanguage.JS) {
@@ -248,6 +249,9 @@ export class ConverterComponent extends EntityComponent<Converter> {
       })
       .afterClosed().subscribe((result) => {
         if (result !== null) {
+          if (setFirstTab) {
+            this.entitiesTableConfig.getTable().entityDetailsPanel.onToggleEditMode(true);
+          }
           this.entityForm.get(`configuration.${targetField}`).patchValue(result);
           this.entityForm.get(`configuration.${targetField}`).markAsDirty();
           this.entityForm.updateValueAndValidity();

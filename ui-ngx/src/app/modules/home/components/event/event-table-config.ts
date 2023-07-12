@@ -465,6 +465,18 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
           });
         }
         break;
+      case DebugEventType.DEBUG_CONVERTER:
+        if (this.testButtonLabel && !this.isReadOnly) {
+          this.cellActionDescriptors.push({
+            name: this.translate.instant('converter.test-with-this-message',{test: this.testButtonLabel}),
+            icon: 'bug_report',
+            isEnabled: (entity) => true,
+            onAction: ($event, entity) => {
+              this.debugEventSelected.next(entity.body);
+            }
+          });
+        }
+        break
     }
     this.getTable()?.cellActionDescriptorsUpdated();
   }
