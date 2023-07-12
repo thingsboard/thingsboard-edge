@@ -254,7 +254,7 @@ public class TbWebSocketHandler extends TextWebSocketHandler implements WebSocke
             this.lastActivityTime = System.currentTimeMillis();
         }
 
-        synchronized void sendPing(long currentTime) {
+        void sendPing(long currentTime) {
             try {
                 long timeSinceLastActivity = currentTime - lastActivityTime;
                 if (timeSinceLastActivity >= pingTimeout) {
@@ -277,15 +277,15 @@ public class TbWebSocketHandler extends TextWebSocketHandler implements WebSocke
             }
         }
 
-        synchronized void processPongMessage(long currentTime) {
+        void processPongMessage(long currentTime) {
             lastActivityTime = currentTime;
         }
 
-        synchronized void sendMsg(String msg) {
+        void sendMsg(String msg) {
             sendMsg(new TbWebSocketTextMsg(msg));
         }
 
-        synchronized void sendMsg(TbWebSocketMsg<?> msg) {
+        void sendMsg(TbWebSocketMsg<?> msg) {
             if (isSending.compareAndSet(false, true)) {
                 sendMsgInternal(msg);
             } else {
@@ -412,19 +412,21 @@ public class TbWebSocketHandler extends TextWebSocketHandler implements WebSocke
         if (tenantProfileConfiguration == null) {
             return true;
         }
-
+        boolean limitAllowed;
         String sessionId = session.getId();
         if (tenantProfileConfiguration.getMaxWsSessionsPerTenant() > 0) {
             Set<String> tenantSessions = tenantSessionsMap.computeIfAbsent(sessionRef.getSecurityCtx().getTenantId(), id -> ConcurrentHashMap.newKeySet());
             synchronized (tenantSessions) {
-                if (tenantSessions.size() < tenantProfileConfiguration.getMaxWsSessionsPerTenant()) {
+                limitAllowed = tenantSessions.size() < tenantProfileConfiguration.getMaxWsSessionsPerTenant();
+                if (limitAllowed) {
                     tenantSessions.add(sessionId);
-                } else {
+                }
+            }
+            if (!limitAllowed) {
                     log.info("[{}][{}][{}] Failed to start session. Max tenant sessions limit reached"
                             , sessionRef.getSecurityCtx().getTenantId(), sessionRef.getSecurityCtx().getId(), sessionId);
                     session.close(CloseStatus.POLICY_VIOLATION.withReason("Max tenant sessions limit reached!"));
                     return false;
-                }
             }
         }
 
@@ -432,42 +434,48 @@ public class TbWebSocketHandler extends TextWebSocketHandler implements WebSocke
             if (tenantProfileConfiguration.getMaxWsSessionsPerCustomer() > 0) {
                 Set<String> customerSessions = customerSessionsMap.computeIfAbsent(sessionRef.getSecurityCtx().getCustomerId(), id -> ConcurrentHashMap.newKeySet());
                 synchronized (customerSessions) {
-                    if (customerSessions.size() < tenantProfileConfiguration.getMaxWsSessionsPerCustomer()) {
+                    limitAllowed = customerSessions.size() < tenantProfileConfiguration.getMaxWsSessionsPerCustomer();
+                    if (limitAllowed) {
                         customerSessions.add(sessionId);
-                    } else {
+                    }
+                }
+                if (!limitAllowed) {
                         log.info("[{}][{}][{}] Failed to start session. Max customer sessions limit reached"
                                 , sessionRef.getSecurityCtx().getTenantId(), sessionRef.getSecurityCtx().getId(), sessionId);
                         session.close(CloseStatus.POLICY_VIOLATION.withReason("Max customer sessions limit reached"));
                         return false;
-                    }
                 }
             }
             if (tenantProfileConfiguration.getMaxWsSessionsPerRegularUser() > 0
                     && UserPrincipal.Type.USER_NAME.equals(sessionRef.getSecurityCtx().getUserPrincipal().getType())) {
                 Set<String> regularUserSessions = regularUserSessionsMap.computeIfAbsent(sessionRef.getSecurityCtx().getId(), id -> ConcurrentHashMap.newKeySet());
                 synchronized (regularUserSessions) {
-                    if (regularUserSessions.size() < tenantProfileConfiguration.getMaxWsSessionsPerRegularUser()) {
+                    limitAllowed = regularUserSessions.size() < tenantProfileConfiguration.getMaxWsSessionsPerRegularUser();
+                    if (limitAllowed) {
                         regularUserSessions.add(sessionId);
-                    } else {
+                    }
+                }
+                if (!limitAllowed) {
                         log.info("[{}][{}][{}] Failed to start session. Max regular user sessions limit reached"
                                 , sessionRef.getSecurityCtx().getTenantId(), sessionRef.getSecurityCtx().getId(), sessionId);
                         session.close(CloseStatus.POLICY_VIOLATION.withReason("Max regular user sessions limit reached"));
                         return false;
-                    }
                 }
             }
             if (tenantProfileConfiguration.getMaxWsSessionsPerPublicUser() > 0
                     && UserPrincipal.Type.PUBLIC_ID.equals(sessionRef.getSecurityCtx().getUserPrincipal().getType())) {
                 Set<String> publicUserSessions = publicUserSessionsMap.computeIfAbsent(sessionRef.getSecurityCtx().getId(), id -> ConcurrentHashMap.newKeySet());
                 synchronized (publicUserSessions) {
-                    if (publicUserSessions.size() < tenantProfileConfiguration.getMaxWsSessionsPerPublicUser()) {
+                    limitAllowed = publicUserSessions.size() < tenantProfileConfiguration.getMaxWsSessionsPerPublicUser();
+                    if (limitAllowed) {
                         publicUserSessions.add(sessionId);
-                    } else {
+                    }
+                }
+                if (!limitAllowed) {
                         log.info("[{}][{}][{}] Failed to start session. Max public user sessions limit reached"
                                 , sessionRef.getSecurityCtx().getTenantId(), sessionRef.getSecurityCtx().getId(), sessionId);
                         session.close(CloseStatus.POLICY_VIOLATION.withReason("Max public user sessions limit reached"));
                         return false;
-                    }
                 }
             }
         }
