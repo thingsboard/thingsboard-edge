@@ -151,7 +151,7 @@ public class GroupPermissionController extends BaseController {
 
             boolean alreadyAssigned = isAlreadyAssigned(getTenantId(), groupPermission);
             if (alreadyAssigned) {
-                throw new ThingsboardException("Role is already assigned to user group!", ThingsboardErrorCode.INVALID_ARGUMENTS);
+                throw new ThingsboardException("Such group permission already exists!", ThingsboardErrorCode.INVALID_ARGUMENTS);
             }
 
             GroupPermission savedGroupPermission = checkNotNull(groupPermissionService.saveGroupPermission(getTenantId(), groupPermission));
