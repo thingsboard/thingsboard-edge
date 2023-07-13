@@ -20,7 +20,10 @@ import org.awaitility.Awaitility;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
+import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.ShortCustomerInfo;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
 import java.util.concurrent.TimeUnit;
@@ -101,6 +104,74 @@ public class DashboardClientTest extends AbstractContainerTest {
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getDashboardById(savedDashboard2.getId()).isEmpty());
+    }
+
+    @Test
+    public void testSendDashboardToCloud() {
+        // create dashboard on edge
+        Dashboard savedDashboardOnEdge = saveDashboardOnEdge("Edge Dashboard 3");
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getDashboardById(savedDashboardOnEdge.getId()).isPresent());
+
+        // update dashboard
+        savedDashboardOnEdge.setTitle("Edge Dashboard 3 Updated");
+        edgeRestClient.saveDashboard(savedDashboardOnEdge);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> "Edge Dashboard 3 Updated".equals(cloudRestClient.getDashboardById(savedDashboardOnEdge.getId()).get().getName()));
+
+        // assign dashboard to customer
+        Customer customer = new Customer();
+        customer.setTitle("Dashboard On Edge Test Customer");
+        Customer savedCustomer = cloudRestClient.saveCustomer(customer);
+        assignEdgeToCustomerAndValidateAssignmentOnCloud(savedCustomer);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isPresent());
+        edgeRestClient.assignDashboardToCustomer(savedCustomer.getId(), savedDashboardOnEdge.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    Dashboard dashboard = edgeRestClient.getDashboardById(savedDashboardOnEdge.getId()).get();
+                    if (dashboard.getAssignedCustomers() == null
+                            || dashboard.getAssignedCustomers().isEmpty()) {
+                        return false;
+                    }
+                    if (dashboard.getAssignedCustomers().size() != 1)  {
+                        return false;
+                    }
+                    ShortCustomerInfo assignedCustomer = dashboard.getAssignedCustomers().iterator().next();
+                    return savedCustomer.getId().equals(assignedCustomer.getCustomerId());
+                });
+
+        // unassign dashboard from customer
+        edgeRestClient.unassignDashboardFromCustomer(savedCustomer.getId(), savedDashboardOnEdge.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    Dashboard dashboard = edgeRestClient.getDashboardById(savedDashboardOnEdge.getId()).get();
+                    return dashboard.getAssignedCustomers().isEmpty();
+                });
+        cloudRestClient.deleteCustomer(savedCustomer.getId());
+
+        // delete dashboard
+        edgeRestClient.deleteDashboard(savedDashboardOnEdge.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    PageData<DashboardInfo> edgeDashboards = cloudRestClient.getEdgeDashboards(edge.getId(), new TimePageLink(1000));
+                    long count = edgeDashboards.getData().stream().filter(d -> savedDashboardOnEdge.getId().equals(d.getId())).count();
+                    return count == 0;
+                });
+
+        cloudRestClient.deleteDashboard(savedDashboardOnEdge.getId());
     }
 }
 

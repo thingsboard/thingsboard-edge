@@ -367,17 +367,29 @@ public abstract class AbstractContainerTest {
         return asset;
     }
 
-    private Asset saveAssetOnCloud(String assetName, String type) {
+    protected Asset saveAssetOnCloud(String assetName, String type) {
+        return saveAsset(assetName, type, cloudRestClient);
+    }
+
+    protected Asset saveAsset(String assetName, String type, RestClient restClient) {
         Asset asset = new Asset();
         asset.setName(assetName);
         asset.setType(type);
-        return cloudRestClient.saveAsset(asset);
+        return restClient.saveAsset(asset);
     }
 
     protected Dashboard saveDashboardOnCloud(String dashboardTitle) {
+        return saveDashboard(dashboardTitle, cloudRestClient);
+    }
+
+    protected Dashboard saveDashboardOnEdge(String dashboardTitle) {
+        return saveDashboard(dashboardTitle, edgeRestClient);
+    }
+
+    private Dashboard saveDashboard(String dashboardTitle, RestClient restClient) {
         Dashboard dashboard = new Dashboard();
         dashboard.setTitle(dashboardTitle);
-        return cloudRestClient.saveDashboard(dashboard);
+        return restClient.saveDashboard(dashboard);
     }
 
     protected void assertEntitiesByIdsAndType(List<EntityId> entityIds, EntityType entityType) {
