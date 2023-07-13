@@ -1007,6 +1007,7 @@
         "binary": "Binary (Base64)"
     },
     "color": {
+        "color": "Color",
         "color-picker": "Color picker",
         "primary-colors": "Primary colors",
         "accent-colors": "Accent colors",

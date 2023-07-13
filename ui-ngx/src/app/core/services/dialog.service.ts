@@ -120,7 +120,8 @@ export class DialogService {
         data: {
           color,
           useThemePalette
-        }
+        },
+        autoFocus: false
     }).afterClosed();
   }
 
