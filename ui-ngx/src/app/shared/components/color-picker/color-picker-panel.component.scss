@@ -29,10 +29,12 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 .tb-color-picker-panel {
-  width: 328px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  &.singleTab {
+    width: 328px;
+  }
   .tb-color-picker-title {
     font-size: 16px;
     font-weight: 500;

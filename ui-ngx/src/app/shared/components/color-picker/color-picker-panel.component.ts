@@ -133,6 +133,9 @@ export class ColorPickerPanelComponent extends PageComponent implements OnInit {
     }
     this.dirty = true;
     this.updateValidity();
+    setTimeout(() => {
+      this.popover?.updatePosition();
+    }, 0);
   }
 
   private updateValidity() {
