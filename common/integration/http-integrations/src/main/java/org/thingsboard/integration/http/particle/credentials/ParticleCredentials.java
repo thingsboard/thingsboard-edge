@@ -28,20 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.http.particle;
+package org.thingsboard.integration.http.particle.credentials;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
-import org.thingsboard.integration.http.particle.credentials.ParticleCredentials;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.springframework.web.client.RestTemplate;
 
-import java.util.Map;
-
-@Data
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = ParticleBasicCredentials.class, name = "basic"),
+        @JsonSubTypes.Type(value = ParticleTokenCredentials.class, name = "token")})
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ParticleConfiguration {
-    private String httpEndpoint;
-    private ParticleCredentials credentials;
-    private boolean allowDownlink;
-    private boolean enableSecurity;
-    private Map<String, String> headersFilter;
+public interface ParticleCredentials {
+
+    void setInterceptor(RestTemplate restTemplate, String baseUrl);
 }

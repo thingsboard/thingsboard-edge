@@ -28,20 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.http.particle;
+package org.thingsboard.integration.http.particle.credentials;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
-import org.thingsboard.integration.http.particle.credentials.ParticleCredentials;
-
-import java.util.Map;
+import org.springframework.http.HttpRequest;
+import org.springframework.http.client.support.HttpRequestWrapper;
+import org.springframework.web.client.RestTemplate;
 
 @Data
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class ParticleConfiguration {
-    private String httpEndpoint;
-    private ParticleCredentials credentials;
-    private boolean allowDownlink;
-    private boolean enableSecurity;
-    private Map<String, String> headersFilter;
+public class ParticleTokenCredentials implements ParticleCredentials {
+
+    private String accessToken;
+
+    @Override
+    public void setInterceptor(RestTemplate restTemplate, String baseUrl) {
+        restTemplate.getInterceptors().add((request, body, execution) -> {
+            HttpRequest wrapper = new HttpRequestWrapper(request);
+            wrapper.getHeaders().setBearerAuth(accessToken);
+            return execution.execute(wrapper, body);
+        });
+    }
 }
