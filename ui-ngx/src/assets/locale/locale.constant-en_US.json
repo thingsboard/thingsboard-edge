@@ -7022,6 +7022,9 @@
             }
         }
     },
+    "color": {
+        "color": "Color"
+    },
     "icon": {
         "icon": "Icon",
         "icons": "Icons",
