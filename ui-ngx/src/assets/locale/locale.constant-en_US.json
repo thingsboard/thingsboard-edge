@@ -71,7 +71,8 @@
         "less": "Less",
         "skip": "Skip",
         "send": "Send",
-        "reset": "Reset"
+        "reset": "Reset",
+        "show-more": "Show more"
     },
     "aggregation": {
         "aggregation": "Aggregation",
@@ -7023,9 +7024,12 @@
     },
     "icon": {
         "icon": "Icon",
+        "icons": "Icons",
         "select-icon": "Select icon",
         "material-icons": "Material icons",
-        "show-all": "Show all icons"
+        "show-all": "Show all icons",
+        "search-icon": "Search icon",
+        "no-icons-found": "No icons found for '{{iconSearch}}'"
     },
     "phone-input": {
         "phone-input-label": "Phone number",

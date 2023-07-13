@@ -28,58 +28,49 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import "../../../../../../../scss/constants";
-
-:host {
-
-  .tb-card-content {
+.tb-material-icons-panel {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  .tb-material-icons-title {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
+    letter-spacing: 0.25px;
+    color: rgba(0, 0, 0, 0.87);
+  }
+  .tb-material-icons-title, .tb-material-icons-search, .tb-material-icons-show-more {
     width: 100%;
-    height: 100%;
   }
-
-  .tb-title {
-    font-style: normal;
-    font-weight: 500;
-    font-size: 14px;
-    line-height: 20px;
-    letter-spacing: 0.25px;
-    color: rgba(0, 0, 0, 0.54);
-    @media #{$mat-md-lg} {
-      font-size: 12px;
-      line-height: 16px;
-    }
+  .tb-material-icons-viewport {
+    min-height: 144px;
   }
-
-  .tb-title-link {
-    font-style: normal;
-    font-weight: 500;
-    font-size: 14px;
-    line-height: 20px;
-    letter-spacing: 0.25px;
-    color: rgba(0, 0, 0, 0.54);
-    position: relative;
-    border-bottom: none;
-    @media #{$mat-md-lg} {
-      font-size: 12px;
-      line-height: 16px;
+  .tb-material-icons-row {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+  }
+  .tb-material-icons-row + .tb-material-icons-row {
+    margin-top: 12px;
+  }
+  .tb-no-data-available {
+    min-height: 144px;
+  }
+  button.mat-mdc-button-base.tb-select-icon-button {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    padding: 6px;
+    &:not(.mat-primary) {
+      color: rgba(0, 0, 0, 0.54);
     }
-    &:hover, &:focus {
-      border-bottom: none;
-    }
-    &::after {
-      content: 'arrow_forward';
-      display: inline-block;
-      transform: rotate(315deg);
-      font-family: 'Material Icons';
-      font-weight: normal;
-      font-style: normal;
-      font-size: 18px;
-      color: rgba(0, 0, 0, 0.12);
-      vertical-align: bottom;
-      margin-left: 6px;
-    }
-    &:hover::after {
-      color: inherit;
+    > .mat-icon {
+      width: 24px;
+      height: 24px;
+      font-size: 24px;
+      margin: 0;
     }
   }
 }
