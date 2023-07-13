@@ -58,7 +58,12 @@ public class CloudEventSourcingListener {
     private final TbClusterService tbClusterService;
     private final EdgeSynchronizationManager edgeSynchronizationManager;
 
-    private List<EntityType> supportableEntityTypes = Arrays.asList(EntityType.DEVICE, EntityType.ALARM);
+    private final List<EntityType> supportableEntityTypes = Arrays.asList(
+            EntityType.DEVICE,
+            EntityType.ALARM,
+            EntityType.ENTITY_VIEW,
+            EntityType.ASSET,
+            EntityType.DASHBOARD);
 
     @PostConstruct
     public void init() {

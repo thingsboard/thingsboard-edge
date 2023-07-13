@@ -34,6 +34,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewsRequestMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
@@ -119,5 +120,36 @@ public class EntityViewCloudProcessor extends BaseEdgeProcessor {
                 .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                 .addEntityViewsRequestMsg(entityViewsRequestMsg);
         return builder.build();
+    }
+
+    public UplinkMsg convertEntityViewEventToUplink(CloudEvent cloudEvent) {
+        EntityViewId entityViewId = new EntityViewId(cloudEvent.getEntityId());
+        UplinkMsg msg = null;
+        switch (cloudEvent.getAction()) {
+            case ADDED:
+            case UPDATED:
+            case ASSIGNED_TO_CUSTOMER:
+            case UNASSIGNED_FROM_CUSTOMER:
+                EntityView entityView = entityViewService.findEntityViewById(cloudEvent.getTenantId(), entityViewId);
+                if (entityView != null) {
+                    UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
+                    EntityViewUpdateMsg entityViewUpdateMsg =
+                            entityViewMsgConstructor.constructEntityViewUpdatedMsg(msgType, entityView);
+                    msg = UplinkMsg.newBuilder()
+                            .setUplinkMsgId(EdgeUtils.nextPositiveInt())
+                            .addEntityViewUpdateMsg(entityViewUpdateMsg).build();
+                } else {
+                    log.info("Skipping event as entity view was not found [{}]", cloudEvent);
+                }
+                break;
+            case DELETED:
+                EntityViewUpdateMsg entityViewUpdateMsg =
+                        entityViewMsgConstructor.constructEntityViewDeleteMsg(entityViewId);
+                msg = UplinkMsg.newBuilder()
+                        .setUplinkMsgId(EdgeUtils.nextPositiveInt())
+                        .addEntityViewUpdateMsg(entityViewUpdateMsg).build();
+                break;
+        }
+        return msg;
     }
 }

@@ -24,12 +24,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.ShortCustomerInfo;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.Set;
@@ -109,5 +113,36 @@ public class DashboardCloudProcessor extends BaseEdgeProcessor {
                 dashboardService.unassignDashboardFromCustomer(tenantId, dashboard.getId(), assignedCustomer.getCustomerId());
             }
         }
+    }
+
+    public UplinkMsg convertDashboardEventToUplink(CloudEvent cloudEvent) {
+        DashboardId dashboardId = new DashboardId(cloudEvent.getEntityId());
+        UplinkMsg msg = null;
+        switch (cloudEvent.getAction()) {
+            case ADDED:
+            case UPDATED:
+            case ASSIGNED_TO_CUSTOMER:
+            case UNASSIGNED_FROM_CUSTOMER:
+                Dashboard dashboard = dashboardService.findDashboardById(cloudEvent.getTenantId(), dashboardId);
+                if (dashboard != null) {
+                    UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
+                    DashboardUpdateMsg dashboardUpdateMsg =
+                            dashboardMsgConstructor.constructDashboardUpdatedMsg(msgType, dashboard);
+                    msg = UplinkMsg.newBuilder()
+                            .setUplinkMsgId(EdgeUtils.nextPositiveInt())
+                            .addDashboardUpdateMsg(dashboardUpdateMsg).build();
+                } else {
+                    log.info("Skipping event as dashboard was not found [{}]", cloudEvent);
+                }
+                break;
+            case DELETED:
+                DashboardUpdateMsg dashboardUpdateMsg =
+                        dashboardMsgConstructor.constructDashboardDeleteMsg(dashboardId);
+                msg = UplinkMsg.newBuilder()
+                        .setUplinkMsgId(EdgeUtils.nextPositiveInt())
+                        .addDashboardUpdateMsg(dashboardUpdateMsg).build();
+                break;
+        }
+        return msg;
     }
 }

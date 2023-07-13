@@ -21,12 +21,16 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.UUID;
@@ -86,5 +90,36 @@ public class AssetCloudProcessor extends BaseEdgeProcessor {
             edgeSynchronizationManager.getSync().remove();
             assetCreationLock.unlock();
         }
+    }
+
+    public UplinkMsg convertAssetEventToUplink(CloudEvent cloudEvent) {
+        AssetId assetId = new AssetId(cloudEvent.getEntityId());
+        UplinkMsg msg = null;
+        switch (cloudEvent.getAction()) {
+            case ADDED:
+            case UPDATED:
+            case ASSIGNED_TO_CUSTOMER:
+            case UNASSIGNED_FROM_CUSTOMER:
+                Asset asset = assetService.findAssetById(cloudEvent.getTenantId(), assetId);
+                if (asset != null) {
+                    UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
+                    AssetUpdateMsg assetUpdateMsg =
+                            assetMsgConstructor.constructAssetUpdatedMsg(msgType, asset);
+                    msg = UplinkMsg.newBuilder()
+                            .setUplinkMsgId(EdgeUtils.nextPositiveInt())
+                            .addAssetUpdateMsg(assetUpdateMsg).build();
+                } else {
+                    log.info("Skipping event as asset was not found [{}]", cloudEvent);
+                }
+                break;
+            case DELETED:
+                AssetUpdateMsg assetUpdateMsg =
+                        assetMsgConstructor.constructAssetDeleteMsg(assetId);
+                msg = UplinkMsg.newBuilder()
+                        .setUplinkMsgId(EdgeUtils.nextPositiveInt())
+                        .addAssetUpdateMsg(assetUpdateMsg).build();
+                break;
+        }
+        return msg;
     }
 }

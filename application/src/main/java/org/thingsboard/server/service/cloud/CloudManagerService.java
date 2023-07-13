@@ -59,7 +59,9 @@ import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.AssetCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.CustomerCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.DashboardCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EdgeCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityCloudProcessor;
@@ -157,6 +159,12 @@ public class CloudManagerService {
 
     @Autowired
     private EntityViewCloudProcessor entityViewProcessor;
+
+    @Autowired
+    private DashboardCloudProcessor dashboardProcessor;
+
+    @Autowired
+    private AssetCloudProcessor assetProcessor;
 
     @Autowired
     private RuleChainCloudProcessor ruleChainProcessor;
@@ -421,6 +429,12 @@ public class CloudManagerService {
                 return deviceProcessor.convertDeviceEventToUplink(tenantId, cloudEvent);
             case ALARM:
                 return alarmProcessor.convertAlarmEventToUplink(cloudEvent);
+            case ASSET:
+                return assetProcessor.convertAssetEventToUplink(cloudEvent);
+            case DASHBOARD:
+                return dashboardProcessor.convertDashboardEventToUplink(cloudEvent);
+            case ENTITY_VIEW:
+                return entityViewProcessor.convertEntityViewEventToUplink(cloudEvent);
             case RELATION:
                 return relationProcessor.convertRelationEventToUplink(cloudEvent);
             default:
