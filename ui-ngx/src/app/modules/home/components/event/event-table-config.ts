@@ -456,7 +456,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
       case DebugEventType.DEBUG_RULE_NODE:
         if (this.testButtonLabel && !this.isReadOnly) {
           this.cellActionDescriptors.push({
-            name: this.translate.instant('rulenode.test-with-this-message', {test: this.testButtonLabel}),
+            name: this.translate.instant('rulenode.test-with-this-message', {test: this.translate.instant(this.testButtonLabel)}),
             icon: 'bug_report',
             isEnabled: (entity) => entity.body.type === 'IN',
             onAction: ($event, entity) => {
