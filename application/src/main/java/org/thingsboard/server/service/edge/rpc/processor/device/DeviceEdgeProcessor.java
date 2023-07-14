@@ -152,21 +152,6 @@ public class DeviceEdgeProcessor extends BaseDeviceProcessor {
         }
     }
 
-    private TbMsgMetaData getActionTbMsgMetaData(Edge edge, CustomerId customerId) {
-        TbMsgMetaData metaData = getTbMsgMetaData(edge);
-        if (customerId != null && !customerId.isNullUid()) {
-            metaData.putValue("customerId", customerId.toString());
-        }
-        return metaData;
-    }
-
-    private TbMsgMetaData getTbMsgMetaData(Edge edge) {
-        TbMsgMetaData metaData = new TbMsgMetaData();
-        metaData.putValue("edgeId", edge.getId().toString());
-        metaData.putValue("edgeName", edge.getName());
-        return metaData;
-    }
-
     private void addDeviceToEdgeAllDeviceGroup(TenantId tenantId, Edge edge, DeviceId deviceId) {
         try {
             EntityGroup edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.DEVICE).get();

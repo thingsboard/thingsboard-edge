@@ -21,9 +21,11 @@ import org.springframework.data.util.Pair;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
@@ -33,7 +35,7 @@ import java.util.UUID;
 @Slf4j
 public abstract class BaseAssetProcessor extends BaseEdgeProcessor {
 
-    protected Pair<Boolean, Boolean> saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, CustomerId customerId) {
+    protected Pair<Boolean, Boolean> saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, CustomerId customerId) throws ThingsboardException {
         boolean created = false;
         boolean assetNameUpdated = false;
         assetCreationLock.lock();
@@ -54,6 +56,8 @@ public abstract class BaseAssetProcessor extends BaseEdgeProcessor {
                             assetUpdateMsg.getName(), assetName);
                     assetNameUpdated = true;
                 }
+            } else {
+                changeOwnerIfRequired(tenantId, customerId, assetId);
             }
             asset.setName(assetName);
             asset.setType(assetUpdateMsg.getType());
@@ -70,11 +74,23 @@ public abstract class BaseAssetProcessor extends BaseEdgeProcessor {
             if (created) {
                 asset.setId(assetId);
             }
-            assetService.saveAsset(asset, false);
+            Asset savedAsset = assetService.saveAsset(asset, false);
+            if (created) {
+                entityGroupService.addEntityToEntityGroupAll(savedAsset.getTenantId(), savedAsset.getOwnerId(), savedAsset.getId());
+            }
+            safeAddToEntityGroup(tenantId, assetUpdateMsg, assetId);
         } finally {
             edgeSynchronizationManager.getSync().remove();
             assetCreationLock.unlock();
         }
         return Pair.of(created, assetNameUpdated);
+    }
+
+    private void safeAddToEntityGroup(TenantId tenantId, AssetUpdateMsg assetUpdateMsg, AssetId assetId) {
+        if (assetUpdateMsg.hasEntityGroupIdMSB() && assetUpdateMsg.hasEntityGroupIdLSB()) {
+            UUID entityGroupUUID = safeGetUUID(assetUpdateMsg.getEntityGroupIdMSB(),
+                    assetUpdateMsg.getEntityGroupIdLSB());
+            safeAddEntityToGroup(tenantId, new EntityGroupId(entityGroupUUID), assetId);
+        }
     }
 }

@@ -35,6 +35,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
@@ -68,8 +69,11 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -687,6 +691,30 @@ public abstract class BaseEdgeProcessor {
         }
     }
 
+    protected void createRelationFromEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId) {
+        EntityRelation relation = new EntityRelation();
+        relation.setFrom(edgeId);
+        relation.setTo(entityId);
+        relation.setTypeGroup(RelationTypeGroup.COMMON);
+        relation.setType(EntityRelation.EDGE_TYPE);
+        relationService.saveRelation(tenantId, relation);
+    }
+
+    protected TbMsgMetaData getActionTbMsgMetaData(Edge edge, CustomerId customerId) {
+        TbMsgMetaData metaData = getTbMsgMetaData(edge);
+        if (customerId != null && !customerId.isNullUid()) {
+            metaData.putValue("customerId", customerId.toString());
+        }
+        return metaData;
+    }
+
+    private TbMsgMetaData getTbMsgMetaData(Edge edge) {
+        TbMsgMetaData metaData = new TbMsgMetaData();
+        metaData.putValue("edgeId", edge.getId().toString());
+        metaData.putValue("edgeName", edge.getName());
+        return metaData;
+    }
+
     protected void changeOwnerIfRequired(TenantId tenantId, CustomerId customerId, EntityId entityId) throws ThingsboardException {
         EntityId newOwnerId = getOwnerId(tenantId, customerId);
         EntityId currentOwnerId;
@@ -759,7 +787,7 @@ public abstract class BaseEdgeProcessor {
                 }
 
                 @Override
-                public void onFailure(Throwable t) {
+                public void onFailure(@NotNull Throwable t) {
                     log.warn("[{}] Failed to add entity to group: {}", entityId, t.getMessage(), t);
                 }
             }, dbCallbackExecutorService);

@@ -16,23 +16,23 @@
 package org.thingsboard.server.service.edge.rpc.processor.dashboard;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
-import com.fasterxml.jackson.databind.JavaType;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
-import org.thingsboard.server.common.data.ShortCustomerInfo;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.UUID;
 
 @Slf4j
 public abstract class BaseDashboardProcessor extends BaseEdgeProcessor {
 
-    protected boolean saveOrUpdateDashboard(TenantId tenantId, DashboardId dashboardId, DashboardUpdateMsg dashboardUpdateMsg) {
+    protected boolean saveOrUpdateDashboard(TenantId tenantId, DashboardId dashboardId, CustomerId customerId, DashboardUpdateMsg dashboardUpdateMsg) throws ThingsboardException {
         boolean created = false;
         dashboardCreationLock.lock();
         try {
@@ -44,17 +44,21 @@ public abstract class BaseDashboardProcessor extends BaseEdgeProcessor {
                 dashboard = new Dashboard();
                 dashboard.setTenantId(tenantId);
                 dashboard.setCreatedTime(Uuids.unixTimestamp(dashboardId.getId()));
+            } else {
+                changeOwnerIfRequired(tenantId, null, dashboardId);
             }
             dashboard.setTitle(dashboardUpdateMsg.getTitle());
-            dashboard.setAssignedCustomers(dashboardUpdateMsg.hasAssignedCustomers() ?
-                    getAssignedCustomersFromMsg(dashboardUpdateMsg.getAssignedCustomers()) : null);
             dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
-
+            dashboard.setCustomerId(customerId);
             dashboardValidator.validate(dashboard, Dashboard::getTenantId);
             if (created) {
                 dashboard.setId(dashboardId);
             }
-            dashboardService.saveDashboard(dashboard, false);
+            Dashboard savedDashboard = dashboardService.saveDashboard(dashboard, false);
+            if (created) {
+                entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());
+            }
+            safeAddToEntityGroup(tenantId, dashboardUpdateMsg, dashboardId);
         } finally {
             edgeSynchronizationManager.getSync().remove();
             dashboardCreationLock.unlock();
@@ -62,8 +66,11 @@ public abstract class BaseDashboardProcessor extends BaseEdgeProcessor {
         return created;
     }
 
-    private Set<ShortCustomerInfo> getAssignedCustomersFromMsg(String assignedCustomers) {
-        JavaType assignedCustomersType = JacksonUtil.constructCollectionType(HashSet.class, ShortCustomerInfo.class);
-        return JacksonUtil.fromString(assignedCustomers, assignedCustomersType);
+    private void safeAddToEntityGroup(TenantId tenantId, DashboardUpdateMsg dashboardUpdateMsg, DashboardId dashboardId) {
+        if (dashboardUpdateMsg.hasEntityGroupIdMSB() && dashboardUpdateMsg.hasEntityGroupIdLSB()) {
+            UUID entityGroupUUID = safeGetUUID(dashboardUpdateMsg.getEntityGroupIdMSB(),
+                    dashboardUpdateMsg.getEntityGroupIdLSB());
+            safeAddEntityToGroup(tenantId, new EntityGroupId(entityGroupUUID), dashboardId);
+        }
     }
 }

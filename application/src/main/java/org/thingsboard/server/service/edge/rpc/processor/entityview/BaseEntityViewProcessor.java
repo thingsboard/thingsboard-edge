@@ -21,9 +21,11 @@ import org.springframework.data.util.Pair;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.EdgeEntityType;
@@ -35,7 +37,7 @@ import java.util.UUID;
 @Slf4j
 public abstract class BaseEntityViewProcessor extends BaseEdgeProcessor {
 
-    protected Pair<Boolean, Boolean> saveOrUpdateEntityView(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg, CustomerId customerId) {
+    protected Pair<Boolean, Boolean> saveOrUpdateEntityView(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg, CustomerId customerId) throws ThingsboardException {
         boolean created = false;
         boolean entityViewNameUpdated = false;
         entityViewCreationLock.lock();
@@ -56,6 +58,8 @@ public abstract class BaseEntityViewProcessor extends BaseEdgeProcessor {
                             entityViewUpdateMsg.getName(), entityViewName);
                     entityViewNameUpdated = true;
                 }
+            } else {
+                changeOwnerIfRequired(tenantId, customerId, entityViewId);
             }
             entityView.setName(entityViewName);
             entityView.setType(entityViewUpdateMsg.getType());
@@ -74,11 +78,23 @@ public abstract class BaseEntityViewProcessor extends BaseEdgeProcessor {
             if (created) {
                 entityView.setId(entityViewId);
             }
-            entityViewService.saveEntityView(entityView, false);
+            EntityView savedEntityView = entityViewService.saveEntityView(entityView, false);
+            if (created) {
+                entityGroupService.addEntityToEntityGroupAll(savedEntityView.getTenantId(), savedEntityView.getOwnerId(), savedEntityView.getId());
+            }
+            safeAddToEntityGroup(tenantId, entityViewUpdateMsg, entityViewId);
         } finally {
             edgeSynchronizationManager.getSync().remove();
             entityViewCreationLock.unlock();
         }
         return Pair.of(created, entityViewNameUpdated);
+    }
+
+    private void safeAddToEntityGroup(TenantId tenantId, EntityViewUpdateMsg entityViewUpdateMsg, EntityViewId entityViewId) {
+        if (entityViewUpdateMsg.hasEntityGroupIdMSB() && entityViewUpdateMsg.hasEntityGroupIdLSB()) {
+            UUID entityGroupUUID = safeGetUUID(entityViewUpdateMsg.getEntityGroupIdMSB(),
+                    entityViewUpdateMsg.getEntityGroupIdLSB());
+            safeAddEntityToGroup(tenantId, new EntityGroupId(entityGroupUUID), entityViewId);
+        }
     }
 }
