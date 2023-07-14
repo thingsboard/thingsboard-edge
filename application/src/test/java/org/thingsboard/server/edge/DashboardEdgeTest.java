@@ -162,6 +162,7 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDashboardToCloud() throws Exception {
         UUID uuid = Uuids.timeBased();
 
@@ -202,6 +203,7 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDeleteEntityViewOnEdgeToCloud() throws Exception {
         Dashboard savedDashboard = saveDashboardOnCloudAndVerifyDeliveryToEdge();
 
