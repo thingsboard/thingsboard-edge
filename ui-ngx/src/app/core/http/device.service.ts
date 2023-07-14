@@ -266,4 +266,9 @@ export class DeviceService {
   public bulkImportDevices(entitiesData: BulkImportRequest, config?: RequestConfig): Observable<BulkImportResult> {
     return this.http.post<BulkImportResult>('/api/device/bulk_import', entitiesData, defaultHttpOptionsFromConfig(config));
   }
+
+  public getDevicePublishTelemetryCommands(deviceId: string, config?: RequestConfig): Observable<{[key: string]: string}> {
+    return this.http.get<{[key: string]: string}>(`/api/device/${deviceId}/commands`, defaultHttpOptionsFromConfig(config));
+  }
+
 }
