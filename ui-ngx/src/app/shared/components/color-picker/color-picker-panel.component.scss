@@ -28,58 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import "../../../../../../../scss/constants";
-
-:host {
-
-  .tb-card-content {
-    width: 100%;
+.tb-color-picker-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  &.singleTab {
+    width: 328px;
+  }
+  .tb-color-picker-title {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
+    letter-spacing: 0.25px;
+    color: rgba(0, 0, 0, 0.87);
+  }
+  .mat-mdc-tab-body-wrapper {
     height: 100%;
   }
-
-  .tb-title {
-    font-style: normal;
-    font-weight: 500;
-    font-size: 14px;
-    line-height: 20px;
-    letter-spacing: 0.25px;
-    color: rgba(0, 0, 0, 0.54);
-    @media #{$mat-md-lg} {
-      font-size: 12px;
-      line-height: 16px;
-    }
+  .mat-mdc-tab-group-dynamic-height .mat-mdc-tab-body-content {
+    overflow: auto;
   }
-
-  .tb-title-link {
-    font-style: normal;
-    font-weight: 500;
-    font-size: 14px;
-    line-height: 20px;
-    letter-spacing: 0.25px;
-    color: rgba(0, 0, 0, 0.54);
-    position: relative;
-    border-bottom: none;
-    @media #{$mat-md-lg} {
-      font-size: 12px;
-      line-height: 16px;
-    }
-    &:hover, &:focus {
-      border-bottom: none;
-    }
-    &::after {
-      content: 'arrow_forward';
-      display: inline-block;
-      transform: rotate(315deg);
-      font-family: 'Material Icons';
-      font-weight: normal;
-      font-style: normal;
-      font-size: 18px;
-      color: rgba(0, 0, 0, 0.12);
-      vertical-align: bottom;
-      margin-left: 6px;
-    }
-    &:hover::after {
-      color: inherit;
-    }
+  .tb-color-picker-panel-buttons {
+    height: 60px;
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    justify-content: flex-end;
+    align-items: flex-end;
   }
 }

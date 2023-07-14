@@ -71,7 +71,8 @@
         "less": "Less",
         "skip": "Skip",
         "send": "Send",
-        "reset": "Reset"
+        "reset": "Reset",
+        "show-more": "Show more"
     },
     "aggregation": {
         "aggregation": "Aggregation",
@@ -1007,6 +1008,7 @@
         "binary": "Binary (Base64)"
     },
     "color": {
+        "color": "Color",
         "color-picker": "Color picker",
         "primary-colors": "Primary colors",
         "accent-colors": "Accent colors",
@@ -7025,9 +7027,12 @@
     },
     "icon": {
         "icon": "Icon",
+        "icons": "Icons",
         "select-icon": "Select icon",
         "material-icons": "Material icons",
-        "show-all": "Show all icons"
+        "show-all": "Show all icons",
+        "search-icon": "Search icon",
+        "no-icons-found": "No icons found for '{{iconSearch}}'"
     },
     "phone-input": {
         "phone-input-label": "Phone number",
