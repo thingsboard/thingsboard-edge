@@ -151,6 +151,9 @@ import java.util.concurrent.locks.ReentrantLock;
 public abstract class BaseEdgeProcessor {
 
     protected static final Lock deviceCreationLock = new ReentrantLock();
+    protected static final Lock assetCreationLock = new ReentrantLock();
+    protected static final Lock dashboardCreationLock = new ReentrantLock();
+    protected static final Lock entityViewCreationLock = new ReentrantLock();
 
     protected static final int DEFAULT_PAGE_SIZE = 100;
 
@@ -241,6 +244,15 @@ public abstract class BaseEdgeProcessor {
 
     @Autowired
     protected DataValidator<Device> deviceValidator;
+
+    @Autowired
+    protected DataValidator<Asset> assetValidator;
+
+    @Autowired
+    protected DataValidator<Dashboard> dashboardValidator;
+
+    @Autowired
+    protected DataValidator<EntityView> entityViewValidator;
 
     @Autowired
     protected EdgeMsgConstructor edgeMsgConstructor;
@@ -364,21 +376,21 @@ public abstract class BaseEdgeProcessor {
     protected OwnersCacheService ownersCacheService;
 
     protected ListenableFuture<Void> saveEdgeEvent(TenantId tenantId,
-                               EdgeId edgeId,
-                               EdgeEventType type,
-                               EdgeEventActionType action,
-                               EntityId entityId,
-                               JsonNode body) {
+                                                   EdgeId edgeId,
+                                                   EdgeEventType type,
+                                                   EdgeEventActionType action,
+                                                   EntityId entityId,
+                                                   JsonNode body) {
         return saveEdgeEvent(tenantId, edgeId, type, action, entityId, body, null);
     }
 
     protected ListenableFuture<Void> saveEdgeEvent(TenantId tenantId,
-                                 EdgeId edgeId,
-                                 EdgeEventType type,
-                                 EdgeEventActionType action,
-                                 EntityId entityId,
-                                 JsonNode body,
-                                 EntityGroupId entityGroupId) {
+                                                   EdgeId edgeId,
+                                                   EdgeEventType type,
+                                                   EdgeEventActionType action,
+                                                   EntityId entityId,
+                                                   JsonNode body,
+                                                   EntityGroupId entityGroupId) {
         log.debug("Pushing event to edge queue. tenantId [{}], edgeId [{}], type[{}], " +
                         "action [{}], entityId [{}], body [{}]",
                 tenantId, edgeId, type, action, entityId, body);

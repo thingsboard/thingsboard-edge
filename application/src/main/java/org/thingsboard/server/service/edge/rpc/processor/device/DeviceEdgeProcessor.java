@@ -54,12 +54,8 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -132,15 +128,6 @@ public class DeviceEdgeProcessor extends BaseDeviceProcessor {
         if (deviceNameUpdated) {
             saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.DEVICE, EdgeEventActionType.UPDATED, deviceId, null);
         }
-    }
-
-    private void createRelationFromEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId) {
-        EntityRelation relation = new EntityRelation();
-        relation.setFrom(edgeId);
-        relation.setTo(entityId);
-        relation.setTypeGroup(RelationTypeGroup.COMMON);
-        relation.setType(EntityRelation.EDGE_TYPE);
-        relationService.saveRelation(tenantId, relation);
     }
 
     private void pushDeviceCreatedEventToRuleEngine(TenantId tenantId, Edge edge, DeviceId deviceId) {

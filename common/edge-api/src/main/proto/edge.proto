@@ -708,6 +708,9 @@ message UplinkMsg {
   repeated EntityViewsRequestMsg entityViewsRequestMsg = 15;
   repeated EntityGroupRequestMsg entityGroupEntitiesRequestMsg = 16;
   repeated EntityGroupRequestMsg entityGroupPermissionsRequestMsg = 17;
+  repeated AssetUpdateMsg assetUpdateMsg = 18;
+  repeated DashboardUpdateMsg dashboardUpdateMsg = 19;
+  repeated EntityViewUpdateMsg entityViewUpdateMsg = 20;
 }
 
 message UplinkResponseMsg {

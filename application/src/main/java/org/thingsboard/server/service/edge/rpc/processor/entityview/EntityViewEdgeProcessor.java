@@ -30,26 +30,91 @@
  */
 package org.thingsboard.server.service.edge.rpc.processor.entityview;
 
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
+
+import java.util.UUID;
 
 @Component
 @Slf4j
 @TbCoreComponent
-public class EntityViewEdgeProcessor extends BaseEdgeProcessor {
+public class EntityViewEdgeProcessor extends BaseEntityViewProcessor {
+
+    public ListenableFuture<Void> processEntityViewMsgFromEdge(TenantId tenantId, Edge edge, EntityViewUpdateMsg entityViewUpdateMsg) {
+        log.trace("[{}] executing processEntityViewMsgFromEdge [{}] from edge [{}]", tenantId, entityViewUpdateMsg, edge.getName());
+        EntityViewId entityViewId = new EntityViewId(new UUID(entityViewUpdateMsg.getIdMSB(), entityViewUpdateMsg.getIdLSB()));
+        try {
+            switch (entityViewUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE:
+                case ENTITY_UPDATED_RPC_MESSAGE:
+                    saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg, edge);
+                    return saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.ENTITY_VIEW, EdgeEventActionType.UPDATED, entityViewId, null);
+                case ENTITY_DELETED_RPC_MESSAGE:
+                    EntityView entityViewToDelete = entityViewService.findEntityViewById(tenantId, entityViewId);
+                    if (entityViewToDelete != null) {
+                        entityViewService.unassignEntityViewFromEdge(tenantId, entityViewId, edge.getId());
+                    }
+                    return Futures.immediateFuture(null);
+                case UNRECOGNIZED:
+                default:
+                    return handleUnsupportedMsgType(entityViewUpdateMsg.getMsgType());
+            }
+        } catch (DataValidationException e) {
+            if (e.getMessage().contains("limit reached")) {
+                log.warn("[{}] Number of allowed entity views violated {}", tenantId, entityViewUpdateMsg, e);
+                return Futures.immediateFuture(null);
+            } else {
+                return Futures.immediateFailedFuture(e);
+            }
+        }
+    }
+
+    private void saveOrUpdateEntityView(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg, Edge edge) {
+        CustomerId customerId = safeGetCustomerId(entityViewUpdateMsg.getCustomerIdMSB(), entityViewUpdateMsg.getCustomerIdLSB());
+        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg, customerId);
+        Boolean created = resultPair.getFirst();
+        if (created) {
+            createRelationFromEdge(tenantId, edge.getId(), entityViewId);
+            pushAssetCreatedEventToRuleEngine(tenantId, edge, entityViewId);
+            entityViewService.assignEntityViewToEdge(tenantId, entityViewId, edge.getId());
+        }
+        Boolean assetNameUpdated = resultPair.getSecond();
+        if (assetNameUpdated) {
+            saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.ENTITY_VIEW, EdgeEventActionType.UPDATED, entityViewId, null);
+        }
+    }
+
+    private void pushAssetCreatedEventToRuleEngine(TenantId tenantId, Edge edge, EntityViewId entityViewId) {
+        try {
+            EntityView entityView = entityViewService.findEntityViewById(tenantId, entityViewId);
+            ObjectNode entityNode = JacksonUtil.OBJECT_MAPPER.valueToTree(entityView);
+            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, entityViewId, entityView.getCustomerId(),
+                    getActionTbMsgMetaData(edge, entityView.getCustomerId()), TbMsgDataType.JSON, JacksonUtil.OBJECT_MAPPER.writeValueAsString(entityNode));
+            tbClusterService.pushMsgToRuleEngine(tenantId, entityViewId, tbMsg, new TbQueueCallback() {
+                @Override
+                public void onSuccess(TbQueueMsgMetadata metadata) {
+                    log.debug("Successfully send ENTITY_CREATED EVENT to rule engine [{}]", entityView);
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    log.debug("Failed to send ENTITY_CREATED EVENT to rule engine [{}]", entityView, t);
+                }
+            });
+        } catch (JsonProcessingException | IllegalArgumentException e) {
+            log.warn("[{}] Failed to push entity view action to rule engine: {}", entityViewId, DataConstants.ENTITY_CREATED, e);
+        }
+    }
 
     public DownlinkMsg convertEntityViewEventToDownlink(EdgeEvent edgeEvent) {
         EntityViewId entityViewId = new EntityViewId(edgeEvent.getEntityId());
