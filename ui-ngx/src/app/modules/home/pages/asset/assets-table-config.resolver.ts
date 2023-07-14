@@ -66,6 +66,7 @@ import { GroupEntityTabsComponent } from '@home/components/group/group-entity-ta
 import { AssetComponent } from '@home/pages/asset/asset.component';
 import { AuthUser } from '@shared/models/user.model';
 import { CustomerId } from '@shared/models/id/customer-id';
+import { AddAssetDialogComponent, AddAssetDialogData } from '@home/pages/asset/add-asset-dialog.component';
 
 @Injectable()
 export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<AssetInfo>> {
@@ -196,7 +197,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
         name: this.translate.instant('asset.add-asset-text'),
         icon: 'insert_drive_file',
         isEnabled: () => true,
-        onAction: ($event) => config.getTable().addEntity($event)
+        onAction: ($event) => this.assetDialog($event, config)
       },
       {
         name: this.translate.instant('asset.import'),
@@ -205,7 +206,25 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
         onAction: ($event) => this.importAssets($event, config)
       }
     );
+    config.addEntity = () => {this.assetDialog(null, config); return of(null); };
     return actions;
+  }
+
+  assetDialog($event: Event, config: EntityTableConfig<AssetInfo>) {
+    return this.dialog.open<AddAssetDialogComponent, AddAssetDialogData,
+      AssetInfo>(AddAssetDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        customerId: config.customerId
+      }
+    }).afterClosed().subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
   }
 
   private openAsset($event: Event, asset: AssetInfo, config: EntityTableConfig<AssetInfo>) {
