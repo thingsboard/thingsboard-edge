@@ -30,6 +30,42 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field appearance="outline" class="tb-inline-field center" subscriptSizing="dynamic">
-  <input matInput [formControl]="unitsFormControl" placeholder="{{ 'widget-config.set' | translate }}">
-</mat-form-field>
+<div class="tb-color-picker-panel" [ngClass]="{'singleTab': !useThemePalette}">
+  <div class="tb-color-picker-title" translate>color.color</div>
+  <mat-tab-group *ngIf="useThemePalette; else colorPicker" style="width: 100%;" dynamicHeight
+                 [selectedIndex]="colorMode === 'color' ? 0 : (colorMode === 'primary' ? 1 : 2)" (selectedIndexChange)="selectedIndexChange($event)">
+    <mat-tab label="{{ 'color.color-picker' | translate }}">
+      <div style="padding: 8px 0 0; display: flex; height: 100%;">
+        <ng-container *ngTemplateOutlet="colorPicker"></ng-container>
+      </div>
+    </mat-tab>
+    <mat-tab label="{{ 'color.primary-colors' | translate }}">
+      <tb-theme-color-select
+        palette="primary"
+        [ngModel]="primaryColor"
+        (ngModelChange)="onPrimaryColorChange($event)"
+        [ngModelOptions]="{standalone: true}">
+      </tb-theme-color-select>
+    </mat-tab>
+    <mat-tab label="{{ 'color.accent-colors' | translate }}">
+      <tb-theme-color-select
+        palette="accent"
+        [ngModel]="accentColor"
+        (ngModelChange)="onAccentColorChange($event)"
+        [ngModelOptions]="{standalone: true}">
+      </tb-theme-color-select>
+    </mat-tab>
+  </mat-tab-group>
+  <ng-template #colorPicker>
+    <tb-color-picker [(ngModel)]="plainColor" (ngModelChange)="onPlainColorChange($event)"></tb-color-picker>
+  </ng-template>
+  <div class="tb-color-picker-panel-buttons">
+    <button mat-raised-button
+            color="primary"
+            type="button"
+            (click)="selectColor()"
+            [disabled]="!valid || !dirty">
+      {{ 'action.select' | translate }}
+    </button>
+  </div>
+</div>

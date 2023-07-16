@@ -139,7 +139,7 @@ import { AuthState } from '@app/core/auth/auth.models';
 import { ReportService } from '@core/http/report.service';
 import { EntityGroupInfo, resolveGroupParams } from '@shared/models/entity-group.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { Operation } from '@shared/models/security.models';
+import { Operation, Resource } from '@shared/models/security.models';
 import { ReportType } from '@shared/models/report.models';
 import { FiltersDialogComponent, FiltersDialogData } from '@home/components/filter/filters-dialog.component';
 import { Filters } from '@shared/models/query/query.models';
@@ -177,6 +177,7 @@ import { LayoutFixedSize, LayoutWidthType } from '@home/components/dashboard-pag
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { EntityType } from '@shared/models/entity-type.models';
+import { HasDirtyFlag } from '@core/guards/confirm-on-exit.guard';
 
 // @dynamic
 @Component({
@@ -186,7 +187,15 @@ import { EntityType } from '@shared/models/entity-type.models';
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DashboardPageComponent extends PageComponent implements IDashboardController, OnInit, AfterViewInit, OnDestroy {
+export class DashboardPageComponent extends PageComponent implements IDashboardController, HasDirtyFlag, OnInit, AfterViewInit, OnDestroy {
+
+  get isDirty(): boolean {
+    return this.isEdit;
+  }
+
+  set isDirty(value: boolean) {
+
+  }
 
   authState: AuthState = getCurrentAuthState(this.store);
 
@@ -489,6 +498,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
                || this.forceFullscreen || this.isMobileApp || this.reportView || this.stateSelectView ||
                this.route.snapshot.queryParamMap.get('readonly') === 'true') {
       this.readonly = true;
+    } else {
+      this.readonly = !this.userPermissionsService.hasGenericPermission(Resource.DASHBOARD, Operation.WRITE);
     }
 
     this.dashboardCtx.aliasController = this.parentAliasController ? this.parentAliasController : new AliasController(this.utils,
@@ -1228,7 +1239,9 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     this.widgetComponentService.getWidgetInfo(widget.bundleAlias, widget.typeAlias, widget.isSystemType).subscribe(
       (widgetTypeInfo) => {
         const config: WidgetConfig = this.dashboardUtils.widgetConfigFromWidgetType(widgetTypeInfo);
-        config.title = 'New ' + widgetTypeInfo.widgetName;
+        if (!config.title) {
+          config.title = 'New ' + widgetTypeInfo.widgetName;
+        }
         let newWidget: Widget = {
           isSystemType: widget.isSystemType,
           bundleAlias: widget.bundleAlias,
