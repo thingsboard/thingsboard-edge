@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
@@ -68,6 +68,7 @@ export class DeviceGatewayCommandComponent implements OnInit {
   constructor(protected router: Router,
               protected store: Store<AppState>,
               private translate: TranslateService,
+              private cd: ChangeDetectorRef,
               private deviceService: DeviceService) {
   }
 
@@ -78,6 +79,7 @@ export class DeviceGatewayCommandComponent implements OnInit {
       this.deviceService.getDeviceCredentials(this.deviceId).subscribe(credentials => {
         this.token = credentials.credentialsId;
         this.createRunCode(HOST);
+        this.cd.detectChanges()
       });
     }
     this.selectedOSCControl = new FormControl('');
