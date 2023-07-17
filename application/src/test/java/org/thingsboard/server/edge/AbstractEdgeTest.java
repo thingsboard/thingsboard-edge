@@ -156,13 +156,8 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
         installation();
 
-        // sleep 0.5 second to avoid CREDENTIALS updated message for the user
-        // user credentials is going to be stored and updated event pushed to edge notification service
-        // while service will be processing this event edge could be already added and additional message will be pushed
-        Thread.sleep(500);
-
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.expectMessageAmount(18);
+        edgeImitator.expectMessageAmount(20);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();
@@ -265,13 +260,15 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         // 1 message from queue fetcher
         validateQueues();
 
-        // 3 messages
+        // 5 messages
         // - 2 messages from fetcher
         // - 1 message from public customer user group
+        // - 2 messages from edge queue - added during edge creation
         validateEntityGroups();
 
         // 5 messages
-        // - 2 messages from fetcher
+        // - 2 messages from SysAdminRolesEdgeEventFetcher
+        // - 2 messages from TenantRolesEdgeEventFetcher
         // - 1 message from public customer role
         validateRoles();
 
@@ -393,7 +390,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
     private void validateEntityGroups() {
         List<EntityGroupUpdateMsg> entityGroupUpdateMsgList = edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class);
-        Assert.assertEquals(3, entityGroupUpdateMsgList.size());
+        Assert.assertEquals(5, entityGroupUpdateMsgList.size());
     }
 
     private void validateRoles() {

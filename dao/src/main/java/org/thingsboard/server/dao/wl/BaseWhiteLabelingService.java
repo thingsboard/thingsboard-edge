@@ -251,7 +251,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         ((ObjectNode) loginWhiteLabelParamsSettings.getJsonValue()).put("value", json);
         adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, loginWhiteLabelParamsSettings);
         eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID)
-                .type(EdgeEventType.WHITE_LABELING).actionType(ActionType.UPDATED).build());
+                .type(EdgeEventType.LOGIN_WHITE_LABELING).actionType(ActionType.UPDATED).build());
         return getSystemLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID);
     }
 
@@ -563,8 +563,9 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         attributes.add(new BaseAttributeKvEntry(new StringDataEntry(key, value), ts));
         try {
             var result = attributesService.save(tenantId, entityId, DataConstants.SERVER_SCOPE, attributes);
+            EdgeEventType edgeEventType = LOGIN_WHITE_LABEL_PARAMS.equals(key) ? EdgeEventType.LOGIN_WHITE_LABELING : EdgeEventType.WHITE_LABELING;
             eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(entityId)
-                    .type(EdgeEventType.WHITE_LABELING).actionType(ActionType.UPDATED).build());
+                    .type(edgeEventType).actionType(ActionType.UPDATED).build());
             return result;
         } catch (Exception e) {
             log.error("Unable to save White Labeling Params to attributes!", e);

@@ -224,6 +224,8 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
                 return EdgeEventActionType.ADDED_TO_ENTITY_GROUP;
             case REMOVED_FROM_ENTITY_GROUP:
                 return EdgeEventActionType.REMOVED_FROM_ENTITY_GROUP;
+            case CHANGE_OWNER:
+                return EdgeEventActionType.CHANGE_OWNER;
             default:
                 return null;
         }
