@@ -28,21 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.http.particle.credentials;
+package org.thingsboard.integration.http.particle;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.Data;
+import org.springframework.http.HttpRequest;
+import org.springframework.http.client.support.HttpRequestWrapper;
 import org.springframework.web.client.RestTemplate;
 
-@JsonTypeInfo(
-        use = JsonTypeInfo.Id.NAME,
-        property = "type")
-@JsonSubTypes({
-        @JsonSubTypes.Type(value = ParticleBasicCredentials.class, name = "basic"),
-        @JsonSubTypes.Type(value = ParticleTokenCredentials.class, name = "token")})
+@Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public interface ParticleCredentials {
+public class ParticleCredentials {
 
-    void setInterceptor(RestTemplate restTemplate, String baseUrl);
+    private String accessToken;
+
+    public void setInterceptor(RestTemplate restTemplate, String baseUrl) {
+        restTemplate.getInterceptors().add((request, body, execution) -> {
+            HttpRequest wrapper = new HttpRequestWrapper(request);
+            wrapper.getHeaders().setBearerAuth(accessToken);
+            return execution.execute(wrapper, body);
+        });
+    }
 }

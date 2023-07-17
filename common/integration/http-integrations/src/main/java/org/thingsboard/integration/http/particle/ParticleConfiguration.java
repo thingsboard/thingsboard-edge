@@ -32,7 +32,6 @@ package org.thingsboard.integration.http.particle;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
-import org.thingsboard.integration.http.particle.credentials.ParticleCredentials;
 
 import java.util.Map;
 

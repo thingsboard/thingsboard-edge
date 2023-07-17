@@ -100,7 +100,7 @@ export class ParticleIntegrationFormComponent extends IntegrationForm implements
       enableSecurity: [false],
       headersFilter: [{}],
       allowDownlink: [false],
-      credentials: [{value: {type: IntegrationCredentialType.Basic}, disabled: true}],
+      credentials: [{value: {type: IntegrationCredentialType.Token}, disabled: true}],
     });
     this.particleIntegrationConfigForm.get('baseUrl').valueChanges.pipe(
       takeUntil(this.destroy$)
