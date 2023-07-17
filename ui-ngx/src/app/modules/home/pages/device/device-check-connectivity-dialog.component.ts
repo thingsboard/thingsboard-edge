@@ -57,10 +57,12 @@ import {
 } from '@shared/models/device.models';
 import { UserSettingsService } from '@core/http/user-settings.service';
 import { ActionPreferencesUpdateUserSettings } from '@core/auth/auth.actions';
+import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 export interface DeviceCheckConnectivityDialogData {
   deviceId: EntityId;
-  showDontShowAgain: boolean;
+  afterAdd: boolean;
 }
 @Component({
   selector: 'tb-device-check-connectivity-dialog',
@@ -85,9 +87,13 @@ export class DeviceCheckConnectivityDialogComponent extends
   DeviceTransportType = DeviceTransportType;
   deviceTransportTypeTranslationMap = deviceTransportTypeTranslationMap;
 
-  showDontShowAgain = this.data.showDontShowAgain;
+  showDontShowAgain: boolean;
+  dialogTitle: string;
+  closeButtonLabel: string;
 
   notShowAgain = false;
+
+  helpBaseUrl = this.wl.getHelpLinkBaseUrl();
 
   private telemetrySubscriber: TelemetrySubscriber;
 
@@ -103,8 +109,19 @@ export class DeviceCheckConnectivityDialogComponent extends
               private deviceService: DeviceService,
               private telemetryWsService: TelemetryWebsocketService,
               private userSettingsService: UserSettingsService,
+              private wl: WhiteLabelingService,
               private zone: NgZone) {
     super(store, router, dialogRef);
+
+    if (this.data.afterAdd) {
+      this.dialogTitle = 'device.connectivity.device-created-check-connectivity';
+      this.closeButtonLabel = 'action.skip';
+      this.showDontShowAgain = true;
+    } else {
+      this.dialogTitle = 'device.connectivity.check-connectivity';
+      this.closeButtonLabel = 'action.close';
+      this.showDontShowAgain = false;
+    }
   }
 
   ngOnInit() {
@@ -171,7 +188,7 @@ export class DeviceCheckConnectivityDialogComponent extends
         (data) => {
           this.latestTelemetry = data.reduce<Array<AttributeData>>((accumulator, item) => {
             if (item.key === 'active') {
-              this.status = item.value;
+              this.status = coerceBooleanProperty(item.value);
             } else if (item.lastUpdateTs > this.currentTime) {
               accumulator.push(item);
             }

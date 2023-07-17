@@ -31,7 +31,7 @@
 
 -->
 <mat-toolbar color="primary">
-  <h2 translate>device.connectivity.check-connectivity</h2>
+  <h2 translate>{{ dialogTitle }}</h2>
   <span fxFlex></span>
 <!--  <div [tb-help]="'check-connectivity'"></div>-->
   <button mat-icon-button
@@ -123,7 +123,7 @@
             <ng-template #mqttCertificate>
               <div class="tb-form-panel-hint tb-font-14" translate>device.connectivity.mqtts-x509-command</div>
               <div>
-                <a mat-button color="primary" href="https://thingsboard.io/docs/user-guide/certificates/?ubuntuThingsboardX509=x509Chain" target="_blank">
+                <a mat-button color="primary" href="{{ helpBaseUrl + '/docs/pe/user-guide/certificates/?ubuntuThingsboardX509=x509Chain' }}" target="_blank">
                   <span>
                     {{ 'action.see-documentation' | translate }}
                     <mat-icon class="tb-mat-18">open_in_new</mat-icon>
@@ -159,7 +159,7 @@
             <ng-template #coapCertificate>
               <div class="tb-form-panel-hint tb-font-14" translate>device.connectivity.coaps-x509-command</div>
               <div>
-                <a mat-button color="primary" href="https://thingsboard.io/docs/user-guide/ssl/coap-x509-certificates/" target="_blank">
+                <a mat-button color="primary" href="{{ helpBaseUrl + '/docs/pe/user-guide/ssl/coap-x509-certificates/' }}" target="_blank">
                   <span>
                     {{ 'action.see-documentation' | translate }}
                     <mat-icon class="tb-mat-18">open_in_new</mat-icon>
@@ -172,7 +172,7 @@
         <ng-template [ngSwitchCase]="DeviceTransportType.SNMP">
           <div class="tb-form-panel-hint tb-font-14" translate>device.connectivity.snmp-command</div>
           <div>
-            <a mat-button color="primary" href="https://thingsboard.io/docs/reference/snmp-api/" target="_blank">
+            <a mat-button color="primary" href="{{ helpBaseUrl + '/docs/pe/reference/snmp-api/' }}" target="_blank">
               <span>
                 {{ 'action.see-documentation' | translate }}
                 <mat-icon class="tb-mat-18">open_in_new</mat-icon>
@@ -183,7 +183,7 @@
         <ng-template [ngSwitchCase]="DeviceTransportType.LWM2M">
           <div class="tb-form-panel-hint tb-font-14" translate>device.connectivity.lwm2m-command</div>
           <div>
-            <a mat-button color="primary" href="https://thingsboard.io/docs/reference/lwm2m-api/" target="_blank">
+            <a mat-button color="primary" href="{{ helpBaseUrl + '/docs/pe/reference/lwm2m-api/' }}" target="_blank">
               <span>
                 {{ 'action.see-documentation' | translate }}
                 <mat-icon class="tb-mat-18">open_in_new</mat-icon>
@@ -196,7 +196,7 @@
     <div class="tb-form-panel stroked">
       <div fxFlex fxLayout="row">
         <div class="tb-form-panel-title" translate>device.state</div>
-        <div class="status" [ngClass]="{'inactive': !status}">
+        <div class="status" [ngClass]="{'inactive': !status, 'hide': status === undefined}">
           {{ (status ? 'device.active' : 'device.inactive') | translate }}
         </div>
       </div>
@@ -223,7 +223,7 @@
   <span fxFlex></span>
   <button mat-button
           [disabled]="(isLoading$ | async)"
-          (click)="close()">{{ 'action.cancel' | translate }}</button>
+          (click)="close()">{{ closeButtonLabel | translate }}</button>
 </div>
 <ng-template #loadingCommand>
   <div class="tb-loader">

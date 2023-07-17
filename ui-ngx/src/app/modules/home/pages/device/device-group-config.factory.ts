@@ -243,7 +243,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     );
   }
 
-  checkConnectivity($event: Event, deviceId: EntityId, showDontShowAgain = false) {
+  checkConnectivity($event: Event, deviceId: EntityId, afterAdd = false) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -253,7 +253,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
         deviceId,
-        showDontShowAgain
+        afterAdd
       }
     })
       .afterClosed()

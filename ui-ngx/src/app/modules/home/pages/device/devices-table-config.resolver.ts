@@ -393,7 +393,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     );
   }
 
-  checkConnectivity($event: Event, deviceId: EntityId, showDontShowAgain = false) {
+  checkConnectivity($event: Event, deviceId: EntityId, afterAdd = false) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -403,7 +403,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
         deviceId,
-        showDontShowAgain
+        afterAdd
       }
     })
       .afterClosed()
