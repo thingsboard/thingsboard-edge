@@ -228,6 +228,8 @@ import { ToggleHeaderComponent, ToggleOption } from '@shared/components/toggle-h
 import { RuleChainSelectComponent } from '@shared/components/rule-chain/rule-chain-select.component';
 import { ToggleSelectComponent } from '@shared/components/toggle-select.component';
 import { UnitInputComponent } from '@shared/components/unit-input.component';
+import { MaterialIconsComponent } from '@shared/components/material-icons.component';
+import { ColorPickerPanelComponent } from '@shared/components/color-picker/color-picker-panel.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -418,11 +420,13 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     GtMdLgShowHideDirective,
     ThemeColorSelectComponent,
     ColorPickerComponent,
+    ColorPickerPanelComponent,
     ResourceAutocompleteComponent,
     ToggleHeaderComponent,
     ToggleOption,
     ToggleSelectComponent,
     UnitInputComponent,
+    MaterialIconsComponent,
     RuleChainSelectComponent
   ],
   imports: [
@@ -668,11 +672,13 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     GtMdLgShowHideDirective,
     ThemeColorSelectComponent,
     ColorPickerComponent,
+    ColorPickerPanelComponent,
     ResourceAutocompleteComponent,
     ToggleHeaderComponent,
     ToggleOption,
     ToggleSelectComponent,
     UnitInputComponent,
+    MaterialIconsComponent,
     RuleChainSelectComponent
   ]
 })

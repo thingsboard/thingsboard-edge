@@ -120,7 +120,8 @@ export class DialogService {
         data: {
           color,
           useThemePalette
-        }
+        },
+        autoFocus: false
     }).afterClosed();
   }
 
@@ -131,7 +132,8 @@ export class DialogService {
         panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
         data: {
           icon
-        }
+        },
+        autoFocus: false
       }).afterClosed();
   }
 
