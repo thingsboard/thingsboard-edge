@@ -122,3 +122,4 @@ ALTER TABLE resource
 UPDATE resource
     SET etag = encode(sha256(decode(resource.data, 'base64')),'hex') WHERE resource.data is not null;
 
+ALTER TABLE IF EXISTS cloud_event ALTER COLUMN seq_id SET CYCLE;
