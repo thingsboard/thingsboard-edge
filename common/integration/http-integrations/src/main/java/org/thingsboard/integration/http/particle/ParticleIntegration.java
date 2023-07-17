@@ -69,7 +69,7 @@ public class ParticleIntegration extends BasicHttpIntegration<JsonHttpIntegratio
 
         if (particleConfiguration.isAllowDownlink()) {
             initRestClient();
-            particleConfiguration.getCredentials().setInterceptor(httpClient, BASE_URL);
+            particleConfiguration.getCredentials().setInterceptor(httpClient);
         }
     }
 
@@ -91,7 +91,7 @@ public class ParticleIntegration extends BasicHttpIntegration<JsonHttpIntegratio
     public void onDownlinkMsg(IntegrationDownlinkMsg downlink) {
         TbMsg msg = downlink.getTbMsg();
         logDownlink(context, "Downlink: " + msg.getType(), msg);
-        if (downlinkConverter != null) {
+        if (downlinkConverter != null && particleConfiguration.isAllowDownlink()) {
             try {
                 processDownLinkMsg(context, msg);
             } catch (Exception e) {
@@ -117,9 +117,9 @@ public class ParticleIntegration extends BasicHttpIntegration<JsonHttpIntegratio
                     if (metadata.get("deviceId") == null) {
                         throw new RuntimeException("Device id not found in metadata");
                     }
-                    ObjectNode body = JacksonUtil.newObjectNode();
+                    ObjectNode body = JacksonUtil.fromBytes(downlink.getData(), ObjectNode.class);
                     String function = "";
-                    if (!body.has("method") && !body.has("function")) {
+                    if (body == null || (!body.has("method") && !body.has("function"))) {
                         throw new RuntimeException("Field \"method\" or \"function\" is required in message");
                     } else if (body.has("method")) {
                         function = body.get("method").asText();
@@ -130,6 +130,8 @@ public class ParticleIntegration extends BasicHttpIntegration<JsonHttpIntegratio
                     String arg = "";
                     if (body.has("params")) {
                         arg = body.get("params").asText();
+                    } else if (body.has("command")) {
+                        arg = body.get("command").asText();
                     } else if (body.has("arg")) {
                         arg = body.get("arg").asText();
                     }

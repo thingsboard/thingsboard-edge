@@ -40,12 +40,12 @@ import org.springframework.web.client.RestTemplate;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ParticleCredentials {
 
-    private String accessToken;
+    private String token;
 
-    public void setInterceptor(RestTemplate restTemplate, String baseUrl) {
+    public void setInterceptor(RestTemplate restTemplate) {
         restTemplate.getInterceptors().add((request, body, execution) -> {
             HttpRequest wrapper = new HttpRequestWrapper(request);
-            wrapper.getHeaders().setBearerAuth(accessToken);
+            wrapper.getHeaders().setBearerAuth(token);
             return execution.execute(wrapper, body);
         });
     }
