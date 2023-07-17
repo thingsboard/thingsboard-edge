@@ -173,7 +173,8 @@ public class BaseRelationService implements RelationService {
         validate(relation);
         var result = relationDao.saveRelation(tenantId, relation);
         publishEvictEvent(EntityRelationEvent.from(relation));
-        publishSaveOrUpdateRelation(tenantId, relation);
+        eventPublisher.publishEvent(new ActionRelationEvent(tenantId, JacksonUtil.toString(relation),
+                ActionType.RELATION_ADD_OR_UPDATE));
         return result;
     }
 
@@ -188,7 +189,8 @@ public class BaseRelationService implements RelationService {
         }
         for (EntityRelation relation : relations) {
             publishEvictEvent(EntityRelationEvent.from(relation));
-            publishSaveOrUpdateRelation(tenantId, relation);
+            eventPublisher.publishEvent(new ActionRelationEvent(tenantId, JacksonUtil.toString(relation),
+                    ActionType.RELATION_ADD_OR_UPDATE));
         }
     }
 
@@ -656,12 +658,4 @@ public class BaseRelationService implements RelationService {
             handleEvictEvent(event);
         }
     }
-
-    private void publishSaveOrUpdateRelation(TenantId tenantId, EntityRelation relation) {
-        if (RelationTypeGroup.COMMON.equals(relation.getTypeGroup())) {
-            eventPublisher.publishEvent(new ActionRelationEvent(tenantId, JacksonUtil.toString(relation),
-                    ActionType.RELATION_ADD_OR_UPDATE));
-        }
-    }
-
 }
