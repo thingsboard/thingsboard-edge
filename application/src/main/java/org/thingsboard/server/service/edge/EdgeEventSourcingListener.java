@@ -35,13 +35,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.dao.edge.EdgeSynchronizationManager;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.ActionRelationEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+import org.thingsboard.server.dao.group.EntityGroupService;
 
 import javax.annotation.PostConstruct;
 
@@ -68,6 +71,7 @@ public class EdgeEventSourcingListener {
 
     private final TbClusterService tbClusterService;
     private final EdgeSynchronizationManager edgeSynchronizationManager;
+    private final EntityGroupService entityGroupService;
 
     @PostConstruct
     public void init() {
@@ -99,6 +103,13 @@ public class EdgeEventSourcingListener {
     public void handleEvent(ActionEntityEvent event) {
         if (edgeSynchronizationManager.isSync()) {
             return;
+        }
+        if (ActionType.ADDED_TO_ENTITY_GROUP.equals(event.getActionType()) && event.getEntityGroupId() != null) {
+            EntityGroup entityGroupById = entityGroupService.findEntityGroupById(event.getTenantId(), event.getEntityGroupId());
+            if (entityGroupById.isGroupAll()) {
+                log.trace("[{}] skipping ADDED_TO_ENTITY_GROUP event in case of 'All' group: {}", event.getEntityId().getEntityType(), event);
+                return;
+            }
         }
         log.trace("[{}] EntityActionEvent called: {}", event.getEntityId().getEntityType(), event);
         tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), event.getEdgeId(), event.getEntityId(),
