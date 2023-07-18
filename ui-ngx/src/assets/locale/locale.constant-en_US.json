@@ -71,7 +71,8 @@
         "less": "Less",
         "skip": "Skip",
         "send": "Send",
-        "reset": "Reset"
+        "reset": "Reset",
+        "show-more": "Show more"
     },
     "aggregation": {
         "aggregation": "Aggregation",
@@ -975,6 +976,7 @@
         "encoder": "Encoder",
         "test-decoder-fuction": "Test decoder function",
         "test-encoder-fuction": "Test encoder function",
+        "test-with-this-message": "{{test}} with this message",
         "decoder-input-params": "Decoder input parameters",
         "encoder-input-params": "Encoder input parameters",
         "payload": "Payload",
@@ -1006,6 +1008,7 @@
         "binary": "Binary (Base64)"
     },
     "color": {
+        "color": "Color",
         "color-picker": "Color picker",
         "primary-colors": "Primary colors",
         "accent-colors": "Accent colors",
@@ -4454,7 +4457,8 @@
         "output": "Output",
         "test": "Test",
         "help": "Help",
-        "reset-debug-mode": "Reset debug mode in all nodes"
+        "reset-debug-mode": "Reset debug mode in all nodes",
+        "test-with-this-message": "{{test}} with this message"
     },
     "role": {
         "role": "Role",
@@ -5188,6 +5192,15 @@
         "interval": "Interval",
         "just-now": "Just now",
         "ago": "ago"
+    },
+    "unit": {
+        "celsius": "Celsius",
+        "kelvin": "Kelvin",
+        "fahrenheit": "Fahrenheit",
+        "percentage": "Percentage",
+        "second": "Second",
+        "minute": "Minute",
+        "hour": "Hour"
     },
     "user": {
         "all": "All",
@@ -7014,9 +7027,12 @@
     },
     "icon": {
         "icon": "Icon",
+        "icons": "Icons",
         "select-icon": "Select icon",
         "material-icons": "Material icons",
-        "show-all": "Show all icons"
+        "show-all": "Show all icons",
+        "search-icon": "Search icon",
+        "no-icons-found": "No icons found for '{{iconSearch}}'"
     },
     "phone-input": {
         "phone-input-label": "Phone number",

@@ -89,15 +89,15 @@
               {{ 'device.overwrite-activity-time' | translate }}
             </mat-slide-toggle>
           </div>
-          <fieldset class="fields-group tb-margin">
-            <legend translate>entity-group.owner-and-groups</legend>
+          <div class="tb-form-panel stroked no-padding-bottom">
+            <div class="tb-form-panel-title" translate>entity-group.owner-and-groups</div>
             <tb-owner-and-groups
               [entityType]="entityType.DEVICE"
               [defaultOwnerId]="initialOwnerId"
               [skipDefaultPermissionCheck]="true"
               formControlName="ownerAndGroups">
             </tb-owner-and-groups>
-          </fieldset>
+          </div>
           <mat-form-field class="mat-block" subscriptSizing="dynamic">
             <mat-label translate>device.description</mat-label>
             <textarea matInput formControlName="description" rows="1"></textarea>
