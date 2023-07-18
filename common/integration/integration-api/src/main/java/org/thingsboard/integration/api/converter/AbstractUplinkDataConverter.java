@@ -56,7 +56,6 @@ import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -230,8 +229,8 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
 
                 boolean shouldAddToResult = currentEntityKeyValues.isEmpty() ||
                         (!this.onValueUpdateKeys.contains(key) ||
-                        !currentEntityKeyValues.containsKey(key) ||
-                        !currentEntityKeyValues.get(key).equals(value));
+                                !currentEntityKeyValues.containsKey(key) ||
+                                !currentEntityKeyValues.get(key).equals(value));
                 if (shouldAddToResult) {
                     filtered.add(keyValue);
                     if (!currentEntityKeyValues.containsKey(key) || !currentEntityKeyValues.get(key).equals(value)) {
