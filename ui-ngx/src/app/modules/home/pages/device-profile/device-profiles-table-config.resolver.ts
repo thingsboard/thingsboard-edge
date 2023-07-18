@@ -118,9 +118,7 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
     this.config.addActionDescriptors = this.configureAddActions();
 
     // @voba - edge read-only
-    this.config.detailsReadonly = () => true;
     this.config.deleteEnabled = () => false;
-    this.config.addEnabled = false;
     this.config.entitiesDeleteEnabled = false;
 
     this.config.entitySelectionEnabled = (deviceProfile) => false;
