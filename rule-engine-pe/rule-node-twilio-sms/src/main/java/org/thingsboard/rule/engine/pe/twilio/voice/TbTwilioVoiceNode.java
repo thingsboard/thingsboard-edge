@@ -82,26 +82,33 @@ public class TbTwilioVoiceNode implements TbNode {
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
+        var tbMsg = ackIfNeeded(ctx, msg);
         withCallback(ctx.getExternalCallExecutor().executeAsync(() -> {
-                    sendVoiceMessage(ctx, msg);
+                    sendVoiceMessage(ctx, tbMsg);
                     return null;
                 }),
                 ok -> {
                     if (forceAck) {
-                        ctx.enqueueForTellNext(msg.copyWithNewCtx(), TbRelationTypes.SUCCESS);
+                        ctx.enqueueForTellNext(tbMsg.copyWithNewCtx(), TbRelationTypes.SUCCESS);
                     } else {
-                        ctx.tellNext(msg, SUCCESS);
+                        ctx.tellNext(tbMsg, SUCCESS);
                     }
                 },
                 fail -> {
                     if (forceAck) {
-                        ctx.enqueueForTellFailure(msg.copyWithNewCtx(), fail);
+                        ctx.enqueueForTellFailure(tbMsg.copyWithNewCtx(), fail);
                     } else {
-                        ctx.tellFailure(msg, fail);
+                        ctx.tellFailure(tbMsg, fail);
                     }
                 });
+    }
+
+    private TbMsg ackIfNeeded(TbContext ctx, TbMsg msg) {
         if (forceAck) {
             ctx.ack(msg);
+            return msg.copyWithNewCtx();
+        } else {
+            return msg;
         }
     }
 
