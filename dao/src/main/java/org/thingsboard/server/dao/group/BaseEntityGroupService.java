@@ -80,7 +80,7 @@ import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityQueryDao;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
-import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityGroupEvent;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.relation.RelationDao;
@@ -217,7 +217,13 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 throw t;
             }
         }
-        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entityId(savedEntityGroup.getId()).added(entityGroup.getId() == null).build());
+        eventPublisher.publishEvent(SaveEntityGroupEvent.builder()
+                .tenantId(tenantId)
+                .entityId(savedEntityGroup.getId())
+                .added(entityGroup.getId() == null)
+                .entityGroupIsAll(entityGroup.isGroupAll())
+                .entityEdgeGroupIsAll(entityGroup.isEdgeGroupAll())
+                .build());
         return savedEntityGroup;
     }
 
@@ -681,11 +687,14 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         entityRelation.setTypeGroup(RelationTypeGroup.FROM_ENTITY_GROUP);
         entityRelation.setType(EntityRelation.CONTAINS_TYPE);
         relationService.saveRelation(tenantId, entityRelation);
+        EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
         eventPublisher.publishEvent(ActionEntityEvent.builder()
                 .tenantId(tenantId)
                 .entityId(entityId)
                 .actionType(ActionType.ADDED_TO_ENTITY_GROUP)
                 .entityGroupType(entityId.getEntityType())
+                .entityGroupIsAll(entityGroup.isGroupAll())
+                .entityEdgeGroupIsAll(entityGroup.isEdgeGroupAll())
                 .entityGroupId(entityGroupId).build());
     }
 
@@ -955,8 +964,10 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             log.warn("[{}] Failed to create entity group relation. Edge Id: [{}]", entityGroupId, edgeId);
             throw new RuntimeException(e);
         }
-        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(entityGroupId)
-                .actionType(ActionType.ASSIGNED_TO_EDGE).entityGroupType(groupType).build());
+        if (!entityGroup.isEdgeGroupAll()) {
+            eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(entityGroupId)
+                    .actionType(ActionType.ASSIGNED_TO_EDGE).entityGroupType(groupType).build());
+        }
         return entityGroup;
     }
 

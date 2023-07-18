@@ -118,6 +118,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -206,6 +207,11 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         extendDeviceProfileData(thermostatDeviceProfile);
         thermostatDeviceProfile = doPost("/api/deviceProfile", thermostatDeviceProfile, DeviceProfile.class);
 
+        try {
+            // make sure to NOT include device profile save message into edge queue
+            TimeUnit.MILLISECONDS.sleep(500);
+        } catch (Exception ignored) {}
+
         edge = doPost("/api/edge", constructEdge("Test Edge", "test"), Edge.class);
     }
 
@@ -243,12 +249,10 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
         validateEdgeConfiguration();
 
-        // 3 messages
-        // - 2 from device profile fetcher (default and thermostat)
-        // - 1 from device profile controller (thermostat)
-        validateDeviceProfiles();
+        // 1 message from queue fetcher
+        validateQueues();
 
-        // 2 messages - 1 from rule chain fetcher and 1 from rule chain controller
+        // 2 messages  1 from rule chain fetcher and 1 from rule chain controller
         UUID ruleChainUUID = validateRuleChains();
 
         // 1 from request message
@@ -257,17 +261,15 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         // 2 messages - 2 messages from fetcher (general', 'mail')
         validateAdminSettings();
 
+        // 2 messages
+        // - 2 from device profile fetcher (default and thermostat)
+        validateDeviceProfiles();
+
         // 1 message from asset profile fetcher
         validateAssetProfiles();
 
-        // 1 message from queue fetcher
-        validateQueues();
-
-        // 5 messages
-        // - 2 messages from fetcher
-        // - 1 message from public customer user group
-        // - 2 messages from edge queue - added during edge creation
-        validateEntityGroups();
+        // 1 message from public customer fetcher
+        validatePublicCustomer();
 
         // 5 messages
         // - 2 messages from SysAdminRolesEdgeEventFetcher
@@ -275,8 +277,11 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         // - 1 message from public customer role
         validateRoles();
 
-        // 1 message from public customer fetcher
-        validatePublicCustomer();
+        // 5 messages
+        // - 2 messages from fetcher
+        // - 1 message from public customer user group
+        // - 2 messages from edge queue - added during edge creation
+        validateEntityGroups();
     }
 
     private void validateEdgeConfiguration() throws Exception {

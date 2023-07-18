@@ -51,4 +51,6 @@ public class ActionEntityEvent {
     private final EdgeEventType type;
     private final EntityType entityGroupType;
     private final EntityGroupId entityGroupId;
+    private final Boolean entityGroupIsAll;
+    private final Boolean entityEdgeGroupIsAll;
 }

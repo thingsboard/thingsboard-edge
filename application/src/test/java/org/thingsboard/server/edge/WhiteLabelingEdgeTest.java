@@ -204,7 +204,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
     }
 
     private void createCustomerUserAndLogin(Customer customer, String email) throws Exception {
-        edgeImitator.expectMessageAmount(4);
+        edgeImitator.expectMessageAmount(3);
         User customerAUser = new User();
         customerAUser.setAuthority(Authority.CUSTOMER_USER);
         customerAUser.setTenantId(TenantId.SYS_TENANT_ID);
@@ -212,7 +212,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         customerAUser.setEmail(email);
         EntityGroupInfo customerAdminsGroup = findCustomerAdminsGroup(customer);
         User savedCustomerUser = createUser(customerAUser, "customer", customerAdminsGroup.getId());
-        Assert.assertTrue(edgeImitator.waitForMessages());  // wait 2 messages - user update msg and user credentials update msg
+        Assert.assertTrue(edgeImitator.waitForMessages());  // wait 3 messages - two user update msgs and user credentials update msg
 
         edgeImitator.expectMessageAmount(2);
         loginUser(savedCustomerUser.getEmail(), "customer");
