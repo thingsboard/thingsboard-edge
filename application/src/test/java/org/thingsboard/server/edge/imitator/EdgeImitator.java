@@ -115,8 +115,6 @@ public class EdgeImitator {
     @Getter
     private UplinkResponseMsg latestResponseMsg;
 
-    private boolean connected = false;
-
     public EdgeImitator(String host, int port, String routingKey, String routingSecret) throws NoSuchFieldException, IllegalAccessException {
         edgeRpcClient = new EdgeGrpcClient();
         messagesLatch = new CountDownLatch(0);
@@ -141,7 +139,6 @@ public class EdgeImitator {
     }
 
     public void connect() {
-        connected = true;
         edgeRpcClient.connect(routingKey, routingSecret,
                 this::onUplinkResponse,
                 this::onEdgeUpdate,
@@ -152,7 +149,6 @@ public class EdgeImitator {
     }
 
     public void disconnect() throws InterruptedException {
-        connected = false;
         edgeRpcClient.disconnect(false);
     }
 

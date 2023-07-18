@@ -32,10 +32,10 @@
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  UntypedFormBuilder,
-  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   ValidationErrors,
   Validator,
   Validators
@@ -119,9 +119,7 @@ export class DeviceTransportConfigurationComponent implements ControlValueAccess
     if (configuration) {
       delete configuration.type;
     }
-    setTimeout(() => {
-      this.deviceTransportConfigurationFormGroup.patchValue({configuration}, {emitEvent: false});
-    }, 0);
+    this.deviceTransportConfigurationFormGroup.patchValue({configuration}, {emitEvent: false});
   }
 
   validate(): ValidationErrors | null {

@@ -1,0 +1,116 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<ng-container [formGroup]="alarmsTableWidgetConfigForm">
+  <tb-timewindow-config-panel formControlName="timewindowConfig">
+  </tb-timewindow-config-panel>
+  <div class="tb-form-panel">
+    <div fxLayout="row" fxLayoutAlign="space-between center">
+      <div class="tb-form-panel-title" translate>alarm.filter</div>
+      <button mat-button color="primary"
+        (click)="alarmFilterConfig.reset()">
+        {{ 'action.reset' | translate }}
+      </button>
+    </div>
+    <tb-alarm-filter-config #alarmFilterConfig buttonMode="false" formControlName="alarmFilterConfig"
+                            [initialAlarmFilterConfig]="{}"></tb-alarm-filter-config>
+  </div>
+  <tb-datasources
+    [configMode]="basicMode"
+    hideDataKeys
+    formControlName="datasources">
+  </tb-datasources>
+  <tb-data-keys-panel
+    panelTitle="{{ 'widgets.table.columns' | translate }}"
+    addKeyTitle="{{ 'widgets.table.add-column' | translate }}"
+    keySettingsTitle="{{ 'widgets.table.column-settings' | translate }}"
+    removeKeyTitle="{{ 'widgets.table.remove-column' | translate }}"
+    noKeysText="{{ 'widgets.table.no-columns' | translate }}"
+    hideDataKeyColor
+    hideUnits
+    hideDecimals
+    [datasourceType]="alarmSource?.type"
+    [deviceId]="alarmSource?.deviceId"
+    [entityAliasId]="alarmSource?.entityAliasId"
+    formControlName="columns">
+  </tb-data-keys-panel>
+  <div class="tb-form-panel">
+    <div class="tb-form-panel-title" translate>widget-config.card-appearance</div>
+    <div class="tb-form-row">
+      <mat-slide-toggle class="mat-slide fixed-title-width" formControlName="showTitle">
+        {{ 'widget-config.card-title' | translate }}
+      </mat-slide-toggle>
+      <mat-form-field fxFlex appearance="outline" subscriptSizing="dynamic">
+        <input matInput formControlName="title" placeholder="{{ 'widget-config.set' | translate }}">
+      </mat-form-field>
+    </div>
+    <div class="tb-form-row space-between">
+      <mat-slide-toggle class="mat-slide"  formControlName="showTitleIcon">
+        {{ 'widget-config.card-icon' | translate }}
+      </mat-slide-toggle>
+      <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
+        <tb-material-icon-select asBoxInput
+                                 [color]="alarmsTableWidgetConfigForm.get('iconColor').value"
+                                 formControlName="titleIcon">
+        </tb-material-icon-select>
+        <tb-color-input asBoxInput
+                        formControlName="iconColor">
+        </tb-color-input>
+      </div>
+    </div>
+    <div class="tb-form-row space-between">
+      <div translate>widget-config.show-card-buttons</div>
+      <mat-chip-listbox multiple formControlName="cardButtons">
+        <mat-chip-option value="search">{{ 'action.search' | translate }}</mat-chip-option>
+        <mat-chip-option value="filter">{{ 'alarm.alarm-filter' | translate }}</mat-chip-option>
+        <mat-chip-option value="columnsToDisplay">{{ 'widgets.table.columns-to-display' | translate }}</mat-chip-option>
+        <mat-chip-option value="dataExport">{{ 'widget-config.data-export' | translate }}</mat-chip-option>
+        <mat-chip-option value="fullscreen">{{ 'fullscreen.fullscreen' | translate }}</mat-chip-option>
+      </mat-chip-listbox>
+    </div>
+    <div class="tb-form-row space-between">
+      <div>{{ 'widget-config.text-color' | translate }}</div>
+      <tb-color-input asBoxInput
+                      formControlName="color">
+      </tb-color-input>
+    </div>
+    <div class="tb-form-row space-between">
+      <div>{{ 'widget-config.background-color' | translate }}</div>
+      <tb-color-input asBoxInput
+                      formControlName="backgroundColor">
+      </tb-color-input>
+    </div>
+  </div>
+  <tb-widget-actions-panel
+    formControlName="actions">
+  </tb-widget-actions-panel>
+</ng-container>

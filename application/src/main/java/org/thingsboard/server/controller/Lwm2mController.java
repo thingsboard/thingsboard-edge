@@ -91,6 +91,6 @@ public class Lwm2mController extends BaseController {
                                             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         Device device = checkNotNull(JacksonUtil.convertValue(deviceWithDeviceCredentials.get(Device.class), Device.class));
         DeviceCredentials credentials = checkNotNull(JacksonUtil.convertValue(deviceWithDeviceCredentials.get(DeviceCredentials.class), DeviceCredentials.class));
-        return deviceController.saveDeviceWithCredentials(new SaveDeviceWithCredentialsRequest(device, credentials), strEntityGroupId);
+        return deviceController.saveDeviceWithCredentials(new SaveDeviceWithCredentialsRequest(device, credentials), strEntityGroupId, null);
     }
 }
