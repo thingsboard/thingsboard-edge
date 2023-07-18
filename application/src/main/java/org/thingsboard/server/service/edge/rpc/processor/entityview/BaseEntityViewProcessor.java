@@ -72,7 +72,7 @@ public abstract class BaseEntityViewProcessor extends BaseEdgeProcessor {
             if (created) {
                 entityView.setId(entityViewId);
             }
-            entityViewService.saveEntityView(entityView, false);
+            var saved = entityViewService.saveEntityView(entityView, false);
         } finally {
             entityViewCreationLock.unlock();
         }

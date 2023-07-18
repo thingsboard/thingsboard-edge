@@ -23,6 +23,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -114,7 +115,8 @@ public class AssetClientTest extends AbstractContainerTest {
     @Test
     public void testSendAssetToCloud() {
         // create asset on edge
-        Asset savedAssetOnEdge = saveAssetOnEdge("Edge Asset 2");
+        String defaultAssetProfileName = edgeRestClient.getDefaultAssetProfileInfo().getName();
+        Asset savedAssetOnEdge = saveAssetOnEdge("Edge Asset 2", defaultAssetProfileName);
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
@@ -168,8 +170,8 @@ public class AssetClientTest extends AbstractContainerTest {
     @Test
     public void testSendAssetToCloudWithNameThatAlreadyExistsOnCloud() {
         // create asset on cloud and edge with the same name
-        Asset savedAssetOnCloud = saveAssetOnCloud("Edge Asset 3", "type");
-        Asset savedAssetOnEdge = saveAssetOnEdge("Edge Asset 3");
+        Asset savedAssetOnCloud = saveAssetOnCloud("Edge Asset 3", "Building");
+        Asset savedAssetOnEdge = saveAssetOnEdge("Edge Asset 3", "Building");
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
@@ -191,10 +193,6 @@ public class AssetClientTest extends AbstractContainerTest {
 
         cloudRestClient.deleteAsset(savedAssetOnEdge.getId());
         cloudRestClient.deleteAsset(savedAssetOnCloud.getId());
-    }
-
-    protected Asset saveAssetOnEdge(String assetName) {
-        return saveAsset(assetName, "type", edgeRestClient);
     }
 
 }

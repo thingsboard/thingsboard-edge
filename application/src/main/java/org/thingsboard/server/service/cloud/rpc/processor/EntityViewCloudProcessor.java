@@ -15,18 +15,17 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
-import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
@@ -36,17 +35,13 @@ import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
-import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.entityview.BaseEntityViewProcessor;
 
 import java.util.UUID;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class EntityViewCloudProcessor extends BaseEdgeProcessor {
-
-    private final Lock entityViewCreationLock = new ReentrantLock();
+public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
 
     public ListenableFuture<Void> processEntityViewMsgFromCloud(TenantId tenantId,
                                                                 CustomerId edgeCustomerId,
@@ -55,43 +50,11 @@ public class EntityViewCloudProcessor extends BaseEdgeProcessor {
         EntityViewId entityViewId = new EntityViewId(new UUID(entityViewUpdateMsg.getIdMSB(), entityViewUpdateMsg.getIdLSB()));
         try {
             edgeSynchronizationManager.getSync().set(true);
-            CustomerId customerId = safeGetCustomerId(entityViewUpdateMsg.getCustomerIdMSB(), entityViewUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId);
+
             switch (entityViewUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    entityViewCreationLock.lock();
-                    try {
-                        EntityView entityView = entityViewService.findEntityViewById(tenantId, entityViewId);
-                        boolean created = false;
-                        if (entityView == null) {
-                            created = true;
-                            entityView = new EntityView();
-                            entityView.setTenantId(tenantId);
-                            entityView.setId(entityViewId);
-                            entityView.setCreatedTime(Uuids.unixTimestamp(entityViewId.getId()));
-                        }
-                        EntityId entityId = null;
-                        switch (entityViewUpdateMsg.getEntityType()) {
-                            case DEVICE:
-                                entityId = new DeviceId(new UUID(entityViewUpdateMsg.getEntityIdMSB(), entityViewUpdateMsg.getEntityIdLSB()));
-                                break;
-                            case ASSET:
-                                entityId = new AssetId(new UUID(entityViewUpdateMsg.getEntityIdMSB(), entityViewUpdateMsg.getEntityIdLSB()));
-                                break;
-                        }
-                        entityView.setName(entityViewUpdateMsg.getName());
-                        entityView.setType(entityViewUpdateMsg.getType());
-                        entityView.setEntityId(entityId);
-                        entityView.setAdditionalInfo(entityViewUpdateMsg.hasAdditionalInfo()
-                                ? JacksonUtil.toJsonNode(entityViewUpdateMsg.getAdditionalInfo()) : null);
-                        entityView.setCustomerId(customerId);
-                        EntityView savedEntityView = entityViewService.saveEntityView(entityView, false);
-
-                        tbClusterService.broadcastEntityStateChangeEvent(savedEntityView.getTenantId(), savedEntityView.getId(),
-                                created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
-                    } finally {
-                        entityViewCreationLock.unlock();
-                    }
+                    saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg, edgeCustomerId, queueStartTs);
                     return requestForAdditionalData(tenantId, entityViewId, queueStartTs);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     EntityView entityViewById = entityViewService.findEntityViewById(tenantId, entityViewId);
@@ -106,6 +69,18 @@ public class EntityViewCloudProcessor extends BaseEdgeProcessor {
             }
         } finally {
             edgeSynchronizationManager.getSync().remove();
+        }
+    }
+
+    private void saveOrUpdateEntityView(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg, CustomerId edgeCustomerId, Long queueStartTs) {
+        CustomerId customerId = safeGetCustomerId(entityViewUpdateMsg.getCustomerIdMSB(), entityViewUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId);
+        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg, customerId);
+        Boolean created = resultPair.getFirst();
+        tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityViewId,
+                created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+        Boolean assetNameUpdated = resultPair.getSecond();
+        if (assetNameUpdated) {
+            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ENTITY_VIEW, EdgeEventActionType.UPDATED, entityViewId, null, queueStartTs);
         }
     }
 

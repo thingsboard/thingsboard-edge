@@ -95,6 +95,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
@@ -285,11 +286,8 @@ public abstract class AbstractContainerTest {
         DeviceProfileData deviceProfileData = new DeviceProfileData();
         DefaultDeviceProfileConfiguration configuration = new DefaultDeviceProfileConfiguration();
         deviceProfileData.setConfiguration(configuration);
-        if (deviceProfileTransportConfiguration != null) {
-            deviceProfileData.setTransportConfiguration(deviceProfileTransportConfiguration);
-        } else {
-            deviceProfileData.setTransportConfiguration(new DefaultDeviceProfileTransportConfiguration());
-        }
+        deviceProfileData.setTransportConfiguration(Objects.requireNonNullElseGet(deviceProfileTransportConfiguration,
+                DefaultDeviceProfileTransportConfiguration::new));
         deviceProfile.setProfileData(deviceProfileData);
         deviceProfile.setDefault(false);
         deviceProfile.setDefaultRuleChainId(null);
@@ -369,6 +367,10 @@ public abstract class AbstractContainerTest {
 
     protected Asset saveAssetOnCloud(String assetName, String type) {
         return saveAsset(assetName, type, cloudRestClient);
+    }
+
+    protected Asset saveAssetOnEdge(String assetName, String type) {
+        return saveAsset(assetName, type, edgeRestClient);
     }
 
     protected Asset saveAsset(String assetName, String type, RestClient restClient) {

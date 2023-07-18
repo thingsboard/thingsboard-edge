@@ -15,17 +15,13 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.ShortCustomerInfo;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
@@ -34,18 +30,13 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
-import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.dashboard.BaseDashboardProcessor;
 
-import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class DashboardCloudProcessor extends BaseEdgeProcessor {
-
-    private final Lock dashboardCreationLock = new ReentrantLock();
+public class DashboardCloudProcessor extends BaseDashboardProcessor {
 
     @Autowired
     private DashboardService dashboardService;
@@ -60,37 +51,8 @@ public class DashboardCloudProcessor extends BaseEdgeProcessor {
             switch (dashboardUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    dashboardCreationLock.lock();
-                    try {
-                        Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
-                        if (dashboard == null) {
-                            dashboard = new Dashboard();
-                            dashboard.setId(dashboardId);
-                            dashboard.setCreatedTime(Uuids.unixTimestamp(dashboardId.getId()));
-                            dashboard.setTenantId(tenantId);
-                        }
-                        dashboard.setTitle(dashboardUpdateMsg.getTitle());
-                        dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
-                        dashboardService.saveDashboard(dashboard, false);
-                        if (dashboardUpdateMsg.hasAssignedCustomers()) {
-                            Set<ShortCustomerInfo> assignedCustomers =
-                                    JacksonUtil.fromString(dashboardUpdateMsg.getAssignedCustomers(), new TypeReference<>() {
-                                    });
-                            if (assignedCustomers != null && !assignedCustomers.isEmpty()) {
-                                for (ShortCustomerInfo assignedCustomer : assignedCustomers) {
-                                    if (assignedCustomer.getCustomerId().equals(edgeCustomerId)) {
-                                        dashboardService.assignDashboardToCustomer(tenantId, dashboardId, assignedCustomer.getCustomerId());
-                                    }
-                                }
-                            } else {
-                                unassignCustomersFromDashboard(tenantId, dashboard);
-                            }
-                        } else {
-                            unassignCustomersFromDashboard(tenantId, dashboard);
-                        }
-                    } finally {
-                        dashboardCreationLock.unlock();
-                    }
+                    CustomerId customerId = safeGetCustomerId(dashboardUpdateMsg.getCustomerIdMSB(), dashboardUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId);
+                    super.saveOrUpdateDashboard(tenantId, dashboardId, dashboardUpdateMsg, customerId);
                     return requestForAdditionalData(tenantId, dashboardId, queueStartTs);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     Dashboard dashboardById = dashboardService.findDashboardById(tenantId, dashboardId);
@@ -104,14 +66,6 @@ public class DashboardCloudProcessor extends BaseEdgeProcessor {
             }
         } finally {
             edgeSynchronizationManager.getSync().remove();
-        }
-    }
-
-    private void unassignCustomersFromDashboard(TenantId tenantId, Dashboard dashboard) {
-        if (dashboard.getAssignedCustomers() != null && !dashboard.getAssignedCustomers().isEmpty()) {
-            for (ShortCustomerInfo assignedCustomer : dashboard.getAssignedCustomers()) {
-                dashboardService.unassignDashboardFromCustomer(tenantId, dashboard.getId(), assignedCustomer.getCustomerId());
-            }
         }
     }
 

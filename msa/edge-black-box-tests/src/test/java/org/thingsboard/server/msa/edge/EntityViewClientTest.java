@@ -23,7 +23,6 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -102,9 +101,15 @@ public class EntityViewClientTest extends AbstractContainerTest {
 
     @Test
     public void testSendEntityViewToCloud() {
+        // create asset on edge
+        Asset savedAssetOnEdge = saveAssetOnEdge("Edge Asset For Entity View", edgeRestClient.getDefaultAssetProfileInfo().getName());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getAssetById(savedAssetOnEdge.getId()).isPresent());
+
         // create entity view on edge
-        Device device = saveAndAssignDeviceToEdge();
-        EntityView savedEntityViewOnEdge = saveEntityViewOnEdge("Edge Entity View 3", "Default", device.getId());
+        EntityView savedEntityViewOnEdge = saveEntityViewOnEdge("Edge Entity View 3", "Default", savedAssetOnEdge.getId());
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
@@ -120,13 +125,9 @@ public class EntityViewClientTest extends AbstractContainerTest {
 
         // assign entity view to customer
         Customer customer = new Customer();
-        customer.setTitle("Entity View On Edge Test Customer");
+        customer.setTitle("Edge Entity View 3 Customer");
         Customer savedCustomer = cloudRestClient.saveCustomer(customer);
         assignEdgeToCustomerAndValidateAssignmentOnCloud(savedCustomer);
-        Awaitility.await()
-                .pollInterval(500, TimeUnit.MILLISECONDS)
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isPresent());
         edgeRestClient.assignEntityViewToCustomer(savedCustomer.getId(), savedEntityViewOnEdge.getId());
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
@@ -155,15 +156,15 @@ public class EntityViewClientTest extends AbstractContainerTest {
         cloudRestClient.deleteEntityView(savedEntityViewOnEdge.getId());
 
         // cleanup
-        cloudRestClient.deleteDevice(device.getId());
+        cloudRestClient.deleteAsset(savedAssetOnEdge.getId());
     }
 
     @Test
     public void testSendEntityViewToCloudWithNameThatAlreadyExistsOnCloud() {
         // create entity view on cloud and edge with the same name
         Device device = saveAndAssignDeviceToEdge();
-        EntityView savedEntityViewOnCloud = saveEntityViewOnCloud("Edge Entity View 3", "Default", device.getId());
-        EntityView savedEntityViewOnEdge = saveEntityViewOnEdge("Edge Entity View 3", "Default", device.getId());
+        EntityView savedEntityViewOnCloud = saveEntityViewOnCloud("Edge Entity View Exists", "Default", device.getId());
+        EntityView savedEntityViewOnEdge = saveEntityViewOnEdge("Edge Entity View Exists", "Default", device.getId());
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
@@ -177,32 +178,34 @@ public class EntityViewClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> {
-                    PageData<EntityView> edgeEntityViews = cloudRestClient.getEdgeEntityViews(edge.getId(), new PageLink(1000));
-                    long count = edgeEntityViews.getData().stream().filter(d -> savedEntityViewOnEdge.getId().equals(d.getId())).count();
-                    return count == 0;
-                });
+                .until(() -> edgeRestClient.getEntityViewById(savedEntityViewOnEdge.getId()).isEmpty());
 
-        cloudRestClient.deleteEntityView(savedEntityViewOnCloud.getId());
         cloudRestClient.deleteEntityView(savedEntityViewOnEdge.getId());
+        cloudRestClient.deleteEntityView(savedEntityViewOnCloud.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getEntityViewById(savedEntityViewOnEdge.getId()).isEmpty() &&
+                        cloudRestClient.getEntityViewById(savedEntityViewOnCloud.getId()).isEmpty());
 
         // cleanup
+        edgeRestClient.deleteDevice(device.getId());
         cloudRestClient.deleteDevice(device.getId());
     }
 
-    private EntityView saveEntityViewOnEdge(String entityViewName, String type, DeviceId deviceId) {
-        return saveEntityView(entityViewName, type, deviceId, edgeRestClient);
+    private EntityView saveEntityViewOnEdge(String entityViewName, String type, EntityId entityId) {
+        return saveEntityView(entityViewName, type, entityId, edgeRestClient);
     }
 
-    private EntityView saveEntityViewOnCloud(String entityViewName, String type, DeviceId deviceId) {
-        return saveEntityView(entityViewName, type, deviceId, cloudRestClient);
+    private EntityView saveEntityViewOnCloud(String entityViewName, String type, EntityId entityId) {
+        return saveEntityView(entityViewName, type, entityId, cloudRestClient);
     }
 
-    private EntityView saveEntityView(String entityViewName, String type, DeviceId deviceId, RestClient restClient) {
+    private EntityView saveEntityView(String entityViewName, String type, EntityId entityId, RestClient restClient) {
         EntityView entityView = new EntityView();
         entityView.setName(entityViewName);
         entityView.setType(type);
-        entityView.setEntityId(deviceId);
+        entityView.setEntityId(entityId);
         return restClient.saveEntityView(entityView);
     }
 
