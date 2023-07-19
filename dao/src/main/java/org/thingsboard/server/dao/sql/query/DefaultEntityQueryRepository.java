@@ -811,7 +811,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
 
     private QueryContext buildQueryContext(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityFilter filter, boolean ignorePermissionCheck) {
         QuerySecurityContext securityContext;
-        if (TenantId.SYS_TENANT_ID.equals(tenantId)){
+        if (TenantId.SYS_TENANT_ID.equals(tenantId)) {
             MergedUserPermissions permission = SYS_ADMIN_PERMISSIONS;
             securityContext = new QuerySecurityContext(tenantId, customerId, resolveEntityType(filter), permission, filter, ignorePermissionCheck);
         } else {
@@ -1421,7 +1421,11 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                         .append(boolToIntStr(readAttrPermissions.isHasGenericRead())).append(" as readAttrFlag").append(",")
                         .append(boolToIntStr(readTsPermissions.isHasGenericRead())).append(" as readTsFlag");
                 entityFlagsQuery.append(" from entity_group ge WHERE");
-                entityFlagsQuery.append(" ge.id in (").append(HIERARCHICAL_GROUPS_QUERY).append(" and type = :entity_group_type)");
+                entityFlagsQuery.append(" ge.id in (").append(HIERARCHICAL_GROUPS_QUERY);
+                Optional.ofNullable(ctx.getSecurityCtx().getEntityGroupType())
+                        .ifPresentOrElse(
+                                groupType -> entityFlagsQuery.append(" and type = '").append(groupType).append("')"),
+                                () -> entityFlagsQuery.append(")"));
             }
             if (innerJoin || hasFilters) {
                 entitiesQuery.append(", COALESCE(readAttrFlag, 0) as ").append(ATTR_READ_FLAG);
