@@ -976,6 +976,7 @@
         "encoder": "Encoder",
         "test-decoder-fuction": "Test decoder function",
         "test-encoder-fuction": "Test encoder function",
+        "test-with-this-message": "{{test}} with this message",
         "decoder-input-params": "Decoder input parameters",
         "encoder-input-params": "Encoder input parameters",
         "payload": "Payload",
@@ -4456,7 +4457,8 @@
         "output": "Output",
         "test": "Test",
         "help": "Help",
-        "reset-debug-mode": "Reset debug mode in all nodes"
+        "reset-debug-mode": "Reset debug mode in all nodes",
+        "test-with-this-message": "{{test}} with this message"
     },
     "role": {
         "role": "Role",
