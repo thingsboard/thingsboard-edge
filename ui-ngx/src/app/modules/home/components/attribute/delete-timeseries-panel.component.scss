@@ -28,28 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.kv;
+:host {
+  width: 100%;
+  background-color: #fff;
+  box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
 
-import lombok.Data;
-
-@Data
-public class BaseDeleteTsKvQuery extends BaseTsKvQuery implements DeleteTsKvQuery {
-
-    private final Boolean rewriteLatestIfDeleted;
-    private final Boolean deleteLatest;
-
-    public BaseDeleteTsKvQuery(String key, long startTs, long endTs, boolean rewriteLatestIfDeleted, boolean deleteLatest) {
-        super(key, startTs, endTs);
-        this.rewriteLatestIfDeleted = rewriteLatestIfDeleted;
-        this.deleteLatest = deleteLatest;
-    }
-
-    public BaseDeleteTsKvQuery(String key, long startTs, long endTs, boolean rewriteLatestIfDeleted) {
-        this(key, startTs, endTs, rewriteLatestIfDeleted, true);
-    }
-
-    public BaseDeleteTsKvQuery(String key, long startTs, long endTs) {
-        this(key, startTs, endTs, false, true);
-    }
-
+:host ::ng-deep{
+  div .mat-toolbar {
+    background: none;
+  }
 }

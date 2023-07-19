@@ -53,7 +53,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { MatDialog } from '@angular/material/dialog';
 import { DialogService } from '@core/services/dialog.service';
 import { Direction, SortOrder } from '@shared/models/page/sort-order';
-import { fromEvent, merge } from 'rxjs';
+import { fromEvent, merge, Observable } from 'rxjs';
 import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
 import { EntityId } from '@shared/models/id/entity-id';
 import {
@@ -63,7 +63,7 @@ import {
   isClientSideTelemetryType,
   LatestTelemetry,
   TelemetryType,
-  telemetryTypeTranslations,
+  telemetryTypeTranslations, TimeseriesDeleteStrategy,
   toTelemetryType
 } from '@shared/models/telemetry/telemetry.models';
 import { AttributeDatasource } from '@home/models/datasource/attribute-datasource';
@@ -97,12 +97,16 @@ import {
   AddWidgetToDashboardDialogComponent,
   AddWidgetToDashboardDialogData
 } from '@home/components/attribute/add-widget-to-dashboard-dialog.component';
-import { deepClone } from '@core/utils';
+import { deepClone, isUndefinedOrNull } from '@core/utils';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
 import { Filters } from '@shared/models/query/query.models';
 import { hidePageSizePixelValue } from '@shared/models/constants';
 import { ResizeObserver } from '@juggle/resize-observer';
+import {
+  DELETE_TIMESERIES_PANEL_DATA,
+  DeleteTimeseriesPanelComponent, DeleteTimeseriesPanelData
+} from '@home/components/attribute/delete-timeseries-panel.component';
 
 @Component({
   selector: 'tb-attribute-table',
@@ -406,6 +410,77 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
             this.reloadAttributes();
           }
         );
+      }
+    });
+  }
+
+  deleteTimeseries($event: Event, attribute?: AttributeData) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const isMultipleDeletion = isUndefinedOrNull(attribute) && this.dataSource.selection.selected.length > 1;
+    const target = $event.target || $event.srcElement || $event.currentTarget;
+    const config = new OverlayConfig();
+    config.backdropClass = 'cdk-overlay-transparent-backdrop';
+    config.hasBackdrop = true;
+    const connectedPosition: ConnectedPosition = {
+      originX: 'start',
+      originY: 'top',
+      overlayX: 'end',
+      overlayY: 'top'
+    };
+    config.positionStrategy = this.overlay.position().flexibleConnectedTo(target as HTMLElement)
+      .withPositions([connectedPosition]);
+    config.maxWidth = '488px';
+    config.width = '100%';
+    const overlayRef = this.overlay.create(config);
+    overlayRef.backdropClick().subscribe(() => {
+      overlayRef.dispose();
+    });
+
+    const providers: StaticProvider[] = [
+      {
+        provide: DELETE_TIMESERIES_PANEL_DATA,
+        useValue: {
+          isMultipleDeletion: isMultipleDeletion
+        } as DeleteTimeseriesPanelData
+      },
+      {
+        provide: OverlayRef,
+        useValue: overlayRef
+      }
+    ];
+    const injector = Injector.create({parent: this.viewContainerRef.injector, providers});
+    const componentRef = overlayRef.attach(new ComponentPortal(DeleteTimeseriesPanelComponent,
+      this.viewContainerRef, injector));
+    componentRef.onDestroy(() => {
+      if (componentRef.instance.result !== null) {
+        const strategy = componentRef.instance.result;
+        const deleteTimeseries = attribute ? [attribute]: this.dataSource.selection.selected;
+        let deleteAllDataForKeys = false;
+        let rewriteLatestIfDeleted = false;
+        let startTs = null;
+        let endTs = null;
+        let deleteLatest = true;
+        if (strategy === TimeseriesDeleteStrategy.DELETE_ALL_DATA) {
+          deleteAllDataForKeys = true;
+        }
+        if (strategy === TimeseriesDeleteStrategy.DELETE_ALL_DATA_EXCEPT_LATEST_VALUE) {
+          deleteAllDataForKeys = true;
+          deleteLatest = false;
+        }
+        if (strategy === TimeseriesDeleteStrategy.DELETE_LATEST_VALUE) {
+          rewriteLatestIfDeleted = componentRef.instance.rewriteLatestIfDeleted;
+          startTs = deleteTimeseries[0].lastUpdateTs;
+          endTs = startTs + 1;
+        }
+        if (strategy === TimeseriesDeleteStrategy.DELETE_ALL_DATA_FOR_TIME_PERIOD) {
+          startTs = componentRef.instance.startDateTime.getTime();
+          endTs = componentRef.instance.endDateTime.getTime();
+          rewriteLatestIfDeleted = componentRef.instance.rewriteLatestIfDeleted;
+        }
+        this.attributeService.deleteEntityTimeseries(this.entityIdValue, deleteTimeseries, deleteAllDataForKeys,
+          startTs, endTs, rewriteLatestIfDeleted, deleteLatest).subscribe(() => this.reloadAttributes());
       }
     });
   }
