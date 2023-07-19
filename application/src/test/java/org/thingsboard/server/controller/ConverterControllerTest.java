@@ -68,7 +68,10 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.thingsboard.server.controller.ControllerConstants.*;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_TTN_UPLINK_CONVERTER_MESSAGE;
 
 @TestPropertySource(properties = {
         "js.evaluator=local",
@@ -416,12 +419,12 @@ public class ConverterControllerTest extends AbstractControllerTest {
     @Test
     public void testGettingDefaultPayloadForConverters() throws Exception {
         Map<IntegrationType, String> expectedPayloads = Map.of(
-        IntegrationType.LORIOT,DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE,
-        IntegrationType.CHIRPSTACK, DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE,
-        IntegrationType.TTN, DEFAULT_TTN_UPLINK_CONVERTER_MESSAGE,
-        IntegrationType.TTI, DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE);
+                IntegrationType.LORIOT, DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE,
+                IntegrationType.CHIRPSTACK, DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE,
+                IntegrationType.TTN, DEFAULT_TTN_UPLINK_CONVERTER_MESSAGE,
+                IntegrationType.TTI, DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE);
 
-        for(IntegrationType integrationType : expectedPayloads.keySet()) {
+        for (IntegrationType integrationType : expectedPayloads.keySet()) {
             String integrationName = "TEST_" + integrationType;
             String urlTemplate = "/api/converter/{converterId}/debugIn?integrationName={integrationName}&integrationType={integrationType}&converterType={converterType}";
             ObjectNode resultNode = doGet(urlTemplate, ObjectNode.class, EntityId.NULL_UUID, integrationName, integrationType.name(), ConverterType.UPLINK.name());

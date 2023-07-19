@@ -38,6 +38,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -245,89 +246,119 @@ public class ConverterController extends AutoCommitController {
                                                  @RequestParam(required = false) String integrationName) throws Exception {
         checkParameter(CONVERTER_ID, strConverterId);
         UUID uuid = toUUID(strConverterId);
-        ConverterId converterId = new ConverterId(uuid);
-        JsonNode result = null;
-        TenantId tenantId = getTenantId();
-        List<EventInfo> events = new ArrayList<>();
+        Converter converter = null;
+
         if (!EntityId.NULL_UUID.equals(uuid)) {
-            checkConverterId(converterId, Operation.READ);
-            events = eventService.findLatestEvents(tenantId, converterId, EventType.DEBUG_CONVERTER, 1);
-        }
-        Converter converter = converterService.findConverterById(tenantId, converterId);
-        if (events != null && !events.isEmpty()) {
-            EventInfo event = events.get(0);
-            JsonNode body = event.getBody();
-            if (body.has("type")) {
-                String type = body.get("type").asText();
-                if (type.equals("Uplink") || type.equals("Downlink")) {
-                    ObjectNode debugIn = JacksonUtil.newObjectNode();
-                    String inContentType = body.get("inMessageType").asText();
-                    debugIn.put("inContentType", inContentType);
-                    if (type.equals("Uplink")) {
-                        String inContent = body.get("in").asText();
-                        debugIn.put("inContent", inContent);
-                        String inMetadata = body.get("metadata").asText();
-                        debugIn.put("inMetadata", inMetadata);
-                    } else { //Downlink
-                        String inContent = "";
-                        String inMsgType = "";
-                        String inMetadata = "";
-                        String in = body.get("in").asText();
-                        JsonNode inJson = JacksonUtil.toJsonNode(in);
-                        if (inJson.isArray() && inJson.size() > 0) {
-                            JsonNode msgJson = inJson.get(inJson.size() - 1);
-                            JsonNode msg = msgJson.get("msg");
-                            if (msg.isTextual()) {
-                                inContent = "";
-                            } else if (msg.isObject()) {
-                                inContent = JacksonUtil.toString(msg);
-                            }
-                            inMsgType = msgJson.get("msgType").asText();
-                            inMetadata = JacksonUtil.toString(msgJson.get("metadata"));
-                        }
-                        debugIn.put("inContent", inContent);
-                        debugIn.put("inMsgType", inMsgType);
-                        debugIn.put("inMetadata", inMetadata);
-                        String inIntegrationMetadata = body.get("metadata").asText();
-                        debugIn.put("inIntegrationMetadata", inIntegrationMetadata);
-                    }
-                    result = debugIn;
-                }
-            }
-        } else {
-            IntegrationType targetIntegrationType = null;
-            if (StringUtils.isNotBlank(integrationType)) {
-                targetIntegrationType = toIntegrationType(integrationType);
-            }
-            if ((converter == null && "UPLINK".equalsIgnoreCase(converterType)) ||
-                    (converter != null && ConverterType.UPLINK.equals(converter.getType()))) {
-                if (converter != null && (targetIntegrationType == null || integrationName == null)) {
-                    List<Integration> relatedIntegrations = integrationService.findIntegrationsByConverterId(tenantId, converterId);
-                    if (relatedIntegrations.size() > 0) {
-                        Integration relatedIntegration = relatedIntegrations.get(0);
-                        targetIntegrationType = relatedIntegration.getType();
-                        if (StringUtils.isEmpty(integrationName)) {
-                            integrationName = relatedIntegration.getName();
-                        }
-                    }
-                }
-                if (targetIntegrationType == null || !converterDefaultMessages.containsKey(targetIntegrationType)) {
-                    return null;
-                }
-                ObjectNode debugIn = JacksonUtil.newObjectNode();
-                ObjectNode metadata = JacksonUtil.newObjectNode();
-                metadata.put(INTEGRATION_NAME, integrationName);
-                String inContent = converterDefaultMessages.get(targetIntegrationType);
-                if (converterDefaultMetadatas.containsKey(targetIntegrationType)) {
-                    metadata.setAll(JacksonUtil.fromString(converterDefaultMetadatas.get(targetIntegrationType), ObjectNode.class));
-                }
-                debugIn.put("inMetadata", JacksonUtil.toString(metadata));
-                debugIn.put("inContent", inContent);
-                debugIn.put("inContentType", UplinkContentType.JSON.name());
-                result = debugIn;
+            ConverterId converterId = new ConverterId(uuid);
+            converter = checkConverterId(converterId, Operation.READ);
+            List<EventInfo> events = eventService.findLatestEvents(getTenantId(), converterId, EventType.DEBUG_CONVERTER, 1);
+
+            if (events != null && !events.isEmpty()) {
+                JsonNode body = events.get(0).getBody();
+                return createDebugInFromFoundEvent(body);
             }
         }
-        return result;
+
+        return createDefaultDebugIn(converter, converterType, integrationType, integrationName);
+    }
+
+    private JsonNode createDefaultDebugIn(Converter converter, String converterType, String integrationType, String integrationName) throws ThingsboardException {
+
+        if ((converter == null && !ConverterType.UPLINK.name().equals(converterType)) ||
+                (converter != null && !ConverterType.UPLINK.equals(converter.getType()))) {
+            return null;
+        }
+
+        Pair<IntegrationType, String> targetIntegrationInfo = getTargetIntegrationTypeAndName(converter, integrationType);
+        if (targetIntegrationInfo == null) return null;
+
+        IntegrationType targetIntegrationType = targetIntegrationInfo.getFirst();
+        if (StringUtils.isBlank(integrationName)) integrationName = targetIntegrationInfo.getSecond();
+
+        return createDebugIn(integrationName, targetIntegrationType);
+    }
+
+    private JsonNode createDebugIn(String integrationName, IntegrationType targetIntegrationType) {
+        ObjectNode debugIn = JacksonUtil.newObjectNode();
+        ObjectNode metadata = JacksonUtil.newObjectNode();
+        metadata.put(INTEGRATION_NAME, integrationName);
+        String inContent = converterDefaultMessages.get(targetIntegrationType);
+
+        if (converterDefaultMetadatas.containsKey(targetIntegrationType)) {
+            metadata.setAll(JacksonUtil.fromString(converterDefaultMetadatas.get(targetIntegrationType), ObjectNode.class));
+        }
+
+        debugIn.put("inMetadata", JacksonUtil.toString(metadata));
+        debugIn.put("inContent", inContent);
+        debugIn.put("inContentType", UplinkContentType.JSON.name());
+
+        return debugIn.isEmpty() ? null : debugIn;
+    }
+
+    private Pair<IntegrationType, String> getTargetIntegrationTypeAndName(Converter converter, String integrationType) throws ThingsboardException {
+        IntegrationType targetIntegrationType = null;
+        String targetIntegrationName = "";
+
+        if (converter != null) {
+            Integration integration = getIntegration(converter.getId());
+            if (integration != null) {
+                targetIntegrationType = integration.getType();
+                targetIntegrationName = integration.getName();
+            }
+        }
+        if (StringUtils.isNotBlank(integrationType) && targetIntegrationType == null) {
+            targetIntegrationType = IntegrationType.valueOf(integrationType);
+        }
+
+        return (targetIntegrationType == null) ? null : Pair.of(targetIntegrationType, targetIntegrationName);
+    }
+
+    private Integration getIntegration(ConverterId converterId) throws ThingsboardException {
+        List<Integration> relatedIntegrations = integrationService.findIntegrationsByConverterId(getTenantId(), converterId);
+        if (relatedIntegrations.size() > 0 && relatedIntegrations.stream().map(Integration::getType).distinct().limit(2).count() == 1) {
+            return relatedIntegrations.get(0);
+        }
+        return null;
+    }
+
+    private static ObjectNode createDebugInFromFoundEvent(JsonNode body) {
+        ObjectNode debugIn = JacksonUtil.newObjectNode();
+        if (body.has("type")) {
+            String type = body.get("type").asText();
+            if (type.equals("Uplink") || type.equals("Downlink")) {
+                String inContentType = body.get("inMessageType").asText();
+                debugIn.put("inContentType", inContentType);
+                if (type.equals("Uplink")) {
+                    String inContent = body.get("in").asText();
+                    debugIn.put("inContent", inContent);
+                    String inMetadata = body.get("metadata").asText();
+                    debugIn.put("inMetadata", inMetadata);
+                } else { //Downlink
+                    String inContent = "";
+                    String inMsgType = "";
+                    String inMetadata = "";
+                    String in = body.get("in").asText();
+                    JsonNode inJson = JacksonUtil.toJsonNode(in);
+                    if (inJson.isArray() && inJson.size() > 0) {
+                        JsonNode msgJson = inJson.get(inJson.size() - 1);
+                        JsonNode msg = msgJson.get("msg");
+                        if (msg.isTextual()) {
+                            inContent = "";
+                        } else if (msg.isObject()) {
+                            inContent = JacksonUtil.toString(msg);
+                        }
+                        inMsgType = msgJson.get("msgType").asText();
+                        inMetadata = JacksonUtil.toString(msgJson.get("metadata"));
+                    }
+                    debugIn.put("inContent", inContent);
+                    debugIn.put("inMsgType", inMsgType);
+                    debugIn.put("inMetadata", inMetadata);
+                    String inIntegrationMetadata = body.get("metadata").asText();
+                    debugIn.put("inIntegrationMetadata", inIntegrationMetadata);
+                }
+            }
+        }
+        return debugIn;
     }
 
     @ApiOperation(value = "Test converter function (testUpLinkConverter)",

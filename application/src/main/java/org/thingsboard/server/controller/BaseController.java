@@ -1363,13 +1363,4 @@ public abstract class BaseController {
             return null;
         }
     }
-
-    protected IntegrationType toIntegrationType(String integrationTypeName) throws ThingsboardException {
-        try {
-            return IntegrationType.valueOf(integrationTypeName);
-        } catch (IllegalArgumentException e) {
-            throw handleException(e, false);
-        }
-    }
-
 }

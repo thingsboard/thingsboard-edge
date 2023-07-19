@@ -120,7 +120,6 @@ attributes.putAll(attributesData);
 var result = {
     deviceName: deviceName,
     deviceType: deviceType,
-    onValueUpdateKeys: onValueUpdateKeys,
     attributes: attributes,
     telemetry: {
         ts: timestamp,
