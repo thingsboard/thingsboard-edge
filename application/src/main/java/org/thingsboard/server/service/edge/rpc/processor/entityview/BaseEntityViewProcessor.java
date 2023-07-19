@@ -57,8 +57,6 @@ public abstract class BaseEntityViewProcessor extends BaseEdgeProcessor {
         boolean entityViewNameUpdated = false;
         entityViewCreationLock.lock();
         try {
-            edgeSynchronizationManager.getSync().set(true);
-
             EntityView entityView = entityViewService.findEntityViewById(tenantId, entityViewId);
             String entityViewName = entityViewUpdateMsg.getName();
             if (entityView == null) {
@@ -99,7 +97,6 @@ public abstract class BaseEntityViewProcessor extends BaseEdgeProcessor {
             }
             safeAddToEntityGroup(tenantId, entityViewUpdateMsg, entityViewId);
         } finally {
-            edgeSynchronizationManager.getSync().remove();
             entityViewCreationLock.unlock();
         }
         return Pair.of(created, entityViewNameUpdated);

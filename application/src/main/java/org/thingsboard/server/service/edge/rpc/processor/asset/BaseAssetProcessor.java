@@ -55,8 +55,6 @@ public abstract class BaseAssetProcessor extends BaseEdgeProcessor {
         boolean assetNameUpdated = false;
         assetCreationLock.lock();
         try {
-            edgeSynchronizationManager.getSync().set(true);
-
             Asset asset = assetService.findAssetById(tenantId, assetId);
             String assetName = assetUpdateMsg.getName();
             if (asset == null) {
@@ -95,7 +93,6 @@ public abstract class BaseAssetProcessor extends BaseEdgeProcessor {
             }
             safeAddToEntityGroup(tenantId, assetUpdateMsg, assetId);
         } finally {
-            edgeSynchronizationManager.getSync().remove();
             assetCreationLock.unlock();
         }
         return Pair.of(created, assetNameUpdated);

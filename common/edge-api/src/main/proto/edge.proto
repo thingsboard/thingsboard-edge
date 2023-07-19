@@ -711,6 +711,8 @@ message UplinkMsg {
   repeated AssetUpdateMsg assetUpdateMsg = 18;
   repeated DashboardUpdateMsg dashboardUpdateMsg = 19;
   repeated EntityViewUpdateMsg entityViewUpdateMsg = 20;
+  repeated AssetProfileUpdateMsg assetProfileUpdateMsg = 21;
+  repeated DeviceProfileUpdateMsg deviceProfileUpdateMsg = 22;
 }
 
 message UplinkResponseMsg {

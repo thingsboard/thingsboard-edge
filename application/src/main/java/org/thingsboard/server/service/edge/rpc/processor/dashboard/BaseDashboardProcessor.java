@@ -47,12 +47,10 @@ import java.util.UUID;
 @Slf4j
 public abstract class BaseDashboardProcessor extends BaseEdgeProcessor {
 
-    protected boolean saveOrUpdateDashboard(TenantId tenantId, DashboardId dashboardId, CustomerId customerId, DashboardUpdateMsg dashboardUpdateMsg) throws ThingsboardException {
+    protected boolean saveOrUpdateDashboard(TenantId tenantId, DashboardId dashboardId, DashboardUpdateMsg dashboardUpdateMsg, CustomerId customerId) throws ThingsboardException {
         boolean created = false;
         dashboardCreationLock.lock();
         try {
-            edgeSynchronizationManager.getSync().set(true);
-
             Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
             if (dashboard == null) {
                 created = true;
@@ -75,7 +73,6 @@ public abstract class BaseDashboardProcessor extends BaseEdgeProcessor {
             }
             safeAddToEntityGroup(tenantId, dashboardUpdateMsg, dashboardId);
         } finally {
-            edgeSynchronizationManager.getSync().remove();
             dashboardCreationLock.unlock();
         }
         return created;
