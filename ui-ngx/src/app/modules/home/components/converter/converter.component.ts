@@ -260,7 +260,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       }));
   }
 
-  openConverterTestDialog(isDecoder: boolean) {
+  openConverterTestDialog() {
     let request: Observable<ConverterDebugInput>;
     if (this.entity.id) {
       request = this.converterService.getLatestConverterDebugInput(this.entity.id.id);
@@ -280,12 +280,13 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       takeUntil(this.destroy$)
     ).subscribe(
       (debugIn) => {
-        this.showConverterTestDialog(isDecoder, debugIn);
+        this.showConverterTestDialog(debugIn);
       }
     );
   }
 
-  showConverterTestDialog(isDecoder: boolean, debugIn: ConverterDebugInput) {
+  showConverterTestDialog(debugIn: ConverterDebugInput, setFirstTab = false) {
+    const isDecoder = this.entityForm.get('type').value === ConverterType.UPLINK
     const scriptLang: ScriptLanguage = this.entityForm.get('configuration').get('scriptLang').value;
     let targetField;
     if (scriptLang === ScriptLanguage.JS) {
@@ -309,6 +310,9 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
         takeUntil(this.destroy$)
     ).subscribe((result) => {
         if (result !== null) {
+          if (setFirstTab) {
+            this.entitiesTableConfig.getTable().entityDetailsPanel.onToggleEditMode(true);
+          }
           this.entityForm.get(`configuration.${targetField}`).patchValue(result);
           this.entityForm.get(`configuration.${targetField}`).markAsDirty();
           this.entityForm.updateValueAndValidity();

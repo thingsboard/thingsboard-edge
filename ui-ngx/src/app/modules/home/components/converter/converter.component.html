@@ -132,7 +132,7 @@
           <button [fxShow]="isEdit"
                   [disabled]="isLoading$ | async"
                   type="button" mat-button mat-raised-button color="primary"
-                  (click)="openConverterTestDialog(entityForm.get('type').value === converterType.UPLINK)">
+                  (click)="openConverterTestDialog()">
             {{ (entityForm.get('type').value === converterType.UPLINK ? 'converter.test-decoder-fuction' : 'converter.test-encoder-fuction') | translate }}
           </button>
         </div>

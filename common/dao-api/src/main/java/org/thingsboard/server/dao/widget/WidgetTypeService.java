@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.widget;
 
+import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.widget.WidgetType;
@@ -54,6 +55,8 @@ public interface WidgetTypeService extends EntityDaoService {
     List<WidgetTypeDetails> findWidgetTypesDetailsByTenantIdAndBundleAlias(TenantId tenantId, String bundleAlias);
 
     List<WidgetTypeInfo> findWidgetTypesInfosByTenantIdAndBundleAlias(TenantId tenantId, String bundleAlias);
+
+    List<WidgetTypeDetails> findWidgetTypesInfosByTenantIdAndResourceId(TenantId tenantId, TbResourceId tbResourceId);
 
     WidgetType findWidgetTypeByTenantIdBundleAliasAndAlias(TenantId tenantId, String bundleAlias, String alias);
 
