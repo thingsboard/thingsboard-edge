@@ -135,7 +135,7 @@ public class ConverterController extends AutoCommitController {
     private final Optional<TbelInvokeService> tbelInvokeService;
     private final TbConverterService tbConverterService;
 
-    private final Map<IntegrationType, String> converterDefaultMessages = Map.of(
+    private final static Map<IntegrationType, String> converterDefaultMessages = Map.of(
             IntegrationType.LORIOT, DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE,
             IntegrationType.SIGFOX, DEFAULT_SIGFOX_UPLINK_CONVERTER_MESSAGE,
             IntegrationType.TTI, DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE,
@@ -147,7 +147,7 @@ public class ConverterController extends AutoCommitController {
             IntegrationType.AWS_IOT, DEFAULT_AWS_IOT_UPLINK_CONVERTER_MESSAGE
     );
 
-    private final Map<IntegrationType, String> converterDefaultMetadatas = Map.of(
+    private final static Map<IntegrationType, String> converterDefaultMetadatas = Map.of(
             IntegrationType.SIGFOX, DEFAULT_SIGFOX_UPLINK_CONVERTER_METADATA
     );
 
