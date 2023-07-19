@@ -162,7 +162,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Thread.sleep(500);
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.expectMessageAmount(18);
+        edgeImitator.expectMessageAmount(20);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();
@@ -195,7 +195,10 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     @After
     public void teardownEdgeTest() {
         try {
+            edgeImitator.expectMessageAmount(2);
             loginTenantAdmin();
+            Assert.assertTrue(edgeImitator.waitForMessages());
+
             doDelete("/api/edge/" + edge.getId().toString())
                     .andExpect(status().isOk());
             edgeImitator.disconnect();
@@ -245,12 +248,10 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
         validateEdgeConfiguration();
 
-        // 3 messages
-        // - 2 from device profile fetcher (default and thermostat)
-        // - 1 from device profile controller (thermostat)
-        validateDeviceProfiles();
+        // 1 message from queue fetcher
+        validateQueues();
 
-        // 2 messages - 1 from rule chain fetcher and 1 from rule chain controller
+        // 2 messages  1 from rule chain fetcher and 1 from rule chain controller
         UUID ruleChainUUID = validateRuleChains();
 
         // 1 from request message
@@ -259,24 +260,27 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         // 2 messages - 2 messages from fetcher (general', 'mail')
         validateAdminSettings();
 
+        // 2 messages
+        // - 2 from device profile fetcher (default and thermostat)
+        validateDeviceProfiles();
+
         // 1 message from asset profile fetcher
         validateAssetProfiles();
 
-        // 1 message from queue fetcher
-        validateQueues();
-
-        // 3 messages
-        // - 2 messages from fetcher
-        // - 1 message from public customer user group
-        validateEntityGroups();
+        // 1 message from public customer fetcher
+        validatePublicCustomer();
 
         // 5 messages
-        // - 2 messages from fetcher
+        // - 2 messages from SysAdminRolesEdgeEventFetcher
+        // - 2 messages from TenantRolesEdgeEventFetcher
         // - 1 message from public customer role
         validateRoles();
 
-        // 1 message from public customer fetcher
-        validatePublicCustomer();
+        // 5 messages
+        // - 2 messages from fetcher
+        // - 1 message from public customer user group
+        // - 2 messages from edge queue - added during edge creation
+        validateEntityGroups();
     }
 
     private void validateEdgeConfiguration() throws Exception {
