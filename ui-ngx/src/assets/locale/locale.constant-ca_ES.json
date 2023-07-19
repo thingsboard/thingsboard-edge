@@ -2958,8 +2958,6 @@
         "connect-timeout-range": "Temps d'espera de connexió ha d'estar en un rang entre 1 i 200.",
         "client-id": "ID del client",
         "client-id-required": "Cal Client ID.",
-        "client-id-range": "L'identificador de client ha de tenir entre 1 i 23 caràcters. [MQTT-3.1.3-5]",
-        "client-id-pattern": "L'identificador de client ha de constar de números, lletres majúscules i minúscules. [MQTT-3.1.3-5]",
         "client-id-hint": "Pista: opcional. Deixeu en blanc l'identificador de client generat automàticament. Aneu amb compte quan especifiqueu l'identificador de client. La majoria dels corredors de MQTT no permetran connexions múltiples amb el mateix identificador de client. Per connectar-se a aquests corredors, el vostre identificador de client mqtt ha de ser únic.",
         "max-bytes-in-message": "Màxim bytes al missatge",
         "max-bytes-in-message-range": "El màxim de bytes del missatge hauria d'estar en un interval d'1 a 256000000.",
