@@ -1421,7 +1421,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                         .append(boolToIntStr(readAttrPermissions.isHasGenericRead())).append(" as readAttrFlag").append(",")
                         .append(boolToIntStr(readTsPermissions.isHasGenericRead())).append(" as readTsFlag");
                 entityFlagsQuery.append(" from entity_group ge WHERE");
-                entityFlagsQuery.append(" ge.id in (").append(HIERARCHICAL_GROUPS_ALL_QUERY).append(" and type = '").append(ctx.getEntityType()).append("')");
+                entityFlagsQuery.append(" ge.id in (").append(HIERARCHICAL_GROUPS_QUERY).append(" and type = :entity_group_type)");
             }
             if (innerJoin || hasFilters) {
                 entitiesQuery.append(", COALESCE(readAttrFlag, 0) as ").append(ATTR_READ_FLAG);
