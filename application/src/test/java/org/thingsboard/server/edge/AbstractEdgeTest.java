@@ -118,6 +118,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -155,11 +156,6 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         loginTenantAdmin();
 
         installation();
-
-        // sleep 0.5 second to avoid CREDENTIALS updated message for the user
-        // user credentials is going to be stored and updated event pushed to edge notification service
-        // while service will be processing this event edge could be already added and additional message will be pushed
-        Thread.sleep(500);
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.expectMessageAmount(20);
@@ -210,6 +206,11 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
                 createMqttDeviceProfileTransportConfiguration(new JsonTransportPayloadConfiguration(), false));
         extendDeviceProfileData(thermostatDeviceProfile);
         thermostatDeviceProfile = doPost("/api/deviceProfile", thermostatDeviceProfile, DeviceProfile.class);
+
+        try {
+            // make sure to NOT include device profile save message into edge queue
+            TimeUnit.MILLISECONDS.sleep(500);
+        } catch (Exception ignored) {}
 
         edge = doPost("/api/edge", constructEdge("Test Edge", "test"), Edge.class);
     }
@@ -397,7 +398,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
     private void validateEntityGroups() {
         List<EntityGroupUpdateMsg> entityGroupUpdateMsgList = edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class);
-        Assert.assertEquals(3, entityGroupUpdateMsgList.size());
+        Assert.assertEquals(5, entityGroupUpdateMsgList.size());
     }
 
     private void validateRoles() {

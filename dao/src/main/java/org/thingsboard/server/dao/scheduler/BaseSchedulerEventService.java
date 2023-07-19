@@ -242,7 +242,7 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
             throw new RuntimeException(e);
         }
         eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(schedulerEventId)
-                .actionType(ActionType.ASSIGNED_TO_EDGE).build());
+                .actionType(ActionType.UNASSIGNED_FROM_EDGE).build());
         return schedulerEventInfo;
     }
 

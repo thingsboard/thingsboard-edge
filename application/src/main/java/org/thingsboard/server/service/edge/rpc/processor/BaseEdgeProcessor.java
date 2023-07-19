@@ -522,7 +522,7 @@ public abstract class BaseEdgeProcessor {
             case REMOVED_FROM_ENTITY_GROUP:
             case DELETED:
                 if (edgeId != null) {
-                    return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null, constructEntityGroupId(tenantId, edgeNotificationMsg));
+                    return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, body, constructEntityGroupId(tenantId, edgeNotificationMsg));
                 } else {
                     return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, constructEntityGroupId(tenantId, edgeNotificationMsg));
                 }
@@ -538,7 +538,7 @@ public abstract class BaseEdgeProcessor {
                 }, dbCallbackExecutorService);
             case CHANGE_OWNER:
                 if (edgeId != null) {
-                    return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
+                    return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, body);
                 } else {
                     return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, null);
                 }

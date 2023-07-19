@@ -29,15 +29,24 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, forwardRef, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, forwardRef, Input, OnInit, Renderer2, ViewContainerRef } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import {
+  ControlValueAccessor,
+  NG_VALUE_ACCESSOR,
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { DialogService } from '@core/services/dialog.service';
 import { coerceBoolean } from '@shared/decorators/coercion';
+import { TbPopoverService } from '@shared/components/popover.service';
+import { ColorPickerPanelComponent } from '@shared/components/color-picker/color-picker-panel.component';
+import { MatButton } from '@angular/material/button';
 
 @Component({
   selector: 'tb-color-input',
@@ -119,6 +128,9 @@ export class ColorInputComponent extends PageComponent implements OnInit, Contro
   constructor(protected store: Store<AppState>,
               private dialogs: DialogService,
               private translate: TranslateService,
+              private popoverService: TbPopoverService,
+              private renderer: Renderer2,
+              private viewContainerRef: ViewContainerRef,
               private fb: UntypedFormBuilder,
               private cd: ChangeDetectorRef) {
     super(store);
@@ -184,6 +196,33 @@ export class ColorInputComponent extends PageComponent implements OnInit, Contro
         }
       }
     );
+  }
+
+  openColorPickerPopup($event: Event, matButton: MatButton) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const trigger = matButton._elementRef.nativeElement;
+    if (this.popoverService.hasPopover(trigger)) {
+      this.popoverService.hidePopover(trigger);
+    } else {
+      const colorPickerPopover = this.popoverService.displayPopover(trigger, this.renderer,
+        this.viewContainerRef, ColorPickerPanelComponent, 'left', true, null,
+        {
+          color: this.colorFormGroup.get('color').value,
+          useThemePalette: this.useThemePalette
+        },
+        {},
+        {}, {}, true);
+      colorPickerPopover.tbComponentRef.instance.popover = colorPickerPopover;
+      colorPickerPopover.tbComponentRef.instance.colorSelected.subscribe((color) => {
+        colorPickerPopover.hide();
+        this.colorFormGroup.patchValue(
+          {color}, {emitEvent: true}
+        );
+        this.cd.markForCheck();
+      });
+    }
   }
 
   clear() {

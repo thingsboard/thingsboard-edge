@@ -55,7 +55,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         testWhiteLabeling_sysAdmin();
         testWhiteLabeling_tenant();
         testWhiteLabeling_customer();
-        resetSysAdminWhiteLabelingSettings(TENANT_ADMIN_EMAIL, "testPassword1");
+        resetSysAdminWhiteLabelingSettings();
     }
 
     private void testWhiteLabeling_sysAdmin() throws Exception {
@@ -64,7 +64,10 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
     }
 
     private void testWhiteLabeling_tenant() throws Exception {
-        loginUser(TENANT_ADMIN_EMAIL, "testPassword1");
+        edgeImitator.expectMessageAmount(2);
+        loginTenantAdmin();
+        Assert.assertTrue(edgeImitator.waitForMessages());
+
         updateAndVerifyWhiteLabelingUpdate("Tenant TB Updated");
     }
 
@@ -107,7 +110,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         testLoginWhiteLabeling_sysAdmin();
         testLoginWhiteLabeling_tenant();
         testLoginWhiteLabeling_customer();
-        resetSysAdminWhiteLabelingSettings(TENANT_ADMIN_EMAIL, "testPassword1");
+        resetSysAdminWhiteLabelingSettings();
     }
 
     private void testLoginWhiteLabeling_sysAdmin() throws Exception {
@@ -116,7 +119,10 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
     }
 
     private void testLoginWhiteLabeling_tenant() throws Exception {
-        loginUser(TENANT_ADMIN_EMAIL, "testPassword1");
+        edgeImitator.expectMessageAmount(2);
+        loginTenantAdmin();
+        Assert.assertTrue(edgeImitator.waitForMessages());
+
         updateAndVerifyLoginWhiteLabelingUpdate("tenant_updated.org");
     }
 
@@ -159,7 +165,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         testCustomTranslation_sysAdmin();
         testCustomTranslation_tenant();
         testCustomTranslation_customer();
-        resetSysAdminWhiteLabelingSettings(TENANT_ADMIN_EMAIL, "testPassword1");
+        resetSysAdminWhiteLabelingSettings();
     }
 
     private void testCustomTranslation_sysAdmin() throws Exception {
@@ -168,7 +174,10 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
     }
 
     private void testCustomTranslation_tenant() throws Exception {
-        loginUser(TENANT_ADMIN_EMAIL, "testPassword1");
+        edgeImitator.expectMessageAmount(2);
+        loginTenantAdmin();
+        Assert.assertTrue(edgeImitator.waitForMessages());
+
         updateAndVerifyCustomTranslationUpdate("tenant_value_updated");
     }
 
@@ -195,7 +204,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
     }
 
     private void createCustomerUserAndLogin(Customer customer, String email) throws Exception {
-        edgeImitator.expectMessageAmount(2);
+        edgeImitator.expectMessageAmount(3);
         User customerAUser = new User();
         customerAUser.setAuthority(Authority.CUSTOMER_USER);
         customerAUser.setTenantId(TenantId.SYS_TENANT_ID);
@@ -203,8 +212,11 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         customerAUser.setEmail(email);
         EntityGroupInfo customerAdminsGroup = findCustomerAdminsGroup(customer);
         User savedCustomerUser = createUser(customerAUser, "customer", customerAdminsGroup.getId());
-        Assert.assertTrue(edgeImitator.waitForMessages());  // wait 2 messages - user update msg and user credentials update msg
+        Assert.assertTrue(edgeImitator.waitForMessages());  // wait 3 messages - two user update msgs and user credentials update msg
+
+        edgeImitator.expectMessageAmount(2);
         loginUser(savedCustomerUser.getEmail(), "customer");
+        Assert.assertTrue(edgeImitator.waitForMessages());
     }
 
     private void updateAndVerifyCustomTranslationUpdate(String updatedHomeValue) throws Exception {

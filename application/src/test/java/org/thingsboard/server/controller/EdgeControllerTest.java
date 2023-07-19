@@ -77,7 +77,6 @@ import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RoleProto;
@@ -960,7 +959,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
     @Test
     public void testSyncEdge_tenantLevel() throws Exception {
-        resetSysAdminWhiteLabelingSettings(tenantAdmin.getEmail(), "testPassword1");
+        resetSysAdminWhiteLabelingSettings();
 
         Edge edge = doPost("/api/edge", constructEdge("Sync Test EG Edge", "test"), Edge.class);
 
@@ -1036,7 +1035,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
     @Test
     public void testSyncEdge_customerLevel() throws Exception {
-        resetSysAdminWhiteLabelingSettings(tenantAdmin.getEmail(), "testPassword1");
+        resetSysAdminWhiteLabelingSettings();
 
         Edge edge = doPost("/api/edge", constructEdge("Sync Test EG Edge", "test"), Edge.class);
 

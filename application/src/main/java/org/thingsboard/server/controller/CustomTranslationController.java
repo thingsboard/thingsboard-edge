@@ -142,8 +142,6 @@ public class CustomTranslationController extends BaseController {
         } else if (Authority.CUSTOMER_USER.equals(authority)) {
             savedCustomTranslation = customTranslationService.saveCustomerCustomTranslation(getTenantId(), getCurrentUser().getCustomerId(), customTranslation);
         }
-        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(getTenantId()).entityId(getCurrentUser().getOwnerId())
-                .type(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
         return savedCustomTranslation;
     }
 

@@ -506,7 +506,12 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
             case ENTITY_GROUP:
                 EntityGroupId entityGroupId = new EntityGroupId(entityId.getId());
                 if (groupType == null) {
-                    groupType = entityGroupService.findEntityGroupById(tenantId, entityGroupId).getType();
+                    EntityGroup entityGroupById = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
+                    if (entityGroupById != null) {
+                        groupType = entityGroupById.getType();
+                    } else {
+                        return createEmptyEdgeIdPageData();
+                    }
                 }
                 return findEdgeIdsByTenantIdAndEntityGroupIds(tenantId, Collections.singletonList(entityGroupId), groupType, pageLink);
             case RULE_CHAIN:
