@@ -49,7 +49,8 @@ import org.thingsboard.server.common.data.plugin.ComponentType;
         relationTypes = {"default"},
         configClazz = EmptyNodeConfiguration.class,
         nodeDescription = "Route incoming messages based on the name of the device profile",
-        nodeDetails = "Route incoming messages based on the name of the device profile. The device profile name is case-sensitive",
+        nodeDetails = "Route incoming messages based on the name of the device profile. The device profile name is case-sensitive<br><br>" +
+                "Output connections: <i>Message originator profile name</i> or <code>Failure</code>",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbNodeEmptyConfig")
 public class TbDeviceTypeSwitchNode extends TbAbstractTypeSwitchNode {
@@ -57,7 +58,8 @@ public class TbDeviceTypeSwitchNode extends TbAbstractTypeSwitchNode {
     @Override
     protected String getRelationType(TbContext ctx, EntityId originator) throws TbNodeException {
         if (!EntityType.DEVICE.equals(originator.getEntityType())) {
-            throw new TbNodeException("Unsupported originator type: " + originator.getEntityType() + "! Only 'DEVICE' type is allowed.");
+            throw new TbNodeException("Unsupported originator type: " + originator.getEntityType().getNormalName() +
+                    "! Only " + EntityType.DEVICE.getNormalName() + " type is allowed.");
         }
         DeviceProfile deviceProfile = ctx.getDeviceProfileCache().get(ctx.getTenantId(), (DeviceId) originator);
         if (deviceProfile == null) {

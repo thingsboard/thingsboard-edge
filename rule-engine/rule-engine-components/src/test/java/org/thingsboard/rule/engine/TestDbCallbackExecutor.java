@@ -28,14 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.rule.engine;
 
-/**
- * Created by ashvayka on 19.01.18.
- */
-public final class TbRelationTypes {
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.common.util.ListeningExecutor;
 
-    public static String SUCCESS = "Success";
-    public static String FAILURE = "Failure";
+import java.util.concurrent.Callable;
+
+public class TestDbCallbackExecutor implements ListeningExecutor {
+
+    @Override
+    public <T> ListenableFuture<T> executeAsync(Callable<T> task) {
+        try {
+            return Futures.immediateFuture(task.call());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void execute(Runnable command) {
+        command.run();
+    }
 
 }

@@ -48,6 +48,8 @@ import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
@@ -67,8 +69,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
-
 @SuppressWarnings("UnstableApiUsage")
 @Slf4j
 @RuleNode(
@@ -85,9 +85,7 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 )
 public class TbAggLatestTelemetryNodeV2 implements TbNode {
     private final Gson gson = new Gson();
-    static final String TB_CLEAR_INACTIVE_ENTITIES_MSG = "TbClearInactiveEntitiesMsg";
     private static final int CACHE_TTL_MULTIPLIER = 3;
-    private static final String TB_AGG_LATEST_NODE_MSG = "TbAggLatestNodeMsg";
     private TbAggLatestTelemetryNodeV2Configuration config;
     private final Map<EntityId, AggDeduplicationData> lastMsgMap = new HashMap<>();
     private final Set<String> clientAttributeNames = new HashSet<>();
@@ -135,13 +133,15 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
-        if (msg.getType().equals(TB_AGG_LATEST_NODE_MSG)) {
+        if (msg.getType().equals(TbMsgType.TB_AGG_LATEST_SELF_MSG.name())) {
             processDelayedMsg(ctx, msg.getOriginator());
-        } else if (msg.getType().equals(TB_CLEAR_INACTIVE_ENTITIES_MSG)) {
-            processClearInactiveEntitiesMsg(ctx);
-        } else {
-            processRegularMsg(ctx, msg);
+            return;
         }
+        if (msg.getType().equals(TbMsgType.TB_AGG_LATEST_CLEAR_INACTIVE_ENTITIES_SELF_MSG.name())) {
+            processClearInactiveEntitiesMsg(ctx);
+            return;
+        }
+        processRegularMsg(ctx, msg);
     }
 
     private void processRegularMsg(TbContext ctx, TbMsg msg) {
@@ -186,7 +186,7 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
 
     private void scheduleClearInactiveEntitiesMsg(TbContext ctx) {
         long delayMs = Math.max(TimeUnit.HOURS.toMillis(1), config.getDeduplicationInSec() * 1000 * CACHE_TTL_MULTIPLIER);
-        ctx.tellSelf(ctx.newMsg(null, TB_CLEAR_INACTIVE_ENTITIES_MSG, ctx.getSelfId(), null, new TbMsgMetaData(), ""),
+        ctx.tellSelf(ctx.newMsg(null, TbMsgType.TB_AGG_LATEST_CLEAR_INACTIVE_ENTITIES_SELF_MSG, ctx.getSelfId(), null, TbMsgMetaData.EMPTY, TbMsg.EMPTY_STRING),
                 delayMs);
     }
 
@@ -275,7 +275,7 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
         }
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("ts", Long.toString(ts));
-        ctx.enqueueForTellNext(TbMsg.newMsg(config.getQueueName(), config.getOutMsgType(), msg.getOriginator(), metaData, gson.toJson(result)), SUCCESS);
+        ctx.enqueueForTellNext(TbMsg.newMsg(config.getQueueName(), config.getOutMsgType(), msg.getOriginator(), metaData, gson.toJson(result)), TbNodeConnectionType.SUCCESS);
         ctx.ack(msg);
     }
 
@@ -286,7 +286,7 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
     }
 
     private void scheduleDelayedMsg(TbContext ctx, EntityId entityId, long delayMs) {
-        ctx.tellSelf(ctx.newMsg(null, TB_AGG_LATEST_NODE_MSG, entityId, null, new TbMsgMetaData(), ""), delayMs);
+        ctx.tellSelf(ctx.newMsg(null, TbMsgType.TB_AGG_LATEST_SELF_MSG, entityId, null, TbMsgMetaData.EMPTY, TbMsg.EMPTY_STRING), delayMs);
     }
 
     @Override

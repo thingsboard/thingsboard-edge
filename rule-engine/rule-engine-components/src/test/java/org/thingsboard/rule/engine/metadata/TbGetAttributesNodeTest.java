@@ -56,6 +56,7 @@ import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.JsonDataEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -255,7 +256,7 @@ public class TbGetAttributesNodeTest {
     public void givenFetchLatestTimeseriesToDataAndDataIsNotJsonObject_whenOnMsg_thenException() throws Exception {
         // GIVEN
         node = initNode(FetchTo.DATA, true, true);
-        var msg = TbMsg.newMsg("TEST", ORIGINATOR, new TbMsgMetaData(), "[]");
+        var msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, ORIGINATOR, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_ARRAY);
 
         // WHEN
         var exception = assertThrows(IllegalArgumentException.class, () -> node.onMsg(ctxMock, msg));
@@ -271,6 +272,22 @@ public class TbGetAttributesNodeTest {
         var node = new TbGetAttributesNode();
         String oldConfig = "{\"fetchToData\":false," +
                 "\"clientAttributeNames\":[]," +
+                "\"sharedAttributeNames\":[]," +
+                "\"serverAttributeNames\":[]," +
+                "\"latestTsKeyNames\":[]," +
+                "\"tellFailureIfAbsent\":true," +
+                "\"getLatestValueWithTs\":false}";
+        JsonNode configJson = JacksonUtil.toJsonNode(oldConfig);
+        TbPair<Boolean, JsonNode> upgrade = node.upgrade(0, configJson);
+        Assertions.assertTrue(upgrade.getFirst());
+        Assertions.assertEquals(defaultConfig, JacksonUtil.treeToValue(upgrade.getSecond(), defaultConfig.getClass()));
+    }
+
+    @Test
+    public void givenOldConfigWithNoFetchToDataProperty_whenUpgrade_thenShouldReturnTrueResultWithNewConfig() throws Exception {
+        var defaultConfig = new TbGetAttributesNodeConfiguration().defaultConfiguration();
+        var node = new TbGetAttributesNode();
+        String oldConfig = "{\"clientAttributeNames\":[]," +
                 "\"sharedAttributeNames\":[]," +
                 "\"serverAttributeNames\":[]," +
                 "\"latestTsKeyNames\":[]," +
@@ -368,7 +385,7 @@ public class TbGetAttributesNodeTest {
         msgMetaData.putValue("client_attr_metadata", "client_attr_3");
         msgMetaData.putValue("server_attr_metadata", "server_attr_3");
 
-        return TbMsg.newMsg("TEST", entityId, msgMetaData, JacksonUtil.toString(msgData));
+        return TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, entityId, msgMetaData, JacksonUtil.toString(msgData));
     }
 
     private List<String> getAttributeNames(String prefix) {

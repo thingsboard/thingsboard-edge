@@ -28,36 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg.session;
+package org.thingsboard.server.common.data.msg;
 
-public enum SessionMsgType {
-    GET_ATTRIBUTES_REQUEST(true), POST_ATTRIBUTES_REQUEST(true), GET_ATTRIBUTES_RESPONSE,
-    SUBSCRIBE_ATTRIBUTES_REQUEST, UNSUBSCRIBE_ATTRIBUTES_REQUEST, ATTRIBUTES_UPDATE_NOTIFICATION,
+/**
+ * Created by ashvayka on 19.01.18.
+ */
+public final class TbNodeConnectionType {
 
-    POST_TELEMETRY_REQUEST(true), STATUS_CODE_RESPONSE,
+    public static final String SUCCESS = "Success";
+    public static final String FAILURE = "Failure";
 
-    SUBSCRIBE_RPC_COMMANDS_REQUEST, UNSUBSCRIBE_RPC_COMMANDS_REQUEST,
-    TO_DEVICE_RPC_REQUEST, TO_DEVICE_RPC_RESPONSE, TO_DEVICE_RPC_RESPONSE_ACK,
+    public static final String TRUE = "True";
+    public static final String FALSE = "False";
 
-    TO_SERVER_RPC_REQUEST(true), TO_SERVER_RPC_RESPONSE,
+    public static final String OTHER = "Other";
 
-    RULE_ENGINE_ERROR,
-
-    SESSION_OPEN, SESSION_CLOSE,
-
-    CLAIM_REQUEST();
-
-    private final boolean requiresRulesProcessing;
-
-    SessionMsgType() {
-        this(false);
-    }
-
-    SessionMsgType(boolean requiresRulesProcessing) {
-        this.requiresRulesProcessing = requiresRulesProcessing;
-    }
-
-    public boolean requiresRulesProcessing() {
-        return requiresRulesProcessing;
-    }
 }

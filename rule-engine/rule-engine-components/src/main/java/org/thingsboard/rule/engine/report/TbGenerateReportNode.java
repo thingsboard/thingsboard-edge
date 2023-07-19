@@ -33,7 +33,6 @@ package org.thingsboard.rule.engine.report;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
@@ -44,6 +43,7 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.report.ReportConfig;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -51,8 +51,6 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 
 import java.nio.ByteBuffer;
 import java.util.UUID;
-
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @Slf4j
 @RuleNode(
@@ -117,12 +115,10 @@ public class TbGenerateReportNode implements TbNode {
                             attachments = reportBlobEntity.getId().toString();
                         }
                         metaData.putValue(ATTACHMENTS, attachments);
-                        TbMsg newMsg = ctx.transformMsg(msg, msg.getType(), msg.getOriginator(), metaData, msg.getData());
-                        ctx.tellNext(newMsg, SUCCESS);
+                        TbMsg newMsg = TbMsg.transformMsg(msg, metaData);
+                        ctx.tellNext(newMsg, TbNodeConnectionType.SUCCESS);
                     },
-                    throwable -> {
-                        ctx.tellFailure(msg, throwable);
-                    }
+                    throwable -> ctx.tellFailure(msg, throwable)
             );
         } catch (Exception e) {
             ctx.tellFailure(msg, e);

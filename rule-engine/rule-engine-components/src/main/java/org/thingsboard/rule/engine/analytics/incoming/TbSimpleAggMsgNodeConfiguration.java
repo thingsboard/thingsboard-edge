@@ -32,16 +32,19 @@ package org.thingsboard.rule.engine.analytics.incoming;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.thingsboard.rule.engine.analytics.incoming.state.StatePersistPolicy;
 import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesGroup;
 import org.thingsboard.rule.engine.analytics.latest.TbAbstractLatestNodeConfiguration;
-import org.thingsboard.server.common.msg.session.SessionMsgType;
+import org.thingsboard.rule.engine.api.NodeConfiguration;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 
 import java.util.concurrent.TimeUnit;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class TbSimpleAggMsgNodeConfiguration extends TbAbstractLatestNodeConfiguration {
+public class TbSimpleAggMsgNodeConfiguration extends TbAbstractLatestNodeConfiguration implements NodeConfiguration<TbSimpleAggMsgNodeConfiguration> {
 
     private String mathFunction;
 
@@ -90,7 +93,7 @@ public class TbSimpleAggMsgNodeConfiguration extends TbAbstractLatestNodeConfigu
         configuration.setStatePersistencePolicy(StatePersistPolicy.ON_EACH_CHANGE.name());
         configuration.setStatePersistenceTimeUnit(TimeUnit.MINUTES.name());
         configuration.setStatePersistenceValue(1);
-        configuration.setOutMsgType(SessionMsgType.POST_TELEMETRY_REQUEST.name());
+        configuration.setOutMsgType(TbMsgType.POST_TELEMETRY_REQUEST.name());
 
         return configuration;
     }

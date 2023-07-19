@@ -41,12 +41,12 @@ import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.plugin.ComponentType;
@@ -75,9 +75,6 @@ import java.util.concurrent.TimeUnit;
         configDirective = "tbDeviceProfileConfig"
 )
 public class TbDeviceProfileNode implements TbNode {
-    private static final String PERIODIC_MSG_TYPE = "TbDeviceProfilePeriodicMsg";
-    private static final String PROFILE_UPDATE_MSG_TYPE = "TbDeviceProfileUpdateMsg";
-    private static final String DEVICE_UPDATE_MSG_TYPE = "TbDeviceUpdateMsg";
 
     private TbDeviceProfileNodeConfiguration config;
     private RuleEngineDeviceProfileCache cache;
@@ -126,12 +123,16 @@ public class TbDeviceProfileNode implements TbNode {
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException {
         EntityType originatorType = msg.getOriginator().getEntityType();
-        if (msg.getType().equals(PERIODIC_MSG_TYPE)) {
+        if (msg.getType().equals(TbMsgType.DEVICE_PROFILE_PERIODIC_SELF_MSG.name())) {
             scheduleAlarmHarvesting(ctx, msg);
             harvestAlarms(ctx, System.currentTimeMillis());
-        } else if (msg.getType().equals(PROFILE_UPDATE_MSG_TYPE)) {
+            return;
+        }
+        if (msg.getType().equals(TbMsgType.DEVICE_PROFILE_UPDATE_SELF_MSG.name())) {
             updateProfile(ctx, new DeviceProfileId(UUID.fromString(msg.getData())));
-        } else if (msg.getType().equals(DEVICE_UPDATE_MSG_TYPE)) {
+            return;
+        }
+        if (msg.getType().equals(TbMsgType.DEVICE_UPDATE_SELF_MSG.name())) {
             JsonNode data = JacksonUtil.toJsonNode(msg.getData());
             DeviceId deviceId = new DeviceId(UUID.fromString(data.get("deviceId").asText()));
             if (data.has("profileId")) {
@@ -139,28 +140,30 @@ public class TbDeviceProfileNode implements TbNode {
             } else {
                 removeDeviceState(deviceId);
             }
-        } else {
-            if (EntityType.DEVICE.equals(originatorType)) {
-                DeviceId deviceId = new DeviceId(msg.getOriginator().getId());
-                if (msg.getType().equals(DataConstants.ENTITY_UPDATED)) {
-                    invalidateDeviceProfileCache(deviceId, msg.getData());
-                    ctx.tellSuccess(msg);
-                } else if (msg.getType().equals(DataConstants.ENTITY_DELETED)) {
-                    removeDeviceState(deviceId);
-                    ctx.tellSuccess(msg);
-                } else {
-                    DeviceState deviceState = getOrCreateDeviceState(ctx, deviceId, null, false);
-                    if (deviceState != null) {
-                        deviceState.process(ctx, msg);
-                    } else {
-                        log.info("Device was not found! Most probably device [" + deviceId + "] has been removed from the database. Acknowledging msg.");
-                        ctx.ack(msg);
-                    }
-                }
-            } else {
-                ctx.tellSuccess(msg);
-            }
+            return;
         }
+        if (EntityType.DEVICE.equals(originatorType)) {
+            DeviceId deviceId = new DeviceId(msg.getOriginator().getId());
+            if (msg.getType().equals(TbMsgType.ENTITY_UPDATED.name())) {
+                invalidateDeviceProfileCache(deviceId, msg.getData());
+                ctx.tellSuccess(msg);
+                return;
+            }
+            if (msg.getType().equals(TbMsgType.ENTITY_DELETED.name())) {
+                removeDeviceState(deviceId);
+                ctx.tellSuccess(msg);
+                return;
+            }
+            DeviceState deviceState = getOrCreateDeviceState(ctx, deviceId, null, false);
+            if (deviceState == null) {
+                log.info("Device was not found! Most probably device [" + deviceId + "] has been removed from the database. Acknowledging msg.");
+                ctx.ack(msg);
+            } else {
+                deviceState.process(ctx, msg);
+            }
+            return;
+        }
+        ctx.tellSuccess(msg);
     }
 
     @Override
@@ -192,7 +195,7 @@ public class TbDeviceProfileNode implements TbNode {
     }
 
     protected void scheduleAlarmHarvesting(TbContext ctx, TbMsg msg) {
-        TbMsg periodicCheck = TbMsg.newMsg(PERIODIC_MSG_TYPE, ctx.getTenantId(), msg != null ? msg.getCustomerId() : null, TbMsgMetaData.EMPTY, "{}");
+        TbMsg periodicCheck = TbMsg.newMsg(TbMsgType.DEVICE_PROFILE_PERIODIC_SELF_MSG, ctx.getTenantId(), msg != null ? msg.getCustomerId() : null, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
         ctx.tellSelf(periodicCheck, TimeUnit.MINUTES.toMillis(1));
     }
 
@@ -217,7 +220,7 @@ public class TbDeviceProfileNode implements TbNode {
     }
 
     protected void onProfileUpdate(DeviceProfile profile) {
-        ctx.tellSelf(TbMsg.newMsg(PROFILE_UPDATE_MSG_TYPE, ctx.getTenantId(), TbMsgMetaData.EMPTY, profile.getId().getId().toString()), 0L);
+        ctx.tellSelf(TbMsg.newMsg(TbMsgType.DEVICE_PROFILE_UPDATE_SELF_MSG, ctx.getTenantId(), TbMsgMetaData.EMPTY, profile.getId().getId().toString()), 0L);
     }
 
     private void onDeviceUpdate(DeviceId deviceId, DeviceProfile deviceProfile) {
@@ -226,7 +229,7 @@ public class TbDeviceProfileNode implements TbNode {
         if (deviceProfile != null) {
             msgData.put("deviceProfileId", deviceProfile.getId().getId().toString());
         }
-        ctx.tellSelf(TbMsg.newMsg(DEVICE_UPDATE_MSG_TYPE, ctx.getTenantId(), TbMsgMetaData.EMPTY, JacksonUtil.toString(msgData)), 0L);
+        ctx.tellSelf(TbMsg.newMsg(TbMsgType.DEVICE_UPDATE_SELF_MSG, ctx.getTenantId(), TbMsgMetaData.EMPTY, JacksonUtil.toString(msgData)), 0L);
     }
 
     protected void invalidateDeviceProfileCache(DeviceId deviceId, String deviceJson) {
@@ -239,7 +242,7 @@ public class TbDeviceProfileNode implements TbNode {
                     removeDeviceState(deviceId);
                 }
             } catch (IllegalArgumentException e) {
-                log.debug("[{}] Received device update notification with non-device msg body: [{}][{}]", ctx.getSelfId(), deviceId, e);
+                log.debug("[{}] Received device update notification with non-device msg body: [{}]", ctx.getSelfId(), deviceId, e);
             }
         }
     }

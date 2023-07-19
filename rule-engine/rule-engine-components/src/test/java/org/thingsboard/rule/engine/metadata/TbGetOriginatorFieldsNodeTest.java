@@ -31,9 +31,6 @@
 package org.thingsboard.rule.engine.metadata;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,6 +40,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
+import org.thingsboard.rule.engine.TestDbCallbackExecutor;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
@@ -50,6 +48,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -58,7 +57,6 @@ import org.thingsboard.server.dao.device.DeviceService;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -75,21 +73,7 @@ public class TbGetOriginatorFieldsNodeTest {
 
     private static final DeviceId DUMMY_DEVICE_ORIGINATOR = new DeviceId(UUID.randomUUID());
     private static final TenantId DUMMY_TENANT_ID = new TenantId(UUID.randomUUID());
-    private static final ListeningExecutor DB_EXECUTOR = new ListeningExecutor() {
-        @Override
-        public <T> ListenableFuture<T> executeAsync(Callable<T> task) {
-            try {
-                return Futures.immediateFuture(task.call());
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        @Override
-        public void execute(@NotNull Runnable command) {
-            command.run();
-        }
-    };
+    private static final ListeningExecutor DB_EXECUTOR = new TestDbCallbackExecutor();
     @Mock
     private TbContext ctxMock;
     @Mock
@@ -164,7 +148,7 @@ public class TbGetOriginatorFieldsNodeTest {
     public void givenMsgDataIsNotAnJsonObjectAndFetchToData_whenOnMsg_thenException() {
         // GIVEN
         node.fetchTo = FetchTo.DATA;
-        msg = TbMsg.newMsg("SOME_MESSAGE_TYPE", DUMMY_DEVICE_ORIGINATOR, new TbMsgMetaData(), "[]");
+        msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DUMMY_DEVICE_ORIGINATOR, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_ARRAY);
 
         // WHEN
         var exception = assertThrows(IllegalArgumentException.class, () -> node.onMsg(ctxMock, msg));
@@ -193,7 +177,49 @@ public class TbGetOriginatorFieldsNodeTest {
         node.fetchTo = FetchTo.DATA;
         var msgMetaData = new TbMsgMetaData();
         var msgData = "{\"temp\":42,\"humidity\":77}";
-        msg = TbMsg.newMsg("POST_TELEMETRY_REQUEST", DUMMY_DEVICE_ORIGINATOR, msgMetaData, msgData);
+        msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DUMMY_DEVICE_ORIGINATOR, msgMetaData, msgData);
+
+        when(ctxMock.getDeviceService()).thenReturn(deviceServiceMock);
+        when(ctxMock.getTenantId()).thenReturn(DUMMY_TENANT_ID);
+        when(deviceServiceMock.findDeviceById(eq(DUMMY_TENANT_ID), eq(device.getId()))).thenReturn(device);
+
+        when(ctxMock.getDbCallbackExecutor()).thenReturn(DB_EXECUTOR);
+
+        // WHEN
+        node.onMsg(ctxMock, msg);
+
+        // THEN
+        var actualMessageCaptor = ArgumentCaptor.forClass(TbMsg.class);
+        verify(ctxMock, times(1)).tellSuccess(actualMessageCaptor.capture());
+        verify(ctxMock, never()).tellFailure(any(), any());
+
+        var expectedMsgData = "{\"temp\":42,\"humidity\":77,\"originatorName\":\"Test device\",\"originatorType\":\"Test device type\"}";
+
+        assertThat(actualMessageCaptor.getValue().getData()).isEqualTo(expectedMsgData);
+        assertThat(actualMessageCaptor.getValue().getMetaData()).isEqualTo(msgMetaData);
+    }
+
+    @Test
+    public void givenDeviceWithEmptyLabel_whenOnMsg_thenShouldTellSuccessAndFetchToData() throws TbNodeException, ExecutionException, InterruptedException {
+        // GIVEN
+        var device = new Device();
+        device.setId(DUMMY_DEVICE_ORIGINATOR);
+        device.setName("Test device");
+        device.setType("Test device type");
+        device.setLabel("");
+
+        config.setDataMapping(Map.of(
+                "name", "originatorName",
+                "type", "originatorType",
+                "label", "originatorLabel"));
+        config.setIgnoreNullStrings(true);
+        config.setFetchTo(FetchTo.DATA);
+
+        node.config = config;
+        node.fetchTo = FetchTo.DATA;
+        var msgMetaData = new TbMsgMetaData();
+        var msgData = "{\"temp\":42,\"humidity\":77}";
+        msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DUMMY_DEVICE_ORIGINATOR, msgMetaData, msgData);
 
         when(ctxMock.getDeviceService()).thenReturn(deviceServiceMock);
         when(ctxMock.getTenantId()).thenReturn(DUMMY_TENANT_ID);
@@ -236,7 +262,7 @@ public class TbGetOriginatorFieldsNodeTest {
                 "testKey1", "testValue1",
                 "testKey2", "123"));
         var msgData = "[\"value1\",\"value2\"]";
-        msg = TbMsg.newMsg("POST_TELEMETRY_REQUEST", DUMMY_DEVICE_ORIGINATOR, msgMetaData, msgData);
+        msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DUMMY_DEVICE_ORIGINATOR, msgMetaData, msgData);
 
         when(ctxMock.getDeviceService()).thenReturn(deviceServiceMock);
         when(ctxMock.getTenantId()).thenReturn(DUMMY_TENANT_ID);
@@ -284,7 +310,7 @@ public class TbGetOriginatorFieldsNodeTest {
                 "testKey1", "testValue1",
                 "testKey2", "123"));
         var msgData = "[\"value1\",\"value2\"]";
-        msg = TbMsg.newMsg("POST_TELEMETRY_REQUEST", DUMMY_DEVICE_ORIGINATOR, msgMetaData, msgData);
+        msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DUMMY_DEVICE_ORIGINATOR, msgMetaData, msgData);
 
         when(ctxMock.getDeviceService()).thenReturn(deviceServiceMock);
         when(ctxMock.getTenantId()).thenReturn(DUMMY_TENANT_ID);
@@ -342,7 +368,7 @@ public class TbGetOriginatorFieldsNodeTest {
                 "testKey1", "testValue1",
                 "testKey2", "123"));
         var msgData = "[\"value1\",\"value2\"]";
-        msg = TbMsg.newMsg("POST_TELEMETRY_REQUEST", new DashboardId(UUID.randomUUID()), msgMetaData, msgData);
+        msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, new DashboardId(UUID.randomUUID()), msgMetaData, msgData);
 
         when(ctxMock.getDbCallbackExecutor()).thenReturn(DB_EXECUTOR);
 

@@ -52,7 +52,6 @@ import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
@@ -82,6 +81,7 @@ import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.JsonDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.limit.LimitedApi;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
@@ -89,7 +89,6 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
-import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.common.transport.util.JsonUtils;
@@ -451,7 +450,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 metaData.putValue("deviceType", sessionInfo.getDeviceType());
                 metaData.putValue("ts", tsKv.getTs() + "");
                 JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
-                sendToRuleEngine(tenantId, deviceId, sessionInfo, json, metaData, SessionMsgType.POST_TELEMETRY_REQUEST, packCallback);
+                sendToRuleEngine(tenantId, deviceId, sessionInfo, json, metaData, TbMsgType.POST_TELEMETRY_REQUEST, packCallback);
             }
         }
     }
@@ -466,7 +465,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             TbMsgMetaData metaData = new TbMsgMetaData();
             metaData.putValue("deviceName", sessionInfo.getDeviceName());
             metaData.putValue("deviceType", sessionInfo.getDeviceType());
-            sendToRuleEngine(tenantId, deviceId, sessionInfo, json, metaData, SessionMsgType.POST_ATTRIBUTES_REQUEST,
+            sendToRuleEngine(tenantId, deviceId, sessionInfo, json, metaData, TbMsgType.POST_ATTRIBUTES_REQUEST,
                     new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(tenantId, getCustomerId(sessionInfo), msg.getKvList().size(), callback)));
         }
     }
@@ -651,12 +650,12 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             }
 
             JsonNode entityNode = JacksonUtil.valueToTree(device);
-            TbMsg tbMsg = TbMsg.newMsg(queueName, DataConstants.ENTITY_CREATED, device.getId(), deviceActionTbMsgMetaData(integration, device),
+            TbMsg tbMsg = TbMsg.newMsg(queueName, TbMsgType.ENTITY_CREATED, device.getId(), deviceActionTbMsgMetaData(integration, device),
                     JacksonUtil.toString(entityNode), ruleChainId, null);
 
             process(device.getTenantId(), tbMsg, null);
         } catch (IllegalArgumentException e) {
-            log.warn("[{}] Failed to push device action to rule engine: {}", device.getId(), DataConstants.ENTITY_CREATED, e);
+            log.warn("[{}] Failed to push device action to rule engine: {}", device.getId(), TbMsgType.ENTITY_CREATED.name(), e);
         }
     }
 
@@ -673,11 +672,11 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 queueName = assetProfile.getDefaultQueueName();
             }
             JsonNode entityNode = JacksonUtil.valueToTree(asset);
-            TbMsg tbMsg = TbMsg.newMsg(queueName, DataConstants.ENTITY_CREATED, asset.getId(), asset.getCustomerId(), assetActionTbMsgMetaData(integration, asset),
+            TbMsg tbMsg = TbMsg.newMsg(queueName, TbMsgType.ENTITY_CREATED, asset.getId(), asset.getCustomerId(), assetActionTbMsgMetaData(integration, asset),
                     JacksonUtil.toString(entityNode), ruleChainId, null);
             process(integration.getTenantId(), tbMsg, null);
         } catch (IllegalArgumentException e) {
-            log.warn("[{}] Failed to push asset action to rule engine: {}", asset.getId(), DataConstants.ENTITY_CREATED, e);
+            log.warn("[{}] Failed to push asset action to rule engine: {}", asset.getId(), TbMsgType.ENTITY_CREATED.name(), e);
         }
     }
 
@@ -685,20 +684,20 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     private void pushEntityGroupCreatedEventToRuleEngine(AbstractIntegration integration, EntityGroup entityGroup) {
         try {
             JsonNode entityNode = JacksonUtil.valueToTree(entityGroup);
-            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, entityGroup.getId(), getTbMsgMetaData(integration), JacksonUtil.toString(entityNode));
+            TbMsg tbMsg = TbMsg.newMsg(TbMsgType.ENTITY_CREATED, entityGroup.getId(), getTbMsgMetaData(integration), JacksonUtil.toString(entityNode));
             process(integration.getTenantId(), tbMsg, null);
         } catch (IllegalArgumentException e) {
-            log.warn("[{}] Failed to push entityGroup action to rule engine: {}", entityGroup.getId(), DataConstants.ENTITY_CREATED, e);
+            log.warn("[{}] Failed to push entityGroup action to rule engine: {}", entityGroup.getId(), TbMsgType.ENTITY_CREATED.name(), e);
         }
     }
 
     private void pushCustomerCreatedEventToRuleEngine(AbstractIntegration integration, Customer customer) {
         try {
             JsonNode entityNode = JacksonUtil.valueToTree(customer);
-            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, customer.getId(), customer.getParentCustomerId(), getTbMsgMetaData(integration), JacksonUtil.toString(entityNode));
+            TbMsg tbMsg = TbMsg.newMsg(TbMsgType.ENTITY_CREATED, customer.getId(), customer.getParentCustomerId(), getTbMsgMetaData(integration), JacksonUtil.toString(entityNode));
             process(customer.getTenantId(), tbMsg, null);
         } catch (IllegalArgumentException e) {
-            log.warn("[{}] Failed to push customer action to rule engine: {}", customer.getId(), DataConstants.ENTITY_CREATED, e);
+            log.warn("[{}] Failed to push customer action to rule engine: {}", customer.getId(), TbMsgType.ENTITY_CREATED.name(), e);
         }
     }
 
@@ -749,7 +748,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             metaData.putValue("ts", tsKv.getTs() + "");
             JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
             sendToRuleEngine(asset.getTenantId(), asset.getId(), asset.getAssetProfileId(),
-                    asset.getCustomerId(), json, metaData, SessionMsgType.POST_TELEMETRY_REQUEST, packCallback);
+                    asset.getCustomerId(), json, metaData, TbMsgType.POST_TELEMETRY_REQUEST, packCallback);
         }
     }
 
@@ -759,12 +758,12 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         metaData.putValue("assetName", asset.getName());
         metaData.putValue("assetType", asset.getType());
         sendToRuleEngine(asset.getTenantId(), asset.getId(), asset.getAssetProfileId(),
-                asset.getCustomerId(), json, metaData, SessionMsgType.POST_ATTRIBUTES_REQUEST,
+                asset.getCustomerId(), json, metaData, TbMsgType.POST_ATTRIBUTES_REQUEST,
                      new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(asset.getTenantId(), asset.getCustomerId(), msg.getKvList().size(), callback)));
     }
 
     private void sendToRuleEngine(TenantId tenantId, DeviceId deviceId, TransportProtos.SessionInfoProto sessionInfo, JsonObject json,
-                                  TbMsgMetaData metaData, SessionMsgType sessionMsgType, TbQueueCallback callback) {
+                                  TbMsgMetaData metaData, TbMsgType msgType, TbQueueCallback callback) {
         DeviceProfileId deviceProfileId = new DeviceProfileId(new UUID(sessionInfo.getDeviceProfileIdMSB(), sessionInfo.getDeviceProfileIdLSB()));
 
         DeviceProfile deviceProfile = deviceProfileCache.get(tenantId, deviceProfileId);
@@ -780,13 +779,13 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             queueName = deviceProfile.getDefaultQueueName();
         }
 
-        TbMsg tbMsg = TbMsg.newMsg(queueName, sessionMsgType.name(), deviceId, getCustomerId(sessionInfo), metaData, gson.toJson(json), ruleChainId, null);
+        TbMsg tbMsg = TbMsg.newMsg(queueName, msgType, deviceId, getCustomerId(sessionInfo), metaData, gson.toJson(json), ruleChainId, null);
 
         sendToRuleEngine(tenantId, tbMsg, callback);
     }
 
     private void sendToRuleEngine(TenantId tenantId, AssetId assetId, AssetProfileId assetProfileId, CustomerId customerId, JsonObject json,
-                                  TbMsgMetaData metaData, SessionMsgType sessionMsgType, TbQueueCallback callback) {
+                                  TbMsgMetaData metaData, TbMsgType msgType, TbQueueCallback callback) {
         AssetProfile assetProfile = assetProfileCache.get(tenantId, assetProfileId);
         RuleChainId ruleChainId;
         String queueName;
@@ -800,7 +799,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             queueName = assetProfile.getDefaultQueueName();
         }
 
-        TbMsg tbMsg = TbMsg.newMsg(queueName, sessionMsgType.name(), assetId, customerId, metaData, gson.toJson(json), ruleChainId, null);
+        TbMsg tbMsg = TbMsg.newMsg(queueName, msgType, assetId, customerId, metaData, gson.toJson(json), ruleChainId, null);
 
         sendToRuleEngine(tenantId, tbMsg, callback);
     }
