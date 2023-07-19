@@ -111,8 +111,10 @@
                               [ruleNode]="editingRuleNode"
                               [ruleChainId]="ruleChain.id?.id"
                               [ruleChainType]="ruleChainType"
-                              [isEdit]="!readonly"
-                              [isReadOnly]="readonly">
+                              [isEdit]="true"
+                              [isReadOnly]="false"
+                              (initRuleNode)="onRuleNodeInit()"
+                              (changeScript)="switchToFirstTab()">
                 </tb-rule-node>
               </mat-tab>
               <mat-tab *ngIf="editingRuleNode.ruleNodeId" label="{{ 'rulenode.events' | translate }}" #eventsTab="matTab">
@@ -120,7 +122,10 @@
                                 [defaultEventType]="debugEventTypes.DEBUG_RULE_NODE"
                                 [active]="eventsTab.isActive"
                                 [tenantId]="ruleChain.tenantId.id"
-                                [entityId]="editingRuleNode.ruleNodeId"></tb-event-table>
+                                [entityId]="editingRuleNode.ruleNodeId"
+                                [functionTestButtonLabel]="ruleNodeTestButtonLabel"
+                                (debugEventSelected)="onDebugEventSelected($event)">
+                </tb-event-table>
               </mat-tab>
               <mat-tab label="{{ 'rulenode.help' | translate }}">
                 <div class="tb-rule-node-help">
