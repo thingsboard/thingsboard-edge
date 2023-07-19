@@ -43,6 +43,7 @@ import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.msg.TbMsgType;
@@ -152,7 +153,7 @@ public class TbMsgGeneratorNode implements TbNode {
         lastScheduledTs = lastScheduledTs + delay;
         long curDelay = Math.max(0L, (lastScheduledTs - curTs));
         TbMsg tickMsg = ctx.newMsg(config.getQueueName(), TbMsgType.GENERATOR_NODE_SELF_MSG, ctx.getSelfId(),
-                msg != null ? msg.getCustomerId() : null, TbMsgMetaData.EMPTY, TbMsg.EMPTY_STRING);
+                getCustomerIdFromMsg(msg), TbMsgMetaData.EMPTY, TbMsg.EMPTY_STRING);
         nextTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, curDelay);
     }
@@ -173,6 +174,10 @@ public class TbMsgGeneratorNode implements TbNode {
         }
         return Futures.immediateFuture(prevMsg);
 
+    }
+
+    private CustomerId getCustomerIdFromMsg(TbMsg msg) {
+        return msg != null ? msg.getCustomerId() : null;
     }
 
     @Override

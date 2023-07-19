@@ -48,14 +48,26 @@ public enum EntityType {
     ASSET,
     DEVICE,
     ALARM,
-    ENTITY_GROUP,
+    ENTITY_GROUP {
+        // backward compatibility for TbOriginatorTypeSwitchNode to return correct rule node connection.
+        @Override
+        public String getNormalName() {
+            return "Entity Group";
+        }
+    },
     CONVERTER,
     INTEGRATION,
     RULE_CHAIN,
     RULE_NODE,
     SCHEDULER_EVENT,
     BLOB_ENTITY,
-    ENTITY_VIEW,
+    ENTITY_VIEW {
+        // backward compatibility for TbOriginatorTypeSwitchNode to return correct rule node connection.
+        @Override
+        public String getNormalName() {
+            return "Entity View";
+        }
+    },
     WIDGETS_BUNDLE,
     WIDGET_TYPE,
     ROLE,
@@ -74,7 +86,6 @@ public enum EntityType {
     NOTIFICATION_REQUEST,
     NOTIFICATION,
     NOTIFICATION_RULE;
-
 
     public static final List<String> NORMAL_NAMES = EnumSet.allOf(EntityType.class).stream()
             .map(EntityType::getNormalName).collect(Collectors.toUnmodifiableList());
