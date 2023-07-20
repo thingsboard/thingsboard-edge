@@ -176,6 +176,7 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
   public sources: TimeseriesTableSource[];
   public sourceIndex: number;
   public noDataDisplayMessageText: string;
+  public hasRowAction: boolean;
   private setCellButtonAction: boolean;
 
   private cellContentCache: Array<any> = [];
@@ -315,6 +316,7 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
     this.ctx.widgetActions = [this.searchAction, this.columnDisplayAction];
 
     this.setCellButtonAction = !!this.ctx.actionsApi.getActionDescriptors('actionCellButton').length;
+    this.hasRowAction = !!this.ctx.actionsApi.getActionDescriptors('rowClick').length;
 
     this.searchAction.show = isDefined(this.settings.enableSearch) ? this.settings.enableSearch : true;
     this.columnDisplayAction.show = isDefined(this.settings.enableSelectColumnDisplay) ? this.settings.enableSelectColumnDisplay : true;
