@@ -36,6 +36,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
@@ -191,13 +192,15 @@ public class EntityGroupControllerTest extends AbstractControllerTest {
 
     @Test
     public void testShouldNotAddEntityToGroupWithOtherOwner() throws Exception {
+        loginTenantAdmin();
+
         EntityGroup entityGroup = new EntityGroup();
         entityGroup.setName("Entity Group");
         entityGroup.setType(EntityType.DEVICE);
         EntityGroup savedEntityGroup = doPost("/api/entityGroup", entityGroup, EntityGroup.class);
 
         Device device = new Device();
-        device.setName("My device");
+        device.setName(RandomStringUtils.randomAlphabetic(8));
         device.setType("default");
         device.setCustomerId(customerId);
         Device savedDevice = doPost("/api/device", device, Device.class);
@@ -206,6 +209,6 @@ public class EntityGroupControllerTest extends AbstractControllerTest {
         strEntityIds.add(savedDevice.getId().getId().toString());
         doPost("/api/entityGroup/" + savedEntityGroup.getId() + "/addEntities", strEntityIds)
                 .andExpect(status().isBadRequest())
-                .andExpect(statusReason(containsString("Entity Group with such name, type and owner already exists!")));
+                .andExpect(statusReason(containsString("Unable to add entities to entity group: Entity owner and group owner are different")));
     }
 }
