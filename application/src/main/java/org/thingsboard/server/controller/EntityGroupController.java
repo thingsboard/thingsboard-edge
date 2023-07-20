@@ -52,6 +52,7 @@ import org.thingsboard.server.common.data.ContactBased;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -742,6 +743,13 @@ public class EntityGroupController extends AutoCommitController {
             for (String strEntityId : strEntityIds) {
                 EntityId entityId = EntityIdFactory.getByTypeAndId(entityGroup.getType(), strEntityId);
                 checkEntityId(entityId, Operation.READ);
+                EntityId groupOwner = ownersCacheService.getOwner(getTenantId(), entityGroupId);
+                EntityId entityOwner = ownersCacheService.getOwner(getTenantId(), entityId);
+                if (!entityOwner.equals(groupOwner)) {
+                    throw new ThingsboardException("Unable to add entities to entity group: " +
+                            "Entity owner and group owner are different", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+                }
+
                 entityIds.add(entityId);
             }
             entityGroupService.addEntitiesToEntityGroup(getTenantId(), entityGroupId, entityIds);

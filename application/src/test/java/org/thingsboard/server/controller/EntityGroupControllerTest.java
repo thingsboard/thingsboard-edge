@@ -35,6 +35,8 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
@@ -185,5 +187,25 @@ public class EntityGroupControllerTest extends AbstractControllerTest {
                 new TypeReference<>() {}, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getTotalElements());
+    }
+
+    @Test
+    public void testShouldNotAddEntityToGroupWithOtherOwner() throws Exception {
+        EntityGroup entityGroup = new EntityGroup();
+        entityGroup.setName("Entity Group");
+        entityGroup.setType(EntityType.DEVICE);
+        EntityGroup savedEntityGroup = doPost("/api/entityGroup", entityGroup, EntityGroup.class);
+
+        Device device = new Device();
+        device.setName("My device");
+        device.setType("default");
+        device.setCustomerId(customerId);
+        Device savedDevice = doPost("/api/device", device, Device.class);
+
+        List<String> strEntityIds = new ArrayList<>();
+        strEntityIds.add(savedDevice.getId().getId().toString());
+        doPost("/api/entityGroup/" + savedEntityGroup.getId() + "/addEntities", strEntityIds)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString("Entity Group with such name, type and owner already exists!")));
     }
 }
