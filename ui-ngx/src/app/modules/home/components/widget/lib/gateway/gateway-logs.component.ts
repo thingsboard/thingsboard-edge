@@ -48,6 +48,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { GatewayLogLevel } from '@home/components/widget/lib/gateway/gateway-configuration.component';
 import { DialogService } from '@core/services/dialog.service';
 import { WidgetContext } from '@home/models/widget-component.models';
+import { MatPaginator } from '@angular/material/paginator';
 
 
 export interface GatewayConnector {
@@ -88,6 +89,7 @@ export class GatewayLogsComponent extends PageComponent implements AfterViewInit
 
   @ViewChild('searchInput') searchInputField: ElementRef;
   @ViewChild(MatSort) sort: MatSort;
+  @ViewChild(MatPaginator) paginator: MatPaginator;
 
   connectorForm: FormGroup;
 
@@ -140,7 +142,7 @@ export class GatewayLogsComponent extends PageComponent implements AfterViewInit
               public dialog: MatDialog) {
     super(store);
     const sortOrder: SortOrder = {property: 'ts', direction: Direction.DESC};
-    this.pageLink = new PageLink(Number.POSITIVE_INFINITY, 0, null, sortOrder);
+    this.pageLink = new PageLink(10, 0, null, sortOrder);
     this.dataSource = new MatTableDataSource<AttributeData>([]);
 
   }
@@ -148,6 +150,7 @@ export class GatewayLogsComponent extends PageComponent implements AfterViewInit
 
   ngAfterViewInit() {
     this.dataSource.sort = this.sort;
+    this.dataSource.paginator = this.paginator;
     this.ctx.defaultSubscription.onTimewindowChangeFunction = timewindow => {
       this.ctx.defaultSubscription.options.timeWindowConfig = timewindow;
       this.ctx.defaultSubscription.updateDataSubscriptions();
