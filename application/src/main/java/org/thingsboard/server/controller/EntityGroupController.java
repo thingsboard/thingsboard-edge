@@ -52,7 +52,6 @@ import org.thingsboard.server.common.data.ContactBased;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.audit.ActionType;
