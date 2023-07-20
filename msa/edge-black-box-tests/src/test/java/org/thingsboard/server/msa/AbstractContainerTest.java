@@ -241,7 +241,7 @@ public abstract class AbstractContainerTest {
 
     protected static DeviceProfile createCustomDeviceProfile(String deviceProfileName,
                                                              DeviceProfileTransportConfiguration deviceProfileTransportConfiguration) {
-        return createDeviceProfile(deviceProfileName, deviceProfileTransportConfiguration);
+        return doCreateDeviceProfile(deviceProfileName, deviceProfileTransportConfiguration, cloudRestClient);
     }
 
     protected static DeviceProfile createCustomDeviceProfile(String deviceProfileName) {
@@ -275,7 +275,11 @@ public abstract class AbstractContainerTest {
         }
     };
 
-    protected static DeviceProfile createDeviceProfile(String name, DeviceProfileTransportConfiguration deviceProfileTransportConfiguration) {
+    protected static DeviceProfile createDeviceProfileOnEdge(String name) {
+        return doCreateDeviceProfile(name, new DefaultDeviceProfileTransportConfiguration(), edgeRestClient);
+    }
+
+    private static DeviceProfile doCreateDeviceProfile(String name, DeviceProfileTransportConfiguration deviceProfileTransportConfiguration, RestClient restClient) {
         DeviceProfile deviceProfile = new DeviceProfile();
         deviceProfile.setName(name);
         deviceProfile.setType(DeviceProfileType.DEFAULT);
@@ -293,7 +297,7 @@ public abstract class AbstractContainerTest {
         deviceProfile.setDefaultRuleChainId(null);
         deviceProfile.setDefaultQueueName("Main");
         extendDeviceProfileData(deviceProfile);
-        return cloudRestClient.saveDeviceProfile(deviceProfile);
+        return restClient.saveDeviceProfile(deviceProfile);
     }
 
     protected static void extendDeviceProfileData(DeviceProfile deviceProfile) {

@@ -30,7 +30,6 @@ import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 
 import javax.annotation.PostConstruct;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -60,9 +59,11 @@ public class CloudEventSourcingListener {
 
     private final List<EntityType> supportableEntityTypes = Arrays.asList(
             EntityType.DEVICE,
+            EntityType.DEVICE_PROFILE,
             EntityType.ALARM,
             EntityType.ENTITY_VIEW,
             EntityType.ASSET,
+            EntityType.ASSET_PROFILE,
             EntityType.DASHBOARD);
 
     @PostConstruct

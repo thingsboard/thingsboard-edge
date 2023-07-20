@@ -154,9 +154,17 @@ public class EntityViewClientTest extends AbstractContainerTest {
                 });
 
         cloudRestClient.deleteEntityView(savedEntityViewOnEdge.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getEntityViewById(savedEntityViewOnEdge.getId()).isEmpty());
 
         // cleanup
         cloudRestClient.deleteAsset(savedAssetOnEdge.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getAssetById(savedAssetOnEdge.getId()).isEmpty());
     }
 
     @Test
@@ -174,23 +182,21 @@ public class EntityViewClientTest extends AbstractContainerTest {
                 });
 
         // delete entity view
-        edgeRestClient.deleteEntityView(savedEntityViewOnEdge.getId());
-        Awaitility.await()
-                .pollInterval(500, TimeUnit.MILLISECONDS)
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getEntityViewById(savedEntityViewOnEdge.getId()).isEmpty());
-
         cloudRestClient.deleteEntityView(savedEntityViewOnEdge.getId());
         cloudRestClient.deleteEntityView(savedEntityViewOnCloud.getId());
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> cloudRestClient.getEntityViewById(savedEntityViewOnEdge.getId()).isEmpty() &&
+                .until(() -> edgeRestClient.getEntityViewById(savedEntityViewOnEdge.getId()).isEmpty() &&
+                        cloudRestClient.getEntityViewById(savedEntityViewOnEdge.getId()).isEmpty() &&
                         cloudRestClient.getEntityViewById(savedEntityViewOnCloud.getId()).isEmpty());
 
         // cleanup
-        edgeRestClient.deleteDevice(device.getId());
         cloudRestClient.deleteDevice(device.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getDeviceById(device.getId()).isEmpty());
     }
 
     private EntityView saveEntityViewOnEdge(String entityViewName, String type, EntityId entityId) {

@@ -15,7 +15,6 @@
  */
 package org.thingsboard.server.service.cloud;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -76,6 +75,8 @@ public class DefaultCloudNotificationService implements CloudNotificationService
                 case EDGE:
                 case ASSET:
                 case DEVICE:
+                case ASSET_PROFILE:
+                case DEVICE_PROFILE:
                 case ENTITY_VIEW:
                 case DASHBOARD:
                 case RULE_CHAIN:

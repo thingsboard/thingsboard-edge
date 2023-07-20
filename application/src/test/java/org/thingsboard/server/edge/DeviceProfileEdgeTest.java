@@ -276,6 +276,7 @@ public class DeviceProfileEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDeviceProfileToCloud() throws Exception {
         RuleChainId ruleChainId = createEdgeRuleChainAndAssignToEdge("Device Profile Rule Chain");
         DashboardId dashboardId = createDashboardAndAssignToEdge("Device Profile Dashboard");

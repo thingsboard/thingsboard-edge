@@ -183,14 +183,14 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                     result.add(deviceProcessor.processDeviceMsgFromCloud(tenantId, edgeCustomerId, deviceUpdateMsg, queueStartTs));
                 }
             }
-            if (downlinkMsg.getAssetProfileUpdateMsgCount() > 0) {
-                for (AssetProfileUpdateMsg assetProfileUpdateMsg  : downlinkMsg.getAssetProfileUpdateMsgList()) {
-                    result.add(assetProfileProcessor.processAssetProfileMsgFromCloud(tenantId, assetProfileUpdateMsg));
-                }
-            }
             if (downlinkMsg.getDeviceCredentialsUpdateMsgCount() > 0) {
                 for (DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg : downlinkMsg.getDeviceCredentialsUpdateMsgList()) {
                     result.add(deviceProcessor.processDeviceCredentialsMsg(tenantId, deviceCredentialsUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getAssetProfileUpdateMsgCount() > 0) {
+                for (AssetProfileUpdateMsg assetProfileUpdateMsg  : downlinkMsg.getAssetProfileUpdateMsgList()) {
+                    result.add(assetProfileProcessor.processAssetProfileMsgFromCloud(tenantId, assetProfileUpdateMsg, queueStartTs));
                 }
             }
             if (downlinkMsg.getAssetUpdateMsgCount() > 0) {

@@ -205,6 +205,31 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
         unAssignFromEdgeAndDeleteRuleChain(savedRuleChainId);
     }
 
+    @Test
+    public void testDeviceProfileToCloud() {
+        // create device profile on edge
+        DeviceProfile saveDeviceProfileOnEdge = createDeviceProfileOnEdge("Device Profile On Edge");
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getDeviceProfileById(saveDeviceProfileOnEdge.getId()).isPresent());
+
+        // update asset profile
+        saveDeviceProfileOnEdge.setName("Device Profile On Edge Updated");
+        edgeRestClient.saveDeviceProfile(saveDeviceProfileOnEdge);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> "Device Profile On Edge Updated".equals(cloudRestClient.getDeviceProfileById(saveDeviceProfileOnEdge.getId()).get().getName()));
+
+        // cleanup - we can delete asset profile only on Cloud
+        cloudRestClient.deleteDeviceProfile(saveDeviceProfileOnEdge.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getDeviceProfileById(saveDeviceProfileOnEdge.getId()).isEmpty());
+    }
+
     private SnmpDeviceProfileTransportConfiguration createSnmpDeviceProfileTransportConfiguration() {
         SnmpDeviceProfileTransportConfiguration transportConfiguration = new SnmpDeviceProfileTransportConfiguration();
         List<SnmpCommunicationConfig> communicationConfigs = new ArrayList<>();

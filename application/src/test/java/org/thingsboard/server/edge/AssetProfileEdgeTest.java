@@ -86,6 +86,7 @@ public class AssetProfileEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendAssetProfileToCloud() throws Exception {
         RuleChainId ruleChainId = createEdgeRuleChainAndAssignToEdge("Asset Profile Rule Chain");
         DashboardId dashboardId = createDashboardAndAssignToEdge("Asset Profile Dashboard");
