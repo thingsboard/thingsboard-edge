@@ -743,11 +743,6 @@ public class DefaultTbClusterService implements TbClusterService {
         }
     }
 
-    private void sendNotificationMsgToCloud(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
-                                            EdgeEventActionType cloudEventAction) {
-        sendNotificationMsgToCloud(tenantId, entityId, null, cloudEventType, cloudEventAction, null);
-    }
-
     @Override
     public void sendNotificationMsgToCloud(TenantId tenantId, EntityId entityId, String entityBody,
                                            CloudEventType cloudEventType, EdgeEventActionType cloudEventAction,

@@ -456,7 +456,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
     public void testFindDeviceTypesByTenantId() throws Exception {
         // TODO: @voba device profiles are not created on edge at the moment
         doPost("/api/deviceProfile", this.createDeviceProfile("typeA"), DeviceProfile.class);
-        doPost("/api/deviceProfile", this.createDeviceProfile("typeB"), DeviceProfile.class);
+        DeviceProfile deviceProfile = doPost("/api/deviceProfile", this.createDeviceProfile("typeB"), DeviceProfile.class);
         doPost("/api/deviceProfile", this.createDeviceProfile("typeC"), DeviceProfile.class);
 
         List<Device> devices = new ArrayList<>();

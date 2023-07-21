@@ -260,7 +260,7 @@ public class AssetControllerTest extends AbstractControllerTest {
 
         // TODO: @voba asset profiles are not created on edge at the moment
         doPost("/api/assetProfile", this.createAssetProfile("typeA"), AssetProfile.class);
-        doPost("/api/assetProfile", this.createAssetProfile("typeB"), AssetProfile.class);
+        AssetProfile assetProfile = doPost("/api/assetProfile", this.createAssetProfile("typeB"), AssetProfile.class);
         doPost("/api/assetProfile", this.createAssetProfile("typeC"), AssetProfile.class);
 
         Mockito.reset(tbClusterService, auditLogService);
