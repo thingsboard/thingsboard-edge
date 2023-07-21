@@ -290,6 +290,16 @@ import {
   SchedulerEventsWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/scheduler/scheduler-events-widget-settings.component';
 import { LegendConfigComponent } from '@home/components/widget/lib/settings/common/legend-config.component';
+import {
+  ImageCardsSelectOptionDirective,
+  ImageCardsSelectComponent
+} from '@home/components/widget/lib/settings/common/image-cards-select.component';
+import { FontSettingsComponent } from '@home/components/widget/lib/settings/common/font-settings.component';
+import { FontSettingsPanelComponent } from '@home/components/widget/lib/settings/common/font-settings-panel.component';
+import { ColorSettingsComponent } from '@home/components/widget/lib/settings/common/color-settings.component';
+import {
+  ColorSettingsPanelComponent
+} from '@home/components/widget/lib/settings/common/color-settings-panel.component';
 
 @NgModule({
   declarations: [
@@ -392,6 +402,12 @@ import { LegendConfigComponent } from '@home/components/widget/lib/settings/comm
     TripAnimationWidgetSettingsComponent,
     DocLinksWidgetSettingsComponent,
     QuickLinksWidgetSettingsComponent,
+    ImageCardsSelectOptionDirective,
+    ImageCardsSelectComponent,
+    FontSettingsComponent,
+    FontSettingsPanelComponent,
+    ColorSettingsComponent,
+    ColorSettingsPanelComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -501,6 +517,12 @@ import { LegendConfigComponent } from '@home/components/widget/lib/settings/comm
     TripAnimationWidgetSettingsComponent,
     DocLinksWidgetSettingsComponent,
     QuickLinksWidgetSettingsComponent,
+    ImageCardsSelectOptionDirective,
+    ImageCardsSelectComponent,
+    FontSettingsComponent,
+    FontSettingsPanelComponent,
+    ColorSettingsComponent,
+    ColorSettingsPanelComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent

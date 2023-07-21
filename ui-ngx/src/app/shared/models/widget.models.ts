@@ -72,7 +72,6 @@ export interface WidgetTypeTemplate {
 export interface WidgetTypeData {
   name: string;
   icon: string;
-  isMdiIcon?: boolean;
   configHelpLinkId: string;
   template: WidgetTypeTemplate;
 }
@@ -109,7 +108,6 @@ export const widgetTypesData = new Map<widgetType, WidgetTypeData>(
         name: 'widget.rpc',
         icon: 'mdi:developer-board',
         configHelpLinkId: 'widgetsConfigRpc',
-        isMdiIcon: true,
         template: {
           bundleAlias: 'gpio_widgets',
           alias: 'basic_gpio_control'
@@ -197,6 +195,8 @@ export interface WidgetTypeParameters {
   warnOnPageDataOverflow?: boolean;
   ignoreDataUpdateOnIntervalTick?: boolean;
   processNoDataByWidget?: boolean;
+  previewWidth?: string;
+  previewHeight?: string;
 }
 
 export interface WidgetControllerDescriptor {

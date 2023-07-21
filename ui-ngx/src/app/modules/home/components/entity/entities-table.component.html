@@ -109,8 +109,7 @@
                     matTooltip="{{ actionDescriptor.name }}"
                     matTooltipPosition="above"
                     (click)="actionDescriptor.onAction($event, headerButton)">
-              <mat-icon *ngIf="actionDescriptor.isMdiIcon" [svgIcon]="actionDescriptor.icon"></mat-icon>
-              <mat-icon *ngIf="!actionDescriptor.isMdiIcon">{{actionDescriptor.icon}}</mat-icon>
+              <tb-icon>{{actionDescriptor.icon}}</tb-icon>
             </button>
             <button mat-icon-button [disabled]="isLoading$ | async" (click)="updateData()"
                     matTooltip="{{ 'action.refresh' | translate }}"

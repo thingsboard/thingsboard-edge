@@ -265,6 +265,7 @@ export class WidgetContext {
     formatValue
   };
 
+  $widgetElement: JQuery<HTMLElement>;
   $container: JQuery<HTMLElement>;
   $containerParent: JQuery<HTMLElement>;
   width: number;
