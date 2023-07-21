@@ -163,6 +163,7 @@ import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.ClaimDevicesService;
+import org.thingsboard.server.dao.device.DeviceConnectivityService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -224,6 +225,7 @@ import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolation;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -275,6 +277,9 @@ public abstract class BaseController {
 
     @Autowired
     protected DeviceService deviceService;
+
+    @Autowired
+    protected DeviceConnectivityService deviceConnectivityService;
 
     @Autowired
     protected DeviceProfileService deviceProfileService;
@@ -1102,6 +1107,10 @@ public abstract class BaseController {
     protected ThingsboardException permissionDenied() {
         return new ThingsboardException(YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION,
                 ThingsboardErrorCode.PERMISSION_DENIED);
+    }
+
+    String checkSslServerPemFile(String protocol) throws ThingsboardException, IOException {
+        return checkNotNull(deviceConnectivityService.getSslServerChain(protocol), "Mqtt ssl server chain pem file is not found");
     }
 
     OtaPackage checkOtaPackageId(OtaPackageId otaPackageId, Operation operation) throws ThingsboardException {

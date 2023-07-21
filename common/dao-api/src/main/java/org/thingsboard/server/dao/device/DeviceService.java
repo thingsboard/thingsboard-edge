@@ -52,16 +52,12 @@ import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.dao.device.provision.ProvisionRequest;
 import org.thingsboard.server.dao.entity.EntityDaoService;
 
-import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 public interface DeviceService extends EntityDaoService {
 
     Device findDeviceById(TenantId tenantId, DeviceId deviceId);
-
-    Map<String, String> findDevicePublishTelemetryCommands(String baseUrl, Device device) throws URISyntaxException;
 
     DeviceInfo findDeviceInfoById(TenantId tenantId, DeviceId deviceId);
 
