@@ -98,11 +98,11 @@ public class UserEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(savedTenantAdmin.getUuidId().getLeastSignificantBits(), userCredentialsUpdateMsg.getUserIdLSB());
         Assert.assertTrue(passwordEncoder.matches(changePasswordRequest.getNewPassword(), userCredentialsUpdateMsg.getPassword()));
 
-        // delete user
         edgeImitator.expectMessageAmount(2);
         loginTenantAdmin();
         Assert.assertTrue(edgeImitator.waitForMessages());
 
+        // delete user
         edgeImitator.expectMessageAmount(1);
         doDelete("/api/user/" + savedTenantAdmin.getUuidId())
                 .andExpect(status().isOk());
@@ -184,11 +184,11 @@ public class UserEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(savedCustomerUser.getUuidId().getLeastSignificantBits(), userCredentialsUpdateMsg.getUserIdLSB());
         Assert.assertTrue(passwordEncoder.matches(changePasswordRequest.getNewPassword(), userCredentialsUpdateMsg.getPassword()));
 
-        // delete user
         edgeImitator.expectMessageAmount(2);
         loginTenantAdmin();
         Assert.assertTrue(edgeImitator.waitForMessages());
 
+        // delete user
         edgeImitator.expectMessageAmount(1);
         doDelete("/api/user/" + savedCustomerUser.getUuidId())
                 .andExpect(status().isOk());
