@@ -28,26 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.notification;
+:host {
+  .notification-type {
+    font-size: 14px;
 
-import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.notification.settings.NotificationSettings;
-import org.thingsboard.server.common.data.notification.settings.UserNotificationSettings;
-
-public interface NotificationSettingsService {
-
-    void saveNotificationSettings(TenantId tenantId, NotificationSettings settings);
-
-    NotificationSettings findNotificationSettings(TenantId tenantId);
-
-    UserNotificationSettings saveUserNotificationSettings(TenantId tenantId, UserId userId, UserNotificationSettings settings);
-
-    UserNotificationSettings getUserNotificationSettings(TenantId tenantId, User user, boolean format);
-
-    void createDefaultNotificationConfigs(TenantId tenantId);
-
-    void updateDefaultNotificationConfigs(TenantId tenantId);
-
+    &-disabled {
+      color: rgba(0, 0, 0, 0.38)
+    }
+  }
 }

@@ -29,6 +29,18 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-export * from './notification-websocket.service';
-export * from './telemetry-websocket.service';
-export * from './websocket.service';
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { SharedModule } from '@shared/shared.module';
+import { AccountRoutingModule } from '@home/pages/account/account-routing.module';
+
+@NgModule({
+  declarations: [
+  ],
+  imports: [
+    CommonModule,
+    SharedModule,
+    AccountRoutingModule
+  ]
+})
+export class AccountModule { }

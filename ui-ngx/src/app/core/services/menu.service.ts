@@ -233,6 +233,7 @@ export class MenuService {
         isMdiIcon: true
       },
       {
+<<<<<<< HEAD
         id: 'notification_rules',
         name: 'notification.rules',
         fullName: 'notification.notification-rules',
@@ -243,6 +244,43 @@ export class MenuService {
       }
     ];
     sections.push(
+=======
+        id: 'account',
+        name: 'profile.profile',
+        type: 'link',
+        path: '/account',
+        disabled: true,
+        icon: 'mdi:message-badge',
+        isMdiIcon: true,
+        pages: [
+          {
+            id: 'personal_info',
+            name: 'account.personal-info',
+            fullName: 'account.personal-info',
+            type: 'link',
+            path: '/account/profile',
+            icon: 'mdi:badge-account-horizontal',
+            isMdiIcon: true
+          },
+          {
+            id: 'security',
+            name: 'security.security',
+            fullName: 'security.security',
+            type: 'link',
+            path: '/account/security',
+            icon: 'lock'
+          },
+          {
+            id: 'notificationSettings',
+            name: 'account.notification-settings',
+            fullName: 'account.notification-settings',
+            type: 'link',
+            path: '/account/notificationSettings',
+            icon: 'settings'
+          }
+        ]
+      },
+>>>>>>> ce/feature/account-notification-settings
       {
         id: 'notifications_center',
         name: 'notification.notification-center',
@@ -1516,10 +1554,59 @@ export class MenuService {
             path: '/assetGroups',
             disabled: disabledItems.indexOf('asset_groups') > -1
           }
+<<<<<<< HEAD
         );
       }
       if (this.userPermissionsService.hasReadGenericPermission(Resource.ASSET_PROFILE)) {
         assetManagementSection.places.push(
+=======
+        ]
+      },
+      {
+        id: 'account',
+        name: 'profile.profile',
+        type: 'link',
+        path: '/account',
+        disabled: true,
+        icon: 'mdi:message-badge',
+        isMdiIcon: true,
+        pages: [
+          {
+            id: 'personal_info',
+            name: 'account.personal-info',
+            fullName: 'account.personal-info',
+            type: 'link',
+            path: '/account/profile',
+            icon: 'mdi:badge-account-horizontal',
+            isMdiIcon: true
+          },
+          {
+            id: 'security',
+            name: 'security.security',
+            fullName: 'security.security',
+            type: 'link',
+            path: '/account/security',
+            icon: 'lock'
+          },
+          {
+            id: 'notificationSettings',
+            name: 'account.notification-settings',
+            fullName: 'account.notification-settings',
+            type: 'link',
+            path: '/account/notificationSettings',
+            icon: 'settings'
+          }
+        ]
+      },
+      {
+        id: 'notifications_center',
+        name: 'notification.notification-center',
+        type: 'link',
+        path: '/notification',
+        icon: 'mdi:message-badge',
+        isMdiIcon: true,
+        pages: [
+>>>>>>> ce/feature/account-notification-settings
           {
             name: 'asset-profile.asset-profiles',
             icon: 'mdi:alpha-a-box',
@@ -2486,10 +2573,45 @@ export class MenuService {
             disabled: disabledItems.indexOf('dashboard_groups') > -1
           }
         ]
+<<<<<<< HEAD
       });
     }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)) {
       homeSections.push(
+=======
+      },
+      {
+        id: 'account',
+        name: 'profile.profile',
+        type: 'link',
+        path: '/account',
+        disabled: true,
+        icon: 'mdi:message-badge',
+        isMdiIcon: true,
+        pages: [
+          {
+            id: 'personal_info',
+            name: 'account.personal-info',
+            fullName: 'account.personal-info',
+            type: 'link',
+            path: '/account/profile',
+            icon: 'mdi:badge-account-horizontal',
+            isMdiIcon: true
+          },
+          {
+            id: 'security',
+            name: 'security.security',
+            fullName: 'security.security',
+            type: 'link',
+            path: '/account/security',
+            icon: 'lock'
+          }
+        ]
+      }
+    );
+    if (authState.edgesSupportEnabled) {
+      sections.push(
+>>>>>>> ce/feature/account-notification-settings
         {
           name: 'scheduler.management',
           places: [

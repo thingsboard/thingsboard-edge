@@ -51,4 +51,6 @@ public class SortOrder {
         ASC, DESC
     }
 
+    public static final SortOrder byCreatedTimeDesc = new SortOrder("createdTime", Direction.DESC);
+
 }

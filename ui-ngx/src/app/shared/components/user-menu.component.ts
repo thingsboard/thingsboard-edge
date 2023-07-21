@@ -118,11 +118,7 @@ export class UserMenuComponent implements OnInit, OnDestroy {
   }
 
   openProfile(): void {
-    this.router.navigate(['profile']);
-  }
-
-  openSecurity(): void {
-    this.router.navigate(['security']);
+    this.router.navigate(['account']);
   }
 
   logout(): void {

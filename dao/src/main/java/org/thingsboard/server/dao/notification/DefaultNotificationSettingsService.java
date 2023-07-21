@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.dao.notification;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -39,9 +41,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.notification.NotificationType;
 import org.thingsboard.server.common.data.notification.settings.NotificationSettings;
+import org.thingsboard.server.common.data.notification.settings.UserNotificationSettings;
+import org.thingsboard.server.common.data.notification.settings.UserNotificationSettings.NotificationPref;
 import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
 import org.thingsboard.server.common.data.notification.targets.platform.AffectedTenantAdministratorsFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.AffectedUserFilter;
@@ -54,10 +60,16 @@ import org.thingsboard.server.common.data.notification.targets.platform.UsersFil
 import org.thingsboard.server.common.data.notification.targets.platform.UsersFilterType;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.dao.user.UserService;
 
 import java.util.Collections;
+import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+
+import static java.util.function.Predicate.not;
 
 @Service
 @RequiredArgsConstructor
@@ -67,8 +79,10 @@ public class DefaultNotificationSettingsService implements NotificationSettingsS
     private final NotificationTargetService notificationTargetService;
     private final NotificationTemplateService notificationTemplateService;
     private final DefaultNotifications defaultNotifications;
+    private final UserService userService;
 
     private static final String SETTINGS_KEY = "notifications";
+    private static final String USER_SETTINGS_KEY = "notificationSettings";
 
     @CacheEvict(cacheNames = CacheConstants.NOTIFICATION_SETTINGS_CACHE, key = "#tenantId")
     @Override
@@ -94,6 +108,50 @@ public class DefaultNotificationSettingsService implements NotificationSettingsS
                     settings.setDeliveryMethodsConfigs(Collections.emptyMap());
                     return settings;
                 });
+    }
+
+    @Override
+    public UserNotificationSettings saveUserNotificationSettings(TenantId tenantId, UserId userId, UserNotificationSettings settings) {
+        User user = userService.findUserById(tenantId, userId);
+        ObjectNode additionalInfo = (ObjectNode) Optional.ofNullable(user.getAdditionalInfo()).orElseGet(JacksonUtil::newObjectNode);
+        additionalInfo.set(USER_SETTINGS_KEY, JacksonUtil.valueToTree(settings));
+        user.setAdditionalInfo(additionalInfo);
+        userService.saveUser(user);
+        return formatUserNotificationSettings(settings);
+    }
+
+    @Override
+    public UserNotificationSettings getUserNotificationSettings(TenantId tenantId, User user, boolean format) {
+        UserNotificationSettings settings = Optional.ofNullable(user.getAdditionalInfo().get(USER_SETTINGS_KEY))
+                .filter(not(JsonNode::isNull))
+                .map(json -> JacksonUtil.treeToValue(json, UserNotificationSettings.class))
+                .orElse(UserNotificationSettings.DEFAULT);
+        if (format) {
+            settings = formatUserNotificationSettings(settings);
+        }
+        return settings;
+    }
+
+    private UserNotificationSettings formatUserNotificationSettings(UserNotificationSettings settings) {
+        Map<NotificationType, NotificationPref> prefs = new EnumMap<>(NotificationType.class);
+        if (settings != null) {
+            prefs.putAll(settings.getPrefs());
+        }
+        NotificationPref defaultPref = NotificationPref.createDefault();
+        for (NotificationType notificationType : NotificationType.values()) {
+            NotificationPref pref = prefs.get(notificationType);
+            if (pref == null) {
+                prefs.put(notificationType, defaultPref);
+            } else {
+                var enabledDeliveryMethods = new LinkedHashMap<>(pref.getEnabledDeliveryMethods());
+                // in case a new delivery method was added to the platform
+                UserNotificationSettings.deliveryMethods.forEach(deliveryMethod -> {
+                    enabledDeliveryMethods.putIfAbsent(deliveryMethod, true);
+                });
+                pref.setEnabledDeliveryMethods(enabledDeliveryMethods);
+            }
+        }
+        return new UserNotificationSettings(prefs);
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED) // so that parent transaction is not aborted on method failure

@@ -29,6 +29,51 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-export * from './notification-websocket.service';
-export * from './telemetry-websocket.service';
-export * from './websocket.service';
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { RouterTabsComponent } from '@home/components/router-tabs.component';
+import { Authority } from '@shared/models/authority.enum';
+import { SecurityRoutes, UserTwoFAProvidersResolver } from '@home/pages/security/security-routing.module';
+import {
+  NotificationUserSettingsResolver,
+  NotificationUserSettingsRoutes
+} from '@home/pages/notification/settings/notification-settings-routing.modules';
+import { ProfileRoutes, UserProfileResolver } from '@home/pages/profile/profile-routing.module';
+
+const routes: Routes = [
+  {
+    path: 'account',
+    component: RouterTabsComponent,
+    data: {
+      auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      breadcrumb: {
+        label: 'account.account',
+        icon: 'account_circle'
+      }
+    },
+    children: [
+      {
+        path: '',
+        children: [],
+        data: {
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          redirectTo: '/account/profile',
+        }
+      },
+      ...ProfileRoutes,
+      ...SecurityRoutes,
+      ...NotificationUserSettingsRoutes
+    ]
+  }
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule],
+  providers: [
+    UserProfileResolver,
+    UserTwoFAProvidersResolver,
+    NotificationUserSettingsResolver
+  ]
+})
+export class AccountRoutingModule { }

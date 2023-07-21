@@ -29,78 +29,57 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Injectable, NgModule } from '@angular/core';
 import { Resolve, RouterModule, Routes } from '@angular/router';
-
-import { SecurityComponent } from './security.component';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import { Authority } from '@shared/models/authority.enum';
-import { User } from '@shared/models/user.model';
+import { Injectable, NgModule } from '@angular/core';
+import { NotificationSettingsComponent } from '@home/pages/notification/settings/notification-settings.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { UserService } from '@core/http/user.service';
-import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Observable } from 'rxjs';
-import { TwoFactorAuthProviderType } from '@shared/models/two-factor-auth.models';
-import { TwoFactorAuthenticationService } from '@core/http/two-factor-authentication.service';
+import { NotificationService } from '@core/http/notification.service';
 
 @Injectable()
-export class UserProfileResolver implements Resolve<User> {
+export class NotificationUserSettingsResolver implements Resolve<any> {
 
   constructor(private store: Store<AppState>,
-              private userService: UserService) {
+              private notificationService: NotificationService) {
   }
 
-  resolve(): Observable<User> {
-    const userId = getCurrentAuthUser(this.store).userId;
-    return this.userService.getUser(userId);
-  }
-}
-
-@Injectable()
-export class UserTwoFAProvidersResolver implements Resolve<Array<TwoFactorAuthProviderType>> {
-
-  constructor(private twoFactorAuthService: TwoFactorAuthenticationService) {
-  }
-
-  resolve(): Observable<Array<TwoFactorAuthProviderType>> {
-    return this.twoFactorAuthService.getAvailableTwoFaProviders();
+  resolve(): Observable<any> {
+    return this.notificationService.getNotificationUserSettings();
   }
 }
 
-export const SecurityRoutes: Routes = [
+export const NotificationUserSettingsRoutes: Routes = [
   {
-    path: 'security',
-    component: SecurityComponent,
+    path: 'notificationSettings',
+    component: NotificationSettingsComponent,
     canDeactivate: [ConfirmOnExitGuard],
     data: {
       auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      title: 'security.security',
+      title: 'account.notification-settings',
       breadcrumb: {
-        label: 'security.security',
-        icon: 'lock'
+        label: 'account.notification-settings',
+        icon: 'settings'
       }
     },
     resolve: {
-      user: UserProfileResolver,
-      providers: UserTwoFAProvidersResolver
+      userSettings: NotificationUserSettingsResolver
     }
   }
 ];
 
 const routes: Routes = [
   {
-    path: 'security',
-    redirectTo: '/account/security'
+    path: 'notificationSettings',
+    redirectTo: '/account/notificationSettings'
   }
 ];
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
-  providers: [
-    UserProfileResolver,
-    UserTwoFAProvidersResolver
-  ]
+  providers: [NotificationUserSettingsResolver]
 })
-export class SecurityRoutingModule { }
+export class NotificationSettingsRoutingModules { }

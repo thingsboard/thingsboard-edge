@@ -4079,7 +4079,17 @@
         "view-notification-recipients-group": "View notification recipients group",
         "view-notification-template": "View notification template",
         "view-rule": "View rule",
-        "warning": "Warning"
+        "warning": "Warning",
+        "settings": {
+            "notification-settings": "Notification settings",
+            "reset-all": "Reset all settings",
+            "reset-all-title": "Are you sure you want to reset form?",
+            "reset-all-text": "After the confirmation, the settings form will reset to the default value and save.",
+            "type": "Type",
+            "enable-all": "Enable all",
+            "disable-all": "Disable all",
+            "delivery-not-configured": "Delivery method is not configured"
+        }
     },
     "ota-update": {
       "add": "Add package",
@@ -4166,6 +4176,11 @@
     },
     "profiles": {
         "profiles": "Profiles"
+    },
+    "account": {
+        "account": "Account",
+        "personal-info": "Personal info",
+        "notification-settings": "Notification settings"
     },
     "security": {
         "security": "Security",
