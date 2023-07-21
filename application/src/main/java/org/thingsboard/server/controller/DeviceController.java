@@ -91,7 +91,6 @@ import org.thingsboard.server.service.device.DeviceBulkImportService;
 import org.thingsboard.server.service.entitiy.device.TbDeviceService;
 import org.thingsboard.server.service.gateway_device.GatewayNotificationsService;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.security.system.SystemSecurityService;
 
 import javax.annotation.Nullable;
 import javax.validation.Valid;
@@ -158,7 +157,6 @@ public class DeviceController extends BaseController {
     private final DeviceBulkImportService deviceBulkImportService;
     private final GatewayNotificationsService gatewayNotificationsService;
     private final TbDeviceService tbDeviceService;
-
 
     @ApiOperation(value = "Get Device (getDeviceById)",
             notes = "Fetch the Device object based on the provided Device Id. "
