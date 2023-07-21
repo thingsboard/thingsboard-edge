@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.widget;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -41,6 +42,8 @@ import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetTypeInfo;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.Validator;
 
@@ -58,6 +61,9 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
 
     @Autowired
     private DataValidator<WidgetTypeDetails> widgetTypeValidator;
+
+    @Autowired
+    protected ApplicationEventPublisher eventPublisher;
 
     @Override
     public WidgetType findWidgetTypeById(TenantId tenantId, WidgetTypeId widgetTypeId) {
@@ -79,7 +85,10 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
         if (doValidate) {
             widgetTypeValidator.validate(widgetTypeDetails, WidgetType::getTenantId);
         }
-        return widgetTypeDao.save(widgetTypeDetails.getTenantId(), widgetTypeDetails);
+        WidgetTypeDetails result = widgetTypeDao.save(widgetTypeDetails.getTenantId(), widgetTypeDetails);
+        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getTenantId())
+                .entityId(result.getId()).added(widgetTypeDetails.getId() == null).build());
+        return result;
     }
 
     @Override
@@ -92,6 +101,7 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
         log.trace("Executing deleteWidgetType [{}]", widgetTypeId);
         Validator.validateId(widgetTypeId, "Incorrect widgetTypeId " + widgetTypeId);
         widgetTypeDao.removeById(tenantId, widgetTypeId.getId());
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(widgetTypeId).build());
     }
 
     @Override

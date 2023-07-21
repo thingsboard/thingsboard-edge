@@ -32,7 +32,10 @@ package org.thingsboard.server.service.security.permission;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.Customer;
@@ -43,6 +46,7 @@ import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -70,6 +74,7 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.owner.OwnerService;
 import org.thingsboard.server.dao.user.UserService;
@@ -118,6 +123,9 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     @Autowired
     protected UserPermissionsService userPermissionsService;
@@ -368,11 +376,32 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
             throw new ThingsboardException("Entity already belongs to this owner!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
 
+        List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, entityId);
+        EntityId previousOwnerId = entity.getOwnerId();
+
         deleteFromGroupsAndAddToGroupAll(tenantId, entityId, targetOwnerId);
 
         entity.setOwnerId(targetOwnerId);
         saveFunction.accept(entity);
         clearOwners(entityId);
+
+        if (!CollectionUtils.isEmpty(relatedEdgeIds)) {
+            for (EdgeId edgeId : relatedEdgeIds) {
+                String body = null;
+                if (EntityType.EDGE.equals(entityId.getEntityType())) {
+                    try {
+                        body = JacksonUtil.toString(previousOwnerId);
+                    } catch (Exception e) {
+                        log.warn("[{}][{}] Failed to convert previous owner to string: {}", tenantId, entityId, previousOwnerId, e);
+                    }
+                }
+                eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(entityId)
+                        .body(body).actionType(ActionType.CHANGE_OWNER).build());
+            }
+        } else {
+            eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(entityId)
+                    .actionType(ActionType.CHANGE_OWNER).build());
+        }
     }
 
     private void deleteFromGroupsAndAddToGroupAll(TenantId tenantId, EntityId entityId, EntityId targetOwnerId) throws ThingsboardException {

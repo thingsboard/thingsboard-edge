@@ -887,6 +887,7 @@ CREATE TABLE IF NOT EXISTS edge (
 );
 
 CREATE TABLE IF NOT EXISTS edge_event (
+    seq_id INT GENERATED ALWAYS AS IDENTITY,
     id uuid NOT NULL,
     created_time bigint NOT NULL,
     edge_id uuid,
@@ -899,6 +900,7 @@ CREATE TABLE IF NOT EXISTS edge_event (
     entity_group_id uuid,
     ts bigint NOT NULL
 ) PARTITION BY RANGE(created_time);
+ALTER TABLE IF EXISTS edge_event ALTER COLUMN seq_id SET CYCLE;
 
 CREATE TABLE IF NOT EXISTS device_group_ota_package (
     id uuid NOT NULL CONSTRAINT entity_group_firmware_pkey PRIMARY KEY,

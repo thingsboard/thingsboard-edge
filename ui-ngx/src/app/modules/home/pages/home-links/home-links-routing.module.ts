@@ -29,8 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Injectable, NgModule } from '@angular/core';
-import { Resolve, RouterModule, Routes } from '@angular/router';
+import { inject, NgModule } from '@angular/core';
+import { ActivatedRouteSnapshot, ResolveFn, RouterModule, RouterStateSnapshot, Routes } from '@angular/router';
 
 import { HomeLinksComponent } from './home-links.component';
 import { Authority } from '@shared/models/authority.enum';
@@ -43,57 +43,19 @@ import { EdgeSettings } from '@shared/models/edge.models';
 import { select, Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { map } from 'rxjs/operators';
-import {
-  getCurrentAuthUser,
-  selectHasRepository,
-  selectPersistDeviceStateToTelemetry
-} from '@core/auth/auth.selectors';
-import sysAdminHomePageDashboardJson from '!raw-loader!./sys_admin_home_page.raw';
-import tenantAdminHomePageDashboardJson from '!raw-loader!./tenant_admin_home_page.raw';
-// import customerUserHomePageDashboardJson from '!raw-loader!./customer_user_home_page.raw';
+import { getCurrentAuthUser, selectPersistDeviceStateToTelemetry } from '@core/auth/auth.selectors';
 import { EntityKeyType } from '@shared/models/query/query.models';
+import { ResourcesService } from '@core/services/resources.service';
 
-@Injectable()
-export class HomeDashboardResolver implements Resolve<HomeDashboard> {
+const sysAdminHomePageJson = '/assets/dashboard/sys_admin_home_page.json';
+const tenantAdminHomePageJson = '/assets/dashboard/tenant_admin_home_page.json';
+// const customerUserHomePageJson = '/assets/dashboard/customer_user_home_page.json';
 
-  constructor(private dashboardService: DashboardService,
-              private store: Store<AppState>) {
-  }
-
-  resolve(): Observable<HomeDashboard> {
-    return this.dashboardService.getHomeDashboard().pipe(
-      mergeMap((dashboard) => {
-        if (!dashboard) {
-          let dashboard$: Observable<HomeDashboard>;
-          const authority = getCurrentAuthUser(this.store).authority;
-          switch (authority) {
-            case Authority.SYS_ADMIN:
-              dashboard$ = of(JSON.parse(sysAdminHomePageDashboardJson));
-              break;
-            case Authority.TENANT_ADMIN:
-              dashboard$ = this.updateDeviceActivityKeyFilterIfNeeded(JSON.parse(tenantAdminHomePageDashboardJson));
-              break;
-            case Authority.CUSTOMER_USER:
-              // dashboard$ = this.updateDeviceActivityKeyFilterIfNeeded(JSON.parse(customerUserHomePageDashboardJson));
-              break;
-          }
-          if (dashboard$) {
-            return dashboard$.pipe(
-              map((homeDashboard) => {
-                homeDashboard.hideDashboardToolbar = true;
-                return homeDashboard;
-              })
-            );
-          }
-        }
-        return of(dashboard);
-      })
-    );
-  }
-
-  private updateDeviceActivityKeyFilterIfNeeded(dashboard: HomeDashboard): Observable<HomeDashboard> {
-    return this.store.pipe(select(selectPersistDeviceStateToTelemetry)).pipe(
-      map((persistToTelemetry) => {
+const updateDeviceActivityKeyFilterIfNeeded = (store: Store<AppState>,
+                                               dashboard$: Observable<HomeDashboard>): Observable<HomeDashboard> =>
+  store.pipe(select(selectPersistDeviceStateToTelemetry)).pipe(
+    mergeMap((persistToTelemetry) => dashboard$.pipe(
+      map((dashboard) => {
         if (persistToTelemetry) {
           for (const filterId of Object.keys(dashboard.configuration.filters)) {
             if (['Active Devices', 'Inactive Devices'].includes(dashboard.configuration.filters[filterId].filter)) {
@@ -103,20 +65,51 @@ export class HomeDashboardResolver implements Resolve<HomeDashboard> {
         }
         return dashboard;
       })
-    );
-  }
-}
+    ))
+  );
 
-@Injectable()
-export class EdgeSettingsResolver implements Resolve<EdgeSettings> {
+export const homeDashboardResolver: ResolveFn<HomeDashboard> = (
+  route: ActivatedRouteSnapshot,
+  state: RouterStateSnapshot,
+  dashboardService = inject(DashboardService),
+  resourcesService = inject(ResourcesService),
+  store: Store<AppState> = inject(Store<AppState>)
+): Observable<HomeDashboard> =>
+  dashboardService.getHomeDashboard().pipe(
+    mergeMap((dashboard) => {
+      if (!dashboard) {
+        let dashboard$: Observable<HomeDashboard>;
+        const authority = getCurrentAuthUser(store).authority;
+        switch (authority) {
+          case Authority.SYS_ADMIN:
+            dashboard$ = resourcesService.loadJsonResource(sysAdminHomePageJson);
+            break;
+          case Authority.TENANT_ADMIN:
+            dashboard$ = updateDeviceActivityKeyFilterIfNeeded(store, resourcesService.loadJsonResource(tenantAdminHomePageJson));
+            break;
+          case Authority.CUSTOMER_USER:
+            // dashboard$ = updateDeviceActivityKeyFilterIfNeeded(store, resourcesService.loadJsonResource(customerUserHomePageJson));
+            break;
+        }
+        if (dashboard$) {
+          return dashboard$.pipe(
+            map((homeDashboard) => {
+              homeDashboard.hideDashboardToolbar = true;
+              return homeDashboard;
+            })
+          );
+        }
+      }
+      return of(dashboard);
+    })
+  );
 
-  constructor(private edgeService: EdgeService) {
-  }
-
-  resolve(): Observable<EdgeSettings> {
-    return this.edgeService.getEdgeSettings();
-  }
-}
+export const edgeSettingsResolver: ResolveFn<EdgeSettings> = (
+  route: ActivatedRouteSnapshot,
+  state: RouterStateSnapshot,
+  edgeService = inject(EdgeService),
+): Observable<EdgeSettings> =>
+  edgeService.getEdgeSettings();
 
 export const edgeNameResolver: BreadCrumbLabelFunction<HomeLinksComponent> =
   ((route, translate, component) => route.data.edgeSettings.name);
@@ -134,8 +127,8 @@ const routes: Routes = [
       } as BreadCrumbConfig<HomeLinksComponent>
     },
     resolve: {
-      homeDashboard: HomeDashboardResolver,
-      edgeSettings: EdgeSettingsResolver
+      homeDashboard: homeDashboardResolver,
+      edgeSettings: edgeSettingsResolver
     }
   }
 ];
@@ -143,9 +136,5 @@ const routes: Routes = [
 @NgModule({
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
-  providers: [
-    HomeDashboardResolver,
-    EdgeSettingsResolver
-  ]
 })
 export class HomeLinksRoutingModule { }

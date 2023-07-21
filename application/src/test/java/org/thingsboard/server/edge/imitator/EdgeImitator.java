@@ -115,8 +115,6 @@ public class EdgeImitator {
     @Getter
     private UplinkResponseMsg latestResponseMsg;
 
-    private boolean connected = false;
-
     public EdgeImitator(String host, int port, String routingKey, String routingSecret) throws NoSuchFieldException, IllegalAccessException {
         edgeRpcClient = new EdgeGrpcClient();
         messagesLatch = new CountDownLatch(0);
@@ -141,7 +139,6 @@ public class EdgeImitator {
     }
 
     public void connect() {
-        connected = true;
         edgeRpcClient.connect(routingKey, routingSecret,
                 this::onUplinkResponse,
                 this::onEdgeUpdate,
@@ -152,7 +149,6 @@ public class EdgeImitator {
     }
 
     public void disconnect() throws InterruptedException {
-        connected = false;
         edgeRpcClient.disconnect(false);
     }
 
@@ -202,14 +198,14 @@ public class EdgeImitator {
                 result.add(saveDownlinkMsg(adminSettingsUpdateMsg));
             }
         }
-        if (downlinkMsg.getDeviceUpdateMsgCount() > 0) {
-            for (DeviceUpdateMsg deviceUpdateMsg : downlinkMsg.getDeviceUpdateMsgList()) {
-                result.add(saveDownlinkMsg(deviceUpdateMsg));
-            }
-        }
         if (downlinkMsg.getDeviceProfileUpdateMsgCount() > 0) {
             for (DeviceProfileUpdateMsg deviceProfileUpdateMsg : downlinkMsg.getDeviceProfileUpdateMsgList()) {
                 result.add(saveDownlinkMsg(deviceProfileUpdateMsg));
+            }
+        }
+        if (downlinkMsg.getDeviceUpdateMsgCount() > 0) {
+            for (DeviceUpdateMsg deviceUpdateMsg : downlinkMsg.getDeviceUpdateMsgList()) {
+                result.add(saveDownlinkMsg(deviceUpdateMsg));
             }
         }
         if (downlinkMsg.getDeviceCredentialsUpdateMsgCount() > 0) {

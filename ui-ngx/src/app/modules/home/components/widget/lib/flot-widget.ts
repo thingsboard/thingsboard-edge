@@ -132,6 +132,9 @@ export class TbFlot {
   private mouseleaveHandler = this.onFlotMouseLeave.bind(this);
   private flotClickHandler = this.onFlotClick.bind(this);
 
+  private enableSelection: boolean;
+  private selectionMode: 'x' | null;
+
   private readonly showTooltip: boolean;
   private readonly animatedPie: boolean;
   private pieDataAnimationDuration: number;
@@ -146,6 +149,8 @@ export class TbFlot {
     this.chartType = this.chartType || 'line';
     this.settings = ctx.settings as TbFlotSettings;
     this.utils = this.ctx.$injector.get(UtilsService);
+    this.enableSelection = isDefined(this.settings.enableSelection) ? this.settings.enableSelection : true;
+    this.selectionMode = this.enableSelection ? 'x' : null;
     this.showTooltip = isDefined(this.settings.showTooltip) ? this.settings.showTooltip : true;
     this.tooltip = this.showTooltip ? $('#flot-series-tooltip') : null;
     if (this.tooltip?.length === 0) {
@@ -182,7 +187,7 @@ export class TbFlot {
     };
 
     if (this.chartType === 'line' || this.chartType === 'bar' || this.chartType === 'state') {
-      this.options.selection = { mode : 'x' };
+      this.options.selection = { mode: this.selectionMode, touch: true };
       this.options.xaxes = [];
       this.xaxis = {
         mode: 'time',
@@ -1266,7 +1271,7 @@ export class TbFlot {
     this.$element.css('pointer-events', '');
     this.$element.addClass('mouse-events');
     if (this.chartType !== 'pie') {
-      this.options.selection = {mode: 'x'};
+      this.options.selection = {mode: this.selectionMode, touch: true};
       this.$element.bind('plotselected', this.flotSelectHandler);
       this.$element.bind('dblclick', this.dblclickHandler);
     }

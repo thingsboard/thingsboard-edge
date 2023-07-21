@@ -51,11 +51,14 @@ import { emptyPageData } from '@shared/models/page/page-data';
 import { OverlayRef } from '@angular/cdk/overlay';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { UtilsService } from '@core/services/utils.service';
+import { AlarmAssigneeOption } from '@shared/models/alarm.models';
 
 export const ALARM_ASSIGNEE_SELECT_PANEL_DATA = new InjectionToken<any>('AlarmAssigneeSelectPanelData');
 
 export interface AlarmAssigneeSelectPanelData {
   assigneeId?: string;
+  assigneeOption?: AlarmAssigneeOption;
+  userMode?: boolean;
 }
 
 @Component({
@@ -65,11 +68,15 @@ export interface AlarmAssigneeSelectPanelData {
 })
 export class AlarmAssigneeSelectPanelComponent implements  OnInit, AfterViewInit, OnDestroy {
 
+  assigneeOptions = AlarmAssigneeOption;
+
   private dirty = false;
 
   assigneeId?: string;
+  assigneeOption?: AlarmAssigneeOption;
 
   assigneeNotSetText = 'alarm.assignee-not-set';
+  assignedToCurrentUserText = this.data.userMode ? 'alarm.assigned-to-me' : 'alarm.assigned-to-current-user';
 
   selectUserFormGroup: FormGroup;
 
@@ -82,6 +89,15 @@ export class AlarmAssigneeSelectPanelComponent implements  OnInit, AfterViewInit
   userSelected = false;
 
   result?: UserEmailInfo;
+  optionResult?: AlarmAssigneeOption;
+
+  get displayAssigneeNotSet(): boolean {
+    return this.assigneeOption !== AlarmAssigneeOption.noAssignee;
+  }
+
+  get displayAssignedToCurrentUser(): boolean {
+    return this.assigneeOption !== AlarmAssigneeOption.currentUser;
+  }
 
   private destroy$ = new Subject<void>();
 
@@ -92,6 +108,7 @@ export class AlarmAssigneeSelectPanelComponent implements  OnInit, AfterViewInit
               private fb: FormBuilder,
               private utilsService: UtilsService) {
     this.assigneeId = data.assigneeId;
+    this.assigneeOption = data.assigneeOption;
     this.selectUserFormGroup = this.fb.group({
       user: [null]
     });
@@ -127,7 +144,11 @@ export class AlarmAssigneeSelectPanelComponent implements  OnInit, AfterViewInit
   selected(event: MatAutocompleteSelectedEvent): void {
     this.clear();
     this.userSelected = true;
-    this.result = event.option.value;
+    if (event.option.value?.id) {
+      this.result = event.option.value;
+    } else {
+      this.optionResult = event.option.value;
+    }
     this.overlayRef.dispose();
   }
 

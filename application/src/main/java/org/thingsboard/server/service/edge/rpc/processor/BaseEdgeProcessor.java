@@ -36,7 +36,9 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.Customer;
@@ -93,6 +95,7 @@ import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
+import org.thingsboard.server.dao.edge.EdgeSynchronizationManager;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
@@ -333,6 +336,12 @@ public abstract class BaseEdgeProcessor {
     protected QueueMsgConstructor queueMsgConstructor;
 
     @Autowired
+    protected EdgeSynchronizationManager edgeSynchronizationManager;
+
+    @Autowired
+    protected ApplicationEventPublisher eventPublisher;
+
+    @Autowired
     protected DbCallbackExecutorService dbCallbackExecutorService;
 
     // PE context
@@ -497,22 +506,42 @@ public abstract class BaseEdgeProcessor {
         EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());
         EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(type,
                 new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
+        JsonNode body = JacksonUtil.toJsonNode(edgeNotificationMsg.getBody());
         EdgeId edgeId = safeGetEdgeId(edgeNotificationMsg);
         switch (actionType) {
             case ADDED:
+                switch (type) {
+                    case DEVICE_PROFILE:
+                    case ASSET_PROFILE:
+                    case ALARM:
+                    case USER:
+                    case RELATION:
+                    case WIDGETS_BUNDLE:
+                    case WIDGET_TYPE:
+                    case ADMIN_SETTINGS:
+                    case OTA_PACKAGE:
+                    case QUEUE:
+                        if (edgeId != null) {
+                            return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, body);
+                        } else {
+                            return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, constructEntityGroupId(tenantId, edgeNotificationMsg));
+                        }
+                    default:
+                        return Futures.immediateFuture(null);
+                }
             case UPDATED:
             case CREDENTIALS_UPDATED:
             case ADDED_TO_ENTITY_GROUP:
             case REMOVED_FROM_ENTITY_GROUP:
             case DELETED:
                 if (edgeId != null) {
-                    return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null, constructEntityGroupId(tenantId, edgeNotificationMsg));
+                    return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, body, constructEntityGroupId(tenantId, edgeNotificationMsg));
                 } else {
                     return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, constructEntityGroupId(tenantId, edgeNotificationMsg));
                 }
             case ASSIGNED_TO_EDGE:
             case UNASSIGNED_FROM_EDGE:
-                ListenableFuture<Void> future = saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
+                ListenableFuture<Void> future = saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, body);
                 return Futures.transformAsync(future, unused -> {
                     if (type.equals(EdgeEventType.RULE_CHAIN)) {
                         return updateDependentRuleChains(tenantId, new RuleChainId(entityId.getId()), edgeId);
@@ -522,7 +551,7 @@ public abstract class BaseEdgeProcessor {
                 }, dbCallbackExecutorService);
             case CHANGE_OWNER:
                 if (edgeId != null) {
-                    return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
+                    return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, body);
                 } else {
                     return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, null);
                 }

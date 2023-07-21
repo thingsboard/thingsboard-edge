@@ -64,11 +64,10 @@ import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.dashboard.DashboardDao;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
@@ -134,7 +133,7 @@ public class DashboardControllerTest extends AbstractControllerTest {
 
         Dashboard savedDashboard = doPost("/api/dashboard", dashboard, Dashboard.class);
 
-        testNotifyEntityOneTimeMsgToEdgeServiceNever(savedDashboard, savedDashboard.getId(), savedDashboard.getId(), savedTenant.getId(),
+        testNotifyEntityEntityGroupNullAllOneTime(savedDashboard, savedDashboard.getId(), savedDashboard.getId(), savedTenant.getId(),
                 tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED);
 
         Assert.assertNotNull(savedDashboard);
@@ -216,7 +215,7 @@ public class DashboardControllerTest extends AbstractControllerTest {
         doDelete("/api/dashboard/" + savedDashboard.getId().getId().toString())
                 .andExpect(status().isOk());
 
-        testNotifyEntityOneTimeMsgToEdgeServiceNever(savedDashboard, savedDashboard.getId(), savedDashboard.getId(),
+        testNotifyEntityEntityGroupNullAllOneTime(savedDashboard, savedDashboard.getId(), savedDashboard.getId(),
                 savedDashboard.getTenantId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.DELETED,
                 savedDashboard.getId().getId().toString());
 
@@ -254,9 +253,9 @@ public class DashboardControllerTest extends AbstractControllerTest {
             dashboards.add(new DashboardInfo(doPost("/api/dashboard", dashboard, Dashboard.class)));
         }
 
-        testNotifyManyEntityManyTimeMsgToEdgeServiceNever(new Dashboard(), new Dashboard(),
+        testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new Dashboard(), new Dashboard(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, cntEntity);
+                ActionType.ADDED, ActionType.ADDED, cntEntity, cntEntity, cntEntity);
 
         List<DashboardInfo> loadedDashboards = new ArrayList<>();
         PageLink pageLink = new PageLink(24);
@@ -271,8 +270,8 @@ public class DashboardControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        Collections.sort(dashboards, idComparator);
-        Collections.sort(loadedDashboards, idComparator);
+        dashboards.sort(idComparator);
+        loadedDashboards.sort(idComparator);
 
         Assert.assertEquals(dashboards, loadedDashboards);
     }
@@ -314,8 +313,8 @@ public class DashboardControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        Collections.sort(dashboardsTitle1, idComparator);
-        Collections.sort(loadedDashboardsTitle1, idComparator);
+        dashboardsTitle1.sort(idComparator);
+        loadedDashboardsTitle1.sort(idComparator);
 
         Assert.assertEquals(dashboardsTitle1, loadedDashboardsTitle1);
 
@@ -331,8 +330,8 @@ public class DashboardControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        Collections.sort(dashboardsTitle2, idComparator);
-        Collections.sort(loadedDashboardsTitle2, idComparator);
+        dashboardsTitle2.sort(idComparator);
+        loadedDashboardsTitle2.sort(idComparator);
 
         Assert.assertEquals(dashboardsTitle2, loadedDashboardsTitle2);
 
@@ -343,9 +342,9 @@ public class DashboardControllerTest extends AbstractControllerTest {
                     .andExpect(status().isOk());
         }
 
-        testNotifyManyEntityManyTimeMsgToEdgeServiceNeverAdditionalInfoAny(new Dashboard(), new Dashboard(),
+        testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAnyAdditionalInfoAny(new Dashboard(), new Dashboard(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.DELETED, cntEntity, 1);
+                ActionType.DELETED, ActionType.DELETED, cntEntity, cntEntity, 1);
 
         pageLink = new PageLink(4, 0, title1);
         pageData = doGetTypedWithPageLink("/api/tenant/dashboards?",
@@ -406,7 +405,7 @@ public class DashboardControllerTest extends AbstractControllerTest {
         groupRole = doPost("/api/role", groupRole, Role.class);
 
         testNotifyEntityAllOneTimeLogEntityActionEntityEqClass(groupRole, groupRole.getId(), groupRole.getId(), savedTenant.getId(),
-                tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED);
+                tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, ActionType.ADDED);
 
         GroupPermission readTenantDashboardGroupPermission = new GroupPermission();
         readTenantDashboardGroupPermission.setRoleId(groupRole.getId());
@@ -421,7 +420,7 @@ public class DashboardControllerTest extends AbstractControllerTest {
 
         testNotifyEntityAllOneTimeLogEntityActionEntityEqClass(savedReadTenantDashboardGroupPermission,
                 savedReadTenantDashboardGroupPermission.getId(), savedReadTenantDashboardGroupPermission.getId(),
-                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED);
+                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, ActionType.ADDED);
 
         Role genericRole = new Role();
         genericRole.setTenantId(savedTenant.getId());

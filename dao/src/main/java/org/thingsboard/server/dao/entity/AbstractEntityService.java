@@ -32,19 +32,24 @@ package org.thingsboard.server.dao.entity;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.util.CollectionUtils;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.edge.EdgeService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -52,6 +57,9 @@ public abstract class AbstractEntityService {
 
     public static final String INCORRECT_EDGE_ID = "Incorrect edgeId ";
     public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
+
+    @Autowired
+    protected ApplicationEventPublisher eventPublisher;
 
     @Lazy
     @Autowired
@@ -114,4 +122,13 @@ public abstract class AbstractEntityService {
         }
     }
 
+    protected void publishDeleteEvent(TenantId tenantId, EntityId entityId, List<EdgeId> relatedEdgeIds) {
+        if (CollectionUtils.isEmpty(relatedEdgeIds)) {
+            eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(entityId).build());
+        } else {
+            for (EdgeId relatedEdgeId : relatedEdgeIds) {
+                eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(entityId).edgeId(relatedEdgeId).build());
+            }
+        }
+    }
 }

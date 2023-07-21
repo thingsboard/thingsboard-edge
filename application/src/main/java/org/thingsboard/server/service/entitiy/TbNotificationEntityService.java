@@ -39,20 +39,14 @@ import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
-
-import java.util.List;
 
 public interface TbNotificationEntityService {
 
@@ -72,44 +66,15 @@ public interface TbNotificationEntityService {
                                                                  ActionType actionType, User user, Exception e,
                                                                  Object... additionalInfo);
 
-    <E extends HasName, I extends EntityId> void notifyAddToEntityGroup(TenantId tenantId, I entityId, E entity,
-                                                                        CustomerId customerId, EntityGroupId entityGroupId,
-                                                                        User user, Object... additionalInfo);
-
-    <E extends HasName, I extends EntityId> void notifyDeleteEntity(TenantId tenantId, I entityId, E entity,
-                                                                    CustomerId customerId, ActionType actionType,
-                                                                    List<EdgeId> relatedEdgeIds,
-                                                                    User user, Object... additionalInfo);
-
-    void notifyDeleteAlarm(TenantId tenantId, Alarm alarm, EntityId originatorId, CustomerId customerId,
-                           List<EdgeId> relatedEdgeIds, User user, String body, Object... additionalInfo);
-
-    <E extends HasName, I extends EntityId> void notifyCreateOrUpdateEntity(TenantId tenantId, I entityId, E entity,
-                                                                            CustomerId customerId, ActionType actionType,
-                                                                            User user, Object... additionalInfo);
-
-    void notifyDeleteRuleChain(TenantId tenantId, RuleChain ruleChain,
-                               List<EdgeId> relatedEdgeIds, User user);
-
-    <I extends EntityId> void notifySendMsgToEdgeService(TenantId tenantId, I entityId, EdgeEventType edgeEventType,
-                                                         EdgeEventActionType edgeEventActionType);
-
-    <I extends EntityId> void notifySendMsgToEdgeService(TenantId tenantId, I entityId, EdgeEventActionType edgeEventActionType);
-
-    <E extends HasName, I extends EntityId> void notifyAssignOrUnassignEntityToEdge(TenantId tenantId, I entityId,
-                                                                                    CustomerId customerId, EdgeId edgeId,
-                                                                                    E entity, ActionType actionType,
-                                                                                    User user, Object... additionalInfo);
-
     void notifyCreateOrUpdateTenant(Tenant tenant, ComponentLifecycleEvent event);
 
     void notifyDeleteTenant(Tenant tenant);
 
     void notifyDeleteDevice(TenantId tenantId, DeviceId deviceId, CustomerId customerId, Device device,
-                            List<EdgeId> relatedEdgeIds, User user, Object... additionalInfo);
+                            User user, Object... additionalInfo);
 
     void notifyUpdateDeviceCredentials(TenantId tenantId, DeviceId deviceId, CustomerId customerId, Device device,
-                                       DeviceCredentials deviceCredentials, User user, boolean notifyCloud);
+                                       DeviceCredentials deviceCredentials, User user);
 
     void notifyAssignDeviceToTenant(TenantId tenantId, TenantId newTenantId, DeviceId deviceId, CustomerId customerId,
                                     Device device, Tenant tenant, User user, Object... additionalInfo);
@@ -117,19 +82,10 @@ public interface TbNotificationEntityService {
     void notifyCreateOrUpdateOrDeleteEdge(TenantId tenantId, EdgeId edgeId, CustomerId customerId, Edge edge, ActionType actionType,
                                           User user, Object... additionalInfo);
 
-    void notifyCreateOrUpdateAlarm(AlarmInfo alarm, ActionType actionType, User user, boolean notifyCloud, Object... additionalInfo);
+    void logCreateOrUpdateAlarm(AlarmInfo alarm, ActionType actionType, User user, Object... additionalInfo);
 
-    void notifyAlarmComment(Alarm alarm, AlarmComment alarmComment, ActionType actionType, User user);
+    void logAlarmComment(Alarm alarm, AlarmComment alarmComment, ActionType actionType, User user);
 
-
-    <E extends HasName, I extends EntityId> void notifyCreateOrUpdateOrDelete(TenantId tenantId, CustomerId customerId,
-                                                                              I entityId, E entity, User user,
-                                                                              ActionType actionType, boolean sendNotifyMsgToEdge,
-                                                                              boolean notifyCloud,
-                                                                              Exception e, Object... additionalInfo);
-
-    void notifyRelation(TenantId tenantId, CustomerId customerId, EntityRelation relation, User user,
-                        ActionType actionType, Object... additionalInfo);
-
-    void sendNotificationMsgToCloud(TenantId tenantId, EntityId entityId, EdgeEventActionType cloudEventAction);
+    void logEntityRelationAction(TenantId tenantId, CustomerId customerId, EntityRelation relation, User user,
+                                 ActionType actionType, Object... additionalInfo);
 }

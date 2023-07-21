@@ -29,12 +29,6 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 .tb-data-key-row {
-  height: 38px;
-  display: flex;
-  flex-direction: row;
-  gap: 12px;
-  padding-left: 12px;
-
   .mat-mdc-form-field.tb-inline-field.tb-key-field {
     .mat-mdc-text-field-wrapper:not(.mdc-text-field--outlined) {
       .mat-mdc-form-field-infix {
@@ -58,11 +52,22 @@
     }
   }
 
+  .tb-source-field {
+    width: 140px;
+  }
+
   .tb-color-field, .tb-units-field, .tb-decimals-field {
-    width: 60px;
     display: flex;
     flex-direction: row;
     place-content: center;
     align-items: center;
+  }
+
+  .tb-units-field {
+    width: 80px;
+  }
+
+  .tb-color-field, .tb-decimals-field {
+    width: 60px;
   }
 }

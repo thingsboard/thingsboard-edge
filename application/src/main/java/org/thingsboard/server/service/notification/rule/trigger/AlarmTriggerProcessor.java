@@ -123,6 +123,8 @@ public class AlarmTriggerProcessor implements NotificationRuleTriggerProcessor<A
                 .alarmOriginatorName(alarmInfo.getOriginatorName())
                 .alarmSeverity(alarmInfo.getSeverity())
                 .alarmStatus(alarmInfo.getStatus())
+                .acknowledged(alarmInfo.isAcknowledged())
+                .cleared(alarmInfo.isCleared())
                 .alarmCustomerId(alarmInfo.getCustomerId())
                 .build();
     }
