@@ -249,7 +249,10 @@ public class AssetEdgeTest extends AbstractEdgeTest {
 
     @Test
     public void testSendDeleteAssetOnEdgeToCloud() throws Exception {
+        EntityGroup assetsEntityGroup = createEntityGroupAndAssignToEdge(EntityType.ASSET, "AssetToDeleteGroup", tenantId);
+
         Asset savedAsset = saveAssetOnCloudAndVerifyDeliveryToEdge();
+
         UplinkMsg.Builder upLinkMsgBuilder = UplinkMsg.newBuilder();
         AssetUpdateMsg.Builder assetDeleteMsgBuilder = AssetUpdateMsg.newBuilder();
         assetDeleteMsgBuilder.setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE);
@@ -266,7 +269,7 @@ public class AssetEdgeTest extends AbstractEdgeTest {
         Assert.assertTrue(edgeImitator.waitForResponses());
         AssetInfo assetInfo = doGet("/api/asset/info/" + savedAsset.getUuidId(), AssetInfo.class);
         Assert.assertNotNull(assetInfo);
-        List<AssetInfo> edgeAssets = doGetTypedWithPageLink("/api/edge/" + edge.getUuidId() + "/assets?",
+        List<AssetInfo> edgeAssets = doGetTypedWithPageLink("/api/entityGroup/" + assetsEntityGroup.getUuidId() + "/assets?",
                 new TypeReference<PageData<AssetInfo>>() {
                 }, new PageLink(100)).getData();
         Assert.assertFalse(edgeAssets.contains(assetInfo));

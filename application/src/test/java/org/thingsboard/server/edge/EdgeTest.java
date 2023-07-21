@@ -32,9 +32,9 @@ package org.thingsboard.server.edge;
 
 import org.junit.Test;
 import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
