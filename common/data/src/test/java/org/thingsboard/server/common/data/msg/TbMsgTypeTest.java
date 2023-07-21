@@ -39,15 +39,17 @@ import static org.thingsboard.server.common.data.msg.TbMsgType.ALARM;
 import static org.thingsboard.server.common.data.msg.TbMsgType.ALARM_DELETE;
 import static org.thingsboard.server.common.data.msg.TbMsgType.DEDUPLICATION_TIMEOUT_SELF_MSG;
 import static org.thingsboard.server.common.data.msg.TbMsgType.DELAY_TIMEOUT_SELF_MSG;
-import static org.thingsboard.server.common.data.msg.TbMsgType.ENTITY_ASSIGNED_TO_EDGE;
-import static org.thingsboard.server.common.data.msg.TbMsgType.ENTITY_UNASSIGNED_FROM_EDGE;
-import static org.thingsboard.server.common.data.msg.TbMsgType.MSG_COUNT_SELF_MSG;
-import static org.thingsboard.server.common.data.msg.TbMsgType.PROVISION_FAILURE;
-import static org.thingsboard.server.common.data.msg.TbMsgType.PROVISION_SUCCESS;
 import static org.thingsboard.server.common.data.msg.TbMsgType.DEVICE_PROFILE_PERIODIC_SELF_MSG;
 import static org.thingsboard.server.common.data.msg.TbMsgType.DEVICE_PROFILE_UPDATE_SELF_MSG;
 import static org.thingsboard.server.common.data.msg.TbMsgType.DEVICE_UPDATE_SELF_MSG;
+import static org.thingsboard.server.common.data.msg.TbMsgType.ENTITY_ASSIGNED_TO_EDGE;
+import static org.thingsboard.server.common.data.msg.TbMsgType.ENTITY_UNASSIGNED_FROM_EDGE;
 import static org.thingsboard.server.common.data.msg.TbMsgType.GENERATOR_NODE_SELF_MSG;
+import static org.thingsboard.server.common.data.msg.TbMsgType.MSG_COUNT_SELF_MSG;
+import static org.thingsboard.server.common.data.msg.TbMsgType.OPC_UA_INT_FAILURE;
+import static org.thingsboard.server.common.data.msg.TbMsgType.OPC_UA_INT_SUCCESS;
+import static org.thingsboard.server.common.data.msg.TbMsgType.PROVISION_FAILURE;
+import static org.thingsboard.server.common.data.msg.TbMsgType.PROVISION_SUCCESS;
 import static org.thingsboard.server.common.data.msg.TbMsgType.SEND_EMAIL;
 import static org.thingsboard.server.common.data.msg.TbMsgType.TB_AGG_LATEST_CLEAR_INACTIVE_ENTITIES_SELF_MSG;
 import static org.thingsboard.server.common.data.msg.TbMsgType.TB_AGG_LATEST_SELF_MSG;
@@ -78,7 +80,9 @@ class TbMsgTypeTest {
             TB_ALARMS_COUNT_SELF_MSG,
             TB_SIMPLE_AGG_REPORT_SELF_MSG,
             TB_SIMPLE_AGG_PERSIST_SELF_MSG,
-            TB_SIMPLE_AGG_ENTITIES_SELF_MSG
+            TB_SIMPLE_AGG_ENTITIES_SELF_MSG,
+            OPC_UA_INT_SUCCESS,
+            OPC_UA_INT_FAILURE
     );
 
     // backward-compatibility tests
