@@ -206,9 +206,10 @@ public class EntityGroupControllerTest extends AbstractControllerTest {
         Device savedDevice = doPost("/api/device", device, Device.class);
 
         List<String> strEntityIds = new ArrayList<>();
-        strEntityIds.add(savedDevice.getId().getId().toString());
+        String deviceId = savedDevice.getId().getId().toString();
+        strEntityIds.add(deviceId);
         doPost("/api/entityGroup/" + savedEntityGroup.getId() + "/addEntities", strEntityIds)
                 .andExpect(status().isBadRequest())
-                .andExpect(statusReason(containsString("Unable to add entities to entity group: Entity owner and group owner are different")));
+                .andExpect(statusReason(containsString("Unable to add entity with other owner than group. Entity id: " + deviceId)));
     }
 }

@@ -744,8 +744,8 @@ public class EntityGroupController extends AutoCommitController {
                 checkEntityId(entityId, Operation.READ);
                 EntityId entityOwner = ownersCacheService.getOwner(getTenantId(), entityId);
                 if (!entityOwner.equals(entityGroup.getOwnerId())) {
-                    throw new ThingsboardException("Unable to add entities to entity group: " +
-                            "Entity owner and group owner are different", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+                    throw new ThingsboardException("Unable to add entity with other owner than group. Entity id: " +
+                            entityId, ThingsboardErrorCode.BAD_REQUEST_PARAMS);
                 }
 
                 entityIds.add(entityId);
