@@ -301,7 +301,7 @@ public class RuleChainControllerTest extends AbstractControllerTest {
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAnyWithGroup(new RuleChain(), new RuleChain(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ASSIGNED_TO_EDGE, ActionType.ASSIGNED_TO_EDGE, cntEntity, cntEntity, cntEntity * 2,
-                null, null, new String(), new String(), new String());
+                new String(), new String(), new String());
         Mockito.reset(tbClusterService, auditLogService);
 
         List<RuleChain> loadedEdgeRuleChains = new ArrayList<>();

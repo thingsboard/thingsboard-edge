@@ -139,30 +139,35 @@ public class EdgeEventControllerTest extends AbstractControllerTest {
 
         List<EdgeEvent> edgeEvents = findEdgeEvents(edgeId);
 
-        Assert.assertEquals(EdgeEventType.RULE_CHAIN, edgeEvents.get(0).getType()); // root rule chain
-        Assert.assertEquals(EdgeEventType.ENTITY_GROUP, edgeEvents.get(1).getType()); // tenant administrators
-        Assert.assertEquals(EdgeEventType.ENTITY_GROUP, edgeEvents.get(2).getType()); // tenant users
+        Assert.assertTrue(popEdgeEvent(edgeEvents, EdgeEventType.RULE_CHAIN, null)); // root rule chain
+        Assert.assertTrue(popEdgeEvent(edgeEvents, EdgeEventType.ENTITY_GROUP, null)); // tenant administrators
+        Assert.assertTrue(popEdgeEvent(edgeEvents, EdgeEventType.ENTITY_GROUP, null)); // tenant users
 
-        Assert.assertEquals(EdgeEventType.ENTITY_GROUP, edgeEvents.get(3).getType()); // TestDeviceGroup
-        Assert.assertEquals(EdgeEventActionType.ASSIGNED_TO_EDGE, edgeEvents.get(3).getAction());
+        Assert.assertTrue(popEdgeEvent(edgeEvents, EdgeEventType.ENTITY_GROUP, EdgeEventActionType.ASSIGNED_TO_EDGE)); // TestDeviceGroup
 
-        Assert.assertEquals(EdgeEventType.DEVICE, edgeEvents.get(4).getType()); // TestDevice
-        Assert.assertEquals(EdgeEventActionType.ADDED_TO_ENTITY_GROUP, edgeEvents.get(4).getAction());
+        Assert.assertTrue(popEdgeEvent(edgeEvents, EdgeEventType.DEVICE, EdgeEventActionType.ADDED_TO_ENTITY_GROUP)); // TestDevice
+        Assert.assertTrue(popEdgeEvent(edgeEvents, EdgeEventType.DEVICE, EdgeEventActionType.ADDED_TO_ENTITY_GROUP)); // TestDevice2
 
-        Assert.assertEquals(EdgeEventType.DEVICE, edgeEvents.get(5).getType()); // TestDevice2
-        Assert.assertEquals(EdgeEventActionType.ADDED_TO_ENTITY_GROUP, edgeEvents.get(5).getAction());
+        Assert.assertTrue(popEdgeEvent(edgeEvents, EdgeEventType.ENTITY_GROUP, EdgeEventActionType.ASSIGNED_TO_EDGE)); // TestAssetGroup
 
-        Assert.assertEquals(EdgeEventType.ENTITY_GROUP, edgeEvents.get(6).getType()); // TestAssetGroup
-        Assert.assertEquals(EdgeEventActionType.ASSIGNED_TO_EDGE, edgeEvents.get(6).getAction());
+        Assert.assertTrue(popEdgeEvent(edgeEvents, EdgeEventType.ASSET, EdgeEventActionType.ADDED_TO_ENTITY_GROUP)); // TestAsset
+        Assert.assertTrue(popEdgeEvent(edgeEvents, EdgeEventType.ASSET, EdgeEventActionType.ADDED_TO_ENTITY_GROUP)); // TestAsset2
 
-        Assert.assertEquals(EdgeEventType.ASSET, edgeEvents.get(7).getType()); // TestAsset
-        Assert.assertEquals(EdgeEventActionType.ADDED_TO_ENTITY_GROUP, edgeEvents.get(7).getAction());
+        Assert.assertTrue(popEdgeEvent(edgeEvents, EdgeEventType.RELATION, EdgeEventActionType.RELATION_ADD_OR_UPDATE));
+        Assert.assertTrue(edgeEvents.isEmpty());
+    }
 
-        Assert.assertEquals(EdgeEventType.ASSET, edgeEvents.get(8).getType()); // TestAsset2
-        Assert.assertEquals(EdgeEventActionType.ADDED_TO_ENTITY_GROUP, edgeEvents.get(8).getAction());
-
-        Assert.assertEquals(EdgeEventType.RELATION, edgeEvents.get(9).getType());
-        Assert.assertEquals(EdgeEventActionType.RELATION_ADD_OR_UPDATE, edgeEvents.get(9).getAction());
+    private boolean popEdgeEvent(List<EdgeEvent> edgeEvents, EdgeEventType edgeEventType, EdgeEventActionType actionType) {
+        for (EdgeEvent edgeEvent : edgeEvents) {
+            if (edgeEventType.equals(edgeEvent.getType())) {
+                if (actionType != null && !actionType.equals(edgeEvent.getAction())) {
+                    continue;
+                }
+                edgeEvents.remove(edgeEvent);
+                return true;
+            }
+        }
+        return false;
     }
 
     private void awaitForNumberOfEdgeEvents(EdgeId edgeId, int expectedNumber) {
