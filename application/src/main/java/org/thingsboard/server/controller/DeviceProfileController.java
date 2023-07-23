@@ -150,7 +150,7 @@ public class DeviceProfileController extends BaseController {
                     "The implementation limits the number of devices that participate in search to 100 as a trade of between accurate results and time-consuming queries. " +
                     TENANT_AUTHORITY_PARAGRAPH,
             produces = "application/json")
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/deviceProfile/devices/keys/timeseries", method = RequestMethod.GET)
     @ResponseBody
     public List<String> getTimeseriesKeys(
@@ -164,6 +164,8 @@ public class DeviceProfileController extends BaseController {
             deviceProfileId = null;
         }
 
+        accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ_TELEMETRY);
+
         return timeseriesService.findAllKeysByDeviceProfileId(getTenantId(), deviceProfileId);
     }
 
@@ -174,7 +176,7 @@ public class DeviceProfileController extends BaseController {
                     "The implementation limits the number of devices that participate in search to 100 as a trade of between accurate results and time-consuming queries. " +
                     TENANT_AUTHORITY_PARAGRAPH,
             produces = "application/json")
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/deviceProfile/devices/keys/attributes", method = RequestMethod.GET)
     @ResponseBody
     public List<String> getAttributesKeys(
@@ -187,6 +189,8 @@ public class DeviceProfileController extends BaseController {
         } else {
             deviceProfileId = null;
         }
+
+        accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ_ATTRIBUTES);
 
         return attributesService.findAllKeysByDeviceProfileId(getTenantId(), deviceProfileId);
     }
