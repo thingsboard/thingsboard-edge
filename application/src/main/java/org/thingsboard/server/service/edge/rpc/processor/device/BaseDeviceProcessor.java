@@ -67,8 +67,6 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
         boolean deviceNameUpdated = false;
         deviceCreationLock.lock();
         try {
-            edgeSynchronizationManager.getSync().set(true);
-
             Device device = deviceService.findDeviceById(tenantId, deviceId);
             String deviceName = deviceUpdateMsg.getName();
             if (device == null) {
@@ -122,7 +120,6 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
             safeAddToEntityGroup(tenantId, deviceUpdateMsg, deviceId);
             tbClusterService.onDeviceUpdated(savedDevice, created ? null : device);
         } finally {
-            edgeSynchronizationManager.getSync().remove();
             deviceCreationLock.unlock();
         }
         return Pair.of(created, deviceNameUpdated);
