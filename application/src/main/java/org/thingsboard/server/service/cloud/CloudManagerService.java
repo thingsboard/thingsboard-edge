@@ -629,7 +629,7 @@ public class CloudManagerService {
                 if (downlinkMsg.hasEdgeConfiguration()) {
                     if (edgeCustomerIdUpdated && !syncInProgress) {
                         log.info("Edge customer id has been updated. Sending sync request...");
-                        edgeRpcClient.sendSyncRequestMsg(true, false);
+                        edgeRpcClient.sendSyncRequestMsg(false);
                         syncInProgress = true;
                     }
                 }
