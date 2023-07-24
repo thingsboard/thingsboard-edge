@@ -145,6 +145,7 @@ public class EntityViewEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendEntityViewToCloud() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
@@ -181,6 +182,7 @@ public class EntityViewEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendEntityViewToCloudWithNameThatAlreadyExistsOnCloud() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
@@ -227,6 +229,7 @@ public class EntityViewEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDeleteEntityViewOnEdgeToCloud() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 

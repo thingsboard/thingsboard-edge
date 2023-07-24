@@ -180,6 +180,7 @@ public class AssetEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendAssetToCloud() throws Exception {
         UUID uuid = Uuids.timeBased();
 
@@ -209,6 +210,7 @@ public class AssetEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendAssetToCloudWithNameThatAlreadyExistsOnCloud() throws Exception {
         String assetOnCloudName = StringUtils.randomAlphanumeric(15);
         Asset assetOnCloud = saveAsset(assetOnCloudName);
@@ -250,6 +252,7 @@ public class AssetEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDeleteAssetOnEdgeToCloud() throws Exception {
         EntityGroup assetsEntityGroup = createEntityGroupAndAssignToEdge(EntityType.ASSET, "AssetToDeleteGroup", tenantId);
 

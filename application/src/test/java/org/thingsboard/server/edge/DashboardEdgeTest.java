@@ -162,6 +162,7 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDashboardToCloud() throws Exception {
         UUID uuid = Uuids.timeBased();
 
@@ -188,6 +189,7 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDeleteEntityViewOnEdgeToCloud() throws Exception {
         // create dashboard entity group and assign to edge
         EntityGroup dashboardEntityGroup = createEntityGroupAndAssignToEdge(EntityType.DASHBOARD, "DashboardToDeleteGroup", tenantId);

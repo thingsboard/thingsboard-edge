@@ -76,6 +76,31 @@ public class AssetProfileClientTest extends AbstractContainerTest {
         unAssignFromEdgeAndDeleteRuleChain(savedRuleChainId);
     }
 
+    @Test
+    public void testAssetProfileToCloud() {
+        // create asset profile on edge
+        AssetProfile saveAssetProfileOnEdge = saveAssetProfileOnEdge("Asset Profile On Edge");
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getAssetProfileById(saveAssetProfileOnEdge.getId()).isPresent());
+
+        // update asset profile
+        saveAssetProfileOnEdge.setName("Asset Profile On Edge Updated");
+        edgeRestClient.saveAssetProfile(saveAssetProfileOnEdge);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> "Asset Profile On Edge Updated".equals(cloudRestClient.getAssetProfileById(saveAssetProfileOnEdge.getId()).get().getName()));
+
+        // cleanup - we can delete asset profile only on Cloud
+        cloudRestClient.deleteAssetProfile(saveAssetProfileOnEdge.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getAssetProfileById(saveAssetProfileOnEdge.getId()).isEmpty());
+    }
+
     private AssetProfile createCustomAssetProfile(DashboardId defaultDashboardId, RuleChainId edgeRuleChainId) {
         AssetProfile assetProfile = new AssetProfile();
         assetProfile.setName("Buildings");
@@ -96,6 +121,12 @@ public class AssetProfileClientTest extends AbstractContainerTest {
 
         PageData<AssetProfile> pageData = edgeRestClient.getAssetProfiles(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.ASSET_PROFILE);
+    }
+
+    private AssetProfile saveAssetProfileOnEdge(String assetProfileName) {
+        AssetProfile assetProfile = new AssetProfile();
+        assetProfile.setName(assetProfileName);
+        return edgeRestClient.saveAssetProfile(assetProfile);
     }
 
 }

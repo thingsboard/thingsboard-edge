@@ -95,6 +95,7 @@ public class ContainerTestSuite {
                         new File("./../../docker-edge/docker-compose.volumes.yml"))
                         .withPull(false)
                         .withLocalCompose(true)
+                        .withOptions("--compatibility")
                         .withTailChildContainers(true)
                         .withEnv(installTb.getEnv())
                         .withEnv(env)

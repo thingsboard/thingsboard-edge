@@ -35,17 +35,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -152,6 +156,96 @@ public class EntityViewClientTest extends AbstractContainerTest {
         entityView.setType(type);
         entityView.setEntityId(deviceId);
         return cloudRestClient.saveEntityView(entityView, entityGroupId);
+    }
+
+    @Test
+    public void testSendEntityViewToCloud() {
+        // create asset on edge
+        Asset savedAssetOnEdge = saveAssetOnEdge("Edge Asset For Entity View", edgeRestClient.getDefaultAssetProfileInfo().getName());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getAssetById(savedAssetOnEdge.getId()).isPresent());
+
+        // create entity view on edge
+        EntityView savedEntityViewOnEdge = saveEntityViewOnEdge("Edge Entity View 3", "Default", savedAssetOnEdge.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getEntityViewById(savedEntityViewOnEdge.getId()).isPresent());
+
+        // update entity view
+        savedEntityViewOnEdge.setName("Edge Entity View 3 Updated");
+        edgeRestClient.saveEntityView(savedEntityViewOnEdge);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> "Edge Entity View 3 Updated".equals(cloudRestClient.getEntityViewById(savedEntityViewOnEdge.getId()).get().getName()));
+
+
+        // delete entity view
+        edgeRestClient.deleteEntityView(savedEntityViewOnEdge.getId());
+        cloudRestClient.deleteEntityView(savedEntityViewOnEdge.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getEntityViewById(savedEntityViewOnEdge.getId()).isEmpty() &&
+                        cloudRestClient.getEntityViewById(savedEntityViewOnEdge.getId()).isEmpty());
+
+        // cleanup
+        cloudRestClient.deleteAsset(savedAssetOnEdge.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getAssetById(savedAssetOnEdge.getId()).isEmpty());
+    }
+
+    @Test
+    public void testSendEntityViewToCloudWithNameThatAlreadyExistsOnCloud() {
+        // create entity view on cloud and edge with the same name
+        Device device = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
+        EntityView savedEntityViewOnCloud = saveEntityViewOnCloud("Edge Entity View Exists", "Default", device.getId());
+        EntityView savedEntityViewOnEdge = saveEntityViewOnEdge("Edge Entity View Exists", "Default", device.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    Optional<EntityView> entityViewOptional = cloudRestClient.getEntityViewById(savedEntityViewOnEdge.getId());
+                    return entityViewOptional.isPresent() && !entityViewOptional.get().getName().equals(savedEntityViewOnCloud.getName());
+                });
+
+        // delete entity view
+        cloudRestClient.deleteEntityView(savedEntityViewOnEdge.getId());
+        cloudRestClient.deleteEntityView(savedEntityViewOnCloud.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getEntityViewById(savedEntityViewOnEdge.getId()).isEmpty() &&
+                        cloudRestClient.getEntityViewById(savedEntityViewOnEdge.getId()).isEmpty() &&
+                        cloudRestClient.getEntityViewById(savedEntityViewOnCloud.getId()).isEmpty());
+
+        // cleanup
+        cloudRestClient.deleteDevice(device.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getDeviceById(device.getId()).isEmpty());
+    }
+
+    private EntityView saveEntityViewOnEdge(String entityViewName, String type, EntityId entityId) {
+        return saveEntityView(entityViewName, type, entityId, edgeRestClient);
+    }
+
+    private EntityView saveEntityViewOnCloud(String entityViewName, String type, EntityId entityId) {
+        return saveEntityView(entityViewName, type, entityId, cloudRestClient);
+    }
+
+    private EntityView saveEntityView(String entityViewName, String type, EntityId entityId, RestClient restClient) {
+        EntityView entityView = new EntityView();
+        entityView.setName(entityViewName);
+        entityView.setType(type);
+        entityView.setEntityId(entityId);
+        return restClient.saveEntityView(entityView);
     }
 
 }
