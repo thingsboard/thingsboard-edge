@@ -43,7 +43,6 @@ import { PageComponent } from '@shared/components/page.component';
 import {
   commonFonts,
   ComponentStyle,
-  cssUnits,
   Font,
   fontStyles,
   fontStyleTranslations,
@@ -80,8 +79,6 @@ export class FontSettingsPanelComponent extends PageComponent implements OnInit 
   fontApplied = new EventEmitter<Font>();
 
   @ViewChild('familyInput', {static: true}) familyInput: ElementRef;
-
-  cssUnitsList = cssUnits;
 
   fontWeightsList = fontWeights;
 

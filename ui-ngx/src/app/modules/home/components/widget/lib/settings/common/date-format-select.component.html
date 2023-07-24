@@ -30,26 +30,12 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field appearance="outline" class="tb-inline-field tb-suffix-show-on-hover" subscriptSizing="dynamic" style="width: 100%;">
-  <input matInput #unitInput [formControl]="unitsFormControl"
-         placeholder="{{ 'widget-config.set' | translate }}"
-         (focusin)="onFocus()"
-         [matAutocomplete]="unitsAutocomplete">
-  <button *ngIf="unitsFormControl.value && !disabled"
-          type="button"
-          class="tb-icon-24"
-          matSuffix mat-icon-button aria-label="Clear"
-          (click)="clear()">
-    <mat-icon class="material-icons">close</mat-icon>
+<mat-form-field appearance="outline" subscriptSizing="dynamic" style="width: 100%;">
+  <mat-select [formControl]="dateFormatFormControl" [compareWith]="dateFormatsCompare" >
+    <mat-option *ngFor="let dateFormat of dateFormatList" [value]="dateFormat">{{ dateFormatDisplayValue(dateFormat) }}</mat-option>
+  </mat-select>
+  <button #customFormatButton
+          *ngIf="dateFormatFormControl.value?.custom" matSuffix mat-icon-button (click)="openDateFormatSettingsPopup($event, customFormatButton)">
+    <tb-icon>edit</tb-icon>
   </button>
-  <mat-autocomplete
-    #unitsAutocomplete="matAutocomplete"
-    class="tb-autocomplete tb-unit-input-autocomplete"
-    panelWidth="fit-content"
-    [displayWith]="displayUnitFn">
-    <mat-option *ngFor="let unit of filteredUnits | async" [value]="unit">
-      <span class="tb-unit-name" fxFlex [innerHTML]="unit.name | highlight:searchText:true:'ig'"></span>
-      <span class="tb-unit-symbol" [innerHTML]="unit.symbol | highlight:searchText:true:'ig'"></span>
-    </mat-option>
-  </mat-autocomplete>
 </mat-form-field>

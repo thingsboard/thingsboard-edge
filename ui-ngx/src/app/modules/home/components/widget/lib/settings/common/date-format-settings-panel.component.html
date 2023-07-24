@@ -30,26 +30,33 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field appearance="outline" class="tb-inline-field tb-suffix-show-on-hover" subscriptSizing="dynamic" style="width: 100%;">
-  <input matInput #unitInput [formControl]="unitsFormControl"
-         placeholder="{{ 'widget-config.set' | translate }}"
-         (focusin)="onFocus()"
-         [matAutocomplete]="unitsAutocomplete">
-  <button *ngIf="unitsFormControl.value && !disabled"
-          type="button"
-          class="tb-icon-24"
-          matSuffix mat-icon-button aria-label="Clear"
-          (click)="clear()">
-    <mat-icon class="material-icons">close</mat-icon>
-  </button>
-  <mat-autocomplete
-    #unitsAutocomplete="matAutocomplete"
-    class="tb-autocomplete tb-unit-input-autocomplete"
-    panelWidth="fit-content"
-    [displayWith]="displayUnitFn">
-    <mat-option *ngFor="let unit of filteredUnits | async" [value]="unit">
-      <span class="tb-unit-name" fxFlex [innerHTML]="unit.name | highlight:searchText:true:'ig'"></span>
-      <span class="tb-unit-symbol" [innerHTML]="unit.symbol | highlight:searchText:true:'ig'"></span>
-    </mat-option>
-  </mat-autocomplete>
-</mat-form-field>
+<div class="tb-date-format-settings-panel">
+  <div class="tb-date-format-settings-title" translate>date.custom-date</div>
+  <div class="tb-form-row no-border no-padding">
+    <div class="fixed-title-width" translate>date.format</div>
+    <mat-form-field class="tb-date-format-input" required fxFlex appearance="outline" subscriptSizing="dynamic">
+      <input matInput [formControl]="dateFormatFormControl" placeholder="{{ 'widget-config.set' | translate }}">
+      <div matSuffix tb-help-popup="date/date-format" [tb-help-popup-style]="{width: '800px'}"></div>
+    </mat-form-field>
+  </div>
+  <mat-divider></mat-divider>
+  <div class="tb-form-row no-border no-padding date-format-preview">
+    <div class="fixed-title-width" translate>date.preview</div>
+    <div class="preview-text" fxFlex>{{ previewText }}</div>
+  </div>
+  <div class="tb-date-format-settings-panel-buttons">
+    <button mat-button
+            color="primary"
+            type="button"
+            (click)="cancel()">
+      {{ 'action.cancel' | translate }}
+    </button>
+    <button mat-raised-button
+            color="primary"
+            type="button"
+            (click)="applyDateFormat()"
+            [disabled]="dateFormatFormControl.invalid || !dateFormatFormControl.dirty">
+      {{ 'action.apply' | translate }}
+    </button>
+  </div>
+</div>

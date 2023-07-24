@@ -300,6 +300,11 @@ import { ColorSettingsComponent } from '@home/components/widget/lib/settings/com
 import {
   ColorSettingsPanelComponent
 } from '@home/components/widget/lib/settings/common/color-settings-panel.component';
+import { CssUnitSelectComponent } from '@home/components/widget/lib/settings/common/css-unit-select.component';
+import { DateFormatSelectComponent } from '@home/components/widget/lib/settings/common/date-format-select.component';
+import {
+  DateFormatSettingsPanelComponent
+} from '@home/components/widget/lib/settings/common/date-format-settings-panel.component';
 
 @NgModule({
   declarations: [
@@ -408,6 +413,9 @@ import {
     FontSettingsPanelComponent,
     ColorSettingsComponent,
     ColorSettingsPanelComponent,
+    CssUnitSelectComponent,
+    DateFormatSelectComponent,
+    DateFormatSettingsPanelComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -523,6 +531,9 @@ import {
     FontSettingsPanelComponent,
     ColorSettingsComponent,
     ColorSettingsPanelComponent,
+    CssUnitSelectComponent,
+    DateFormatSelectComponent,
+    DateFormatSettingsPanelComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent

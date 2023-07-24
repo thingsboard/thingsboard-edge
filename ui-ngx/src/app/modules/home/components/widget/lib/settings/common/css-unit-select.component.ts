@@ -29,52 +29,69 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Inject, Pipe, PipeTransform } from '@angular/core';
-import { DAY, HOUR, MINUTE, SECOND, WEEK, YEAR } from '@shared/models/time/time.models';
-import { TranslateService } from '@ngx-translate/core';
+import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, UntypedFormControl } from '@angular/forms';
+import { cssUnit, cssUnits } from '@home/components/widget/config/widget-settings.models';
 
-const intervals = {
-  years: YEAR,
-  months: DAY * 30,
-  weeks: WEEK,
-  days: DAY,
-  hr: HOUR,
-  min: MINUTE,
-  sec: SECOND
-};
-
-@Pipe({
-  name: 'dateAgo'
-})
-export class DateAgoPipe implements PipeTransform {
-
-  constructor(@Inject(TranslateService) private translate: TranslateService) {
-
-  }
-
-  transform(value: string| number | Date, args?: any): string {
-    if (value) {
-      const applyAgo = !!args?.applyAgo;
-      const short = !!args?.short;
-      const textPart = !!args?.textPart;
-      const ms = Math.floor((+new Date() - +new Date(value)));
-      if (ms < 29 * SECOND) { // less than 30 seconds ago will show as 'Just now'
-        return this.translate.instant(textPart ? 'timewindow.just-now-lower' : 'timewindow.just-now');
-      }
-      let counter;
-      // eslint-disable-next-line guard-for-in
-      for (const i in intervals) {
-        counter = Math.floor(ms / intervals[i]);
-        if (counter > 0) {
-          let res = this.translate.instant(`timewindow.${i+(short ? '-short' : '')}`, {[i]: counter});
-          if (applyAgo) {
-            res += ' ' + this.translate.instant('timewindow.ago');
-          }
-          return res;
-        }
-      }
+@Component({
+  selector: 'tb-css-unit-select',
+  templateUrl: './css-unit-select.component.html',
+  styleUrls: [],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => CssUnitSelectComponent),
+      multi: true
     }
-    return '';
+  ]
+})
+export class CssUnitSelectComponent implements OnInit, ControlValueAccessor {
+
+  @Input()
+  disabled: boolean;
+
+  cssUnitsList = cssUnits;
+
+  cssUnitFormControl: UntypedFormControl;
+
+  modelValue: cssUnit;
+
+  private propagateChange = null;
+
+  constructor() {}
+
+  ngOnInit(): void {
+    this.cssUnitFormControl = new UntypedFormControl();
+    this.cssUnitFormControl.valueChanges.subscribe((value: cssUnit) => {
+      this.updateModel(value);
+    });
   }
 
+  registerOnChange(fn: any): void {
+    this.propagateChange = fn;
+  }
+
+  registerOnTouched(fn: any): void {
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.disabled = isDisabled;
+    if (this.disabled) {
+      this.cssUnitFormControl.disable();
+    } else {
+      this.cssUnitFormControl.enable();
+    }
+  }
+
+  writeValue(value: cssUnit): void {
+    this.modelValue = value;
+    this.cssUnitFormControl.patchValue(this.modelValue, {emitEvent: false});
+  }
+
+  updateModel(value: cssUnit): void {
+    if (this.modelValue !== value) {
+      this.modelValue = value;
+      this.propagateChange(this.modelValue);
+    }
+  }
 }
