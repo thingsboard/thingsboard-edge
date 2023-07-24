@@ -107,9 +107,8 @@ export const homeDashboardResolver: ResolveFn<HomeDashboard> = (
 export const edgeSettingsResolver: ResolveFn<EdgeSettings> = (
   route: ActivatedRouteSnapshot,
   state: RouterStateSnapshot,
-  edgeService = inject(EdgeService),
-): Observable<EdgeSettings> =>
-  edgeService.getEdgeSettings();
+  edgeService = inject(EdgeService)
+): Observable<EdgeSettings> => edgeService.getEdgeSettings();
 
 export const edgeNameResolver: BreadCrumbLabelFunction<HomeLinksComponent> =
   ((route, translate, component) => route.data.edgeSettings.name);
@@ -135,6 +134,6 @@ const routes: Routes = [
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule],
+  exports: [RouterModule]
 })
 export class HomeLinksRoutingModule { }
