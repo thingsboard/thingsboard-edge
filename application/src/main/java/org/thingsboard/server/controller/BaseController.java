@@ -82,7 +82,6 @@ import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.blob.BlobEntityWithCustomerInfo;
-import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeInfo;
@@ -1246,11 +1245,6 @@ public abstract class BaseController {
         } catch (Exception e) {
             return MediaType.APPLICATION_OCTET_STREAM;
         }
-    }
-
-    protected void sendGroupEntityNotificationMsgToCloud(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
-                                                         EdgeEventActionType cloudEventAction, EntityGroupId entityGroupId) {
-        tbClusterService.sendNotificationMsgToCloud(tenantId, entityId, null, cloudEventType, cloudEventAction, entityGroupId);
     }
 
     protected void throwRealCause(ExecutionException e) throws Exception {
