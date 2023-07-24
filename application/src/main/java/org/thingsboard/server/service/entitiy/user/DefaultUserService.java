@@ -33,6 +33,7 @@ package org.thingsboard.server.service.entitiy.user;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
@@ -48,6 +49,7 @@ import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
+import org.thingsboard.server.service.entitiy.alarm.TbAlarmService;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -63,6 +65,7 @@ import static org.thingsboard.server.controller.UserController.ACTIVATE_URL_PATT
 public class DefaultUserService extends AbstractTbEntityService implements TbUserService {
 
     private final UserService userService;
+    private final TbAlarmService tbAlarmService;
     private final MailService mailService;
     private final SystemSecurityService systemSecurityService;
 
@@ -89,7 +92,7 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
                     entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), savedUser.getId());
                     notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, customerId, savedUser.getId(),
                             savedUser, user, ActionType.ADDED_TO_ENTITY_GROUP, false, null);
-                } else if (!entityGroups.isEmpty() && tbUser.getId() == null) {
+                } else if (!CollectionUtils.isEmpty(entityGroups) && tbUser.getId() == null) {
                     for (EntityGroup entityGroup : entityGroups) {
                         entityGroupService.addEntityToEntityGroup(tenantId, entityGroup.getId(), savedUser.getId());
                         notificationEntityService.notifyAddToEntityGroup(tenantId, savedUser.getId(), savedUser, customerId,
@@ -127,6 +130,7 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
         UserId userId = tbUser.getId();
 
         try {
+            tbAlarmService.unassignUserAlarms(tenantId, tbUser, System.currentTimeMillis());
             List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, userId);
             userService.deleteUser(tenantId, userId);
             notificationEntityService.notifyDeleteEntity(tenantId, userId, tbUser, customerId,

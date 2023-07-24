@@ -54,6 +54,7 @@ export interface TableWidgetSettings {
   enableSearch: boolean;
   enableSelectColumnDisplay: boolean;
   enableStickyAction: boolean;
+  showCellActionsMenu: boolean;
   enableStickyHeader: boolean;
   displayPagination: boolean;
   defaultPageSize: number;

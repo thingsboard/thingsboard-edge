@@ -35,14 +35,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.ResultActions;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -55,6 +53,8 @@ import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
+import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.exception.DataValidationException;
 
@@ -231,6 +231,36 @@ public class TbResourceControllerTest extends AbstractControllerTest {
         doGet("/api/resource/" + savedResource.getId().getId().toString())
                 .andExpect(status().isNotFound())
                 .andExpect(statusReason(containsString(msgErrorNoFound("Resource", resourceIdStr))));
+    }
+
+    @Test
+    public void testShoudNotDeleteTbResourceIfAssignedToWidgetType() throws Exception {
+        TbResource resource = new TbResource();
+        resource.setResourceType(ResourceType.JKS);
+        resource.setTitle("My first resource");
+        resource.setFileName(DEFAULT_FILE_NAME);
+        resource.setData(TEST_DATA);
+
+        TbResource savedResource = save(resource);
+
+        Mockito.reset(tbClusterService, auditLogService);
+        String resourceIdStr = savedResource.getId().getId().toString();
+
+        //create widget type
+        WidgetsBundle widgetsBundle = new WidgetsBundle();
+        widgetsBundle.setTitle("My widgets bundle");
+        WidgetsBundle savedWidgetsBundle = doPost("/api/widgetsBundle", widgetsBundle, WidgetsBundle.class);
+
+        WidgetTypeDetails widgetType = new WidgetTypeDetails();
+        widgetType.setBundleAlias(savedWidgetsBundle.getAlias());
+        widgetType.setName("Widget Type");
+        widgetType.setDescriptor(JacksonUtil.fromString(String.format("{ \"resources\": [{\"url\":{\"entityType\":\"TB_RESOURCE\",\"id\":\"%s\"},\"isModule\":true}]}", savedResource.getId()), JsonNode.class));
+        doPost("/api/widgetType", widgetType, WidgetTypeDetails.class);
+
+        doDelete("/api/resource/" + resourceIdStr)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString("Following widget types uses current resource: ["
+                        + widgetType .getName()+ "]")));
     }
 
     @Test
