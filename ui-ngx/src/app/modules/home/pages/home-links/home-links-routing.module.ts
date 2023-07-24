@@ -96,7 +96,6 @@ export const edgeSettingsResolver: ResolveFn<EdgeSettings> = (
 ): Observable<EdgeSettings> =>
   edgeService.getEdgeSettings();
 
-
 export const edgeNameResolver: BreadCrumbLabelFunction<HomeLinksComponent> =
   ((route, translate, component) => route.data.edgeSettings.name);
 
