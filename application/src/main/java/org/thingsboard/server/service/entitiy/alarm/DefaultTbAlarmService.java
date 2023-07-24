@@ -239,7 +239,7 @@ public class DefaultTbAlarmService extends AbstractTbEntityService implements Tb
                     } catch (ThingsboardException e) {
                         log.error("Failed to save alarm comment", e);
                     }
-                    notificationEntityService.notifyCreateOrUpdateAlarm(result.getAlarm(), ActionType.ALARM_UNASSIGNED, user);
+                    notificationEntityService.notifyCreateOrUpdateAlarm(result.getAlarm(), ActionType.ALARM_UNASSIGNED, user, true);
                 }
             }
 
