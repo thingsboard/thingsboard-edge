@@ -111,8 +111,8 @@
                               [ruleNode]="editingRuleNode"
                               [ruleChainId]="ruleChain.id?.id"
                               [ruleChainType]="ruleChainType"
-                              [isEdit]="true"
-                              [isReadOnly]="false"
+                              [isEdit]="!readonly"
+                              [isReadOnly]="readonly"
                               (initRuleNode)="onRuleNodeInit()"
                               (changeScript)="switchToFirstTab()">
                 </tb-rule-node>
