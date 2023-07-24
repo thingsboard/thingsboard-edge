@@ -50,7 +50,7 @@
           (click)="clear()">
     <mat-icon class="material-icons">close</mat-icon>
   </button>
-  <button *ngIf="selectDeviceProfileFormGroup.get('deviceProfile').value && !disabled && editProfileEnabled &&
+  <button *ngIf="selectDeviceProfileFormGroup.get('deviceProfile').value?.id && !disabled && editProfileEnabled &&
                (resource.DEVICE_PROFILE | hasGenericPermission: operation.WRITE)"
           type="button"
           matSuffix mat-icon-button aria-label="Edit"
