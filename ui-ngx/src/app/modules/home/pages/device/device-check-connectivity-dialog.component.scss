@@ -137,6 +137,14 @@
           margin: 0;
           border-color: var(--tb-primary-500);
           padding-right: 38px;
+          overflow: scroll;
+          padding-bottom: 4px;
+
+          &::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+          }
+
           &::before {
             content: "";
             width: 100%;
