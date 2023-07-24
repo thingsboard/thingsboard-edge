@@ -380,8 +380,7 @@ public class DashboardControllerTest extends AbstractControllerTest {
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAnyWithGroup(customerUserGroup, customerUserGroup,
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, ActionType.ADDED, 1, 0 , 1,
-                customerUserGroup.getType(), customerUserGroup.getId());
+                ActionType.ADDED, ActionType.ADDED, 1, 1 , 1);
 
         EntityGroup tenantDashboardGroup = new EntityGroup();
         tenantDashboardGroup.setType(EntityType.DASHBOARD);

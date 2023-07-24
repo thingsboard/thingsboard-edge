@@ -43,8 +43,6 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
@@ -55,7 +53,6 @@ import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.edge.EdgeEventDao;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.dao.sqlts.insert.sql.SqlPartitioningRepository;
@@ -71,7 +68,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @TestPropertySource(properties = {
         "edges.enabled=true",
@@ -79,9 +75,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Slf4j
 @DaoSqlTest
 public class EdgeEventControllerTest extends AbstractControllerTest {
-
-    private Tenant savedTenant;
-    private User tenantAdmin;
 
     @Autowired
     private EdgeEventDao edgeEventDao;
@@ -97,33 +90,11 @@ public class EdgeEventControllerTest extends AbstractControllerTest {
 
     @Before
     public void beforeTest() throws Exception {
-        loginSysAdmin();
-
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        savedTenant = doPost("/api/tenant", tenant, Tenant.class);
-        Assert.assertNotNull(savedTenant);
-
-        tenantAdmin = new User();
-        tenantAdmin.setAuthority(Authority.TENANT_ADMIN);
-        tenantAdmin.setTenantId(savedTenant.getId());
-        tenantAdmin.setEmail("tenant2@thingsboard.org");
-        tenantAdmin.setFirstName("Joe");
-        tenantAdmin.setLastName("Downs");
-
-        tenantAdmin = createUserAndLogin(tenantAdmin, "testPassword1");
-        // sleep 1 seconds to avoid CREDENTIALS updated message for the user
-        // user credentials is going to be stored and updated event pushed to edge notification service
-        // while service will be processing this event edge could be already added and additional message will be pushed
-        Thread.sleep(1000);
+        loginTenantAdmin();
     }
 
     @After
     public void afterTest() throws Exception {
-        loginSysAdmin();
-
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
     }
 
     @Test
@@ -132,56 +103,80 @@ public class EdgeEventControllerTest extends AbstractControllerTest {
         edge = doPost("/api/edge", edge, Edge.class);
         final EdgeId edgeId = edge.getId();
 
-        EntityGroup deviceEntityGroup = constructEntityGroup("TestDevice", EntityType.DEVICE);
-        EntityGroup savedDeviceEntityGroup = doPost("/api/entityGroup", deviceEntityGroup, EntityGroup.class);
-        Device device = constructDevice("TestDevice", "default");
-        doPost("/api/edge/" + edgeId.toString() + "/entityGroup/" + savedDeviceEntityGroup.getId().toString() + "/DEVICE", EntityGroup.class);
+        awaitForNumberOfEdgeEvents(edgeId, 3);
 
+        EntityGroup deviceEntityGroup = constructEntityGroup("TestDeviceGroup", EntityType.DEVICE);
+        EntityGroup savedDeviceEntityGroup = doPost("/api/entityGroup", deviceEntityGroup, EntityGroup.class);
+        doPost("/api/edge/" + edgeId.toString() + "/entityGroup/" + savedDeviceEntityGroup.getId().toString() + "/DEVICE", EntityGroup.class);
+        awaitForNumberOfEdgeEvents(edgeId, 4);
+
+        Device device = constructDevice("TestDevice", "default");
         Device savedDevice =
                 doPost("/api/device?entityGroupId=" + savedDeviceEntityGroup.getId().getId().toString(), device, Device.class);
+        awaitForNumberOfEdgeEvents(edgeId, 5);
 
         Device device2 = constructDevice("TestDevice2", "default");
         doPost("/api/device?entityGroupId=" + savedDeviceEntityGroup.getId().getId().toString(), device2, Device.class);
+        awaitForNumberOfEdgeEvents(edgeId, 6);
 
-
-        EntityGroup assetEntityGroup = constructEntityGroup("TestAsset", EntityType.ASSET);
+        EntityGroup assetEntityGroup = constructEntityGroup("TestAssetGroup", EntityType.ASSET);
         EntityGroup savedAssetEntityGroup = doPost("/api/entityGroup", assetEntityGroup, EntityGroup.class);
-        Asset asset = constructAsset("TestAsset", "default");
         doPost("/api/edge/" + edgeId.toString() + "/entityGroup/" + savedAssetEntityGroup.getId().toString()+ "/ASSET", EntityGroup.class);
+        awaitForNumberOfEdgeEvents(edgeId, 7);
 
+        Asset asset = constructAsset("TestAsset", "default");
         Asset savedAsset =
                 doPost("/api/asset?entityGroupId=" + savedAssetEntityGroup.getId().getId().toString(), asset, Asset.class);
+        awaitForNumberOfEdgeEvents(edgeId, 8);
 
         Asset asset2 = constructAsset("TestAsset2", "default");
         doPost("/api/asset?entityGroupId=" + savedAssetEntityGroup.getId().getId().toString(), asset2, Asset.class);
+        awaitForNumberOfEdgeEvents(edgeId, 9);
 
         EntityRelation relation = new EntityRelation(savedAsset.getId(), savedDevice.getId(), EntityRelation.CONTAINS_TYPE);
         doPost("/api/relation", relation);
+        awaitForNumberOfEdgeEvents(edgeId, 10);
 
+        List<EdgeEvent> edgeEvents = findEdgeEvents(edgeId);
+
+        Assert.assertTrue(popEdgeEvent(edgeEvents, EdgeEventType.RULE_CHAIN, null)); // root rule chain
+        Assert.assertTrue(popEdgeEvent(edgeEvents, EdgeEventType.ENTITY_GROUP, null)); // tenant administrators
+        Assert.assertTrue(popEdgeEvent(edgeEvents, EdgeEventType.ENTITY_GROUP, null)); // tenant users
+
+        Assert.assertTrue(popEdgeEvent(edgeEvents, EdgeEventType.ENTITY_GROUP, EdgeEventActionType.ASSIGNED_TO_EDGE)); // TestDeviceGroup
+
+        Assert.assertTrue(popEdgeEvent(edgeEvents, EdgeEventType.DEVICE, EdgeEventActionType.ADDED_TO_ENTITY_GROUP)); // TestDevice
+        Assert.assertTrue(popEdgeEvent(edgeEvents, EdgeEventType.DEVICE, EdgeEventActionType.ADDED_TO_ENTITY_GROUP)); // TestDevice2
+
+        Assert.assertTrue(popEdgeEvent(edgeEvents, EdgeEventType.ENTITY_GROUP, EdgeEventActionType.ASSIGNED_TO_EDGE)); // TestAssetGroup
+
+        Assert.assertTrue(popEdgeEvent(edgeEvents, EdgeEventType.ASSET, EdgeEventActionType.ADDED_TO_ENTITY_GROUP)); // TestAsset
+        Assert.assertTrue(popEdgeEvent(edgeEvents, EdgeEventType.ASSET, EdgeEventActionType.ADDED_TO_ENTITY_GROUP)); // TestAsset2
+
+        Assert.assertTrue(popEdgeEvent(edgeEvents, EdgeEventType.RELATION, EdgeEventActionType.RELATION_ADD_OR_UPDATE));
+        Assert.assertTrue(edgeEvents.isEmpty());
+    }
+
+    private boolean popEdgeEvent(List<EdgeEvent> edgeEvents, EdgeEventType edgeEventType, EdgeEventActionType actionType) {
+        for (EdgeEvent edgeEvent : edgeEvents) {
+            if (edgeEventType.equals(edgeEvent.getType())) {
+                if (actionType != null && !actionType.equals(edgeEvent.getAction())) {
+                    continue;
+                }
+                edgeEvents.remove(edgeEvent);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void awaitForNumberOfEdgeEvents(EdgeId edgeId, int expectedNumber) {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     List<EdgeEvent> edgeEvents = findEdgeEvents(edgeId);
-                    return edgeEvents.size() == 8;
+                    return edgeEvents.size() == expectedNumber;
                 });
-        List<EdgeEvent> edgeEvents = findEdgeEvents(edgeId);
-
-        Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.RULE_CHAIN.equals(ee.getType())
-                && EdgeEventActionType.UPDATED.equals(ee.getAction())));
-
-        Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.ENTITY_GROUP.equals(ee.getType())
-                && EdgeEventActionType.ASSIGNED_TO_EDGE.equals(ee.getAction())));
-
-        Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.DEVICE.equals(ee.getType())
-                && EdgeEventActionType.ADDED_TO_ENTITY_GROUP.equals(ee.getAction())
-                && savedDeviceEntityGroup.getUuidId().equals(ee.getEntityGroupId())));
-
-        Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.ASSET.equals(ee.getType())
-                && EdgeEventActionType.ADDED_TO_ENTITY_GROUP.equals(ee.getAction())
-                && savedAssetEntityGroup.getUuidId().equals(ee.getEntityGroupId())));
-
-        Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.RELATION.equals(ee.getType())
-                && EdgeEventActionType.RELATION_ADD_OR_UPDATE.equals(ee.getAction())));
     }
 
     @Test
@@ -244,7 +239,7 @@ public class EdgeEventControllerTest extends AbstractControllerTest {
         edgeEvent.setCreatedTime(System.currentTimeMillis());
         edgeEvent.setTenantId(tenantId);
         edgeEvent.setAction(EdgeEventActionType.ADDED);
-        edgeEvent.setEntityId(tenantAdmin.getUuidId());
+        edgeEvent.setEntityId(tenantAdminUser.getUuidId());
         edgeEvent.setType(EdgeEventType.ALARM);
         try {
             edgeEventDao.saveAsync(edgeEvent).get();
