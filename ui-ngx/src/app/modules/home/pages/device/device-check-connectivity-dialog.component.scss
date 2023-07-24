@@ -136,6 +136,7 @@
         pre[class*=language-] {
           margin: 0;
           border-color: var(--tb-primary-500);
+          padding-right: 38px;
           &::before {
             content: "";
             width: 100%;
