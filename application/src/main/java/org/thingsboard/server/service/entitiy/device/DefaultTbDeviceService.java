@@ -97,13 +97,18 @@ public class DefaultTbDeviceService extends AbstractTbEntityService implements T
 
     @Override
     public Device saveDeviceWithCredentials(Device device, DeviceCredentials credentials, EntityGroup entityGroup, User user) throws ThingsboardException {
+        return saveDeviceWithCredentials(device, credentials, entityGroup != null ? Collections.singletonList(entityGroup) : null, user);
+    }
+
+    @Override
+    public Device saveDeviceWithCredentials(Device device, DeviceCredentials credentials, List<EntityGroup> entityGroups, User user) throws ThingsboardException {
         boolean isCreate = device.getId() == null;
         ActionType actionType = isCreate ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = device.getTenantId();
         try {
             Device oldDevice = isCreate ? null : deviceService.findDeviceById(tenantId, device.getId());
             Device savedDevice = checkNotNull(deviceService.saveDeviceWithCredentials(device, credentials));
-            createOrUpdateGroupEntity(tenantId, savedDevice, entityGroup != null ? Collections.singletonList(entityGroup) : null, actionType, user);
+            createOrUpdateGroupEntity(tenantId, savedDevice, entityGroups, actionType, user);
             tbClusterService.onDeviceUpdated(savedDevice, oldDevice, false, false);
             return savedDevice;
         } catch (Exception e) {

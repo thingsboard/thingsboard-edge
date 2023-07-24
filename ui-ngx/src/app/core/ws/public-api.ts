@@ -29,55 +29,6 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
-import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, UntypedFormBuilder } from '@angular/forms';
-
-@Component({
-  selector: 'tb-widget-units',
-  templateUrl: './widget-units.component.html',
-  styleUrls: [],
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => WidgetUnitsComponent),
-      multi: true
-    }
-  ]
-})
-export class WidgetUnitsComponent implements ControlValueAccessor, OnInit {
-
-  @Input()
-  disabled: boolean;
-
-  unitsFormControl: FormControl;
-
-  private propagateChange = (_val: any) => {};
-
-  constructor(private fb: UntypedFormBuilder) {
-  }
-
-  ngOnInit() {
-    this.unitsFormControl = this.fb.control('', []);
-    this.unitsFormControl.valueChanges.subscribe(val => this.propagateChange(val));
-  }
-
-  writeValue(units?: string): void {
-    this.unitsFormControl.patchValue(units, {emitEvent: false});
-  }
-
-  registerOnChange(fn: any): void {
-    this.propagateChange = fn;
-  }
-
-  registerOnTouched(fn: any): void {
-  }
-
-  setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
-    if (this.disabled) {
-      this.unitsFormControl.disable({emitEvent: false});
-    } else {
-      this.unitsFormControl.enable({emitEvent: false});
-    }
-  }
-}
+export * from './notification-websocket.service';
+export * from './telemetry-websocket.service';
+export * from './websocket.service';

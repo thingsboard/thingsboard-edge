@@ -38,6 +38,7 @@ import {
   Injector,
   Input,
   NgZone,
+  OnDestroy,
   OnInit,
   StaticProvider,
   ViewChild,
@@ -107,13 +108,7 @@ import {
   DisplayColumnsPanelComponent,
   DisplayColumnsPanelData
 } from '@home/components/widget/lib/display-columns-panel.component';
-import {
-  AlarmDataInfo,
-  alarmFields,
-  AlarmInfo,
-  alarmSeverityColors,
-  AlarmStatus
-} from '@shared/models/alarm.models';
+import { AlarmDataInfo, alarmFields, AlarmInfo, alarmSeverityColors, AlarmStatus } from '@shared/models/alarm.models';
 import { DatePipe } from '@angular/common';
 import {
   AlarmDetailsDialogComponent,
@@ -155,6 +150,7 @@ import {
   AlarmFilterConfigComponent,
   AlarmFilterConfigData
 } from '@home/components/alarm/alarm-filter-config.component';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 
 interface AlarmsTableWidgetSettings extends TableWidgetSettings {
   alarmsTitle: string;
@@ -182,7 +178,8 @@ interface AlarmWidgetActionDescriptor extends TableCellButtonActionDescriptor {
   templateUrl: './alarms-table-widget.component.html',
   styleUrls: ['./alarms-table-widget.component.scss', './table-widget.scss']
 })
-export class AlarmsTableWidgetComponent extends PageComponent implements OnInit, AfterViewInit {
+export class AlarmsTableWidgetComponent extends PageComponent implements OnInit, OnDestroy, AfterViewInit {
+
 
   @Input()
   ctx: WidgetContext;
@@ -196,6 +193,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
   public displayPagination = true;
   public enableStickyHeader = true;
   public enableStickyAction = false;
+  public showCellActionsMenu = true;
   public pageSizeOptions;
   public pageLink: AlarmDataPageLink;
   public sortOrderProperty: string;
@@ -205,6 +203,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
   public displayedColumns: string[] = [];
   public alarmsDatasource: AlarmsDatasource;
   public noDataDisplayMessageText: string;
+  public hasRowAction: boolean;
   private setCellButtonAction: boolean;
 
   private cellContentCache: Array<any> = [];
@@ -383,6 +382,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     this.displayPagination = isDefined(this.settings.displayPagination) ? this.settings.displayPagination : true;
     this.enableStickyHeader = isDefined(this.settings.enableStickyHeader) ? this.settings.enableStickyHeader : true;
     this.enableStickyAction = isDefined(this.settings.enableStickyAction) ? this.settings.enableStickyAction : false;
+    this.showCellActionsMenu = isDefined(this.settings.showCellActionsMenu) ? this.settings.showCellActionsMenu : true;
     this.columnDisplayAction.show = isDefined(this.settings.enableSelectColumnDisplay) ? this.settings.enableSelectColumnDisplay : true;
     let enableFilter;
     if (isDefined(this.settings.enableFilter)) {
@@ -403,7 +403,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
     this.pageLink.pageSize = this.displayPagination ? this.defaultPageSize : 1024;
 
-    const alarmFilter = this.entityService.resolveAlarmFilter(this.widgetConfig.alarmFilterConfig);
+    const alarmFilter = this.entityService.resolveAlarmFilter(this.widgetConfig.alarmFilterConfig, false);
     this.pageLink = {...this.pageLink, ...alarmFilter};
 
     this.noDataDisplayMessageText =
@@ -450,7 +450,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
             keySettings.columnWidth = '120px';
           }
           if (alarmField && alarmField.keyName  === alarmFields.assignee.keyName) {
-            keySettings.columnWidth = '120px'
+            keySettings.columnWidth = '120px';
           }
         }
         this.stylesInfo[dataKey.def] = getCellStyleInfo(keySettings, 'value, alarm, ctx');
@@ -522,6 +522,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     }
 
     this.setCellButtonAction = !!(actionCellDescriptors.length + this.ctx.actionsApi.getActionDescriptors('actionCellButton').length);
+    this.hasRowAction = !!this.ctx.actionsApi.getActionDescriptors('rowClick').length;
 
     if (this.setCellButtonAction) {
       this.displayedColumns.push('actions');
@@ -563,14 +564,12 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
       overlayRef.dispose();
     });
 
-    const columns: DisplayColumn[] = this.columns.map(column => {
-      return {
+    const columns: DisplayColumn[] = this.columns.map(column => ({
         title: column.title,
         def: column.def,
         display: this.displayedColumns.indexOf(column.def) > -1,
         selectable: this.columnSelectionAvailability[column.def]
-      };
-    });
+      }));
 
     const providers: StaticProvider[] = [
       {
@@ -628,6 +627,9 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     overlayRef.backdropClick().subscribe(() => {
       overlayRef.dispose();
     });
+    const authUser = getCurrentAuthUser(this.store);
+    const assignedToCurrentUser = isDefinedAndNotNull(this.pageLink.assigneeId) && this.pageLink.assigneeId.id === authUser.userId;
+    const assigneeId = assignedToCurrentUser ? null : this.pageLink.assigneeId;
     const providers: StaticProvider[] = [
       {
         provide: ALARM_FILTER_CONFIG_DATA,
@@ -639,8 +641,10 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
             severityList: deepClone(this.pageLink.severityList),
             typeList: deepClone(this.pageLink.typeList),
             searchPropagatedAlarms: this.pageLink.searchPropagatedAlarms,
-            assignedToCurrentUser: isDefinedAndNotNull(this.pageLink.assigneeId)
-          }
+            assignedToCurrentUser,
+            assigneeId
+          },
+          initialAlarmFilterConfig: deepClone(this.widgetConfig.alarmFilterConfig)
         } as AlarmFilterConfigData
       },
       {
@@ -654,7 +658,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     componentRef.onDestroy(() => {
       if (componentRef.instance.panelResult) {
         const result = componentRef.instance.panelResult;
-        const alarmFilter = this.entityService.resolveAlarmFilter(result);
+        const alarmFilter = this.entityService.resolveAlarmFilter(result, false);
         this.pageLink = {...this.pageLink, ...alarmFilter};
         this.resetPageIndex();
         this.updateData();
@@ -1027,7 +1031,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
           data: {
             alarmId: alarm.id.id
           }
-        }).afterClosed()
+        }).afterClosed();
     }
   }
 
@@ -1147,7 +1151,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
           displayName = this.getUserDisplayName(alarmData);
         }
         dataObj[column.title] = displayName;
-        return
+        return;
       }
       dataObj[column.title] = this.cellContent(alarm, column, index, false);
     });

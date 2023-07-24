@@ -39,10 +39,12 @@ import {
   DataKey,
   Datasource,
   datasourcesHasAggregation,
-  datasourcesHasOnlyComparisonAggregation
+  datasourcesHasOnlyComparisonAggregation, WidgetConfig
 } from '@shared/models/widget.models';
 import { WidgetConfigComponent } from '@home/components/widget/widget-config.component';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
+import { isUndefined } from '@core/utils';
+import { getTimewindowConfig } from '@home/components/widget/config/timewindow-config-panel.component';
 
 @Component({
   selector: 'tb-entities-table-basic-config',
@@ -88,11 +90,7 @@ export class EntitiesTableBasicConfigComponent extends BasicWidgetConfigComponen
 
   protected onConfigSet(configData: WidgetConfigComponentData) {
     this.entitiesTableWidgetConfigForm = this.fb.group({
-      timewindowConfig: [{
-        useDashboardTimewindow: configData.config.useDashboardTimewindow,
-        displayTimewindow: configData.config.useDashboardTimewindow,
-        timewindow: configData.config.timewindow
-      }, []],
+      timewindowConfig: [getTimewindowConfig(configData.config), []],
       datasources: [configData.config.datasources, []],
       columns: [this.getColumns(configData.config.datasources), []],
       showTitle: [configData.config.showTitle, []],
@@ -100,6 +98,7 @@ export class EntitiesTableBasicConfigComponent extends BasicWidgetConfigComponen
       showTitleIcon: [configData.config.showTitleIcon, []],
       titleIcon: [configData.config.titleIcon, []],
       iconColor: [configData.config.iconColor, []],
+      cardButtons: [this.getCardButtons(configData.config), []],
       color: [configData.config.color, []],
       backgroundColor: [configData.config.backgroundColor, []],
       actions: [configData.config.actions || {}, []]
@@ -119,6 +118,7 @@ export class EntitiesTableBasicConfigComponent extends BasicWidgetConfigComponen
     this.widgetConfig.config.showTitleIcon = config.showTitleIcon;
     this.widgetConfig.config.titleIcon = config.titleIcon;
     this.widgetConfig.config.iconColor = config.iconColor;
+    this.setCardButtons(config.cardButtons, this.widgetConfig.config);
     this.widgetConfig.config.color = config.color;
     this.widgetConfig.config.backgroundColor = config.backgroundColor;
     return this.widgetConfig;
@@ -164,6 +164,30 @@ export class EntitiesTableBasicConfigComponent extends BasicWidgetConfigComponen
     if (datasources && datasources.length) {
       datasources[0].dataKeys = columns;
     }
+  }
+
+  private getCardButtons(config: WidgetConfig): string[] {
+    const buttons: string[] = [];
+    if (isUndefined(config.settings?.enableSearch) || config.settings?.enableSearch) {
+      buttons.push('search');
+    }
+    if (isUndefined(config.settings?.enableSelectColumnDisplay) || config.settings?.enableSelectColumnDisplay) {
+      buttons.push('columnsToDisplay');
+    }
+    if (isUndefined(config.enableDataExport) || config.enableDataExport) {
+      buttons.push('dataExport');
+    }
+    if (isUndefined(config.enableFullscreen) || config.enableFullscreen) {
+      buttons.push('fullscreen');
+    }
+    return buttons;
+  }
+
+  private setCardButtons(buttons: string[], config: WidgetConfig) {
+    config.settings.enableSearch = buttons.includes('search');
+    config.settings.enableSelectColumnDisplay = buttons.includes('columnsToDisplay');
+    config.enableDataExport = buttons.includes('dataExport');
+    config.enableFullscreen = buttons.includes('fullscreen');
   }
 
 }

@@ -6,7 +6,7 @@ Template for smart supermarket solution with the following use cases:
 * Monitor usage of trash and recycle bins;
 * Raise alarms on movement during night hours and fire alarms;
 * Be aware of doors that are left open;
-* Control prolonged occupancy of critical areas;
+* Control prolonged occupancy of critical areas.
 
 
-Press install button to get started!
+Press Install button to get started!

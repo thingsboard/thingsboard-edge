@@ -47,6 +47,7 @@ import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.rule.engine.credentials.BasicCredentials;
 import org.thingsboard.rule.engine.credentials.ClientCredentials;
 import org.thingsboard.rule.engine.credentials.CredentialsType;
+import org.thingsboard.rule.engine.external.TbAbstractExternalNode;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.plugin.ComponentClusteringMode;
 import org.thingsboard.server.common.data.plugin.ComponentType;
@@ -70,7 +71,7 @@ import java.util.concurrent.TimeoutException;
         configDirective = "tbExternalNodeMqttConfig",
         icon = "call_split"
 )
-public class TbMqttNode implements TbNode {
+public class TbMqttNode extends TbAbstractExternalNode {
 
     private static final Charset UTF8 = Charset.forName("UTF-8");
 
@@ -82,8 +83,9 @@ public class TbMqttNode implements TbNode {
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+        super.init(ctx);
+        this.mqttNodeConfiguration = TbNodeUtils.convert(configuration, TbMqttNodeConfiguration.class);
         try {
-            this.mqttNodeConfiguration = TbNodeUtils.convert(configuration, TbMqttNodeConfiguration.class);
             this.mqttClient = initClient(ctx);
         } catch (Exception e) {
             throw new TbNodeException(e);
@@ -93,13 +95,13 @@ public class TbMqttNode implements TbNode {
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
         String topic = TbNodeUtils.processPattern(this.mqttNodeConfiguration.getTopicPattern(), msg);
-        this.mqttClient.publish(topic, Unpooled.wrappedBuffer(msg.getData().getBytes(UTF8)), MqttQoS.AT_LEAST_ONCE, mqttNodeConfiguration.isRetainedMessage())
+        var tbMsg = ackIfNeeded(ctx, msg);
+        this.mqttClient.publish(topic, Unpooled.wrappedBuffer(tbMsg.getData().getBytes(UTF8)), MqttQoS.AT_LEAST_ONCE, mqttNodeConfiguration.isRetainedMessage())
                 .addListener(future -> {
                             if (future.isSuccess()) {
-                                ctx.tellSuccess(msg);
+                                tellSuccess(ctx, tbMsg);
                             } else {
-                                TbMsg next = processException(ctx, msg, future.cause());
-                                ctx.tellFailure(next, future.cause());
+                                tellFailure(ctx, processException(ctx, tbMsg, future.cause()), future.cause());
                             }
                         }
                 );
