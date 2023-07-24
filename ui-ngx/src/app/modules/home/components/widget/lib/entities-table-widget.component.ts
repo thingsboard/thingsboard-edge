@@ -37,6 +37,7 @@ import {
   Injector,
   Input,
   NgZone,
+  OnDestroy,
   OnInit,
   StaticProvider,
   ViewChild,
@@ -97,8 +98,8 @@ import {
   getColumnDefaultVisibility,
   getColumnSelectionAvailability,
   getColumnWidth,
-  getHeaderTitle,
   getEntityValue,
+  getHeaderTitle,
   getRowStyleInfo,
   getTableCellButtonActions,
   noDataMessage,
@@ -152,7 +153,7 @@ interface EntitiesTableWidgetSettings extends TableWidgetSettings {
   templateUrl: './entities-table-widget.component.html',
   styleUrls: ['./entities-table-widget.component.scss', './table-widget.scss']
 })
-export class EntitiesTableWidgetComponent extends PageComponent implements OnInit, AfterViewInit {
+export class EntitiesTableWidgetComponent extends PageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @Input()
   ctx: WidgetContext;
@@ -164,6 +165,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
   public displayPagination = true;
   public enableStickyHeader = true;
   public enableStickyAction = true;
+  public showCellActionsMenu = true;
   public pageSizeOptions;
   public pageLink: EntityDataPageLink;
   public sortOrderProperty: string;
@@ -173,6 +175,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
   public displayedColumns: string[] = [];
   public entityDatasource: EntityDatasource;
   public noDataDisplayMessageText: string;
+  public hasRowAction: boolean;
   private setCellButtonAction: boolean;
 
   private cellContentCache: Array<any> = [];
@@ -307,6 +310,8 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
 
     this.setCellButtonAction = !!this.ctx.actionsApi.getActionDescriptors('actionCellButton').length;
 
+    this.hasRowAction = !!this.ctx.actionsApi.getActionDescriptors('rowClick').length || !!this.ctx.actionsApi.getActionDescriptors('rowDoubleClick').length;
+
     if (this.settings.entitiesTitle && this.settings.entitiesTitle.length) {
       this.entitiesTitlePattern = this.utils.customTranslation(this.settings.entitiesTitle, this.settings.entitiesTitle);
     } else {
@@ -319,6 +324,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     this.displayPagination = isDefined(this.settings.displayPagination) ? this.settings.displayPagination : true;
     this.enableStickyHeader = isDefined(this.settings.enableStickyHeader) ? this.settings.enableStickyHeader : true;
     this.enableStickyAction = isDefined(this.settings.enableStickyAction) ? this.settings.enableStickyAction : true;
+    this.showCellActionsMenu = isDefined(this.settings.showCellActionsMenu) ? this.settings.showCellActionsMenu : true;
     this.columnDisplayAction.show = isDefined(this.settings.enableSelectColumnDisplay) ? this.settings.enableSelectColumnDisplay : true;
 
     this.rowStylesInfo = getRowStyleInfo(this.settings, 'entity, ctx');

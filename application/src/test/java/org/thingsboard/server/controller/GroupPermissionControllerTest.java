@@ -35,6 +35,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
@@ -115,6 +116,36 @@ public class GroupPermissionControllerTest extends AbstractControllerTest {
         assertEquals(savedTenant.getId(), groupPermission.getTenantId());
     }
 
+    @Test
+    public void testShouldNotSaveTheSameGroupPermissionWithGenericRole() throws Exception {
+        Role savedGroupRole = createRole(RandomStringUtils.randomAlphabetic(10), RoleType.GENERIC);
+        savedGroupRole = doPost("/api/role", savedGroupRole, Role.class);
+
+        GroupPermission groupPermission = new GroupPermission();
+        groupPermission.setRoleId(savedGroupRole.getId());
+        groupPermission.setUserGroupId(savedUserGroup.getId());
+
+        groupPermission = doPost("/api/groupPermission", groupPermission, GroupPermission.class);
+        doPost("/api/groupPermission", groupPermission)
+                        .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testShouldNotSaveTheSameGroupPermissionWithGroupRole() throws Exception {
+        Role savedGroupRole = createRole(RandomStringUtils.randomAlphabetic(10));
+        savedGroupRole = doPost("/api/role", savedGroupRole, Role.class);
+
+        GroupPermission groupPermission = new GroupPermission();
+        groupPermission.setRoleId(savedGroupRole.getId());
+        groupPermission.setUserGroupId(savedUserGroup.getId());
+        groupPermission.setEntityGroupId(savedDeviceGroup.getId());
+        groupPermission.setEntityGroupType(savedUserGroup.getType());
+
+        groupPermission = doPost("/api/groupPermission", groupPermission, GroupPermission.class);
+        doPost("/api/groupPermission", groupPermission)
+                .andExpect(status().isBadRequest());
+    }
+
     private GroupPermission getNewSavedGroupPermission(String roleName, EntityGroup userGroup, EntityGroup entityGroup) throws Exception {
         Role savedRole = createRole(roleName);
         savedRole = doPost("/api/role", savedRole, Role.class);
@@ -180,10 +211,14 @@ public class GroupPermissionControllerTest extends AbstractControllerTest {
     }
 
     private Role createRole(String roleName) {
+        return createRole(roleName, RoleType.GROUP);
+    }
+
+    private Role createRole(String roleName, RoleType roleType) {
         Role role = new Role();
         role.setTenantId(savedTenant.getId());
         role.setName(roleName);
-        role.setType(RoleType.GROUP);
+        role.setType(roleType);
         return role;
     }
 
