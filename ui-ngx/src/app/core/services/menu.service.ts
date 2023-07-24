@@ -384,37 +384,6 @@ export class MenuService {
     };
     sections.push(securitySettingSection);
 
-    const accountSettingPages: Array<MenuSection> = [
-      {
-        id: 'personal_info',
-        name: 'account.personal-info',
-        fullName: 'account.personal-info',
-        type: 'link',
-        path: '/account/profile',
-        icon: 'mdi:badge-account-horizontal',
-        isMdiIcon: true
-      },
-      {
-        id: 'security',
-        name: 'security.security',
-        fullName: 'security.security',
-        type: 'link',
-        path: '/account/security',
-        icon: 'lock'
-      }
-    ];
-
-    sections.push({
-      id: 'account',
-      name: 'profile.profile',
-      type: 'link',
-      path: '/account',
-      disabled: true,
-      icon: 'mdi:message-badge',
-      isMdiIcon: true,
-      pages: accountSettingPages
-    });
-
     return sections;
   }
 
@@ -1415,38 +1384,6 @@ export class MenuService {
         pages: securitySettingPages
       });
     }
-
-    const accountSettingPages: Array<MenuSection> = [
-      {
-        id: 'personal_info',
-        name: 'account.personal-info',
-        fullName: 'account.personal-info',
-        type: 'link',
-        path: '/account/profile',
-        icon: 'mdi:badge-account-horizontal',
-        isMdiIcon: true
-      },
-      {
-        id: 'security',
-        name: 'security.security',
-        fullName: 'security.security',
-        type: 'link',
-        path: '/account/security',
-        icon: 'lock'
-      }
-    ];
-
-    sections.push({
-      id: 'account',
-      name: 'profile.profile',
-      type: 'link',
-      path: '/account',
-      disabled: true,
-      icon: 'mdi:message-badge',
-      isMdiIcon: true,
-      pages: accountSettingPages
-    });
-
     return sections;
   }
 
@@ -2422,38 +2359,6 @@ export class MenuService {
         pages: securitySettingPages
       });
     }
-
-    const accountSettingPages: Array<MenuSection> = [
-      {
-        id: 'personal_info',
-        name: 'account.personal-info',
-        fullName: 'account.personal-info',
-        type: 'link',
-        path: '/account/profile',
-        icon: 'mdi:badge-account-horizontal',
-        isMdiIcon: true
-      },
-      {
-        id: 'security',
-        name: 'security.security',
-        fullName: 'security.security',
-        type: 'link',
-        path: '/account/security',
-        icon: 'lock'
-      }
-    ];
-
-    sections.push({
-      id: 'account',
-      name: 'profile.profile',
-      type: 'link',
-      path: '/account',
-      disabled: true,
-      icon: 'mdi:message-badge',
-      isMdiIcon: true,
-      pages: accountSettingPages
-    });
-
     return sections;
   }
 
