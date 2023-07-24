@@ -104,11 +104,10 @@ export const homeDashboardResolver: ResolveFn<HomeDashboard> = (
     })
   );
 
-
 export const edgeSettingsResolver: ResolveFn<EdgeSettings> = (
   route: ActivatedRouteSnapshot,
   state: RouterStateSnapshot,
-  edgeService = inject(EdgeService),
+  edgeService = inject(EdgeService)
 ): Observable<EdgeSettings> => edgeService.getEdgeSettings();
 
 export const edgeNameResolver: BreadCrumbLabelFunction<HomeLinksComponent> =
