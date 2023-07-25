@@ -520,7 +520,8 @@ export class GatewayConfigurationComponent implements OnInit {
     return this.gatewayConfigGroup.get('thingsboard.statistics.commands') as FormArray;
   }
 
-  removeCommandControl(index: number): void {
+  removeCommandControl(index: number, event: any): void {
+    if (event.pointerType === '') return;
     this.commandFormArray().removeAt(index);
     this.gatewayConfigGroup.markAsDirty();
   }
