@@ -98,7 +98,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
 
   attributeDataSource: AttributeDatasource;
 
-  sharedAttributeData: Array<AttributeData>;
+  sharedAttributeData: Array<AttributeData> = [];
 
   inactiveConnectorsDataSource: AttributeDatasource;
 
