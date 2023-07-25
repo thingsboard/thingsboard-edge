@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
@@ -45,19 +45,20 @@ import { environment as env } from '@env/environment';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { isDefined, isEqual } from '@core/utils';
 import { MatDialog } from '@angular/material/dialog';
 import { CustomCssDialogComponent, CustomCssDialogData } from '@home/pages/admin/custom-css-dialog.component';
 import { UiSettingsService } from '@core/http/ui-settings.service';
-import { share } from 'rxjs/operators';
+import { share, takeUntil } from 'rxjs/operators';
+import { WINDOW } from '@core/services/window.service';
 
 @Component({
   selector: 'tb-white-labeling',
   templateUrl: './white-labeling.component.html',
   styleUrls: ['./settings-card.scss']
 })
-export class WhiteLabelingComponent extends PageComponent implements OnInit, HasConfirmForm {
+export class WhiteLabelingComponent extends PageComponent implements OnInit, OnDestroy, HasConfirmForm {
 
   maxFaviconSize = 262144;
   maxFaviconSizeKb = this.maxFaviconSize / 1024;
@@ -91,6 +92,8 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, Has
     }
   ];
 
+  private destroy$ = new Subject<void>();
+
   constructor(protected store: Store<AppState>,
               private router: Router,
               private route: ActivatedRoute,
@@ -99,13 +102,19 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, Has
               private uiSettingsService: UiSettingsService,
               private translate: TranslateService,
               private dialog: MatDialog,
-              public fb: UntypedFormBuilder) {
+              public fb: UntypedFormBuilder,
+              @Inject(WINDOW) private window: Window) {
     super(store);
   }
 
   ngOnInit() {
     this.buildWhiteLabelingSettingsForm();
     this.loadWhiteLabelingParams();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private loadWhiteLabelingParams() {
@@ -191,6 +200,18 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, Has
       this.wlSettings.get('showNameVersion').valueChanges.subscribe(() => {
         this.updateValidators();
       });
+      if (this.isLoginWl && !this.isSysAdmin) {
+        this.wlSettings.get('domainName').valueChanges.pipe(
+          takeUntil(this.destroy$)
+        ).subscribe((value) => {
+          const baseUrlFormControl = this.wlSettings.get('baseUrl');
+          if (value) {
+            baseUrlFormControl.patchValue(this.window.location.protocol + '//' + value);
+          } else {
+            baseUrlFormControl.patchValue('');
+          }
+        });
+      }
     }
   }
 
