@@ -243,7 +243,7 @@ export class GatewayConfigurationComponent implements OnInit {
     });
 
     this.gatewayConfigGroup.get('thingsboard.security.password').valueChanges.subscribe(password => {
-      if (password !== '') {
+      if (password && password !== '') {
         this.gatewayConfigGroup.get('thingsboard.security.username').setValidators([Validators.required]);
       } else {
         this.gatewayConfigGroup.get('thingsboard.security.username').setValidators([]);
