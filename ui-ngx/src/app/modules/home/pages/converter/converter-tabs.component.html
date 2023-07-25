@@ -59,7 +59,10 @@
                   [debugEventTypes]="[debugEventTypes.DEBUG_CONVERTER]"
                   [active]="eventsTab.isActive"
                   [tenantId]="entity.tenantId.id"
-                  [entityId]="entity.id"></tb-event-table>
+                  [entityId]="entity.id"
+                  [isReadOnly]="!(resource.CONVERTER | hasGenericPermission: operation.WRITE)"
+                  (debugEventSelected)="onDebugEventSelected($event)"
+                  [functionTestButtonLabel]="getConverterFunctionName()"></tb-event-table>
 </mat-tab>
 <mat-tab *ngIf="entity"
          label="{{ 'relation.relations' | translate }}" #relationsTab="matTab">
