@@ -35,14 +35,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.rule.engine.api.EmptyNodeConfiguration;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmApiCallResult;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -162,9 +163,7 @@ public class EdgeEventSourcingListener {
             tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), event.getEdgeId(), event.getEntityId(),
                     event.getBody(), event.getType(), edgeTypeByActionType(event.getActionType()),
                     event.getEntityGroupType(), event.getEntityGroupId());
-        } catch (Exception e) {
-
-        }
+        } catch (Exception ignored) {}
     }
 
     @TransactionalEventListener(fallbackExecution = true)
@@ -199,6 +198,12 @@ public class EdgeEventSourcingListener {
         } else if (entity instanceof AlarmApiCallResult) {
             AlarmApiCallResult alarmApiCallResult = (AlarmApiCallResult) entity;
             return alarmApiCallResult.isModified();
+        } else if (entity instanceof Converter) {
+            Converter converter = (Converter) entity;
+            return converter.isEdgeTemplate();
+        } else if (entity instanceof Integration) {
+            Integration integration = (Integration) entity;
+            return integration.isEdgeTemplate();
         }
         // Default: If the entity doesn't match any of the conditions, consider it as valid.
         return true;

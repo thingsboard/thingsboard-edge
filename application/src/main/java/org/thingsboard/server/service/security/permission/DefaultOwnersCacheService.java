@@ -34,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.BaseData;
@@ -375,33 +374,15 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
         if (entity.getOwnerId().equals(targetOwnerId)) {
             throw new ThingsboardException("Entity already belongs to this owner!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
-
-        List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, entityId);
-        EntityId previousOwnerId = entity.getOwnerId();
-
         deleteFromGroupsAndAddToGroupAll(tenantId, entityId, targetOwnerId);
 
+        EntityId previousOwnerId = entity.getOwnerId();
         entity.setOwnerId(targetOwnerId);
         saveFunction.accept(entity);
         clearOwners(entityId);
 
-        if (!CollectionUtils.isEmpty(relatedEdgeIds)) {
-            for (EdgeId edgeId : relatedEdgeIds) {
-                String body = null;
-                if (EntityType.EDGE.equals(entityId.getEntityType())) {
-                    try {
-                        body = JacksonUtil.toString(previousOwnerId);
-                    } catch (Exception e) {
-                        log.warn("[{}][{}] Failed to convert previous owner to string: {}", tenantId, entityId, previousOwnerId, e);
-                    }
-                }
-                eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(entityId)
-                        .body(body).actionType(ActionType.CHANGE_OWNER).build());
-            }
-        } else {
-            eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(entityId)
-                    .actionType(ActionType.CHANGE_OWNER).build());
-        }
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(entityId)
+                .body(JacksonUtil.toString(previousOwnerId)).actionType(ActionType.CHANGE_OWNER).build());
     }
 
     private void deleteFromGroupsAndAddToGroupAll(TenantId tenantId, EntityId entityId, EntityId targetOwnerId) throws ThingsboardException {
