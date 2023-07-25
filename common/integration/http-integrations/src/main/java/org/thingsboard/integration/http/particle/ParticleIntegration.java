@@ -145,7 +145,8 @@ public class ParticleIntegration extends BasicHttpIntegration<JsonHttpIntegratio
                     if (responseEntity.getStatusCode().is2xxSuccessful()) {
                         reportDownlinkOk(context, downlink);
                     } else {
-                        reportDownlinkError(context, msg, "ERROR", new RuntimeException(responseEntity.getStatusCode().getReasonPhrase()));
+                        RuntimeException e = new RuntimeException(responseEntity.getBody() != null ? responseEntity.getBody().toString() : responseEntity.getStatusCode().getReasonPhrase());
+                        reportDownlinkError(context, msg, "ERROR", e);
                     }
                 }
             }
