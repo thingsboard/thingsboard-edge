@@ -270,10 +270,14 @@ public class ConverterController extends AutoCommitController {
         }
 
         Pair<IntegrationType, String> targetIntegrationInfo = getTargetIntegrationTypeAndName(converter, integrationType);
-        if (targetIntegrationInfo == null) return null;
+        if (targetIntegrationInfo == null) {
+            return null;
+        }
 
         IntegrationType targetIntegrationType = targetIntegrationInfo.getFirst();
-        if (StringUtils.isBlank(integrationName)) integrationName = targetIntegrationInfo.getSecond();
+        if (StringUtils.isBlank(integrationName)){
+            integrationName = targetIntegrationInfo.getSecond();
+        }
 
         return createDebugIn(integrationName, targetIntegrationType);
     }

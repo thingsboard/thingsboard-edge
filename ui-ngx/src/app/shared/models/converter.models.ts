@@ -61,7 +61,7 @@ export const DecoderMap = new Map<string, string>([
   [IntegrationType.AWS_IOT, tbelAWSIOTDecoderTemplate]
 ]);
 
-export const defaultOnValueUpdateKeys = JSON.parse(onValueUpdateKeyDefaultValuesStr);
+export const defaultupdateOnlyKeys = JSON.parse(onValueUpdateKeyDefaultValuesStr);
 
 export const converterTypeTranslationMap = new Map<ConverterType, string>(
   [

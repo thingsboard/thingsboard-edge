@@ -42,7 +42,7 @@ import {
   ConverterType,
   converterTypeTranslationMap,
   DecoderMap,
-  defaultOnValueUpdateKeys,
+  defaultupdateOnlyKeys,
   LatestConverterParameters
 } from '@shared/models/converter.models';
 
@@ -145,7 +145,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
             tbelDecoder: [entity && entity.configuration ? entity.configuration.tbelDecoder : null],
             encoder: [entity && entity.configuration ? entity.configuration.encoder : null],
             tbelEncoder: [entity && entity.configuration ? entity.configuration.tbelEncoder : null],
-            onValueUpdateKeys: [entity && entity.configuration ? entity.configuration.onValueUpdateKeys : []],
+            updateOnlyKeys: [entity && entity.configuration ? entity.configuration.updateOnlyKeys : []],
           }
         ),
         additionalInfo: this.fb.group(
@@ -191,7 +191,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       if (converterType === ConverterType.UPLINK) {
         form.get('configuration').get('decoder').patchValue(null, {emitEvent: false});
         form.get('configuration').get('tbelDecoder').patchValue(null, {emitEvent: false});
-        form.get('configuration').get('onValueUpdateKeys').patchValue(null, {emitEvent: false});
+        form.get('configuration').get('updateOnlyKeys').patchValue(null, {emitEvent: false});
       } else {
         form.get('configuration').get('encoder').patchValue(null, {emitEvent: false});
         form.get('configuration').get('tbelEncoder').patchValue(null, {emitEvent: false});
@@ -226,10 +226,10 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     }
     form.get('configuration').get(targetField).patchValue(targetTemplate, {emitEvent: false});
     if (converterType === ConverterType.UPLINK) {
-      if (defaultOnValueUpdateKeys.hasOwnProperty(integrationType)) {
-        form.get('configuration').get('onValueUpdateKeys').patchValue(defaultOnValueUpdateKeys[integrationType], {emitEvent: false});
+      if (defaultupdateOnlyKeys.hasOwnProperty(integrationType)) {
+        form.get('configuration').get('updateOnlyKeys').patchValue(defaultupdateOnlyKeys[integrationType], {emitEvent: false});
       } else {
-        form.get('configuration').get('onValueUpdateKeys').patchValue(defaultOnValueUpdateKeys['DEFAULT'], {emitEvent: false});
+        form.get('configuration').get('updateOnlyKeys').patchValue(defaultupdateOnlyKeys['DEFAULT'], {emitEvent: false});
       }
     }
   }
@@ -250,7 +250,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
           tbelDecoder: entity.configuration ? entity.configuration.tbelDecoder : null,
           encoder: entity.configuration ? entity.configuration.encoder : null,
           tbelEncoder: entity.configuration ? entity.configuration.tbelEncoder : null,
-          onValueUpdateKeys: entity.configuration ? entity.configuration.onValueUpdateKeys : []
+          updateOnlyKeys: entity.configuration ? entity.configuration.updateOnlyKeys : []
         }
     });
     this.entityForm.patchValue({additionalInfo: {description: entity.additionalInfo ? entity.additionalInfo.description : ''}});

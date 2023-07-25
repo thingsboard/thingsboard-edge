@@ -138,10 +138,10 @@
         </div>
         <tb-string-items-list *ngIf="entityForm.get('type').value === converterType.UPLINK" style="margin-bottom: 16px;"
                               subscriptSizing="dynamic"
-                              [label]="'converter.on-value-update-keys-list' | translate"
-                              [hint]="'converter.on-value-update-keys-list-hint' | translate"
+                              [label]="'converter.update-only-keys-list' | translate"
+                              [hint]="'converter.update-only-keys-list-hint' | translate"
                               [placeholder]="'converter.add-key' | translate"
-                              formControlName="onValueUpdateKeys">
+                              formControlName="updateOnlyKeys">
         </tb-string-items-list>
       </div>
       <div formGroupName="additionalInfo" fxLayout="column">
