@@ -42,6 +42,7 @@ import {
   ConverterType,
   converterTypeTranslationMap,
   DecoderMap,
+  defaultOnValueUpdateKeys,
   LatestConverterParameters
 } from '@shared/models/converter.models';
 
@@ -224,6 +225,13 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       }
     }
     form.get('configuration').get(targetField).patchValue(targetTemplate, {emitEvent: false});
+    if (converterType === ConverterType.UPLINK) {
+      if (defaultOnValueUpdateKeys.hasOwnProperty(integrationType)) {
+        form.get('configuration').get('onValueUpdateKeys').patchValue(defaultOnValueUpdateKeys[integrationType], {emitEvent: false});
+      } else {
+        form.get('configuration').get('onValueUpdateKeys').patchValue(defaultOnValueUpdateKeys['DEFAULT'], {emitEvent: false});
+      }
+    }
   }
 
   updateForm(entity: Converter) {

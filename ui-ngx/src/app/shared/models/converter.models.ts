@@ -35,6 +35,7 @@ import { ConverterId } from '@shared/models/id/converter-id';
 import { ContentType } from '@shared/models/constants';
 import { ActivatedRouteSnapshot } from '@angular/router';
 import { IntegrationType } from '@shared/models/integration.models';
+import onValueUpdateKeyDefaultValuesStr from '!raw-loader!src/assets/converters/default-on-value-update-keys.raw';
 import tbelChirpstackDecoderTemplate from '!raw-loader!src/assets/converters/tbel-chirpstack-decoder.raw';
 import tbelLoriotDecoderTemplate from '!raw-loader!src/assets/converters/tbel-loriot-decoder.raw';
 import tbelTtiDecoderTemplate from '!raw-loader!src/assets/converters/tbel-tti-decoder.raw';
@@ -59,6 +60,8 @@ export const DecoderMap = new Map<string, string>([
   [IntegrationType.AZURE_SERVICE_BUS, tbelAzureDecoderTemplate],
   [IntegrationType.AWS_IOT, tbelAWSIOTDecoderTemplate]
 ]);
+
+export const defaultOnValueUpdateKeys = JSON.parse(onValueUpdateKeyDefaultValuesStr);
 
 export const converterTypeTranslationMap = new Map<ConverterType, string>(
   [
