@@ -18,10 +18,13 @@ package org.thingsboard.server.service.cloud.rpc.processor;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -48,7 +51,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     CustomerId customerId = safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId);
-                    super.saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, customerId);
+                    saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, customerId, queueStartTs);
                     return requestForAdditionalData(tenantId, assetId, queueStartTs);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     Asset assetById = assetService.findAssetById(tenantId, assetId);
@@ -62,6 +65,15 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
             }
         } finally {
             edgeSynchronizationManager.getSync().remove();
+        }
+    }
+
+    private void saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, CustomerId edgeCustomerId, Long queueStartTs) {
+        CustomerId customerId = safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId);
+        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, customerId);
+        Boolean assetNameUpdated = resultPair.getSecond();
+        if (assetNameUpdated) {
+            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ASSET, EdgeEventActionType.UPDATED, assetId, null, queueStartTs);
         }
     }
 
