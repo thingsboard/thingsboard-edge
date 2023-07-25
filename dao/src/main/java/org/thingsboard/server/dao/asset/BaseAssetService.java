@@ -50,7 +50,6 @@ import org.thingsboard.server.common.data.asset.AssetSearchQuery;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
@@ -62,6 +61,7 @@ import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
@@ -200,7 +200,6 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
     public void deleteAsset(TenantId tenantId, AssetId assetId) {
         log.trace("Executing deleteAsset [{}]", assetId);
         validateId(assetId, INCORRECT_ASSET_ID + assetId);
-        List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, assetId);
         deleteEntityRelations(tenantId, assetId);
 
         Asset asset = assetDao.findById(tenantId, assetId.getId());
@@ -211,7 +210,7 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
 
         publishEvictEvent(new AssetCacheEvictEvent(asset.getTenantId(), asset.getName(), null));
         countService.publishCountEntityEvictEvent(tenantId, EntityType.ASSET);
-        publishDeleteEvent(tenantId, assetId, relatedEdgeIds);
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(assetId).build());
 
         assetDao.removeById(tenantId, assetId.getId());
     }
