@@ -128,7 +128,6 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
         let ignoreTranslate;
         let icon;
         let iconUrl;
-        let isMdiIcon;
         let link;
         let queryParams;
         let section: MenuSection = null;
@@ -140,9 +139,6 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
           ignoreTranslate = true;
           label = section.name;
           icon = section.icon;
-          if (icon) {
-            isMdiIcon = icon.startsWith('mdi:');
-          }
           iconUrl = section.iconUrl;
           link = section.path;
           queryParams = section.queryParams;
@@ -157,7 +153,6 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
             ignoreTranslate = false;
           }
           icon = breadcrumbConfig.icon || 'home';
-          isMdiIcon = icon.startsWith('mdi:');
           link = [route.pathFromRoot.map(v => v.url.map(segment => segment.toString()).join('/')).join('/')];
         }
         const breadcrumb = {
@@ -167,7 +162,6 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
           ignoreTranslate,
           icon,
           iconUrl,
-          isMdiIcon,
           link,
           queryParams
         };

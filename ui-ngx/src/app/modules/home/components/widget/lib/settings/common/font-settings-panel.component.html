@@ -1,0 +1,106 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="tb-font-settings-panel" [formGroup]="fontFormGroup">
+  <div class="tb-font-settings-title" translate>widgets.widget-font.font-settings</div>
+  <div class="tb-form-row no-border no-padding">
+    <div class="fixed-title-width" translate>widgets.widget-font.size</div>
+    <div fxFlex fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="12px">
+      <mat-form-field fxFlex appearance="outline" class="number" subscriptSizing="dynamic">
+        <input matInput type="number" min="0" formControlName="size" placeholder="{{ 'widget-config.set' | translate }}">
+      </mat-form-field>
+      <tb-css-unit-select fxFlex formControlName="sizeUnit"></tb-css-unit-select>
+    </div>
+  </div>
+  <div class="tb-form-row no-border no-padding">
+    <div class="fixed-title-width" translate>widgets.widget-font.font-family</div>
+    <mat-form-field fxFlex appearance="outline" subscriptSizing="dynamic">
+      <input matInput #familyInput
+             formControlName="family" placeholder="{{ 'widget-config.set' | translate }}"
+             [matAutocomplete]="familyAutocomplete">
+      <button *ngIf="fontFormGroup.get('family').value"
+              type="button"
+              matSuffix mat-icon-button aria-label="Clear"
+              (click)="clearFamily()">
+        <mat-icon class="material-icons">close</mat-icon>
+      </button>
+      <mat-autocomplete
+        #familyAutocomplete="matAutocomplete"
+        class="tb-autocomplete"
+        panelWidth="fit-content">
+        <mat-option *ngFor="let family of filteredFontFamilies | async" [value]="family">
+          <span [innerHTML]="family | highlight:familySearchText:true:'ig'"></span>
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+  </div>
+  <div class="tb-form-row no-border no-padding">
+    <div class="fixed-title-width" translate>widgets.widget-font.font-weight</div>
+    <mat-form-field fxFlex appearance="outline" subscriptSizing="dynamic">
+      <mat-select formControlName="weight">
+        <mat-option *ngFor="let weight of fontWeightsList" [value]="weight">
+          {{ fontWeightTranslationsMap.has(weight) ? (fontWeightTranslationsMap.get(weight) | translate) : weight }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="tb-form-row no-border no-padding">
+    <div class="fixed-title-width" translate>widgets.widget-font.font-style</div>
+    <mat-form-field fxFlex appearance="outline" subscriptSizing="dynamic">
+      <mat-select formControlName="style">
+        <mat-option *ngFor="let style of fontStylesList" [value]="style">
+          {{ fontStyleTranslationsMap.get(style) | translate }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <mat-divider></mat-divider>
+  <div class="tb-form-row no-border no-padding font-preview">
+    <div class="fixed-title-width" translate>widgets.widget-font.preview</div>
+    <div class="preview-text" fxFlex [style]="previewStyle">{{ previewText }}</div>
+  </div>
+  <div class="tb-font-settings-panel-buttons">
+    <button mat-button
+            color="primary"
+            type="button"
+            (click)="cancel()">
+      {{ 'action.cancel' | translate }}
+    </button>
+    <button mat-raised-button
+            color="primary"
+            type="button"
+            (click)="applyFont()"
+            [disabled]="fontFormGroup.invalid || !fontFormGroup.dirty">
+      {{ 'action.apply' | translate }}
+    </button>
+  </div>
+</div>

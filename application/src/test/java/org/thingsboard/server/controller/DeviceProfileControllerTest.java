@@ -1163,6 +1163,22 @@ public class DeviceProfileControllerTest extends AbstractControllerTest {
         testEntityDaoWithRelationsOk(savedTenant.getId(), deviceProfileId, "/api/deviceProfile/" + deviceProfileId);
     }
 
+    @Test
+    public void testGetTimeseriesKeysByCustomerOk() throws Exception {
+        loginNewCustomerNewUser();
+        doGet("/api/deviceProfile/devices/keys/timeseries").andExpect(status().isOk());
+        loginCustomerUser();
+        doGet("/api/deviceProfile/devices/keys/timeseries").andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testGetAttributesKeysByCustomerOk() throws Exception {
+        loginNewCustomerNewUser();
+        doGet("/api/deviceProfile/devices/keys/attributes").andExpect(status().isOk());
+        loginCustomerUser();
+        doGet("/api/deviceProfile/devices/keys/attributes").andExpect(status().isForbidden());
+    }
+
     @Ignore
     @Test
     public void testDeleteDeviceProfileExceptionWithRelationsTransactional() throws Exception {
