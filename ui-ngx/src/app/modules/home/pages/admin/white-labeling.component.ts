@@ -50,7 +50,7 @@ import { isDefined, isEqual } from '@core/utils';
 import { MatDialog } from '@angular/material/dialog';
 import { CustomCssDialogComponent, CustomCssDialogData } from '@home/pages/admin/custom-css-dialog.component';
 import { UiSettingsService } from '@core/http/ui-settings.service';
-import { share, takeUntil } from 'rxjs/operators';
+import { share, skip, takeUntil } from 'rxjs/operators';
 import { WINDOW } from '@core/services/window.service';
 
 @Component({
@@ -202,6 +202,7 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, OnD
       });
       if (this.isLoginWl && !this.isSysAdmin) {
         this.wlSettings.get('domainName').valueChanges.pipe(
+          skip(1),
           takeUntil(this.destroy$)
         ).subscribe((value) => {
           const baseUrlFormControl = this.wlSettings.get('baseUrl');
