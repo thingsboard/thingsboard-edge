@@ -232,7 +232,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
       value
     }];
     const attributesToDelete = [];
-    const scope = (this.activeConnectors.includes(value.name) || !this.initialConnector) ? AttributeScope.SHARED_SCOPE : AttributeScope.SERVER_SCOPE;
+    const scope = (!this.initialConnector || this.activeConnectors.includes(this.initialConnector.name)) ? AttributeScope.SHARED_SCOPE : AttributeScope.SERVER_SCOPE;
     let updateActiveConnectors = false;
     if (this.initialConnector && this.initialConnector.name !== value.name) {
       attributesToDelete.push({key: this.initialConnector.name});
@@ -352,6 +352,12 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
     this.initialConnector = connector;
     this.connectorForm.patchValue(connector);
     this.connectorForm.markAsPristine();
+  }
+
+  isSameConnector(attribute): boolean {
+    if (!this.initialConnector) return false;
+    const connector = typeof attribute.value === 'string' ? JSON.parse(attribute.value) : attribute.value;
+    return this.initialConnector.name === connector.name;
   }
 
   showToast(message: string) {
