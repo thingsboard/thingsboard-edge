@@ -114,8 +114,8 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
   @Input()
   device: EntityId;
 
-  @ViewChild('searchInput') searchInputField: ElementRef;
-  @ViewChild(MatSort) sort: MatSort;
+  @ViewChild('nameInput') nameInput: ElementRef;
+  @ViewChild(MatSort, { static: false }) sort: MatSort;
 
   connectorForm: FormGroup;
 
@@ -232,7 +232,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
       value
     }];
     const attributesToDelete = [];
-    const scope = (!this.initialConnector || this.activeConnectors.includes(this.initialConnector.name)) ? AttributeScope.SHARED_SCOPE : AttributeScope.SERVER_SCOPE;
+    const scope = (this.initialConnector && this.activeConnectors.includes(this.initialConnector.name)) ? AttributeScope.SHARED_SCOPE : AttributeScope.SERVER_SCOPE;
     let updateActiveConnectors = false;
     if (this.initialConnector && this.initialConnector.name !== value.name) {
       attributesToDelete.push({key: this.initialConnector.name});
@@ -243,7 +243,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
         this.activeConnectors.splice(activeIndex, 1);
       }
       if (inactiveIndex !== -1) {
-        this.inactiveConnectors.splice(activeIndex, 1);
+        this.inactiveConnectors.splice(inactiveIndex, 1);
       }
     }
     if (!this.activeConnectors.includes(value.name) && scope == AttributeScope.SHARED_SCOPE) {
@@ -266,6 +266,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
       tasks.push(this.attributeService.deleteEntityAttributes(this.device, AttributeScope.SHARED_SCOPE, attributesToDelete));
     }
     forkJoin(tasks).subscribe(_ => {
+      this.initialConnector = value;
       this.showToast('Update Successful');
       this.updateData(true);
     });
@@ -321,7 +322,9 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
     if (this.connectorForm.disabled) {
       this.connectorForm.enable();
     }
+    this.nameInput.nativeElement.focus();
     this.clearOutConnectorForm();
+
   }
 
   clearOutConnectorForm(): void {
@@ -388,7 +391,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
     this.dialogService.confirm(title, content, 'Cancel', 'Delete').subscribe(result => {
       if (result) {
         const tasks = [];
-        const scope = (this.activeConnectors.includes(attribute.key) || !this.initialConnector) ? AttributeScope.SHARED_SCOPE : AttributeScope.SERVER_SCOPE;
+        const scope = (this.initialConnector && this.activeConnectors.includes(this.initialConnector.name)) ? AttributeScope.SHARED_SCOPE : AttributeScope.SERVER_SCOPE;
         tasks.push(this.attributeService.deleteEntityAttributes(this.device, AttributeScope.SHARED_SCOPE, [attribute]));
         const activeIndex = this.activeConnectors.indexOf(attribute.key);
         const inactiveIndex = this.inactiveConnectors.indexOf(attribute.key);
@@ -396,7 +399,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
           this.activeConnectors.splice(activeIndex, 1);
         }
         if (inactiveIndex !== -1) {
-          this.inactiveConnectors.splice(activeIndex, 1);
+          this.inactiveConnectors.splice(inactiveIndex, 1);
         }
         tasks.push(this.attributeService.saveEntityAttributes(this.device, scope, [{
           key: scope == AttributeScope.SHARED_SCOPE ? 'active_connectors' : 'inactive_connectors',
