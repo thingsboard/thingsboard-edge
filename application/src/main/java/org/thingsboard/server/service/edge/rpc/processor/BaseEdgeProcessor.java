@@ -774,6 +774,7 @@ public abstract class BaseEdgeProcessor {
                 case DEVICE:
                 case ENTITY_VIEW:
                 case DASHBOARD:
+                case USER:
                     return Futures.transform(Futures.allAsList(processActionForAllEdgesByTenantId(tenantId, type, deleted, entityId, body)), voids -> null, dbCallbackExecutorService);
                 default:
                     return pushNotificationToAllRelatedEdges(tenantId, entityId, type, deleted, entityGroupId);
