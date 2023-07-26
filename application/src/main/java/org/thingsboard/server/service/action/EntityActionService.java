@@ -47,22 +47,20 @@ import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.common.data.notification.rule.trigger.AlarmAssignmentTrigger;
+import org.thingsboard.server.common.data.notification.rule.trigger.AlarmCommentTrigger;
+import org.thingsboard.server.common.data.notification.rule.trigger.EntitiesLimitTrigger;
+import org.thingsboard.server.common.data.notification.rule.trigger.EntityActionTrigger;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
-import org.thingsboard.server.common.data.notification.rule.trigger.AlarmAssignmentTrigger;
-import org.thingsboard.server.common.data.notification.rule.trigger.AlarmCommentTrigger;
-import org.thingsboard.server.common.data.notification.rule.trigger.EntitiesLimitTrigger;
-import org.thingsboard.server.common.data.notification.rule.trigger.EntityActionTrigger;
 import org.thingsboard.server.dao.audit.AuditLogService;
 
 import java.util.List;
@@ -349,10 +347,6 @@ public class EntityActionService {
                         .build());
                 break;
         }
-    }
-
-    public void sendEntityNotificationMsgToEdge(TenantId tenantId, EntityId entityId, EdgeEventActionType action) {
-        tbClusterService.sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action);
     }
 
     public <E extends HasName, I extends EntityId> void logEntityAction(User user, I entityId, E entity, CustomerId customerId,
