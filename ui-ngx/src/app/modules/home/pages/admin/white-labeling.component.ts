@@ -161,7 +161,7 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, OnD
 
     if (this.isLoginWl) {
       this.wlSettings.addControl('baseUrl',
-        this.fb.control('', [Validators.required])
+        this.fb.control('', [])
       );
       this.wlSettings.addControl('prohibitDifferentUrl',
         this.fb.control('', [])
@@ -205,10 +205,8 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, OnD
           takeUntil(this.destroy$)
         ).subscribe((value) => {
           const baseUrlFormControl = this.wlSettings.get('baseUrl');
-          if (value) {
-            baseUrlFormControl.patchValue(this.window.location.protocol + '//' + value);
-          } else {
-            baseUrlFormControl.patchValue('');
+          if (baseUrlFormControl.pristine) {
+            baseUrlFormControl.patchValue(value ? this.window.location.protocol + '//' + value : '');
           }
         });
       }

@@ -3513,7 +3513,6 @@
     "dark-foreground": "Mørk forgrund",
     "domain-name": "Domænenavn",
     "base-url": "Basis-URL",
-    "base-url-required": "Basis-URL er påkrævet.",
     "prohibit-different-url": "Det er ikke tilladt at bruge værtsnavn fra overskrifterne for klientanmodninger",
     "prohibit-different-url-hint": "Denne indstilling skal aktiveres for produktionsmiljøer. Kan forårsage sikkerhedsproblemer ved deaktivering",
     "help-link-base-url": "Basis-URL for hjælpelinks",

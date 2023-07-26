@@ -6154,7 +6154,6 @@
         "dark-foreground": "Dark foreground",
         "domain-name": "Domain name",
         "base-url": "Base URL",
-        "base-url-required": "Base URL is required.",
         "prohibit-different-url": "Prohibit to use hostname from the client request headers",
         "prohibit-different-url-hint": "This setting should be enabled for production environments. May cause security issues when disabled",
         "help-link-base-url": "Help links base url",
