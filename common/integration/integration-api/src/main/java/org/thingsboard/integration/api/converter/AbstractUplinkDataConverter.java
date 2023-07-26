@@ -227,8 +227,8 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
             if (isOnValueUpdate) {
                 String value = getValueAsAllowedString(keyValue);
                 boolean shouldAddToResult = currentEntityKeyValues.isEmpty() ||
-                                !currentEntityKeyValues.containsKey(key) ||
-                                !currentEntityKeyValues.get(key).equals(value);
+                        !currentEntityKeyValues.containsKey(key) ||
+                        !currentEntityKeyValues.get(key).equals(value);
                 if (shouldAddToResult) {
                     filtered.add(keyValue);
                     currentEntityKeyValues.put(key, value);
