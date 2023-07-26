@@ -150,10 +150,11 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
             userCredentials.setAdditionalInfo(JacksonUtil.newObjectNode());
             userCredentialsDao.save(user.getTenantId(), userCredentials);
         }
-        if (!Authority.SYS_ADMIN.equals(user.getAuthority())) {
-            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId == null ? TenantId.SYS_TENANT_ID : tenantId)
-                    .entityId(savedUser.getId()).added(user.getId() == null).build());
-        }
+        eventPublisher.publishEvent(SaveEntityEvent.builder()
+                .tenantId(tenantId == null ? TenantId.SYS_TENANT_ID : tenantId)
+                .entity(user)
+                .entityId(savedUser.getId())
+                .added(user.getId() == null).build());
         return savedUser;
     }
 
@@ -190,8 +191,10 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
             userCredentialsValidator.validate(userCredentials, data -> tenantId);
         }
         UserCredentials result = userCredentialsDao.save(tenantId, userCredentials);
-        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId)
-                .entityId(userCredentials.getUserId()).actionType(ActionType.CREDENTIALS_UPDATED).build());
+        eventPublisher.publishEvent(ActionEntityEvent.builder()
+                .tenantId(tenantId)
+                .entityId(userCredentials.getUserId())
+                .actionType(ActionType.CREDENTIALS_UPDATED).build());
         return result;
     }
 
@@ -271,7 +274,9 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         userDao.removeById(tenantId, userId.getId());
         eventPublisher.publishEvent(new UserCredentialsInvalidationEvent(userId));
         countService.publishCountEntityEvictEvent(tenantId, EntityType.USER);
-        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(userId).build());
+        eventPublisher.publishEvent(DeleteEntityEvent.builder()
+                .tenantId(tenantId)
+                .entityId(userId).build());
     }
 
     @Override
