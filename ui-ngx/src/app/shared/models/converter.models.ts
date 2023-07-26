@@ -36,29 +36,32 @@ import { ContentType } from '@shared/models/constants';
 import { ActivatedRouteSnapshot } from '@angular/router';
 import { IntegrationType } from '@shared/models/integration.models';
 import onValueUpdateKeyDefaultValuesStr from '!raw-loader!src/assets/converters/default-on-value-update-keys.raw';
-import tbelChirpstackDecoderTemplate from '!raw-loader!src/assets/converters/tbel-chirpstack-decoder.raw';
-import tbelLoriotDecoderTemplate from '!raw-loader!src/assets/converters/tbel-loriot-decoder.raw';
-import tbelTtiDecoderTemplate from '!raw-loader!src/assets/converters/tbel-tti-decoder.raw';
-import tbelTtnDecoderTemplate from '!raw-loader!src/assets/converters/tbel-ttn-decoder.raw';
-import tbelSigfoxDecoderTemplate from '!raw-loader!src/assets/converters/tbel-sigfox-decoder.raw';
-import tbelAzureDecoderTemplate from '!raw-loader!src/assets/converters/tbel-azure-decoder.raw';
-import tbelAWSIOTDecoderTemplate from '!raw-loader!src/assets/converters/tbel-aws-iot-decoder.raw';
 
 export enum ConverterType {
   UPLINK = 'UPLINK',
   DOWNLINK = 'DOWNLINK'
 }
 
-export const DecoderMap = new Map<string, string>([
-  [IntegrationType.CHIRPSTACK, tbelChirpstackDecoderTemplate],
-  [IntegrationType.LORIOT, tbelLoriotDecoderTemplate],
-  [IntegrationType.TTI, tbelTtiDecoderTemplate],
-  [IntegrationType.TTN, tbelTtnDecoderTemplate],
-  [IntegrationType.SIGFOX, tbelSigfoxDecoderTemplate],
-  [IntegrationType.AZURE_IOT_HUB, tbelAzureDecoderTemplate],
-  [IntegrationType.AZURE_EVENT_HUB, tbelAzureDecoderTemplate],
-  [IntegrationType.AZURE_SERVICE_BUS, tbelAzureDecoderTemplate],
-  [IntegrationType.AWS_IOT, tbelAWSIOTDecoderTemplate]
+export const DecoderUrlMap = new Map<IntegrationType, string>([
+  [IntegrationType.CHIRPSTACK, '/assets/converters/tbel-chirpstack-decoder.raw'],
+  [IntegrationType.LORIOT, '/assets/converters/tbel-loriot-decoder.raw'],
+  [IntegrationType.TTI,'/assets/converters/tbel-tti-decoder.raw'],
+  [IntegrationType.TTN, '/assets/converters/tbel-ttn-decoder.raw'],
+  [IntegrationType.SIGFOX, '/assets/converters/tbel-sigfox-decoder.raw'],
+  [IntegrationType.AZURE_IOT_HUB, '/assets/converters/tbel-azure-decoder.raw'],
+  [IntegrationType.AZURE_EVENT_HUB, '/assets/converters/tbel-azure-decoder.raw'],
+  [IntegrationType.AZURE_SERVICE_BUS, '/assets/converters/tbel-azure-decoder.raw'],
+  [IntegrationType.AWS_IOT, '/assets/converters/tbel-aws-iot-decoder.raw']
+]);
+
+export const jsDefaultConvertorsUrl = new Map<ConverterType, string>([
+  [ConverterType.UPLINK, '/assets/converters/js-decoder.raw' ],
+  [ConverterType.DOWNLINK, '/assets/converters/js-encoder.raw'],
+]);
+
+export const tbelDefaultConvertorsUrl = new Map<ConverterType, string>([
+  [ConverterType.UPLINK, '/assets/converters/tbel-decoder.raw' ],
+  [ConverterType.DOWNLINK, '/assets/converters/tbel-encoder.raw'],
 ]);
 
 export const defaultupdateOnlyKeys = JSON.parse(onValueUpdateKeyDefaultValuesStr);

@@ -62,6 +62,7 @@ export interface ModulesWithFactories {
 })
 export class ResourcesService {
 
+  private loadedTextResources: { [url: string]: ReplaySubject<any> } = {};
   private loadedJsonResources: { [url: string]: ReplaySubject<any> } = {};
   private loadedResources: { [url: string]: ReplaySubject<void> } = {};
   private loadedModules: { [url: string]: ReplaySubject<Type<any>[]> } = {};
@@ -75,6 +76,31 @@ export class ResourcesService {
               private http: HttpClient,
               private injector: Injector) {
     this.store.pipe(select(selectIsAuthenticated)).subscribe(() => this.clearModulesCache());
+  }
+
+  public loadTextResource(url: string, postProcess?: (data: string) => string): Observable<string> {
+    if (this.loadedTextResources[url]) {
+      return this.loadedTextResources[url].asObservable();
+    }
+
+    const subject = new ReplaySubject<any>();
+    this.loadedTextResources[url] = subject;
+    this.http.get(url, {responseType: 'text'}).subscribe(
+        {
+          next: (o) => {
+            if (postProcess) {
+              o = postProcess(o);
+            }
+            this.loadedTextResources[url].next(o);
+            this.loadedTextResources[url].complete();
+          },
+          error: () => {
+            this.loadedTextResources[url].error(new Error(`Unable to load ${url}`));
+            delete this.loadedTextResources[url];
+          }
+        }
+    );
+    return subject.asObservable();
   }
 
   public loadJsonResource<T>(url: string, postProcess?: (data: T) => T): Observable<T> {
