@@ -41,15 +41,14 @@ import {
   ConverterDebugInput,
   ConverterType,
   converterTypeTranslationMap,
-  DecoderMap,
+  DecoderUrlMap,
   defaultupdateOnlyKeys,
-  LatestConverterParameters
+  jsDefaultConvertorsUrl,
+  LatestConverterParameters,
+  tbelDefaultConvertorsUrl
 } from '@shared/models/converter.models';
 
-import jsDecoderTemplate from '!raw-loader!src/assets/converters/js-decoder.raw';
-import tbelDecoderTemplate from '!raw-loader!src/assets/converters/tbel-decoder.raw';
-import jsEncoderTemplate from '!raw-loader!src/assets/converters/js-encoder.raw';
-import tbelEncoderTemplate from '!raw-loader!src/assets/converters/tbel-encoder.raw';
+import { ResourcesService } from '@core/services/resources.service';
 import { ConverterService } from '@core/http/converter.service';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { MatDialog } from '@angular/material/dialog';
@@ -64,7 +63,7 @@ import { isDefinedAndNotNull } from '@core/utils';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { takeUntil } from 'rxjs/operators';
 import { Observable, Subject } from 'rxjs';
-import { COMMA, ENTER, SEMICOLON } from "@angular/cdk/keycodes";
+import { COMMA, ENTER, SEMICOLON } from '@angular/cdk/keycodes';
 
 @Component({
   selector: 'tb-converter',
@@ -81,7 +80,9 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   @Input()
   set integrationType(value: IntegrationType) {
     this._integrationType  = value;
-    this.setupDefaultScriptBody(this.entityForm, this.entityForm.get('type').value, value);
+    if (this.entityForm.get('type').value) {
+      this.setupDefaultScriptBody(this.entityForm, this.entityForm.get('type').value, value);
+    }
   }
 
   get integrationType() {
@@ -115,6 +116,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
               protected translate: TranslateService,
               private converterService: ConverterService,
               private dialog: MatDialog,
+              private resourcesService: ResourcesService,
               @Optional() @Inject('entity') protected entityValue: Converter,
               @Optional() @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<Converter>,
               protected fb: FormBuilder,
@@ -208,28 +210,28 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   private setupDefaultScriptBody(form: FormGroup, converterType: ConverterType, integrationType) {
     const scriptLang: ScriptLanguage = form.get('configuration').get('scriptLang').value;
     let targetField: string;
-    let targetTemplate: string;
+    let targetTemplateUrl: string;
     if (scriptLang === ScriptLanguage.JS) {
       targetField = converterType === ConverterType.UPLINK ? 'decoder' : 'encoder';
-      targetTemplate = converterType === ConverterType.UPLINK ? jsDecoderTemplate : jsEncoderTemplate;
+      targetTemplateUrl = jsDefaultConvertorsUrl.get(converterType);
     } else {
       targetField = converterType === ConverterType.UPLINK ? 'tbelDecoder' : 'tbelEncoder';
-      if(converterType === ConverterType.UPLINK) {
-        if (integrationType && DecoderMap.has(integrationType)) {
-          targetTemplate = DecoderMap.get(integrationType);
-        } else {
-          targetTemplate = tbelDecoderTemplate;
-        }
+      if(converterType === ConverterType.UPLINK && integrationType && DecoderUrlMap.has(integrationType)) {
+        targetTemplateUrl = DecoderUrlMap.get(integrationType);
       } else {
-        targetTemplate = tbelEncoderTemplate;
+        targetTemplateUrl = tbelDefaultConvertorsUrl.get(converterType);
       }
     }
-    form.get('configuration').get(targetField).patchValue(targetTemplate, {emitEvent: false});
+
+    this.resourcesService.loadTextResource(targetTemplateUrl).subscribe((template) => {
+      form.get('configuration').get(targetField).patchValue(template, {emitEvent: false});
+    });
+
     if (converterType === ConverterType.UPLINK) {
       if (defaultupdateOnlyKeys.hasOwnProperty(integrationType)) {
         form.get('configuration').get('updateOnlyKeys').patchValue(defaultupdateOnlyKeys[integrationType], {emitEvent: false});
       } else {
-        form.get('configuration').get('updateOnlyKeys').patchValue(defaultupdateOnlyKeys['DEFAULT'], {emitEvent: false});
+        form.get('configuration').get('updateOnlyKeys').patchValue(defaultupdateOnlyKeys.DEFAULT, {emitEvent: false});
       }
     }
   }
@@ -294,7 +296,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   }
 
   showConverterTestDialog(debugIn: ConverterDebugInput, setFirstTab = false) {
-    const isDecoder = this.entityForm.get('type').value === ConverterType.UPLINK
+    const isDecoder = this.entityForm.get('type').value === ConverterType.UPLINK;
     const scriptLang: ScriptLanguage = this.entityForm.get('configuration').get('scriptLang').value;
     let targetField;
     if (scriptLang === ScriptLanguage.JS) {
