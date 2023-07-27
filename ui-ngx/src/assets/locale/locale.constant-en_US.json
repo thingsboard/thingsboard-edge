@@ -6049,6 +6049,7 @@
         "advanced-widget-style": "Advanced widget style",
         "card-buttons": "Card buttons",
         "show-card-buttons": "Show card buttons",
+        "card-border-radius": "Card border radius",
         "card-appearance": "Card appearance",
         "color": "Color"
     },
@@ -6169,6 +6170,18 @@
         }
     },
     "widgets": {
+        "background": {
+            "background": "Background",
+            "background-settings": "Background settings",
+            "background-type-image": "Upload image",
+            "background-type-image-url": "Image URL",
+            "background-type-color": "Solid color",
+            "image-url": "Image URL",
+            "overlay": "Overlay",
+            "enable-overlay": "Enable overlay",
+            "blur": "Blur",
+            "preview": "Preview"
+        },
         "chart": {
             "common-settings": "Common settings",
             "enable-stacking-mode": "Enable stacking mode",
@@ -7138,7 +7151,8 @@
             "label": "Label",
             "icon": "Icon",
             "value": "Value",
-            "date": "Date"
+            "date": "Date",
+            "value-card-style": "Value card style"
         },
         "table": {
             "common-table-settings": "Common Table Settings",
