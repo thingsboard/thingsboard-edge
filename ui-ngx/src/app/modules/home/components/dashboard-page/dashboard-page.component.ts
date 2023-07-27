@@ -498,6 +498,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
                || this.forceFullscreen || this.isMobileApp || this.reportView || this.stateSelectView ||
                this.route.snapshot.queryParamMap.get('readonly') === 'true') {
       this.readonly = true;
+    } else if (this.widgetEditMode) {
+      this.readonly = !this.userPermissionsService.hasGenericPermission(Resource.WIDGET_TYPE, Operation.WRITE);
     } else {
       this.readonly = !this.userPermissionsService.hasGenericPermission(Resource.DASHBOARD, Operation.WRITE);
     }
