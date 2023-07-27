@@ -85,7 +85,7 @@ export class AppComponent implements OnInit {
     }
 
     for (const svgIcon of Object.keys(svgIconsUrl)) {
-      this.matIconRegistry.addSvgIcon(svgIcon, this.domSanitizer.bypassSecurityTrustResourceUrl(svgIcons[svgIcon]));
+      this.matIconRegistry.addSvgIcon(svgIcon, this.domSanitizer.bypassSecurityTrustResourceUrl(svgIconsUrl[svgIcon]));
     }
 
     this.storageService.testLocalStorage();

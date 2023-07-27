@@ -225,7 +225,6 @@ import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolation;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1107,10 +1106,6 @@ public abstract class BaseController {
     protected ThingsboardException permissionDenied() {
         return new ThingsboardException(YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION,
                 ThingsboardErrorCode.PERMISSION_DENIED);
-    }
-
-    String checkSslServerPemFile(String protocol) throws ThingsboardException, IOException {
-        return checkNotNull(deviceConnectivityService.getSslServerChain(protocol), "Mqtt ssl server chain pem file is not found");
     }
 
     OtaPackage checkOtaPackageId(OtaPackageId otaPackageId, Operation operation) throws ThingsboardException {

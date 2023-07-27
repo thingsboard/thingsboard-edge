@@ -36,7 +36,6 @@ import { AppState } from '@core/core.state';
 import { Router } from '@angular/router';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { DeviceService } from '@core/http/device.service';
-import { FormBuilder } from '@angular/forms';
 import {
   AttributeData,
   AttributeScope,
@@ -56,7 +55,6 @@ import {
   NetworkTransportType,
   PublishTelemetryCommand
 } from '@shared/models/device.models';
-import { UserSettingsService } from '@core/http/user-settings.service';
 import { ActionPreferencesUpdateUserSettings } from '@core/auth/auth.actions';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { getOS } from '@core/utils';
@@ -102,41 +100,6 @@ export class DeviceCheckConnectivityDialogComponent extends
   mqttTabIndex = 0;
   coapTabIndex = 0;
 
-  readonly installCoap = '```bash\n' +
-    'git clone https://github.com/obgm/libcoap --recursive\n' +
-    '{:copy-code}\n' +
-    '```\n' +
-    '<br />\n' +
-    '\n' +
-    '```bash\n' +
-    'cd libcoap\n' +
-    '{:copy-code}\n' +
-    '```\n' +
-    '<br />\n' +
-    '\n' +
-    '```bash\n' +
-    './autogen.sh\n' +
-    '{:copy-code}\n' +
-    '```\n' +
-    '<br />\n' +
-    '\n' +
-    '```bash\n' +
-    './configure --with-openssl --disable-doxygen --disable-manpages --disable-shared\n' +
-    '{:copy-code}\n' +
-    '```\n' +
-    '<br />\n' +
-    '\n' +
-    '```bash\n' +
-    'make\n' +
-    '{:copy-code}\n' +
-    '```\n' +
-    '<br />\n' +
-    '\n' +
-    '```bash\n' +
-    'sudo make install\n' +
-    '{:copy-code}\n' +
-    '```';
-
   private telemetrySubscriber: TelemetrySubscriber;
 
   private currentTime = Date.now();
@@ -147,10 +110,8 @@ export class DeviceCheckConnectivityDialogComponent extends
               protected router: Router,
               @Inject(MAT_DIALOG_DATA) private data: DeviceCheckConnectivityDialogData,
               public dialogRef: MatDialogRef<DeviceCheckConnectivityDialogComponent>,
-              private fb: FormBuilder,
               private deviceService: DeviceService,
               private telemetryWsService: TelemetryWebsocketService,
-              private userSettingsService: UserSettingsService,
               private wl: WhiteLabelingService,
               private zone: NgZone) {
     super(store, router, dialogRef);
@@ -239,7 +200,7 @@ export class DeviceCheckConnectivityDialogComponent extends
       this.telemetrySubscriber.subscribe();
       this.telemetrySubscriber.attributeData$().subscribe(
         (data) => {
-          this.latestTelemetry = data.reduce<Array<AttributeData>>((accumulator, item) => {
+          const telemetry = data.reduce<Array<AttributeData>>((accumulator, item) => {
             if (item.key === 'active') {
               this.status = coerceBooleanProperty(item.value);
             } else if (item.lastUpdateTs > this.currentTime) {
@@ -247,6 +208,7 @@ export class DeviceCheckConnectivityDialogComponent extends
             }
             return accumulator;
           }, []);
+          this.latestTelemetry = telemetry.sort((a, b) => b.lastUpdateTs - a.lastUpdateTs);
         }
       );
     });
