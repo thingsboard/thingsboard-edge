@@ -103,7 +103,7 @@
             </legend>
             <mat-form-field class="mat-block">
               <mat-label translate>self-registration.notification-email</mat-label>
-              <input matInput required formControlName="notificationEmail"/>
+              <input matInput required type="email" formControlName="notificationEmail"/>
               <mat-error *ngIf="selfRegistrationFormGroup.get('notificationEmail').hasError('email')">
                 {{ 'self-registration.notification-email-invalid' | translate }}
               </mat-error>

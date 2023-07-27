@@ -57,7 +57,7 @@
               </div>
               <mat-form-field class="mat-block tb-appearance-transparent">
                 <mat-label translate>signup.email</mat-label>
-                <input matInput formControlName="email" email required/>
+                <input matInput type="email" formControlName="email" email required/>
                 <mat-icon matPrefix>email</mat-icon>
                 <mat-error *ngIf="signup.get('email').invalid">
                   {{ 'user.invalid-email-format' | translate }}
