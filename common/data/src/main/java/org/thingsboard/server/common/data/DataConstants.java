@@ -85,6 +85,9 @@ public class DataConstants {
     public static final String ENTITY_UNASSIGNED = "ENTITY_UNASSIGNED";
     public static final String ATTRIBUTES_UPDATED = "ATTRIBUTES_UPDATED";
     public static final String ATTRIBUTES_DELETED = "ATTRIBUTES_DELETED";
+    public static final String ADDED_TO_ENTITY_GROUP = "ADDED_TO_ENTITY_GROUP";
+    public static final String REMOVED_FROM_ENTITY_GROUP = "REMOVED_FROM_ENTITY_GROUP";
+    public static final String REST_API_REQUEST = "REST_API_REQUEST";
     public static final String TIMESERIES_UPDATED = "TIMESERIES_UPDATED";
     public static final String TIMESERIES_DELETED = "TIMESERIES_DELETED";
     public static final String ALARM_ACK = "ALARM_ACK";
@@ -98,6 +101,7 @@ public class DataConstants {
     public static final String ENTITY_ASSIGNED_TO_TENANT = "ENTITY_ASSIGNED_TO_TENANT";
     public static final String PROVISION_SUCCESS = "PROVISION_SUCCESS";
     public static final String PROVISION_FAILURE = "PROVISION_FAILURE";
+    public static final String OWNER_CHANGED = "OWNER_CHANGED";
     public static final String ENTITY_ASSIGNED_TO_EDGE = "ENTITY_ASSIGNED_TO_EDGE";
     public static final String ENTITY_UNASSIGNED_FROM_EDGE = "ENTITY_UNASSIGNED_FROM_EDGE";
 
@@ -106,6 +110,8 @@ public class DataConstants {
     public static final String RELATIONS_DELETED = "RELATIONS_DELETED";
 
     public static final String RPC_CALL_FROM_SERVER_TO_DEVICE = "RPC_CALL_FROM_SERVER_TO_DEVICE";
+
+    public static final String GENERATE_REPORT = "generateReport";
 
     public static final String RPC_QUEUED = "RPC_QUEUED";
     public static final String RPC_SENT = "RPC_SENT";
