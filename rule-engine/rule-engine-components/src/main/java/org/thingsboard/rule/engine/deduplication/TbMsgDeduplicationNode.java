@@ -39,10 +39,10 @@ import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
-import org.thingsboard.server.common.data.msg.TbMsgType;
-import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -95,7 +95,7 @@ public class TbMsgDeduplicationNode implements TbNode {
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
-        if (TbMsgType.DEDUPLICATION_TIMEOUT_SELF_MSG.name().equals(msg.getType())) {
+        if (msg.checkType(TbMsgType.DEDUPLICATION_TIMEOUT_SELF_MSG)) {
             processDeduplication(ctx, msg.getOriginator());
         } else {
             processOnRegularMsg(ctx, msg);

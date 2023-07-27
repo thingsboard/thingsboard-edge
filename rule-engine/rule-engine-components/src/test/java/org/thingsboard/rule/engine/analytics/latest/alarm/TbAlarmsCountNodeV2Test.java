@@ -443,7 +443,7 @@ public class TbAlarmsCountNodeV2Test {
     }
 
     private void verifyMessage(TbMsg msg) {
-        Assert.assertEquals(TbMsgType.POST_TELEMETRY_REQUEST.name(), msg.getType());
+        Assert.assertTrue(msg.checkType(TbMsgType.POST_TELEMETRY_REQUEST));
         EntityId entityId = msg.getOriginator();
         Assert.assertNotNull(entityId);
         String data = msg.getData();

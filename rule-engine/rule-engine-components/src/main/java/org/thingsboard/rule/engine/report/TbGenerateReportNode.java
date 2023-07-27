@@ -115,7 +115,7 @@ public class TbGenerateReportNode implements TbNode {
                             attachments = reportBlobEntity.getId().toString();
                         }
                         metaData.putValue(ATTACHMENTS, attachments);
-                        TbMsg newMsg = TbMsg.transformMsg(msg, metaData);
+                        TbMsg newMsg = TbMsg.transformMsgMetadata(msg, metaData);
                         ctx.tellNext(newMsg, TbNodeConnectionType.SUCCESS);
                     },
                     throwable -> ctx.tellFailure(msg, throwable)

@@ -94,13 +94,10 @@ public class TbAlarmsCountNodeV2 implements TbVersionedNode {
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
-        String msgType = msg.getType();
-        EntityType entityType = msg.getOriginator().getEntityType();
-
         Alarm alarm = null;
         var processAlarmsCount = false;
-        if (msgType.equals(TbMsgType.ENTITY_CREATED.name()) || msgType.equals(TbMsgType.ENTITY_UPDATED.name())) {
-            if (entityType.equals(EntityType.ALARM)) {
+        if (msg.checkTypeOneOf(TbMsgType.ENTITY_CREATED, TbMsgType.ENTITY_UPDATED)) {
+            if (msg.getOriginator().getEntityType().equals(EntityType.ALARM)) {
                 alarm = convertMsgDataToAlarm(msg);
                 processAlarmsCount = true;
             } else {
@@ -112,7 +109,7 @@ public class TbAlarmsCountNodeV2 implements TbVersionedNode {
                     processAlarmsCount = true;
                 }
             }
-        } else if (msgType.equals(TbMsgType.ALARM.name()) || msgType.equals(TbMsgType.ALARM_ACK.name()) || msgType.equals(TbMsgType.ALARM_CLEAR.name())) {
+        } else if (msg.checkTypeOneOf(TbMsgType.ALARM, TbMsgType.ALARM_ACK, TbMsgType.ALARM_CLEAR)) {
             alarm = convertMsgDataToAlarm(msg);
             processAlarmsCount = true;
         }
