@@ -77,6 +77,10 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
 
     private volatile WeakReference<ListenableFuture<?>> subscribeFuture = new WeakReference<>(Futures.immediateVoidFuture());
 
+    String getOwnerId(Integration configuration) {
+        return "Tenant[" + configuration.getTenantId().getId() + "]Integration[" + configuration.getId().getId() + "]";
+    }
+
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
@@ -84,7 +88,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
             return;
         }
         log.debug("[{}][{}] MQTT Integration initializing MQTT client", configuration.getId(), configuration.getName());
-        mqttClient = initClient(mqttClientConfiguration, (topic, data) -> processAsync(new BasicMqttIntegrationMsg(topic, data)));
+        mqttClient = initClient(getOwnerId(this.configuration), mqttClientConfiguration, (topic, data) -> processAsync(new BasicMqttIntegrationMsg(topic, data)));
         subscribeToTopics();
         this.downlinkTopicPattern = getDownlinkTopicPattern();
         this.mqttClient.setCallback(new MqttClientCallback() {
@@ -115,7 +119,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
         this.configuration = integration;
         try {
             mqttClientConfiguration = getClientConfiguration(configuration, MqttClientConfiguration.class);
-            mqttClient = initClient(mqttClientConfiguration, (topic, data) -> processAsync(new BasicMqttIntegrationMsg(topic, data)));
+            mqttClient = initClient(getOwnerId(integration), mqttClientConfiguration, (topic, data) -> processAsync(new BasicMqttIntegrationMsg(topic, data)));
         } catch (RuntimeException e) {
             throw new ThingsboardException(e.getMessage(), ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         } catch (Exception e) {

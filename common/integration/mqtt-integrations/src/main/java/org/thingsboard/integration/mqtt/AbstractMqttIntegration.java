@@ -226,10 +226,11 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
 
     protected abstract ListenableFuture<Void> doProcess(IntegrationContext context, T msg);
 
-    protected MqttClient initClient(MqttClientConfiguration configuration, MqttHandler defaultHandler) throws Exception {
+    protected MqttClient initClient(String ownerId, MqttClientConfiguration configuration, MqttHandler defaultHandler) throws Exception {
         Optional<SslContext> sslContextOpt = initSslContext(configuration);
 
         MqttClientConfig config = sslContextOpt.isPresent() ? new MqttClientConfig(sslContextOpt.get()) : new MqttClientConfig();
+        config.setOwnerId(ownerId);
         if (!StringUtils.isEmpty(configuration.getClientId())) {
             config.setClientId(configuration.getClientId());
         }
