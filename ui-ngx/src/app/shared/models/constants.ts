@@ -198,6 +198,7 @@ export const HelpLinks = {
     integrationThingParkEnterprise: helpBaseUrl +  '/docs/samples/abeeway/tracker',
     integrationTMobileIotCdp: helpBaseUrl +  '/docs/user-guide/integrations/t-mobile-iot-cdp',
     integrationLoriot: helpBaseUrl +  '/docs/user-guide/integrations/loriot',
+    integrationParticle: helpBaseUrl +  '/docs/user-guide/integrations/particle',
     integrationMqtt: helpBaseUrl +  '/docs/user-guide/integrations/mqtt',
     integrationAwsIoT: helpBaseUrl +  '/docs/user-guide/integrations/aws-iot',
     integrationAwsSQS: helpBaseUrl +  '/docs/user-guide/integrations/aws-sqs',

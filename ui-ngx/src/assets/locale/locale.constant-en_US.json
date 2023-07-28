@@ -1589,8 +1589,7 @@
         "device-configuration": "Device configuration",
         "transport-configuration": "Transport configuration",
         "wizard": {
-            "device-details": "Device details",
-            "customer-to-assign-device": "Customer to assign the device"
+            "device-details": "Device details"
         },
         "unassign-devices-from-edge-title": "Are you sure you want to unassign { count, plural, =1 {1 device} other {# devices} }?",
         "unassign-devices-from-edge-text": "After the confirmation all selected devices will be unassigned and won't be accessible by the edge.",
@@ -3295,6 +3294,7 @@
         "downlink-url-required": "Downlink URL is required",
         "create-loriot-output": "Create Loriot Application output",
         "send-downlink": "Send downlink",
+        "allow-downlink": "Allow downlink",
         "server": "Server",
         "server-required": "Server is required",
         "domain": "Domain",
@@ -3344,8 +3344,6 @@
         "connect-timeout-range": "Connection timeout should be in a range from 1 to 200.",
         "client-id": "Client ID",
         "client-id-required": "Client ID is required.",
-        "client-id-range": "Client ID should be in a range from 1 to 23 characters. [MQTT-3.1.3-5]",
-        "client-id-pattern": "Client ID should consist of numbers, upper and lower case letters. [MQTT-3.1.3-5]",
         "client-id-hint": "Hint: Optional. Leave empty for auto-generated client ID. Be careful when specifying the Client ID. Majority of the MQTT brokers will not allow multiple connections with the same client ID. To connect to such brokers, your MQTT client ID must be unique.",
         "max-bytes-in-message": "Max bytes in message",
         "max-bytes-in-message-range": "Max bytes in message should be in a range from 1 to 256000000.",
@@ -3499,6 +3497,8 @@
         "type-tti-description": "Software to operate private LoRaWAN networks at scale.",
         "type-chirpstack": "ChirpStack",
         "type-chirpstack-description": "LoRaWAN network configuration server.",
+        "type-particle": "Particle",
+        "type-particle-description": "IoT enablement platform-as-a-service.",
         "type-azure-event-hub": "Azure Event Hub",
         "type-azure-event-hub-description": "Big data streaming platform and event ingestion service.",
         "type-azure-iot-hub": "Azure IoT Hub",
@@ -5800,8 +5800,7 @@
         "groups-created": "{ created, plural, =1 {1 group} other {# groups} } created",
         "groups-updated": "{ updated, plural, =1 {1 group} other {# groups} } updated",
         "groups-deleted": "{ deleted, plural, =1 {1 group} other {# groups} } deleted",
-        "remove-other-entities-confirm-text": "Be careful! This will permanently <b>delete</b> <b>all</b> current entities<br/>not present in the version you want to restore.<br/><br/>Please type <b>remove other entities</b> to confirm.",
-        "auto-commit-to-branch": "auto-commit to <b>{{ branch }}</b> branch",
+        "remove-other-entities-confirm-text": "Be careful! This will permanently <b>delete</b> <b>all</b> current entities<br/>not present in the version you want to restore.<br/><br/>Please type <b>\"remove other entities\"</b> to confirm.",        "auto-commit-to-branch": "auto-commit to <b>{{ branch }}</b> branch",
         "default-create-entity-version-name": "{{entityName}} update",
         "sync-strategy-merge-hint": "Creates or updates selected entities in the repository. All other repository entities are <b>not modified</b>.",
         "sync-strategy-overwrite-hint": "Creates or updates selected entities in the repository. All other repository entities are <b>deleted</b>.",
@@ -6071,6 +6070,7 @@
         "advanced-widget-style": "Advanced widget style",
         "card-buttons": "Card buttons",
         "show-card-buttons": "Show card buttons",
+        "card-border-radius": "Card border radius",
         "card-appearance": "Card appearance",
         "color": "Color"
     },
@@ -6173,7 +6173,6 @@
         "dark-foreground": "Dark foreground",
         "domain-name": "Domain name",
         "base-url": "Base URL",
-        "base-url-required": "Base URL is required.",
         "prohibit-different-url": "Prohibit to use hostname from the client request headers",
         "prohibit-different-url-hint": "This setting should be enabled for production environments. May cause security issues when disabled",
         "help-link-base-url": "Help links base url",
@@ -6191,6 +6190,18 @@
         }
     },
     "widgets": {
+        "background": {
+            "background": "Background",
+            "background-settings": "Background settings",
+            "background-type-image": "Upload image",
+            "background-type-image-url": "Image URL",
+            "background-type-color": "Solid color",
+            "image-url": "Image URL",
+            "overlay": "Overlay",
+            "enable-overlay": "Enable overlay",
+            "blur": "Blur",
+            "preview": "Preview"
+        },
         "chart": {
             "common-settings": "Common settings",
             "enable-stacking-mode": "Enable stacking mode",
@@ -7160,7 +7171,8 @@
             "label": "Label",
             "icon": "Icon",
             "value": "Value",
-            "date": "Date"
+            "date": "Date",
+            "value-card-style": "Value card style"
         },
         "table": {
             "common-table-settings": "Common Table Settings",
