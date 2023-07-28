@@ -440,7 +440,6 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                             if (edge.getRootRuleChainId() != null && edge.getRootRuleChainId().equals(ruleChainId)) {
                                 throw new DataValidationException("Can't delete rule chain that is root for edge [" + edge.getName() + "]. Please assign another root rule chain first to the edge!");
                             }
-                            eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(ruleChainId).edgeId(edge.getId()).build());
                         }
                         if (pageData.hasNext()) {
                             pageLink = pageLink.nextPageLink();
@@ -752,6 +751,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
         try {
             entityCountService.publishCountEntityEvictEvent(tenantId, EntityType.RULE_CHAIN);
             ruleChainDao.removeById(tenantId, ruleChainId.getId());
+            eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(ruleChainId).build());
         } catch (Exception t) {
             ConstraintViolationException e = DaoUtil.extractConstraintViolationException(t).orElse(null);
             if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("fk_default_rule_chain_device_profile")) {

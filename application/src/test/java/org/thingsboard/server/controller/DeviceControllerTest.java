@@ -196,7 +196,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(savedDevice, savedDevice,
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.UPDATED, ActionType.UPDATED, 1 , 1, 1);
+                ActionType.UPDATED, 1 , 1, 1);
         testNotificationUpdateGatewayOneTime(savedDevice, oldDevice);
 
         Device foundDevice = doGet("/api/device/" + savedDevice.getId().getId(), Device.class);
@@ -252,7 +252,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(savedDevice, savedDevice,
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.UPDATED, ActionType.UPDATED, 1 , 1, 1);
+                ActionType.UPDATED, 1 , 1, 1);
         testNotificationUpdateGatewayOneTime(savedDevice, oldDevice);
     }
 
@@ -470,7 +470,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new Device(), new Device(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, ActionType.ADDED, cntEntity, cntEntity, cntEntity);
+                ActionType.ADDED, cntEntity, cntEntity, cntEntity);
         testNotificationUpdateGatewayNever();
 
         for (int i = 0; i < 7; i++) {
@@ -719,7 +719,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new Device(), new Device(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, ActionType.ADDED, cntEntity, cntEntity, cntEntity);
+                ActionType.ADDED, cntEntity, cntEntity, cntEntity);
         testNotificationUpdateGatewayNever();
 
         List<Device> loadedDevices = new ArrayList<>(cntEntity);

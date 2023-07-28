@@ -377,7 +377,7 @@ public class CustomerControllerTest extends AbstractControllerTest {
 
         testNotifyManyCustomerManyTimeMsgToEdgeServiceEntityEqAny(new Customer(), new Customer(),
                 tenantId, tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, ActionType.ADDED, cntEntity, cntEntity, cntEntity);
+                ActionType.ADDED, cntEntity, cntEntity, cntEntity);
 
         List<Customer> loadedCustomers = new ArrayList<>(135);
         PageLink pageLink = new PageLink(23);

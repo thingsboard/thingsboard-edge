@@ -51,8 +51,8 @@ import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.edge.EdgeSynchronizationManager;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
-import org.thingsboard.server.dao.eventsourcing.ActionRelationEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.RelationActionEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityGroupEvent;
 import org.thingsboard.server.dao.group.EntityGroupService;
@@ -123,13 +123,13 @@ public class EdgeEventSourcingListener {
     }
 
     @TransactionalEventListener(fallbackExecution = true)
-    public void handleEvent(DeleteEntityEvent event) {
+    public void handleEvent(DeleteEntityEvent<?> event) {
         if (edgeSynchronizationManager.isSync()) {
             return;
         }
         log.trace("[{}] DeleteEntityEvent called: {}", event.getEntityId().getEntityType(), event);
         tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), event.getEdgeId(), event.getEntityId(),
-                event.getBody(), null, EdgeEventActionType.DELETED);
+                JacksonUtil.toString(event.getEntity()), null, EdgeEventActionType.DELETED);
     }
 
     @TransactionalEventListener(fallbackExecution = true)
@@ -148,17 +148,6 @@ public class EdgeEventSourcingListener {
                     return;
                 }
             }
-            if (ActionType.RELATION_DELETED.equals(event.getActionType())) {
-                EntityRelation relation = JacksonUtil.fromString(event.getBody(), EntityRelation.class);
-                if (relation == null) {
-                    log.trace("skipping RELATION_DELETED event in case relation is null: {}", event);
-                    return;
-                }
-                if (!RelationTypeGroup.COMMON.equals(relation.getTypeGroup())) {
-                    log.trace("skipping RELATION_DELETED event in case NOT COMMON relation type group: {}", event);
-                    return;
-                }
-            }
             log.trace("[{}] ActionEntityEvent called: {}", event.getEntityId().getEntityType(), event);
             tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), event.getEdgeId(), event.getEntityId(),
                     event.getBody(), event.getType(), edgeTypeByActionType(event.getActionType()),
@@ -167,11 +156,11 @@ public class EdgeEventSourcingListener {
     }
 
     @TransactionalEventListener(fallbackExecution = true)
-    public void handleEvent(ActionRelationEvent event) {
+    public void handleEvent(RelationActionEvent event) {
         if (edgeSynchronizationManager.isSync()) {
             return;
         }
-        EntityRelation relation = JacksonUtil.fromString(event.getBody(), EntityRelation.class);
+        EntityRelation relation = event.getRelation();
         if (relation == null) {
             log.trace("skipping ActionRelationEvent event in case relation is null: {}", event);
             return;
@@ -182,7 +171,7 @@ public class EdgeEventSourcingListener {
         }
         log.trace("ActionRelationEvent called: {}", event);
         tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), null, null,
-                event.getBody(), EdgeEventType.RELATION, edgeTypeByActionType(event.getActionType()));
+                JacksonUtil.toString(relation), EdgeEventType.RELATION, edgeTypeByActionType(event.getActionType()));
     }
 
     private boolean isValidEdgeEventEntity(Object entity) {

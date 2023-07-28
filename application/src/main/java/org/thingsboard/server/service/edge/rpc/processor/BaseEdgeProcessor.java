@@ -36,7 +36,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
@@ -298,9 +297,6 @@ public abstract class BaseEdgeProcessor {
 
     @Autowired
     protected EdgeSynchronizationManager edgeSynchronizationManager;
-
-    @Autowired
-    protected ApplicationEventPublisher eventPublisher;
 
     @Autowired
     protected DbCallbackExecutorService dbCallbackExecutorService;
@@ -775,6 +771,7 @@ public abstract class BaseEdgeProcessor {
                 case ENTITY_VIEW:
                 case DASHBOARD:
                 case USER:
+                case RULE_CHAIN:
                     return Futures.transform(Futures.allAsList(processActionForAllEdgesByTenantId(tenantId, type, deleted, entityId, body)), voids -> null, dbCallbackExecutorService);
                 default:
                     return pushNotificationToAllRelatedEdges(tenantId, entityId, type, deleted, entityGroupId);
