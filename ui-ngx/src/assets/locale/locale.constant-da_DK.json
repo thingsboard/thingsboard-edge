@@ -2189,8 +2189,6 @@
     "connect-timeout-range": "Forbindelsestimeout skal ligge i området fra 1 til 200.",
     "client-id": "Klient-id",
     "client-id-required": "Klient-id er påkrævet.",
-    "client-id-range": "Klient-id skal ligge i et interval fra 1 til 23 tegn. [MQTT-3.1.3-5]",
-    "client-id-pattern": "Klient-id skal bestå af tal og store og små bogstaver. [MQTT-3.1.3-5]",
     "max-bytes-in-message": "Maksimum bytes i meddelelse",
     "max-bytes-in-message-range": "Maksimum bytes i meddelelsen skal ligge i området fra 1 til 256000000.",
     "device-id": "Enheds-id",
