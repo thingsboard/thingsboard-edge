@@ -163,7 +163,6 @@ import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.ClaimDevicesService;
-import org.thingsboard.server.dao.device.DeviceConnectivityService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -276,9 +275,6 @@ public abstract class BaseController {
 
     @Autowired
     protected DeviceService deviceService;
-
-    @Autowired
-    protected DeviceConnectivityService deviceConnectivityService;
 
     @Autowired
     protected DeviceProfileService deviceProfileService;
