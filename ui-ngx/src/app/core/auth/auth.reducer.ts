@@ -93,7 +93,7 @@ export const authReducer = (
       userSettings = {...state.userSettings, ...{ openedMenuSections: Array.from(openedMenuSections)}};
       return { ...state, ...{ userSettings }};
 
-    case AuthActionTypes.UPDATE_USER_SETTINGS:
+    case AuthActionTypes.PUT_USER_SETTINGS:
       userSettings = {...state.userSettings, ...action.payload};
       return { ...state, ...{ userSettings }};
 
