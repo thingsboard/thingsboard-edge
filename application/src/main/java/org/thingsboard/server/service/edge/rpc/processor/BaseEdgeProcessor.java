@@ -493,7 +493,9 @@ public abstract class BaseEdgeProcessor {
                 if (edgeId != null) {
                     return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, body);
                 } else {
-                    return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, null);
+                    // TODO: @voba - provide logic for customer
+                    return Futures.transform(Futures.allAsList(processActionForAllEdgesByTenantId(
+                            tenantId, type, actionType, entityId, body)), voids -> null, dbCallbackExecutorService);
                 }
             default:
                 return Futures.immediateFuture(null);
@@ -772,6 +774,8 @@ public abstract class BaseEdgeProcessor {
                 case DASHBOARD:
                 case USER:
                 case RULE_CHAIN:
+                case ENTITY_GROUP:
+                case INTEGRATION:
                     return Futures.transform(Futures.allAsList(processActionForAllEdgesByTenantId(tenantId, type, deleted, entityId, body)), voids -> null, dbCallbackExecutorService);
                 default:
                     return pushNotificationToAllRelatedEdges(tenantId, entityId, type, deleted, entityGroupId);

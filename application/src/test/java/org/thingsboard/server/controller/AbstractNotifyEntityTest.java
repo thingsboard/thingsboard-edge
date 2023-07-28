@@ -194,19 +194,18 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
         Mockito.reset(tbClusterService, auditLogService);
     }
 
-    protected void testNotifyManyCustomerManyTimeMsgToEdgeServiceEntityEqAny(HasName entity, HasName originator,
+    protected void testNotifyAddedManyCustomerManyTimeMsgToEdgeServiceEntityEqAny(HasName entity, HasName originator,
                                                                            TenantId tenantId, CustomerId customerId, UserId userId, String userName,
-                                                                           ActionType actionType, ActionType actionTypeEdge,
-                                                                           int cntTime, int cntTimeEdge, int cntTimeRuleEngine, Object... additionalInfo) {
+                                                                             int cntTime, int cntTimeEdge, int cntTimeRuleEngine, Object... additionalInfo) {
         EntityId originatorId = createEntityId_NULL_UUID(originator);
-        testSendNotificationMsgToEdgeServiceTimeCustomerEqAny(tenantId, actionTypeEdge, cntTimeEdge);
+        testSendNotificationMsgToEdgeServiceTimeCustomerEqAny(tenantId, ActionType.ADDED, cntTimeEdge);
         ArgumentMatcher<HasName> matcherEntityClassEquals = argument -> argument.getClass().equals(entity.getClass());
         ArgumentMatcher<EntityId> matcherOriginatorId = argument -> argument.getClass().equals(originatorId.getClass());
         ArgumentMatcher<CustomerId> matcherCustomerId = customerId == null ?
                 argument -> argument.getClass().equals(CustomerId.class) : argument -> argument.equals(customerId);
         ArgumentMatcher<UserId> matcherUserId = userId == null ?
                 argument -> argument.getClass().equals(UserId.class) : argument -> argument.equals(userId);
-        testLogEntityActionAdditionalInfo(matcherEntityClassEquals, matcherOriginatorId, tenantId, matcherCustomerId, matcherUserId, userName, actionType, cntTime,
+        testLogEntityActionAdditionalInfo(matcherEntityClassEquals, matcherOriginatorId, tenantId, matcherCustomerId, matcherUserId, userName, ActionType.ADDED, cntTime,
                 extractMatcherAdditionalInfoClass(additionalInfo));
         testPushMsgToRuleEngineTime(matcherOriginatorId, tenantId, entity, cntTimeRuleEngine);
     }
