@@ -4774,7 +4774,6 @@
         "dark-foreground": "Primer pla fosc",
         "domain-name": "Nom del domini",
         "base-url": "Base URL",
-        "base-url-required": "Cal la base URL.",
         "prohibit-different-url": "Prohibir l'ús del nom d'amfitrió de les capçaleres de la sol·licitud del client",
         "prohibit-different-url-hint": "Aquesta configuració s'hauria d'habilitar per als entorns de producció. Pot causar problemes de seguretat quan està desactivat",
         "help-link-base-url": "URL base dels enllaços d'ajuda",
