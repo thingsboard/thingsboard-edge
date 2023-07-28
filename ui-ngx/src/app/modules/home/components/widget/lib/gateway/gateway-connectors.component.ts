@@ -39,14 +39,13 @@ import { MatDialog } from '@angular/material/dialog';
 import { AttributeService } from '@core/http/attribute.service';
 import { DeviceService } from '@core/http/device.service';
 import { TranslateService } from '@ngx-translate/core';
-import { forkJoin, merge } from 'rxjs';
+import { forkJoin } from 'rxjs';
 import { AttributeData, AttributeScope } from '@shared/models/telemetry/telemetry.models';
 import { PageComponent } from '@shared/components/page.component';
 import { PageLink } from '@shared/models/page/page-link';
 import { AttributeDatasource } from '@home/models/datasource/attribute-datasource';
 import { Direction, SortOrder } from '@shared/models/page/sort-order';
 import { MatSort } from '@angular/material/sort';
-import { tap } from 'rxjs/operators';
 import { TelemetryWebsocketService } from '@core/ws/telemetry-websocket.service';
 import { MatTableDataSource } from '@angular/material/table';
 import { GatewayLogLevel } from '@home/components/widget/lib/gateway/gateway-configuration.component';
@@ -98,9 +97,9 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
 
   attributeDataSource: AttributeDatasource;
 
-  sharedAttributeData: Array<AttributeData> = [];
-
   inactiveConnectorsDataSource: AttributeDatasource;
+
+  serverDataSource: AttributeDatasource;
 
   dataSource: MatTableDataSource<AttributeData>;
 
@@ -135,6 +134,8 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
 
   inactiveData: Array<any> = [];
 
+  sharedAttributeData: Array<AttributeData> = [];
+
   initialConnector: gatewayConnector;
 
   constructor(protected router: Router,
@@ -153,6 +154,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
     this.pageLink = new PageLink(1000, 0, null, sortOrder);
     this.attributeDataSource = new AttributeDatasource(this.attributeService, this.telemetryWsService, this.zone, this.translate);
     this.inactiveConnectorsDataSource = new AttributeDatasource(this.attributeService, this.telemetryWsService, this.zone, this.translate);
+    this.serverDataSource = new AttributeDatasource(this.attributeService, this.telemetryWsService, this.zone, this.translate);
     this.dataSource = new MatTableDataSource<AttributeData>([]);
     this.connectorForm = this.fb.group({
       name: ['', [Validators.required, this.uniqNameRequired()]],
@@ -170,11 +172,16 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
     this.connectorForm.valueChanges.subscribe(() => {
       this.cd.detectChanges();
     });
-    merge(this.sort.sortChange)
-      .pipe(
-        tap(() => this.updateData())
-      )
-      .subscribe();
+
+    this.dataSource.sort = this.sort;
+    this.dataSource.sortingDataAccessor = (data: AttributeData, sortHeaderId: string) => {
+      if (sortHeaderId === 'syncStatus') {
+        return this.isConnectorSynced(data) ? 1 : 0;
+      } else if (sortHeaderId === 'enabled') {
+        return this.activeConnectors.includes(data.key) ? 1 : 0;
+      }
+      return data[sortHeaderId] || data.value[sortHeaderId];
+    };
 
     this.viewsInited = true;
     if (this.device) {
@@ -200,7 +207,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
     return (c: UntypedFormControl) => {
       const newName = c.value.trim().toLowerCase();
       const found = this.dataSource.data.find((connectorAttr) => {
-        const connectorData = typeof connectorAttr.value === 'string' ? JSON.parse(connectorAttr.value) : connectorAttr.value;
+        const connectorData = connectorAttr.value;
         return connectorData.name.toLowerCase() === newName;
       });
       if (found) {
@@ -254,7 +261,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
       this.inactiveConnectors.push(value.name);
       updateActiveConnectors = true;
     }
-    const tasks = [this.attributeService.saveEntityAttributes(this.device, AttributeScope.SHARED_SCOPE, attributesToSave)];
+    const tasks = [this.attributeService.saveEntityAttributes(this.device, scope, attributesToSave)];
     if (updateActiveConnectors) {
       tasks.push(this.attributeService.saveEntityAttributes(this.device, scope, [{
         key: scope == AttributeScope.SHARED_SCOPE ? 'active_connectors' : 'inactive_connectors',
@@ -263,26 +270,13 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
     }
 
     if (attributesToDelete.length) {
-      tasks.push(this.attributeService.deleteEntityAttributes(this.device, AttributeScope.SHARED_SCOPE, attributesToDelete));
+      tasks.push(this.attributeService.deleteEntityAttributes(this.device, scope, attributesToDelete));
     }
     forkJoin(tasks).subscribe(_ => {
       this.initialConnector = value;
       this.showToast('Update Successful');
       this.updateData(true);
     });
-  }
-
-  resetSortAndFilter(update: boolean = true) {
-    this.textSearchMode = false;
-    this.pageLink.textSearch = null;
-    if (this.viewsInited) {
-      const sortable = this.sort.sortables.get('key');
-      this.sort.active = sortable.id;
-      this.sort.direction = 'asc';
-      if (update) {
-        this.updateData(true);
-      }
-    }
   }
 
   updateData(reload: boolean = false) {
@@ -293,29 +287,38 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
       this.combineData();
     });
     this.inactiveConnectorsDataSource.loadAttributes(this.device, AttributeScope.SHARED_SCOPE, this.pageLink, reload).subscribe(data => {
-      this.inactiveData = data.data.filter(value => this.inactiveConnectors.includes(value.key));
       this.sharedAttributeData = data.data.filter(value => this.activeConnectors.includes(value.key));
       this.combineData();
     });
+    this.serverDataSource.loadAttributes(this.device, AttributeScope.SERVER_SCOPE, this.pageLink, reload).subscribe(data => {
+      this.inactiveData = data.data.filter(value => this.inactiveConnectors.includes(value.key));
+      this.combineData();
+    });
+
   }
 
   isConnectorSynced(attribute: AttributeData) {
-    const connectorData = typeof attribute.value === 'string' ? JSON.parse(attribute.value) : attribute.value;
+    const connectorData =  attribute.value;
     if (!connectorData.ts) return false;
     const clientIndex = this.activeData.findIndex(data => {
-      const sharedData = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
+      const sharedData =  data.value;
       return sharedData.name === connectorData.name;
     })
     if (clientIndex == -1) return false;
     const sharedIndex = this.sharedAttributeData.findIndex(data => {
-      const sharedData = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
+      const sharedData =  data.value;
       return sharedData.name === connectorData.name && sharedData.ts && sharedData.ts <= connectorData.ts;
     })
     return sharedIndex !== -1;
   }
 
   combineData() {
-    this.dataSource.data = [...this.activeData, ...this.inactiveData];
+    this.dataSource.data = [...this.activeData, ...this.inactiveData, ...this.sharedAttributeData].filter((item, index, self) =>
+      index === self.findIndex((t) => t.key === item.key)
+    ).map(attribute=>{
+      attribute.value = typeof attribute.value === 'string' ? JSON.parse(attribute.value) : attribute.value;
+      return attribute
+    });
   }
 
   addAttribute(): void {
@@ -345,7 +348,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
     if (this.connectorForm.disabled) {
       this.connectorForm.enable();
     }
-    const connector = typeof attribute.value === 'string' ? JSON.parse(attribute.value) : attribute.value;
+    const connector = attribute.value;
     if (!connector.configuration) {
       connector.configuration = '';
     }
@@ -359,7 +362,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
 
   isSameConnector(attribute): boolean {
     if (!this.initialConnector) return false;
-    const connector = typeof attribute.value === 'string' ? JSON.parse(attribute.value) : attribute.value;
+    const connector = attribute.value;
     return this.initialConnector.name === connector.name;
   }
 
@@ -378,7 +381,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
   }
 
   returnType(attribute) {
-    const value = typeof attribute.value === 'string' ? JSON.parse(attribute.value) : attribute.value;
+    const value = attribute.value;
     return this.gatewayConnectorDefaultTypes.get(value.type);
   }
 
@@ -411,7 +414,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
             this.cd.detectChanges();
             this.connectorForm.disable();
           }
-          this.updateData();
+          this.updateData(true);
         });
       }
     });
@@ -425,7 +428,6 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
     if ($event) {
       $event.stopPropagation();
     }
-    attribute.value = typeof attribute.value === 'string' ? JSON.parse(attribute.value) : attribute.value;
     const params = deepClone(this.ctx.stateController.getStateParams());
     params.connector_logs = attribute;
     params.targetEntityParamName = 'connector_logs';
@@ -436,7 +438,6 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
     if ($event) {
       $event.stopPropagation();
     }
-    attribute.value = typeof attribute.value === 'string' ? JSON.parse(attribute.value) : attribute.value;
     const params = deepClone(this.ctx.stateController.getStateParams());
     params.connector_rpc = attribute;
     params.targetEntityParamName = 'connector_rpc';
@@ -446,6 +447,17 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
 
   enableConnector(attribute): void {
     const wasEnabled = this.activeConnectors.includes(attribute.key);
+    const scopeOld = wasEnabled ? AttributeScope.SHARED_SCOPE : AttributeScope.SERVER_SCOPE;
+    const scopeNew = !wasEnabled ? AttributeScope.SHARED_SCOPE : AttributeScope.SERVER_SCOPE;
+    attribute.value.ts = new Date().getTime();
+    const tasks = [this.attributeService.saveEntityAttributes(this.device, AttributeScope.SHARED_SCOPE, [{
+      key: 'active_connectors',
+      value: this.activeConnectors
+    }]), this.attributeService.saveEntityAttributes(this.device, AttributeScope.SERVER_SCOPE, [{
+      key: 'inactive_connectors',
+      value: this.inactiveConnectors
+    }]), this.attributeService.deleteEntityAttributes(this.device, scopeOld, [attribute]),
+      this.attributeService.saveEntityAttributes(this.device, scopeNew, [attribute])];
     if (wasEnabled) {
       const index = this.activeConnectors.indexOf(attribute.key);
       this.activeConnectors.splice(index, 1);
@@ -455,14 +467,8 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
       this.inactiveConnectors.splice(index, 1);
       this.activeConnectors.push(attribute.key);
     }
-    forkJoin([this.attributeService.saveEntityAttributes(this.device, AttributeScope.SHARED_SCOPE, [{
-      key: 'active_connectors',
-      value: this.activeConnectors
-    }]), this.attributeService.saveEntityAttributes(this.device, AttributeScope.SERVER_SCOPE, [{
-      key: 'inactive_connectors',
-      value: this.inactiveConnectors
-    }]),]).subscribe(_ => {
-      this.updateData();
+    forkJoin(tasks).subscribe(_ => {
+      this.updateData(true);
     });
   }
 
