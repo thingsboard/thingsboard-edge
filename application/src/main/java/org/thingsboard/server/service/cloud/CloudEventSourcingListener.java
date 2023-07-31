@@ -19,18 +19,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.dao.edge.EdgeSynchronizationManager;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
-import org.thingsboard.server.dao.eventsourcing.ActionRelationEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.RelationActionEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 
 import javax.annotation.PostConstruct;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -66,7 +66,7 @@ public class CloudEventSourcingListener {
     }
 
     @TransactionalEventListener(fallbackExecution = true)
-    public void handleEvent(SaveEntityEvent event) {
+    public void handleEvent(SaveEntityEvent<?> event) {
         if (edgeSynchronizationManager.isSync()) {
             return;
         }
@@ -80,7 +80,7 @@ public class CloudEventSourcingListener {
     }
 
     @TransactionalEventListener(fallbackExecution = true)
-    public void handleEvent(DeleteEntityEvent event) {
+    public void handleEvent(DeleteEntityEvent<?> event) {
         if (edgeSynchronizationManager.isSync()) {
             return;
         }
@@ -89,7 +89,7 @@ public class CloudEventSourcingListener {
         }
         log.trace("[{}] EntityDeleteEvent called: {}", event.getEntityId().getEntityType(), event);
         tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), event.getEntityId(),
-                event.getBody(), null, EdgeEventActionType.DELETED);
+                JacksonUtil.toString(event.getEntity()), null, EdgeEventActionType.DELETED);
     }
 
     @TransactionalEventListener(fallbackExecution = true)
@@ -106,12 +106,12 @@ public class CloudEventSourcingListener {
     }
 
     @TransactionalEventListener(fallbackExecution = true)
-    public void handleEvent(ActionRelationEvent event) {
+    public void handleEvent(RelationActionEvent event) {
         if (edgeSynchronizationManager.isSync()) {
             return;
         }
         log.trace("EntityRelationActionEvent called: {}", event);
         tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), null,
-                event.getBody(), CloudEventType.RELATION, edgeTypeByActionType(event.getActionType()));
+                JacksonUtil.toString(event.getRelation()), CloudEventType.RELATION, edgeTypeByActionType(event.getActionType()));
     }
 }
