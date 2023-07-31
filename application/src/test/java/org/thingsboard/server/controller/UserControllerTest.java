@@ -132,11 +132,9 @@ public class UserControllerTest extends AbstractControllerTest {
         Assert.assertEquals(foundUser, savedUser);
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(foundUser, foundUser,
-                SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL,
-                ActionType.ADDED_TO_ENTITY_GROUP, ActionType.ADDED_TO_ENTITY_GROUP, 1, 0, 2);
+                SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL, ActionType.ADDED_TO_ENTITY_GROUP, 1, 0, 2);
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(foundUser, foundUser,
-                SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL,
-                ActionType.ADDED, ActionType.ADDED, 1, 1, 2);
+                SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL, ActionType.ADDED,1, 1, 2);
         Mockito.reset(tbClusterService, auditLogService);
 
         resetTokens();

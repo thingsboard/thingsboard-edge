@@ -616,14 +616,14 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     protected void unAssignFromEdgeAndDeleteRuleChain(RuleChainId ruleChainId) throws Exception {
-        edgeImitator.expectMessageAmount(1);
+        edgeImitator.expectMessageAmount(2);
         doDelete("/api/edge/" + edge.getUuidId()
                 + "/ruleChain/" + ruleChainId.getId(), RuleChain.class);
-        Assert.assertTrue(edgeImitator.waitForMessages());
 
         // delete rule chain
         doDelete("/api/ruleChain/" + ruleChainId.getId())
                 .andExpect(status().isOk());
+        Assert.assertTrue(edgeImitator.waitForMessages());
     }
 
     protected Dashboard saveDashboard(String dashboardTitle, EntityGroupId entityGroupId) {
