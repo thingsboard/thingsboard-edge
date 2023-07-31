@@ -35,7 +35,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
-import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.service.action.EntityActionService;
 import org.thingsboard.server.service.gateway_device.GatewayNotificationsService;
 
@@ -114,7 +113,7 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
 
     @Override
     public void notifyUpdateDeviceCredentials(TenantId tenantId, DeviceId deviceId, CustomerId customerId, Device device,
-                                              DeviceCredentials deviceCredentials, User user, boolean notifyCloud) {
+                                              DeviceCredentials deviceCredentials, User user) {
         tbClusterService.pushMsgToCore(new DeviceCredentialsUpdateNotificationMsg(tenantId, deviceCredentials.getDeviceId(), deviceCredentials), null);
         logEntityAction(tenantId, deviceId, device, customerId, ActionType.CREDENTIALS_UPDATED, user, deviceCredentials);
     }
@@ -151,13 +150,6 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
                                         ActionType actionType, Exception e, Object... additionalInfo) {
         logEntityAction(tenantId, relation.getFrom(), null, customerId, actionType, user, e, additionalInfo);
         logEntityAction(tenantId, relation.getTo(), null, customerId, actionType, user, e, additionalInfo);
-    }
-
-    private TbMsgMetaData getMetaDataForAssignedFrom(Tenant tenant) {
-        TbMsgMetaData metaData = new TbMsgMetaData();
-        metaData.putValue("assignedFromTenantId", tenant.getId().getId().toString());
-        metaData.putValue("assignedFromTenantName", tenant.getName());
-        return metaData;
     }
 
     public static EdgeEventActionType edgeTypeByActionType(ActionType actionType) {

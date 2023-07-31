@@ -46,20 +46,25 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
     private TenantProfileCloudProcessor tenantProfileCloudProcessor;
 
     public void createTenantIfNotExists(TenantId tenantId, Long queueStartTs) throws Exception {
-        Tenant tenant = tenantService.findTenantById(tenantId);
-        if (tenant != null) {
-            return;
-        }
-        tenant = new Tenant();
-        tenant.setTitle("Tenant");
-        // TODO: voba - add validation once tenant profile are propagated to edge from cloud
-        // tenantValidator.validate(tenant, Tenant::getId);
-        tenant.setId(tenantId);
-        tenant.setCreatedTime(Uuids.unixTimestamp(tenantId.getId()));
-        Tenant savedTenant = tenantService.saveTenant(tenant, false);
-        apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
+        try {
+            edgeSynchronizationManager.getSync().set(true);
+            Tenant tenant = tenantService.findTenantById(tenantId);
+            if (tenant != null) {
+                return;
+            }
+            tenant = new Tenant();
+            tenant.setTitle("Tenant");
+            // TODO: voba - add validation once tenant profile are propagated to edge from cloud
+            // tenantValidator.validate(tenant, Tenant::getId);
+            tenant.setId(tenantId);
+            tenant.setCreatedTime(Uuids.unixTimestamp(tenantId.getId()));
+            Tenant savedTenant = tenantService.saveTenant(tenant, false);
+            apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
 
-        requestForAdditionalData(tenantId, tenantId, queueStartTs).get();
+            requestForAdditionalData(tenantId, tenantId, queueStartTs).get();
+        } finally {
+            edgeSynchronizationManager.getSync().remove();
+        }
     }
 
     public ListenableFuture<Void> processTenantMsgFromCloud(TenantId tenantId, TenantUpdateMsg tenantUpdateMsg) {
@@ -88,14 +93,19 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
     }
 
     public void cleanUp() {
-        log.debug("Starting clean up procedure");
-        PageData<Tenant> tenants = tenantService.findTenants(new PageLink(Integer.MAX_VALUE));
-        for (Tenant tenant : tenants.getData()) {
-            tenantService.deleteTenant(tenant.getId());
-        }
+        try {
+            edgeSynchronizationManager.getSync().set(true);
+            log.debug("Starting clean up procedure");
+            PageData<Tenant> tenants = tenantService.findTenants(new PageLink(Integer.MAX_VALUE));
+            for (Tenant tenant : tenants.getData()) {
+                tenantService.deleteTenant(tenant.getId());
+            }
 
-        cleanUpSystemTenant();
-        log.debug("Clean up procedure successfully finished!");
+            cleanUpSystemTenant();
+            log.debug("Clean up procedure successfully finished!");
+        } finally {
+            edgeSynchronizationManager.getSync().remove();
+        }
     }
 
     private void cleanUpSystemTenant() {

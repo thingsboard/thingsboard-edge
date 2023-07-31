@@ -39,9 +39,9 @@ public interface UserService extends EntityDaoService {
 
     User findUserByTenantIdAndEmail(TenantId tenantId, String email);
 
-    User saveUser(User user, boolean doValidate);
+	User saveUser(TenantId tenantId, User user, boolean doValidate);
 
-	User saveUser(TenantId tenantId, User user);
+    User saveUser(TenantId tenantId, User user);
 
 	UserCredentials findUserCredentialsByUserId(TenantId tenantId, UserId userId);
 	

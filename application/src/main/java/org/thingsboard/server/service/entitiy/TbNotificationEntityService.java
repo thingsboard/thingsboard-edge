@@ -59,7 +59,7 @@ public interface TbNotificationEntityService {
                             User user, Object... additionalInfo);
 
     void notifyUpdateDeviceCredentials(TenantId tenantId, DeviceId deviceId, CustomerId customerId, Device device,
-                                       DeviceCredentials deviceCredentials, User user, boolean notifyCloud);
+                                       DeviceCredentials deviceCredentials, User user);
 
     void notifyAssignDeviceToTenant(TenantId tenantId, TenantId newTenantId, DeviceId deviceId, CustomerId customerId,
                                     Device device, Tenant tenant, User user, Object... additionalInfo);

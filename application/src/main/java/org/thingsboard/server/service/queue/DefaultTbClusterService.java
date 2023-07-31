@@ -27,6 +27,7 @@ import org.thingsboard.rule.engine.api.msg.DeviceEdgeUpdateMsg;
 import org.thingsboard.rule.engine.api.msg.DeviceNameOrTypeUpdateMsg;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.ApiUsageState;
+import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EdgeUtils;
@@ -601,14 +602,21 @@ public class DefaultTbClusterService implements TbClusterService {
         }
     }
 
-    private void sendNotificationMsgToCloud(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
-                                            EdgeEventActionType cloudEventAction) {
-        sendNotificationMsgToCloud(tenantId, entityId, null, cloudEventType, cloudEventAction);
-    }
-
     @Override
     public void sendNotificationMsgToCloud(TenantId tenantId, EntityId entityId, String entityBody,
                                            CloudEventType cloudEventType, EdgeEventActionType cloudEventAction) {
+        if (cloudEventType == null) {
+            if (entityId != null) {
+                cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
+            } else {
+                log.trace("[{}] cloud id and type are null. Ignoring this notification", tenantId);
+                return;
+            }
+            if (cloudEventType == null) {
+                log.trace("[{}] cloud event type is null. Ignoring this notification [{}]", tenantId, entityId);
+                return;
+            }
+        }
         TransportProtos.CloudNotificationMsgProto.Builder builder = TransportProtos.CloudNotificationMsgProto.newBuilder();
         builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
         builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());

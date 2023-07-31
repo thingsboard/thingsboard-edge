@@ -231,8 +231,10 @@ public class AssetControllerTest extends AbstractControllerTest {
 
     @Test
     public void testFindAssetTypesByTenantId() throws Exception {
-        AssetProfile assetProfile = createAssetProfile("typeB");
-        assetProfile = doPost("/api/assetProfile", assetProfile, AssetProfile.class);
+        // TODO: @voba asset profiles are not created on edge at the moment
+        doPost("/api/assetProfile", this.createAssetProfile("typeA"), AssetProfile.class);
+        AssetProfile assetProfile = doPost("/api/assetProfile", this.createAssetProfile("typeB"), AssetProfile.class);
+        doPost("/api/assetProfile", this.createAssetProfile("typeC"), AssetProfile.class);
 
         Mockito.reset(tbClusterService, auditLogService);
 
