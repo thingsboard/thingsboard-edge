@@ -960,10 +960,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             log.warn("[{}] Failed to create entity group relation. Edge Id: [{}]", entityGroupId, edgeId);
             throw new RuntimeException(e);
         }
-        if (!entityGroup.isEdgeGroupAll()) {
-            eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(entityGroupId)
-                    .actionType(ActionType.ASSIGNED_TO_EDGE).entityGroup(entityGroup).build());
-        }
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(entityGroupId)
+                .actionType(ActionType.ASSIGNED_TO_EDGE).entityGroup(entityGroup).build());
         return entityGroup;
     }
 

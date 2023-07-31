@@ -553,7 +553,6 @@ public class IntegrationControllerTest extends AbstractControllerTest {
                 JacksonUtil.OBJECT_MAPPER.createObjectNode().put("decoder", "return {deviceName: 'Device Name', deviceType: metadata['deviceType']};");
         edgeConverter.setConfiguration(converterConfiguration);
         edgeConverter.setEdgeTemplate(true);
-        System.out.println("BEFORE POST REQUEST");
         edgeConverter = doPost("/api/converter", edgeConverter, Converter.class);
 
         Integration integration = new Integration();

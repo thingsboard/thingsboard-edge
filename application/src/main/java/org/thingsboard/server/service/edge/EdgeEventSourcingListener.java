@@ -120,23 +120,15 @@ public class EdgeEventSourcingListener {
         if (edgeSynchronizationManager.isSync()) {
             return;
         }
-        try {
-
-            if (ActionType.ADDED_TO_ENTITY_GROUP.equals(event.getActionType())) {
-                if (event.getEntityGroup() == null) {
-                    return;
-                }
-                if (!isValidEdgeEventEntity(event.getEntityGroup())) {
-                    return;
-                }
-            }
-            EntityType entityGroupType = event.getEntityGroup() != null ? event.getEntityGroup().getType() : null;
-            EntityGroupId entityGroupId = event.getEntityGroup() != null ? event.getEntityGroup().getId() : null;
-            log.trace("[{}] ActionEntityEvent called: {}", event.getEntityId().getEntityType(), event);
-            tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), event.getEdgeId(), event.getEntityId(),
-                    event.getBody(), event.getType(), edgeTypeByActionType(event.getActionType()),
-                    entityGroupType, entityGroupId);
-        } catch (Exception ignored) {}
+        if (event.getEntityGroup() != null && !isValidEdgeEventEntityGroup(event.getEntityGroup())) {
+            return;
+        }
+        EntityType entityGroupType = event.getEntityGroup() != null ? event.getEntityGroup().getType() : null;
+        EntityGroupId entityGroupId = event.getEntityGroup() != null ? event.getEntityGroup().getId() : null;
+        log.trace("[{}] ActionEntityEvent called: {}", event.getEntityId().getEntityType(), event);
+        tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), event.getEdgeId(), event.getEntityId(),
+                event.getBody(), event.getType(), edgeTypeByActionType(event.getActionType()),
+                entityGroupType, entityGroupId);
     }
 
     @TransactionalEventListener(fallbackExecution = true)
@@ -189,10 +181,10 @@ public class EdgeEventSourcingListener {
             log.trace("skipping entity in case of 'All' group: {}", entityGroup);
             return false;
         }
-        if (entityGroup.isEdgeGroupAll()) {
-            log.trace("skipping entity in case of Edge 'All' group: {}", entityGroup);
-            return false;
-        }
+//        if (entityGroup.isEdgeGroupAll()) {
+//            log.trace("skipping entity in case of Edge 'All' group: {}", entityGroup);
+//            return false;
+//        }
         return true;
     }
 }
