@@ -180,7 +180,7 @@ export class GatewayLogsComponent extends PageComponent implements AfterViewInit
 
 
   updateData(sort?) {
-    if (this.ctx.defaultSubscription.data.length) {
+    if (this.ctx.defaultSubscription.data.length && this.ctx.defaultSubscription.data[0]) {
       let attrData = this.ctx.defaultSubscription.data[0].data.map(data => {
         let result =  {
           ts: data[0],
@@ -234,7 +234,7 @@ export class GatewayLogsComponent extends PageComponent implements AfterViewInit
   }
 
   changeSubscription() {
-    if (this.ctx.datasources[0].entity) {
+    if (this.ctx.datasources && this.ctx.datasources[0].entity && this.ctx.defaultSubscription.options.datasources) {
       this.ctx.defaultSubscription.options.datasources[0].dataKeys = [{
         name: this.activeLink.key,
         type: DataKeyType.timeseries,
