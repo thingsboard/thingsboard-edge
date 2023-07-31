@@ -29,63 +29,48 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Injectable, NgModule } from '@angular/core';
-import { Resolve, RouterModule, Routes } from '@angular/router';
-
-import { ProfileComponent } from './profile.component';
-import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
+import { inject, NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { Authority } from '@shared/models/authority.enum';
-import { User } from '@shared/models/user.model';
+import { securityRoutes } from '@home/pages/security/security-routing.module';
+import { profileRoutes } from '@home/pages/profile/profile-routing.module';
+import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { UserService } from '@core/http/user.service';
-import { getCurrentAuthUser } from '@core/auth/auth.selectors';
-import { Observable } from 'rxjs';
-
-@Injectable()
-export class UserProfileResolver implements Resolve<User> {
-
-  constructor(private store: Store<AppState>,
-              private userService: UserService) {
-  }
-
-  resolve(): Observable<User> {
-    const userId = getCurrentAuthUser(this.store).userId;
-    return this.userService.getUser(userId);
-  }
-}
-
-export const profileRoutes: Routes = [
-  {
-    path: 'profile',
-    component: ProfileComponent,
-    canDeactivate: [ConfirmOnExitGuard],
-    data: {
-      auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      title: 'profile.profile',
-      breadcrumb: {
-        label: 'profile.profile',
-        icon: 'account_circle'
-      }
-    },
-    resolve: {
-      user: UserProfileResolver
-    }
-  }
-];
 
 const routes: Routes = [
   {
-    path: 'profile',
-    redirectTo: 'account/profile'
+    path: 'account',
+    component: RouterTabsComponent,
+    data: {
+      auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      breadcrumb: {
+        label: 'account.account',
+        icon: 'account_circle'
+      },
+      useChildrenRoutesForTabs: true,
+    },
+    resolve: {
+      replaceUrl: () => getCurrentAuthState(inject(Store<AppState>)).forceFullscreen
+    },
+    children: [
+      {
+        path: '',
+        children: [],
+        data: {
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          redirectTo: '/account/profile',
+        }
+      },
+      ...profileRoutes,
+      ...securityRoutes
+    ]
   }
 ];
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule],
-  providers: [
-    UserProfileResolver
-  ]
+  exports: [RouterModule]
 })
-export class ProfileRoutingModule { }
+export class AccountRoutingModule { }
