@@ -82,7 +82,7 @@ executors:
 
 rpc:
   # Host of the ThingsBoard server
-  host: "${RPC_HOST:thingsboard.cloud}"
+  host: "${RPC_HOST:localhost}"
   # Port of the ThingsBoard server
   port: "${RPC_PORT:9090}"
   # No reply timeout

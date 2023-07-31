@@ -40,6 +40,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.integration.api.IntegrationRateLimitService;
 import org.thingsboard.integration.api.IntegrationStatisticsService;
 import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -60,6 +61,7 @@ import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -146,6 +148,9 @@ public class IntegrationContextComponent {
     @Lazy
     @Autowired
     private IntegrationStatisticsService integrationStatisticsService;
+
+    @Autowired
+    private Optional<IntegrationRateLimitService> rateLimitService;
 
     private EventLoopGroup eventLoopGroup;
     private ScheduledExecutorService scheduledExecutorService;

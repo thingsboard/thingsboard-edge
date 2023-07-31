@@ -28,34 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.service.context;
+package org.thingsboard.integration.api;
 
-import io.netty.channel.EventLoopGroup;
-import org.thingsboard.integration.api.IntegrationRateLimitService;
-import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.service.integration.downlink.DownlinkCacheService;
 
-import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Supplier;
 
-public interface TbIntegrationExecutorContextComponent {
+public interface IntegrationRateLimitService {
 
-    /*
-        We assume that the device is already cached during processing of the uplink.
-     */
-    Device findCachedDeviceByTenantIdAndName(TenantId tenantId, String deviceName);
+    void checkLimit(TenantId tenantId, Supplier<String> msg);
 
-    DownlinkCacheService getDownlinkCacheService();
+    void checkLimit(TenantId tenantId, String deviceName, Supplier<String> msg);
 
-    EventLoopGroup getEventLoopGroup();
-
-    ScheduledExecutorService getScheduledExecutorService();
-
-    ExecutorService getCallBackExecutorService();
-
-    ExecutorService getGeneralExecutorService();
-
-    Optional<IntegrationRateLimitService> getRateLimitService();
+    boolean alreadyProcessed(IntegrationId integrationId, EntityType entityType);
 }

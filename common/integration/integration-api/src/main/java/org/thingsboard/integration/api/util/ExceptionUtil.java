@@ -34,6 +34,7 @@ import com.google.gson.JsonParseException;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 
 import javax.script.ScriptException;
 import java.io.PrintWriter;
@@ -65,7 +66,7 @@ public class ExceptionUtil {
     }
 
     public static String toString(Exception e, EntityId componentId, boolean stackTraceEnabled) {
-        Exception exception = lookupExceptionInCause(e, ScriptException.class, JsonParseException.class);
+        Exception exception = lookupExceptionInCause(e, ScriptException.class, JsonParseException.class, TbRateLimitsException.class);
         if (exception != null && StringUtils.isNotEmpty(exception.getMessage())) {
             return exception.getMessage();
         } else {
