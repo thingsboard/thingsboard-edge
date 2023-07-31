@@ -41,6 +41,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.thingsboard.common.util.AbstractListeningExecutor;
 import org.thingsboard.mqtt.MqttClient;
 import org.thingsboard.mqtt.MqttClientConfig;
 import org.thingsboard.mqtt.MqttConnectResult;
@@ -64,8 +65,18 @@ public class MqttIntegrationTest {
 
     MqttClient mqttClient;
 
+    AbstractListeningExecutor handlerExecutor;
+
     @Before
     public void init() throws Exception {
+        this.handlerExecutor = new AbstractListeningExecutor() {
+            @Override
+            protected int getThreadPollSize() {
+                return 4;
+            }
+        };
+        handlerExecutor.init();
+
         this.eventLoopGroup = new NioEventLoopGroup();
 
         this.mqttServer = new MqttServer();
@@ -82,6 +93,9 @@ public class MqttIntegrationTest {
         }
         if (this.eventLoopGroup != null) {
             this.eventLoopGroup.shutdownGracefully(0, 0, TimeUnit.MILLISECONDS);
+        }
+        if (this.handlerExecutor != null) {
+            this.handlerExecutor.destroy();
         }
     }
 
@@ -123,9 +137,10 @@ public class MqttIntegrationTest {
 
     private MqttClient initClient() throws Exception {
         MqttClientConfig config = new MqttClientConfig();
+        config.setOwnerId("MqttIntegrationTest");
         config.setTimeoutSeconds(KEEPALIVE_TIMEOUT_SECONDS);
         config.setReconnectDelay(RECONNECT_DELAY_SECONDS);
-        MqttClient client = MqttClient.create(config, null);
+        MqttClient client = MqttClient.create(config, null, handlerExecutor);
         client.setEventLoop(this.eventLoopGroup);
         Future<MqttConnectResult> connectFuture = client.connect(MQTT_HOST, this.mqttServer.getMqttPort());
 

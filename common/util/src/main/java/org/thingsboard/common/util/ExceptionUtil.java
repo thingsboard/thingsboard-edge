@@ -28,13 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.api.util;
+package org.thingsboard.common.util;
 
 import com.google.gson.JsonParseException;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 
 import javax.script.ScriptException;
 import java.io.PrintWriter;
@@ -54,19 +53,19 @@ public class ExceptionUtil {
     }
 
     public static Exception lookupExceptionInCause(Throwable source, Class<? extends Exception>... clazzes) {
-        if (source == null) {
-            return null;
-        }
-        for (Class<?> clazz : clazzes) {
-            if (clazz.isAssignableFrom(source.getClass())) {
-                return (Exception) source;
+        while (source != null) {
+            for (Class<? extends Exception> clazz : clazzes) {
+                if (clazz.isAssignableFrom(source.getClass())) {
+                    return (Exception) source;
+                }
             }
+            source = source.getCause();
         }
-        return lookupExceptionInCause(source.getCause(), clazzes);
+        return null;
     }
 
-    public static String toString(Throwable e, EntityId componentId, boolean stackTraceEnabled) {
-        Exception exception = lookupExceptionInCause(e, ScriptException.class, JsonParseException.class, TbRateLimitsException.class);
+    public static String toString(Exception e, EntityId componentId, boolean stackTraceEnabled) {
+        Exception exception = lookupExceptionInCause(e, ScriptException.class, JsonParseException.class);
         if (exception != null && StringUtils.isNotEmpty(exception.getMessage())) {
             return exception.getMessage();
         } else {

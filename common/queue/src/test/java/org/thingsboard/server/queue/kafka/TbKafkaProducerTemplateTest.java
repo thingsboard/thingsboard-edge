@@ -28,33 +28,42 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.common;
+package org.thingsboard.server.queue.kafka;
 
-import org.thingsboard.server.common.msg.queue.RuleEngineException;
-import org.thingsboard.server.queue.TbQueueCallback;
-import org.thingsboard.server.queue.TbQueueMsgMetadata;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.header.Header;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.thingsboard.server.queue.TbQueueMsg;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
-public class MultipleTbQueueCallbackWrapper implements TbQueueCallback {
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.willCallRealMethod;
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.Mockito.mock;
 
-    private final AtomicInteger tbQueueCallbackCount;
-    private final TbQueueCallback callback;
+@Slf4j
+class TbKafkaProducerTemplateTest {
 
-    public MultipleTbQueueCallbackWrapper(int tbQueueCallbackCount, TbQueueCallback callback) {
-        this.tbQueueCallbackCount = new AtomicInteger(tbQueueCallbackCount);
-        this.callback = callback;
+    TbKafkaProducerTemplate<TbQueueMsg> producerTemplate;
+
+    @BeforeEach
+    void setUp() {
+        producerTemplate = mock(TbKafkaProducerTemplate.class);
+        willCallRealMethod().given(producerTemplate).addAnalyticHeaders(any());
+        willReturn("tb-core-to-core-notifications-tb-core-3").given(producerTemplate).getClientId();
     }
 
-    @Override
-    public void onSuccess(TbQueueMsgMetadata metadata) {
-        if (tbQueueCallbackCount.decrementAndGet() <= 0) {
-            callback.onSuccess(metadata);
-        }
+    @Test
+    void testAddAnalyticHeaders() {
+        List<Header> headers = new ArrayList<>();
+        producerTemplate.addAnalyticHeaders(headers);
+        assertThat(headers).isNotEmpty();
+        headers.forEach(r -> log.info("RecordHeader key [{}] value [{}]", r.key(), new String(r.value(), StandardCharsets.UTF_8)));
     }
 
-    @Override
-    public void onFailure(Throwable t) {
-        callback.onFailure(new RuleEngineException(t.getMessage(), t));
-    }
 }

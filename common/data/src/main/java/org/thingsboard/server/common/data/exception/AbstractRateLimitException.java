@@ -28,33 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.common;
+package org.thingsboard.server.common.data.exception;
 
-import org.thingsboard.server.common.msg.queue.RuleEngineException;
-import org.thingsboard.server.queue.TbQueueCallback;
-import org.thingsboard.server.queue.TbQueueMsgMetadata;
+public abstract class AbstractRateLimitException extends RuntimeException {
 
-import java.util.concurrent.atomic.AtomicInteger;
-
-public class MultipleTbQueueCallbackWrapper implements TbQueueCallback {
-
-    private final AtomicInteger tbQueueCallbackCount;
-    private final TbQueueCallback callback;
-
-    public MultipleTbQueueCallbackWrapper(int tbQueueCallbackCount, TbQueueCallback callback) {
-        this.tbQueueCallbackCount = new AtomicInteger(tbQueueCallbackCount);
-        this.callback = callback;
+    public AbstractRateLimitException() {
+        super();
     }
 
-    @Override
-    public void onSuccess(TbQueueMsgMetadata metadata) {
-        if (tbQueueCallbackCount.decrementAndGet() <= 0) {
-            callback.onSuccess(metadata);
-        }
+    public AbstractRateLimitException(String message) {
+        super(message);
     }
 
-    @Override
-    public void onFailure(Throwable t) {
-        callback.onFailure(new RuleEngineException(t.getMessage(), t));
+    public AbstractRateLimitException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public AbstractRateLimitException(Throwable cause) {
+        super(cause);
+    }
+
+    protected AbstractRateLimitException(String message, Throwable cause,
+                                         boolean enableSuppression,
+                                         boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
     }
 }

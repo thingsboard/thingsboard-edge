@@ -30,6 +30,7 @@
  */
 package org.thingsboard.integration.api;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -52,6 +53,8 @@ public interface ThingsboardPlatformIntegration<T> {
     void destroy();
 
     void process(T msg);
+
+    ListenableFuture<Void> processAsync(T msg);
 
     void onDownlinkMsg(IntegrationDownlinkMsg msg);
 

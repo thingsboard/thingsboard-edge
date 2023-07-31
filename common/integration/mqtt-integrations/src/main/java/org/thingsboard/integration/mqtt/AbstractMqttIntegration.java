@@ -33,10 +33,17 @@ package org.thingsboard.integration.mqtt;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
+import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -53,6 +60,7 @@ import javax.net.ssl.SSLException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
@@ -155,19 +163,32 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
 
     @Override
     public void process(T msg) {
-        String status = "OK";
-        Exception exception = null;
-        try {
-            doProcess(context, msg);
-            integrationStatistics.incMessagesProcessed();
-        } catch (Exception e) {
-            log.debug("Failed to apply data converter function: {}", e.getMessage(), e);
-            exception = e;
-            status = "ERROR";
-        }
-        if (!status.equals("OK")) {
-            integrationStatistics.incErrorsOccurred();
-        }
+        throw new RuntimeException("MQTT Integration does not support sync processing");
+    }
+
+    @Override
+    public ListenableFuture<Void> processAsync(T msg) {
+        log.debug("Received the message for the topic: {}", msg.getTopic());
+        ListenableFuture<Void> future = doProcess(context, msg);
+        Futures.addCallback(future, new FutureCallback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                integrationStatistics.incMessagesProcessed();
+                log.debug("Successfully processed the message for the topic: {}", msg.getTopic());
+                persistDebug(msg, "OK", null);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                integrationStatistics.incErrorsOccurred();
+                log.debug("Failed to apply data converter function: {}", t.getMessage(), t);
+                persistDebug(msg, "ERROR", t);
+            }
+        }, MoreExecutors.directExecutor());
+        return future;
+    }
+
+    private void persistDebug(T msg, String status, Throwable exception) {
         if (configuration.isDebugMode()) {
             try {
                 persistDebug(context, "Uplink", getDefaultUplinkContentType(), mapper.writeValueAsString(msg.toJson()), status, exception);
@@ -203,12 +224,13 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
 
     protected abstract boolean doProcessDownLinkMsg(IntegrationContext context, TbMsg msg) throws Exception;
 
-    protected abstract void doProcess(IntegrationContext context, T msg) throws Exception;
+    protected abstract ListenableFuture<Void> doProcess(IntegrationContext context, T msg);
 
-    protected MqttClient initClient(MqttClientConfiguration configuration, MqttHandler defaultHandler) throws Exception {
+    protected MqttClient initClient(String ownerId, MqttClientConfiguration configuration, MqttHandler defaultHandler) throws Exception {
         Optional<SslContext> sslContextOpt = initSslContext(configuration);
 
         MqttClientConfig config = sslContextOpt.isPresent() ? new MqttClientConfig(sslContextOpt.get()) : new MqttClientConfig();
+        config.setOwnerId(ownerId);
         if (!StringUtils.isEmpty(configuration.getClientId())) {
             config.setClientId(configuration.getClientId());
         }
@@ -220,7 +242,20 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
 
         configuration.getCredentials().configure(config);
 
-        MqttClient client = MqttClient.create(config, defaultHandler);
+        ListeningExecutorService listeningExecutorService = MoreExecutors.listeningDecorator(ctx.getExecutorService());
+        ListeningExecutor handlerExecutor = new ListeningExecutor() {
+            @Override
+            public <T> ListenableFuture<T> executeAsync(Callable<T> task) {
+                return listeningExecutorService.submit(task);
+            }
+
+            @Override
+            public void execute(@NotNull Runnable command) {
+                listeningExecutorService.execute(command);
+            }
+        };
+
+        MqttClient client = MqttClient.create(config, defaultHandler, handlerExecutor);
         client.setEventLoop(context.getEventLoopGroup());
         Future<MqttConnectResult> connectFuture = client.connect(configuration.getHost(), configuration.getPort());
         MqttConnectResult result;
