@@ -36,6 +36,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmApiCallResult;
@@ -43,6 +44,8 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
@@ -54,7 +57,6 @@ import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.RelationActionEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
-import org.thingsboard.server.dao.eventsourcing.SaveEntityGroupEvent;
 import org.thingsboard.server.dao.group.EntityGroupService;
 
 import javax.annotation.PostConstruct;
@@ -104,25 +106,6 @@ public class EdgeEventSourcingListener {
     }
 
     @TransactionalEventListener(fallbackExecution = true)
-    public void handleEvent(SaveEntityGroupEvent event) {
-        if (edgeSynchronizationManager.isSync()) {
-            return;
-        }
-        if (event.getEntityGroupIsAll() != null && event.getEntityGroupIsAll()) {
-            log.trace("[{}] skipping SaveEntityGroupEvent event in case of 'All' group: {}", event.getEntityId().getEntityType(), event);
-            return;
-        }
-        if (event.getEntityEdgeGroupIsAll() != null && event.getEntityEdgeGroupIsAll()) {
-            log.trace("[{}] skipping SaveEntityGroupEvent event in case of Edge 'All' group: {}", event.getEntityId().getEntityType(), event);
-            return;
-        }
-        log.trace("[{}] SaveEntityGroupEvent called: {}", event.getEntityId().getEntityType(), event);
-        EdgeEventActionType action = Boolean.TRUE.equals(event.getAdded()) ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED;
-        tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), null, event.getEntityId(),
-                null, null, action);
-    }
-
-    @TransactionalEventListener(fallbackExecution = true)
     public void handleEvent(DeleteEntityEvent<?> event) {
         if (edgeSynchronizationManager.isSync()) {
             return;
@@ -138,20 +121,21 @@ public class EdgeEventSourcingListener {
             return;
         }
         try {
+
             if (ActionType.ADDED_TO_ENTITY_GROUP.equals(event.getActionType())) {
-                if (event.getEntityGroupIsAll() != null && event.getEntityGroupIsAll()) {
-                    log.trace("[{}] skipping ADDED_TO_ENTITY_GROUP event in case of 'All' group: {}", event.getEntityId().getEntityType(), event);
+                if (event.getEntityGroup() == null) {
                     return;
                 }
-                if (event.getEntityEdgeGroupIsAll() != null && event.getEntityEdgeGroupIsAll()) {
-                    log.trace("[{}] skipping ADDED_TO_ENTITY_GROUP event in case of Edge 'All' group: {}", event.getEntityId().getEntityType(), event);
+                if (!isValidEdgeEventEntity(event.getEntityGroup())) {
                     return;
                 }
             }
+            EntityType entityGroupType = event.getEntityGroup() != null ? event.getEntityGroup().getType() : null;
+            EntityGroupId entityGroupId = event.getEntityGroup() != null ? event.getEntityGroup().getId() : null;
             log.trace("[{}] ActionEntityEvent called: {}", event.getEntityId().getEntityType(), event);
             tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), event.getEdgeId(), event.getEntityId(),
                     event.getBody(), event.getType(), edgeTypeByActionType(event.getActionType()),
-                    event.getEntityGroupType(), event.getEntityGroupId());
+                    entityGroupType, entityGroupId);
         } catch (Exception ignored) {}
     }
 
@@ -193,8 +177,22 @@ public class EdgeEventSourcingListener {
         } else if (entity instanceof Integration) {
             Integration integration = (Integration) entity;
             return integration.isEdgeTemplate();
+        } else if (entity instanceof EntityGroup) {
+            return isValidEdgeEventEntityGroup((EntityGroup) entity);
         }
         // Default: If the entity doesn't match any of the conditions, consider it as valid.
+        return true;
+    }
+
+    private boolean isValidEdgeEventEntityGroup(EntityGroup entityGroup) {
+        if (entityGroup.isGroupAll()) {
+            log.trace("skipping entity in case of 'All' group: {}", entityGroup);
+            return false;
+        }
+        if (entityGroup.isEdgeGroupAll()) {
+            log.trace("skipping entity in case of Edge 'All' group: {}", entityGroup);
+            return false;
+        }
         return true;
     }
 }

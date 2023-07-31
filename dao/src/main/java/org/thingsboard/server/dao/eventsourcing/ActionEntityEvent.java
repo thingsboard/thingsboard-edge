@@ -32,11 +32,10 @@ package org.thingsboard.server.dao.eventsourcing;
 
 import lombok.Builder;
 import lombok.Data;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 
@@ -49,8 +48,5 @@ public class ActionEntityEvent {
     private final String body;
     private final ActionType actionType;
     private final EdgeEventType type;
-    private final EntityType entityGroupType;
-    private final EntityGroupId entityGroupId;
-    private final Boolean entityGroupIsAll;
-    private final Boolean entityEdgeGroupIsAll;
+    private final EntityGroup entityGroup;
 }
