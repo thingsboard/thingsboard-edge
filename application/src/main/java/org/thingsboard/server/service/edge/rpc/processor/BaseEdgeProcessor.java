@@ -21,6 +21,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.Customer;
@@ -60,6 +61,7 @@ import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
+import org.thingsboard.server.dao.edge.EdgeSynchronizationManager;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.ota.OtaPackageService;
@@ -282,14 +284,17 @@ public abstract class BaseEdgeProcessor {
     protected QueueMsgConstructor queueMsgConstructor;
 
     @Autowired
+    protected EdgeSynchronizationManager edgeSynchronizationManager;
+
+    @Autowired
     protected DbCallbackExecutorService dbCallbackExecutorService;
 
     protected ListenableFuture<Void> saveEdgeEvent(TenantId tenantId,
-                                                     EdgeId edgeId,
-                                                     EdgeEventType type,
-                                                     EdgeEventActionType action,
-                                                     EntityId entityId,
-                                                     JsonNode body) {
+                                                   EdgeId edgeId,
+                                                   EdgeEventType type,
+                                                   EdgeEventActionType action,
+                                                   EntityId entityId,
+                                                   JsonNode body) {
         log.debug("Pushing event to edge queue. tenantId [{}], edgeId [{}], type[{}], " +
                         "action [{}], entityId [{}], body [{}]",
                 tenantId, edgeId, type, action, entityId, body);
@@ -377,22 +382,25 @@ public abstract class BaseEdgeProcessor {
         EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());
         EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(type,
                 new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
+        JsonNode body = JacksonUtil.toJsonNode(edgeNotificationMsg.getBody());
         EdgeId edgeId = safeGetEdgeId(edgeNotificationMsg);
         switch (actionType) {
             case ADDED:
+                return handleEntityAddedAction(tenantId, edgeId, type, entityId, body);
             case UPDATED:
             case CREDENTIALS_UPDATED:
             case ASSIGNED_TO_CUSTOMER:
             case UNASSIGNED_FROM_CUSTOMER:
-            case DELETED:
                 if (edgeId != null) {
-                    return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
+                    return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, body);
                 } else {
                     return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType);
                 }
+            case DELETED:
+                return handleEntityDeletedAction(tenantId, edgeId, type, entityId, body);
             case ASSIGNED_TO_EDGE:
             case UNASSIGNED_FROM_EDGE:
-                ListenableFuture<Void> future = saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
+                ListenableFuture<Void> future = saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, body);
                 return Futures.transformAsync(future, unused -> {
                     if (type.equals(EdgeEventType.RULE_CHAIN)) {
                         return updateDependentRuleChains(tenantId, new RuleChainId(entityId.getId()), edgeId);
@@ -590,5 +598,49 @@ public abstract class BaseEdgeProcessor {
                     EdgeEventActionType.ENTITY_VIEW_REQUEST, entityId, null, queueStartTs));
         }
         return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
+    }
+
+    private ListenableFuture<Void> handleEntityAddedAction(TenantId tenantId, EdgeId edgeId, EdgeEventType type, EntityId entityId, JsonNode body) {
+        switch (type) {
+            case DEVICE_PROFILE:
+            case ASSET_PROFILE:
+            case ALARM:
+            case USER:
+            case RELATION:
+            case WIDGETS_BUNDLE:
+            case WIDGET_TYPE:
+            case ADMIN_SETTINGS:
+            case OTA_PACKAGE:
+            case QUEUE:
+                if (edgeId != null) {
+                    return saveEdgeEvent(tenantId, edgeId, type, EdgeEventActionType.ADDED, entityId, body);
+                } else {
+                    return pushNotificationToAllRelatedEdges(tenantId, entityId, type, EdgeEventActionType.ADDED);
+                }
+            default:
+                return Futures.immediateFuture(null);
+        }
+    }
+
+    private ListenableFuture<Void> handleEntityDeletedAction(TenantId tenantId,
+                                                             EdgeId edgeId,
+                                                             EdgeEventType type,
+                                                             EntityId entityId,
+                                                             JsonNode body) {
+        EdgeEventActionType deleted = EdgeEventActionType.DELETED;
+        if (edgeId != null) {
+            return saveEdgeEvent(tenantId, edgeId, type, deleted, entityId, body);
+        } else {
+            switch (type) {
+                case ASSET:
+                case DEVICE:
+                case ENTITY_VIEW:
+                case DASHBOARD:
+                case RULE_CHAIN:
+                    return Futures.transform(Futures.allAsList(processActionForAllEdgesByTenantId(tenantId, type, deleted, entityId, body)), voids -> null, dbCallbackExecutorService);
+                default:
+                    return pushNotificationToAllRelatedEdges(tenantId, entityId, type, deleted);
+            }
+        }
     }
 }

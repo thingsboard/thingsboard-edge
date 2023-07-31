@@ -191,8 +191,12 @@ import {
 import { ColorPickerComponent } from '@shared/components/color-picker/color-picker.component';
 import { ResourceAutocompleteComponent } from '@shared/components/resource/resource-autocomplete.component';
 import { ShortNumberPipe } from '@shared/pipe/short-number.pipe';
-import { ToggleHeaderComponent } from '@shared/components/toggle-header.component';
+import { ToggleHeaderComponent, ToggleOption } from '@shared/components/toggle-header.component';
 import { RuleChainSelectComponent } from '@shared/components/rule-chain/rule-chain-select.component';
+import { ToggleSelectComponent } from '@shared/components/toggle-select.component';
+import { UnitInputComponent } from '@shared/components/unit-input.component';
+import { MaterialIconsComponent } from '@shared/components/material-icons.component';
+import { ColorPickerPanelComponent } from '@shared/components/color-picker/color-picker-panel.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -362,8 +366,13 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     GtMdLgLayoutGapDirective,
     GtMdLgShowHideDirective,
     ColorPickerComponent,
+    ColorPickerPanelComponent,
     ResourceAutocompleteComponent,
     ToggleHeaderComponent,
+    ToggleOption,
+    ToggleSelectComponent,
+    UnitInputComponent,
+    MaterialIconsComponent,
     RuleChainSelectComponent
   ],
   imports: [
@@ -590,8 +599,13 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     GtMdLgLayoutGapDirective,
     GtMdLgShowHideDirective,
     ColorPickerComponent,
+    ColorPickerPanelComponent,
     ResourceAutocompleteComponent,
     ToggleHeaderComponent,
+    ToggleOption,
+    ToggleSelectComponent,
+    UnitInputComponent,
+    MaterialIconsComponent,
     RuleChainSelectComponent
   ]
 })

@@ -71,7 +71,6 @@ import org.thingsboard.server.common.data.query.NumericFilterPredicate;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
-import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.controller.AbstractControllerTest;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.edge.imitator.EdgeImitator;
@@ -103,15 +102,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @TestPropertySource(properties = {
         "edges.enabled=true",
-        "queue.rule-engine.stats.enabled=false",
+        "queue.rule-engine.stats.enabled=false"
 })
 abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
     private static final String THERMOSTAT_DEVICE_PROFILE_NAME = "Thermostat";
-
-    protected Tenant savedTenant;
-    protected TenantId tenantId;
-    protected User tenantAdmin;
 
     protected DeviceProfile thermostatDeviceProfile;
 
@@ -128,32 +123,13 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     protected TbClusterService clusterService;
 
     @Before
-    public void beforeTest() throws Exception {
-        loginSysAdmin();
-
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        savedTenant = doPost("/api/tenant", tenant, Tenant.class);
-        tenantId = savedTenant.getId();
-        Assert.assertNotNull(savedTenant);
-
-        tenantAdmin = new User();
-        tenantAdmin.setAuthority(Authority.TENANT_ADMIN);
-        tenantAdmin.setTenantId(savedTenant.getId());
-        tenantAdmin.setEmail("tenant2@thingsboard.org");
-        tenantAdmin.setFirstName("Joe");
-        tenantAdmin.setLastName("Downs");
-
-        tenantAdmin = createUserAndLogin(tenantAdmin, "testPassword1");
-        // sleep 0.5 second to avoid CREDENTIALS updated message for the user
-        // user credentials is going to be stored and updated event pushed to edge notification service
-        // while service will be processing this event edge could be already added and additional message will be pushed
-        Thread.sleep(500);
+    public void setupEdgeTest() throws Exception {
+        loginTenantAdmin();
 
         installation();
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.expectMessageAmount(24);
+        edgeImitator.expectMessageAmount(23);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();
@@ -184,31 +160,32 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     @After
-    public void afterTest() throws Exception {
+    public void teardownEdgeTest() {
         try {
+            edgeImitator.expectMessageAmount(2);
+            loginTenantAdmin();
+            Assert.assertTrue(edgeImitator.waitForMessages());
+
+            doDelete("/api/edge/" + edge.getId().toString())
+                    .andExpect(status().isOk());
             edgeImitator.disconnect();
-        } catch (Exception ignored){}
-
-        loginSysAdmin();
-
-        doDelete("/api/tenant/" + savedTenant.getUuidId())
-                .andExpect(status().isOk());
+        } catch (Exception ignored) {}
     }
 
     private void installation() {
-        edge = doPost("/api/edge", constructEdge("Test Edge", "test"), Edge.class);
-
         thermostatDeviceProfile = this.createDeviceProfile(THERMOSTAT_DEVICE_PROFILE_NAME,
                 createMqttDeviceProfileTransportConfiguration(new JsonTransportPayloadConfiguration(), false));
-
         extendDeviceProfileData(thermostatDeviceProfile);
         thermostatDeviceProfile = doPost("/api/deviceProfile", thermostatDeviceProfile, DeviceProfile.class);
 
         Device savedDevice = saveDevice("Edge Device 1", THERMOSTAT_DEVICE_PROFILE_NAME);
-        doPost("/api/edge/" + edge.getUuidId()
-                + "/device/" + savedDevice.getUuidId(), Device.class);
 
         Asset savedAsset = saveAsset("Edge Asset 1");
+
+        edge = doPost("/api/edge", constructEdge("Test Edge", "test"), Edge.class);
+
+        doPost("/api/edge/" + edge.getUuidId()
+                + "/device/" + savedDevice.getUuidId(), Device.class);
         doPost("/api/edge/" + edge.getUuidId()
                 + "/asset/" + savedAsset.getUuidId(), Asset.class);
     }
@@ -247,24 +224,8 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
         validateEdgeConfiguration();
 
-        // 1 from tenant fetcher
-        validateTenant();
-
-        // 1 from tenant profile fetcher
-        validateTenantProfile();
-
-        // 5 messages
-        // - 2 from device profile fetcher (default and thermostat)
-        // - 1 from device fetcher
-        // - 1 from device profile controller (thermostat)
-        // - 1 from device controller (thermostat)
-        validateDeviceProfiles();
-
-        // 2 messages - 1 from device fetcher and 1 from device controller
-        validateDevices();
-
-        // 2 messages - 1 from asset fetcher and 1 from asset controller
-        validateAssets();
+        // 1 message from queue fetcher
+        validateQueues();
 
         // 2 messages - 1 from rule chain fetcher and 1 from rule chain controller
         UUID ruleChainUUID = validateRuleChains();
@@ -275,20 +236,35 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         // 4 messages - 4 messages from fetcher - 2 from system level ('mail', 'mailTemplates') and 2 from admin level ('mail', 'mailTemplates')
         validateAdminSettings();
 
+        // 4 messages
+        // - 2 from device profile fetcher (default and thermostat)
+        // - 1 from device fetcher
+        // - 1 from device controller (thermostat)
+        validateDeviceProfiles();
+
         // 3 messages
         // - 1 message from asset profile fetcher
         // - 1 message from asset fetcher
         // - 1 message from asset controller
         validateAssetProfiles();
 
-        // 1 message from queue fetcher
-        validateQueues();
+        // 2 messages - 1 from device fetcher and 1 from device controller
+        validateDevices();
+
+        // 2 messages - 1 from asset fetcher and 1 from asset controller
+        validateAssets();
+
+        // 1 message from public customer fetcher
+        validatePublicCustomer();
 
         // 1 message from user fetcher
         validateUsers();
 
-        // 1 message from public customer fetcher
-        validatePublicCustomer();
+        // 1 from tenant fetcher
+        validateTenant();
+
+        // 1 from tenant profile fetcher
+        validateTenantProfile();
     }
 
     private void validateEdgeConfiguration() throws Exception {
@@ -298,45 +274,40 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     private void validateTenant() throws Exception {
-        // tenant msg from fetcher
-        List<TenantUpdateMsg> tenantUpdateMsgs = edgeImitator.findAllMessagesByType(TenantUpdateMsg.class);
-        Assert.assertEquals(1, tenantUpdateMsgs.size());
-
-        TenantUpdateMsg tenantUpdateMsg = tenantUpdateMsgs.get(0);
+        Optional<TenantUpdateMsg> tenantUpdateMsgOpt = edgeImitator.findMessageByType(TenantUpdateMsg.class);
+        Assert.assertTrue(tenantUpdateMsgOpt.isPresent());
+        TenantUpdateMsg tenantUpdateMsg = tenantUpdateMsgOpt.get();
+        Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, tenantUpdateMsg.getMsgType());
         UUID tenantUUID = new UUID(tenantUpdateMsg.getIdMSB(), tenantUpdateMsg.getIdLSB());
         Tenant tenant = doGet("/api/tenant/" + tenantUUID, Tenant.class);
         Assert.assertNotNull(tenant);
-        Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, tenantUpdateMsg.getMsgType());
-
         testAutoGeneratedCodeByProtobuf(tenantUpdateMsg);
     }
 
     private void validateTenantProfile() throws Exception {
         loginSysAdmin();
 
-        // tenant profile msg from fetcher
-        List<TenantProfileUpdateMsg> tenantProfileUpdateMsgs = edgeImitator.findAllMessagesByType(TenantProfileUpdateMsg.class);
-        Assert.assertEquals(1, tenantProfileUpdateMsgs.size());
-
-        TenantProfileUpdateMsg tenantProfileUpdateMsg = tenantProfileUpdateMsgs.get(0);
+        Optional<TenantProfileUpdateMsg> tenantProfileUpdateMsgOpt = edgeImitator.findMessageByType(TenantProfileUpdateMsg.class);
+        Assert.assertTrue(tenantProfileUpdateMsgOpt.isPresent());
+        TenantProfileUpdateMsg tenantProfileUpdateMsg = tenantProfileUpdateMsgOpt.get();
+        Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, tenantProfileUpdateMsg.getMsgType());
         UUID tenantProfileUUID = new UUID(tenantProfileUpdateMsg.getIdMSB(), tenantProfileUpdateMsg.getIdLSB());
         TenantProfile tenantProfile = doGet("/api/tenantProfile/" + tenantProfileUUID, TenantProfile.class);
         Assert.assertNotNull(tenantProfile);
-        Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, tenantProfileUpdateMsg.getMsgType());
-
         testAutoGeneratedCodeByProtobuf(tenantProfileUpdateMsg);
 
-        login("tenant2@thingsboard.org", "testPassword1");
+        edgeImitator.expectMessageAmount(2);
+        loginTenantAdmin();
+        Assert.assertTrue(edgeImitator.waitForMessages());
     }
 
     private void validateDeviceProfiles() throws Exception {
         List<DeviceProfileUpdateMsg> deviceProfileUpdateMsgList = edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class);
-        // default msg
-        // thermostat msg from fetcher
+        // default msg device profile from fetcher
+        // thermostat msg from device profile fetcher
         // thermostat msg from device fetcher
-        // thermostat msg from controller
         // thermostat msg from creation of device
-        Assert.assertEquals(5, deviceProfileUpdateMsgList.size());
+        Assert.assertEquals(4, deviceProfileUpdateMsgList.size());
         Optional<DeviceProfileUpdateMsg> thermostatProfileUpdateMsgOpt =
                 deviceProfileUpdateMsgList.stream().filter(dfum -> THERMOSTAT_DEVICE_PROFILE_NAME.equals(dfum.getName())).findAny();
         Assert.assertTrue(thermostatProfileUpdateMsgOpt.isPresent());
@@ -490,7 +461,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         UUID userUUID = new UUID(userUpdateMsg.getIdMSB(), userUpdateMsg.getIdLSB());
         User user = doGet("/api/user/" + userUUID, User.class);
         Assert.assertNotNull(user);
-        Assert.assertEquals("tenant2@thingsboard.org", userUpdateMsg.getEmail());
+        Assert.assertEquals("testtenant@thingsboard.org", userUpdateMsg.getEmail());
         testAutoGeneratedCodeByProtobuf(userUpdateMsg);
     }
 
