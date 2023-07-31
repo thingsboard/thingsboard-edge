@@ -29,63 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-export interface UserSettings {
-  openedMenuSections?: string[];
-  notDisplayConnectivityAfterAddDevice?: boolean;
-}
-
-export const initialUserSettings: UserSettings = {
-  openedMenuSections: []
-};
-
-export enum UserSettingsType {
-  GENERAL = 'GENERAL',
-  QUICK_LINKS = 'QUICK_LINKS',
-  DOC_LINKS = 'DOC_LINKS',
-  DASHBOARDS = 'DASHBOARDS',
-  GETTING_STARTED = 'GETTING_STARTED'
-}
-
-export interface DocumentationLink {
-  icon: string;
-  name: string;
-  link: string;
-}
-
-export interface DocumentationLinks {
-  links?: DocumentationLink[];
-}
-
-export interface QuickLinks {
-  links?: string[];
-}
-
-export interface GettingStarted {
-  maxSelectedIndex?: number;
-  lastSelectedIndex?: number;
-}
-
-export interface AbstractUserDashboardInfo {
-  id: string;
-  title: string;
-  starred: boolean;
-}
-
-export interface LastVisitedDashboardInfo extends AbstractUserDashboardInfo {
-  lastVisited: number;
-}
-
-export interface StarredDashboardInfo extends AbstractUserDashboardInfo {
-  starredAt: number;
-}
-
-export interface UserDashboardsInfo {
-  last: Array<LastVisitedDashboardInfo>;
-  starred: Array<StarredDashboardInfo>;
-}
-
-export enum UserDashboardAction {
-  VISIT = 'VISIT',
-  STAR = 'STAR',
-  UNSTAR = 'UNSTAR'
-}
+type NestedKeyOf<ObjectType extends object> =
+  {[Key in keyof ObjectType & (string | number)]: ObjectType[Key] extends object
+    ? `${Key}` | `${Key}.${NestedKeyOf<ObjectType[Key]> extends infer U extends string ? U : never}`
+    : `${Key}`
+  }[keyof ObjectType & (string | number)];
