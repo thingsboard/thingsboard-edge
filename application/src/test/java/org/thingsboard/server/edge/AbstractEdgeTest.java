@@ -665,7 +665,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     protected void changeEdgeOwnerFromCustomerToTenant(Customer customer) throws Exception {
-        edgeImitator.expectMessageAmount(1);
+        edgeImitator.expectMessageAmount(2);
         doPost("/api/owner/TENANT/" + tenantId.getId() + "/EDGE/" + edge.getId().getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
         Optional<CustomerUpdateMsg> customerDeleteMsgs = edgeImitator.findMessageByType(CustomerUpdateMsg.class);
@@ -724,7 +724,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     protected void changeEdgeOwnerFromSubCustomerToCustomer(Customer parentCustomer, Customer customer) throws Exception {
-        edgeImitator.expectMessageAmount(1);
+        edgeImitator.expectMessageAmount(2);
         doPost("/api/owner/CUSTOMER/" + parentCustomer.getId().getId() + "/EDGE/" + edge.getId().getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
         Optional<CustomerUpdateMsg> customerDeleteMsgOpt = edgeImitator.findMessageByType(CustomerUpdateMsg.class);

@@ -96,7 +96,7 @@ public class EdgeEventSourcingListener {
         if (edgeSynchronizationManager.isSync()) {
             return;
         }
-        if (!isValidEdgeEventEntity(event.getEntity())) {
+        if (!isSaveEventValidForEdge(event.getEntity())) {
             return;
         }
         log.trace("[{}] SaveEntityEvent called: {}", event.getEntityId().getEntityType(), event);
@@ -120,8 +120,15 @@ public class EdgeEventSourcingListener {
         if (edgeSynchronizationManager.isSync()) {
             return;
         }
-        if (event.getEntityGroup() != null && !isValidEdgeEventEntityGroup(event.getEntityGroup())) {
-            return;
+        if (event.getEntityGroup() != null) {
+            if (event.getEntityGroup().isGroupAll()) {
+                log.trace("skipping entity in case of 'All' group: {}", event);
+                return;
+            }
+            if (ActionType.ASSIGNED_TO_EDGE.equals(event.getActionType()) && event.getEntityGroup().isEdgeGroupAll()) {
+                log.trace("skipping entity in case of 'Edge All' group: {}", event);
+                return;
+            }
         }
         EntityType entityGroupType = event.getEntityGroup() != null ? event.getEntityGroup().getType() : null;
         EntityGroupId entityGroupId = event.getEntityGroup() != null ? event.getEntityGroup().getId() : null;
@@ -150,7 +157,7 @@ public class EdgeEventSourcingListener {
                 JacksonUtil.toString(relation), EdgeEventType.RELATION, edgeTypeByActionType(event.getActionType()));
     }
 
-    private boolean isValidEdgeEventEntity(Object entity) {
+    private boolean isSaveEventValidForEdge(Object entity) {
         if (entity instanceof OtaPackageInfo) {
             OtaPackageInfo otaPackageInfo = (OtaPackageInfo) entity;
             return otaPackageInfo.hasUrl() || otaPackageInfo.isHasData();
@@ -170,21 +177,17 @@ public class EdgeEventSourcingListener {
             Integration integration = (Integration) entity;
             return integration.isEdgeTemplate();
         } else if (entity instanceof EntityGroup) {
-            return isValidEdgeEventEntityGroup((EntityGroup) entity);
+            EntityGroup entityGroup = (EntityGroup) entity;
+            if (entityGroup.isGroupAll()) {
+                log.trace("skipping entity in case of 'All' group: {}", entityGroup);
+                return false;
+            }
+            if (entityGroup.isEdgeGroupAll()) {
+                log.trace("skipping entity in case of Edge 'All' group: {}", entityGroup);
+                return false;
+            }
         }
         // Default: If the entity doesn't match any of the conditions, consider it as valid.
-        return true;
-    }
-
-    private boolean isValidEdgeEventEntityGroup(EntityGroup entityGroup) {
-        if (entityGroup.isGroupAll()) {
-            log.trace("skipping entity in case of 'All' group: {}", entityGroup);
-            return false;
-        }
-//        if (entityGroup.isEdgeGroupAll()) {
-//            log.trace("skipping entity in case of Edge 'All' group: {}", entityGroup);
-//            return false;
-//        }
         return true;
     }
 }
