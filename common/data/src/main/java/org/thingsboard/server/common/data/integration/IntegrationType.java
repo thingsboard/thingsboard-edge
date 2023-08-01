@@ -40,6 +40,7 @@ public enum IntegrationType {
     THINGPARK(false),
     TPE(false),
     CHIRPSTACK(false),
+    PARTICLE(false),
     TMOBILE_IOT_CDP(false),
     HTTP(false),
     MQTT(true),

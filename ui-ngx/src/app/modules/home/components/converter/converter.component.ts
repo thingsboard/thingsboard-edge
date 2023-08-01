@@ -250,7 +250,11 @@ export class ConverterComponent extends EntityComponent<Converter> {
       .afterClosed().subscribe((result) => {
         if (result !== null) {
           if (setFirstTab) {
-            this.entitiesTableConfig.getTable().entityDetailsPanel.onToggleEditMode(true);
+            if (this.isDetailsPage) {
+              this.entitiesTableConfig.getEntityDetailsPage().onToggleEditMode(true);
+            } else {
+              this.entitiesTableConfig.getTable().entityDetailsPanel.onToggleEditMode(true);
+            }
           }
           this.entityForm.get(`configuration.${targetField}`).patchValue(result);
           this.entityForm.get(`configuration.${targetField}`).markAsDirty();

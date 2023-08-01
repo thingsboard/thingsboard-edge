@@ -103,7 +103,8 @@ import { IntegrationsCenterModule } from '@home/pages/integration/integrations-c
     SchedulerModule,
     OtaUpdateModule,
     SolutionTemplatesModule,
-    VcModule
+    VcModule,
+    AccountModule
   ]
 })
 export class HomePagesModule { }
