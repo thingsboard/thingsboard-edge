@@ -11,7 +11,8 @@
         "permission-denied-text": "You don't have permission to perform this operation!"
     },
     "account": {
-        "account": "Account"
+        "account": "Account",
+        "notification-settings": "Notification settings"
     },
     "action": {
         "activate": "Activate",
@@ -4209,11 +4210,6 @@
     "profiles": {
         "profiles": "Profiles"
     },
-    "account": {
-        "account": "Account",
-        "personal-info": "Personal info",
-        "notification-settings": "Notification settings"
-    },
     "security": {
         "security": "Security",
         "general-settings": "General security settings",
@@ -6764,6 +6760,7 @@
             "datakey-value-type-date": "Date",
             "datakey-value-type-time": "Time",
             "datakey-value-type-select": "Select",
+            "datakey-value-type-color": "Color",
             "value-is-required": "Value is required",
             "ability-to-edit-attribute": "Ability to edit attribute",
             "ability-to-edit-attribute-editable": "Editable (default)",

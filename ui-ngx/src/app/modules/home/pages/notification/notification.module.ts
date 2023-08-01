@@ -52,9 +52,6 @@ import { RuleNotificationDialogComponent } from '@home/pages/notification/rule/r
 import { RuleTableHeaderComponent } from '@home/pages/notification/rule/rule-table-header.component';
 import { NotificationSettingsComponent } from '@home/pages/notification/settings/notification-settings.component';
 import {
-  NotificationSettingsRoutingModules
-} from '@home/pages/notification/settings/notification-settings-routing.modules';
-import {
   NotificationSettingFormComponent
 } from '@home/pages/notification/settings/notification-setting-form.component';
 
@@ -79,7 +76,6 @@ import {
     CommonModule,
     SharedModule,
     NotificationRoutingModule,
-    NotificationSettingsRoutingModules,
     HomeComponentsModule
   ]
 })
