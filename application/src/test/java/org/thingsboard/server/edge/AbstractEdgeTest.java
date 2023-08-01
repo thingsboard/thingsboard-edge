@@ -546,7 +546,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertTrue(edgeImitator.waitForMessages());
         verifyEntityGroupUpdateMsg(edgeImitator.getLatestMessage(), assetEntityGroup);
 
-        edgeImitator.expectMessageAmount(2);
+        edgeImitator.expectMessageAmount(3); // asset + assetProfile, assetProfile
         Asset savedAsset = saveAsset(StringUtils.randomAlphanumeric(15), "Building", assetEntityGroup.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
         return savedAsset;

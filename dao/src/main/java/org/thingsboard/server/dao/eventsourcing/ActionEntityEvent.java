@@ -47,6 +47,6 @@ public class ActionEntityEvent {
     private final EntityId entityId;
     private final String body;
     private final ActionType actionType;
-    private final EdgeEventType type;
+    private final EdgeEventType edgeEventType;
     private final EntityGroup entityGroup;
 }

@@ -57,7 +57,6 @@ import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.RelationActionEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
-import org.thingsboard.server.dao.group.EntityGroupService;
 
 import javax.annotation.PostConstruct;
 
@@ -84,7 +83,6 @@ public class EdgeEventSourcingListener {
 
     private final TbClusterService tbClusterService;
     private final EdgeSynchronizationManager edgeSynchronizationManager;
-    private final EntityGroupService entityGroupService;
 
     @PostConstruct
     public void init() {
@@ -96,7 +94,7 @@ public class EdgeEventSourcingListener {
         if (edgeSynchronizationManager.isSync()) {
             return;
         }
-        if (!isSaveEventValidForEdge(event.getEntity())) {
+        if (!isValidEdgeEventEntity(event.getEntity())) {
             return;
         }
         log.trace("[{}] SaveEntityEvent called: {}", event.getEntityId().getEntityType(), event);
@@ -134,7 +132,7 @@ public class EdgeEventSourcingListener {
         EntityGroupId entityGroupId = event.getEntityGroup() != null ? event.getEntityGroup().getId() : null;
         log.trace("[{}] ActionEntityEvent called: {}", event.getEntityId().getEntityType(), event);
         tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), event.getEdgeId(), event.getEntityId(),
-                event.getBody(), event.getType(), edgeTypeByActionType(event.getActionType()),
+                event.getBody(), event.getEdgeEventType(), edgeTypeByActionType(event.getActionType()),
                 entityGroupType, entityGroupId);
     }
 
@@ -157,7 +155,7 @@ public class EdgeEventSourcingListener {
                 JacksonUtil.toString(relation), EdgeEventType.RELATION, edgeTypeByActionType(event.getActionType()));
     }
 
-    private boolean isSaveEventValidForEdge(Object entity) {
+    private boolean isValidEdgeEventEntity(Object entity) {
         if (entity instanceof OtaPackageInfo) {
             OtaPackageInfo otaPackageInfo = (OtaPackageInfo) entity;
             return otaPackageInfo.hasUrl() || otaPackageInfo.isHasData();
