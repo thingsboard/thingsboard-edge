@@ -29,63 +29,48 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-export interface UserSettings {
-  openedMenuSections?: string[];
-  notDisplayConnectivityAfterAddDevice?: boolean;
-}
+import { inject, NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { RouterTabsComponent } from '@home/components/router-tabs.component';
+import { Authority } from '@shared/models/authority.enum';
+import { securityRoutes } from '@home/pages/security/security-routing.module';
+import { profileRoutes } from '@home/pages/profile/profile-routing.module';
+import { getCurrentAuthState } from '@core/auth/auth.selectors';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
 
-export const initialUserSettings: UserSettings = {
-  openedMenuSections: []
-};
+const routes: Routes = [
+  {
+    path: 'account',
+    component: RouterTabsComponent,
+    data: {
+      auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      breadcrumb: {
+        label: 'account.account',
+        icon: 'account_circle'
+      },
+      useChildrenRoutesForTabs: true,
+    },
+    resolve: {
+      replaceUrl: () => getCurrentAuthState(inject(Store<AppState>)).forceFullscreen
+    },
+    children: [
+      {
+        path: '',
+        children: [],
+        data: {
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          redirectTo: '/account/profile',
+        }
+      },
+      ...profileRoutes,
+      ...securityRoutes
+    ]
+  }
+];
 
-export enum UserSettingsType {
-  GENERAL = 'GENERAL',
-  QUICK_LINKS = 'QUICK_LINKS',
-  DOC_LINKS = 'DOC_LINKS',
-  DASHBOARDS = 'DASHBOARDS',
-  GETTING_STARTED = 'GETTING_STARTED'
-}
-
-export interface DocumentationLink {
-  icon: string;
-  name: string;
-  link: string;
-}
-
-export interface DocumentationLinks {
-  links?: DocumentationLink[];
-}
-
-export interface QuickLinks {
-  links?: string[];
-}
-
-export interface GettingStarted {
-  maxSelectedIndex?: number;
-  lastSelectedIndex?: number;
-}
-
-export interface AbstractUserDashboardInfo {
-  id: string;
-  title: string;
-  starred: boolean;
-}
-
-export interface LastVisitedDashboardInfo extends AbstractUserDashboardInfo {
-  lastVisited: number;
-}
-
-export interface StarredDashboardInfo extends AbstractUserDashboardInfo {
-  starredAt: number;
-}
-
-export interface UserDashboardsInfo {
-  last: Array<LastVisitedDashboardInfo>;
-  starred: Array<StarredDashboardInfo>;
-}
-
-export enum UserDashboardAction {
-  VISIT = 'VISIT',
-  STAR = 'STAR',
-  UNSTAR = 'UNSTAR'
-}
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule]
+})
+export class AccountRoutingModule { }

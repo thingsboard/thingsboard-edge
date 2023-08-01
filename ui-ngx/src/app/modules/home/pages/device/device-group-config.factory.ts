@@ -41,7 +41,7 @@ import {
 import { Inject, Injectable } from '@angular/core';
 import { EntityType } from '@shared/models/entity-type.models';
 import { DeviceComponent } from '@home/pages/device/device.component';
-import { mergeMap, tap } from 'rxjs/operators';
+import { mergeMap, take, tap } from 'rxjs/operators';
 import { DeviceService } from '@core/http/device.service';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { EntityAction } from '@home/models/entity/entity-component.models';
@@ -63,6 +63,14 @@ import {
 import { isDefinedAndNotNull } from '@core/utils';
 import { Router, UrlTree } from '@angular/router';
 import { WINDOW } from '@core/services/window.service';
+import { EntityId } from '@shared/models/id/entity-id';
+import {
+  DeviceCheckConnectivityDialogComponent,
+  DeviceCheckConnectivityDialogData
+} from '@home/pages/device/device-check-connectivity-dialog.component';
+import { select, Store } from '@ngrx/store';
+import { selectUserSettingsProperty } from '@core/auth/auth.selectors';
+import { AppState } from '@core/core.state';
 
 @Injectable()
 export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<DeviceInfo> {
@@ -76,6 +84,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
               private deviceService: DeviceService,
               private router: Router,
               private broadcast: BroadcastService,
+              private store: Store<AppState>,
               @Inject(WINDOW) private window: Window) {
   }
 
@@ -154,7 +163,19 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
       data: {
         entityGroup: config.entityGroup
       }
-    }).afterClosed();
+    }).afterClosed().pipe(
+      tap(device => {
+        if (device) {
+          this.store.pipe(select(selectUserSettingsProperty( 'notDisplayConnectivityAfterAddDevice'))).pipe(
+            take(1)
+          ).subscribe((settings: boolean) => {
+            if(!settings) {
+              this.checkConnectivity(null, device.id, true);
+            }
+          });
+        }
+      })
+    );
   }
 
   importDevices($event: Event, config: GroupEntityTableConfig<DeviceInfo>) {
@@ -222,6 +243,23 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     );
   }
 
+  checkConnectivity($event: Event, deviceId: EntityId, afterAdd = false) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.dialog.open<DeviceCheckConnectivityDialogComponent, DeviceCheckConnectivityDialogData>
+    (DeviceCheckConnectivityDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        deviceId,
+        afterAdd
+      }
+    })
+      .afterClosed()
+      .subscribe(() => {});
+  }
+
   onDeviceAction(action: EntityAction<DeviceInfo>, config: GroupEntityTableConfig<DeviceInfo>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
@@ -235,6 +273,9 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
         return true;
       case 'manageOwnerAndGroups':
         this.manageOwnerAndGroups(action.event, action.entity, config);
+        return true;
+      case 'checkConnectivity':
+        this.checkConnectivity(action.event, action.entity.id);
         return true;
     }
     return false;

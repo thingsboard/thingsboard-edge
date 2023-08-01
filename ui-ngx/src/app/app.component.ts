@@ -46,7 +46,7 @@ import { selectIsAuthenticated, selectIsUserLoaded } from '@core/auth/auth.selec
 import { distinctUntilChanged, filter, map, skip } from 'rxjs/operators';
 import { AuthService } from '@core/auth/auth.service';
 import { ReportService } from '@core/http/report.service';
-import { svgIcons } from '@shared/models/icon.models';
+import { svgIcons, svgIconsUrl } from '@shared/models/icon.models';
 
 @Component({
   selector: 'tb-root',
@@ -82,6 +82,10 @@ export class AppComponent implements OnInit {
           svgIcons[svgIcon]
         )
       );
+    }
+
+    for (const svgIcon of Object.keys(svgIconsUrl)) {
+      this.matIconRegistry.addSvgIcon(svgIcon, this.domSanitizer.bypassSecurityTrustResourceUrl(svgIconsUrl[svgIcon]));
     }
 
     this.storageService.testLocalStorage();
