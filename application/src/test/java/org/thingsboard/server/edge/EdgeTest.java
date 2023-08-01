@@ -59,20 +59,14 @@ public class EdgeTest extends AbstractEdgeTest {
         changeEdgeOwnerToCustomer(savedCustomer);
 
         // create device, asset, entity view, dashboard, user entity groups on customer level and assign to edge
-        EntityGroup customerDeviceEntityGroup = createEntityGroupAndAssignToEdge(EntityType.DEVICE, "CustomerEdgeDeviceGroup", savedCustomer.getId());
-        EntityGroup customerAssetEntityGroup = createEntityGroupAndAssignToEdge(EntityType.ASSET, "CustomerEdgeAssetGroup", savedCustomer.getId());
-        EntityGroup customerEntityViewEntityGroup = createEntityGroupAndAssignToEdge(EntityType.ENTITY_VIEW, "CustomerEdgeEntityViewGroup", savedCustomer.getId());
-        EntityGroup customerDashboardEntityGroup = createEntityGroupAndAssignToEdge(EntityType.DASHBOARD, "CustomerEdgeDashboardGroup", savedCustomer.getId());
-        EntityGroup customerUserEntityGroup = createEntityGroupAndAssignToEdge(EntityType.USER, "CustomerEdgeUserGroup", savedCustomer.getId());
-
-        unAssignEntityGroupFromEdge(customerDeviceEntityGroup);
-        unAssignEntityGroupFromEdge(customerAssetEntityGroup);
-        unAssignEntityGroupFromEdge(customerEntityViewEntityGroup);
-        unAssignEntityGroupFromEdge(customerDashboardEntityGroup);
-        unAssignEntityGroupFromEdge(customerUserEntityGroup);
+        createEntityGroupAndAssignToEdge(EntityType.DEVICE, "CustomerEdgeDeviceGroup", savedCustomer.getId());
+        createEntityGroupAndAssignToEdge(EntityType.ASSET, "CustomerEdgeAssetGroup", savedCustomer.getId());
+        createEntityGroupAndAssignToEdge(EntityType.ENTITY_VIEW, "CustomerEdgeEntityViewGroup", savedCustomer.getId());
+        createEntityGroupAndAssignToEdge(EntityType.DASHBOARD, "CustomerEdgeDashboardGroup", savedCustomer.getId());
+        createEntityGroupAndAssignToEdge(EntityType.USER, "CustomerEdgeUserGroup", savedCustomer.getId());
 
         // change owner to tenant
-        changeEdgeOwnerFromCustomerToTenant(savedCustomer);
+        changeEdgeOwnerFromCustomerToTenant(savedCustomer, 7);
 
         // remove tenant entity groups
         doDelete("/api/entityGroup/" + deviceEntityGroup.getUuidId()).andExpect(status().isOk());
@@ -120,7 +114,7 @@ public class EdgeTest extends AbstractEdgeTest {
         EntityGroup subCustomerUserEntityGroup = createEntityGroupAndAssignToEdge(EntityType.USER, "SubCustomerEdgeUserGroup", savedSubCustomer.getId());
 
         // change owner to tenant
-        changeEdgeOwnerFromSubCustomerToTenant(savedCustomer, savedSubCustomer);
+        changeEdgeOwnerFromSubCustomerToTenant(savedCustomer, savedSubCustomer, 14);
 
         // validate that tenant groups are still on edge
         validateThatEntityGroupAssignedToEdge(deviceEntityGroup.getId(), EntityType.DEVICE);
@@ -204,14 +198,8 @@ public class EdgeTest extends AbstractEdgeTest {
         EntityGroup subCustomerDashboardEntityGroup = createEntityGroupAndAssignToEdge(EntityType.DASHBOARD, "SubCustomerEdgeDashboardGroup", savedSubCustomer.getId());
         EntityGroup subCustomerUserEntityGroup = createEntityGroupAndAssignToEdge(EntityType.USER, "SubCustomerEdgeUserGroup", savedSubCustomer.getId());
 
-        unAssignEntityGroupFromEdge(subCustomerDeviceEntityGroup);
-        unAssignEntityGroupFromEdge(subCustomerAssetEntityGroup);
-        unAssignEntityGroupFromEdge(subCustomerEntityViewEntityGroup);
-        unAssignEntityGroupFromEdge(subCustomerDashboardEntityGroup);
-        unAssignEntityGroupFromEdge(subCustomerUserEntityGroup);
-
         // change owner from sub customer to parent customer
-        changeEdgeOwnerFromSubCustomerToCustomer(savedCustomer, savedSubCustomer);
+        changeEdgeOwnerFromSubCustomerToCustomer(savedCustomer, savedSubCustomer, 7);
 
         // validate that tenant groups are still on edge
         validateThatEntityGroupAssignedToEdge(deviceEntityGroup.getId(), EntityType.DEVICE);
@@ -234,14 +222,8 @@ public class EdgeTest extends AbstractEdgeTest {
         validateThatEntityGroupNotAssignedToEdge(subCustomerDashboardEntityGroup.getId(), EntityType.DASHBOARD);
         validateThatEntityGroupNotAssignedToEdge(subCustomerUserEntityGroup.getId(), EntityType.USER);
 
-        unAssignEntityGroupFromEdge(customerDeviceEntityGroup);
-        unAssignEntityGroupFromEdge(customerAssetEntityGroup);
-        unAssignEntityGroupFromEdge(customerEntityViewEntityGroup);
-        unAssignEntityGroupFromEdge(customerDashboardEntityGroup);
-        unAssignEntityGroupFromEdge(customerUserEntityGroup);
-
         // change owner to tenant
-        changeEdgeOwnerFromCustomerToTenant(savedCustomer);
+        changeEdgeOwnerFromCustomerToTenant(savedCustomer, 7);
 
         // validate that tenant groups are still on edge
         validateThatEntityGroupAssignedToEdge(deviceEntityGroup.getId(), EntityType.DEVICE);
@@ -305,7 +287,7 @@ public class EdgeTest extends AbstractEdgeTest {
         EntityGroup customerAUserEntityGroup = createEntityGroupAndAssignToEdge(EntityType.USER, "CustomerAEdgeUserGroup", savedCustomerA.getId());
 
         // change owner from tenant to customer B
-        changeEdgeOwnerFromCustomerToCustomer(savedCustomerA, savedCustomerB);
+        changeEdgeOwnerFromCustomerToCustomer(savedCustomerA, savedCustomerB, 7);
 
         // validate that customer A groups unassigned from edge
         validateThatEntityGroupNotAssignedToEdge(customerADeviceEntityGroup.getId(), EntityType.DEVICE);
@@ -329,7 +311,7 @@ public class EdgeTest extends AbstractEdgeTest {
         EntityGroup customerBUserEntityGroup = createEntityGroupAndAssignToEdge(EntityType.USER, "CustomerBEdgeUserGroup", savedCustomerB.getId());
 
         // change owner from customer B to customer A
-        changeEdgeOwnerFromCustomerToCustomer(savedCustomerB, savedCustomerA);
+        changeEdgeOwnerFromCustomerToCustomer(savedCustomerB, savedCustomerA, 7);
 
         // validate that customer B groups unassigned from edge
         validateThatEntityGroupNotAssignedToEdge(customerBDeviceEntityGroup.getId(), EntityType.DEVICE);
@@ -345,14 +327,8 @@ public class EdgeTest extends AbstractEdgeTest {
         validateThatEntityGroupAssignedToEdge(dashboardEntityGroup.getId(), EntityType.DASHBOARD);
         validateThatEntityGroupAssignedToEdge(userEntityGroup.getId(), EntityType.USER);
 
-        unAssignEntityGroupFromEdge(customerADeviceEntityGroup);
-        unAssignEntityGroupFromEdge(customerAAssetEntityGroup);
-        unAssignEntityGroupFromEdge(customerAEntityViewEntityGroup);
-        unAssignEntityGroupFromEdge(customerADashboardEntityGroup);
-        unAssignEntityGroupFromEdge(customerAUserEntityGroup);
-
         // change owner to tenant
-        changeEdgeOwnerFromCustomerToTenant(savedCustomerA);
+        changeEdgeOwnerFromCustomerToTenant(savedCustomerA, 2);
 
         // validate that tenant groups are still on edge
         validateThatEntityGroupAssignedToEdge(deviceEntityGroup.getId(), EntityType.DEVICE);

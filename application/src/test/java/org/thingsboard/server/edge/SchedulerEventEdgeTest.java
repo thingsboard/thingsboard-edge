@@ -175,7 +175,7 @@ public class SchedulerEventEdgeTest extends AbstractEdgeTest {
                 .andExpect(status().isOk());
 
         // change owner to tenant
-        changeEdgeOwnerFromCustomerToTenant(savedCustomer);
+        changeEdgeOwnerFromCustomerToTenant(savedCustomer, 2);
 
         // delete customers
         doDelete("/api/customer/" + savedCustomer.getUuidId())

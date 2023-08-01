@@ -636,8 +636,8 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         }
     }
 
-    protected void changeEdgeOwnerFromCustomerToCustomer(Customer previousCustomer, Customer newCustomer) throws Exception {
-        edgeImitator.expectMessageAmount(7);
+    protected void changeEdgeOwnerFromCustomerToCustomer(Customer previousCustomer, Customer newCustomer, int expectedNumberOfDeleteEntityGroupMsgs) throws Exception {
+        edgeImitator.expectMessageAmount(7 + expectedNumberOfDeleteEntityGroupMsgs);
         doPost("/api/owner/CUSTOMER/" + newCustomer.getId().getId() + "/EDGE/" + edge.getId().getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
         List<CustomerUpdateMsg> customerMsgs = edgeImitator.findAllMessagesByType(CustomerUpdateMsg.class);
@@ -658,14 +658,14 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(2, roleProtos.size());
 
         List<EntityGroupUpdateMsg> entityGroupUpdateMsgs = edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class);
-        Assert.assertEquals(2, entityGroupUpdateMsgs.size());
+        Assert.assertEquals(2 + expectedNumberOfDeleteEntityGroupMsgs, entityGroupUpdateMsgs.size());
 
         Optional<EdgeConfiguration> edgeConfigurationOpt = edgeImitator.findMessageByType(EdgeConfiguration.class);
         Assert.assertTrue(edgeConfigurationOpt.isPresent());
     }
 
-    protected void changeEdgeOwnerFromCustomerToTenant(Customer customer) throws Exception {
-        edgeImitator.expectMessageAmount(2);
+    protected void changeEdgeOwnerFromCustomerToTenant(Customer customer, int expectedNumberOfDeleteEntityGroupMsgs) throws Exception {
+        edgeImitator.expectMessageAmount(2 + expectedNumberOfDeleteEntityGroupMsgs);
         doPost("/api/owner/TENANT/" + tenantId.getId() + "/EDGE/" + edge.getId().getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
         Optional<CustomerUpdateMsg> customerDeleteMsgs = edgeImitator.findMessageByType(CustomerUpdateMsg.class);
@@ -674,6 +674,9 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, customerADeleteMsg.getMsgType());
         Assert.assertEquals(customer.getUuidId().getMostSignificantBits(), customerADeleteMsg.getIdMSB());
         Assert.assertEquals(customer.getUuidId().getLeastSignificantBits(), customerADeleteMsg.getIdLSB());
+
+        List<EntityGroupUpdateMsg> entityGroupUpdateMsgs = edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class);
+        Assert.assertEquals(expectedNumberOfDeleteEntityGroupMsgs, entityGroupUpdateMsgs.size());
     }
 
     protected void changeEdgeOwnerFromTenantToSubCustomer(Customer parentCustomer, Customer customer) throws Exception {
@@ -707,8 +710,8 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertTrue(edgeConfigurationOpt.isPresent());
     }
 
-    protected void changeEdgeOwnerFromSubCustomerToTenant(Customer parentCustomer, Customer customer) throws Exception {
-        edgeImitator.expectMessageAmount(2);
+    protected void changeEdgeOwnerFromSubCustomerToTenant(Customer parentCustomer, Customer customer, int expectedNumberOfDeleteEntityGroupMsgs) throws Exception {
+        edgeImitator.expectMessageAmount(3 + expectedNumberOfDeleteEntityGroupMsgs);
         doPost("/api/owner/TENANT/" + tenantId.getId() + "/EDGE/" + edge.getId().getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
         List<CustomerUpdateMsg> customerDeleteMsgs = edgeImitator.findAllMessagesByType(CustomerUpdateMsg.class);
@@ -721,10 +724,13 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, subCustomerADeleteMsg.getMsgType());
         Assert.assertEquals(customer.getUuidId().getMostSignificantBits(), subCustomerADeleteMsg.getIdMSB());
         Assert.assertEquals(customer.getUuidId().getLeastSignificantBits(), subCustomerADeleteMsg.getIdLSB());
+
+        List<EntityGroupUpdateMsg> entityGroupUpdateMsgs = edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class);
+        Assert.assertEquals(expectedNumberOfDeleteEntityGroupMsgs, entityGroupUpdateMsgs.size());
     }
 
-    protected void changeEdgeOwnerFromSubCustomerToCustomer(Customer parentCustomer, Customer customer) throws Exception {
-        edgeImitator.expectMessageAmount(2);
+    protected void changeEdgeOwnerFromSubCustomerToCustomer(Customer parentCustomer, Customer customer, int expectedNumberOfDeleteEntityGroupMsgs) throws Exception {
+        edgeImitator.expectMessageAmount(2 + expectedNumberOfDeleteEntityGroupMsgs);
         doPost("/api/owner/CUSTOMER/" + parentCustomer.getId().getId() + "/EDGE/" + edge.getId().getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
         Optional<CustomerUpdateMsg> customerDeleteMsgOpt = edgeImitator.findMessageByType(CustomerUpdateMsg.class);
@@ -733,6 +739,9 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, customerDeleteMsg.getMsgType());
         Assert.assertEquals(customer.getUuidId().getMostSignificantBits(), customerDeleteMsg.getIdMSB());
         Assert.assertEquals(customer.getUuidId().getLeastSignificantBits(), customerDeleteMsg.getIdLSB());
+
+        List<EntityGroupUpdateMsg> entityGroupUpdateMsgs = edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class);
+        Assert.assertEquals(expectedNumberOfDeleteEntityGroupMsgs, entityGroupUpdateMsgs.size());
     }
 
     protected EntityGroup createEntityGroupAndAssignToEdge(EntityType groupType, String groupName, EntityId ownerId) throws Exception {
