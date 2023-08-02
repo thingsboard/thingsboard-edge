@@ -29,6 +29,9 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
+import { ResourcesService } from '@core/services/resources.service';
+import { Observable } from 'rxjs';
+
 export interface Unit {
   name: string;
   symbol: string;
@@ -45,3 +48,6 @@ export const searchUnits = (_units: Array<Unit>, searchText: string): Array<Unit
       u.name.toUpperCase().includes(searchText.toUpperCase()) ||
       searchUnitTags(u, searchText)
 );
+
+export const getUnits = (resourcesService: ResourcesService): Observable<Array<Unit>> =>
+  resourcesService.loadJsonResource('/assets/metadata/units.json');
