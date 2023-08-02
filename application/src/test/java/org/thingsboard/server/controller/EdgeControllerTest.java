@@ -37,6 +37,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.AbstractMessage;
+import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -61,6 +62,7 @@ import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -1142,9 +1144,6 @@ public class EdgeControllerTest extends AbstractControllerTest {
         device.setType("default");
         Device savedDevice = doPost("/api/device", device, Device.class, "entityGroupId", savedDeviceGroup.getId().getId().toString());
 
-        doPost("/api/edge/" + edge.getId().getId().toString()
-                + "/entityGroup/" + savedDeviceGroup.getId().getId().toString() + "/DEVICE", EntityGroup.class);
-
         EntityGroup savedAssetGroup = new EntityGroup();
         savedAssetGroup.setType(EntityType.ASSET);
         savedAssetGroup.setName("AssetGroup");
@@ -1154,6 +1153,9 @@ public class EdgeControllerTest extends AbstractControllerTest {
         asset.setName("Sync Test EG Edge Asset 1");
         asset.setType("test");
         Asset savedAsset = doPost("/api/asset", asset, Asset.class, "entityGroupId", savedAssetGroup.getId().getId().toString());
+
+        doPost("/api/edge/" + edge.getId().getId().toString()
+                + "/entityGroup/" + savedDeviceGroup.getId().getId().toString() + "/DEVICE", EntityGroup.class);
 
         doPost("/api/edge/" + edge.getId().getId().toString()
                 + "/entityGroup/" + savedAssetGroup.getId().getId().toString() + "/ASSET", EntityGroup.class);
@@ -1233,16 +1235,11 @@ public class EdgeControllerTest extends AbstractControllerTest {
         customer.setTitle("Edge Customer");
         Customer savedCustomer = doPost("/api/customer", customer, Customer.class);
 
-        doPost("/api/owner/CUSTOMER/" + savedCustomer.getId().getId() + "/EDGE/" + edge.getId().getId());
-
         EntityGroup savedCustomerDeviceGroup = new EntityGroup();
         savedCustomerDeviceGroup.setType(EntityType.DEVICE);
         savedCustomerDeviceGroup.setName("CustomerDeviceGroup");
         savedCustomerDeviceGroup.setOwnerId(savedCustomer.getId());
         savedCustomerDeviceGroup = doPost("/api/entityGroup", savedCustomerDeviceGroup, EntityGroup.class);
-
-        doPost("/api/edge/" + edge.getId().getId().toString()
-                + "/entityGroup/" + savedCustomerDeviceGroup.getId().getId().toString() + "/DEVICE", EntityGroup.class);
 
         Device customerDevice = new Device();
         customerDevice.setName("Sync Test EG Edge Customer Device 1");
@@ -1256,14 +1253,30 @@ public class EdgeControllerTest extends AbstractControllerTest {
         savedCustomerAssetGroup.setOwnerId(savedCustomer.getId());
         savedCustomerAssetGroup = doPost("/api/entityGroup", savedCustomerAssetGroup, EntityGroup.class);
 
-        doPost("/api/edge/" + edge.getId().getId().toString()
-                + "/entityGroup/" + savedCustomerAssetGroup.getId().getId().toString() + "/ASSET", EntityGroup.class);
-
         Asset customerAsset = new Asset();
         customerAsset.setName("Sync Test EG Edge Customer Asset 1");
         customerAsset.setType("test");
         customerAsset.setOwnerId(savedCustomer.getId());
         Asset savedAsset = doPost("/api/asset", customerAsset, Asset.class, "entityGroupId", savedCustomerAssetGroup.getId().getId().toString());
+
+        doPost("/api/owner/CUSTOMER/" + savedCustomer.getId().getId() + "/EDGE/" + edge.getId().getId());
+
+        doPost("/api/edge/" + edge.getId().getId().toString()
+                + "/entityGroup/" + savedCustomerDeviceGroup.getId().getId().toString() + "/DEVICE", EntityGroup.class);
+
+        doPost("/api/edge/" + edge.getId().getId().toString()
+                + "/entityGroup/" + savedCustomerAssetGroup.getId().getId().toString() + "/ASSET", EntityGroup.class);
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    PageData<EntityGroupInfo> pageData = doGetTypedWithPageLink("/api/entityGroups/edge/" + edge.getId().getId() + "/USER?",
+                            new TypeReference<>() {}, new PageLink(1024));
+                    if (pageData.getData().isEmpty()) {
+                        return false;
+                    }
+                    return pageData.getTotalElements() == 4;
+                });
 
         EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
