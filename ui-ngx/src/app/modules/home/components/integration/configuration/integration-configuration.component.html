@@ -116,6 +116,14 @@
                                        [allowLocalNetwork]="allowLocalNetwork">
       </tb-chirp-stack-integration-form>
     </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.PARTICLE">
+      <tb-particle-integration-form formControlName="configuration"
+                                       [routingKey]="routingKey"
+                                       [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                       [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate"
+                                       [allowLocalNetwork]="allowLocalNetwork">
+      </tb-particle-integration-form>
+    </ng-container>
     <ng-container *ngSwitchCase="integrationTypes.PUB_SUB">
       <tb-pubsub-integration-form formControlName="configuration"
                                   [executeRemotelyTemplate]="executeRemotelyTemplate"

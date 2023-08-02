@@ -119,6 +119,9 @@ import {
 import {
   AzureServicesBusIntegrationFormComponent
 } from '@home/components/integration/configuration/azure-services-bus-integration-form/azure-services-bus-integration-form.component';
+import {
+  ParticleIntegrationFormComponent
+} from "@home/components/integration/configuration/particle-integration-form/particle-integration-form.component";
 
 @NgModule({
   declarations: [
@@ -140,6 +143,7 @@ import {
     OpcUaSubscriptionComponent,
     LoriotIntegrationFormComponent,
     ChirpStackIntegrationFormComponent,
+    ParticleIntegrationFormComponent,
     PubSubIntegrationFormComponent,
     ApachePulsarIntegrationFormComponent,
     CustomIntegrationFormComponent,

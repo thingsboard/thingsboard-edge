@@ -69,7 +69,7 @@ $tb-button-selected-color: rgb(255, 110, 64) !default;
           button.mat-mdc-icon-button {
             margin-bottom: -4px;
 
-            mat-icon {
+            .mat-icon {
               color: $tb-button-selected-color;
               fill: $tb-button-selected-color;
             }
