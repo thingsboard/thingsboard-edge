@@ -105,7 +105,7 @@ public class TenantProfileServiceImpl extends AbstractCachedEntityService<Tenant
         try {
             savedTenantProfile = tenantProfileDao.save(tenantId, tenantProfile);
             publishEvictEvent(new TenantProfileEvictEvent(savedTenantProfile.getId(), savedTenantProfile.isDefault()));
-            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID)
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId)
                     .entityId(savedTenantProfile.getId()).added(tenantProfile.getId() == null).build());
         } catch (Exception t) {
             handleEvictEvent(new TenantProfileEvictEvent(null, tenantProfile.isDefault()));
@@ -143,7 +143,7 @@ public class TenantProfileServiceImpl extends AbstractCachedEntityService<Tenant
         }
         deleteEntityRelations(tenantId, tenantProfileId);
         publishEvictEvent(new TenantProfileEvictEvent(tenantProfileId, isDefault));
-        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(tenantProfileId).build());
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(tenantProfileId).build());
     }
 
     @Override
