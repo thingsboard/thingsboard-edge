@@ -497,7 +497,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
                 try {
                     entityGroupsForEntity = entityGroupService.findEntityGroupsForEntityAsync(tenantId, entityId).get();
                 } catch (Exception e) {
-                    log.error("[{}] Can't find entity group for entity {} {}", tenantId, entityId, e);
+                    log.error("[{}] Can't find entity group for entity {}", tenantId, entityId, e);
                 }
                 if (CollectionUtils.isEmpty(entityGroupsForEntity)) {
                     return createEmptyEdgeIdPageData();

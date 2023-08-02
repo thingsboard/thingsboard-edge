@@ -469,6 +469,12 @@ public abstract class BaseEdgeProcessor {
             EdgeId edgeId = safeGetEdgeId(edgeNotificationMsg);
             EntityGroupId entityGroupId = constructEntityGroupId(tenantId, edgeNotificationMsg);
             switch (actionType) {
+                case ADDED:
+                    if (edgeId != null) {
+                        return saveEdgeEvent(tenantId, edgeId, type, EdgeEventActionType.ADDED, entityId, body, entityGroupId);
+                    } else {
+                        return pushNotificationToAllRelatedEdges(tenantId, entityId, type, EdgeEventActionType.ADDED, entityGroupId);
+                    }
                 case UPDATED:
                 case CREDENTIALS_UPDATED:
                 case ADDED_TO_ENTITY_GROUP:
