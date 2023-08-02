@@ -405,7 +405,7 @@ public abstract class BaseEdgeProcessor {
         return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
     }
 
-    private List<ListenableFuture<Void>> processActionForAllEdgesByTenantId(TenantId tenantId,
+    protected List<ListenableFuture<Void>> processActionForAllEdgesByTenantId(TenantId tenantId,
                                                                               EdgeEventType type,
                                                                               EdgeEventActionType actionType,
                                                                               EntityId entityId,
@@ -469,12 +469,6 @@ public abstract class BaseEdgeProcessor {
             EdgeId edgeId = safeGetEdgeId(edgeNotificationMsg);
             EntityGroupId entityGroupId = constructEntityGroupId(tenantId, edgeNotificationMsg);
             switch (actionType) {
-                case ADDED:
-                    if (edgeId != null) {
-                        return saveEdgeEvent(tenantId, edgeId, type, EdgeEventActionType.ADDED, entityId, body);
-                    } else {
-                        return pushNotificationToAllRelatedEdges(tenantId, entityId, type, EdgeEventActionType.ADDED, entityGroupId);
-                    }
                 case UPDATED:
                 case CREDENTIALS_UPDATED:
                 case ADDED_TO_ENTITY_GROUP:
@@ -487,7 +481,7 @@ public abstract class BaseEdgeProcessor {
                 case DELETED:
                     EdgeEventActionType deleted = EdgeEventActionType.DELETED;
                     if (edgeId != null) {
-                        return saveEdgeEvent(tenantId, edgeId, type, deleted, entityId, body);
+                        return saveEdgeEvent(tenantId, edgeId, type, deleted, entityId, body, entityGroupId);
                     } else {
                         return Futures.transform(Futures.allAsList(processActionForAllEdgesByTenantId(tenantId, type, deleted, entityId, body)),
                                 voids -> null, dbCallbackExecutorService);

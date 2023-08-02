@@ -253,16 +253,16 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                     future = groupPermissionsProcessor.processGroupPermissionNotification(tenantId, edgeNotificationMsg);
                     break;
                 case SCHEDULER_EVENT:
-                    future = schedulerEventProcessor.processSchedulerEventNotification(tenantId, edgeNotificationMsg);
+                    future = schedulerEventProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                     break;
                 case ENTITY_GROUP:
-                    future = entityGroupProcessor.processEntityGroupNotification(tenantId, edgeNotificationMsg);
+                    future = entityGroupProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                     break;
                 case INTEGRATION:
-                    future = integrationProcessor.processIntegrationNotification(tenantId, edgeNotificationMsg);
+                    future = integrationProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                     break;
                 case CONVERTER:
-                    future = converterProcessor.processConverterNotification(tenantId, edgeNotificationMsg);
+                    future = converterProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                     break;
                 case WHITE_LABELING:
                 case LOGIN_WHITE_LABELING:

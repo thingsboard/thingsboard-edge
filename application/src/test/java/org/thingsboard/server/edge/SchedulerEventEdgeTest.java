@@ -171,8 +171,10 @@ public class SchedulerEventEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(savedSchedulerEvent.getUuidId().getLeastSignificantBits(), schedulerEventUpdateMsg.getIdLSB());
 
         // delete scheduler event
+        edgeImitator.expectMessageAmount(1);
         doDelete("/api/schedulerEvent/" + savedSchedulerEvent.getUuidId())
                 .andExpect(status().isOk());
+        Assert.assertTrue(edgeImitator.waitForMessages());
 
         // change owner to tenant
         changeEdgeOwnerFromCustomerToTenant(savedCustomer, 2);
