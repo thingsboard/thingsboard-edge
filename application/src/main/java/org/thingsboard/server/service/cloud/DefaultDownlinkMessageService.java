@@ -288,14 +288,14 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                     result.add(queueCloudProcessor.processQueueMsgFromCloud(tenantId, queueUpdateMsg));
                 }
             }
-            if (downlinkMsg.getTenantUpdateMsgCount() > 0) {
-                for (TenantUpdateMsg tenantUpdateMsg : downlinkMsg.getTenantUpdateMsgList()) {
-                    result.add(tenantCloudProcessor.processTenantMsgFromCloud(tenantId, tenantUpdateMsg));
-                }
-            }
             if (downlinkMsg.getTenantProfileUpdateMsgCount() > 0) {
                 for (TenantProfileUpdateMsg tenantProfileUpdateMsg : downlinkMsg.getTenantProfileUpdateMsgList()) {
                     result.add(tenantProfileCloudProcessor.processTenantProfileMsgFromCloud(tenantId, tenantProfileUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getTenantUpdateMsgCount() > 0) {
+                for (TenantUpdateMsg tenantUpdateMsg : downlinkMsg.getTenantUpdateMsgList()) {
+                    result.add(tenantCloudProcessor.processTenantMsgFromCloud(tenantUpdateMsg));
                 }
             }
             log.trace("Finished processing DownlinkMsg {}", downlinkMsg.getDownlinkMsgId());

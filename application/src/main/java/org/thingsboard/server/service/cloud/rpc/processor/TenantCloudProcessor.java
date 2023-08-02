@@ -67,10 +67,9 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
         }
     }
 
-    public ListenableFuture<Void> processTenantMsgFromCloud(TenantId tenantId, TenantUpdateMsg tenantUpdateMsg) {
+    public ListenableFuture<Void> processTenantMsgFromCloud(TenantUpdateMsg tenantUpdateMsg) {
         TenantId entityId = new TenantId(new UUID(tenantUpdateMsg.getIdMSB(), tenantUpdateMsg.getIdLSB()));
         TenantProfileId tenantProfileId = new TenantProfileId(new UUID(tenantUpdateMsg.getProfileIdMSB(), tenantUpdateMsg.getProfileIdLSB()));
-        tenantProfileCloudProcessor.processTenantProfileMsgFromCloud(tenantId, tenantUpdateMsg.getTenantProfileUpdateMsg());
         switch (tenantUpdateMsg.getMsgType()) {
             case ENTITY_UPDATED_RPC_MESSAGE:
                 processTenantUpdatedRpcMessage(entityId, tenantUpdateMsg, tenantProfileId);
