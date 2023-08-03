@@ -97,7 +97,7 @@ public class EdgeEventSourcingListener {
         if (!isValidEdgeEventEntity(event.getEntity())) {
             return;
         }
-        log.trace("[{}][{}] SaveEntityEvent called: {}", event.getTenantId(), event.getEntityId().getEntityType(), event);
+        log.trace("[{}] SaveEntityEvent called: {}", event.getTenantId(), event);
         EdgeEventActionType action = Boolean.TRUE.equals(event.getAdded()) ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED;
         tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), null, event.getEntityId(),
                 null, null, action);
@@ -108,7 +108,7 @@ public class EdgeEventSourcingListener {
         if (edgeSynchronizationManager.isSync()) {
             return;
         }
-        log.trace("[{}][{}] DeleteEntityEvent called: {}", event.getTenantId(), event.getEntityId().getEntityType(), event);
+        log.trace("[{}] DeleteEntityEvent called: {}", event.getTenantId(), event);
         tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), event.getEdgeId(), event.getEntityId(),
                 JacksonUtil.toString(event.getEntity()), null, EdgeEventActionType.DELETED);
     }
@@ -130,7 +130,7 @@ public class EdgeEventSourcingListener {
         }
         EntityType entityGroupType = event.getEntityGroup() != null ? event.getEntityGroup().getType() : null;
         EntityGroupId entityGroupId = event.getEntityGroup() != null ? event.getEntityGroup().getId() : null;
-        log.trace("[{}][{}] ActionEntityEvent called: {}", event.getTenantId(), event.getEntityId().getEntityType(), event);
+        log.trace("[{}] ActionEntityEvent called: {}", event.getTenantId(), event);
         tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), event.getEdgeId(), event.getEntityId(),
                 event.getBody(), event.getEdgeEventType(), edgeTypeByActionType(event.getActionType()),
                 entityGroupType, entityGroupId);
