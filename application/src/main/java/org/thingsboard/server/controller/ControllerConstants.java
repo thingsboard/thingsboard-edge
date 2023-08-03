@@ -45,6 +45,7 @@ public class ControllerConstants {
     protected static final String RPC_ID = "rpcId";
     protected static final String ENTITY_ID = "entityId";
     protected static final String ASSIGNEE_ID = "assigneeId";
+    protected static final String INTEGRATION_NAME = "integrationName";
 
     protected static final String PAGE_DATA_PARAMETERS = "You can specify parameters to filter the results. " +
             "The result is wrapped with PageData object that allows you to iterate over result set using pagination. " +
@@ -105,6 +106,12 @@ public class ControllerConstants {
     protected static final String EDGE_TYPE_DESCRIPTION = "A string value representing the edge type. For example, 'default'";
     protected static final String RULE_CHAIN_TYPE_DESCRIPTION = "Rule chain type (CORE or EDGE)";
     protected static final String BLOB_ENTITY_TYPE_DESCRIPTION = "A string value representing the blob entity type. For example, 'report'";
+    protected static final String INTEGRATION_TYPE_DESCRIPTION = "A string value representing the integration type. One of the following:\n" +
+        "APACHE_PULSAR, AWS_IOT, AWS_KINESIS, AWS_SQS, AZURE_EVENT_HUB, AZURE_IOT_HUB, AZURE_SERVICE_BUS, " +
+        "CHIRPSTACK, COAP, CUSTOM, HTTP, IBM_WATSON_IOT, KAFKA, LORIOT, MQTT, OCEANCONNECT, OPC_UA, PUB_SUB, " +
+        "RABBITMQ,  SIGFOX,  TCP,  THINGPARK,  TMOBILE_IOT_CDP,  TPE,  TTI,  TTN,  TUYA,  UDP";
+    protected static final String CONVERTER_TYPE_DESCRIPTION = "A string value representing the converter type. One of the following:\nUPLINK, DOWNLINK";
+    protected static final String INTEGRATION_NAME_PARAM_DESCRIPTION = "A string value representing the integration name. For example, 'My New Integration'";
     protected static final String ASSET_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the asset name.";
     protected static final String BLOB_ENTITY_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the blob entity name.";
     protected static final String CONVERTER_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the converter name.";
@@ -1874,7 +1881,7 @@ public class ControllerConstants {
     protected static final String WL_WRITE_CHECK = "\n\nSecurity check is performed to verify that the user has 'WRITE' permission for the white labeling resource.";
 
     private static final String CONVERTER_UPLINK_CONFIGURATION = MARKDOWN_CODE_BLOCK_START + "{\n" +
-            "   \"decoder\":\"// Decode an uplink message from a buffer\\n// payload - array of bytes\\n// metadata - key/value object\\n\\n/** Decoder **/\\n\\n// decode payload to string\\nvar payloadStr = decodeToString(payload);\\n\\n// decode payload to JSON\\n// var data = decodeToJson(payload);\\n\\nvar deviceName = 'Device A';\\nvar deviceType = 'thermostat';\\nvar customerName = 'customer';\\nvar groupName = 'thermostat devices';\\n// use assetName and assetType instead of deviceName and deviceType\\n// to automatically create assets instead of devices.\\n// var assetName = 'Asset A';\\n// var assetType = 'building';\\n\\n// Result object with device/asset attributes/telemetry data\\nvar result = {\\n// Use deviceName and deviceType or assetName and assetType, but not both.\\n   deviceName: deviceName,\\n   deviceType: deviceType,\\n// assetName: assetName,\\n// assetType: assetType,\\n   customerName: customerName,\\n   groupName: groupName,\\n   attributes: {\\n       model: 'Model A',\\n       serialNumber: 'SN111',\\n       integrationName: metadata['integrationName']\\n   },\\n   telemetry: {\\n       temperature: 42,\\n       humidity: 80,\\n       rawData: payloadStr\\n   }\\n};\\n\\n/** Helper functions **/\\n\\nfunction decodeToString(payload) {\\n   return String.fromCharCode.apply(String, payload);\\n}\\n\\nfunction decodeToJson(payload) {\\n   // covert payload to string.\\n   var str = decodeToString(payload);\\n\\n   // parse string to JSON\\n   var data = JSON.parse(str);\\n   return data;\\n}\\n\\nreturn result;\",\n" +
+            "   \"decoder\":\"// Decode an uplink message from a buffer\\n// payload - array of bytes\\n// metadata - key/value object\\n\\n/** Decoder **/\\n\\n// decode payload to string\\nvar payloadStr = decodeToString(payload);\\n\\n// decode payload to JSON\\n// var data = decodeToJson(payload);\\n\\nvar deviceName = 'Device A';\\nvar deviceType = 'thermostat';\\nvar customerName = 'customer';\\nvar groupName = 'thermostat devices';\\nvar manufacturer = 'Example corporation';\\n// use assetName and assetType instead of deviceName and deviceType\\n// to automatically create assets instead of devices.\\n// var assetName = 'Asset A';\\n// var assetType = 'building';\\n\\n// Result object with device/asset attributes/telemetry data\\nvar result = {\\n// Use deviceName and deviceType or assetName and assetType, but not both.\\n   deviceName: deviceName,\\n   deviceType: deviceType,\\n// assetName: assetName,\\n// assetType: assetType,\\n   customerName: customerName,\\n   groupName: groupName,\\n   contentAwareAttributeKeys: ['manufacturer'],\\n   attributes: {\\n       model: 'Model A',\\n       serialNumber: 'SN111',\\n       integrationName: metadata['integrationName'],\\n       manufacturer: manufacturer\\n   },\\n   telemetry: {\\n       temperature: 42,\\n       humidity: 80,\\n       rawData: payloadStr\\n   }\\n};\\n\\n/** Helper functions **/\\n\\nfunction decodeToString(payload) {\\n   return String.fromCharCode.apply(String, payload);\\n}\\n\\nfunction decodeToJson(payload) {\\n   // covert payload to string.\\n   var str = decodeToString(payload);\\n\\n   // parse string to JSON\\n   var data = JSON.parse(str);\\n   return data;\\n}\\n\\nreturn result;\",\n" +
             "   \"encoder\":null\n" +
             "}" + MARKDOWN_CODE_BLOCK_END;
 
@@ -1900,6 +1907,7 @@ public class ControllerConstants {
             "var deviceType = 'thermostat';\n" +
             "var customerName = 'customer';\n" +
             "var groupName = 'thermostat devices';\n" +
+            "var manufacturer = 'Example corporation';\n" +
             "// use assetName and assetType instead of deviceName and deviceType\n" +
             "// to automatically create assets instead of devices.\n" +
             "// var assetName = 'Asset A';\n" +
@@ -1918,6 +1926,7 @@ public class ControllerConstants {
             "       model: 'Model A',\n" +
             "       serialNumber: 'SN111',\n" +
             "       integrationName: metadata['integrationName']\n" +
+            "       manufacturer: manufacturer,\n" +
             "   },\n" +
             "   telemetry: {\n" +
             "       temperature: 42,\n" +
@@ -2005,7 +2014,7 @@ public class ControllerConstants {
             "   \"metadata\":{\n" +
             "   },\n" +
             "   \"payload\":\"ewogICAgImRhdGEiOiAiZGF0YSIKfQ==\",\n" +
-            "   \"decoder\":\"// Decode an uplink message from a buffer\\n// payload - array of bytes\\n// metadata - key/value object\\n\\n/** Decoder **/\\n\\n// decode payload to string\\nvar payloadStr = decodeToString(payload);\\n\\n// decode payload to JSON\\n// var data = decodeToJson(payload);\\n\\nvar deviceName = 'Device A';\\nvar deviceType = 'thermostat';\\nvar customerName = 'customer';\\nvar groupName = 'thermostat devices';\\n// use assetName and assetType instead of deviceName and deviceType\\n// to automatically create assets instead of devices.\\n// var assetName = 'Asset A';\\n// var assetType = 'building';\\n\\n// Result object with device/asset attributes/telemetry data\\nvar result = {\\n// Use deviceName and deviceType or assetName and assetType, but not both.\\n   deviceName: deviceName,\\n   deviceType: deviceType,\\n// assetName: assetName,\\n// assetType: assetType,\\n   customerName: customerName,\\n   groupName: groupName,\\n   attributes: {\\n       model: 'Model A',\\n       serialNumber: 'SN111',\\n       integrationName: metadata['integrationName']\\n   },\\n   telemetry: {\\n       temperature: 42,\\n       humidity: 80,\\n       rawData: payloadStr\\n   }\\n};\\n\\n/** Helper functions **/\\n\\nfunction decodeToString(payload) {\\n   return String.fromCharCode.apply(String, payload);\\n}\\n\\nfunction decodeToJson(payload) {\\n   // covert payload to string.\\n   var str = decodeToString(payload);\\n\\n   // parse string to JSON\\n   var data = JSON.parse(str);\\n   return data;\\n}\\n\\nreturn result;\"\n" +
+            "   \"decoder\":\"// Decode an uplink message from a buffer\\n// payload - array of bytes\\n// metadata - key/value object\\n\\n/** Decoder **/\\n\\n// decode payload to string\\nvar payloadStr = decodeToString(payload);\\n\\n// decode payload to JSON\\n// var data = decodeToJson(payload);\\n\\nvar deviceName = 'Device A';\\nvar deviceType = 'thermostat';\\nvar customerName = 'customer';\\nvar groupName = 'thermostat devices';\\nvar manufacturer = 'Example corporation';\\n// use assetName and assetType instead of deviceName and deviceType\\n// to automatically create assets instead of devices.\\n// var assetName = 'Asset A';\\n// var assetType = 'building';\\n\\n// Result object with device/asset attributes/telemetry data\\nvar result = {\\n// Use deviceName and deviceType or assetName and assetType, but not both.\\n   deviceName: deviceName,\\n   deviceType: deviceType,\\n// assetName: assetName,\\n// assetType: assetType,\\n   customerName: customerName,\\n   groupName: groupName,\\n   attributes: {\\n       model: 'Model A',\\n       serialNumber: 'SN111',\\n       integrationName: metadata['integrationName']\\n       manufacturer: manufacturer\\n   },\\n   telemetry: {\\n       temperature: 42,\\n       humidity: 80,\\n       rawData: payloadStr\\n   }\\n};\\n\\n/** Helper functions **/\\n\\nfunction decodeToString(payload) {\\n   return String.fromCharCode.apply(String, payload);\\n}\\n\\nfunction decodeToJson(payload) {\\n   // covert payload to string.\\n   var str = decodeToString(payload);\\n\\n   // parse string to JSON\\n   var data = JSON.parse(str);\\n   return data;\\n}\\n\\nreturn result;\"\n" +
             "}" +
             MARKDOWN_CODE_BLOCK_END;
 
@@ -2021,6 +2030,7 @@ public class ControllerConstants {
             "The former is used when the converter has UPLINK type, the latter is used - when DOWNLINK type. It can contain both 'decoder' and 'encoder' fields, when the correct one is specified for the appropriate converter type, another one can be set to 'null'. " +
             "See the examples of each one below. " + NEW_LINE +
             "## Uplink Converter Configuration" + NEW_LINE +
+            "***Default converter may be different, depending on integration type***." + NEW_LINE +
             CONVERTER_UPLINK_CONFIGURATION + NEW_LINE +
             "Decoder field in the more readable form:" + NEW_LINE +
             CONVERTER_TEXT_UPLINK_CONFIGURATION + NEW_LINE +
@@ -2120,4 +2130,289 @@ public class ControllerConstants {
             "Integration configuration (**'configuration'** field) is the JSON object representing the special configuration per integration type with " +
             "the connectivity fields and other important parameters dependent on the specific integration type. Let's review the configuration object for the MQTT Integration type below. " +
             NEW_LINE + INTEGRATION_CONFIGURATION_EXAMPLE + NEW_LINE;
+
+    // Default converter uplinks messages
+
+    static final String DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE = "{\n" +
+    "    \"end_device_ids\": {\n" +
+    "    \"device_id\": \"eui-1000000000000001\",\n" +
+    "        \"application_ids\": {\n" +
+    "            \"application_id\": \"application-tti-name\"\n" +
+    "        },\n" +
+    "        \"dev_eui\": \"1000000000000001\",\n" +
+    "        \"join_eui\": \"2000000000000001\",\n" +
+    "        \"dev_addr\": \"20000001\"\n" +
+    "    },\n" +
+    "    \"correlation_ids\": [\"as:up:01H0PZDGB1NW6NAPD815NGHPF6\", \"gs:conn:01H0FJRSXSYT7VKNYXJ89F95XT\", \"gs:up:host:01H0FJRSY3MZMGPPFBQ4FZV4T8\", \"gs:uplink:01H0PZDG4HHGFRTXRTXD4PFTH7\", \"ns:uplink:01H0PZDG4JZ3BM0K6J89EQK1J7\", \"rpc:/ttn.lorawan.v3.GsNs/HandleUplink:01H0PZDG4J02F85RYFPCNSNXCR\", \"rpc:/ttn.lorawan.v3.NsAs/HandleUplink:01H0PZDGB081PMP806BJHNHX1A\"],\n" +
+    "    \"received_at\": \"2023-05-18T08:25:26.112483370Z\",\n" +
+    "    \"uplink_message\": {\n" +
+    "    \"session_key_id\": \"AYfg8rhha5n+FWx0ZaAprA==\",\n" +
+    "    \"f_port\": 85,\n" +
+    "    \"f_cnt\": 5017,\n" +
+    "    \"frm_payload\": \"AXVeAwABBAAB\",\n" +
+    "    \"rx_metadata\": [{\n" +
+    "        \"gateway_ids\": {\n" +
+    "            \"gateway_id\": \"eui-6A7E111A10000000\",\n" +
+    "            \"eui\": \"6A7E111A10000000\"\n" +
+    "        },\n" +
+    "        \"time\": \"2023-05-18T08:25:25.885310Z\",\n" +
+    "        \"timestamp\": 818273765,\n" +
+    "        \"rssi\": -24,\n" +
+    "        \"channel_rssi\": -24,\n" +
+    "        \"snr\": 12,\n" +
+    "        \"frequency_offset\": \"671\",\n" +
+    "        \"uplink_token\": \"CiIKIAoUZXVpLTZBN0UxMTFBMTAwMDAwMDASCCThJP/+9k6eEOW7l4YDGgwI9cGXowYQ5KPhrwMgiI2rp+jpOA=\",\n" +
+    "        \"channel_index\": 2,\n" +
+    "        \"received_at\": \"2023-05-18T08:25:25.869324983Z\"\n" +
+    "    }, {\n" +
+    "        \"gateway_ids\": {\n" +
+    "        \"gateway_id\": \"packetbroker\"\n" +
+    "    },\n" +
+    "        \"packet_broker\": {\n" +
+    "            \"message_id\": \"01H0PZDG4MF9AYSMNY44MAVTDH\",\n" +
+    "            \"forwarder_net_id\": \"000013\",\n" +
+    "            \"forwarder_tenant_id\": \"ttn\",\n" +
+    "            \"forwarder_cluster_id\": \"eu1.cloud.thethings.network\",\n" +
+    "            \"forwarder_gateway_eui\": \"6A7E111A10000000\",\n" +
+    "            \"forwarder_gateway_id\": \"eui-6a7e111a10000000\",\n" +
+    "            \"home_network_net_id\": \"000013\",\n" +
+    "            \"home_network_tenant_id\": \"tenant\",\n" +
+    "            \"home_network_cluster_id\": \"eu1.cloud.thethings.industries\"\n" +
+    "        },\n" +
+    "        \"time\": \"2023-05-18T08:25:25.885310Z\",\n" +
+    "        \"rssi\": -24,\n" +
+    "        \"channel_rssi\": -24,\n" +
+    "        \"snr\": 12,\n" +
+    "        \"frequency_offset\": \"671\",\n" +
+    "        \"uplink_token\": \"eyJnIjoiWlhsS2FHSkhZMmxQYVVwQ1RWUkpORkl3VGs1VE1XTnBURU5LYkdKdFRXbFBhVXBDVFZSSk5GSXdUazVKYVhkcFlWaFphVTlwU201a01uaGhWVlJvZDFSWFVuRmlSM1JtVFcxT2RVbHBkMmxrUjBadVNXcHZhV05ZY0RKT1IyeExaREpSZVZwR1pIUmpNRXBLVlVoR2RFNVZkR3BWVTBvNUxua3paVVJTWVRaM1lXOU1kbTQwVm5sdmIyWmlPWGN1ZUhCZmVrcElaa3hIWlZadGRVUlFVeTVuYlRaVlZXRXdkakpHV0VKMGJUUjZaMjVXUkVoeGVHRjRaMlJKTlVkS1VsbERhemc1VDNCbk5rVk1iM1JDUkVZM1VWbHdZbEJDTkdOblNqWjBlbkphYUV4MFRVMHhZMVZFTTFac01XdExURUo0YURaMFExTnhhMVJsWWw4eE5FdHlVVXcyZUhsRWFFbEhlakJITXpoTE0xaFdlRzR5VUVjMk4wNUViME5WTkhoTmRrazFZVk5oWkUwd2FXVnFjR294VGtoMFduZHlZMDFxVlVGNmRsbERUazlNY2s5eFdVeFpWMk5XTG1WVFFYVkpNVkptT1U5NWRqUTNhSEoxTUZoalYxRT0iLCJhIjp7ImZuaWQiOiIwMDAwMTMiLCJmdGlkIjoidHRuIiwiZmNpZCI6ImV1MS5jbG91ZC50aGV0aGluZ3MubmV0d29yayJ9fQ==\",\n" +
+    "        \"received_at\": \"2023-05-18T08:25:25.906038642Z\"\n" +
+    "    }],\n" +
+    "        \"settings\": {\n" +
+    "            \"data_rate\": {\n" +
+    "                \"lora\": {\n" +
+    "                    \"bandwidth\": 125000,\n" +
+    "                    \"spreading_factor\": 7,\n" +
+    "                    \"coding_rate\": \"4/5\"\n" +
+    "                }\n" +
+    "            },\n" +
+    "            \"frequency\": \"868500000\",\n" +
+    "            \"timestamp\": 818273765,\n" +
+    "            \"time\": \"2023-05-18T08:25:25.885310Z\"\n" +
+    "        },\n" +
+    "        \"received_at\": \"2023-05-18T08:25:25.906399073Z\",\n" +
+    "        \"consumed_airtime\": \"0.097536s\",\n" +
+    "        \"network_ids\": {\n" +
+    "            \"net_id\": \"000013\",\n" +
+    "            \"tenant_id\": \"tenant\",\n" +
+    "            \"cluster_id\": \"eu1\",\n" +
+    "            \"cluster_address\": \"eu1.cloud.thethings.industries\",\n" +
+    "            \"tenant_address\": \"tenant.eu1.cloud.thethings.industries\"\n" +
+    "        }\n" +
+    "    }\n" +
+    "}";
+
+    static final String DEFAULT_TTN_UPLINK_CONVERTER_MESSAGE = "{\n" +
+    "    \"end_device_ids\": {\n" +
+    "        \"device_id\": \"eui-1000000000000001\",\n" +
+    "            \"application_ids\": {\n" +
+    "                \"application_id\": \"application-tts-name\"\n" +
+    "            },\n" +
+    "        \"dev_eui\": \"1000000000000001\",\n" +
+    "        \"join_eui\": \"2000000000000001\",\n" +
+    "        \"dev_addr\": \"20000001\"\n" +
+    "    },\n" +
+    "    \"correlation_ids\": [\"as:up:01H0S7ZJQ9MQPMVY49FT3SE07M\", \"gs:conn:01H03BQZ9342X3Y86DJ2P704E5\", \"gs:up:host:01H03BQZ99EGAM52KK1300GFKN\", \"gs:uplink:01H0S7ZJGS6D9TJSKJN8XNTMAV\", \"ns:uplink:01H0S7ZJGS9KKD4HTTPKFEMWCV\", \"rpc:/ttn.lorawan.v3.GsNs/HandleUplink:01H0S7ZJGSF3M38ZRZVTM38DEC\", \"rpc:/ttn.lorawan.v3.NsAs/HandleUplink:01H0S7ZJQ8R2EH5AA269AKM8DX\"],\n" +
+    "    \"received_at\": \"2023-05-19T05:33:35.848446463Z\",\n" +
+    "    \"uplink_message\": {\n" +
+    "    \"session_key_id\": \"AYfqmb0pc/1uRZv9xUydgQ==\",\n" +
+    "    \"f_port\": 85,\n" +
+    "    \"f_cnt\": 10335,\n" +
+    "    \"frm_payload\": \"AXVeAwABBAAB\",\n" +
+    "    \"rx_metadata\": [{\n" +
+    "        \"gateway_ids\": {\n" +
+    "            \"gateway_id\": \"eui-6a7e111a10000000\",\n" +
+    "            \"eui\": \"6A7E111A10000000\"\n" +
+    "        },\n" +
+    "        \"time\": \"2023-05-19T05:33:35.608982Z\",\n" +
+    "        \"timestamp\": 3893546133,\n" +
+    "        \"rssi\": -35,\n" +
+    "        \"channel_rssi\": -35,\n" +
+    "        \"snr\": 13.2,\n" +
+    "        \"frequency_offset\": \"69\",\n" +
+    "        \"uplink_token\": \"CiIKIAoUZXVpLTZhN2UxMTFhMTAwMDAwMDASCCThJP/+9k6eEJWZy8AOGgwIr5ScowYQvNbUsQIgiMy8y6jwpwE=\",\n" +
+    "        \"channel_index\": 3,\n" +
+    "        \"received_at\": \"2023-05-19T05:33:35.607383681Z\"\n" +
+    "    }],\n" +
+    "    \"settings\": {\n" +
+    "        \"data_rate\": {\n" +
+    "            \"lora\": {\n" +
+    "                \"bandwidth\": 125000,\n" +
+    "                \"spreading_factor\": 7,\n" +
+    "                \"coding_rate\": \"4/5\"\n" +
+    "                }\n" +
+    "            },\n" +
+    "            \"frequency\": \"867100000\",\n" +
+    "            \"timestamp\": 3893546133,\n" +
+    "            \"time\": \"2023-05-19T05:33:35.608982Z\"\n" +
+    "        },\n" +
+    "        \"received_at\": \"2023-05-19T05:33:35.641841782Z\",\n" +
+    "        \"consumed_airtime\": \"0.056576s\",\n" +
+    "            \"network_ids\": {\n" +
+    "                \"net_id\": \"000013\",\n" +
+    "                \"tenant_id\": \"ttn\",\n" +
+    "                \"cluster_id\": \"eu1\",\n" +
+    "                \"cluster_address\": \"eu1.cloud.thethings.network\"\n" +
+    "        }\n" +
+    "    }\n" +
+    "}\n";
+
+    static final String DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE =
+    "{\n" +
+    "    \"cmd\": \"rx\",\n" +
+    "    \"seqno\": 3040,\n" +
+    "    \"EUI\": \"1000000000000001\",\n" +
+    "    \"ts\": 1684478801936,\n" +
+    "    \"fcnt\": 2,\n" +
+    "    \"port\": 85,\n" +
+    "    \"freq\": 867500000,\n" +
+    "    \"rssi\": -21,\n" +
+    "    \"snr\": 10,\n" +
+    "    \"toa\": 206,\n" +
+    "    \"dr\": \"SF9 BW125 4/5\",\n" +
+    "    \"ack\": false,\n" +
+    "    \"bat\": 94,\n" +
+    "    \"offline\": false,\n" +
+    "    \"data\": \"01755e030001040001\"\n" +
+    "}\n";
+
+    static final String DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE = "{\n" +
+    "   \"deduplicationId\": \"57433366-50a6-4dc2-8145-2df1bbc70d9e\",\n" +
+    "   \"time\": \"2023-05-22T07:47:05.404859+00:00\",\n" +
+    "   \"deviceInfo\": {\n" +
+    "       \"tenantId\": \"52f14cd4-c6f1-4fbd-8f87-4025e1d49242\",\n" +
+    "       \"tenantName\": \"ChirpStack\",\n" +
+    "       \"applicationId\": \"ca739e26-7b67-4f14-b69e-d568c22a5a75\",\n" +
+    "       \"applicationName\": \"Chirpstack application\",\n" +
+    "       \"deviceProfileId\": \"605d08d4-65f5-4d2c-8a5a-3d2457662f79\",\n" +
+    "       \"deviceProfileName\": \"Chirpstack default device profile\",\n" +
+    "       \"deviceName\": \"Device name\",\n" +
+    "       \"devEui\": \"1000000000000001\",\n" +
+    "       \"tags\": {}\n" +
+    "    },\n" +
+    "       \"devAddr\": \"20000001\",\n" +
+    "       \"adr\": true,\n" +
+    "       \"dr\": 5,\n" +
+    "       \"fCnt\": 4,\n" +
+    "       \"fPort\": 85,\n" +
+    "       \"confirmed\": false,\n" +
+    "       \"data\": \"AXVdAwABBAAA\",\n" +
+    "       \"rxInfo\": [{\n" +
+    "           \"gatewayId\": \"6a7e111a10000000\",\n" +
+    "           \"uplinkId\": 24022,\n" +
+    "           \"time\": \"2023-05-22T07:47:05.404859+00:00\",\n" +
+    "           \"rssi\": -35,\n" +
+    "           \"snr\": 11.5,\n" +
+    "           \"channel\": 2,\n" +
+    "           \"rfChain\": 1,\n" +
+    "           \"location\": {},\n" +
+    "           \"context\": \"EFwMtA==\",\n" +
+    "           \"metadata\": {\n" +
+    "               \"region_common_name\": \"EU868\",\n" +
+    "               \"region_config_id\": \"eu868\"\n" +
+    "               },\n" +
+    "           \"crcStatus\": \"CRC_OK\"\n" +
+    "       }],\n" +
+    "       \"txInfo\": {\n" +
+    "           \"frequency\": 868500000,\n" +
+    "           \"modulation\": {\n" +
+    "               \"lora\": {\n" +
+    "                   \"bandwidth\": 125000,\n" +
+    "                   \"spreadingFactor\": 7,\n" +
+    "                   \"codeRate\": \"CR_4_5\"\n" +
+    "           }\n" +
+    "        }\n" +
+    "    }\n" +
+    "}";
+
+    static final String DEFAULT_SIGFOX_UPLINK_CONVERTER_MESSAGE = "{\n" +
+    "    \"device\": \"2203961\",\n" +
+    "    \"time\": \"1686298419\",\n" +
+    "    \"data\": \"2502af2102462a\",\n" +
+    "    \"seqNumber\": \"570\",\n" +
+    "    \"deviceTypeId\": \"630ceaea10d051194ec0246e\",\n" +
+    "    \"ack\": \"false\",\n" +
+    "    \"customData#int1\": \"37\",\n" +
+    "    \"customData#int2\": \"2\"\n" +
+    "}";
+
+    static final String DEFAULT_SIGFOX_UPLINK_CONVERTER_METADATA = "{\n" +
+    "    \"Header:accept-encoding\": \"gzip,deflate\",\n" +
+    "    \"Header:content-type\": \"application/json\",\n" +
+    "    \"Header:content-length\": \"243\",\n" +
+    "    \"Header:user-agent\": \"SIGFOX\",\n" +
+    "    \"Header:accept-charset\": \"UTF-8;q=0.9,*;q=0.7\",\n" +
+    "    \"Header:accept-language\": \"en\"" +
+    "}\n";
+
+    static final String DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE = "{\n" +
+            "  \"deviceId\": \"8F4A2C6D\",\n" +
+            "  \"deviceType\": \"Packing machine\",\n" +
+            "  \"temperature\": 25.5,\n" +
+            "  \"pressure\": 1013.25,\n" +
+            "  \"vibration\": {\n" +
+            "    \"x\": 0.02,\n" +
+            "    \"y\": 0.03,\n" +
+            "    \"z\": 0.015\n" +
+            "  },\n" +
+            "  \"location\": {\n" +
+            "    \"latitude\": 37.7749,\n" +
+            "    \"longitude\": -122.4194,\n" +
+            "    \"altitude\": 10\n" +
+            "  },\n" +
+            "  \"timestamp\": \"2023-06-09T10:30:00Z\",\n" +
+            "  \"status\": \"ALARM\",\n" +
+            "  \"alarms\": [\n" +
+            "    {\n" +
+            "      \"type\": \"temperature\",\n" +
+            "      \"severity\": \"high\",\n" +
+            "      \"message\": \"Temperature exceeds threshold.\"\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"type\": \"vibration\",\n" +
+            "      \"severity\": \"critical\",\n" +
+            "      \"message\": \"Excessive vibration detected.\"\n" +
+            "    }\n" +
+            "  ],\n" +
+            "  \"metadata\": {\n" +
+            "    \"version\": 1,\n" +
+            "    \"batteryLevel\": 100,\n" +
+            "    \"batteryStatus\": \"Charging\",\n" +
+            "    \"manufacturer\": \"Example corporation\"\n" +
+            "  }\n" +
+            "}";
+
+    static final String DEFAULT_AWS_IOT_UPLINK_CONVERTER_MESSAGE = "{\n" +
+            "  \"device_id\": \"3G7H1j-9zF\",\n" +
+            "  \"timestamp\": \"2023-06-10T12:00:00Z\",\n" +
+            "  \"sensor_data\": {\n" +
+            "    \"temperature\": 25.3,\n" +
+            "    \"humidity\": 62.8,\n" +
+            "    \"pressure\": 1012.5\n" +
+            "  },\n" +
+            "  \"location\": {\n" +
+            "    \"latitude\": 37.7749,\n" +
+            "    \"longitude\": -122.4194\n" +
+            "  },\n" +
+            "  \"status\": \"active\",\n" +
+            "  \"power_status\": \"on\",\n" +
+            "  \"vibration\": {\n" +
+            "    \"x\": 0.02,\n" +
+            "    \"y\": 0.03,\n" +
+            "    \"z\": 0.01\n" +
+            "  },\n" +
+            "  \"fault_codes\": [100, 204, 301],\n" +
+            "  \"battery_level\": 78.5\n" +
+            "}\n";
+    
+    // Default converter uplinks messages
 }
