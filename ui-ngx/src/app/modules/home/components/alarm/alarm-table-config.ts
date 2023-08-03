@@ -184,7 +184,7 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
       {
         name: this.translate.instant('alarm.acknowledge'),
         icon: 'done',
-        isEnabled: true,
+        isEnabled: !this.readonly,
         onAction: ($event, entities) => this.ackAlarms($event, entities)
       }
     )
@@ -192,7 +192,7 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
       {
         name: this.translate.instant('alarm.clear'),
         icon: 'clear',
-        isEnabled: true,
+        isEnabled: !this.readonly,
         onAction: ($event, entities) => this.clearAlarms($event, entities)
       }
     )
