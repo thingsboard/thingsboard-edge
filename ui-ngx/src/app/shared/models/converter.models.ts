@@ -35,14 +35,13 @@ import { ConverterId } from '@shared/models/id/converter-id';
 import { ContentType } from '@shared/models/constants';
 import { ActivatedRouteSnapshot } from '@angular/router';
 import { IntegrationType } from '@shared/models/integration.models';
-import onValueUpdateKeyDefaultValuesStr from '!raw-loader!src/assets/converters/default-on-value-update-keys.raw';
 
 export enum ConverterType {
   UPLINK = 'UPLINK',
   DOWNLINK = 'DOWNLINK'
 }
 
-export const DecoderUrlMap = new Map<IntegrationType, string>([
+export const IntegrationTbelDefaultConvertersUrl = new Map<IntegrationType, string>([
   [IntegrationType.CHIRPSTACK, '/assets/converters/tbel-chirpstack-decoder.raw'],
   [IntegrationType.LORIOT, '/assets/converters/tbel-loriot-decoder.raw'],
   [IntegrationType.TTI,'/assets/converters/tbel-tti-decoder.raw'],
@@ -64,7 +63,8 @@ export const tbelDefaultConvertorsUrl = new Map<ConverterType, string>([
   [ConverterType.DOWNLINK, '/assets/converters/tbel-encoder.raw'],
 ]);
 
-export const defaultupdateOnlyKeys = JSON.parse(onValueUpdateKeyDefaultValuesStr);
+export const DefaultUpdateOnlyKeysValue = ['manufacturer'];
+export type DefaultUpdateOnlyKeys = {[key in IntegrationType]?: Array<string>};
 
 export const converterTypeTranslationMap = new Map<ConverterType, string>(
   [

@@ -1,9 +1,9 @@
 {
-  "DEFAULT": ["manufacturer"],
   "CHIRPSTACK" : ["tenantId", "tenantName", "applicationId", "applicationName", "deviceProfileId", "deviceProfileName", "devEui", "devAddr", "fPort", "frequency", "bandwidth", "spreadingFactor", "codeRate", "battery", "pir", "daylight", "confirmed", "gatewayId", "channel", "rfChain", "crcStatus"],
   "LORIOT" : ["fPort", "dataRange", "freq", "offline", "battery", "pir", "daylight", "ack", "bat"],
   "TTI" : ["devEui", "fPort", "bandwidth", "spreading_factor", "coding_rate", "frequency", "net_id", "tenant_id", "cluster_id", "cluster_address", "tenant_address", "device_id", "application_id", "join_eui", "dev_addr", "battery", "pir", "daylight", "eui", "forwarder_net_id", "forwarder_tenant_id", "forwarder_cluster_id", "forwarder_gateway_eui", "home_network_net_id", "home_network_tenant_id", "home_network_cluster_id"],
-  "TTN" : ["devEui", "fPort", "bandwidth", "spreading_factor", "coding_rate", "frequency", "net_id", "tenant_id", "cluster_id", "cluster_address", "device_id", "application_id", "join_eui", "dev_addr", "battery", "pir", "daylight", "eui"], "SIGFOX" : ["sigfoxId", "deviceTypeId", "autoCalibration", "zeroPointAdjusted", "transmitPower", "powerControl", "fwVersion"],
+  "TTN" : ["devEui", "fPort", "bandwidth", "spreading_factor", "coding_rate", "frequency", "net_id", "tenant_id", "cluster_id", "cluster_address", "device_id", "application_id", "join_eui", "dev_addr", "battery", "pir", "daylight", "eui"],
+  "SIGFOX" : ["sigfoxId", "deviceTypeId", "autoCalibration", "zeroPointAdjusted", "transmitPower", "powerControl", "fwVersion"],
   "AZURE_IOT_HUB" : ["manufacturer", "receivedAlarms", "status", "batteryLevel", "batteryStatus", "version"],
   "AZURE_EVENT_HUB" : ["manufacturer", "receivedAlarms", "status", "batteryLevel", "batteryStatus", "version"],
   "AZURE_SERVICE_BUS" : ["manufacturer", "receivedAlarms", "status", "batteryLevel", "batteryStatus", "version"],
