@@ -19,18 +19,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.dao.edge.EdgeSynchronizationManager;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
-import org.thingsboard.server.dao.eventsourcing.ActionRelationEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.RelationActionEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 
 import javax.annotation.PostConstruct;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -39,7 +39,7 @@ import static org.thingsboard.server.service.entitiy.DefaultTbNotificationEntity
 /**
  * This event listener does not support async event processing because relay on ThreadLocal
  * Another possible approach is to implement a special annotation and a bunch of classes similar to TransactionalApplicationListener
- * This class is the simplest approach to maintain replica synchronization within the single class.
+ * This class is the simplest approach to maintain cloud synchronization within the single class.
  * <p>
  * For async event publishers, you have to decide whether publish event on creating async task in the same thread where dao method called
  * @Autowired
@@ -58,7 +58,7 @@ public class CloudEventSourcingListener {
     private final TbClusterService tbClusterService;
     private final EdgeSynchronizationManager edgeSynchronizationManager;
 
-    private List<EntityType> supportableEntityTypes = Arrays.asList(EntityType.DEVICE, EntityType.ALARM);
+    private final List<EntityType> supportableEntityTypes = Arrays.asList(EntityType.DEVICE, EntityType.ALARM);
 
     @PostConstruct
     public void init() {
@@ -66,30 +66,30 @@ public class CloudEventSourcingListener {
     }
 
     @TransactionalEventListener(fallbackExecution = true)
-    public void handleEvent(SaveEntityEvent event) {
+    public void handleEvent(SaveEntityEvent<?> event) {
         if (edgeSynchronizationManager.isSync()) {
             return;
         }
         if (event.getEntityId() != null && !supportableEntityTypes.contains(event.getEntityId().getEntityType())) {
             return;
         }
-        log.trace("[{}] EntitySaveEvent called: {}", event.getEntityId().getEntityType(), event);
+        log.trace("[{}] SaveEntityEvent called: {}", event.getEntityId().getEntityType(), event);
         EdgeEventActionType action = Boolean.TRUE.equals(event.getAdded()) ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED;
         tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), event.getEntityId(),
                 null, null, action);
     }
 
     @TransactionalEventListener(fallbackExecution = true)
-    public void handleEvent(DeleteEntityEvent event) {
+    public void handleEvent(DeleteEntityEvent<?> event) {
         if (edgeSynchronizationManager.isSync()) {
             return;
         }
         if (event.getEntityId() != null && !supportableEntityTypes.contains(event.getEntityId().getEntityType())) {
             return;
         }
-        log.trace("[{}] EntityDeleteEvent called: {}", event.getEntityId().getEntityType(), event);
+        log.trace("[{}] DeleteEntityEvent called: {}", event.getEntityId().getEntityType(), event);
         tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), event.getEntityId(),
-                event.getBody(), null, EdgeEventActionType.DELETED);
+                JacksonUtil.toString(event.getEntity()), null, EdgeEventActionType.DELETED);
     }
 
     @TransactionalEventListener(fallbackExecution = true)
@@ -100,18 +100,18 @@ public class CloudEventSourcingListener {
         if (event.getEntityId() != null && !supportableEntityTypes.contains(event.getEntityId().getEntityType())) {
             return;
         }
-        log.trace("[{}] EntityActionEvent called: {}", event.getEntityId().getEntityType(), event);
+        log.trace("[{}] ActionEntityEvent called: {}", event.getEntityId().getEntityType(), event);
         tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), event.getEntityId(),
                 event.getBody(), null, edgeTypeByActionType(event.getActionType()));
     }
 
     @TransactionalEventListener(fallbackExecution = true)
-    public void handleEvent(ActionRelationEvent event) {
+    public void handleEvent(RelationActionEvent event) {
         if (edgeSynchronizationManager.isSync()) {
             return;
         }
-        log.trace("EntityRelationActionEvent called: {}", event);
+        log.trace("RelationActionEvent called: {}", event);
         tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), null,
-                event.getBody(), CloudEventType.RELATION, edgeTypeByActionType(event.getActionType()));
+                JacksonUtil.toString(event.getRelation()), CloudEventType.RELATION, edgeTypeByActionType(event.getActionType()));
     }
 }
