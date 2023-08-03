@@ -105,8 +105,6 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
 
   converterTypeTranslations = converterTypeTranslationMap;
 
-  form: FormGroup;
-
   tbelEnabled: boolean;
 
   scriptLanguage = ScriptLanguage;
@@ -298,9 +296,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
 
       request = this.converterService.getLatestConverterDebugInput(NULL_UUID, parameters);
     }
-    request.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe(
+    request.subscribe(
       (debugIn) => {
         this.showConverterTestDialog(debugIn);
       }

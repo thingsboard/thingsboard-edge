@@ -108,8 +108,7 @@ export class ConverterService {
     if (parameters) {
       url += `?converterType=${parameters.converterType}`;
       if (parameters.integrationName && parameters.integrationType) {
-        url += `&integrationType=${parameters.integrationType}&integrationName=${
-            parameters.integrationName}`;
+        url += `&integrationType=${parameters.integrationType}&integrationName=${parameters.integrationName}`;
       }
     }
     return this.http.get<ConverterDebugInput>(url, defaultHttpOptionsFromConfig(config));
