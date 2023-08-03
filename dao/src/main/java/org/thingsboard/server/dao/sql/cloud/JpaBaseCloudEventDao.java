@@ -162,6 +162,7 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
 
     @Override
     public PageData<CloudEvent> findCloudEvents(UUID tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink) {
+        log.trace("Executing findCloudEvents [{}], [{}], [{}], [{}]", tenantId, seqIdStart, seqIdEnd, pageLink);
         return DaoUtil.toPageData(
                 cloudEventRepository
                         .findEventsByTenantId(
