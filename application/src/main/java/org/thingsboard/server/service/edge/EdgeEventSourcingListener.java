@@ -103,7 +103,7 @@ public class EdgeEventSourcingListener {
             tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), null, event.getEntityId(),
                     null, null, action);
         } catch (Exception e) {
-            log.trace("[{}] failed to process SaveEntityEvent called: {}", event.getTenantId(), event);
+            log.error("[{}] failed to process SaveEntityEvent: {}", event.getTenantId(), event);
         }
     }
 
@@ -117,7 +117,7 @@ public class EdgeEventSourcingListener {
             tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), event.getEdgeId(), event.getEntityId(),
                     JacksonUtil.toString(event.getEntity()), null, EdgeEventActionType.DELETED);
         } catch (Exception e) {
-            log.trace("[{}] failed to process DeleteEntityEvent called: {}", event.getTenantId(), event);
+            log.error("[{}] failed to process DeleteEntityEvent: {}", event.getTenantId(), event);
         }
     }
 
@@ -144,7 +144,7 @@ public class EdgeEventSourcingListener {
                     event.getBody(), event.getEdgeEventType(), edgeTypeByActionType(event.getActionType()),
                     entityGroupType, entityGroupId);
         } catch (Exception e) {
-            log.trace("[{}] failed to process ActionEntityEvent called: {}", event.getTenantId(), event);
+            log.error("[{}] failed to process ActionEntityEvent: {}", event.getTenantId(), event);
         }
     }
 
@@ -167,7 +167,7 @@ public class EdgeEventSourcingListener {
             tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), null, null,
                     JacksonUtil.toString(relation), EdgeEventType.RELATION, edgeTypeByActionType(event.getActionType()));
         } catch (Exception e) {
-            log.trace("[{}] failed to process RelationActionEvent called: {}", event.getTenantId(), event);
+            log.error("[{}] failed to process RelationActionEvent: {}", event.getTenantId(), event);
         }
     }
 
