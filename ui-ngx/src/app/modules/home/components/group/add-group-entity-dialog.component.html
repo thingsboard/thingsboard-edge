@@ -44,7 +44,11 @@
 </mat-progress-bar>
 <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
 <div mat-dialog-content>
-  <mat-horizontal-stepper [linear]="true" [labelPosition]="labelPosition" #addGroupEntityWizardStepper (selectionChange)="changeStep($event)">
+  <mat-horizontal-stepper [ngClass]="{'hide-stepper': hideStepper}"
+                          [linear]="true"
+                          [labelPosition]="labelPosition"
+                          #addGroupEntityWizardStepper
+                          (selectionChange)="changeStep($event)">
     <ng-template matStepperIcon="edit">
       <mat-icon>check</mat-icon>
     </ng-template>
@@ -54,19 +58,22 @@
     </mat-step>
     <mat-step [stepControl]="ownerAndGroupsFormGroup" [optional]="true">
       <ng-template matStepLabel>{{ 'entity-group.owner-and-groups' | translate }}</ng-template>
-      <form [formGroup]="ownerAndGroupsFormGroup">
-        <tb-owner-and-groups
-          [entityType]="entityType"
-          [defaultOwnerId]="initialOwnerId"
-          [skipDefaultPermissionCheck]="true"
-          formControlName="ownerAndGroups">
-        </tb-owner-and-groups>
-      </form>
+      <ng-container *ngTemplateOutlet=ownersAndGroup></ng-container>
     </mat-step>
   </mat-horizontal-stepper>
+  <ng-template #ownersAndGroup>
+    <form [formGroup]="ownerAndGroupsFormGroup" #ownersAndGroupForm>
+      <tb-owner-and-groups
+        [entityType]="entityType"
+        [defaultOwnerId]="initialOwnerId"
+        [skipDefaultPermissionCheck]="true"
+        formControlName="ownerAndGroups">
+      </tb-owner-and-groups>
+    </form>
+  </ng-template>
 </div>
 <div mat-dialog-actions style="padding: 0">
-  <div class="dialog-actions-row" fxFlex fxLayout="row" fxLayoutAlign="end center">
+  <div class="dialog-actions-row" fxFlex fxLayout="row" fxLayoutAlign="end center" *ngIf="!hideStepper">
     <button mat-stroked-button *ngIf="selectedIndex > 0"
             [disabled]="(isLoading$ | async)"
             (click)="previousStep()">{{ 'action.back' | translate }}</button>

@@ -39,13 +39,11 @@ import { ASSET_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-ta
 import { AssetGroupConfigFactory } from '@home/pages/asset/asset-group-config.factory';
 import { AssetRoutingModule } from '@home/pages/asset/asset-routing.module';
 import { AssetTableHeaderComponent } from '@home/pages/asset/asset-table-header.component';
-import { AddAssetDialogComponent } from '@home/pages/asset/add-asset-dialog.component';
 
 @NgModule({
   declarations: [
     AssetComponent,
-    AssetTableHeaderComponent,
-    AddAssetDialogComponent
+    AssetTableHeaderComponent
   ],
   imports: [
     CommonModule,

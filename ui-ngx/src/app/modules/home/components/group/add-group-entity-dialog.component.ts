@@ -30,8 +30,10 @@
 ///
 
 import {
+  AfterViewInit, ChangeDetectorRef,
   Component,
   ComponentFactoryResolver,
+  ElementRef,
   HostBinding,
   Inject,
   Injector,
@@ -76,11 +78,12 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./add-group-entity-dialog.component.scss']
 })
 export class AddGroupEntityDialogComponent extends
-  DialogComponent<AddGroupEntityDialogComponent, BaseData<HasId>> implements OnInit, OnDestroy {
+  DialogComponent<AddGroupEntityDialogComponent, BaseData<HasId>> implements OnInit, OnDestroy, AfterViewInit {
 
   @ViewChild('addGroupEntityWizardStepper', {static: true}) addGroupEntityWizardStepper: MatStepper;
   @ViewChild('detailsFormStep', {static: true, read: ViewContainerRef}) detailsFormStepContainerRef: ViewContainerRef;
   @ViewChild('entityDetailsForm', {static: true}) entityDetailsFormAnchor: TbAnchorComponent;
+  @ViewChild('ownersAndGroupForm') ownersAndGroup: ElementRef;
 
   @HostBinding('style')
   style = this.data.entitiesTableConfig.addDialogStyle;
@@ -89,7 +92,7 @@ export class AddGroupEntityDialogComponent extends
 
   showNext = true;
 
-  labelPosition = 'end';
+  labelPosition: 'bottom' | 'end' = 'end';
 
   entityComponent: GroupEntityComponent<BaseData<HasId>>;
   detailsForm: UntypedFormGroup;
@@ -105,6 +108,7 @@ export class AddGroupEntityDialogComponent extends
   groupMode = false;
   initialOwnerId: EntityId;
   initialGroups: EntityInfoData[];
+  hideStepper = false;
 
   private subscriptions: Subscription[] = [];
 
@@ -118,6 +122,7 @@ export class AddGroupEntityDialogComponent extends
               private entityService: EntityService,
               private userPermissionsService: UserPermissionsService,
               private breakpointObserver: BreakpointObserver,
+              private cd: ChangeDetectorRef,
               private fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
   }
@@ -130,6 +135,7 @@ export class AddGroupEntityDialogComponent extends
     this.entityType = this.groupMode ? this.entityGroup.type : this.entitiesTableConfig.entityType;
     this.translations = this.entitiesTableConfig.entityTranslations;
     this.resources = this.entitiesTableConfig.entityResources;
+    this.hideStepper = this.entitiesTableConfig.hideStepper;
     this.entity = {
       id: {
         entityType: this.entityType,
@@ -149,30 +155,6 @@ export class AddGroupEntityDialogComponent extends
         this.initialOwnerId = this.userPermissionsService.getUserOwnerId();
       }
     }
-    const viewContainerRef = this.entityDetailsFormAnchor.viewContainerRef;
-    viewContainerRef.clear();
-
-    const injector: Injector = Injector.create(
-      {
-        providers: [
-          {
-            provide: 'entity',
-            useValue: this.entity
-          },
-          {
-            provide: 'entitiesTableConfig',
-            useValue: this.entitiesTableConfig
-          }
-        ],
-        parent: this.detailsFormStepContainerRef.injector
-      }
-    );
-    const componentRef = viewContainerRef.createComponent(
-      this.entitiesTableConfig.entityComponent as Type<GroupEntityComponent<BaseData<HasId>>>,
-      {index: 0, injector});
-    this.entityComponent = componentRef.instance;
-    this.entityComponent.isEdit = true;
-    this.detailsForm = this.entityComponent.entityForm;
 
     const ownerAndGroups: OwnerAndGroupsData = {
       owner: this.initialOwnerId,
@@ -195,6 +177,39 @@ export class AddGroupEntityDialogComponent extends
           }
         }
       ));
+  }
+
+  ngAfterViewInit(): void {
+      const viewContainerRef = this.entityDetailsFormAnchor.viewContainerRef;
+      viewContainerRef.clear();
+
+      const injector: Injector = Injector.create(
+        {
+          providers: [
+            {
+              provide: 'entity',
+              useValue: this.entity
+            },
+            {
+              provide: 'entitiesTableConfig',
+              useValue: this.entitiesTableConfig
+            }
+          ],
+          parent: this.detailsFormStepContainerRef.injector
+        }
+      );
+      let ownersAndGroupsForm: HTMLElement;
+      if (this.hideStepper) {
+        ownersAndGroupsForm = document.createElement('div');
+        ownersAndGroupsForm.appendChild(this.ownersAndGroup.nativeElement);
+      }
+      const componentRef = viewContainerRef.createComponent(
+        this.entitiesTableConfig.entityComponent as Type<GroupEntityComponent<BaseData<HasId>>>,
+        {index: 0, injector, projectableNodes: [[ownersAndGroupsForm]]});
+      this.entityComponent = componentRef.instance;
+      this.entityComponent.isEdit = true;
+      this.detailsForm = this.entityComponent.entityForm;
+      this.cd.detectChanges();
   }
 
   ngOnDestroy() {

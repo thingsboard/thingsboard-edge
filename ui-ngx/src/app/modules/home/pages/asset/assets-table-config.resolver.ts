@@ -34,10 +34,12 @@ import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
   CellActionDescriptor,
-  DateEntityTableColumn, EntityColumn,
+  DateEntityTableColumn,
+  EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
-  GroupActionDescriptor, GroupChipsEntityTableColumn,
+  GroupActionDescriptor,
+  GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
@@ -66,7 +68,6 @@ import { GroupEntityTabsComponent } from '@home/components/group/group-entity-ta
 import { AssetComponent } from '@home/pages/asset/asset.component';
 import { AuthUser } from '@shared/models/user.model';
 import { CustomerId } from '@shared/models/id/customer-id';
-import { AddAssetDialogComponent, AddAssetDialogData } from '@home/pages/asset/add-asset-dialog.component';
 
 @Injectable()
 export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<AssetInfo>> {
@@ -124,7 +125,8 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     config.entityTabsComponent = GroupEntityTabsComponent<AssetInfo>;
     config.entityTranslations = entityTypeTranslations.get(EntityType.ASSET);
     config.entityResources = entityTypeResources.get(EntityType.ASSET);
-    config.addDialogStyle = {height: '620px'};
+    config.addDialogStyle = {height: '715px'};
+    config.hideStepper = true;
 
     config.entityTitle = (asset) => asset ?
       this.utils.customTranslation(asset.name, asset.name) : '';
@@ -197,7 +199,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
         name: this.translate.instant('asset.add-asset-text'),
         icon: 'insert_drive_file',
         isEnabled: () => true,
-        onAction: ($event) => this.assetDialog($event, config)
+        onAction: ($event) => config.getTable().addEntity($event)
       },
       {
         name: this.translate.instant('asset.import'),
@@ -206,25 +208,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
         onAction: ($event) => this.importAssets($event, config)
       }
     );
-    config.addEntity = () => {this.assetDialog(null, config); return of(null); };
     return actions;
-  }
-
-  assetDialog($event: Event, config: EntityTableConfig<AssetInfo>) {
-    return this.dialog.open<AddAssetDialogComponent, AddAssetDialogData,
-      AssetInfo>(AddAssetDialogComponent, {
-      disableClose: true,
-      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
-      data: {
-        customerId: config.customerId
-      }
-    }).afterClosed().subscribe(
-      (res) => {
-        if (res) {
-          config.updateData();
-        }
-      }
-    );
   }
 
   private openAsset($event: Event, asset: AssetInfo, config: EntityTableConfig<AssetInfo>) {

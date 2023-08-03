@@ -54,7 +54,6 @@ import { AssetComponent } from '@home/pages/asset/asset.component';
 import { Operation } from '@shared/models/security.models';
 import { Router, UrlTree } from '@angular/router';
 import { WINDOW } from '@core/services/window.service';
-import { AddAssetDialogComponent, AddAssetDialogData } from '@home/pages/asset/add-asset-dialog.component';
 
 @Injectable()
 export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<AssetInfo> {
@@ -96,8 +95,6 @@ export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<As
 
     config.onEntityAction = action => this.onAssetAction(action, config, params);
 
-    config.addEntity = () => this.assetDialog(config);
-
     if (this.userPermissionsService.hasGroupEntityPermission(Operation.CREATE, config.entityGroup)) {
       config.headerActionDescriptors.push(
         {
@@ -109,17 +106,6 @@ export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<As
       );
     }
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
-  }
-
-  assetDialog(config: GroupEntityTableConfig<AssetInfo>): Observable<AssetInfo> {
-    return this.dialog.open<AddAssetDialogComponent, AddAssetDialogData,
-      AssetInfo>(AddAssetDialogComponent, {
-      disableClose: true,
-      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
-      data: {
-        entityGroup: config.entityGroup
-      }
-    }).afterClosed();
   }
 
   importAssets($event: Event, config: GroupEntityTableConfig<AssetInfo>) {
