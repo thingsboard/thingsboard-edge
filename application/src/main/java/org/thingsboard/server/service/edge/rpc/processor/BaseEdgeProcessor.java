@@ -522,6 +522,9 @@ public abstract class BaseEdgeProcessor {
         if (edgeNotificationMsg.getEntityGroupIdMSB() != 0 && edgeNotificationMsg.getEntityGroupIdLSB() != 0) {
             EntityGroupId entityGroupId = new EntityGroupId(new UUID(edgeNotificationMsg.getEntityGroupIdMSB(), edgeNotificationMsg.getEntityGroupIdLSB()));
             EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
+            if (entityGroup == null) {
+                return null;
+            }
             if (entityGroup.isEdgeGroupAll()) {
                 return null;
             } else {
