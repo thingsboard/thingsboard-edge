@@ -61,7 +61,6 @@ import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -150,7 +149,7 @@ public class IntegrationContextComponent {
     private IntegrationStatisticsService integrationStatisticsService;
 
     @Autowired
-    private Optional<IntegrationRateLimitService> rateLimitService;
+    private IntegrationRateLimitService rateLimitService;
 
     private EventLoopGroup eventLoopGroup;
     private ScheduledExecutorService scheduledExecutorService;

@@ -200,6 +200,6 @@ public class LocalIntegrationContext implements IntegrationContext {
 
     @Override
     public Optional<IntegrationRateLimitService> getRateLimitService() {
-        return ctx.getRateLimitService();
+        return Optional.of(ctx.getRateLimitService());
     }
 }
