@@ -28,11 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.metadata;
+package org.thingsboard.server.common.data.msg;
 
-public enum FetchTo {
+/**
+ * Created by ashvayka on 19.01.18.
+ */
+public final class TbNodeConnectionType {
 
-    DATA,
-    METADATA
+    public static final String SUCCESS = "Success";
+    public static final String FAILURE = "Failure";
+
+    public static final String TRUE = "True";
+    public static final String FALSE = "False";
+
+    public static final String OTHER = "Other";
 
 }

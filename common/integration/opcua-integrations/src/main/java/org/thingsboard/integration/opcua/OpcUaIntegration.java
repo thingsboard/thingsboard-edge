@@ -79,6 +79,7 @@ import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.integration.api.util.ExceptionUtil;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -378,20 +379,18 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     }
 
     private void sendConnectionSucceededMessageToRuleEngine() {
-        String messageType = "OPC_UA_INT_SUCCESS";
         log.info("[{}] Sending OPC-UA integration succeeded message to Rule Engine", getConfigurationId());
-        TbMsg tbMsg = sendAlertToRuleEngine(messageType);
+        TbMsg tbMsg = sendAlertToRuleEngine(TbMsgType.OPC_UA_INT_SUCCESS);
         persistDebug(context, "CONNECT", "JSON", tbMsg.getData(), "SUCCESS", null);
     }
 
     private void sendConnectionFailedMessageToRuleEngine(Exception e) {
-        String messageType = "OPC_UA_INT_FAILURE";
         log.warn("[{}] Sending OPC-UA integration failed message to Rule Engine", getConfigurationId());
-        TbMsg tbMsg = sendAlertToRuleEngine(messageType);
+        TbMsg tbMsg = sendAlertToRuleEngine(TbMsgType.OPC_UA_INT_FAILURE);
         persistDebug(context, "CONNECT", "JSON", tbMsg.getData(), "FAILURE", e);
     }
 
-    private TbMsg sendAlertToRuleEngine(String messageType) {
+    private TbMsg sendAlertToRuleEngine(TbMsgType messageType) {
         TbMsgMetaData tbMsgMetaData = new TbMsgMetaData();
         tbMsgMetaData.putValue("name", this.configuration.getName());
         tbMsgMetaData.putValue("id", this.configuration.getId().getId().toString());

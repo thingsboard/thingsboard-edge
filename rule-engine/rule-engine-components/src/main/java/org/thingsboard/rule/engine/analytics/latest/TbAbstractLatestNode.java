@@ -44,11 +44,11 @@ import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.TbVersionedNode;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,7 +57,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.thingsboard.common.util.DonAsynchron.withCallback;
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
+import static org.thingsboard.server.common.data.msg.TbNodeConnectionType.SUCCESS;
 
 @Slf4j
 public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfiguration> implements TbVersionedNode {
@@ -77,7 +77,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
         this.config = loadMapperNodeConfig(configuration);
         this.queueName = config.getQueueName();
         this.delay = config.getPeriodTimeUnit().toMillis(config.getPeriodValue());
-        this.outMsgType = StringUtils.isNotBlank(config.getOutMsgType()) ? config.getOutMsgType() : SessionMsgType.POST_TELEMETRY_REQUEST.name();
+        this.outMsgType = StringUtils.isNotBlank(config.getOutMsgType()) ? config.getOutMsgType() : TbMsgType.POST_TELEMETRY_REQUEST.name();
         this.parentEntitiesQuery = config.getParentEntitiesQuery();
         validateConfig(ctx);
         scheduleTickMsg(ctx);
@@ -85,7 +85,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
-        if (msg.getType().equals(tickMessageType()) && msg.getId().equals(nextTickId)) {
+        if (msg.isTypeOf(tickMessageType()) && msg.getId().equals(nextTickId)) {
             withCallback(aggregate(ctx),
                     m -> scheduleTickMsg(ctx),
                     t -> {
@@ -102,7 +102,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
         }
         lastScheduledTs = lastScheduledTs + delay;
         long curDelay = Math.max(0L, (lastScheduledTs - curTs));
-        TbMsg tickMsg = ctx.newMsg(queueName, tickMessageType(), ctx.getSelfId(), new TbMsgMetaData(), "");
+        TbMsg tickMsg = ctx.newMsg(queueName, tickMessageType(), ctx.getSelfId(), TbMsgMetaData.EMPTY, TbMsg.EMPTY_STRING);
         nextTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, curDelay);
     }
@@ -118,7 +118,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
                     ListenableFuture<Optional<JsonObject>>
                             aggregateFutureWithFallback = Futures.catching(aggregateFuture, Throwable.class, e -> {
                         TbMsg msg = TbMsg.newMsg(queueName, outMsgType,
-                                originatorId, new TbMsgMetaData(), TbMsgDataType.JSON, "");
+                                originatorId, TbMsgMetaData.EMPTY, TbMsg.EMPTY_STRING);
                         ctx.enqueueForTellFailure(msg, e.getMessage());
                         return Optional.empty();
                     }, MoreExecutors.directExecutor());
@@ -144,7 +144,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
 
     protected abstract C loadMapperNodeConfig(TbNodeConfiguration configuration) throws TbNodeException;
 
-    protected abstract String tickMessageType();
+    protected abstract TbMsgType tickMessageType();
 
     protected abstract Map<EntityId, List<ListenableFuture<Optional<JsonObject>>>> doParentAggregations(TbContext ctx, EntityId parentEntityId);
 
@@ -163,7 +163,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
         if (fromVersion == 0) {
             if (!oldConfiguration.hasNonNull("outMsgType")) {
                 ObjectNode newConfig = (ObjectNode) oldConfiguration;
-                newConfig.put("outMsgType", SessionMsgType.POST_TELEMETRY_REQUEST.name());
+                newConfig.put("outMsgType", TbMsgType.POST_TELEMETRY_REQUEST.name());
                 return new TbPair<>(true, newConfig);
             }
         }
