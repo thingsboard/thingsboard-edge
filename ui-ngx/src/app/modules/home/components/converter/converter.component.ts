@@ -81,6 +81,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   set integrationType(value: IntegrationType) {
     this._integrationType  = value;
     if (isDefinedAndNotNull(value)) {
+      this.updatedOnlyKeysValue();
       this.setupDefaultScriptBody(this.entityForm.get('type').value);
     }
   }
@@ -135,7 +136,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     this.entityForm.get('configuration.scriptLang').valueChanges.pipe(
         takeUntil(this.destroy$)
     ).subscribe(() => {
-      this.converterScriptLangChanged();
+      this.setupDefaultScriptBody(this.entityForm.get('type').value);
     });
     this.checkIsNewConverter(this.entity, this.entityForm);
   }
@@ -197,19 +198,23 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     }
   }
 
+  private updatedOnlyKeysValue() {
+    let updateOnlyKeys = DefaultUpdateOnlyKeysValue;
+    if (this.defaultUpdateOnlyKeysByIntegrationType.hasOwnProperty(this.integrationType)) {
+      updateOnlyKeys = this.defaultUpdateOnlyKeysByIntegrationType[this.integrationType];
+    }
+    this.entityForm.get('configuration').patchValue({updateOnlyKeys}, {emitEvent: false});
+  }
+
   private converterTypeChanged() {
     const converterType: ConverterType = this.entityForm.get('type').value;
     if (converterType) {
       if (converterType === ConverterType.UPLINK) {
-        let defaultOnlyKeyValue = DefaultUpdateOnlyKeysValue;
-        if (this.defaultUpdateOnlyKeysByIntegrationType.hasOwnProperty(this.integrationType)) {
-          defaultOnlyKeyValue = this.defaultUpdateOnlyKeysByIntegrationType[this.integrationType];
-        }
         this.entityForm.get('configuration').patchValue({
           decoder: null,
-          tbelDecoder: null,
-          updateOnlyKeys: defaultOnlyKeyValue
+          tbelDecoder: null
         }, {emitEvent: false});
+        this.updatedOnlyKeysValue();
       } else {
         this.entityForm.get('configuration').patchValue({
           encoder: null,
@@ -218,11 +223,6 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       }
       this.setupDefaultScriptBody(converterType);
     }
-  }
-
-  private converterScriptLangChanged() {
-    const converterType: ConverterType = this.entityForm.get('type').value;
-    this.setupDefaultScriptBody(converterType);
   }
 
   private setupDefaultScriptBody(converterType: ConverterType) {
