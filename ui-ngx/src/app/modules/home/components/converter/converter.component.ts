@@ -123,7 +123,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
               protected fb: FormBuilder,
               protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
-    this.resourcesService.loadJsonResource<DefaultUpdateOnlyKeys>('/assets/converters/default-on-value-update-keys.json')
+    this.resourcesService.loadJsonResource<DefaultUpdateOnlyKeys>('/assets/converters/default-update-only-keys.json')
         .subscribe(value => this.defaultUpdateOnlyKeysByIntegrationType = value);
   }
 
