@@ -1007,7 +1007,10 @@
         "type": "Type",
         "type-required": "Type is required.",
         "type-uplink": "Uplink",
-        "type-downlink": "Downlink"
+        "type-downlink": "Downlink",
+        "update-only-keys-list": "Update only keys list",
+        "update-only-keys-list-hint": "The values associated with the provided keys will be saved to the database only if they are different from the corresponding values in the previous converted message. This functionality applies to both attributes and telemetry in the converter output.",
+        "add-key": "Add key"
     },
     "content-type": {
         "json": "Json",
@@ -3273,6 +3276,8 @@
         "management": "Integrations management",
         "add-integration-text": "Add new integration",
         "no-integrations-text": "No integrations found",
+        "data-convertor-name": "{{convertorType}} data converter for {{integrationName}}",
+        "integration-name": "{{integrationType}} integration",
         "selected-integrations": "{ count, plural, =1 {1 integration} other {# integrations} } selected",
         "delete-integration-title": "Are you sure you want to delete the integration '{{integrationName}}'?",
         "delete-integration-text": "Be careful, after the confirmation the integration and all related data will become unrecoverable.",
