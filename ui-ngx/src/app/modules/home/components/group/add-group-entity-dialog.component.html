@@ -61,16 +61,6 @@
       <ng-container *ngTemplateOutlet=ownersAndGroup></ng-container>
     </mat-step>
   </mat-horizontal-stepper>
-  <ng-template #ownersAndGroup>
-    <form [formGroup]="ownerAndGroupsFormGroup" #ownersAndGroupForm>
-      <tb-owner-and-groups
-        [entityType]="entityType"
-        [defaultOwnerId]="initialOwnerId"
-        [skipDefaultPermissionCheck]="true"
-        formControlName="ownerAndGroups">
-      </tb-owner-and-groups>
-    </form>
-  </ng-template>
 </div>
 <div mat-dialog-actions style="padding: 0">
   <div class="dialog-actions-row" fxFlex fxLayout="row" fxLayoutAlign="end center" *ngIf="!hideStepper">
@@ -94,4 +84,20 @@
             color="primary"
             (click)="add()">{{ 'action.add' | translate }}</button>
   </div>
+</div>
+
+<ng-template #ownersAndGroup>
+  <form [formGroup]="ownerAndGroupsFormGroup">
+    <tb-owner-and-groups
+      [entityType]="entityType"
+      [defaultOwnerId]="initialOwnerId"
+      [skipDefaultPermissionCheck]="true"
+      formControlName="ownerAndGroups">
+    </tb-owner-and-groups>
+  </form>
+</ng-template>
+
+<div #ownersAndGroupPanel class="tb-form-panel stroked no-padding-bottom" style="margin-bottom: 16px" *ngIf="hideStepper">
+  <div class="tb-form-panel-title" translate>entity-group.owner-and-groups</div>
+  <ng-container *ngTemplateOutlet=ownersAndGroup></ng-container>
 </div>

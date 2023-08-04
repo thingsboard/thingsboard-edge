@@ -83,7 +83,7 @@ export class AddGroupEntityDialogComponent extends
   @ViewChild('addGroupEntityWizardStepper', {static: true}) addGroupEntityWizardStepper: MatStepper;
   @ViewChild('detailsFormStep', {static: true, read: ViewContainerRef}) detailsFormStepContainerRef: ViewContainerRef;
   @ViewChild('entityDetailsForm', {static: true}) entityDetailsFormAnchor: TbAnchorComponent;
-  @ViewChild('ownersAndGroupForm') ownersAndGroup: ElementRef;
+  @ViewChild('ownersAndGroupPanel') ownersAndGroup: ElementRef;
 
   @HostBinding('style')
   style = this.data.entitiesTableConfig.addDialogStyle;
