@@ -85,7 +85,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
-        if (msg.checkType(tickMessageType()) && msg.getId().equals(nextTickId)) {
+        if (msg.isTypeOf(tickMessageType()) && msg.getId().equals(nextTickId)) {
             withCallback(aggregate(ctx),
                     m -> scheduleTickMsg(ctx),
                     t -> {

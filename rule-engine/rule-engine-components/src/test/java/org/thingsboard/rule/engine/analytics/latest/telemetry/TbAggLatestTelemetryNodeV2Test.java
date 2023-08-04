@@ -313,7 +313,7 @@ public class TbAggLatestTelemetryNodeV2Test {
         List<TbMsg> resultMsg = captor.getAllValues();
         List<TbMsg> delayedMsg = captorForDelayedMsg.getAllValues()
                 .stream()
-                .filter(tbMsg -> tbMsg.checkType(TbMsgType.TB_AGG_LATEST_SELF_MSG))
+                .filter(tbMsg -> tbMsg.isTypeOf(TbMsgType.TB_AGG_LATEST_SELF_MSG))
                 .collect(Collectors.toList());
 
         Assert.assertNotNull(resultMsg);
@@ -327,7 +327,7 @@ public class TbAggLatestTelemetryNodeV2Test {
         //check delayed Msg
         delayedMsg.forEach(tbMsg -> {
             Assert.assertNotNull(tbMsg);
-            Assert.assertTrue(tbMsg.checkType(TbMsgType.TB_AGG_LATEST_SELF_MSG));
+            Assert.assertTrue(tbMsg.isTypeOf(TbMsgType.TB_AGG_LATEST_SELF_MSG));
         });
     }
 

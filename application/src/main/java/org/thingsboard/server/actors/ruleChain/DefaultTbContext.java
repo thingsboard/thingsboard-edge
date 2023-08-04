@@ -924,7 +924,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
 
     @Override
     public void pushToIntegration(IntegrationId integrationId, TbMsg msg, FutureCallback<Void> callback) {
-        boolean restApiCall = msg.checkType(TbMsgType.RPC_CALL_FROM_SERVER_TO_DEVICE);
+        boolean restApiCall = msg.isTypeOf(TbMsgType.RPC_CALL_FROM_SERVER_TO_DEVICE);
         UUID requestUUID;
         String serviceId;
         if (restApiCall) {

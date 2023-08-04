@@ -103,7 +103,7 @@ public class SchedulerEventTest extends AbstractControllerTest {
         SchedulerEvent savedSchedulerEvent = doPost("/api/schedulerEvent", schedulerEvent, SchedulerEvent.class);
 
         verify(tbClusterService, timeout(10000)).pushMsgToRuleEngine(eq(tenantId), eq(getOriginatorId(savedSchedulerEvent)), argThat(tbMsg -> {
-                    if (tbMsg.checkType(RPC_CALL_FROM_SERVER_TO_DEVICE)) {
+                    if (tbMsg.isTypeOf(RPC_CALL_FROM_SERVER_TO_DEVICE)) {
                         assertEquals(tbMsg.getOriginator(), savedDevice.getId());
                         assertEquals(testRpc, tbMsg.getData());
                         assertEquals(serviceInfoProvider.getServiceId(), tbMsg.getMetaData().getValue("originServiceId"));

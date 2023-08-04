@@ -401,7 +401,7 @@ public class TbAlarmsCountNodeTest {
     }
 
     private void verifyMessage(TbMsg msg) {
-        Assert.assertTrue(msg.checkType(TbMsgType.POST_TELEMETRY_REQUEST));
+        Assert.assertTrue(msg.isTypeOf(TbMsgType.POST_TELEMETRY_REQUEST));
         EntityId entityId = msg.getOriginator();
         Assert.assertNotNull(entityId);
         String data = msg.getData();
