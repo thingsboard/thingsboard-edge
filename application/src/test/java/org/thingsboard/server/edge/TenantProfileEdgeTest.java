@@ -50,5 +50,7 @@ public class TenantProfileEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(edgeTenantProfile.getDescription(), tenantProfileUpdateMsg.getDescription());
         Assert.assertEquals("Updated tenant profile Edge Test", tenantProfileUpdateMsg.getDescription());
         Assert.assertEquals("Tenant Profile Edge Test", tenantProfileUpdateMsg.getName());
+
+        loginTenantAdmin();
     }
 }
