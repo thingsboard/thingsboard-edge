@@ -215,15 +215,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 } else {
                     log.info("Skipping audit logs migration");
                 }
-                boolean skipEdgeEventsMigration = getEnv("TB_SKIP_EDGE_EVENTS_MIGRATION", false);
-                if (!skipEdgeEventsMigration) {
-                    log.info("Starting edge events migration. Can be skipped with TB_SKIP_EDGE_EVENTS_MIGRATION env variable set to true");
-                    edgeEventDao.migrateEdgeEvents();
-                } else {
-                    log.info("Skipping edge events migration");
-                }
                 migrateEdgeEvents("Starting edge events migration. ");
-
                 break;
             case "3.4.4":
                 log.info("Updating data from version 3.4.4 to 3.5.0 ...");

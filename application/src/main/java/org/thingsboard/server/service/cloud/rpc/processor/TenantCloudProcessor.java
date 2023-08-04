@@ -83,9 +83,10 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
     private void processTenantUpdatedRpcMessage(TenantId entityId, TenantUpdateMsg tenantUpdateMsg, TenantProfileId tenantProfileId) {
         Tenant tenant = tenantService.findTenantById(entityId);
         if (tenant == null) {
-            tenant = createTenant(entityId);
+            tenant = new Tenant();
+            tenant.setId(entityId);
+            tenant.setCreatedTime(Uuids.unixTimestamp(entityId.getId()));
         }
-
         updateTenantProperties(tenant, tenantUpdateMsg, tenantProfileId);
         Tenant savedTenant = tenantService.saveTenant(tenant, false);
         notifyCluster(entityId, savedTenant);
@@ -125,13 +126,6 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
     private void notifyCluster(TenantId tenantId, Tenant savedTenant) {
         tbClusterService.onTenantChange(savedTenant, null);
         tbClusterService.broadcastEntityStateChangeEvent(tenantId, savedTenant.getId(), ComponentLifecycleEvent.UPDATED);
-    }
-
-    private Tenant createTenant(TenantId tenantId) {
-        Tenant tenant = new Tenant();
-        tenant.setId(tenantId);
-        tenant.setCreatedTime(Uuids.unixTimestamp(tenantId.getId()));
-        return tenant;
     }
 
     private void updateTenantProperties(Tenant tenant, TenantUpdateMsg tenantUpdateMsg, TenantProfileId tenantProfileId) {

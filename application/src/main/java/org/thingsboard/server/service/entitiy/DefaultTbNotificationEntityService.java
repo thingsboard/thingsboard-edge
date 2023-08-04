@@ -18,8 +18,10 @@ package org.thingsboard.server.service.entitiy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.msg.DeviceCredentialsUpdateNotificationMsg;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.Tenant;
@@ -35,6 +37,9 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.TbMsgDataType;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.service.action.EntityActionService;
 import org.thingsboard.server.service.gateway_device.GatewayNotificationsService;
 
@@ -122,6 +127,7 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
     public void notifyAssignDeviceToTenant(TenantId tenantId, TenantId newTenantId, DeviceId deviceId, CustomerId customerId,
                                            Device device, Tenant tenant, User user, Object... additionalInfo) {
         logEntityAction(tenantId, deviceId, device, customerId, ActionType.ASSIGNED_TO_TENANT, user, additionalInfo);
+        pushAssignedFromNotification(tenant, newTenantId, device);
     }
 
     @Override
@@ -150,6 +156,22 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
                                         ActionType actionType, Exception e, Object... additionalInfo) {
         logEntityAction(tenantId, relation.getFrom(), null, customerId, actionType, user, e, additionalInfo);
         logEntityAction(tenantId, relation.getTo(), null, customerId, actionType, user, e, additionalInfo);
+    }
+
+    private void pushAssignedFromNotification(Tenant currentTenant, TenantId newTenantId, Device assignedDevice) {
+        String data = JacksonUtil.toString(JacksonUtil.valueToTree(assignedDevice));
+        if (data != null) {
+            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_ASSIGNED_FROM_TENANT, assignedDevice.getId(),
+                    assignedDevice.getCustomerId(), getMetaDataForAssignedFrom(currentTenant), TbMsgDataType.JSON, data);
+            tbClusterService.pushMsgToRuleEngine(newTenantId, assignedDevice.getId(), tbMsg, null);
+        }
+    }
+
+    private TbMsgMetaData getMetaDataForAssignedFrom(Tenant tenant) {
+        TbMsgMetaData metaData = new TbMsgMetaData();
+        metaData.putValue("assignedFromTenantId", tenant.getId().getId().toString());
+        metaData.putValue("assignedFromTenantName", tenant.getName());
+        return metaData;
     }
 
     public static EdgeEventActionType edgeTypeByActionType(ActionType actionType) {
