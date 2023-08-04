@@ -402,10 +402,12 @@ class DefaultTbContext implements TbContext, TbPeContext {
         return TbMsg.transformMsgOriginator(origMsg, originator);
     }
 
+    @Override
     public TbMsg customerCreatedMsg(Customer customer, RuleNodeId ruleNodeId) {
         return entityActionMsg(customer, customer.getId(), ruleNodeId, ENTITY_CREATED);
     }
 
+    @Override
     public TbMsg deviceCreatedMsg(Device device, RuleNodeId ruleNodeId) {
         DeviceProfile deviceProfile = null;
         if (device.getDeviceProfileId() != null) {
@@ -414,6 +416,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
         return entityActionMsg(device, device.getId(), ruleNodeId, ENTITY_CREATED, deviceProfile);
     }
 
+    @Override
     public TbMsg assetCreatedMsg(Asset asset, RuleNodeId ruleNodeId) {
         AssetProfile assetProfile = null;
         if (asset.getAssetProfileId() != null) {
@@ -422,18 +425,33 @@ class DefaultTbContext implements TbContext, TbPeContext {
         return entityActionMsg(asset, asset.getId(), ruleNodeId, ENTITY_CREATED, assetProfile);
     }
 
-    public TbMsg alarmActionMsg(Alarm alarm, RuleNodeId ruleNodeId, TbMsgType actionMsgType) {
-        HasRuleEngineProfile profile = null;
-        if (EntityType.DEVICE.equals(alarm.getOriginator().getEntityType())) {
-            DeviceId deviceId = new DeviceId(alarm.getOriginator().getId());
-            profile = mainCtx.getDeviceProfileCache().get(getTenantId(), deviceId);
-        } else if (EntityType.ASSET.equals(alarm.getOriginator().getEntityType())) {
-            AssetId assetId = new AssetId(alarm.getOriginator().getId());
-            profile = mainCtx.getAssetProfileCache().get(getTenantId(), assetId);
-        }
-        return entityActionMsg(alarm, alarm.getOriginator(), ruleNodeId, actionMsgType, profile);
+    @Override
+    public TbMsg alarmActionMsg(Alarm alarm, RuleNodeId ruleNodeId, String action) {
+        EntityId originator = alarm.getOriginator();
+        HasRuleEngineProfile profile = getRuleEngineProfile(originator);
+        return entityActionMsg(alarm, originator, ruleNodeId, action, profile);
     }
 
+    @Override
+    public TbMsg alarmActionMsg(Alarm alarm, RuleNodeId ruleNodeId, TbMsgType actionMsgType) {
+        EntityId originator = alarm.getOriginator();
+        HasRuleEngineProfile profile = getRuleEngineProfile(originator);
+        return entityActionMsg(alarm, originator, ruleNodeId, actionMsgType, profile);
+    }
+
+    private HasRuleEngineProfile getRuleEngineProfile(EntityId originator) {
+        HasRuleEngineProfile profile = null;
+        if (EntityType.DEVICE.equals(originator.getEntityType())) {
+            DeviceId deviceId = new DeviceId(originator.getId());
+            profile = mainCtx.getDeviceProfileCache().get(getTenantId(), deviceId);
+        } else if (EntityType.ASSET.equals(originator.getEntityType())) {
+            AssetId assetId = new AssetId(originator.getId());
+            profile = mainCtx.getAssetProfileCache().get(getTenantId(), assetId);
+        }
+        return profile;
+    }
+
+    @Override
     public TbMsg attributesUpdatedActionMsg(EntityId originator, RuleNodeId ruleNodeId, String scope, List<AttributeKvEntry> attributes) {
         ObjectNode entityNode = JacksonUtil.newObjectNode();
         if (attributes != null) {
@@ -442,6 +460,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
         return attributesActionMsg(originator, ruleNodeId, scope, ATTRIBUTES_UPDATED, JacksonUtil.toString(entityNode));
     }
 
+    @Override
     public TbMsg attributesDeletedActionMsg(EntityId originator, RuleNodeId ruleNodeId, String scope, List<String> keys) {
         ObjectNode entityNode = JacksonUtil.newObjectNode();
         ArrayNode attrsArrayNode = entityNode.putArray("attributes");
@@ -454,14 +473,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
     private TbMsg attributesActionMsg(EntityId originator, RuleNodeId ruleNodeId, String scope, TbMsgType actionMsgType, String msgData) {
         TbMsgMetaData tbMsgMetaData = getActionMetaData(ruleNodeId);
         tbMsgMetaData.putValue("scope", scope);
-        HasRuleEngineProfile profile = null;
-        if (EntityType.DEVICE.equals(originator.getEntityType())) {
-            DeviceId deviceId = new DeviceId(originator.getId());
-            profile = mainCtx.getDeviceProfileCache().get(getTenantId(), deviceId);
-        } else if (EntityType.ASSET.equals(originator.getEntityType())) {
-            AssetId assetId = new AssetId(originator.getId());
-            profile = mainCtx.getAssetProfileCache().get(getTenantId(), assetId);
-        }
+        HasRuleEngineProfile profile = getRuleEngineProfile(originator);
         return entityActionMsg(originator, tbMsgMetaData, msgData, actionMsgType, profile);
     }
 
@@ -472,6 +484,26 @@ class DefaultTbContext implements TbContext, TbPeContext {
 
     public <E, I extends EntityId> TbMsg entityActionMsg(E entity, I id, RuleNodeId ruleNodeId, TbMsgType actionMsgType) {
         return entityActionMsg(entity, id, ruleNodeId, actionMsgType, null);
+    }
+
+    @Deprecated(since = "3.5.2", forRemoval = true)
+    public <E, I extends EntityId, K extends HasRuleEngineProfile> TbMsg entityActionMsg(E entity, I id, RuleNodeId ruleNodeId, String action, K profile) {
+        try {
+            return entityActionMsg(id, getActionMetaData(ruleNodeId), JacksonUtil.toString(JacksonUtil.valueToTree(entity)), action, profile);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Failed to process " + id.getEntityType().name().toLowerCase() + " " + action + " msg: " + e);
+        }
+    }
+
+    @Deprecated(since = "3.5.2", forRemoval = true)
+    private <I extends EntityId, K extends HasRuleEngineProfile> TbMsg entityActionMsg(I id, TbMsgMetaData msgMetaData, String msgData, String action, K profile) {
+        String defaultQueueName = null;
+        RuleChainId defaultRuleChainId = null;
+        if (profile != null) {
+            defaultQueueName = profile.getDefaultQueueName();
+            defaultRuleChainId = profile.getDefaultRuleChainId();
+        }
+        return TbMsg.newMsg(defaultQueueName, action, id, msgMetaData, msgData, defaultRuleChainId, null);
     }
 
     public <E, I extends EntityId, K extends HasRuleEngineProfile> TbMsg entityActionMsg(E entity, I id, RuleNodeId ruleNodeId, TbMsgType actionMsgType, K profile) {
@@ -1070,10 +1102,17 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     private static String getFailureMessage(Throwable th) {
-        if (th == null) {
-            return null;
+        String failureMessage;
+        if (th != null) {
+            if (!StringUtils.isEmpty(th.getMessage())) {
+                failureMessage = th.getMessage();
+            } else {
+                failureMessage = th.getClass().getSimpleName();
+            }
+        } else {
+            failureMessage = null;
         }
-        return StringUtils.isNotEmpty(th.getMessage()) ? th.getMessage() : th.getClass().getSimpleName();
+        return failureMessage;
     }
 
     private class SimpleTbQueueCallback implements TbQueueCallback {

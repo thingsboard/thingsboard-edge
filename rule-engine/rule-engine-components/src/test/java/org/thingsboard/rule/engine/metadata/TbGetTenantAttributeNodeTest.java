@@ -46,6 +46,7 @@ import org.thingsboard.rule.engine.TestDbCallbackExecutor;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
+import org.thingsboard.rule.engine.util.TbMsgSource;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -156,7 +157,7 @@ public class TbGetTenantAttributeNodeTest {
         assertThat(node.config).isEqualTo(config);
         assertThat(config.getDataMapping()).isEqualTo(Map.of("alarmThreshold", "threshold"));
         assertThat(config.getDataToFetch()).isEqualTo(DataToFetch.ATTRIBUTES);
-        assertThat(node.fetchTo).isEqualTo(FetchTo.METADATA);
+        assertThat(node.fetchTo).isEqualTo(TbMsgSource.METADATA);
     }
 
     @Test
@@ -167,7 +168,7 @@ public class TbGetTenantAttributeNodeTest {
                 "sourceAttr2", "targetKey2",
                 "sourceAttr3", "targetKey3"));
         config.setDataToFetch(DataToFetch.LATEST_TELEMETRY);
-        config.setFetchTo(FetchTo.DATA);
+        config.setFetchTo(TbMsgSource.DATA);
         nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
 
         // WHEN
@@ -180,7 +181,7 @@ public class TbGetTenantAttributeNodeTest {
                 "sourceAttr2", "targetKey2",
                 "sourceAttr3", "targetKey3"));
         assertThat(config.getDataToFetch()).isEqualTo(DataToFetch.LATEST_TELEMETRY);
-        assertThat(node.fetchTo).isEqualTo(FetchTo.DATA);
+        assertThat(node.fetchTo).isEqualTo(TbMsgSource.DATA);
     }
 
     @Test
@@ -202,7 +203,7 @@ public class TbGetTenantAttributeNodeTest {
     @Test
     public void givenMsgDataIsNotAnJsonObjectAndFetchToData_whenOnMsg_thenException() {
         // GIVEN
-        node.fetchTo = FetchTo.DATA;
+        node.fetchTo = TbMsgSource.DATA;
         msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DUMMY_DEVICE_ORIGINATOR, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_ARRAY);
 
         // WHEN
@@ -218,7 +219,7 @@ public class TbGetTenantAttributeNodeTest {
         // GIVEN
         var deviceId = new DeviceId(UUID.randomUUID());
 
-        prepareMsgAndConfig(FetchTo.DATA, DataToFetch.ATTRIBUTES, deviceId);
+        prepareMsgAndConfig(TbMsgSource.DATA, DataToFetch.ATTRIBUTES, deviceId);
 
         List<AttributeKvEntry> attributesList = List.of(
                 new BaseAttributeKvEntry(new StringDataEntry("sourceKey1", "sourceValue1"), 1L),
@@ -259,7 +260,7 @@ public class TbGetTenantAttributeNodeTest {
     @Test
     public void givenFetchAttributesToMetaData_whenOnMsg_thenShouldFetchAttributesToMetaData() {
         // GIVEN
-        prepareMsgAndConfig(FetchTo.METADATA, DataToFetch.ATTRIBUTES, TENANT_ID);
+        prepareMsgAndConfig(TbMsgSource.METADATA, DataToFetch.ATTRIBUTES, TENANT_ID);
 
         List<AttributeKvEntry> attributesList = List.of(
                 new BaseAttributeKvEntry(new StringDataEntry("sourceKey1", "sourceValue1"), 1L),
@@ -302,7 +303,7 @@ public class TbGetTenantAttributeNodeTest {
         // GIVEN
         var customerId = new CustomerId(UUID.randomUUID());
 
-        prepareMsgAndConfig(FetchTo.DATA, DataToFetch.LATEST_TELEMETRY, customerId);
+        prepareMsgAndConfig(TbMsgSource.DATA, DataToFetch.LATEST_TELEMETRY, customerId);
 
         List<TsKvEntry> timeseries = List.of(
                 new BasicTsKvEntry(1L, new StringDataEntry("sourceKey1", "sourceValue1")),
@@ -345,7 +346,7 @@ public class TbGetTenantAttributeNodeTest {
         // GIVEN
         var ruleChainId = new RuleChainId(UUID.randomUUID());
 
-        prepareMsgAndConfig(FetchTo.METADATA, DataToFetch.LATEST_TELEMETRY, ruleChainId);
+        prepareMsgAndConfig(TbMsgSource.METADATA, DataToFetch.LATEST_TELEMETRY, ruleChainId);
 
         List<TsKvEntry> timeseries = List.of(
                 new BasicTsKvEntry(1L, new StringDataEntry("sourceKey1", "sourceValue1")),
@@ -394,7 +395,7 @@ public class TbGetTenantAttributeNodeTest {
         Assertions.assertEquals(defaultConfig, JacksonUtil.treeToValue(upgrade.getSecond(), defaultConfig.getClass()));
     }
 
-    private void prepareMsgAndConfig(FetchTo fetchTo, DataToFetch dataToFetch, EntityId originator) {
+    private void prepareMsgAndConfig(TbMsgSource fetchTo, DataToFetch dataToFetch, EntityId originator) {
         config.setDataMapping(Map.of(
                 "sourceKey1", "targetKey1",
                 "${metaDataPattern1}", "$[messageBodyPattern1]",

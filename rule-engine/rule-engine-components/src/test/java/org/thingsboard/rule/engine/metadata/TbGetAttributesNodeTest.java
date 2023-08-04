@@ -46,6 +46,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
+import org.thingsboard.rule.engine.util.TbMsgSource;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -141,7 +142,7 @@ public class TbGetAttributesNodeTest {
     @Test
     public void givenFetchAttributesToMetadata_whenOnMsg_thenShouldTellSuccess() throws Exception {
         // GIVEN
-        node = initNode(FetchTo.METADATA, false, false);
+        node = initNode(TbMsgSource.METADATA, false, false);
         var msg = getTbMsg(ORIGINATOR);
 
         // WHEN
@@ -150,17 +151,17 @@ public class TbGetAttributesNodeTest {
         // THEN
         var resultMsg = checkMsg(true);
 
-        checkAttributes(resultMsg, FetchTo.METADATA, "cs_", clientAttributes);
-        checkAttributes(resultMsg, FetchTo.METADATA, "ss_", serverAttributes);
-        checkAttributes(resultMsg, FetchTo.METADATA, "shared_", sharedAttributes);
+        checkAttributes(resultMsg, TbMsgSource.METADATA, "cs_", clientAttributes);
+        checkAttributes(resultMsg, TbMsgSource.METADATA, "ss_", serverAttributes);
+        checkAttributes(resultMsg, TbMsgSource.METADATA, "shared_", sharedAttributes);
 
-        checkTs(resultMsg, FetchTo.METADATA, false, tsKeys);
+        checkTs(resultMsg, TbMsgSource.METADATA, false, tsKeys);
     }
 
     @Test
     public void givenFetchLatestTimeseriesToMetadata_whenOnMsg_thenShouldTellSuccess() throws Exception {
         // GIVEN
-        node = initNode(FetchTo.METADATA, true, false);
+        node = initNode(TbMsgSource.METADATA, true, false);
         var msg = getTbMsg(ORIGINATOR);
 
         // WHEN
@@ -169,17 +170,17 @@ public class TbGetAttributesNodeTest {
         // THEN
         var resultMsg = checkMsg(true);
 
-        checkAttributes(resultMsg, FetchTo.METADATA, "cs_", clientAttributes);
-        checkAttributes(resultMsg, FetchTo.METADATA, "ss_", serverAttributes);
-        checkAttributes(resultMsg, FetchTo.METADATA, "shared_", sharedAttributes);
+        checkAttributes(resultMsg, TbMsgSource.METADATA, "cs_", clientAttributes);
+        checkAttributes(resultMsg, TbMsgSource.METADATA, "ss_", serverAttributes);
+        checkAttributes(resultMsg, TbMsgSource.METADATA, "shared_", sharedAttributes);
 
-        checkTs(resultMsg, FetchTo.METADATA, true, tsKeys);
+        checkTs(resultMsg, TbMsgSource.METADATA, true, tsKeys);
     }
 
     @Test
     public void givenFetchAttributesToData_whenOnMsg_thenShouldTellSuccess() throws Exception {
         // GIVEN
-        node = initNode(FetchTo.DATA, false, false);
+        node = initNode(TbMsgSource.DATA, false, false);
         var msg = getTbMsg(ORIGINATOR);
 
         // WHEN
@@ -188,17 +189,17 @@ public class TbGetAttributesNodeTest {
         // THEN
         var resultMsg = checkMsg(true);
 
-        checkAttributes(resultMsg, FetchTo.DATA, "cs_", clientAttributes);
-        checkAttributes(resultMsg, FetchTo.DATA, "ss_", serverAttributes);
-        checkAttributes(resultMsg, FetchTo.DATA, "shared_", sharedAttributes);
+        checkAttributes(resultMsg, TbMsgSource.DATA, "cs_", clientAttributes);
+        checkAttributes(resultMsg, TbMsgSource.DATA, "ss_", serverAttributes);
+        checkAttributes(resultMsg, TbMsgSource.DATA, "shared_", sharedAttributes);
 
-        checkTs(resultMsg, FetchTo.DATA, false, tsKeys);
+        checkTs(resultMsg, TbMsgSource.DATA, false, tsKeys);
     }
 
     @Test
     public void givenFetchLatestTimeseriesToData_whenOnMsg_thenShouldTellSuccess() throws Exception {
         // GIVEN
-        node = initNode(FetchTo.DATA, true, false);
+        node = initNode(TbMsgSource.DATA, true, false);
         var msg = getTbMsg(ORIGINATOR);
 
         // WHEN
@@ -207,17 +208,17 @@ public class TbGetAttributesNodeTest {
         // THEN
         var resultMsg = checkMsg(true);
 
-        checkAttributes(resultMsg, FetchTo.DATA, "cs_", clientAttributes);
-        checkAttributes(resultMsg, FetchTo.DATA, "ss_", serverAttributes);
-        checkAttributes(resultMsg, FetchTo.DATA, "shared_", sharedAttributes);
+        checkAttributes(resultMsg, TbMsgSource.DATA, "cs_", clientAttributes);
+        checkAttributes(resultMsg, TbMsgSource.DATA, "ss_", serverAttributes);
+        checkAttributes(resultMsg, TbMsgSource.DATA, "shared_", sharedAttributes);
 
-        checkTs(resultMsg, FetchTo.DATA, true, tsKeys);
+        checkTs(resultMsg, TbMsgSource.DATA, true, tsKeys);
     }
 
     @Test
     public void givenFetchAttributesToMetadata_whenOnMsg_thenShouldTellFailure() throws Exception {
         // GIVEN
-        node = initNode(FetchTo.METADATA, false, true);
+        node = initNode(TbMsgSource.METADATA, false, true);
         var msg = getTbMsg(ORIGINATOR);
 
         // WHEN
@@ -226,17 +227,17 @@ public class TbGetAttributesNodeTest {
         // THEN
         var actualMsg = checkMsg(false);
 
-        checkAttributes(actualMsg, FetchTo.METADATA, "cs_", clientAttributes);
-        checkAttributes(actualMsg, FetchTo.METADATA, "ss_", serverAttributes);
-        checkAttributes(actualMsg, FetchTo.METADATA, "shared_", sharedAttributes);
+        checkAttributes(actualMsg, TbMsgSource.METADATA, "cs_", clientAttributes);
+        checkAttributes(actualMsg, TbMsgSource.METADATA, "ss_", serverAttributes);
+        checkAttributes(actualMsg, TbMsgSource.METADATA, "shared_", sharedAttributes);
 
-        checkTs(actualMsg, FetchTo.METADATA, false, tsKeys);
+        checkTs(actualMsg, TbMsgSource.METADATA, false, tsKeys);
     }
 
     @Test
     public void givenFetchLatestTimeseriesToData_whenOnMsg_thenShouldTellFailure() throws Exception {
         // GIVEN
-        node = initNode(FetchTo.DATA, true, true);
+        node = initNode(TbMsgSource.DATA, true, true);
         var msg = getTbMsg(ORIGINATOR);
 
         // WHEN
@@ -245,17 +246,17 @@ public class TbGetAttributesNodeTest {
         // THEN
         var actualMsg = checkMsg(false);
 
-        checkAttributes(actualMsg, FetchTo.DATA, "cs_", clientAttributes);
-        checkAttributes(actualMsg, FetchTo.DATA, "ss_", serverAttributes);
-        checkAttributes(actualMsg, FetchTo.DATA, "shared_", sharedAttributes);
+        checkAttributes(actualMsg, TbMsgSource.DATA, "cs_", clientAttributes);
+        checkAttributes(actualMsg, TbMsgSource.DATA, "ss_", serverAttributes);
+        checkAttributes(actualMsg, TbMsgSource.DATA, "shared_", sharedAttributes);
 
-        checkTs(actualMsg, FetchTo.DATA, true, tsKeys);
+        checkTs(actualMsg, TbMsgSource.DATA, true, tsKeys);
     }
 
     @Test
     public void givenFetchLatestTimeseriesToDataAndDataIsNotJsonObject_whenOnMsg_thenException() throws Exception {
         // GIVEN
-        node = initNode(FetchTo.DATA, true, true);
+        node = initNode(TbMsgSource.DATA, true, true);
         var msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, ORIGINATOR, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_ARRAY);
 
         // WHEN
@@ -320,15 +321,15 @@ public class TbGetAttributesNodeTest {
         return resultMsg;
     }
 
-    private void checkAttributes(TbMsg actualMsg, FetchTo fetchTo, String prefix, List<String> attributes) {
+    private void checkAttributes(TbMsg actualMsg, TbMsgSource fetchTo, String prefix, List<String> attributes) {
         var msgData = JacksonUtil.toJsonNode(actualMsg.getData());
         attributes.stream()
                 .filter(attribute -> !attribute.equals("unknown"))
                 .forEach(attribute -> {
                     String result = null;
-                    if (FetchTo.DATA.equals(fetchTo)) {
+                    if (TbMsgSource.DATA.equals(fetchTo)) {
                         result = msgData.get(prefix + attribute).asText();
-                    } else if (FetchTo.METADATA.equals(fetchTo)) {
+                    } else if (TbMsgSource.METADATA.equals(fetchTo)) {
                         result = actualMsg.getMetaData().getValue(prefix + attribute);
                     }
                     assertNotNull(result);
@@ -336,7 +337,7 @@ public class TbGetAttributesNodeTest {
                 });
     }
 
-    private void checkTs(TbMsg actualMsg, FetchTo fetchTo, boolean getLatestValueWithTs, List<String> tsKeys) {
+    private void checkTs(TbMsg actualMsg, TbMsgSource fetchTo, boolean getLatestValueWithTs, List<String> tsKeys) {
         var msgData = JacksonUtil.toJsonNode(actualMsg.getData());
         long value = 1L;
         for (var key : tsKeys) {
@@ -350,9 +351,9 @@ public class TbGetAttributesNodeTest {
             } else {
                 expectedValue = "{\"data\":" + value + "}";
             }
-            if (FetchTo.DATA.equals(fetchTo)) {
+            if (TbMsgSource.DATA.equals(fetchTo)) {
                 actualValue = JacksonUtil.toString(msgData.get(key));
-            } else if (FetchTo.METADATA.equals(fetchTo)) {
+            } else if (TbMsgSource.METADATA.equals(fetchTo)) {
                 actualValue = actualMsg.getMetaData().getValue(key);
             }
             assertNotNull(actualValue);
@@ -361,7 +362,7 @@ public class TbGetAttributesNodeTest {
         }
     }
 
-    private TbGetAttributesNode initNode(FetchTo fetchTo, boolean getLatestValueWithTs, boolean isTellFailureIfAbsent) throws TbNodeException {
+    private TbGetAttributesNode initNode(TbMsgSource fetchTo, boolean getLatestValueWithTs, boolean isTellFailureIfAbsent) throws TbNodeException {
         var config = new TbGetAttributesNodeConfiguration();
         config.setClientAttributeNames(List.of("client_attr_1", "client_attr_2", "${client_attr_metadata}", "unknown"));
         config.setServerAttributeNames(List.of("server_attr_1", "server_attr_2", "${server_attr_metadata}", "unknown"));
