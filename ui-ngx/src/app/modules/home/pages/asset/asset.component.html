@@ -89,7 +89,6 @@
         [showDetailsPageLink]="resource.ASSET_PROFILE | hasGenericPermission : operation.READ"
         (assetProfileUpdated)="onAssetProfileUpdated()">
       </tb-asset-profile-autocomplete>
-      <ng-content select=".owners-and-group-panel"></ng-content>
       <div formGroupName="additionalInfo">
         <mat-form-field class="mat-block">
           <mat-label translate>asset.description</mat-label>

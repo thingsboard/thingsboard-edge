@@ -33,6 +33,7 @@
 
 :host {
   min-width: 400px;
+  width: 750px;
   .dialog-actions-row {
     padding: 8px;
   }
@@ -59,7 +60,6 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding: 0 !important;
 
     .mat-padding {
       padding: 0;
@@ -86,14 +86,6 @@
         height: 100%;
         position: relative;
       }
-    }
-  }
-  .hide-stepper {
-    .mat-horizontal-stepper-header-container {
-      display: none;
-    }
-    .mat-horizontal-content-container {
-      padding: 24px 24px 0 24px;
     }
   }
 }

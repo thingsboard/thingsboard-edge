@@ -30,7 +30,8 @@
 ///
 
 import {
-  AfterViewInit, ChangeDetectorRef,
+  AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ComponentFactoryResolver,
   ElementRef,
@@ -80,9 +81,9 @@ import { Subscription } from 'rxjs';
 export class AddGroupEntityDialogComponent extends
   DialogComponent<AddGroupEntityDialogComponent, BaseData<HasId>> implements OnInit, OnDestroy, AfterViewInit {
 
-  @ViewChild('addGroupEntityWizardStepper', {static: true}) addGroupEntityWizardStepper: MatStepper;
-  @ViewChild('detailsFormStep', {static: true, read: ViewContainerRef}) detailsFormStepContainerRef: ViewContainerRef;
-  @ViewChild('entityDetailsForm', {static: true}) entityDetailsFormAnchor: TbAnchorComponent;
+  @ViewChild('addGroupEntityWizardStepper') addGroupEntityWizardStepper: MatStepper;
+  @ViewChild('detailsFormStep', {read: ViewContainerRef}) detailsFormStepContainerRef: ViewContainerRef;
+  @ViewChild('entityDetailsForm') entityDetailsFormAnchor: TbAnchorComponent;
   @ViewChild('ownersAndGroupPanel') ownersAndGroup: ElementRef;
 
   @HostBinding('style')
@@ -195,17 +196,12 @@ export class AddGroupEntityDialogComponent extends
               useValue: this.entitiesTableConfig
             }
           ],
-          parent: this.detailsFormStepContainerRef.injector
+          parent: this.hideStepper ? null : this.detailsFormStepContainerRef.injector
         }
       );
-      let ownersAndGroupsForm: HTMLElement;
-      if (this.hideStepper) {
-        ownersAndGroupsForm = document.createElement('div');
-        ownersAndGroupsForm.appendChild(this.ownersAndGroup.nativeElement);
-      }
       const componentRef = viewContainerRef.createComponent(
         this.entitiesTableConfig.entityComponent as Type<GroupEntityComponent<BaseData<HasId>>>,
-        {index: 0, injector, projectableNodes: [[ownersAndGroupsForm]]});
+        {index: 0, injector});
       this.entityComponent = componentRef.instance;
       this.entityComponent.isEdit = true;
       this.detailsForm = this.entityComponent.entityForm;
@@ -282,6 +278,10 @@ export class AddGroupEntityDialogComponent extends
   }
 
   allValid(): boolean {
+    if (this.hideStepper) {
+      this.detailsForm.markAllAsTouched();
+      return this.detailsForm.valid && this.ownerAndGroupsFormGroup.valid;
+    }
     return !this.addGroupEntityWizardStepper.steps.find((item, index) => {
       if (item.stepControl.invalid) {
         item.interacted = true;
