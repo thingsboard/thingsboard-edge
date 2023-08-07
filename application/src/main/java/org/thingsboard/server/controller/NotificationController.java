@@ -462,7 +462,8 @@ public class NotificationController extends BaseController {
     @PostMapping("/notification/settings/user")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     public UserNotificationSettings saveUserNotificationSettings(@RequestBody @Valid UserNotificationSettings settings,
-                                                                 @AuthenticationPrincipal SecurityUser user) {
+                                                                 @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
+        accessControlService.checkPermission(user, Resource.PROFILE, Operation.WRITE);
         return notificationSettingsService.saveUserNotificationSettings(user.getTenantId(), user.getId(), settings);
     }
 
