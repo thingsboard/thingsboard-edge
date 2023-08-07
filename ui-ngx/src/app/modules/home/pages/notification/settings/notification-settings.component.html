@@ -38,7 +38,7 @@
         <div fxFlex fxLayout="column">
           <span class="mat-headline-5" translate>notification.settings.notification-settings</span>
         </div>
-        <div fxLayout="column">
+        <div fxLayout="column" *ngIf="resource.PROFILE | hasGenericPermission: operation.WRITE">
           <button mat-button color="primary"
                   [disabled]="(isLoading$ | async)"
                   (click)="resetSettings()">{{ 'notification.settings.reset-all' | translate }}</button>
@@ -87,7 +87,7 @@
         </section>
       </form>
     </mat-card-content>
-    <div fxLayout="row" fxLayoutAlign="end start" style="padding: 16px;">
+    <div fxLayout="row" fxLayoutAlign="end start" style="padding: 16px;" *ngIf="resource.PROFILE | hasGenericPermission: operation.WRITE">
       <button mat-button mat-raised-button color="primary"
               type="button"
               (click)="save()"
