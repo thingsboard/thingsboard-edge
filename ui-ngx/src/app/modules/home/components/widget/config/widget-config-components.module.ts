@@ -44,6 +44,7 @@ import { FilterSelectComponent } from '@home/components/filter/filter-select.com
 import { WidgetSettingsModule } from '@home/components/widget/lib/settings/widget-settings.module';
 import { WidgetSettingsComponent } from '@home/components/widget/config/widget-settings.component';
 import { TimewindowConfigPanelComponent } from '@home/components/widget/config/timewindow-config-panel.component';
+import { WidgetSettingsCommonModule } from '@home/components/widget/lib/settings/common/widget-settings-common.module';
 
 @NgModule({
   declarations:
@@ -63,7 +64,8 @@ import { TimewindowConfigPanelComponent } from '@home/components/widget/config/t
   imports: [
     CommonModule,
     SharedModule,
-    WidgetSettingsModule
+    WidgetSettingsModule,
+    WidgetSettingsCommonModule
   ],
   exports: [
     AlarmAssigneeSelectComponent,
@@ -76,7 +78,8 @@ import { TimewindowConfigPanelComponent } from '@home/components/widget/config/t
     EntityAliasSelectComponent,
     FilterSelectComponent,
     TimewindowConfigPanelComponent,
-    WidgetSettingsComponent
+    WidgetSettingsComponent,
+    WidgetSettingsCommonModule
   ]
 })
 export class WidgetConfigComponentsModule { }

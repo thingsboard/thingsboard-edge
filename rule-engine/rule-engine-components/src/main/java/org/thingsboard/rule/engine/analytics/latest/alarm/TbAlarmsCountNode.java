@@ -43,6 +43,7 @@ import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.alarm.AlarmFilter;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.plugin.ComponentType;
@@ -73,16 +74,14 @@ import java.util.Optional;
 
 public class TbAlarmsCountNode extends TbAbstractLatestNode<TbAlarmsCountNodeConfiguration> {
 
-    private static final String TB_ALARMS_COUNT_NODE_MSG = "TbAlarmsCountNodeMsg";
-
     @Override
     protected TbAlarmsCountNodeConfiguration loadMapperNodeConfig(TbNodeConfiguration configuration) throws TbNodeException {
         return TbNodeUtils.convert(configuration, TbAlarmsCountNodeConfiguration.class);
     }
 
     @Override
-    protected String tickMessageType() {
-        return TB_ALARMS_COUNT_NODE_MSG;
+    protected TbMsgType tickMessageType() {
+        return TbMsgType.TB_ALARMS_COUNT_SELF_MSG;
     }
 
     @Override
@@ -95,8 +94,7 @@ public class TbAlarmsCountNode extends TbAbstractLatestNode<TbAlarmsCountNodeCon
             try {
                 entityIds.addAll(childEntityIdsFuture.get());
             } catch (Exception e) {
-                TbMsg msg = TbMsg.newMsg(queueName, outMsgType,
-                        parentEntityId, new TbMsgMetaData(), "");
+                TbMsg msg = TbMsg.newMsg(queueName, outMsgType, parentEntityId, TbMsgMetaData.EMPTY, TbMsg.EMPTY_STRING);
                 ctx.enqueueForTellFailure(msg, "Failed to fetch child entities for parent entity [" + parentEntityId + "]");
             }
         }

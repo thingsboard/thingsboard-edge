@@ -43,6 +43,7 @@ import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -88,7 +89,7 @@ public class TbSimpleAggMsgNodeTest {
         JsonObject jsonObject = new JsonObject();
         jsonObject.add("temperature", null);
 
-        TbMsg msg = TbMsg.newMsg("POST_TELEMETRY_REQUEST", deviceId, metaData, jsonObject.toString(), callback);
+        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, deviceId, metaData, jsonObject.toString(), callback);
 
         Assert.assertThrows(IllegalArgumentException.class, () -> node.onMsg(ctx, msg));
     }

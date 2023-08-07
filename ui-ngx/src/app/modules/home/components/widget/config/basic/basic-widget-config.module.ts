@@ -49,7 +49,6 @@ import {
   TimeseriesTableBasicConfigComponent
 } from '@home/components/widget/config/basic/cards/timeseries-table-basic-config.component';
 import { FlotBasicConfigComponent } from '@home/components/widget/config/basic/chart/flot-basic-config.component';
-import { WidgetSettingsModule } from '@home/components/widget/lib/settings/widget-settings.module';
 import {
   AlarmsTableBasicConfigComponent
 } from '@home/components/widget/config/basic/alarm/alarms-table-basic-config.component';
@@ -72,7 +71,6 @@ import {
   imports: [
     CommonModule,
     SharedModule,
-    WidgetSettingsModule,
     WidgetConfigComponentsModule
   ],
   exports: [

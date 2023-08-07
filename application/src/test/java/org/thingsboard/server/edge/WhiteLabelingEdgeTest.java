@@ -35,6 +35,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -123,7 +124,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         loginTenantAdmin();
         Assert.assertTrue(edgeImitator.waitForMessages());
 
-        updateAndVerifyLoginWhiteLabelingUpdate("tenant_updated.org");
+        updateAndVerifyLoginWhiteLabelingUpdate(StringUtils.randomAlphanumeric(5) + "tenant_updated.org");
     }
 
     private void testLoginWhiteLabeling_customer() throws Exception {
@@ -142,10 +143,10 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         changeEdgeOwnerFromTenantToSubCustomer(savedCustomerA, savedSubCustomerA);
 
         createCustomerUserAndLogin(savedCustomerA, "customerA@thingsboard.org");
-        updateAndVerifyLoginWhiteLabelingUpdate("customerA_updated.org");
+        updateAndVerifyLoginWhiteLabelingUpdate(savedCustomerA.getId() + "customerA_updated.org");
 
         createCustomerUserAndLogin(savedSubCustomerA, "subCustomerA@thingsboard.org");
-        updateAndVerifyLoginWhiteLabelingUpdate("subCustomerA_updated.org");
+        updateAndVerifyLoginWhiteLabelingUpdate(savedSubCustomerA.getId() + "subCustomerA_updated.org");
     }
 
     private void updateAndVerifyLoginWhiteLabelingUpdate(String updatedDomainName) throws Exception {

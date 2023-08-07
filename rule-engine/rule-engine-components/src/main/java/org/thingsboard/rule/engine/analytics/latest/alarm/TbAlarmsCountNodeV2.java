@@ -38,10 +38,8 @@ import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
-import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.rule.engine.api.TbVersionedNode;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.alarm.Alarm;
@@ -49,13 +47,14 @@ import org.thingsboard.server.common.data.alarm.AlarmFilter;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -90,18 +89,15 @@ public class TbAlarmsCountNodeV2 implements TbVersionedNode {
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbAlarmsCountNodeV2Configuration.class);
         this.queueName = config.getQueueName();
-        this.outMsgType = StringUtils.isNotBlank(config.getOutMsgType()) ? config.getOutMsgType() : SessionMsgType.POST_TELEMETRY_REQUEST.name();
+        this.outMsgType = StringUtils.isNotBlank(config.getOutMsgType()) ? config.getOutMsgType() : TbMsgType.POST_TELEMETRY_REQUEST.name();
     }
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
-        String msgType = msg.getType();
-        EntityType entityType = msg.getOriginator().getEntityType();
-
         Alarm alarm = null;
         var processAlarmsCount = false;
-        if (msgType.equals(DataConstants.ENTITY_CREATED) || msgType.equals(DataConstants.ENTITY_UPDATED)) {
-            if (entityType.equals(EntityType.ALARM)) {
+        if (msg.isTypeOneOf(TbMsgType.ENTITY_CREATED, TbMsgType.ENTITY_UPDATED)) {
+            if (msg.getOriginator().getEntityType().equals(EntityType.ALARM)) {
                 alarm = convertMsgDataToAlarm(msg);
                 processAlarmsCount = true;
             } else {
@@ -113,7 +109,7 @@ public class TbAlarmsCountNodeV2 implements TbVersionedNode {
                     processAlarmsCount = true;
                 }
             }
-        } else if (msgType.equals(DataConstants.ALARM) || msgType.equals(DataConstants.ALARM_ACK) || msgType.equals(DataConstants.ALARM_CLEAR)) {
+        } else if (msg.isTypeOneOf(TbMsgType.ALARM, TbMsgType.ALARM_ACK, TbMsgType.ALARM_CLEAR)) {
             alarm = convertMsgDataToAlarm(msg);
             processAlarmsCount = true;
         }
@@ -144,7 +140,7 @@ public class TbAlarmsCountNodeV2 implements TbVersionedNode {
             metaData.putValue("ts", dataTs);
             TbMsg newMsg = TbMsg.newMsg(queueName, outMsgType,
                     entityId, metaData, JacksonUtil.toString(data));
-            ctx.enqueueForTellNext(newMsg, TbRelationTypes.SUCCESS);
+            ctx.enqueueForTellNext(newMsg, TbNodeConnectionType.SUCCESS);
         });
         ctx.ack(msg);
     }
@@ -195,7 +191,7 @@ public class TbAlarmsCountNodeV2 implements TbVersionedNode {
         if (fromVersion == 0) {
             if (!oldConfiguration.hasNonNull("outMsgType")) {
                 ObjectNode newConfig = (ObjectNode) oldConfiguration;
-                newConfig.put("outMsgType", SessionMsgType.POST_TELEMETRY_REQUEST.name());
+                newConfig.put("outMsgType", TbMsgType.POST_TELEMETRY_REQUEST.name());
                 return new TbPair<>(true, newConfig);
             }
         }

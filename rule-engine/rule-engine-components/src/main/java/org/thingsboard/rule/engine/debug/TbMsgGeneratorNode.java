@@ -43,8 +43,11 @@ import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
+import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -56,7 +59,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.thingsboard.common.util.DonAsynchron.withCallback;
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @Slf4j
 @RuleNode(
@@ -72,8 +74,6 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 )
 
 public class TbMsgGeneratorNode implements TbNode {
-
-    private static final String TB_MSG_GENERATOR_NODE_MSG = "TbMsgGeneratorNodeMsg";
 
     private TbMsgGeneratorNodeConfiguration config;
     private ScriptEngine scriptEngine;
@@ -122,13 +122,13 @@ public class TbMsgGeneratorNode implements TbNode {
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
         log.trace("onMsg, config {}, msg {}", config, msg);
-        if (initialized.get() && msg.getType().equals(TB_MSG_GENERATOR_NODE_MSG) && msg.getId().equals(nextTickId)) {
+        if (initialized.get() && msg.isTypeOf(TbMsgType.GENERATOR_NODE_SELF_MSG) && msg.getId().equals(nextTickId)) {
             TbStopWatch sw = TbStopWatch.create();
             withCallback(generate(ctx, msg),
                     m -> {
                         log.trace("onMsg onSuccess callback, took {}ms, config {}, msg {}", sw.stopAndGetTotalTimeMillis(), config, msg);
                         if (initialized.get() && (config.getMsgCount() == TbMsgGeneratorNodeConfiguration.UNLIMITED_MSG_COUNT || currentMsgCount < config.getMsgCount())) {
-                            ctx.enqueueForTellNext(m, SUCCESS);
+                            ctx.enqueueForTellNext(m, TbNodeConnectionType.SUCCESS);
                             scheduleTickMsg(ctx, msg);
                             currentMsgCount++;
                         }
@@ -152,8 +152,8 @@ public class TbMsgGeneratorNode implements TbNode {
         }
         lastScheduledTs = lastScheduledTs + delay;
         long curDelay = Math.max(0L, (lastScheduledTs - curTs));
-        TbMsg tickMsg = ctx.newMsg(config.getQueueName(), TB_MSG_GENERATOR_NODE_MSG, ctx.getSelfId(),
-                msg != null ? msg.getCustomerId() : null, new TbMsgMetaData(), "");
+        TbMsg tickMsg = ctx.newMsg(config.getQueueName(), TbMsgType.GENERATOR_NODE_SELF_MSG, ctx.getSelfId(),
+                getCustomerIdFromMsg(msg), TbMsgMetaData.EMPTY, TbMsg.EMPTY_STRING);
         nextTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, curDelay);
     }
@@ -161,7 +161,7 @@ public class TbMsgGeneratorNode implements TbNode {
     private ListenableFuture<TbMsg> generate(TbContext ctx, TbMsg msg) {
         log.trace("generate, config {}", config);
         if (prevMsg == null) {
-            prevMsg = ctx.newMsg(config.getQueueName(), "", originatorId, msg.getCustomerId(), new TbMsgMetaData(), "{}");
+            prevMsg = ctx.newMsg(config.getQueueName(), TbMsg.EMPTY_STRING, originatorId, msg.getCustomerId(), TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
         }
         if (initialized.get()) {
             ctx.logJsEvalRequest();
@@ -174,6 +174,10 @@ public class TbMsgGeneratorNode implements TbNode {
         }
         return Futures.immediateFuture(prevMsg);
 
+    }
+
+    private CustomerId getCustomerIdFromMsg(TbMsg msg) {
+        return msg != null ? msg.getCustomerId() : null;
     }
 
     @Override
