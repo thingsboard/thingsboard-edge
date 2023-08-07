@@ -49,10 +49,12 @@ import {
   TimeseriesTableBasicConfigComponent
 } from '@home/components/widget/config/basic/cards/timeseries-table-basic-config.component';
 import { FlotBasicConfigComponent } from '@home/components/widget/config/basic/chart/flot-basic-config.component';
-import { WidgetSettingsModule } from '@home/components/widget/lib/settings/widget-settings.module';
 import {
   AlarmsTableBasicConfigComponent
 } from '@home/components/widget/config/basic/alarm/alarms-table-basic-config.component';
+import {
+  ValueCardBasicConfigComponent
+} from '@home/components/widget/config/basic/cards/value-card-basic-config.component';
 
 @NgModule({
   declarations: [
@@ -62,13 +64,13 @@ import {
     TimeseriesTableBasicConfigComponent,
     FlotBasicConfigComponent,
     AlarmsTableBasicConfigComponent,
+    ValueCardBasicConfigComponent,
     DataKeyRowComponent,
     DataKeysPanelComponent
   ],
   imports: [
     CommonModule,
     SharedModule,
-    WidgetSettingsModule,
     WidgetConfigComponentsModule
   ],
   exports: [
@@ -78,6 +80,7 @@ import {
     TimeseriesTableBasicConfigComponent,
     FlotBasicConfigComponent,
     AlarmsTableBasicConfigComponent,
+    ValueCardBasicConfigComponent,
     DataKeyRowComponent,
     DataKeysPanelComponent
   ]
@@ -90,5 +93,6 @@ export const basicWidgetConfigComponentsMap: {[key: string]: Type<IBasicWidgetCo
   'tb-entities-table-basic-config': EntitiesTableBasicConfigComponent,
   'tb-timeseries-table-basic-config': TimeseriesTableBasicConfigComponent,
   'tb-flot-basic-config': FlotBasicConfigComponent,
-  'tb-alarms-table-basic-config': AlarmsTableBasicConfigComponent
+  'tb-alarms-table-basic-config': AlarmsTableBasicConfigComponent,
+  'tb-value-card-basic-config': ValueCardBasicConfigComponent
 };

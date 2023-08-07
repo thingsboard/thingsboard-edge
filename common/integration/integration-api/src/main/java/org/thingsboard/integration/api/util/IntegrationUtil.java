@@ -54,6 +54,8 @@ public class IntegrationUtil {
                 return newInstance("org.thingsboard.integration.http.tmobile.TMobileIotCdpIntegration");
             case CHIRPSTACK:
                 return newInstance("org.thingsboard.integration.http.chirpstack.ChirpStackIntegration");
+            case PARTICLE:
+                return newInstance("org.thingsboard.integration.http.particle.ParticleIntegration");
             case MQTT:
                 return newInstance("org.thingsboard.integration.mqtt.basic.BasicMqttIntegration");
             case AWS_IOT:

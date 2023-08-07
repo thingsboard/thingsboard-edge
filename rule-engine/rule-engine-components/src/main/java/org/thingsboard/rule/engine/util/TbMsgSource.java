@@ -28,14 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.rule.engine.util;
 
-/**
- * Created by ashvayka on 19.01.18.
- */
-public final class TbRelationTypes {
+public enum TbMsgSource {
 
-    public static String SUCCESS = "Success";
-    public static String FAILURE = "Failure";
+    DATA,
+    METADATA
 
 }

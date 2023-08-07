@@ -60,6 +60,14 @@
     <tb-color-picker [(ngModel)]="plainColor" (ngModelChange)="onPlainColorChange($event)"></tb-color-picker>
   </ng-template>
   <div class="tb-color-picker-panel-buttons">
+    <button *ngIf="colorClearButton"
+            mat-button
+            color="primary"
+            type="button"
+            (click)="clearColor()"
+            [disabled]="!getColor()">
+      {{ 'action.clear' | translate }}
+    </button>
     <button mat-raised-button
             color="primary"
             type="button"

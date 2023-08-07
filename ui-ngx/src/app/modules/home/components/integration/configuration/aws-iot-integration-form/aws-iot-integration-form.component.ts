@@ -40,11 +40,7 @@ import {
   Validator,
   Validators
 } from '@angular/forms';
-import {
-  mqttClientIdMaxLengthValidator,
-  mqttClientIdPatternValidator,
-  privateNetworkAddressValidator
-} from '@home/components/integration/integration.models';
+import { privateNetworkAddressValidator } from '@home/components/integration/integration.models';
 import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
@@ -79,7 +75,7 @@ export class AwsIotIntegrationFormComponent extends IntegrationForm implements C
       clientConfiguration: this.fb.group({
         host: ['', Validators.required],
         connectTimeoutSec: [10, [Validators.required, Validators.min(1), Validators.max(200)]],
-        clientId: ['', [mqttClientIdPatternValidator, mqttClientIdMaxLengthValidator]],
+        clientId: [''],
         maxBytesInMessage: [32368, [Validators.min(1), Validators.max(256000000)]],
         credentials: [{
           type: IntegrationCredentialType.CertPEM

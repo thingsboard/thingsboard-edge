@@ -93,7 +93,7 @@ import { TenantProfileService } from '@core/http/tenant-profile.service';
 import { DeviceService } from '@core/http/device.service';
 import { AssetService } from '@core/http/asset.service';
 import { EdgeService } from '@core/http/edge.service';
-import { RuleNode } from '@shared/models/rule-node.models';
+import { RuleNode, ScriptLanguage } from '@shared/models/rule-node.models';
 import { AssetProfileService } from '@core/http/asset-profile.service';
 import { AssetProfile } from '@shared/models/asset.models';
 
@@ -786,14 +786,16 @@ export class ImportExportService {
       return false;
     }
     if (converter.type === ConverterType.UPLINK) {
-      if (!converter.configuration.decoder || !converter.configuration.decoder.length) {
-        return false;
-      }
+        const convertorName = converter.configuration.scriptLang === ScriptLanguage.JS ?  'decoder' : 'tbelDecoder';
+        if (!converter.configuration[convertorName] || !converter.configuration[convertorName].length) {
+            return false;
+        }
     }
     if (converter.type === ConverterType.DOWNLINK) {
-      if (!converter.configuration.encoder || !converter.configuration.encoder.length) {
-        return false;
-      }
+        const convertorName = converter.configuration.scriptLang === ScriptLanguage.JS ?  'encoder' : 'tbelEncoder';
+        if (!converter.configuration[convertorName] || !converter.configuration[convertorName].length) {
+            return false;
+        }
     }
     return true;
   }

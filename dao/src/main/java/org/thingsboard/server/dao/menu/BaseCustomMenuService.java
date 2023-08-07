@@ -32,10 +32,12 @@ package org.thingsboard.server.dao.menu;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
@@ -47,6 +49,7 @@ import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 
@@ -57,15 +60,14 @@ import java.util.List;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class BaseCustomMenuService implements CustomMenuService {
 
     private static final String CUSTOM_MENU_ATTR_NAME = "customMenu";
 
-    @Autowired
-    private AdminSettingsService adminSettingsService;
-
-    @Autowired
-    private AttributesService attributesService;
+    private final AdminSettingsService adminSettingsService;
+    private final AttributesService attributesService;
+    private final CustomerService customerService;
 
     @Override
     public CustomMenu getSystemCustomMenu(TenantId tenantId) {
@@ -84,7 +86,14 @@ public class BaseCustomMenuService implements CustomMenuService {
 
     @Override
     public CustomMenu getCustomerCustomMenu(TenantId tenantId, CustomerId customerId) {
-        return getEntityCustomMenu(tenantId, customerId);
+        var result = getEntityCustomMenu(tenantId, customerId);
+        if (result == null) {
+            Customer customer = customerService.findCustomerById(tenantId, customerId);
+            if (customer.isSubCustomer()) {
+                return getEntityCustomMenu(tenantId, customer.getParentCustomerId());
+            }
+        }
+        return result;
     }
 
     @Override

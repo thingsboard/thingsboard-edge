@@ -38,6 +38,7 @@ import { DialogComponent } from '@shared/components/dialog.component';
 
 export interface ColorPickerDialogData {
   color: string;
+  colorClearButton: boolean;
   useThemePalette?: boolean;
 }
 
@@ -49,6 +50,7 @@ export interface ColorPickerDialogData {
 export class ColorPickerDialogComponent extends DialogComponent<ColorPickerDialogComponent, string> {
 
   color: string;
+  colorClearButton: boolean;
   useThemePalette: boolean;
 
   constructor(protected store: Store<AppState>,
@@ -57,6 +59,7 @@ export class ColorPickerDialogComponent extends DialogComponent<ColorPickerDialo
               public dialogRef: MatDialogRef<ColorPickerDialogComponent, string>) {
     super(store, router, dialogRef);
     this.color = data.color;
+    this.colorClearButton = data.colorClearButton;
     this.useThemePalette = data.useThemePalette;
   }
 

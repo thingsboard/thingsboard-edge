@@ -88,9 +88,10 @@ export class ConverterTabsComponent extends EntityTabsComponent<Converter> {
       inMsgType: msgType,
       inIntegrationMetadata: inIntegrationMetadata
     };
-
-    (this.entitiesTableConfig.getTable().entityDetailsPanel.entityComponent as ConverterComponent)
-      .showConverterTestDialog(debugIn, true);
+    const convertersTable = this.entitiesTableConfig.getTable();
+    const converterComponent = convertersTable ? convertersTable.entityDetailsPanel.entityComponent :
+      this.entitiesTableConfig.getEntityDetailsPage().entityComponent;
+    (converterComponent as ConverterComponent).showConverterTestDialog(debugIn, true);
   }
 
 }
