@@ -186,14 +186,18 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
         icon: 'done',
         isEnabled: !this.readonly,
         onAction: ($event, entities) => this.ackAlarms($event, entities)
-      }
-    )
-    this.groupActionDescriptors.push(
+      },
       {
         name: this.translate.instant('alarm.clear'),
         icon: 'clear',
         isEnabled: !this.readonly,
         onAction: ($event, entities) => this.clearAlarms($event, entities)
+      },
+      {
+        name: this.translate.instant('alarm.delete'),
+        icon: 'delete',
+        isEnabled: true,
+        onAction: ($event, entities) => this.deleteAlarms($event, entities)
       }
     )
   }
@@ -341,12 +345,17 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
     const unacknowledgedAlarms = alarms.filter(alarm => {
       return alarm.status === AlarmStatus.CLEARED_UNACK || alarm.status === AlarmStatus.ACTIVE_UNACK;
     })
+    let title = '';
+    let content = '';
     if (!unacknowledgedAlarms.length) {
-      this.dialogService.alert(this.translate.instant('alarm.selected-alarms', {count: alarms.length}),
-        this.translate.instant('alarm.selected-alarms-are-acknowledged')).subscribe();
+      title = this.translate.instant('alarm.selected-alarms', {count: alarms.length});
+      content = this.translate.instant('alarm.selected-alarms-are-acknowledged');
+      this.dialogService.alert(
+        title,
+        content).subscribe();
     } else {
-      const title = this.translate.instant('alarm.aknowledge-alarms-title', {count: unacknowledgedAlarms.length});
-      const content = this.translate.instant('alarm.aknowledge-alarms-text', {count: unacknowledgedAlarms.length});
+      title = this.translate.instant('alarm.aknowledge-alarms-title', {count: unacknowledgedAlarms.length});
+      content = this.translate.instant('alarm.aknowledge-alarms-text', {count: unacknowledgedAlarms.length});
       this.dialogService.confirm(
         title,
         content,
@@ -354,7 +363,7 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
         this.translate.instant('action.yes')
       ).subscribe((res) => {
         if (res) {
-          const tasks: Observable<void>[] = [];
+          const tasks: Observable<AlarmInfo>[] = [];
           for (const alarm of unacknowledgedAlarms) {
             tasks.push(this.alarmService.ackAlarm(alarm.id.id));
           }
@@ -373,12 +382,18 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
     const activeAlarms = alarms.filter(alarm => {
       return alarm.status === AlarmStatus.ACTIVE_ACK || alarm.status === AlarmStatus.ACTIVE_UNACK;
     })
+    let title = '';
+    let content = '';
     if (!activeAlarms.length) {
-      this.dialogService.alert(this.translate.instant('alarm.selected-alarms', {count: alarms.length}),
-        this.translate.instant('alarm.selected-alarms-are-cleared')).subscribe();
+      title = this.translate.instant('alarm.selected-alarms', {count: alarms.length});
+      content = this.translate.instant('alarm.selected-alarms-are-cleared');
+      this.dialogService.alert(
+        title,
+        content
+        ).subscribe();
     } else {
-      const title = this.translate.instant('alarm.clear-alarms-title', {count: activeAlarms.length});
-      const content = this.translate.instant('alarm.clear-alarms-text', {count: activeAlarms.length});
+      title = this.translate.instant('alarm.clear-alarms-title', {count: activeAlarms.length});
+      content = this.translate.instant('alarm.clear-alarms-text', {count: activeAlarms.length});
       this.dialogService.confirm(
         title,
         content,
@@ -386,7 +401,7 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
         this.translate.instant('action.yes')
       ).subscribe((res) => {
         if (res) {
-          const tasks: Observable<void>[] = [];
+          const tasks: Observable<AlarmInfo>[] = [];
           for (const alarm of activeAlarms) {
             tasks.push(this.alarmService.clearAlarm(alarm.id.id));
           }
@@ -396,6 +411,30 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
         }
       });
     }
+  }
+
+  deleteAlarms($event: Event, alarms: Array<AlarmInfo>) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const title = this.translate.instant('alarm.delete-alarms-title', {count: alarms.length});
+    const content = this.translate.instant('alarm.delete-alarms-text', {count: alarms.length});
+    this.dialogService.confirm(
+      title,
+      content,
+      this.translate.instant('action.no'),
+      this.translate.instant('action.yes')
+    ).subscribe((res) => {
+      if (res) {
+        const tasks: Observable<boolean>[] = [];
+        for (const alarm of alarms) {
+          tasks.push(this.alarmService.deleteAlarm(alarm.id.id));
+        }
+        forkJoin(tasks).subscribe(() => {
+          this.updateData();
+        });
+      }
+    });
   }
 
 }
