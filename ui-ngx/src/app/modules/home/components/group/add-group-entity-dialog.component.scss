@@ -32,7 +32,7 @@
 @import "../../../../../scss/constants";
 
 :host {
-  min-width: 400px;
+  min-width: 100%;
   width: 750px;
   .dialog-actions-row {
     padding: 8px;
