@@ -3923,6 +3923,8 @@
             "email-preview": "Email notification preview",
             "slack": "Slack",
             "slack-preview": "Slack notification preview",
+            "microsoft-teams": "Microsoft teams",
+            "microsoft-teams-preview": "Microsoft teams notification preview",
             "sms": "SMS",
             "sms-preview": "SMS notification preview",
             "web": "Web",
@@ -4094,6 +4096,7 @@
         "tenant-profiles-list-rule-hint": "If the field is empty, the trigger will be applied to all tenant profiles",
         "tenants-list-rule-hint": "If the field is empty, the trigger will be applied to all tenants",
         "threshold": "Threshold",
+        "theme-color": "Theme color",
         "time": "Time",
         "track-rule-node-events": "Track rule node events",
         "trigger": {
@@ -4119,7 +4122,12 @@
         "view-notification-recipients-group": "View notification recipients group",
         "view-notification-template": "View notification template",
         "view-rule": "View rule",
-        "warning": "Warning"
+        "warning": "Warning",
+        "webhook-url": "Webhook URL",
+        "webhook-url-required": "Webhook URL is required",
+        "channel-name": "Chanel name",
+        "channel-name-required": "Chanel name is required"
+
     },
     "ota-update": {
       "add": "Add package",
