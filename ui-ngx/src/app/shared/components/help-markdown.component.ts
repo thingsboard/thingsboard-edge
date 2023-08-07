@@ -39,6 +39,7 @@ import {
 import { BehaviorSubject } from 'rxjs';
 import { share } from 'rxjs/operators';
 import { HelpService } from '@core/services/help.service';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-help-markdown',
@@ -51,7 +52,9 @@ export class HelpMarkdownComponent implements OnDestroy, OnInit, OnChanges {
 
   @Input() helpContent: string;
 
-  @Input() visible: boolean;
+  @Input()
+  @coerceBoolean()
+  visible: boolean;
 
   @Input() style: { [klass: string]: any } = {};
 

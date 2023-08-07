@@ -47,7 +47,6 @@ import {
 import {
   MarkdownWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/cards/markdown-widget-settings.component';
-import { WidgetFontComponent } from '@home/components/widget/lib/settings/common/widget-font.component';
 import { LabelWidgetLabelComponent } from '@home/components/widget/lib/settings/cards/label-widget-label.component';
 import { LabelWidgetSettingsComponent } from '@home/components/widget/lib/settings/cards/label-widget-settings.component';
 import {
@@ -87,7 +86,6 @@ import {
 import {
   DigitalGaugeWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/gauge/digital-gauge-widget-settings.component';
-import { ValueSourceComponent } from '@home/components/widget/lib/settings/common/value-source.component';
 import { FixedColorLevelComponent } from '@home/components/widget/lib/settings/gauge/fixed-color-level.component';
 import { TickValueComponent } from '@home/components/widget/lib/settings/gauge/tick-value.component';
 import { FlotWidgetSettingsComponent } from '@home/components/widget/lib/settings/chart/flot-widget-settings.component';
@@ -289,7 +287,10 @@ import {
 import {
   SchedulerEventsWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/scheduler/scheduler-events-widget-settings.component';
-import { LegendConfigComponent } from '@home/components/widget/lib/settings/common/legend-config.component';
+import {
+  ValueCardWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/cards/value-card-widget-settings.component';
+import { WidgetSettingsCommonModule } from '@home/components/widget/lib/settings/common/widget-settings-common.module';
 
 @NgModule({
   declarations: [
@@ -298,7 +299,6 @@ import { LegendConfigComponent } from '@home/components/widget/lib/settings/comm
     TimeseriesTableKeySettingsComponent,
     TimeseriesTableLatestKeySettingsComponent,
     MarkdownWidgetSettingsComponent,
-    WidgetFontComponent,
     LabelWidgetLabelComponent,
     LabelWidgetSettingsComponent,
     SimpleCardWidgetSettingsComponent,
@@ -314,8 +314,6 @@ import { LegendConfigComponent } from '@home/components/widget/lib/settings/comm
     AnalogueLinearGaugeWidgetSettingsComponent,
     AnalogueCompassWidgetSettingsComponent,
     DigitalGaugeWidgetSettingsComponent,
-    ValueSourceComponent,
-    LegendConfigComponent,
     FixedColorLevelComponent,
     TickValueComponent,
     FlotWidgetSettingsComponent,
@@ -392,6 +390,7 @@ import { LegendConfigComponent } from '@home/components/widget/lib/settings/comm
     TripAnimationWidgetSettingsComponent,
     DocLinksWidgetSettingsComponent,
     QuickLinksWidgetSettingsComponent,
+    ValueCardWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -399,7 +398,8 @@ import { LegendConfigComponent } from '@home/components/widget/lib/settings/comm
   imports: [
     CommonModule,
     SharedModule,
-    SharedHomeComponentsModule
+    SharedHomeComponentsModule,
+    WidgetSettingsCommonModule
   ],
   exports: [
     QrCodeWidgetSettingsComponent,
@@ -407,7 +407,6 @@ import { LegendConfigComponent } from '@home/components/widget/lib/settings/comm
     TimeseriesTableKeySettingsComponent,
     TimeseriesTableLatestKeySettingsComponent,
     MarkdownWidgetSettingsComponent,
-    WidgetFontComponent,
     LabelWidgetLabelComponent,
     LabelWidgetSettingsComponent,
     SimpleCardWidgetSettingsComponent,
@@ -423,8 +422,6 @@ import { LegendConfigComponent } from '@home/components/widget/lib/settings/comm
     AnalogueLinearGaugeWidgetSettingsComponent,
     AnalogueCompassWidgetSettingsComponent,
     DigitalGaugeWidgetSettingsComponent,
-    ValueSourceComponent,
-    LegendConfigComponent,
     FixedColorLevelComponent,
     TickValueComponent,
     FlotWidgetSettingsComponent,
@@ -501,6 +498,7 @@ import { LegendConfigComponent } from '@home/components/widget/lib/settings/comm
     TripAnimationWidgetSettingsComponent,
     DocLinksWidgetSettingsComponent,
     QuickLinksWidgetSettingsComponent,
+    ValueCardWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -573,6 +571,7 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-trip-animation-widget-settings': TripAnimationWidgetSettingsComponent,
   'tb-doc-links-widget-settings': DocLinksWidgetSettingsComponent,
   'tb-quick-links-widget-settings': QuickLinksWidgetSettingsComponent,
+  'tb-value-card-widget-settings': ValueCardWidgetSettingsComponent,
   'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
   'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
 };

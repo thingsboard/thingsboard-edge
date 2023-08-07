@@ -54,6 +54,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.permission.ShareGroupRequest;
 import org.thingsboard.server.common.data.query.AlarmCountQuery;
 import org.thingsboard.server.common.data.query.DeviceTypeFilter;
 import org.thingsboard.server.common.data.query.DynamicValue;
@@ -63,6 +64,7 @@ import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityDataPageLink;
 import org.thingsboard.server.common.data.query.EntityDataQuery;
 import org.thingsboard.server.common.data.query.EntityDataSortOrder;
+import org.thingsboard.server.common.data.query.EntityGroupListFilter;
 import org.thingsboard.server.common.data.query.EntityGroupNameFilter;
 import org.thingsboard.server.common.data.query.EntityKey;
 import org.thingsboard.server.common.data.query.EntityKeyType;
@@ -84,6 +86,7 @@ import org.thingsboard.server.dao.service.DaoSqlTest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -650,6 +653,134 @@ public class EntityQueryControllerTest extends AbstractControllerTest {
         Assert.assertEquals(10, data2.getTotalPages());
         Assert.assertTrue(data2.hasNext());
         Assert.assertEquals(10, data2.getData().size());
+    }
+
+    @Test
+    public void testFindEntityDataByEntityGroupListFilterQueryByTenant() throws Exception {
+        List<EntityGroup> groups = new ArrayList<>();
+        for (int i = 0; i < 97; i++) {
+            EntityGroup entityGroup = new EntityGroup();
+            entityGroup.setName("TestGroup" + i);
+            entityGroup.setType(EntityType.DEVICE);
+            groups.add(doPost("/api/entityGroup", entityGroup, EntityGroup.class));
+            Thread.sleep(1);
+        }
+
+        EntityGroupListFilter filter = new EntityGroupListFilter();
+        filter.setGroupType(EntityType.DEVICE);
+        filter.setEntityGroupList(groups.stream().map(EntityGroup::getId).map(Objects::toString).collect(Collectors.toList()));
+
+        EntityDataSortOrder sortOrder = new EntityDataSortOrder(
+                new EntityKey(EntityKeyType.ENTITY_FIELD, "createdTime"), EntityDataSortOrder.Direction.ASC
+        );
+        EntityDataPageLink pageLink = new EntityDataPageLink(10, 0, null, sortOrder);
+        List<EntityKey> entityFields = Collections.singletonList(new EntityKey(EntityKeyType.ENTITY_FIELD, "name"));
+
+        EntityDataQuery query = new EntityDataQuery(filter, pageLink, entityFields, null, null);
+
+        PageData<EntityData> data =
+                doPostWithTypedResponse("/api/entitiesQuery/find", query, new TypeReference<>() {
+                });
+
+        Assert.assertEquals(97, data.getTotalElements());
+        Assert.assertEquals(10, data.getTotalPages());
+        Assert.assertTrue(data.hasNext());
+        Assert.assertEquals(10, data.getData().size());
+
+        List<EntityData> loadedEntities = new ArrayList<>(data.getData());
+        while (data.hasNext()) {
+            query = query.next();
+            data = doPostWithTypedResponse("/api/entitiesQuery/find", query, new TypeReference<>() {
+            });
+            loadedEntities.addAll(data.getData());
+        }
+        Assert.assertEquals(97, loadedEntities.size());
+
+        List<EntityId> loadedIds = loadedEntities.stream().map(EntityData::getEntityId).collect(Collectors.toList());
+        List<EntityId> deviceIds = groups.stream().map(EntityGroup::getId).collect(Collectors.toList());
+
+        Assert.assertEquals(deviceIds, loadedIds);
+
+        List<String> loadedNames = loadedEntities.stream().map(entityData ->
+                entityData.getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue()).collect(Collectors.toList());
+        List<String> deviceNames = groups.stream().map(EntityGroup::getName).collect(Collectors.toList());
+
+        Assert.assertEquals(deviceNames, loadedNames);
+
+        sortOrder = new EntityDataSortOrder(
+                new EntityKey(EntityKeyType.ENTITY_FIELD, "name"), EntityDataSortOrder.Direction.DESC
+        );
+
+        pageLink = new EntityDataPageLink(10, 0, "testGroup1", sortOrder);
+        query = new EntityDataQuery(filter, pageLink, entityFields, null, null);
+        data = doPostWithTypedResponse("/api/entitiesQuery/find", query, new TypeReference<>() {
+        });
+        Assert.assertEquals(11, data.getTotalElements());
+        Assert.assertEquals("TestGroup19",
+                data.getData().get(0).getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue());
+    }
+
+    @Test
+    public void testFindEntityDataByEntityGroupListFilterQueryByCustomerWithSharedGroups() throws Exception {
+        List<EntityGroup> groups = new ArrayList<>();
+        for (int i = 0; i < 97; i++) {
+            EntityGroup entityGroup = new EntityGroup();
+            entityGroup.setName("TestGroup" + i);
+            entityGroup.setType(EntityType.DEVICE);
+            groups.add(entityGroup = doPost("/api/entityGroup", entityGroup, EntityGroup.class));
+            Thread.sleep(1);
+            var shareGroupRequest = new ShareGroupRequest(customerId, true, null, false, Collections.emptyList());
+            doPost("/api/entityGroup/{entityGroupId}/share", shareGroupRequest, entityGroup.getId().toString());
+        }
+
+        loginCustomerAdministrator();
+
+        for (int i = 0; i < 97; i++) {
+            EntityGroup entityGroup = new EntityGroup();
+            entityGroup.setName("TestCustomerGroup" + i);
+            entityGroup.setType(EntityType.DEVICE);
+            groups.add(doPost("/api/entityGroup", entityGroup, EntityGroup.class));
+            Thread.sleep(1);
+        }
+
+        EntityGroupListFilter filter = new EntityGroupListFilter();
+        filter.setGroupType(EntityType.DEVICE);
+        filter.setEntityGroupList(groups.stream().map(EntityGroup::getId).map(Objects::toString).collect(Collectors.toList()));
+
+        EntityDataSortOrder sortOrder = new EntityDataSortOrder(
+                new EntityKey(EntityKeyType.ENTITY_FIELD, "createdTime"), EntityDataSortOrder.Direction.ASC
+        );
+        EntityDataPageLink pageLink = new EntityDataPageLink(10, 0, null, sortOrder);
+        List<EntityKey> entityFields = Collections.singletonList(new EntityKey(EntityKeyType.ENTITY_FIELD, "name"));
+
+        EntityDataQuery query = new EntityDataQuery(filter, pageLink, entityFields, null, null);
+
+        PageData<EntityData> data =
+                doPostWithTypedResponse("/api/entitiesQuery/find", query, new TypeReference<>() {
+                });
+
+        Assert.assertEquals(groups.size(), data.getTotalElements());
+        Assert.assertTrue(data.hasNext());
+
+        List<EntityData> loadedEntities = new ArrayList<>(data.getData());
+        while (data.hasNext()) {
+            query = query.next();
+            data = doPostWithTypedResponse("/api/entitiesQuery/find", query, new TypeReference<>() {
+            });
+            loadedEntities.addAll(data.getData());
+        }
+        Assert.assertEquals(groups.size(), loadedEntities.size());
+
+        List<EntityId> loadedIds = loadedEntities.stream().map(EntityData::getEntityId).collect(Collectors.toList());
+        List<EntityId> deviceIds = groups.stream().map(EntityGroup::getId).collect(Collectors.toList());
+
+        Assert.assertEquals(deviceIds, loadedIds);
+
+        List<String> loadedNames = loadedEntities.stream().map(entityData ->
+                entityData.getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue()).collect(Collectors.toList());
+        List<String> deviceNames = groups.stream().map(EntityGroup::getName).collect(Collectors.toList());
+
+        Assert.assertEquals(deviceNames, loadedNames);
     }
 
     @Test

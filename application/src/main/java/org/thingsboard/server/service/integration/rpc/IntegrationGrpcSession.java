@@ -65,6 +65,7 @@ import org.thingsboard.server.common.data.kv.JsonDataEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
@@ -101,9 +102,6 @@ import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-
-import static org.thingsboard.server.common.msg.session.SessionMsgType.POST_ATTRIBUTES_REQUEST;
-import static org.thingsboard.server.common.msg.session.SessionMsgType.POST_TELEMETRY_REQUEST;
 
 @Data
 @Slf4j
@@ -278,7 +276,7 @@ public final class IntegrationGrpcSession implements Closeable {
                                     metaData.putValue("assetType", data.getAssetType());
                                     metaData.putValue("ts", tsKv.getTs() + "");
                                     JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
-                                    TbMsg tbMsg = TbMsg.newMsg(POST_TELEMETRY_REQUEST.name(), asset.getId(), asset.getCustomerId(), metaData, gson.toJson(json));
+                                    TbMsg tbMsg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, asset.getId(), asset.getCustomerId(), metaData, gson.toJson(json));
                                     ctx.getPlatformIntegrationService().process(asset.getTenantId(), tbMsg, null);
                                 });
                     }
@@ -288,7 +286,7 @@ public final class IntegrationGrpcSession implements Closeable {
                         metaData.putValue("assetName", data.getAssetName());
                         metaData.putValue("assetType", data.getAssetType());
                         JsonObject json = JsonUtils.getJsonObject(data.getPostAttributesMsg().getKvList());
-                        TbMsg tbMsg = TbMsg.newMsg(POST_ATTRIBUTES_REQUEST.name(), asset.getId(), asset.getCustomerId(), metaData, gson.toJson(json));
+                        TbMsg tbMsg = TbMsg.newMsg(TbMsgType.POST_ATTRIBUTES_REQUEST, asset.getId(), asset.getCustomerId(), metaData, gson.toJson(json));
                         ctx.getPlatformIntegrationService().process(asset.getTenantId(), tbMsg, null);
                     }
                 }

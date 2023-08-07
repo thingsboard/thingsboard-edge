@@ -51,7 +51,7 @@ public abstract class TbAbstractDuplicateMsgNode<C> extends TbAbstractTransformN
             }
             List<TbMsg> messages = new ArrayList<>();
             if (entityIds.size() == 1) {
-                messages.add(ctx.transformMsg(msg, msg.getType(), entityIds.get(0), msg.getMetaData(), msg.getData()));
+                messages.add(ctx.transformMsgOriginator(msg, entityIds.get(0)));
             } else {
                 for (EntityId entityId : entityIds) {
                     messages.add(ctx.newMsg(msg.getQueueName(), msg.getType(), entityId, msg.getCustomerId(), msg.getMetaData(), msg.getData()));

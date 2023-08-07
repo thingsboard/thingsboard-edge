@@ -380,10 +380,8 @@ export class DashboardUtilsService {
   private convertDatasourcesFromWidgetType(widgetTypeDescriptor: WidgetTypeDescriptor,
                                            config: WidgetConfig, datasources?: Datasource[]): Datasource[] {
     const newDatasources: Datasource[] = [];
-    if (datasources) {
-      datasources.forEach(datasource => {
-        newDatasources.push(this.convertDatasourceFromWidgetType(widgetTypeDescriptor, config, datasource));
-      });
+    if (datasources?.length) {
+      newDatasources.push(this.convertDatasourceFromWidgetType(widgetTypeDescriptor, config, datasources[0]));
     }
     return newDatasources;
   }

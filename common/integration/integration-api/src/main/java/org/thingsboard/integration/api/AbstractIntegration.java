@@ -177,8 +177,9 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     private void processDeviceUplinkData(IntegrationContext context, UplinkData data) {
+        String entityName = data.getDeviceName();
         DeviceUplinkDataProto.Builder builder = DeviceUplinkDataProto.newBuilder()
-                .setDeviceName(data.getDeviceName())
+                .setDeviceName(entityName)
                 .setDeviceType(data.getDeviceType());
         if (StringUtils.isNotEmpty(data.getDeviceLabel())) {
             builder.setDeviceLabel(data.getDeviceLabel());
@@ -199,8 +200,9 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     private void processAssetUplinkData(IntegrationContext context, UplinkData data) {
+        String entityName = data.getAssetName();
         AssetUplinkDataProto.Builder builder = AssetUplinkDataProto.newBuilder()
-                .setAssetName(data.getAssetName()).setAssetType(data.getAssetType());
+                .setAssetName(entityName).setAssetType(data.getAssetType());
         if (StringUtils.isNotEmpty(data.getAssetLabel())) {
             builder.setAssetLabel(data.getAssetLabel());
         }
@@ -209,6 +211,9 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         }
         if (StringUtils.isNotEmpty(data.getGroupName())) {
             builder.setGroupName(data.getGroupName());
+        }
+        if (data.getTelemetry() != null) {
+            builder.setPostTelemetryMsg(data.getTelemetry());
         }
         if (data.getTelemetry() != null) {
             builder.setPostTelemetryMsg(data.getTelemetry());
