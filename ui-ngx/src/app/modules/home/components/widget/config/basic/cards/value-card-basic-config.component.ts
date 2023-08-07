@@ -49,7 +49,7 @@ import {
   DateFormatSettings,
   getLabel,
   setLabel
-} from '@home/components/widget/config/widget-settings.models';
+} from '@shared/models/widget-settings.models';
 import {
   valueCardDefaultSettings,
   ValueCardLayout,
@@ -88,6 +88,16 @@ export class ValueCardBasicConfigComponent extends BasicWidgetConfigComponent {
   valuePreviewFn = this._valuePreviewFn.bind(this);
 
   datePreviewFn = this._datePreviewFn.bind(this);
+
+  get dateEnabled(): boolean {
+    const layout: ValueCardLayout = this.valueCardWidgetConfigForm.get('layout').value;
+    return ![ValueCardLayout.vertical, ValueCardLayout.simplified].includes(layout);
+  }
+
+  get iconEnabled(): boolean {
+    const layout: ValueCardLayout = this.valueCardWidgetConfigForm.get('layout').value;
+    return layout !== ValueCardLayout.simplified;
+  }
 
   constructor(protected store: Store<AppState>,
               protected widgetConfigComponent: WidgetConfigComponent,
@@ -266,6 +276,9 @@ export class ValueCardBasicConfigComponent extends BasicWidgetConfigComponent {
 
   private getCardButtons(config: WidgetConfig): string[] {
     const buttons: string[] = [];
+    if (isUndefined(config.enableDataExport) || config.enableDataExport) {
+      buttons.push('dataExport');
+    }
     if (isUndefined(config.enableFullscreen) || config.enableFullscreen) {
       buttons.push('fullscreen');
     }
@@ -273,6 +286,7 @@ export class ValueCardBasicConfigComponent extends BasicWidgetConfigComponent {
   }
 
   private setCardButtons(buttons: string[], config: WidgetConfig) {
+    config.enableDataExport = buttons.includes('dataExport');
     config.enableFullscreen = buttons.includes('fullscreen');
   }
 

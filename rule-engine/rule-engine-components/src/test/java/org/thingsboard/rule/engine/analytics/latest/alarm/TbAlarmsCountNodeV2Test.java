@@ -55,7 +55,6 @@ import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
-import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.alarm.Alarm;
@@ -69,12 +68,13 @@ import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -136,15 +136,15 @@ public class TbAlarmsCountNodeV2Test {
 
     @Test
     public void alarmsCountV2Test() throws Exception {
-        processTest("ALARM");
+        processTest(TbMsgType.ALARM);
     }
 
     @Test
     public void alarmsCountV2Test2() throws Exception {
-        processTest("ENTITY_CREATED");
+        processTest(TbMsgType.ENTITY_CREATED);
     }
 
-    private void processTest(String type) throws Exception {
+    private void processTest(TbMsgType type) throws Exception {
         init(createConfig());
         performAlarmsCountTest(type);
     }
@@ -189,7 +189,7 @@ public class TbAlarmsCountNodeV2Test {
         configuration.setCountAlarmsForPropagationEntities(false);
         configuration.setAlarmsCountMappings(getAlarmsCountMappings());
         configuration.setPropagationEntityTypes(Collections.emptyList());
-        configuration.setOutMsgType(SessionMsgType.POST_TELEMETRY_REQUEST.name());
+        configuration.setOutMsgType(TbMsgType.POST_TELEMETRY_REQUEST.name());
         return configuration;
     }
 
@@ -225,7 +225,7 @@ public class TbAlarmsCountNodeV2Test {
         return alarmsCountMappings;
     }
 
-    private void performAlarmsCountTest(String type) throws Exception {
+    private void performAlarmsCountTest(TbMsgType type) throws Exception {
         int totalEntitiesCount = 10 + (int) (Math.random() * 20);
         List<AlarmInfo> alarms;
 
@@ -244,7 +244,7 @@ public class TbAlarmsCountNodeV2Test {
             alarm.setOriginator(entityId);
             alarm.setPropagate(true);
             try {
-                TbMsg alarmMsg = TbMsg.newMsg(type, entityId, new TbMsgMetaData(),
+                TbMsg alarmMsg = TbMsg.newMsg(type, entityId, TbMsgMetaData.EMPTY,
                         TbMsgDataType.JSON, JacksonUtil.toString(alarm), null, null);
                 node.onMsg(ctx, alarmMsg);
             } catch (Exception e) {
@@ -305,7 +305,7 @@ public class TbAlarmsCountNodeV2Test {
                 parentEntityIds.add(alarm.getOriginator());
                 when(ctx.getAlarmService().getPropagationEntityIds(Mockito.any(), eq(Collections.emptyList()))).thenReturn(parentEntityIds);
                 try {
-                    TbMsg alarmMsg = TbMsg.newMsg("ALARM", entityId, new TbMsgMetaData(),
+                    TbMsg alarmMsg = TbMsg.newMsg(TbMsgType.ALARM, entityId, TbMsgMetaData.EMPTY,
                             TbMsgDataType.JSON, JacksonUtil.toString(alarm), null, null);
                     node.onMsg(ctx, alarmMsg);
                 } catch (Exception e) {
@@ -366,7 +366,7 @@ public class TbAlarmsCountNodeV2Test {
                 parentEntityIds.add(parentEntityId);
                 when(ctx.getAlarmService().getPropagationEntityIds(Mockito.any(), eq(propagationEntityTypes))).thenReturn(parentEntityIds);
                 try {
-                    TbMsg alarmMsg = TbMsg.newMsg("ALARM", entityId, new TbMsgMetaData(),
+                    TbMsg alarmMsg = TbMsg.newMsg(TbMsgType.ALARM, entityId, TbMsgMetaData.EMPTY,
                             TbMsgDataType.JSON, JacksonUtil.toString(alarm), null, null);
                     node.onMsg(ctx, alarmMsg);
                 } catch (Exception e) {
@@ -380,7 +380,7 @@ public class TbAlarmsCountNodeV2Test {
 
     private void verifyResult(int totalEntitiesCount) {
         ArgumentCaptor<TbMsg> captor = ArgumentCaptor.forClass(TbMsg.class);
-        verify(ctx, new Times(totalEntitiesCount)).enqueueForTellNext(captor.capture(), eq(TbRelationTypes.SUCCESS));
+        verify(ctx, new Times(totalEntitiesCount)).enqueueForTellNext(captor.capture(), eq(TbNodeConnectionType.SUCCESS));
         List<TbMsg> messages = captor.getAllValues();
         for (TbMsg msg : messages) {
             verifyMessage(msg);
@@ -443,7 +443,7 @@ public class TbAlarmsCountNodeV2Test {
     }
 
     private void verifyMessage(TbMsg msg) {
-        Assert.assertEquals(SessionMsgType.POST_TELEMETRY_REQUEST.name(), msg.getType());
+        Assert.assertTrue(msg.isTypeOf(TbMsgType.POST_TELEMETRY_REQUEST));
         EntityId entityId = msg.getOriginator();
         Assert.assertNotNull(entityId);
         String data = msg.getData();

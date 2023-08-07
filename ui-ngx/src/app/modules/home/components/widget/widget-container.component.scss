@@ -29,9 +29,14 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-tb-widget.tb-widget {
-  position: relative;
-  height: 100%;
+.tb-widget-container {
+  position: absolute;
+  inset: 0;
+}
+
+.tb-widget {
+  position: absolute;
+  inset: 0;
   margin: 0;
   overflow: hidden;
   outline: none;
@@ -40,15 +45,27 @@ tb-widget.tb-widget {
 }
 
 div.tb-widget {
-  position: relative;
-  height: 100%;
-  margin: 0;
-  overflow: hidden;
-  outline: none;
-
-  transition: all .2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  .tb-widget-header {
+    display: flex;
+    flex-direction: row;
+    place-content: flex-start space-between;
+    align-items: flex-start;
+    &-absolute {
+      position: absolute;
+      top: 0;
+      right: 0;
+      left: 0;
+      z-index: 1;
+    }
+  }
 
   .tb-widget-title {
+    display: flex;
+    flex-direction: column;
+    place-content: flex-start center;
+    align-items: flex-start;
     max-height: 65px;
     padding-top: 5px;
     padding-left: 5px;
@@ -78,6 +95,10 @@ div.tb-widget {
   }
 
   .tb-widget-actions {
+    display: flex;
+    flex-direction: row;
+    place-content: center flex-start;
+    align-items: center;
     z-index: 19;
     margin: 5px 0 0;
 
@@ -119,12 +140,10 @@ div.tb-widget {
   }
 
   .tb-widget-content {
+    flex: 1;
+    position: relative;
     &.tb-no-interaction {
       pointer-events: none;
-    }
-    tb-widget {
-      position: relative;
-      width: 100%;
     }
   }
 

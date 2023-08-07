@@ -59,6 +59,12 @@
           [fxShow]="!isEdit">
     {{'entity-group.manage-owner-and-groups' | translate }}
   </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'checkConnectivity')"
+          [fxShow]="!isEdit">
+    {{ 'device.connectivity.check-connectivity' | translate }}
+  </button>
   <button mat-raised-button color="primary" fxFlex.xs
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"

@@ -79,7 +79,6 @@ import java.util.stream.Stream;
 class TbIntervalTable {
 
     private final TbContext ctx;
-    private final JsonParser gsonParser;
     private final Gson gson = new Gson();
     private final AggIntervalType aggIntervalType;
     private final ZoneId tz;
@@ -89,9 +88,8 @@ class TbIntervalTable {
     private final boolean autoCreateIntervals;
     private ConcurrentMap<EntityId, ConcurrentMap<Long, TbIntervalState>> states = new ConcurrentHashMap<>();
 
-    TbIntervalTable(TbContext ctx, TbSimpleAggMsgNodeConfiguration config, JsonParser gson) {
+    TbIntervalTable(TbContext ctx, TbSimpleAggMsgNodeConfiguration config) {
         this.ctx = ctx;
-        this.gsonParser = gson;
         this.aggIntervalType = config.getAggIntervalType() == null ? AggIntervalType.CUSTOM : config.getAggIntervalType();
         long tmpIntervalDuration;
         if (this.aggIntervalType == AggIntervalType.CUSTOM) {
@@ -218,7 +216,7 @@ class TbIntervalTable {
     }
 
     private TbIntervalState readTbIntervalState(String value) {
-        JsonElement stateJson = gsonParser.parse(value);
+        JsonElement stateJson = JsonParser.parseString(value);
         switch (function) {
             case MIN:
                 return new TbMinIntervalState(stateJson);

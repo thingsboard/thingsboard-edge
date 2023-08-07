@@ -32,6 +32,7 @@
 import { Action } from '@ngrx/store';
 import { User } from '@shared/models/user.model';
 import { AuthPayload } from '@core/auth/auth.models';
+import { UserSettings } from '@shared/models/user-settings.models';
 
 export enum AuthActionTypes {
   AUTHENTICATED = '[Auth] Authenticated',
@@ -40,7 +41,9 @@ export enum AuthActionTypes {
   UPDATE_USER_DETAILS = '[Auth] Update User Details',
   UPDATE_LAST_PUBLIC_DASHBOARD_ID = '[Auth] Update Last Public Dashboard Id',
   UPDATE_HAS_REPOSITORY = '[Auth] Change Has Repository',
-  UPDATE_OPENED_MENU_SECTION = '[Preferences] Update Opened Menu Section'
+  UPDATE_OPENED_MENU_SECTION = '[Preferences] Update Opened Menu Section',
+  PUT_USER_SETTINGS = '[Preferences] Put user settings',
+  DELETE_USER_SETTINGS = '[Preferences] Delete user settings',
 }
 
 export class ActionAuthAuthenticated implements Action {
@@ -83,6 +86,18 @@ export class ActionPreferencesUpdateOpenedMenuSection implements Action {
   constructor(readonly payload: { path: string; opened: boolean }) {}
 }
 
+export class ActionPreferencesPutUserSettings implements Action {
+  readonly type = AuthActionTypes.PUT_USER_SETTINGS;
+
+  constructor(readonly payload: Partial<UserSettings>) {}
+}
+
+export class ActionPreferencesDeleteUserSettings implements Action {
+  readonly type = AuthActionTypes.DELETE_USER_SETTINGS;
+
+  constructor(readonly payload: Array<NestedKeyOf<UserSettings>>) {}
+}
+
 export type AuthActions = ActionAuthAuthenticated | ActionAuthUnauthenticated |
   ActionAuthLoadUser | ActionAuthUpdateUserDetails | ActionAuthUpdateLastPublicDashboardId | ActionAuthUpdateHasRepository |
-  ActionPreferencesUpdateOpenedMenuSection;
+  ActionPreferencesUpdateOpenedMenuSection | ActionPreferencesPutUserSettings | ActionPreferencesDeleteUserSettings;

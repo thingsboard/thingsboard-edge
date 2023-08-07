@@ -28,11 +28,60 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.metadata;
+@import '../../../../../../../../scss/constants';
 
-public enum FetchTo {
-
-    DATA,
-    METADATA
-
+.tb-background-settings-panel {
+  width: 620px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  @media #{$mat-lt-md} {
+    width: 90vw;
+  }
+  .tb-background-settings-title {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
+    letter-spacing: 0.25px;
+    color: rgba(0, 0, 0, 0.87);
+  }
+  .tb-background-settings-preview {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    padding: 12px 16px 24px 16px;
+    align-items: center;
+    gap: 12px;
+  }
+  .tb-background-settings-preview-title {
+    align-self: stretch;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 24px;
+    color: rgba(0, 0, 0, 0.38);
+  }
+  .tb-background-settings-preview-box {
+    position: relative;
+    width: 136px;
+    height: 118px;
+    border-radius: 2.666px;
+  }
+  .tb-background-settings-preview-overlay {
+    position: absolute;
+    border-radius: 2.666px;
+    top: 7.998px;
+    bottom: 7.998px;
+    left: 7.998px;
+    right: 7.998px;
+  }
+  .tb-background-settings-panel-buttons {
+    height: 40px;
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    justify-content: flex-end;
+    align-items: flex-end;
+  }
 }

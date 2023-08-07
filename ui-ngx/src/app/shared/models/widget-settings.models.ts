@@ -291,6 +291,14 @@ export enum BackgroundType {
   color = 'color'
 }
 
+export const backgroundTypeTranslations = new Map<BackgroundType, string>(
+  [
+    [BackgroundType.image, 'widgets.background.background-type-image'],
+    [BackgroundType.imageUrl, 'widgets.background.background-type-image-url'],
+    [BackgroundType.color, 'widgets.background.background-type-color']
+  ]
+);
+
 export interface OverlaySettings {
   enabled: boolean;
   color: string;
@@ -315,11 +323,30 @@ export const iconStyle = (size: number, sizeUnit: cssUnit): ComponentStyle => {
   };
 };
 
-export const textStyle = (font: Font, lineHeight = '1.5', letterSpacing = '0.25px'): ComponentStyle => ({
-  font: font.style + ' normal ' + font.weight + ' ' + (font.size+font.sizeUnit) + '/' + lineHeight + ' ' + font.family +
-    (font.family !== 'Roboto' ? ', Roboto' : ''),
-  letterSpacing
-});
+export const textStyle = (font?: Font, lineHeight = '1.5', letterSpacing = '0.25px'): ComponentStyle => {
+  const style: ComponentStyle = {
+    lineHeight,
+    letterSpacing
+  };
+  if (font?.style) {
+    style.fontStyle = font.style;
+  }
+  if (font?.weight) {
+    style.fontWeight = font.weight;
+  }
+  if (font?.size) {
+    style.fontSize = (font.size + (font.sizeUnit || 'px'));
+  }
+  if (font?.family) {
+    style.fontFamily = font.family +
+      (font.family !== 'Roboto' ? ', Roboto' : '');
+  }
+  return style;
+};
+
+export const isFontSet = (font: Font): boolean => (!!font && !!font.style && !!font.weight && !!font.size && !!font.family);
+
+export const isFontPartiallySet = (font: Font): boolean => (!!font && (!!font.style || !!font.weight || !!font.size || !!font.family));
 
 export const backgroundStyle = (background: BackgroundSettings): ComponentStyle => {
   if (background.type === BackgroundType.color) {
@@ -328,11 +355,13 @@ export const backgroundStyle = (background: BackgroundSettings): ComponentStyle 
     };
   } else {
     const imageUrl = background.type === BackgroundType.image ? background.imageBase64 : background.imageUrl;
-    return {
-      background: `url(${imageUrl}) no-repeat`,
-      backgroundSize: 'cover',
-      backgroundPosition: '50% 50%'
-    };
+    if (imageUrl) {
+      return {
+        background: `url(${imageUrl}) no-repeat 50% 50% / cover`
+      };
+    } else {
+      return {};
+    }
   }
 };
 

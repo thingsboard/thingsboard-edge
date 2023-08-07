@@ -10,6 +10,9 @@
         "permission-denied": "Permission Denied",
         "permission-denied-text": "You don't have permission to perform this operation!"
     },
+    "account": {
+        "account": "Account"
+    },
     "action": {
         "activate": "Activate",
         "suspend": "Suspend",
@@ -72,7 +75,10 @@
         "skip": "Skip",
         "send": "Send",
         "reset": "Reset",
-        "show-more": "Show more"
+        "show-more": "Show more",
+        "dont-show-again": "Do not show again",
+        "see-documentation": "See documentation",
+        "clear": "Clear"
     },
     "aggregation": {
         "aggregation": "Aggregation",
@@ -744,6 +750,7 @@
     "attribute": {
         "attributes": "Attributes",
         "latest-telemetry": "Latest telemetry",
+        "no-latest-telemetry": "No latest telemetry",
         "attributes-scope": "Entity attributes scope",
         "scope-latest-telemetry": "Latest telemetry",
         "scope-client": "Client attributes",
@@ -940,7 +947,8 @@
         "loading": "Loading...",
         "proceed": "Proceed",
         "open-details-page": "Open details page",
-        "not-found": "Not found"
+        "not-found": "Not found",
+        "documentation": "Documentation"
     },
     "converter": {
         "converter": "Data converter",
@@ -1000,7 +1008,10 @@
         "type": "Type",
         "type-required": "Type is required.",
         "type-uplink": "Uplink",
-        "type-downlink": "Downlink"
+        "type-downlink": "Downlink",
+        "update-only-keys-list": "Update only keys list",
+        "update-only-keys-list-hint": "The values associated with the provided keys will be saved to the database only if they are different from the corresponding values in the previous converted message. This functionality applies to both attributes and telemetry in the converter output.",
+        "add-key": "Add key"
     },
     "content-type": {
         "json": "Json",
@@ -1591,11 +1602,27 @@
         "device-configuration": "Device configuration",
         "transport-configuration": "Transport configuration",
         "wizard": {
-            "device-details": "Device details",
-            "customer-to-assign-device": "Customer to assign the device"
+            "device-details": "Device details"
         },
         "unassign-devices-from-edge-title": "Are you sure you want to unassign { count, plural, =1 {1 device} other {# devices} }?",
-        "unassign-devices-from-edge-text": "After the confirmation all selected devices will be unassigned and won't be accessible by the edge."
+        "unassign-devices-from-edge-text": "After the confirmation all selected devices will be unassigned and won't be accessible by the edge.",
+        "time": "Time",
+        "connectivity": {
+            "check-connectivity": "Check connectivity",
+            "device-created-check-connectivity": "Device created. Let's check connectivity!",
+            "loading-check-connectivity-command": "Loading check connectivity commands...",
+            "use-following-instructions": "Use the following instructions for sending telemetry on behalf of the device using shell",
+            "execute-following-command": "Execute the following command",
+            "install-curl-windows": "Starting Windows 10 b17063, cURL is available by default",
+            "install-mqtt-windows": "Use the instructions to download, install, setup and run mosquitto_pub",
+            "install-coap-client": "Use the instructions to download, install, setup and run coap-client",
+            "install-necessary-client-tools": "Install necessary client tools",
+            "mqtts-x509-command": "Use the following documentation to connect the device via MQTT with authorization X509",
+            "coaps-x509-command": "Use the following documentation to connect the device via CoAP over DTLS with authorization X509",
+            "snmp-command": "Use the following documentation to connect the device through the SNMP.",
+            "sparkplug-command": "Use the following documentation to connect the device through the MQTT Sparkplug.",
+            "lwm2m-command": "Use the following documentation to connect the device through the LWM2M."
+        }
     },
     "asset-profile": {
         "asset-profile": "Asset profile",
@@ -1677,6 +1704,7 @@
         "transport-type-lwm2m-hint": "LWM2M transport type",
         "transport-type-snmp": "SNMP",
         "transport-type-snmp-hint": "Specify SNMP transport configuration",
+        "transport-type-http": "HTTP",
         "description": "Description",
         "default": "Default",
         "profile-configuration": "Profile configuration",
@@ -3381,8 +3409,10 @@
         "browse-files": "Browse files"
     },
     "image-input": {
-        "drop-image-or": "Drag and drop an image or",
         "drop-images-or": "Drag and drop an images or",
+        "drag-and-drop": "Drag & Drop",
+        "or": "or",
+        "browse": "Browse",
         "no-images": "No images selected",
         "images": "images"
     },
@@ -3465,6 +3495,8 @@
         "management": "Integrations management",
         "add-integration-text": "Add new integration",
         "no-integrations-text": "No integrations found",
+        "data-convertor-name": "{{convertorType}} data converter for {{integrationName}}",
+        "integration-name": "{{integrationType}} integration",
         "selected-integrations": "{ count, plural, =1 {1 integration} other {# integrations} } selected",
         "delete-integration-title": "Are you sure you want to delete the integration '{{integrationName}}'?",
         "delete-integration-text": "Be careful, after the confirmation the integration and all related data will become unrecoverable.",
@@ -3491,6 +3523,7 @@
         "downlink-url-required": "Downlink URL is required",
         "create-loriot-output": "Create Loriot Application output",
         "send-downlink": "Send downlink",
+        "allow-downlink": "Allow downlink",
         "server": "Server",
         "server-required": "Server is required",
         "domain": "Domain",
@@ -3540,8 +3573,6 @@
         "connect-timeout-range": "Connection timeout should be in a range from 1 to 200.",
         "client-id": "Client ID",
         "client-id-required": "Client ID is required.",
-        "client-id-range": "Client ID should be in a range from 1 to 23 characters. [MQTT-3.1.3-5]",
-        "client-id-pattern": "Client ID should consist of numbers, upper and lower case letters. [MQTT-3.1.3-5]",
         "client-id-hint": "Hint: Optional. Leave empty for auto-generated client ID. Be careful when specifying the Client ID. Majority of the MQTT brokers will not allow multiple connections with the same client ID. To connect to such brokers, your MQTT client ID must be unique.",
         "max-bytes-in-message": "Max bytes in message",
         "max-bytes-in-message-range": "Max bytes in message should be in a range from 1 to 256000000.",
@@ -3697,6 +3728,8 @@
         "type-tti-description": "Software to operate private LoRaWAN networks at scale.",
         "type-chirpstack": "ChirpStack",
         "type-chirpstack-description": "LoRaWAN network configuration server.",
+        "type-particle": "Particle",
+        "type-particle-description": "IoT enablement platform-as-a-service.",
         "type-azure-event-hub": "Azure Event Hub",
         "type-azure-event-hub-description": "Big data streaming platform and event ingestion service.",
         "type-azure-iot-hub": "Azure IoT Hub",
@@ -6012,8 +6045,7 @@
         "groups-created": "{ created, plural, =1 {1 group} other {# groups} } created",
         "groups-updated": "{ updated, plural, =1 {1 group} other {# groups} } updated",
         "groups-deleted": "{ deleted, plural, =1 {1 group} other {# groups} } deleted",
-        "remove-other-entities-confirm-text": "Be careful! This will permanently <b>delete</b> <b>all</b> current entities<br/>not present in the version you want to restore.<br/><br/>Please type <b>remove other entities</b> to confirm.",
-        "auto-commit-to-branch": "auto-commit to <b>{{ branch }}</b> branch",
+        "remove-other-entities-confirm-text": "Be careful! This will permanently <b>delete</b> <b>all</b> current entities<br/>not present in the version you want to restore.<br/><br/>Please type <b>\"remove other entities\"</b> to confirm.",        "auto-commit-to-branch": "auto-commit to <b>{{ branch }}</b> branch",
         "default-create-entity-version-name": "{{entityName}} update",
         "sync-strategy-merge-hint": "Creates or updates selected entities in the repository. All other repository entities are <b>not modified</b>.",
         "sync-strategy-overwrite-hint": "Creates or updates selected entities in the repository. All other repository entities are <b>deleted</b>.",
@@ -6283,6 +6315,7 @@
         "advanced-widget-style": "Advanced widget style",
         "card-buttons": "Card buttons",
         "show-card-buttons": "Show card buttons",
+        "card-border-radius": "Card border radius",
         "card-appearance": "Card appearance",
         "color": "Color"
     },
@@ -6385,7 +6418,6 @@
         "dark-foreground": "Dark foreground",
         "domain-name": "Domain name",
         "base-url": "Base URL",
-        "base-url-required": "Base URL is required.",
         "prohibit-different-url": "Prohibit to use hostname from the client request headers",
         "prohibit-different-url-hint": "This setting should be enabled for production environments. May cause security issues when disabled",
         "help-link-base-url": "Help links base url",
@@ -6403,6 +6435,18 @@
         }
     },
     "widgets": {
+        "background": {
+            "background": "Background",
+            "background-settings": "Background settings",
+            "background-type-image": "Upload image",
+            "background-type-image-url": "Image URL",
+            "background-type-color": "Solid color",
+            "image-url": "Image URL",
+            "overlay": "Overlay",
+            "enable-overlay": "Enable overlay",
+            "blur": "Blur",
+            "preview": "Preview"
+        },
         "chart": {
             "common-settings": "Common settings",
             "enable-stacking-mode": "Enable stacking mode",
@@ -6947,6 +6991,7 @@
             "datakey-value-type-date": "Date",
             "datakey-value-type-time": "Time",
             "datakey-value-type-select": "Select",
+            "datakey-value-type-color": "Color",
             "value-is-required": "Value is required",
             "ability-to-edit-attribute": "Ability to edit attribute",
             "ability-to-edit-attribute-editable": "Editable (default)",
@@ -7372,7 +7417,8 @@
             "label": "Label",
             "icon": "Icon",
             "value": "Value",
-            "date": "Date"
+            "date": "Date",
+            "value-card-style": "Value card style"
         },
         "table": {
             "common-table-settings": "Common Table Settings",
