@@ -285,7 +285,7 @@ export class GatewayStatisticsComponent extends PageComponent implements AfterVi
       return;
     }
     this.dataSource.data = this.subscription.data.length ? this.subscription.data[0].data : [];
-    this.isNumericData = this.dataSource.data.every(data => !isNaN(data[1]));
+    this.isNumericData = this.dataSource.data.every(data => !isNaN(+data[1]) );
   }
 
 

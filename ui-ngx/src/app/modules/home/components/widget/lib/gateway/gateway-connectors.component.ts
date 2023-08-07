@@ -413,7 +413,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
       if (result) {
         const tasks = [];
         const scope = (this.initialConnector && this.activeConnectors.includes(this.initialConnector.name)) ? AttributeScope.SHARED_SCOPE : AttributeScope.SERVER_SCOPE;
-        tasks.push(this.attributeService.deleteEntityAttributes(this.device, AttributeScope.SHARED_SCOPE, [attribute]));
+        tasks.push(this.attributeService.deleteEntityAttributes(this.device, scope, [attribute]));
         const activeIndex = this.activeConnectors.indexOf(attribute.key);
         const inactiveIndex = this.inactiveConnectors.indexOf(attribute.key);
         if (activeIndex !== -1) {

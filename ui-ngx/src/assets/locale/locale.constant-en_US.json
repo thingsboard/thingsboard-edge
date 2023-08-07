@@ -6704,7 +6704,9 @@
             "read-only": "Read only",
             "events-title": "Gateway events form title",
             "events-filter": "Events filter",
-            "event-key-contains": "Event key contains..."
+            "event-key-contains": "Event key contains...",
+            "is-connector": "Is Connector",
+            "state-param-name": "State parameter connector name"
         },
         "gauge": {
             "default-color": "Default color",
@@ -7785,7 +7787,8 @@
             "node-selected": "On node selected",
             "element-click": "On HTML element click",
             "pie-slice-click": "On slice click",
-            "row-double-click": "On row double click"
+            "row-double-click": "On row double click",
+            "action-button-click": "Action button click"
         }
     },
     "paginator": {
