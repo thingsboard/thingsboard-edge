@@ -55,6 +55,7 @@ import { Dashboard } from '@shared/models/dashboard.models';
 import { IAliasController } from '@core/api/widget-api.models';
 import { isEmptyStr } from '@core/utils';
 import { WidgetConfigComponentData } from '@home/models/widget-component.models';
+import { ComponentStyle, Font } from '@shared/models/widget-settings.models';
 
 export enum widgetType {
   timeseries = 'timeseries',
@@ -658,6 +659,8 @@ export enum WidgetConfigMode {
 export interface WidgetConfig {
   configMode?: WidgetConfigMode;
   title?: string;
+  titleFont?: Font;
+  titleColor?: string;
   titleIcon?: string;
   showTitle?: boolean;
   showTitleIcon?: boolean;
@@ -679,9 +682,9 @@ export interface WidgetConfig {
   padding?: string;
   margin?: string;
   borderRadius?: string;
-  widgetStyle?: {[klass: string]: any};
+  widgetStyle?: ComponentStyle;
   widgetCss?: string;
-  titleStyle?: {[klass: string]: any};
+  titleStyle?: ComponentStyle;
   units?: string;
   decimals?: number;
   noDataDisplayMessage?: string;

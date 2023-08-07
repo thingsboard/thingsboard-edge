@@ -71,6 +71,8 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
@@ -81,7 +83,6 @@ import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.dao.relation.RelationService;
 
 import java.util.ArrayList;
@@ -102,7 +103,6 @@ import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @RunWith(MockitoJUnitRunner.class)
 @Slf4j
@@ -148,12 +148,12 @@ public class TbAlarmsCountNodeTest {
         node = new TbAlarmsCountNode();
 
         doAnswer((Answer<TbMsg>) invocationOnMock -> {
-            String type = (String) (invocationOnMock.getArguments())[1];
+            TbMsgType type = (TbMsgType) (invocationOnMock.getArguments())[1];
             EntityId originator = (EntityId) (invocationOnMock.getArguments())[2];
             TbMsgMetaData metaData = (TbMsgMetaData) (invocationOnMock.getArguments())[3];
             String data = (String) (invocationOnMock.getArguments())[4];
             return TbMsg.newMsg(type, originator, metaData.copy(), data);
-        }).when(ctx).newMsg(ArgumentMatchers.isNull(), ArgumentMatchers.any(String.class), ArgumentMatchers.nullable(EntityId.class),
+        }).when(ctx).newMsg(ArgumentMatchers.isNull(), ArgumentMatchers.any(TbMsgType.class), ArgumentMatchers.nullable(EntityId.class),
                 ArgumentMatchers.any(TbMsgMetaData.class), ArgumentMatchers.any(String.class));
 
         scheduleCount = 0;
@@ -238,7 +238,7 @@ public class TbAlarmsCountNodeTest {
 
         config.setPeriodTimeUnit(TimeUnit.MILLISECONDS);
         config.setPeriodValue(0);
-        config.setOutMsgType(SessionMsgType.POST_TELEMETRY_REQUEST.name());
+        config.setOutMsgType(TbMsgType.POST_TELEMETRY_REQUEST.name());
 
         nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
 
@@ -328,7 +328,7 @@ public class TbAlarmsCountNodeTest {
         int totalEntities = parentCount + totalChildCount;
 
         ArgumentCaptor<TbMsg> captor = ArgumentCaptor.forClass(TbMsg.class);
-        verify(ctx, new Times(totalEntities)).enqueueForTellNext(captor.capture(), eq(SUCCESS));
+        verify(ctx, new Times(totalEntities)).enqueueForTellNext(captor.capture(), eq(TbNodeConnectionType.SUCCESS));
 
         List<TbMsg> messages = captor.getAllValues();
         for (TbMsg msg : messages) {
@@ -401,7 +401,7 @@ public class TbAlarmsCountNodeTest {
     }
 
     private void verifyMessage(TbMsg msg) {
-        Assert.assertEquals(SessionMsgType.POST_TELEMETRY_REQUEST.name(), msg.getType());
+        Assert.assertTrue(msg.isTypeOf(TbMsgType.POST_TELEMETRY_REQUEST));
         EntityId entityId = msg.getOriginator();
         Assert.assertNotNull(entityId);
         String data = msg.getData();

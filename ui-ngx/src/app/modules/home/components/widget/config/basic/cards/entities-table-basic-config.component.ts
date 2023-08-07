@@ -95,6 +95,8 @@ export class EntitiesTableBasicConfigComponent extends BasicWidgetConfigComponen
       columns: [this.getColumns(configData.config.datasources), []],
       showTitle: [configData.config.showTitle, []],
       title: [configData.config.settings?.entitiesTitle, []],
+      titleFont: [configData.config.titleFont, []],
+      titleColor: [configData.config.titleColor, []],
       showTitleIcon: [configData.config.showTitleIcon, []],
       titleIcon: [configData.config.titleIcon, []],
       iconColor: [configData.config.iconColor, []],
@@ -115,6 +117,8 @@ export class EntitiesTableBasicConfigComponent extends BasicWidgetConfigComponen
     this.widgetConfig.config.showTitle = config.showTitle;
     this.widgetConfig.config.settings = this.widgetConfig.config.settings || {};
     this.widgetConfig.config.settings.entitiesTitle = config.title;
+    this.widgetConfig.config.titleFont = config.titleFont;
+    this.widgetConfig.config.titleColor = config.titleColor;
     this.widgetConfig.config.showTitleIcon = config.showTitleIcon;
     this.widgetConfig.config.titleIcon = config.titleIcon;
     this.widgetConfig.config.iconColor = config.iconColor;
@@ -133,6 +137,8 @@ export class EntitiesTableBasicConfigComponent extends BasicWidgetConfigComponen
     const showTitleIcon: boolean = this.entitiesTableWidgetConfigForm.get('showTitleIcon').value;
     if (showTitle) {
       this.entitiesTableWidgetConfigForm.get('title').enable();
+      this.entitiesTableWidgetConfigForm.get('titleFont').enable();
+      this.entitiesTableWidgetConfigForm.get('titleColor').enable();
       this.entitiesTableWidgetConfigForm.get('showTitleIcon').enable({emitEvent: false});
       if (showTitleIcon) {
         this.entitiesTableWidgetConfigForm.get('titleIcon').enable();
@@ -143,11 +149,15 @@ export class EntitiesTableBasicConfigComponent extends BasicWidgetConfigComponen
       }
     } else {
       this.entitiesTableWidgetConfigForm.get('title').disable();
+      this.entitiesTableWidgetConfigForm.get('titleFont').disable();
+      this.entitiesTableWidgetConfigForm.get('titleColor').disable();
       this.entitiesTableWidgetConfigForm.get('showTitleIcon').disable({emitEvent: false});
       this.entitiesTableWidgetConfigForm.get('titleIcon').disable();
       this.entitiesTableWidgetConfigForm.get('iconColor').disable();
     }
     this.entitiesTableWidgetConfigForm.get('title').updateValueAndValidity({emitEvent});
+    this.entitiesTableWidgetConfigForm.get('titleFont').updateValueAndValidity({emitEvent});
+    this.entitiesTableWidgetConfigForm.get('titleColor').updateValueAndValidity({emitEvent});
     this.entitiesTableWidgetConfigForm.get('showTitleIcon').updateValueAndValidity({emitEvent: false});
     this.entitiesTableWidgetConfigForm.get('titleIcon').updateValueAndValidity({emitEvent});
     this.entitiesTableWidgetConfigForm.get('iconColor').updateValueAndValidity({emitEvent});

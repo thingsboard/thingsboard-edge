@@ -38,11 +38,11 @@ import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.scheduler.MonthlyRepeat;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.data.scheduler.SchedulerRepeat;
-import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
@@ -62,7 +62,7 @@ public class SchedulerEventEdgeTest extends AbstractEdgeTest {
         schedule.set("repeat", JacksonUtil.valueToTree(schedulerRepeat));
 
         ObjectNode configuration = JacksonUtil.newObjectNode();
-        configuration.put("msgType", SessionMsgType.POST_ATTRIBUTES_REQUEST.name());
+        configuration.put("msgType", TbMsgType.POST_ATTRIBUTES_REQUEST.name());
 
         SchedulerEvent schedulerEvent = createSchedulerEvent("Edge Scheduler Event", tenantId, schedule, configuration);
         SchedulerEvent savedSchedulerEvent = doPost("/api/schedulerEvent", schedulerEvent, SchedulerEvent.class);
