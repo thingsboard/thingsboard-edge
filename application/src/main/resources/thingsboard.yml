@@ -1356,6 +1356,10 @@ queue:
 event:
   debug:
     max-symbols: "${TB_MAX_DEBUG_EVENT_SYMBOLS:4096}"
+    rate_limits:
+      enabled: "${DEBUG_MODE_RATE_LIMITS_PER_TENANT_ENABLED:true}"
+      integration: "${INTEGRATION_DEBUG_MODE_RATE_LIMITS_PER_TENANT:50000:3600}"
+      converter: "${CONVERTER_DEBUG_MODE_RATE_LIMITS_PER_TENANT:50000:3600}"
 
 service:
   type: "${TB_SERVICE_TYPE:monolith}" # Allowed values: monolith, tb-core, tb-rule-engine

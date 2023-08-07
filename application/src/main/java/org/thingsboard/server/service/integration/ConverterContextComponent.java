@@ -34,8 +34,11 @@ import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.thingsboard.integration.api.IntegrationRateLimitService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+
+import java.util.Optional;
 
 @Component
 @Data
@@ -47,4 +50,7 @@ public class ConverterContextComponent {
     @Lazy
     @Autowired
     private TbServiceInfoProvider serviceInfoProvider;
+
+    @Autowired
+    private Optional<IntegrationRateLimitService> rateLimitService;
 }

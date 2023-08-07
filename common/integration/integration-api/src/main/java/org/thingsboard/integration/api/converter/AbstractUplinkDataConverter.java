@@ -45,7 +45,9 @@ import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.script.api.js.JsInvokeService;
 import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.common.adaptor.JsonConverter;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
 
@@ -91,7 +93,16 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
                 resultList.add(parseUplinkData(element.getAsJsonObject()));
             }
             if (configuration.isDebugMode()) {
-                persistUplinkDebug(context, metadata.getContentType(), data, rawResult, metadata);
+                if (context.getRateLimitService().map(s -> s.checkLimit(configuration.getTenantId(), configuration.getId(), false)).orElse(true)) {
+                    persistUplinkDebug(context, metadata.getContentType(), data, rawResult, metadata);
+                } else {
+                    if (context.getRateLimitService().get().alreadyProcessed(configuration.getId(), EntityType.CONVERTER)) {
+                        log.trace("[{}] [{}] [{}] Rate limited debug event already sent.", configuration.getTenantId(), configuration.getId(), EntityType.CONVERTER);
+                    } else {
+                        TbRateLimitsException exception = new TbRateLimitsException(EntityType.CONVERTER, "Converter debug rate limits reached!");
+                        persistUplinkDebug(context, metadata.getContentType(), data, metadata, exception);
+                    }
+                }
             }
             return resultList;
         }, callBackExecutorService);

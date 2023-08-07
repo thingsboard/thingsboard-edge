@@ -52,6 +52,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.IntConsumer;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 import static org.awaitility.Awaitility.await;
@@ -137,7 +138,7 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
                 getIntegrationDebugMessages(startTime, "Uplink", ANY, 10).size() >= 11
         );
 
-        Mockito.verify(limitService, times(20)).checkLimit(eq(tenantId), any());
+        Mockito.verify(limitService, times(20)).checkLimit(eq(tenantId), any(Supplier.class));
 
         List<EventInfo> events = getIntegrationDebugMessages(startTime, "Uplink", "ERROR", 10);
 

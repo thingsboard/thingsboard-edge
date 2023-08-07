@@ -169,7 +169,7 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
 
     @Override
     public Optional<IntegrationRateLimitService> getRateLimitService() {
-        return contextComponent.getRateLimitService();
+        return Optional.of(contextComponent.getRateLimitService());
     }
 
     @Override
@@ -246,6 +246,11 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
         @Override
         public void saveEvent(Event event, IntegrationCallback<Void> callback) {
             TbIntegrationExecutorIntegrationContext.this.doSaveEvent(eventSource, converterId, event, null, callback);
+        }
+
+        @Override
+        public Optional<IntegrationRateLimitService> getRateLimitService() {
+            return Optional.of(contextComponent.getRateLimitService());
         }
     }
 }

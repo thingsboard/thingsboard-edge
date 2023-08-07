@@ -50,10 +50,12 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.FSTUtils;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.event.ConverterDebugEvent;
 import org.thingsboard.server.common.data.event.Event;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.event.IntegrationDebugEvent;
 import org.thingsboard.server.common.data.event.LifecycleEvent;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -319,10 +321,15 @@ public final class IntegrationGrpcSession implements Closeable {
                 for (TbEventProto proto : msg.getEventsDataList()) {
                     switch (proto.getSource()) {
                         case INTEGRATION:
+                            ctx.getRateLimitService().checkLimit(configuration.getTenantId(), configuration.getId(), true);
                             saveEvent(configuration.getTenantId(), configuration.getId(), proto);
                             break;
                         case UPLINK_CONVERTER:
-                            saveEvent(configuration.getTenantId(), configuration.getDefaultConverterId(), proto);
+                            if (ctx.getRateLimitService().checkLimit(configuration.getTenantId(), configuration.getDefaultConverterId(), false)) {
+                                saveEvent(configuration.getTenantId(), configuration.getDefaultConverterId(), proto);
+                            } else {
+                                sendConverterRateLimitEvent(proto);
+                            }
                             break;
                         case DOWNLINK_CONVERTER:
                             saveEvent(configuration.getTenantId(), configuration.getDownlinkConverterId(), proto);
@@ -345,7 +352,7 @@ public final class IntegrationGrpcSession implements Closeable {
             }
         } catch (Exception e) {
             if (e instanceof TbRateLimitsException) {
-                sendRateLimitEvent((TbRateLimitsException) e, msg.toString());
+                sendIntegrationRateLimitEvent((TbRateLimitsException) e, msg.toString());
             }
 
             String errorMsg = e.getMessage() != null ? e.getMessage() : "";
@@ -360,7 +367,7 @@ public final class IntegrationGrpcSession implements Closeable {
                 .build();
     }
 
-    private void sendRateLimitEvent(TbRateLimitsException exception, String message) {
+    private void sendIntegrationRateLimitEvent(TbRateLimitsException exception, String message) {
         IntegrationId integrationId = configuration.getId();
         EntityType limitedEntity = exception.getEntityType();
         if (ctx.getRateLimitService().alreadyProcessed(integrationId, limitedEntity)) {
@@ -377,6 +384,30 @@ public final class IntegrationGrpcSession implements Closeable {
                 .status("ERROR")
                 .error(exception.getMessage());
         saveEvent(configuration.getTenantId(), configuration.getId(), event.build());
+    }
+
+    private void sendConverterRateLimitEvent(TbEventProto proto) {
+        ConverterId converterId = configuration.getDefaultConverterId();
+        if (ctx.getRateLimitService().alreadyProcessed(converterId, EntityType.CONVERTER)) {
+            log.trace("[{}] [{}] Converter rate limited debug event already sent.", configuration.getTenantId(), converterId);
+            return;
+        }
+
+        ConverterDebugEvent event = FSTUtils.decode(proto.getEvent().toByteArray());
+
+        var newConverterEvent = ConverterDebugEvent.builder()
+                .tenantId(configuration.getTenantId())
+                .entityId(converterId.getId())
+                .serviceId(getServiceId())
+                .eventType("Uplink")
+                .inMsgType(event.getInMsgType())
+                .inMsg(event.getInMsg())
+                .outMsgType(null)
+                .outMsg(null)
+                .metadata(event.getMetadata())
+                .error("Converter debug rate limits reached!");
+
+        saveEvent(configuration.getTenantId(), converterId, newConverterEvent.build());
     }
 
     private void saveEvent(TenantId tenantId, EntityId entityId, TbEventProto proto) {

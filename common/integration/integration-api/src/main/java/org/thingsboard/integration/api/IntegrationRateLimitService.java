@@ -31,6 +31,8 @@
 package org.thingsboard.integration.api;
 
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 
@@ -42,5 +44,9 @@ public interface IntegrationRateLimitService {
 
     void checkLimit(TenantId tenantId, String deviceName, Supplier<String> msg);
 
-    boolean alreadyProcessed(IntegrationId integrationId, EntityType entityType);
+    boolean checkLimit(TenantId tenantId, IntegrationId integrationId, boolean throwException);
+
+    boolean checkLimit(TenantId tenantId, ConverterId converterId, boolean throwException);
+
+    boolean alreadyProcessed(EntityId entityId, EntityType entityType);
 }

@@ -35,15 +35,17 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ConcurrentReferenceHashMap;
 import org.thingsboard.integration.api.IntegrationRateLimitService;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
+import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 
 import javax.annotation.PostConstruct;
 import java.util.concurrent.ConcurrentMap;
@@ -54,7 +56,7 @@ import java.util.function.Supplier;
 import static org.springframework.util.ConcurrentReferenceHashMap.ReferenceType.SOFT;
 
 @Service
-@ConditionalOnExpression("'${service.type:null}'=='monolith' || '${service.type:null}'=='tb-integration-executor'")
+@TbCoreOrIntegrationExecutorComponent
 @Slf4j
 public class DefaultIntegrationRateLimitService implements IntegrationRateLimitService {
     @Value("${integrations.rate_limits.enabled}")
@@ -65,6 +67,12 @@ public class DefaultIntegrationRateLimitService implements IntegrationRateLimitS
 
     @Value("${integrations.rate_limits.device}")
     private String perDevicesLimitsConf;
+
+    @Value("${event.debug.rate_limits.integration}")
+    private String integrationDebugLimitsConf;
+
+    @Value("${event.debug.rate_limits.converter}")
+    private String converterDebugLimitsConf;
 
     @Value("${cache.rateLimits.timeToLiveInMinutes:60}")
     private int rateLimitsTtl;
@@ -96,8 +104,8 @@ public class DefaultIntegrationRateLimitService implements IntegrationRateLimitS
         if (!rateLimitEnabled) {
             return;
         }
-        RateLimitKey key = new RateLimitKey(tenantId, null);
-        TbRateLimits rateLimit = rateLimits.get(key, k -> new TbRateLimits(perTenantLimitsConf));
+        var key = new IntegrationRateLimitKey(tenantId, null);
+        var rateLimit = rateLimits.get(key, k -> new TbRateLimits(perTenantLimitsConf));
         if (!rateLimit.tryConsume()) {
             if (log.isTraceEnabled()) {
                 log.trace("[{}] Tenant level rate limit detected: {}", tenantId, msg.get());
@@ -115,8 +123,8 @@ public class DefaultIntegrationRateLimitService implements IntegrationRateLimitS
             return;
         }
 
-        RateLimitKey key = RateLimitKey.of(tenantId, deviceName);
-        TbRateLimits rateLimit = rateLimits.get(key, k -> new TbRateLimits(perDevicesLimitsConf));
+        var key = IntegrationRateLimitKey.of(tenantId, deviceName);
+        var rateLimit = rateLimits.get(key, k -> new TbRateLimits(perDevicesLimitsConf));
         if (!rateLimit.tryConsume()) {
             if (log.isTraceEnabled()) {
                 log.trace("[{}][{}] Device level rate limit detected: {}", tenantId, deviceName, msg.get());
@@ -125,9 +133,56 @@ public class DefaultIntegrationRateLimitService implements IntegrationRateLimitS
         }
     }
 
-    public boolean alreadyProcessed(IntegrationId integrationId, EntityType entityType) {
-        DeduplicationKey deduplicationKey = DeduplicationKey.of(integrationId, entityType);
-        AtomicBoolean alreadyProcessed = new AtomicBoolean(false);
+    @Override
+    public boolean checkLimit(TenantId tenantId, IntegrationId integrationId, boolean throwException) {
+        if (log.isTraceEnabled()) {
+            log.trace("[{}][{}] Processing integration debug event msg.", tenantId, integrationId);
+        }
+        if (!rateLimitEnabled) {
+            return true;
+        }
+
+        RateLimitKey key = IntegrationDebugRateLimitKey.of(tenantId);
+        var rateLimit = rateLimits.get(key, k -> new TbRateLimits(integrationDebugLimitsConf));
+        if (!rateLimit.tryConsume()) {
+            if (log.isTraceEnabled()) {
+                log.trace("[{}][{}] Integration level debug rate limit detected.", tenantId, integrationId);
+            }
+            if (throwException) {
+                throw new TbRateLimitsException(EntityType.INTEGRATION, "Integration debug rate limits reached!");
+            }
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean checkLimit(TenantId tenantId, ConverterId converterId, boolean throwException) {
+        if (log.isTraceEnabled()) {
+            log.trace("[{}][{}] Processing converter debug event msg.", tenantId, converterId);
+        }
+        if (!rateLimitEnabled) {
+            return true;
+        }
+
+        RateLimitKey key = ConverterDebugRateLimitKey.of(tenantId);
+        var rateLimit = rateLimits.get(key, k -> new TbRateLimits(converterDebugLimitsConf));
+        if (!rateLimit.tryConsume()) {
+            if (log.isTraceEnabled()) {
+                log.trace("[{}][{}] Converter level debug rate limit detected.", tenantId, converterId);
+            }
+            if (throwException) {
+                throw new TbRateLimitsException(EntityType.CONVERTER, "Converter debug rate limits reached!");
+            }
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean alreadyProcessed(EntityId entityId, EntityType entityType) {
+        var deduplicationKey = DeduplicationKey.of(entityId, entityType);
+        var alreadyProcessed = new AtomicBoolean(false);
 
         deduplicationCache.compute(deduplicationKey, (key, lastProcessedTs) -> {
             if (lastProcessedTs != null) {
@@ -146,13 +201,26 @@ public class DefaultIntegrationRateLimitService implements IntegrationRateLimitS
 
     @Data(staticConstructor = "of")
     private static class DeduplicationKey {
-        private final IntegrationId integrationId;
+        private final EntityId entityId;
         private final EntityType entityType;
     }
 
+    private interface RateLimitKey {
+    }
+
     @Data(staticConstructor = "of")
-    private static class RateLimitKey {
+    private static class IntegrationRateLimitKey implements RateLimitKey {
         private final TenantId tenantId;
         private final String deviceName;
+    }
+
+    @Data(staticConstructor = "of")
+    private static class IntegrationDebugRateLimitKey implements RateLimitKey {
+        private final TenantId tenantId;
+    }
+
+    @Data(staticConstructor = "of")
+    private static class ConverterDebugRateLimitKey implements RateLimitKey {
+        private final TenantId tenantId;
     }
 }

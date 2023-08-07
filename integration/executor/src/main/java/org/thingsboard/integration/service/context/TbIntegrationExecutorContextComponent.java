@@ -36,7 +36,6 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.service.integration.downlink.DownlinkCacheService;
 
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -57,5 +56,5 @@ public interface TbIntegrationExecutorContextComponent {
 
     ExecutorService getGeneralExecutorService();
 
-    Optional<IntegrationRateLimitService> getRateLimitService();
+    IntegrationRateLimitService getRateLimitService();
 }

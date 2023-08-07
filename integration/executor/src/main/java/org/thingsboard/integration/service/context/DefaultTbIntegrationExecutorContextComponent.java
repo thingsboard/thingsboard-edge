@@ -62,7 +62,7 @@ public class DefaultTbIntegrationExecutorContextComponent implements TbIntegrati
     private final DownlinkCacheService downlinkCacheService;
     private final TbTransactionalCache<DeviceCacheKey, Device> deviceCache;
     private final IntegrationStatisticsService integrationStatisticsService;
-    private final Optional<IntegrationRateLimitService> rateLimitService;
+    private final IntegrationRateLimitService rateLimitService;
     private EventLoopGroup eventLoopGroup;
     private ScheduledExecutorService scheduledExecutorService;
     private ExecutorService generalExecutorService;
