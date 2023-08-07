@@ -313,7 +313,7 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
             baseUrl = generalSettings.getJsonValue().get("baseUrl").asText();
         }
 
-        if (StringUtils.isEmpty(baseUrl)) {
+        if (StringUtils.isEmpty(baseUrl) && httpServletRequest != null) {
             baseUrl = MiscUtils.constructBaseUrl(httpServletRequest);
         }
 
