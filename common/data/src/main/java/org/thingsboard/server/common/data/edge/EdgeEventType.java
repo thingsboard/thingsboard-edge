@@ -30,33 +30,43 @@
  */
 package org.thingsboard.server.common.data.edge;
 
+import lombok.Getter;
+
+@Getter
 public enum EdgeEventType {
-    DASHBOARD,
-    ASSET,
-    DEVICE,
-    DEVICE_PROFILE,
-    ASSET_PROFILE,
-    ENTITY_VIEW,
-    ALARM,
-    RULE_CHAIN,
-    RULE_CHAIN_METADATA,
-    EDGE,
-    USER,
-    CUSTOMER,
-    RELATION,
-    TENANT,
-    WIDGETS_BUNDLE,
-    WIDGET_TYPE,
-    ADMIN_SETTINGS,
-    OTA_PACKAGE,
-    QUEUE,
-    ENTITY_GROUP,
-    SCHEDULER_EVENT,
-    WHITE_LABELING,
-    LOGIN_WHITE_LABELING,
-    CUSTOM_TRANSLATION,
-    ROLE,
-    GROUP_PERMISSION,
-    CONVERTER,
-    INTEGRATION
+
+    DASHBOARD(false),
+    ASSET(false),
+    DEVICE(false),
+    DEVICE_PROFILE(true),
+    ASSET_PROFILE(true),
+    ENTITY_VIEW(false),
+    ALARM(false),
+    RULE_CHAIN(false),
+    RULE_CHAIN_METADATA(false),
+    EDGE(false),
+    USER(false),
+    CUSTOMER(true),
+    RELATION(true),
+    TENANT(true),
+    WIDGETS_BUNDLE(true),
+    WIDGET_TYPE(true),
+    ADMIN_SETTINGS(true),
+    OTA_PACKAGE(true),
+    QUEUE(true),
+    ENTITY_GROUP(false),
+    SCHEDULER_EVENT(false),
+    WHITE_LABELING(true),
+    LOGIN_WHITE_LABELING(true),
+    CUSTOM_TRANSLATION(true),
+    ROLE(true),
+    GROUP_PERMISSION(true),
+    CONVERTER(false),
+    INTEGRATION(false);
+
+    private final boolean allEdgesRelated;
+
+    EdgeEventType(boolean allEdgesRelated) {
+        this.allEdgesRelated = allEdgesRelated;
+    }
 }

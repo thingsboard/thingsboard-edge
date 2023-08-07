@@ -1150,7 +1150,7 @@ public class DefaultSolutionService implements SolutionService {
                     additionalInfo.put("defaultDashboardId", dashboardId.getId().toString());
                     additionalInfo.put("defaultDashboardFullscreen", dd.isFullScreen());
                     user.setAdditionalInfo(additionalInfo);
-                    userService.saveUser(user);
+                    userService.saveUser(ctx.getTenantId(), user);
                     log.info("[{}] Added default dashboard for user {}", entity.getId(), user.getEmail());
                 }
                 UserCredentialsInfo credentialsInfo = new UserCredentialsInfo();
@@ -1193,7 +1193,7 @@ public class DefaultSolutionService implements SolutionService {
                 user.setCustomerId(entity.getId());
                 user.setTenantId(ctx.getTenantId());
                 log.info("[{}] Saving user: {}", entity.getId(), user);
-                user = userService.saveUser(user);
+                user = userService.saveUser(ctx.getTenantId(), user);
                 uDef.setName(user.getEmail());
                 return user;
             } catch (Exception e) {

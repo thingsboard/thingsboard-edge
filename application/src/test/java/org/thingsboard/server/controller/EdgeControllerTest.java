@@ -36,6 +36,8 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.protobuf.AbstractMessage;
+import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -60,9 +62,9 @@ import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
@@ -82,12 +84,15 @@ import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.SyncCompletedMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -97,6 +102,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 
 @TestPropertySource(properties = {
         "edges.enabled=true",
+        "queue.rule-engine.stats.enabled=false"
 })
 @ContextConfiguration(classes = {EdgeControllerTest.Config.class})
 @DaoSqlTest
@@ -106,10 +112,6 @@ public class EdgeControllerTest extends AbstractControllerTest {
     public static final int EDGE_PORT = 7070;
 
     private IdComparator<Edge> idComparator = new IdComparator<>();
-
-    private Tenant savedTenant;
-    private TenantId tenantId;
-    private User tenantAdmin;
 
     ListeningExecutorService executor;
 
@@ -127,35 +129,14 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Before
-    public void beforeTest() throws Exception {
+    public void setupEdgeTest() throws Exception {
         executor = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newWorkStealingPool(8, getClass()));
-
-        loginSysAdmin();
-
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant for Edge");
-        savedTenant = doPost("/api/tenant", tenant, Tenant.class);
-        tenantId = savedTenant.getId();
-        Assert.assertNotNull(savedTenant);
-
-        tenantAdmin = new User();
-        tenantAdmin.setAuthority(Authority.TENANT_ADMIN);
-        tenantAdmin.setTenantId(savedTenant.getId());
-        tenantAdmin.setEmail("tenant2@thingsboard.org");
-        tenantAdmin.setFirstName("Joe");
-        tenantAdmin.setLastName("Downs");
-
-        tenantAdmin = createUserAndLogin(tenantAdmin, "testPassword1");
+        loginTenantAdmin();
     }
 
     @After
-    public void afterTest() throws Exception {
+    public void teardownEdgeTest() {
         executor.shutdownNow();
-
-        loginSysAdmin();
-
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
     }
 
     @Test
@@ -169,7 +150,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertNotNull(savedEdge);
         Assert.assertNotNull(savedEdge.getId());
         Assert.assertTrue(savedEdge.getCreatedTime() > 0);
-        Assert.assertEquals(savedTenant.getId(), savedEdge.getTenantId());
+        Assert.assertEquals(tenantId, savedEdge.getTenantId());
         Assert.assertNotNull(savedEdge.getCustomerId());
         Assert.assertEquals(NULL_UUID, savedEdge.getCustomerId().getId());
         Assert.assertEquals(edge.getName(), savedEdge.getName());
@@ -177,7 +158,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertTrue(StringUtils.isNoneBlank(savedEdge.getCloudEndpoint()));
 
         testNotifyEntityBroadcastEntityStateChangeEventOneTimeMsgToEdgeServiceNever(savedEdge, savedEdge.getId(), savedEdge.getId(),
-                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                tenantId, tenantAdminUser.getCustomerId(), tenantAdminUser.getId(), tenantAdminUser.getEmail(),
                 ActionType.ADDED);
 
         savedEdge.setName("My new edge");
@@ -187,7 +168,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(foundEdge.getName(), savedEdge.getName());
 
         testNotifyEntityBroadcastEntityStateChangeEventOneTimeMsgToEdgeServiceNever(foundEdge, foundEdge.getId(), foundEdge.getId(),
-                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                tenantId, tenantAdminUser.getCustomerId(), tenantAdminUser.getId(), tenantAdminUser.getEmail(),
                 ActionType.UPDATED);
     }
 
@@ -202,9 +183,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
 
-        testNotifyEntityEqualsOneTimeServiceNeverError(edge, savedTenant.getId(),
-                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
-
+        testNotifyEntityEqualsOneTimeServiceNeverError(edge, tenantId,
+                tenantAdminUser.getId(), tenantAdminUser.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
         Mockito.reset(tbClusterService, auditLogService);
 
         msgError = msgErrorFieldLength("type");
@@ -214,8 +194,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
 
-        testNotifyEntityEqualsOneTimeServiceNeverError(edge, savedTenant.getId(),
-                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
+        testNotifyEntityEqualsOneTimeServiceNeverError(edge, tenantId,
+                tenantAdminUser.getId(), tenantAdminUser.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
         Mockito.reset(tbClusterService, auditLogService);
 
         msgError = msgErrorFieldLength("label");
@@ -225,8 +205,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
 
-        testNotifyEntityEqualsOneTimeServiceNeverError(edge, savedTenant.getId(),
-                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
+        testNotifyEntityEqualsOneTimeServiceNeverError(edge, tenantId,
+                tenantAdminUser.getId(), tenantAdminUser.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
     }
 
     @Test
@@ -252,7 +232,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         }
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceNeverAdditionalInfoAny(new Edge(), new Edge(),
-                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                tenantId, tenantAdminUser.getCustomerId(), tenantAdminUser.getId(), tenantAdminUser.getEmail(),
                 ActionType.ADDED, cntEntity, 0);
 
         for (int i = 0; i < 7; i++) {
@@ -285,7 +265,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk());
 
         testNotifyEntityBroadcastEntityStateChangeEventOneTimeMsgToEdgeServiceNever(savedEdge, savedEdge.getId(), savedEdge.getId(),
-                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                tenantId, tenantAdminUser.getCustomerId(), tenantAdminUser.getId(), tenantAdminUser.getEmail(),
                 ActionType.DELETED, savedEdge.getId().getId().toString());
 
         doGet("/api/edge/" + savedEdge.getId().getId().toString())
@@ -304,8 +284,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
 
-        testNotifyEntityEqualsOneTimeServiceNeverError(edge, savedTenant.getId(),
-                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
+        testNotifyEntityEqualsOneTimeServiceNeverError(edge, tenantId,
+                tenantAdminUser.getId(), tenantAdminUser.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
     }
 
     @Test
@@ -319,8 +299,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
 
-        testNotifyEntityEqualsOneTimeServiceNeverError(edge, savedTenant.getId(),
-                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
+        testNotifyEntityEqualsOneTimeServiceNeverError(edge, tenantId,
+                tenantAdminUser.getId(), tenantAdminUser.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
     }
 
     // keeping CE test for merge compatibility
@@ -340,8 +320,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(savedCustomer.getId(), assignedEdge.getCustomerId());
 
         testNotifyEntityAllOneTimeLogEntityActionEntityEqClass(assignedEdge, assignedEdge.getId(), assignedEdge.getId(),
-                savedTenant.getId(), savedCustomer.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ASSIGNED_TO_CUSTOMER,
-                assignedEdge.getId().getId().toString(), savedCustomer.getId().getId().toString(), savedCustomer.getTitle());
+                tenantId, savedCustomer.getId(), tenantAdminUser.getId(), tenantAdminUser.getEmail(), ActionType.ASSIGNED_TO_CUSTOMER,
+                ActionType.ASSIGNED_TO_CUSTOMER, assignedEdge.getId().getId().toString(), savedCustomer.getId().getId().toString(), savedCustomer.getTitle());
 
         Edge foundEdge = doGet("/api/edge/" + savedEdge.getId().getId().toString(), Edge.class);
         Assert.assertEquals(savedCustomer.getId(), foundEdge.getCustomerId());
@@ -351,8 +331,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(ModelConstants.NULL_UUID, unassignedEdge.getCustomerId().getId());
 
         testNotifyEntityAllOneTimeLogEntityActionEntityEqClass(unassignedEdge, unassignedEdge.getId(), unassignedEdge.getId(),
-                savedTenant.getId(), savedCustomer.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.UNASSIGNED_FROM_CUSTOMER,
-                unassignedEdge.getId().getId().toString(), savedCustomer.getId().getId().toString(), savedCustomer.getTitle());
+                tenantId, savedCustomer.getId(), tenantAdminUser.getId(), tenantAdminUser.getEmail(), ActionType.UNASSIGNED_FROM_CUSTOMER,
+                ActionType.UNASSIGNED_FROM_CUSTOMER, unassignedEdge.getId().getId().toString(), savedCustomer.getId().getId().toString(), savedCustomer.getTitle());
 
         foundEdge = doGet("/api/edge/" + savedEdge.getId().getId().toString(), Edge.class);
         Assert.assertEquals(ModelConstants.NULL_UUID, foundEdge.getCustomerId().getId());
@@ -401,7 +381,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         customer.setTitle("Different customer");
         Customer savedCustomer = doPost("/api/customer", customer, Customer.class);
 
-        login(tenantAdmin.getEmail(), "testPassword1");
+        loginTenantAdmin();
 
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
@@ -652,8 +632,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
         List<Edge> edges = new ArrayList<>(Futures.allAsList(futures).get(TIMEOUT, TimeUnit.SECONDS));
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new Edge(), new Edge(),
-                savedTenant.getId(), customerId, tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ASSIGNED_TO_CUSTOMER, ActionType.ASSIGNED_TO_CUSTOMER, cntEntity, cntEntity, cntEntity * 2,
+                tenantId, customerId, tenantAdminUser.getId(), tenantAdminUser.getEmail(),
+                ActionType.ASSIGNED_TO_CUSTOMER, cntEntity, cntEntity, cntEntity * 2,
                 new String(), new String(), new String());
 
         List<Edge> loadedEdges = new ArrayList<>();
@@ -759,7 +739,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
         cntEntity = loadedEdgesTitle1.size();
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAnyAdditionalInfoAny(new Edge(), new Edge(),
-                savedTenant.getId(), customerId, tenantAdmin.getId(), tenantAdmin.getEmail(),
+                tenantId, customerId, tenantAdminUser.getId(), tenantAdminUser.getEmail(),
                 ActionType.UNASSIGNED_FROM_CUSTOMER, ActionType.UNASSIGNED_FROM_CUSTOMER, cntEntity, cntEntity, 3);
 
         pageLink = new PageLink(4, 0, title1);
@@ -887,56 +867,45 @@ public class EdgeControllerTest extends AbstractControllerTest {
     // keeping CE test for merge compatibility
     // @Test
     public void testSyncEdge() throws Exception {
-        Edge edge = doPost("/api/edge", constructEdge("Test Sync Edge", "test"), Edge.class);
+        Asset asset = new Asset();
+        asset.setName("Test Sync Edge Asset 1");
+        asset.setType("test");
+        Asset savedAsset = doPost("/api/asset", asset, Asset.class);
 
         Device device = new Device();
         device.setName("Test Sync Edge Device 1");
         device.setType("default");
         Device savedDevice = doPost("/api/device", device, Device.class);
+
+        Edge edge = doPost("/api/edge", constructEdge("Test Sync Edge", "test"), Edge.class);
+
         doPost("/api/edge/" + edge.getId().getId().toString()
                 + "/device/" + savedDevice.getId().getId().toString(), Device.class);
-
-        Asset asset = new Asset();
-        asset.setName("Test Sync Edge Asset 1");
-        asset.setType("test");
-        Asset savedAsset = doPost("/api/asset", asset, Asset.class);
         doPost("/api/edge/" + edge.getId().getId().toString()
                 + "/asset/" + savedAsset.getId().getId().toString(), Asset.class);
 
         EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
 
-        edgeImitator.expectMessageAmount(20);
+        edgeImitator.expectMessageAmount(21);
         edgeImitator.connect();
         assertThat(edgeImitator.waitForMessages()).as("await for messages on first connect").isTrue();
 
-        assertThat(edgeImitator.findAllMessagesByType(QueueUpdateMsg.class)).as("one msg during sync process").hasSize(1);
-        List<RuleChainUpdateMsg> ruleChainUpdateMsgs = edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class);
-        assertThat(ruleChainUpdateMsgs).as("one msg during sync process, another from edge creation").hasSize(2);
-        assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("one msg during sync process for 'default' device profile").hasSize(3);
-        assertThat(edgeImitator.findAllMessagesByType(DeviceUpdateMsg.class)).as("one msg once device assigned to edge").hasSize(2);
-        assertThat(edgeImitator.findAllMessagesByType(AssetProfileUpdateMsg.class)).as("two msgs during sync process for 'default' and 'test' asset profiles").hasSize(4);
-        assertThat(edgeImitator.findAllMessagesByType(AssetUpdateMsg.class)).as("two msgs - one during sync process, and one more once asset assigned to edge").hasSize(2);
-        assertThat(edgeImitator.findAllMessagesByType(UserUpdateMsg.class)).as("one msg during sync process for tenant admin user").hasSize(1);
-        assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update").hasSize(4);
-        assertThat(edgeImitator.findAllMessagesByType(CustomerUpdateMsg.class)).as("one msg during sync process for 'Public' customer").hasSize(1);
-        verifyRuleChainMsgsAreRoot(ruleChainUpdateMsgs);
+        verifyFetchersMsgs(edgeImitator);
+        // verify queue msgs
+        Assert.assertTrue(popRuleChainMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, "Edge Root Rule Chain"));
+        Assert.assertTrue(popDeviceProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "default"));
+        Assert.assertTrue(popDeviceMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Test Sync Edge Device 1"));
+        Assert.assertTrue(popAssetProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "test"));
+        Assert.assertTrue(popAssetMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Test Sync Edge Asset 1"));
+        Assert.assertTrue(edgeImitator.getDownlinkMsgs().isEmpty());
 
-        edgeImitator.expectMessageAmount(15);
+        edgeImitator.expectMessageAmount(16);
         doPost("/api/edge/sync/" + edge.getId());
         assertThat(edgeImitator.waitForMessages()).as("await for messages after edge sync rest api call").isTrue();
 
-        assertThat(edgeImitator.findAllMessagesByType(QueueUpdateMsg.class)).as("queue msg").hasSize(1);
-        ruleChainUpdateMsgs = edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class);
-        assertThat(ruleChainUpdateMsgs).as("rule chain msg").hasSize(1);
-        assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("device profile msg").hasSize(2);
-        assertThat(edgeImitator.findAllMessagesByType(AssetProfileUpdateMsg.class)).as("asset profile msg").hasSize(3);
-        assertThat(edgeImitator.findAllMessagesByType(AssetUpdateMsg.class)).as("asset update msg").hasSize(1);
-        assertThat(edgeImitator.findAllMessagesByType(UserUpdateMsg.class)).as("user update msg").hasSize(1);
-        assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update msg").hasSize(4);
-        assertThat(edgeImitator.findAllMessagesByType(DeviceUpdateMsg.class)).as("asset update msg").hasSize(1);
-        assertThat(edgeImitator.findAllMessagesByType(CustomerUpdateMsg.class)).as("one msg during sync process for 'Public' customer").hasSize(1);
-        verifyRuleChainMsgsAreRoot(ruleChainUpdateMsgs);
+        verifyFetchersMsgs(edgeImitator);
+        Assert.assertTrue(edgeImitator.getDownlinkMsgs().isEmpty());
 
         edgeImitator.allowIgnoredTypes();
         try {
@@ -952,15 +921,229 @@ public class EdgeControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk());
     }
 
-    private void verifyRuleChainMsgsAreRoot(List<RuleChainUpdateMsg> ruleChainUpdateMsgs) {
-        for (RuleChainUpdateMsg ruleChainUpdateMsg : ruleChainUpdateMsgs) {
-            Assert.assertTrue(ruleChainUpdateMsg.getRoot());
+    private void verifyFetchersMsgs(EdgeImitator edgeImitator) {
+        Assert.assertTrue(popQueueMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Main"));
+        Assert.assertTrue(popRuleChainMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Edge Root Rule Chain"));
+        Assert.assertTrue(popAdminSettingsMsg(edgeImitator.getDownlinkMsgs(), "mail", true));
+        Assert.assertTrue(popAdminSettingsMsg(edgeImitator.getDownlinkMsgs(), "mail", false));
+        Assert.assertTrue(popAdminSettingsMsg(edgeImitator.getDownlinkMsgs(), "mailTemplates", true));
+        Assert.assertTrue(popAdminSettingsMsg(edgeImitator.getDownlinkMsgs(), "mailTemplates", false));
+        Assert.assertTrue(popDeviceProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "default"));
+        Assert.assertTrue(popAssetProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "default"));
+        Assert.assertTrue(popAssetProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "test"));
+        Assert.assertTrue(popUserMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, TENANT_ADMIN_EMAIL, Authority.TENANT_ADMIN));
+        Assert.assertTrue(popCustomerMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Public"));
+        Assert.assertTrue(popDeviceProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "default"));
+        Assert.assertTrue(popDeviceMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Test Sync Edge Device 1"));
+        Assert.assertTrue(popAssetProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "test"));
+        Assert.assertTrue(popAssetMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Test Sync Edge Asset 1"));
+        Assert.assertTrue(popSyncCompletedMsg(edgeImitator.getDownlinkMsgs()));
+    }
+
+    private boolean popQueueMsg(List<AbstractMessage> messages, UpdateMsgType msgType, String name) {
+        for (AbstractMessage message : messages) {
+            if (message instanceof QueueUpdateMsg) {
+                QueueUpdateMsg queueUpdateMsg = (QueueUpdateMsg) message;
+                if (msgType.equals(queueUpdateMsg.getMsgType())
+                        && name.equals(queueUpdateMsg.getName())) {
+                    messages.remove(message);
+                    return true;
+                }
+            }
         }
+        return false;
+    }
+
+    private boolean popRuleChainMsg(List<AbstractMessage> messages, UpdateMsgType msgType, String name) {
+        for (AbstractMessage message : messages) {
+            if (message instanceof RuleChainUpdateMsg) {
+                RuleChainUpdateMsg ruleChainUpdateMsg = (RuleChainUpdateMsg) message;
+                if (msgType.equals(ruleChainUpdateMsg.getMsgType())
+                        && name.equals(ruleChainUpdateMsg.getName())
+                        && ruleChainUpdateMsg.getRoot()) {
+                    messages.remove(message);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean popAdminSettingsMsg(List<AbstractMessage> messages, String key, boolean isSystem) {
+        for (AbstractMessage message : messages) {
+            if (message instanceof AdminSettingsUpdateMsg) {
+                AdminSettingsUpdateMsg adminSettingsUpdateMsg = (AdminSettingsUpdateMsg) message;
+                if (key.equals(adminSettingsUpdateMsg.getKey())
+                        && isSystem == adminSettingsUpdateMsg.getIsSystem()) {
+                    messages.remove(message);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean popDeviceProfileMsg(List<AbstractMessage> messages, UpdateMsgType msgType, String name) {
+        for (AbstractMessage message : messages) {
+            if (message instanceof DeviceProfileUpdateMsg) {
+                DeviceProfileUpdateMsg deviceProfileUpdateMsg = (DeviceProfileUpdateMsg) message;
+                if (msgType.equals(deviceProfileUpdateMsg.getMsgType())
+                        && name.equals(deviceProfileUpdateMsg.getName())) {
+                    messages.remove(message);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean popDeviceMsg(List<AbstractMessage> messages, UpdateMsgType msgType, String name) {
+        for (AbstractMessage message : messages) {
+            if (message instanceof DeviceUpdateMsg) {
+                DeviceUpdateMsg deviceUpdateMsg = (DeviceUpdateMsg) message;
+                if (msgType.equals(deviceUpdateMsg.getMsgType())
+                        && name.equals(deviceUpdateMsg.getName())) {
+                    messages.remove(message);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean popAssetProfileMsg(List<AbstractMessage> messages, UpdateMsgType msgType, String name) {
+        for (AbstractMessage message : messages) {
+            if (message instanceof AssetProfileUpdateMsg) {
+                AssetProfileUpdateMsg assetProfileUpdateMsg = (AssetProfileUpdateMsg) message;
+                if (msgType.equals(assetProfileUpdateMsg.getMsgType())
+                        && name.equals(assetProfileUpdateMsg.getName())) {
+                    messages.remove(message);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean popAssetMsg(List<AbstractMessage> messages, UpdateMsgType msgType, String name) {
+        for (AbstractMessage message : messages) {
+            if (message instanceof AssetUpdateMsg) {
+                AssetUpdateMsg assetUpdateMsg = (AssetUpdateMsg) message;
+                if (msgType.equals(assetUpdateMsg.getMsgType())
+                        && name.equals(assetUpdateMsg.getName())) {
+                    messages.remove(message);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean popUserMsg(List<AbstractMessage> messages, UpdateMsgType msgType, String email, Authority authority) {
+        for (AbstractMessage message : messages) {
+            if (message instanceof UserUpdateMsg) {
+                UserUpdateMsg userUpdateMsg = (UserUpdateMsg) message;
+                if (msgType.equals(userUpdateMsg.getMsgType())
+                        && email.equals(userUpdateMsg.getEmail())
+                        && authority.name().equals(userUpdateMsg.getAuthority())) {
+                    messages.remove(message);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean popCustomerMsg(List<AbstractMessage> messages, UpdateMsgType msgType, String title) {
+        for (AbstractMessage message : messages) {
+            if (message instanceof CustomerUpdateMsg) {
+                CustomerUpdateMsg customerUpdateMsg = (CustomerUpdateMsg) message;
+                if (msgType.equals(customerUpdateMsg.getMsgType())
+                        && title.equals(customerUpdateMsg.getTitle())) {
+                    messages.remove(message);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean popCustomerMsg(List<AbstractMessage> messages, UpdateMsgType msgType, String title, String ownerType, UUID ownerUUID) {
+        for (AbstractMessage message : messages) {
+            if (message instanceof CustomerUpdateMsg) {
+                CustomerUpdateMsg customerUpdateMsg = (CustomerUpdateMsg) message;
+                if (msgType.equals(customerUpdateMsg.getMsgType())
+                        && title.equals(customerUpdateMsg.getTitle())
+                        && ownerType.equals(customerUpdateMsg.getOwnerEntityType())
+                        && ownerUUID.getMostSignificantBits() == customerUpdateMsg.getOwnerIdMSB()
+                        && ownerUUID.getLeastSignificantBits() == customerUpdateMsg.getOwnerIdLSB()) {
+                    messages.remove(message);
+                    return true;
+                }
+            }
+        }
+        return false;
+
+    }
+
+    private boolean popRoleMsg(List<AbstractMessage> messages, UpdateMsgType msgType, String name, String type) {
+        for (AbstractMessage message : messages) {
+            if (message instanceof RoleProto) {
+                RoleProto roleProto = (RoleProto) message;
+                if (msgType.equals(roleProto.getMsgType())
+                        && name.equals(roleProto.getName())
+                        && type.equals(roleProto.getType())) {
+                    messages.remove(message);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean popSyncCompletedMsg(List<AbstractMessage> messages) {
+        for (AbstractMessage message : messages) {
+            if (message instanceof SyncCompletedMsg) {
+                messages.remove(message);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean popEntityGroupMsg(List<AbstractMessage> messages, UpdateMsgType msgType, String name, String type, String ownerType) {
+        for (AbstractMessage message : messages) {
+            if (message instanceof EntityGroupUpdateMsg) {
+                EntityGroupUpdateMsg entityGroupUpdateMsg = (EntityGroupUpdateMsg) message;
+                if (msgType.equals(entityGroupUpdateMsg.getMsgType())
+                        && name.equals(entityGroupUpdateMsg.getName())
+                        && type.equals(entityGroupUpdateMsg.getType())
+                        && ownerType.equals(entityGroupUpdateMsg.getOwnerEntityType())) {
+                    messages.remove(message);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean popEdgeConfigurationMsg(List<AbstractMessage> messages, String name) {
+        for (AbstractMessage message : messages) {
+            if (message instanceof EdgeConfiguration) {
+                EdgeConfiguration edgeConfiguration = (EdgeConfiguration) message;
+                if (name.equals(edgeConfiguration.getName())) {
+                    messages.remove(message);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Test
     public void testSyncEdge_tenantLevel() throws Exception {
-        resetSysAdminWhiteLabelingSettings(tenantAdmin.getEmail(), "testPassword1");
+        resetSysAdminWhiteLabelingSettings();
+        loginTenantAdmin();
 
         Edge edge = doPost("/api/edge", constructEdge("Sync Test EG Edge", "test"), Edge.class);
 
@@ -974,9 +1157,6 @@ public class EdgeControllerTest extends AbstractControllerTest {
         device.setType("default");
         Device savedDevice = doPost("/api/device", device, Device.class, "entityGroupId", savedDeviceGroup.getId().getId().toString());
 
-        doPost("/api/edge/" + edge.getId().getId().toString()
-                + "/entityGroup/" + savedDeviceGroup.getId().getId().toString() + "/DEVICE", EntityGroup.class);
-
         EntityGroup savedAssetGroup = new EntityGroup();
         savedAssetGroup.setType(EntityType.ASSET);
         savedAssetGroup.setName("AssetGroup");
@@ -988,37 +1168,34 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Asset savedAsset = doPost("/api/asset", asset, Asset.class, "entityGroupId", savedAssetGroup.getId().getId().toString());
 
         doPost("/api/edge/" + edge.getId().getId().toString()
+                + "/entityGroup/" + savedDeviceGroup.getId().getId().toString() + "/DEVICE", EntityGroup.class);
+
+        doPost("/api/edge/" + edge.getId().getId().toString()
                 + "/entityGroup/" + savedAssetGroup.getId().getId().toString() + "/ASSET", EntityGroup.class);
 
         EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
 
-        edgeImitator.expectMessageAmount(19);
+        edgeImitator.expectMessageAmount(25);
         edgeImitator.connect();
         assertThat(edgeImitator.waitForMessages()).as("await for messages on first connect").isTrue();
 
-        assertThat(edgeImitator.findAllMessagesByType(QueueUpdateMsg.class)).as("one msg during sync process").hasSize(1);
-        assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("one msg during sync process, another from edge creation").hasSize(2);
-        assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("one msg during sync process for 'default' device profile").hasSize(1);
-        assertThat(edgeImitator.findAllMessagesByType(AssetProfileUpdateMsg.class)).as("two msgs during sync process for 'default' and 'test' asset profiles").hasSize(2);
-        assertThat(edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class)).as("entity group - three msgs during sync process (one msg from 'public' customer user group), " +
-                "four msgs from assign to edge").hasSize(7);
-        assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto - three msgs during sync process (one msg from 'public' customer role)").hasSize(3);
-        assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update").hasSize(2);
-        assertThat(edgeImitator.findAllMessagesByType(CustomerUpdateMsg.class)).as("'public' customer").hasSize(1);
+        verifyFetchersMsgs_tenantLevel(edgeImitator);
+        // verify queue msgs
+        Assert.assertTrue(popRuleChainMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, "Edge Root Rule Chain"));
+        Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Tenant Administrators", "USER", "TENANT"));
+        Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Tenant Users", "USER", "TENANT"));
+        Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "DeviceGroup", "DEVICE", "TENANT"));
+        Assert.assertTrue(popAssetProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "test"));
+        Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "AssetGroup", "ASSET", "TENANT"));
+        Assert.assertTrue(edgeImitator.getDownlinkMsgs().isEmpty());
 
-        edgeImitator.expectMessageAmount(16);
+        edgeImitator.expectMessageAmount(19);
         doPost("/api/edge/sync/" + edge.getId());
         assertThat(edgeImitator.waitForMessages()).as("await for messages after edge sync rest api call").isTrue();
 
-        assertThat(edgeImitator.findAllMessagesByType(QueueUpdateMsg.class)).as("queue msg after sync").hasSize(1);
-        assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("rule chain msg after sync").hasSize(1);
-        assertThat(edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class)).as("entity group update msg after sync (one msg from 'public' customer user group)").hasSize(5);
-        assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto msg after sync (one msg from 'public' customer role)").hasSize(3);
-        assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("device profile msg after sync").hasSize(1);
-        assertThat(edgeImitator.findAllMessagesByType(AssetProfileUpdateMsg.class)).as("asset profile msg").hasSize(2);
-        assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update msg after sync").hasSize(2);
-        assertThat(edgeImitator.findAllMessagesByType(CustomerUpdateMsg.class)).as("'public' customer").hasSize(1);
+        verifyFetchersMsgs_tenantLevel(edgeImitator);
+        Assert.assertTrue(edgeImitator.getDownlinkMsgs().isEmpty());
 
         edgeImitator.allowIgnoredTypes();
         try {
@@ -1034,9 +1211,36 @@ public class EdgeControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk());
     }
 
+    private void verifyFetchersMsgs_tenantLevel(EdgeImitator edgeImitator) {
+        verifyFetchersMsgs_bothLevels(edgeImitator);
+        Assert.assertTrue(popRoleMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Tenant User", "GENERIC"));
+        Assert.assertTrue(popRoleMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Tenant Administrator", "GENERIC"));
+        Assert.assertTrue(popRoleMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Customer User", "GENERIC"));
+        Assert.assertTrue(popRoleMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Customer Administrator", "GENERIC"));
+        Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "DeviceGroup", "DEVICE", "TENANT"));
+        Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "AssetGroup", "ASSET", "TENANT"));
+        Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Tenant Users", "USER", "TENANT"));
+        Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Tenant Administrators", "USER", "TENANT"));
+        Assert.assertTrue(popSyncCompletedMsg(edgeImitator.getDownlinkMsgs()));
+    }
+
+    private void verifyFetchersMsgs_bothLevels(EdgeImitator edgeImitator) {
+        Assert.assertTrue(popQueueMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Main"));
+        Assert.assertTrue(popRuleChainMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Edge Root Rule Chain"));
+        Assert.assertTrue(popAdminSettingsMsg(edgeImitator.getDownlinkMsgs(), "general", true));
+        Assert.assertTrue(popAdminSettingsMsg(edgeImitator.getDownlinkMsgs(), "mail", true));
+        Assert.assertTrue(popDeviceProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "default"));
+        Assert.assertTrue(popAssetProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "default"));
+        Assert.assertTrue(popAssetProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "test"));
+        Assert.assertTrue(popCustomerMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Public", "TENANT", tenantId.getId()));
+        Assert.assertTrue(popRoleMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Public User", "GENERIC"));
+        Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Public Users", "USER", "CUSTOMER"));
+    }
+
     @Test
     public void testSyncEdge_customerLevel() throws Exception {
-        resetSysAdminWhiteLabelingSettings(tenantAdmin.getEmail(), "testPassword1");
+        resetSysAdminWhiteLabelingSettings();
+        loginTenantAdmin();
 
         Edge edge = doPost("/api/edge", constructEdge("Sync Test EG Edge", "test"), Edge.class);
 
@@ -1044,8 +1248,6 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Customer customer = new Customer();
         customer.setTitle("Edge Customer");
         Customer savedCustomer = doPost("/api/customer", customer, Customer.class);
-
-        doPost("/api/owner/CUSTOMER/" + savedCustomer.getId().getId() + "/EDGE/" + edge.getId().getId());
 
         EntityGroup savedCustomerDeviceGroup = new EntityGroup();
         savedCustomerDeviceGroup.setType(EntityType.DEVICE);
@@ -1059,9 +1261,6 @@ public class EdgeControllerTest extends AbstractControllerTest {
         customerDevice.setOwnerId(savedCustomer.getId());
         Device savedDevice = doPost("/api/device", customerDevice, Device.class, "entityGroupId", savedCustomerDeviceGroup.getId().getId().toString());
 
-        doPost("/api/edge/" + edge.getId().getId().toString()
-                + "/entityGroup/" + savedCustomerDeviceGroup.getId().getId().toString() + "/DEVICE", EntityGroup.class);
-
         EntityGroup savedCustomerAssetGroup = new EntityGroup();
         savedCustomerAssetGroup.setType(EntityType.ASSET);
         savedCustomerAssetGroup.setName("CustomerAssetGroup");
@@ -1074,46 +1273,52 @@ public class EdgeControllerTest extends AbstractControllerTest {
         customerAsset.setOwnerId(savedCustomer.getId());
         Asset savedAsset = doPost("/api/asset", customerAsset, Asset.class, "entityGroupId", savedCustomerAssetGroup.getId().getId().toString());
 
+        doPost("/api/owner/CUSTOMER/" + savedCustomer.getId().getId() + "/EDGE/" + edge.getId().getId());
+
+        doPost("/api/edge/" + edge.getId().getId().toString()
+                + "/entityGroup/" + savedCustomerDeviceGroup.getId().getId().toString() + "/DEVICE", EntityGroup.class);
+
         doPost("/api/edge/" + edge.getId().getId().toString()
                 + "/entityGroup/" + savedCustomerAssetGroup.getId().getId().toString() + "/ASSET", EntityGroup.class);
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    PageData<EntityGroupInfo> pageData = doGetTypedWithPageLink("/api/entityGroups/edge/" + edge.getId().getId() + "/USER?",
+                            new TypeReference<>() {}, new PageLink(1024));
+                    if (pageData.getData().isEmpty()) {
+                        return false;
+                    }
+                    return pageData.getTotalElements() == 4;
+                });
 
         EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
 
-        edgeImitator.expectMessageAmount(31);
+        edgeImitator.expectMessageAmount(35);
         edgeImitator.connect();
         assertThat(edgeImitator.waitForMessages()).as("await for messages on first connect").isTrue();
 
-        assertThat(edgeImitator.findAllMessagesByType(QueueUpdateMsg.class)).as("one msg during sync process").hasSize(1);
-        assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("one msg during sync process, another from edge creation").hasSize(2);
-        assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("one msg during sync process for 'default' device profile").hasSize(1);
-        assertThat(edgeImitator.findAllMessagesByType(AssetProfileUpdateMsg.class)).as("two msgs during sync process for 'default' and 'test' asset profiles").hasSize(2);
-        assertThat(edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class))
-                .as("entity group - " +
-                        "two msgs during sync process, " +
-                        "four msgs from assign to edge, " +
-                        "two msgs of customer user groups during sync, " +
-                        "two msgs of customer user groups during change edge owner" +
-                        "two msgs from 'public' customer user groups")
-                .hasSize(12);
-        assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto - six msgs during sync process (two tenant's and two customer's) " +
-                "and two msgs from 'public' customers role").hasSize(6);
-        assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update").hasSize(2);
-        assertThat(edgeImitator.findAllMessagesByType(CustomerUpdateMsg.class)).as("one msg during sync process, another from change edge owner, and two 'public' customers").hasSize(4);
-        assertThat(edgeImitator.findAllMessagesByType(EdgeConfiguration.class)).as("one msg during change edge owner").hasSize(1);
+        verifyFetchersMsgs_customerLevel(edgeImitator, savedCustomer.getId());
+        // verify queue msgs
+        Assert.assertTrue(popRuleChainMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, "Edge Root Rule Chain"));
+        Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Tenant Administrators", "USER", "TENANT"));
+        Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Tenant Users", "USER", "TENANT"));
+        Assert.assertTrue(popCustomerMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Edge Customer", "TENANT", tenantId.getId()));
+        Assert.assertTrue(popEdgeConfigurationMsg(edgeImitator.getDownlinkMsgs(), edge.getName()));
+        Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Customer Users", "USER", "CUSTOMER"));
+        Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Customer Administrators", "USER", "CUSTOMER"));
+        Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "CustomerDeviceGroup", "DEVICE", "CUSTOMER"));
+        Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "CustomerAssetGroup", "ASSET", "CUSTOMER"));
+        Assert.assertTrue(popAssetProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "test"));
+        Assert.assertTrue(edgeImitator.getDownlinkMsgs().isEmpty());
 
-        edgeImitator.expectMessageAmount(24);
+        edgeImitator.expectMessageAmount(25);
         doPost("/api/edge/sync/" + edge.getId());
         assertThat(edgeImitator.waitForMessages()).as("await for messages after edge sync rest api call").isTrue();
 
-        assertThat(edgeImitator.findAllMessagesByType(QueueUpdateMsg.class)).as("queue msg after sync").hasSize(1);
-        assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("rule chain msg after sync").hasSize(1);
-        assertThat(edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class)).as("entity group update msg after sync (two msgs from 'public' customer user groups)").hasSize(8);
-        assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto msg after sync (two msgs from 'public' customers role)").hasSize(6);
-        assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("device profile msg after sync").hasSize(1);
-        assertThat(edgeImitator.findAllMessagesByType(AssetProfileUpdateMsg.class)).as("asset profile msg").hasSize(2);
-        assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update msg after sync").hasSize(2);
-        assertThat(edgeImitator.findAllMessagesByType(CustomerUpdateMsg.class)).as("customer update msg after sync and two 'public' customers").hasSize(3);
+        verifyFetchersMsgs_customerLevel(edgeImitator, savedCustomer.getId());
+        Assert.assertTrue(edgeImitator.getDownlinkMsgs().isEmpty());
 
         edgeImitator.allowIgnoredTypes();
         try {
@@ -1129,17 +1334,36 @@ public class EdgeControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk());
     }
 
+    private void verifyFetchersMsgs_customerLevel(EdgeImitator edgeImitator, CustomerId edgeCustomerId) {
+        verifyFetchersMsgs_bothLevels(edgeImitator);
+        Assert.assertTrue(popCustomerMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Edge Customer", "TENANT", tenantId.getId()));
+        Assert.assertTrue(popCustomerMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Public", "CUSTOMER", edgeCustomerId.getId()));
+        Assert.assertTrue(popRoleMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Public User", "GENERIC"));
+        Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Public Users", "USER", "CUSTOMER"));
+        Assert.assertTrue(popRoleMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Tenant User", "GENERIC"));
+        Assert.assertTrue(popRoleMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Tenant Administrator", "GENERIC"));
+        Assert.assertTrue(popRoleMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Customer User", "GENERIC"));
+        Assert.assertTrue(popRoleMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Customer Administrator", "GENERIC"));
+        Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "CustomerDeviceGroup", "DEVICE", "CUSTOMER"));
+        Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "CustomerAssetGroup", "ASSET", "CUSTOMER"));
+        Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Tenant Users", "USER", "TENANT"));
+        Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Tenant Administrators", "USER", "TENANT"));
+        Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Customer Users", "USER", "CUSTOMER"));
+        Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Customer Administrators", "USER", "CUSTOMER"));
+        Assert.assertTrue(popSyncCompletedMsg(edgeImitator.getDownlinkMsgs()));
+    }
+
     @Test
     public void testDeleteEdgeWithDeleteRelationsOk() throws Exception {
         EdgeId edgeId = savedEdge("Edge for Test WithRelationsOk").getId();
-        testEntityDaoWithRelationsOk(savedTenant.getId(), edgeId, "/api/edge/" + edgeId);
+        testEntityDaoWithRelationsOk(tenantId, edgeId, "/api/edge/" + edgeId);
     }
 
     @Ignore
     @Test
     public void testDeleteEdgeExceptionWithRelationsTransactional() throws Exception {
         EdgeId edgeId = savedEdge("Edge for Test WithRelations Transactional Exception").getId();
-        testEntityDaoWithRelationsTransactionalException(edgeDao, savedTenant.getId(), edgeId, "/api/edge/" + edgeId);
+        testEntityDaoWithRelationsTransactionalException(edgeDao, tenantId, edgeId, "/api/edge/" + edgeId);
     }
 
     private Edge savedEdge(String name) {

@@ -600,8 +600,6 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
         Role importedRole = (Role) importEntity(tenantAdmin2, entitiesExportData.get(EntityType.ROLE)).getSavedEntity();
         verify(userPermissionsService).onRoleUpdated(argThat(r -> r.getId().equals(importedRole.getId())));
         verify(entityActionService).logEntityAction(any(), eq(importedRole.getId()), notNull(), any(), eq(ActionType.ADDED), isNull());
-        verify(tbClusterService).sendNotificationMsgToEdge(any(), any(), eq(importedRole.getId()),
-                any(), any(), eq(EdgeEventActionType.ADDED), any(), any());
     }
 
     @Test
