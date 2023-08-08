@@ -43,6 +43,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.EntityViewInfo;
 import org.thingsboard.server.common.data.StringUtils;
@@ -256,7 +257,7 @@ public class EntityViewControllerTest extends AbstractControllerTest {
 
         doGet("/api/entityView/" + entityIdStr)
                 .andExpect(status().isNotFound())
-                .andExpect(statusReason(containsString(msgErrorNoFound("Entity view",entityIdStr))));
+                .andExpect(statusReason(containsString(msgErrorNoFound(EntityType.ENTITY_VIEW.getNormalName(), entityIdStr))));
     }
 
     @Test
@@ -428,7 +429,7 @@ public class EntityViewControllerTest extends AbstractControllerTest {
 
         testNotifyEntityBroadcastEntityStateChangeEventMany(new EntityView(), new EntityView(),
                 tenantId, tenantAdminCustomerId, tenantAdminUserId, TENANT_ADMIN_EMAIL,
-                ActionType.ADDED, ActionType.ADDED, cntEntity, cntEntity, cntEntity*2, 0);
+                ActionType.ADDED, ActionType.ADDED, cntEntity, cntEntity, cntEntity * 2, 0);
 
         testNotifyEntityBroadcastEntityStateChangeEventMany(new EntityView(), new EntityView(),
                 tenantId, customerId, tenantAdminUserId, TENANT_ADMIN_EMAIL,
