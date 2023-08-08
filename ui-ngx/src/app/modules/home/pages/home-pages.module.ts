@@ -74,9 +74,9 @@ import { AccountModule } from '@home/pages/account/account.module';
     OtaUpdateModule,
     UserModule,
     VcModule,
+    AccountModule,
     CloudEventModule,
-    EdgeStatusModule,
-    AccountModule
+    EdgeStatusModule
   ]
 })
 export class HomePagesModule { }

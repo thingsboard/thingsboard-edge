@@ -51,50 +51,55 @@ public class DashboardCloudProcessor extends BaseEdgeProcessor {
                                                                DashboardUpdateMsg dashboardUpdateMsg,
                                                                Long queueStartTs) {
         DashboardId dashboardId = new DashboardId(new UUID(dashboardUpdateMsg.getIdMSB(), dashboardUpdateMsg.getIdLSB()));
-        switch (dashboardUpdateMsg.getMsgType()) {
-            case ENTITY_CREATED_RPC_MESSAGE:
-            case ENTITY_UPDATED_RPC_MESSAGE:
-                dashboardCreationLock.lock();
-                try {
-                    Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
-                    if (dashboard == null) {
-                        dashboard = new Dashboard();
-                        dashboard.setId(dashboardId);
-                        dashboard.setCreatedTime(Uuids.unixTimestamp(dashboardId.getId()));
-                        dashboard.setTenantId(tenantId);
-                    }
-                    dashboard.setTitle(dashboardUpdateMsg.getTitle());
-                    dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
-                    dashboardService.saveDashboard(dashboard, false);
-                    if (dashboardUpdateMsg.hasAssignedCustomers()) {
-                        Set<ShortCustomerInfo> assignedCustomers =
-                                JacksonUtil.fromString(dashboardUpdateMsg.getAssignedCustomers(), new TypeReference<>() {
-                                });
-                        if (assignedCustomers != null && !assignedCustomers.isEmpty()) {
-                            for (ShortCustomerInfo assignedCustomer : assignedCustomers) {
-                                if (assignedCustomer.getCustomerId().equals(edgeCustomerId)) {
-                                    dashboardService.assignDashboardToCustomer(tenantId, dashboardId, assignedCustomer.getCustomerId());
+        try {
+            edgeSynchronizationManager.getSync().set(true);
+            switch (dashboardUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE:
+                case ENTITY_UPDATED_RPC_MESSAGE:
+                    dashboardCreationLock.lock();
+                    try {
+                        Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
+                        if (dashboard == null) {
+                            dashboard = new Dashboard();
+                            dashboard.setId(dashboardId);
+                            dashboard.setCreatedTime(Uuids.unixTimestamp(dashboardId.getId()));
+                            dashboard.setTenantId(tenantId);
+                        }
+                        dashboard.setTitle(dashboardUpdateMsg.getTitle());
+                        dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
+                        dashboardService.saveDashboard(dashboard, false);
+                        if (dashboardUpdateMsg.hasAssignedCustomers()) {
+                            Set<ShortCustomerInfo> assignedCustomers =
+                                    JacksonUtil.fromString(dashboardUpdateMsg.getAssignedCustomers(), new TypeReference<>() {
+                                    });
+                            if (assignedCustomers != null && !assignedCustomers.isEmpty()) {
+                                for (ShortCustomerInfo assignedCustomer : assignedCustomers) {
+                                    if (assignedCustomer.getCustomerId().equals(edgeCustomerId)) {
+                                        dashboardService.assignDashboardToCustomer(tenantId, dashboardId, assignedCustomer.getCustomerId());
+                                    }
                                 }
+                            } else {
+                                unassignCustomersFromDashboard(tenantId, dashboard);
                             }
                         } else {
                             unassignCustomersFromDashboard(tenantId, dashboard);
                         }
-                    } else {
-                        unassignCustomersFromDashboard(tenantId, dashboard);
+                    } finally {
+                        dashboardCreationLock.unlock();
                     }
-                } finally {
-                    dashboardCreationLock.unlock();
-                }
-                return requestForAdditionalData(tenantId, dashboardId, queueStartTs);
-            case ENTITY_DELETED_RPC_MESSAGE:
-                Dashboard dashboardById = dashboardService.findDashboardById(tenantId, dashboardId);
-                if (dashboardById != null) {
-                    dashboardService.deleteDashboard(tenantId, dashboardId);
-                }
-                return Futures.immediateFuture(null);
-            case UNRECOGNIZED:
-            default:
-                return handleUnsupportedMsgType(dashboardUpdateMsg.getMsgType());
+                    return requestForAdditionalData(tenantId, dashboardId, queueStartTs);
+                case ENTITY_DELETED_RPC_MESSAGE:
+                    Dashboard dashboardById = dashboardService.findDashboardById(tenantId, dashboardId);
+                    if (dashboardById != null) {
+                        dashboardService.deleteDashboard(tenantId, dashboardId);
+                    }
+                    return Futures.immediateFuture(null);
+                case UNRECOGNIZED:
+                default:
+                    return handleUnsupportedMsgType(dashboardUpdateMsg.getMsgType());
+            }
+        } finally {
+            edgeSynchronizationManager.getSync().remove();
         }
     }
 
