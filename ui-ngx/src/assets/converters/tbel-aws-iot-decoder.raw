@@ -3,6 +3,11 @@ var data = decodeToJson(payload);
 var deviceName = data.device_id != null ? "Production 1 - " + data.device_id : "Device A";
 var deviceType = data.device_type != null ? data.device_type : "default";
 var groupName = "Production";
+// var customerName = 'Customer A';
+// use assetName and assetType instead of deviceName and deviceType
+// to automatically create assets instead of devices.
+// var assetName = 'Asset A';
+// var assetType = 'building';
 var dateString = data.timestamp != null ? data.timestamp : "";
 
 // --- attributes and telemetry objects ---
@@ -62,6 +67,9 @@ if (!attributesData.isEmpty()) {
 var result = {
     deviceName: deviceName,
     deviceType: deviceType,
+//  assetName: assetName,
+//  assetType: assetType,
+//  customerName: customerName,
     groupName: groupName,
     attributes: attributes,
     telemetry: {

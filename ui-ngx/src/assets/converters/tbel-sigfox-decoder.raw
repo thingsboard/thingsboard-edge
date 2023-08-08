@@ -6,6 +6,12 @@ var json = decodeToJson(payload);
 // Set general device information
 var deviceName = 'Sigfox-' + json.device;
 var deviceType = 'Sigfox device';
+var groupName = 'Control room devices';
+// var customerName = 'Customer A';
+// use assetName and assetType instead of deviceName and deviceType
+// to automatically create assets instead of devices.
+// var assetName = 'Asset A';
+// var assetType = 'building';
 
 // Parse specific device information, it may be different, depends on device type
 var attrByte = parseInt(json.data.substring(0, 2), 16); // force TBEL to convert to INT
@@ -31,6 +37,10 @@ var result = {
     // Use deviceName and deviceType or assetName and assetType, but not both.
     deviceName: deviceName,
     deviceType: deviceType,
+//  assetName: assetName,
+//  assetType: assetType,
+//  customerName: customerName,
+    groupName: groupName,
     attributes: {
         sigfoxId: json.device,
         deviceTypeId: json.deviceTypeId,

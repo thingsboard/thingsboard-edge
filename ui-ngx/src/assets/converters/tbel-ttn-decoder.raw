@@ -2,6 +2,12 @@ var data = decodeToJson(payload);
 
 var deviceName = data.end_device_ids.device_id;
 var deviceType = data.end_device_ids.application_ids.application_id;
+var groupName = 'IAQ devices';
+// var customerName = 'Customer A';
+// use assetName and assetType instead of deviceName and deviceType
+// to automatically create assets instead of devices.
+// var assetName = 'Asset A';
+// var assetType = 'building';
 
 // If you want to parse incoming data somehow, you can add your code to this function.
 // input: bytes
@@ -125,6 +131,10 @@ attributes.putAll(attributesData);
 var result = {
     deviceName: deviceName,
     deviceType: deviceType,
+//  assetName: assetName,
+//  assetType: assetType,
+//  customerName: customerName,
+    groupName: groupName,
     attributes: attributes,
     telemetry: {
         ts: timestamp,

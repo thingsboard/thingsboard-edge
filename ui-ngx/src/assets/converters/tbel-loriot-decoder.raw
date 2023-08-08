@@ -1,6 +1,12 @@
 var data = decodeToJson(payload);
 var deviceName = data.EUI;
 var deviceType = "LoraDevices";
+var groupName = 'IAQ devices';
+// var customerName = 'Customer A';
+// use assetName and assetType instead of deviceName and deviceType
+// to automatically create assets instead of devices.
+// var assetName = 'Asset A';
+// var assetType = 'building';
 var gatewayDeviceType = "LoraGateway";
 
 // If you want to parse incoming data somehow, you can add your code to this function.
@@ -95,6 +101,10 @@ attributes.putAll(attributesData);
 var deviceInfo = {
     deviceName: deviceName,
     deviceType: deviceType,
+//  assetName: assetName,
+//  assetType: assetType,
+//  customerName: customerName,
+    groupName: groupName,
     attributes: attributes,
     telemetry: {
         ts: timestamp,
