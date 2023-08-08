@@ -227,15 +227,6 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     @Autowired
     private DefaultTbAssetProfileCache assetProfileCache;
 
-    @Value("${integrations.rate_limits.enabled}")
-    private boolean rateLimitEnabled;
-
-    @Value("${integrations.rate_limits.tenant}")
-    private String perTenantLimitsConf;
-
-    @Value("${integrations.rate_limits.device}")
-    private String perDevicesLimitsConf;
-
     @Value("${integrations.reinit.enabled:false}")
     private boolean reinitEnabled;
 
