@@ -35,8 +35,6 @@ import org.thingsboard.server.common.msg.TbMsg;
 
 import java.util.UUID;
 
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
-
 @Slf4j
 @RuleNode(
         type = ComponentType.ACTION,
@@ -108,7 +106,7 @@ public class TbMsgPushToCloudNode extends AbstractTbMsgPushNode<TbMsgPushToCloud
             Futures.addCallback(saveFuture, new FutureCallback<>() {
                 @Override
                 public void onSuccess(@Nullable Void unused) {
-                    ctx.tellNext(msg, SUCCESS);
+                    ctx.tellSuccess(msg);
                 }
 
                 @Override
