@@ -40,13 +40,12 @@ import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
-import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import static org.thingsboard.common.util.DonAsynchron.withCallback;
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 /**
  * Created by igor on 5/25/18.
@@ -88,9 +87,9 @@ public class TbTwilioSmsNode implements TbNode {
                     ok -> {
                         log.trace("[{}][{}] Successfully processed msg: {}", ctx.getTenantId().getId(), ctx.getSelfId().getId(), tbMsg);
                         if (forceAck) {
-                            ctx.enqueueForTellNext(tbMsg.copyWithNewCtx(), TbRelationTypes.SUCCESS);
+                            ctx.enqueueForTellNext(tbMsg.copyWithNewCtx(), TbNodeConnectionType.SUCCESS);
                         } else {
-                            ctx.tellNext(tbMsg, SUCCESS);
+                            ctx.tellNext(tbMsg, TbNodeConnectionType.SUCCESS);
                         }
                     },
                     fail -> {

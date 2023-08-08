@@ -36,7 +36,7 @@ import org.thingsboard.rule.engine.api.NodeConfiguration;
 import java.util.concurrent.TimeUnit;
 
 @Data
-public abstract class TbAbstractLatestNodeConfiguration implements NodeConfiguration {
+public abstract class TbAbstractLatestNodeConfiguration {
 
     private ParentEntitiesQuery parentEntitiesQuery;
 

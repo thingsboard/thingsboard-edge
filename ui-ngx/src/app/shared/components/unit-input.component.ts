@@ -29,15 +29,22 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, ElementRef, forwardRef, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  forwardRef,
+  HostBinding,
+  Input,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation
+} from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormControl, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Observable, of, shareReplay, switchMap } from 'rxjs';
-import { searchUnits, Unit, unitBySymbol } from '@shared/models/unit.models';
+import { getUnits, searchUnits, Unit, unitBySymbol } from '@shared/models/unit.models';
 import { map, mergeMap, tap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { ResourcesService } from '@core/services/resources.service';
-
-const unitsModels = '/assets/model/units.json';
 
 @Component({
   selector: 'tb-unit-input',
@@ -53,6 +60,8 @@ const unitsModels = '/assets/model/units.json';
   encapsulation: ViewEncapsulation.None
 })
 export class UnitInputComponent implements ControlValueAccessor, OnInit {
+
+  @HostBinding('style.display') get hostDisplay() {return 'flex';};
 
   unitsFormControl: FormControl;
 
@@ -162,7 +171,7 @@ export class UnitInputComponent implements ControlValueAccessor, OnInit {
 
   private unitsConstant(): Observable<Array<Unit>> {
     if (this.fetchUnits$ === null) {
-      this.fetchUnits$ = this.resourcesService.loadJsonResource<Array<Unit>>(unitsModels).pipe(
+      this.fetchUnits$ = getUnits(this.resourcesService).pipe(
         map(units => units.map(u => ({
           symbol: u.symbol,
           name: this.translate.instant(u.name),

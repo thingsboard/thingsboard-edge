@@ -42,7 +42,8 @@ import {
   DeviceCredentials,
   DeviceInfo,
   DeviceInfoQuery,
-  DeviceSearchQuery
+  DeviceSearchQuery,
+  PublishTelemetryCommand
 } from '@app/shared/models/device.models';
 import { EntitySubtype } from '@app/shared/models/entity-type.models';
 import { AuthService } from '@core/auth/auth.service';
@@ -50,7 +51,6 @@ import { map } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
 import { BulkImportRequest, BulkImportResult } from '@home/components/import-export/import-export.models';
 import { PersistentRpc, RpcStatus } from '@shared/models/rpc.models';
-import { DashboardInfo } from '@shared/models/dashboard.models';
 
 @Injectable({
   providedIn: 'root'
@@ -266,4 +266,9 @@ export class DeviceService {
   public bulkImportDevices(entitiesData: BulkImportRequest, config?: RequestConfig): Observable<BulkImportResult> {
     return this.http.post<BulkImportResult>('/api/device/bulk_import', entitiesData, defaultHttpOptionsFromConfig(config));
   }
+
+  public getDevicePublishTelemetryCommands(deviceId: string, config?: RequestConfig): Observable<PublishTelemetryCommand> {
+    return this.http.get<PublishTelemetryCommand>(`/api/device-connectivity/${deviceId}`, defaultHttpOptionsFromConfig(config));
+  }
+
 }

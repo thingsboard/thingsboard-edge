@@ -222,7 +222,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   }
 
   get hideToolbar(): boolean {
-    return (this.hideToolbarValue || this.hideToolbarSetting()) && !this.isEdit;
+    return ((this.hideToolbarValue || this.hideToolbarSetting()) && !this.isEdit) || (this.isEditingWidget || this.isAddingWidget);
   }
 
   @Input()
@@ -498,6 +498,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
                || this.forceFullscreen || this.isMobileApp || this.reportView || this.stateSelectView ||
                this.route.snapshot.queryParamMap.get('readonly') === 'true') {
       this.readonly = true;
+    } else if (this.widgetEditMode) {
+      this.readonly = !this.userPermissionsService.hasGenericPermission(Resource.WIDGET_TYPE, Operation.WRITE);
     } else {
       this.readonly = !this.userPermissionsService.hasGenericPermission(Resource.DASHBOARD, Operation.WRITE);
     }
@@ -636,7 +638,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   }
 
   public hideFullscreenButton(): boolean {
-    if (this.route.snapshot.routeConfig?.path.startsWith('dashboards')) {
+    if (this.router.url.startsWith('/dashboards')) {
       return this.widgetEditMode || this.iframeMode || this.forceFullscreen || this.isEdit;
     }
     return this.widgetEditMode || this.iframeMode || this.forceFullscreen || this.singlePageMode || this.isEdit;
@@ -1269,6 +1271,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
             Widget>(AddWidgetDialogComponent, {
             disableClose: true,
             panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+            maxWidth: '95vw',
             data: {
               dashboard: this.dashboard,
               aliasController: this.dashboardCtx.aliasController,

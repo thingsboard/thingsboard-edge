@@ -44,9 +44,11 @@ import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.util.ContactBasedEntityDetails;
+import org.thingsboard.rule.engine.util.TbMsgSource;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -117,14 +119,14 @@ public class TbGetTenantDetailsNodeTest {
     public void givenDefaultConfig_whenInit_thenOK() {
         // THEN
         assertThat(config.getDetailsList()).isEqualTo(Collections.emptyList());
-        assertThat(config.getFetchTo()).isEqualTo(FetchTo.DATA);
+        assertThat(config.getFetchTo()).isEqualTo(TbMsgSource.DATA);
     }
 
     @Test
     public void givenCustomConfig_whenInit_thenOK() throws TbNodeException {
         // GIVEN
         config.setDetailsList(List.of(ContactBasedEntityDetails.ID, ContactBasedEntityDetails.PHONE));
-        config.setFetchTo(FetchTo.METADATA);
+        config.setFetchTo(TbMsgSource.METADATA);
         nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
 
         // WHEN
@@ -133,15 +135,15 @@ public class TbGetTenantDetailsNodeTest {
         // THEN
         assertThat(node.config).isEqualTo(config);
         assertThat(config.getDetailsList()).isEqualTo(List.of(ContactBasedEntityDetails.ID, ContactBasedEntityDetails.PHONE));
-        assertThat(config.getFetchTo()).isEqualTo(FetchTo.METADATA);
-        assertThat(node.fetchTo).isEqualTo(FetchTo.METADATA);
+        assertThat(config.getFetchTo()).isEqualTo(TbMsgSource.METADATA);
+        assertThat(node.fetchTo).isEqualTo(TbMsgSource.METADATA);
     }
 
     @Test
     public void givenMsgDataIsNotAnJsonObjectAndFetchToData_whenOnMsg_thenException() {
         // GIVEN
-        node.fetchTo = FetchTo.DATA;
-        msg = TbMsg.newMsg("SOME_MESSAGE_TYPE", DUMMY_DEVICE_ORIGINATOR, new TbMsgMetaData(), "[]");
+        node.fetchTo = TbMsgSource.DATA;
+        msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DUMMY_DEVICE_ORIGINATOR, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_ARRAY);
 
         // WHEN
         var exception = assertThrows(IllegalArgumentException.class, () -> node.onMsg(ctxMock, msg));
@@ -154,7 +156,7 @@ public class TbGetTenantDetailsNodeTest {
     @Test
     public void givenAllEntityDetailsAndFetchToData_whenOnMsg_thenShouldTellSuccessAndFetchAllToData() {
         // GIVEN
-        prepareMsgAndConfig(FetchTo.DATA, List.of(ContactBasedEntityDetails.values()));
+        prepareMsgAndConfig(TbMsgSource.DATA, List.of(ContactBasedEntityDetails.values()));
 
         mockFindTenant();
 
@@ -187,7 +189,7 @@ public class TbGetTenantDetailsNodeTest {
     @Test
     public void givenSomeEntityDetailsAndFetchToMetadata_whenOnMsg_thenShouldTellSuccessAndFetchSomeToMetaData() {
         // GIVEN
-        prepareMsgAndConfig(FetchTo.METADATA, List.of(ContactBasedEntityDetails.ID, ContactBasedEntityDetails.TITLE, ContactBasedEntityDetails.PHONE));
+        prepareMsgAndConfig(TbMsgSource.METADATA, List.of(ContactBasedEntityDetails.ID, ContactBasedEntityDetails.TITLE, ContactBasedEntityDetails.PHONE));
 
         mockFindTenant();
 
@@ -216,7 +218,7 @@ public class TbGetTenantDetailsNodeTest {
         tenant.setAddress(null);
         tenant.setAddress2(null);
 
-        prepareMsgAndConfig(FetchTo.DATA, List.of(ContactBasedEntityDetails.ZIP, ContactBasedEntityDetails.ADDRESS, ContactBasedEntityDetails.ADDRESS2));
+        prepareMsgAndConfig(TbMsgSource.DATA, List.of(ContactBasedEntityDetails.ZIP, ContactBasedEntityDetails.ADDRESS, ContactBasedEntityDetails.ADDRESS2));
 
         mockFindTenant();
 
@@ -236,7 +238,7 @@ public class TbGetTenantDetailsNodeTest {
     @Test
     public void givenDidNotFindTenant_whenOnMsg_thenShouldTellSuccessAndFetchNothingToData() {
         // GIVEN
-        prepareMsgAndConfig(FetchTo.DATA, List.of(ContactBasedEntityDetails.ZIP, ContactBasedEntityDetails.ADDRESS, ContactBasedEntityDetails.ADDRESS2));
+        prepareMsgAndConfig(TbMsgSource.DATA, List.of(ContactBasedEntityDetails.ZIP, ContactBasedEntityDetails.ADDRESS, ContactBasedEntityDetails.ADDRESS2));
 
         when(ctxMock.getTenantId()).thenReturn(tenant.getId());
         when(ctxMock.getTenantService()).thenReturn(tenantServiceMock);
@@ -260,7 +262,7 @@ public class TbGetTenantDetailsNodeTest {
         // GIVEN
         tenant.setAdditionalInfo(JacksonUtil.toJsonNode("{\"someProperty\":\"someValue\",\"description\":null}"));
 
-        prepareMsgAndConfig(FetchTo.DATA, List.of(ContactBasedEntityDetails.ADDITIONAL_INFO));
+        prepareMsgAndConfig(TbMsgSource.DATA, List.of(ContactBasedEntityDetails.ADDITIONAL_INFO));
 
         mockFindTenant();
 
@@ -288,7 +290,7 @@ public class TbGetTenantDetailsNodeTest {
         Assertions.assertEquals(defaultConfig, JacksonUtil.treeToValue(upgrade.getSecond(), defaultConfig.getClass()));
     }
 
-    private void prepareMsgAndConfig(FetchTo fetchTo, List<ContactBasedEntityDetails> detailsList) {
+    private void prepareMsgAndConfig(TbMsgSource fetchTo, List<ContactBasedEntityDetails> detailsList) {
         config.setDetailsList(detailsList);
         config.setFetchTo(fetchTo);
 
@@ -301,7 +303,7 @@ public class TbGetTenantDetailsNodeTest {
 
         var msgData = "{\"dataKey1\":123,\"dataKey2\":\"dataValue2\"}";
 
-        msg = TbMsg.newMsg("POST_TELEMETRY_REQUEST", DUMMY_DEVICE_ORIGINATOR, msgMetaData, msgData);
+        msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DUMMY_DEVICE_ORIGINATOR, msgMetaData, msgData);
     }
 
     private void mockFindTenant() {

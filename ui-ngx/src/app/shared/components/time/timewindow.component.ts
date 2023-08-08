@@ -33,7 +33,7 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
-  forwardRef,
+  forwardRef, HostBinding,
   Injector,
   Input,
   StaticProvider,
@@ -97,6 +97,11 @@ export class TimewindowComponent implements ControlValueAccessor {
   get historyOnly() {
     return this.historyOnlyValue;
   }
+
+  @HostBinding('class.no-margin')
+  @Input()
+  @coerceBoolean()
+  noMargin = false;
 
   @Input()
   @coerceBoolean()

@@ -47,11 +47,17 @@ import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { EntityAction } from '@home/models/entity/entity-component.models';
-import { DeviceCredentials, DeviceInfo, DeviceInfoFilter, DeviceInfoQuery } from '@app/shared/models/device.models';
+import {
+  Device,
+  DeviceCredentials,
+  DeviceInfo,
+  DeviceInfoFilter,
+  DeviceInfoQuery
+} from '@app/shared/models/device.models';
 import { Observable, of, Subject } from 'rxjs';
-import { Store } from '@ngrx/store';
-import { getCurrentAuthUser } from '@core/auth/auth.selectors';
-import { map, mergeMap, tap } from 'rxjs/operators';
+import { select, Store } from '@ngrx/store';
+import { getCurrentAuthUser, selectUserSettingsProperty } from '@core/auth/auth.selectors';
+import { map, mergeMap, take, tap } from 'rxjs/operators';
 import { AppState } from '@core/core.state';
 import { DeviceService } from '@app/core/http/device.service';
 import { Authority } from '@app/shared/models/authority.enum';
@@ -82,6 +88,11 @@ import {
 import { GroupEntityTabsComponent } from '@home/components/group/group-entity-tabs.component';
 import { PageLink, PageQueryParam } from '@shared/models/page/page-link';
 import { DeviceProfileId } from '@shared/models/id/device-profile-id';
+import {
+  DeviceCheckConnectivityDialogComponent,
+  DeviceCheckConnectivityDialogData
+} from '@home/pages/device/device-check-connectivity-dialog.component';
+import { EntityId } from '@shared/models/id/entity-id';
 
 interface DevicePageQueryParams extends PageQueryParam {
   deviceProfileId?: string;
@@ -330,7 +341,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
 
   deviceWizard($event: Event, config: EntityTableConfig<DeviceInfo>) {
     this.dialog.open<DeviceWizardDialogComponent, DeviceWizardDialogData,
-      boolean>(DeviceWizardDialogComponent, {
+      Device>(DeviceWizardDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
@@ -340,6 +351,13 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
       (res) => {
         if (res) {
           config.updateData();
+          this.store.pipe(select(selectUserSettingsProperty( 'notDisplayConnectivityAfterAddDevice'))).pipe(
+            take(1)
+          ).subscribe((settings: boolean) => {
+            if(!settings) {
+              this.checkConnectivity(null, res.id, true);
+            }
+          });
         }
       }
     );
@@ -375,6 +393,23 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     );
   }
 
+  checkConnectivity($event: Event, deviceId: EntityId, afterAdd = false) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.dialog.open<DeviceCheckConnectivityDialogComponent, DeviceCheckConnectivityDialogData>
+    (DeviceCheckConnectivityDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        deviceId,
+        afterAdd
+      }
+    })
+      .afterClosed()
+      .subscribe(() => {});
+  }
+
   onDeviceAction(action: EntityAction<DeviceInfo>, config: EntityTableConfig<DeviceInfo>): boolean {
     switch (action.action) {
       case 'open':
@@ -388,6 +423,9 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
         return true;
       case 'manageOwnerAndGroups':
         this.manageOwnerAndGroups(action.event, action.entity, config);
+        return true;
+      case 'checkConnectivity':
+        this.checkConnectivity(action.event, action.entity.id);
         return true;
     }
     return false;

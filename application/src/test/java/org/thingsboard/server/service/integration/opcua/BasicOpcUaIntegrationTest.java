@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.TbCallback;
@@ -293,7 +294,7 @@ public class BasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         dataNode.set("data", writeValuesNode);
         TbMsgMetaData tbMsgMetaData = new TbMsgMetaData(new HashMap<>());
 
-        TbMsg tbMsg = TbMsg.newMsg("INTEGRATION_DOWNLINK", originatorId, tbMsgMetaData, writeValueNode.toString());
+        TbMsg tbMsg = TbMsg.newMsg(TbMsgType.ATTRIBUTES_UPDATED, originatorId, tbMsgMetaData, writeValueNode.toString());
         return TransportProtos.IntegrationDownlinkMsgProto.newBuilder()
                 .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
                 .setTenantIdMSB(tenantId.getId().getMostSignificantBits())

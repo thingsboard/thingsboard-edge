@@ -34,11 +34,37 @@ import { TenantId } from '@shared/models/id/tenant-id';
 import { ConverterId } from '@shared/models/id/converter-id';
 import { ContentType } from '@shared/models/constants';
 import { ActivatedRouteSnapshot } from '@angular/router';
+import { IntegrationType } from '@shared/models/integration.models';
 
 export enum ConverterType {
   UPLINK = 'UPLINK',
   DOWNLINK = 'DOWNLINK'
 }
+
+export const IntegrationTbelDefaultConvertersUrl = new Map<IntegrationType, string>([
+  [IntegrationType.CHIRPSTACK, '/assets/converters/tbel-chirpstack-decoder.raw'],
+  [IntegrationType.LORIOT, '/assets/converters/tbel-loriot-decoder.raw'],
+  [IntegrationType.TTI,'/assets/converters/tbel-tti-decoder.raw'],
+  [IntegrationType.TTN, '/assets/converters/tbel-ttn-decoder.raw'],
+  [IntegrationType.SIGFOX, '/assets/converters/tbel-sigfox-decoder.raw'],
+  [IntegrationType.AZURE_IOT_HUB, '/assets/converters/tbel-azure-decoder.raw'],
+  [IntegrationType.AZURE_EVENT_HUB, '/assets/converters/tbel-azure-decoder.raw'],
+  [IntegrationType.AZURE_SERVICE_BUS, '/assets/converters/tbel-azure-decoder.raw'],
+  [IntegrationType.AWS_IOT, '/assets/converters/tbel-aws-iot-decoder.raw']
+]);
+
+export const jsDefaultConvertorsUrl = new Map<ConverterType, string>([
+  [ConverterType.UPLINK, '/assets/converters/js-decoder.raw' ],
+  [ConverterType.DOWNLINK, '/assets/converters/js-encoder.raw'],
+]);
+
+export const tbelDefaultConvertorsUrl = new Map<ConverterType, string>([
+  [ConverterType.UPLINK, '/assets/converters/tbel-decoder.raw' ],
+  [ConverterType.DOWNLINK, '/assets/converters/tbel-encoder.raw'],
+]);
+
+export const DefaultUpdateOnlyKeysValue = ['manufacturer'];
+export type DefaultUpdateOnlyKeys = {[key in IntegrationType]?: Array<string>};
 
 export const converterTypeTranslationMap = new Map<ConverterType, string>(
   [
@@ -71,6 +97,12 @@ export interface TestDownLinkInputParams {
   encoder: string;
 }
 
+export interface LatestConverterParameters {
+  converterType: ConverterType;
+  integrationType?: IntegrationType;
+  integrationName?: string;
+}
+
 export type TestConverterInputParams = TestUpLinkInputParams & TestDownLinkInputParams;
 
 export interface TestConverterResult {
@@ -86,7 +118,7 @@ export interface ConverterDebugInput {
   inIntegrationMetadata: string;
 }
 
-export function getConverterHelpLink (converter: Converter) {
+export function getConverterHelpLink(converter: Converter) {
   let link = 'converters';
   if (converter && converter.type) {
     if (converter.type === ConverterType.UPLINK) {
