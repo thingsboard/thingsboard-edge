@@ -267,6 +267,25 @@ public abstract class BaseEdgeProcessor {
     @Autowired
     protected PartitionService partitionService;
 
+    // Edge services:
+    @Autowired
+    protected AdminSettingsService adminSettingsService;
+
+    @Autowired
+    protected ApiUsageStateService apiUsageStateService;
+
+    @Autowired
+    protected TbQueueService tbQueueService;
+
+    @Autowired
+    protected CloudEventService cloudEventService;
+
+    @Autowired
+    protected TbCoreDeviceRpcService tbCoreDeviceRpcService;
+
+    @Autowired
+    protected OtaPackageStateService otaPackageStateService;
+
     @Autowired
     @Lazy
     protected TbQueueProducerProvider producerProvider;
@@ -835,24 +854,6 @@ public abstract class BaseEdgeProcessor {
             }, dbCallbackExecutorService);
         }
     }
-
-    @Autowired
-    protected AdminSettingsService adminSettingsService;
-
-    @Autowired
-    protected ApiUsageStateService apiUsageStateService;
-
-    @Autowired
-    protected TbQueueService tbQueueService;
-
-    @Autowired
-    protected CloudEventService cloudEventService;
-
-    @Autowired
-    protected TbCoreDeviceRpcService tbCoreDeviceRpcService;
-
-    @Autowired
-    protected OtaPackageStateService otaPackageStateService;
 
     protected ListenableFuture<Void> requestForAdditionalData(TenantId tenantId, EntityId entityId, Long queueStartTs) {
         List<ListenableFuture<Void>> futures = new ArrayList<>();

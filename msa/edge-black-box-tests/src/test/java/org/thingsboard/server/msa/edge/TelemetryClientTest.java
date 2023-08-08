@@ -48,10 +48,62 @@ import org.thingsboard.server.msa.AbstractContainerTest;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class TelemetryClientTest extends AbstractContainerTest {
+
+    @Test
+    public void testSendPostTelemetryRequestToCloud_performanceTest() throws Exception {
+        Device device = saveAndAssignDeviceToEdge();
+
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    Optional<DeviceCredentials> edgeDeviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(device.getId());
+                    Optional<DeviceCredentials> cloudDeviceCredentials = cloudRestClient.getDeviceCredentialsByDeviceId(device.getId());
+                    return edgeDeviceCredentials.isPresent() &&
+                            cloudDeviceCredentials.isPresent() &&
+                            edgeDeviceCredentials.get().getCredentialsId().equals(cloudDeviceCredentials.get().getCredentialsId());
+                });
+
+        DeviceCredentials deviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(device.getId()).get();
+        final String accessToken = deviceCredentials.getCredentialsId();
+        final String telemetryKey = "index";
+        final long numberOfTimeseriesToSend = 1000L;
+        for (int idx = 1; idx <= numberOfTimeseriesToSend; idx++) {
+            JsonObject timeseriesPayload = new JsonObject();
+            timeseriesPayload.addProperty(telemetryKey, idx);
+            ResponseEntity deviceTelemetryResponse = edgeRestClient.getRestTemplate()
+                    .postForEntity(edgeUrl + "/api/v1/{credentialsId}/telemetry",
+                            JacksonUtil.OBJECT_MAPPER.readTree(timeseriesPayload.toString()),
+                            ResponseEntity.class,
+                            accessToken);
+            Assert.assertTrue(deviceTelemetryResponse.getStatusCode().is2xxSuccessful());
+        }
+
+        verifyDeviceIsActive(cloudRestClient, device.getId());
+
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<TsKvEntry> latestTimeseries;
+                    try {
+                        latestTimeseries = cloudRestClient.getLatestTimeseries(device.getId(), List.of(telemetryKey));
+                    } catch (Exception e) {
+                        return false;
+                    }
+                    return latestTimeseries.size() == 1
+                            && latestTimeseries.get(0).getLongValue().isPresent()
+                            && latestTimeseries.get(0).getLongValue().get() == numberOfTimeseriesToSend;
+                });
+
+        // cleanup
+        cloudRestClient.deleteDevice(device.getId());
+    }
 
     @Test
     public void testSendPostTelemetryRequestToCloud() throws Exception {

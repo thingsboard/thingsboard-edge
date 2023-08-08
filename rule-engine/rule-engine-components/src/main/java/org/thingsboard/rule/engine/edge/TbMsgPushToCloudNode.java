@@ -50,7 +50,7 @@ import org.thingsboard.server.common.msg.TbMsg;
 
 import java.util.UUID;
 
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
+import static org.thingsboard.server.common.data.msg.TbNodeConnectionType.SUCCESS;
 
 @Slf4j
 @RuleNode(
