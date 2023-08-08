@@ -65,6 +65,7 @@ import org.thingsboard.server.common.data.security.event.UserCredentialsInvalida
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.service.DataValidator;
