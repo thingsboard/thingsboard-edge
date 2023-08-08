@@ -16,25 +16,28 @@ var attributes = {};
 // --- attributes and telemetry objects ---
 
 // --- Timestamp parsing
-var timestamp = new Date(dateString).getTime();
-if (timestamp == -1) {
-    var secondsSeparatorIndex = dateString.lastIndexOf('.') + 1;
-    var millisecondsEndIndex = dateString.lastIndexOf('+');
-    if (millisecondsEndIndex == -1) {
-        millisecondsEndIndex = dateString.lastIndexOf('Z');
-    }
-    if (millisecondsEndIndex == -1) {
-        millisecondsEndIndex = dateString.lastIndexOf('-');
-    }
-    if (millisecondsEndIndex == -1) {
-        if (dateString.length >= secondsSeparatorIndex + 3) {
-            dateString = dateString.substring(0, secondsSeparatorIndex + 3);
-        }
-    } else {
-        dateString = dateString.substring(0, secondsSeparatorIndex + 3) +
-            dateString.substring(millisecondsEndIndex, dateString.length);
-    }
-    timestamp = new Date(dateString).getTime();
+var timestamp = -1;
+if (dateString != null) {
+  timestamp = new Date(dateString).getTime();
+  if (timestamp == -1) {
+      var secondsSeparatorIndex = dateString.lastIndexOf('.') + 1;
+      var millisecondsEndIndex = dateString.lastIndexOf('+');
+      if (millisecondsEndIndex == -1) {
+          millisecondsEndIndex = dateString.lastIndexOf('Z');
+      }
+      if (millisecondsEndIndex == -1) {
+          millisecondsEndIndex = dateString.lastIndexOf('-');
+      }
+      if (millisecondsEndIndex == -1) {
+          if (dateString.length >= secondsSeparatorIndex + 3) {
+              dateString = dateString.substring(0, secondsSeparatorIndex + 3);
+          }
+      } else {
+          dateString = dateString.substring(0, secondsSeparatorIndex + 3) +
+              dateString.substring(millisecondsEndIndex, dateString.length);
+      }
+      timestamp = new Date(dateString).getTime();
+  }
 }
 // If we cannot parse timestamp - we will use the current timestamp
 if (timestamp == -1) {
