@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.wl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
@@ -38,6 +37,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
@@ -46,6 +46,8 @@ import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.AdminSettingsId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -58,11 +60,11 @@ import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
 
-import java.io.IOException;
 import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -89,6 +91,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     private final AttributesService attributesService;
     private final TenantService tenantService;
     private final CustomerService customerService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public LoginWhiteLabelingParams getSystemLoginWhiteLabelingParams(TenantId tenantId) {
@@ -223,6 +226,8 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         }
         ((ObjectNode) whiteLabelParamsSettings.getJsonValue()).put("value", json);
         adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, whiteLabelParamsSettings);
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID)
+                .edgeEventType(EdgeEventType.WHITE_LABELING).actionType(ActionType.UPDATED).build());
         return getSystemWhiteLabelingParams(TenantId.SYS_TENANT_ID);
     }
 
@@ -245,6 +250,8 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         }
         ((ObjectNode) loginWhiteLabelParamsSettings.getJsonValue()).put("value", json);
         adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, loginWhiteLabelParamsSettings);
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID)
+                .edgeEventType(EdgeEventType.LOGIN_WHITE_LABELING).actionType(ActionType.UPDATED).build());
         return getSystemLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID);
     }
 
@@ -555,7 +562,11 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         long ts = System.currentTimeMillis();
         attributes.add(new BaseAttributeKvEntry(new StringDataEntry(key, value), ts));
         try {
-            return attributesService.save(tenantId, entityId, DataConstants.SERVER_SCOPE, attributes);
+            var result = attributesService.save(tenantId, entityId, DataConstants.SERVER_SCOPE, attributes);
+            EdgeEventType edgeEventType = LOGIN_WHITE_LABEL_PARAMS.equals(key) ? EdgeEventType.LOGIN_WHITE_LABELING : EdgeEventType.WHITE_LABELING;
+            eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(entityId)
+                    .edgeEventType(edgeEventType).actionType(ActionType.UPDATED).build());
+            return result;
         } catch (Exception e) {
             log.error("Unable to save White Labeling Params to attributes!", e);
             throw new IncorrectParameterException("Unable to save White Labeling Params to attributes!");

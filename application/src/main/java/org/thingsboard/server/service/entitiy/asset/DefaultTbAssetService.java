@@ -42,7 +42,6 @@ import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -98,17 +97,16 @@ public class DefaultTbAssetService extends AbstractTbEntityService implements Tb
 
     @Override
     public ListenableFuture<Void> delete(Asset asset, User user) {
+        ActionType actionType = ActionType.DELETED;
         TenantId tenantId = asset.getTenantId();
         AssetId assetId = asset.getId();
         try {
-            List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, assetId);
             assetService.deleteAsset(tenantId, assetId);
-            notificationEntityService.notifyDeleteEntity(tenantId, assetId, asset, asset.getCustomerId(),
-                    ActionType.DELETED, relatedEdgeIds, user, assetId.toString());
+            notificationEntityService.logEntityAction(tenantId, assetId, asset, asset.getCustomerId(), actionType, user, assetId.toString());
             tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetId, ComponentLifecycleEvent.DELETED);
             return removeAlarmsByEntityId(tenantId, assetId);
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.ASSET), ActionType.DELETED, user, e,
+            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.ASSET), actionType, user, e,
                     assetId.toString());
             throw e;
         }

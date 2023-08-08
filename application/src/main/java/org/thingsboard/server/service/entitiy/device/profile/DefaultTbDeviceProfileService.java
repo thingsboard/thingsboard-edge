@@ -81,8 +81,8 @@ public class DefaultTbDeviceProfileService extends AbstractTbEntityService imple
 
             otaPackageStateService.update(savedDeviceProfile, isFirmwareChanged, isSoftwareChanged);
 
-            notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, savedDeviceProfile.getId(),
-                    savedDeviceProfile, user, actionType, true, null);
+            notificationEntityService.logEntityAction(tenantId, savedDeviceProfile.getId(), savedDeviceProfile,
+                    null, actionType, user);
             return savedDeviceProfile;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.DEVICE_PROFILE), deviceProfile, actionType, user, e);
@@ -92,6 +92,7 @@ public class DefaultTbDeviceProfileService extends AbstractTbEntityService imple
 
     @Override
     public void delete(DeviceProfile deviceProfile, User user) throws ThingsboardException {
+        ActionType actionType = ActionType.DELETED;
         DeviceProfileId deviceProfileId = deviceProfile.getId();
         TenantId tenantId = deviceProfile.getTenantId();
         try {
@@ -99,10 +100,10 @@ public class DefaultTbDeviceProfileService extends AbstractTbEntityService imple
 
             tbClusterService.onDeviceProfileDelete(deviceProfile, null);
             tbClusterService.broadcastEntityStateChangeEvent(tenantId, deviceProfileId, ComponentLifecycleEvent.DELETED);
-            notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, deviceProfileId, deviceProfile,
-                    user, ActionType.DELETED, true, null, deviceProfileId.toString());
+            notificationEntityService.logEntityAction(tenantId, deviceProfileId, deviceProfile, null,
+                    actionType, user, deviceProfileId.toString());
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.DEVICE_PROFILE), ActionType.DELETED,
+            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.DEVICE_PROFILE), actionType,
                     user, e, deviceProfileId.toString());
             throw e;
         }
