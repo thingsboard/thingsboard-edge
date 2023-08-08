@@ -44,7 +44,6 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -137,23 +136,18 @@ public abstract class AbstractTbEntityService {
     }
 
     protected <I extends EntityId, T extends GroupEntity<I>> void createOrUpdateGroupEntity(TenantId tenantId, T entity, List<EntityGroup> entityGroups,
-                                                                                            ActionType actionType, User user) throws ThingsboardException {
+                                                                                            ActionType actionType, User user) {
         EntityId entityId = entity.getId();
         CustomerId customerId = entity.getCustomerId();
         if (entityGroups != null && actionType == ActionType.ADDED) {
             for (EntityGroup entityGroup : entityGroups) {
                 EntityGroupId entityGroupId = entityGroup.getId();
                 entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, entityId);
-                notificationEntityService.notifyAddToEntityGroup(tenantId, entityId, entity, customerId, entityGroupId, user,
-                        entityId.toString(), entityGroupId.toString(), entityGroup.getName());
+                notificationEntityService.logEntityAction(tenantId, entityId, entity, customerId, ActionType.ADDED_TO_ENTITY_GROUP,
+                        user, entityId.toString(), entityGroupId.toString(), entityGroup.getName());
             }
         }
-
-        if ((entityGroups == null || entityGroups.isEmpty()) && actionType == ActionType.ADDED) {
-            notificationEntityService.sendNotificationMsgToCloud(tenantId, entityId, EdgeEventActionType.ADDED);
-        }
-
-        notificationEntityService.notifyCreateOrUpdateEntity(tenantId, entityId, entity, customerId, actionType, user);
+        notificationEntityService.logEntityAction(tenantId, entityId, entity, customerId, actionType, user);
     }
 
     protected ListenableFuture<UUID> autoCommit(User user, EntityId entityId) throws Exception {

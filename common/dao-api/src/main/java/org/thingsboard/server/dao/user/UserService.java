@@ -60,13 +60,13 @@ public interface UserService extends EntityDaoService {
 
     User findUserByEmail(TenantId tenantId, String email);
 
-	User saveUser(User user, boolean doValidate);
-
     User findUserByTenantIdAndEmail(TenantId tenantId, String email);
 
     User changeOwner(User user, EntityId targetOwnerId);
 
-	User saveUser(User user);
+	User saveUser(TenantId tenantId, User user);
+
+    User saveUser(TenantId tenantId, User user, boolean doValidate);
 
 	UserCredentials findUserCredentialsByUserId(TenantId tenantId, UserId userId);
 

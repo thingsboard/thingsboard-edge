@@ -56,6 +56,8 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.sql.JpaExecutorService;
@@ -134,6 +136,8 @@ public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityVie
             if (entityView.getId() == null) {
                 entityGroupService.addEntityToEntityGroupAll(saved.getTenantId(), saved.getOwnerId(), saved.getId());
             }
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(saved.getTenantId())
+                    .entityId(saved.getId()).added(entityView.getId() == null).build());
             return saved;
         } catch (Exception t) {
             checkConstraintViolation(t,
@@ -281,6 +285,7 @@ public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityVie
         EntityView entityView = entityViewDao.findById(tenantId, entityViewId.getId());
         entityViewDao.removeById(tenantId, entityViewId.getId());
         publishEvictEvent(new EntityViewEvictEvent(entityView.getTenantId(), entityView.getId(), entityView.getEntityId(), null, entityView.getName(), null));
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(entityViewId).build());
     }
 
     @Override

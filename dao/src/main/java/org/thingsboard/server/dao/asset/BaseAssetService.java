@@ -61,6 +61,8 @@ import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.exception.DataValidationException;
@@ -194,6 +196,8 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
             asset.setType(assetProfile.getName());
             savedAsset = assetDao.saveAndFlush(asset.getTenantId(), asset);
             publishEvictEvent(evictEvent);
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedAsset.getTenantId())
+                    .entityId(savedAsset.getId()).added(asset.getId() == null).build());
             if (asset.getId() == null) {
                 countService.publishCountEntityEvictEvent(savedAsset.getTenantId(), EntityType.ASSET);
             }
@@ -225,6 +229,7 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
 
         publishEvictEvent(new AssetCacheEvictEvent(asset.getTenantId(), asset.getName(), null));
         countService.publishCountEntityEvictEvent(tenantId, EntityType.ASSET);
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(assetId).build());
 
         assetDao.removeById(tenantId, assetId.getId());
     }

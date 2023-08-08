@@ -70,79 +70,84 @@ public class DeviceProfileCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processDeviceProfileMsgFromCloud(TenantId tenantId, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
         DeviceProfileId deviceProfileId = new DeviceProfileId(new UUID(deviceProfileUpdateMsg.getIdMSB(), deviceProfileUpdateMsg.getIdLSB()));
-        switch (deviceProfileUpdateMsg.getMsgType()) {
-            case ENTITY_CREATED_RPC_MESSAGE:
-            case ENTITY_UPDATED_RPC_MESSAGE:
-                deviceCreationLock.lock();
-                try {
-                    DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
-                    String deviceProfileName = deviceProfileUpdateMsg.getName();
-                    boolean created = false;
-                    if (deviceProfile == null) {
-                        created = true;
-                        deviceProfile = new DeviceProfile();
-                        deviceProfile.setId(deviceProfileId);
-                        deviceProfile.setCreatedTime(Uuids.unixTimestamp(deviceProfileId.getId()));
-                        deviceProfile.setTenantId(tenantId);
-                        DeviceProfile deviceProfileByName = deviceProfileService.findDeviceProfileByName(tenantId, deviceProfileName);
-                        if (deviceProfileByName != null) {
-                            deviceProfileName = deviceProfileName + "_" + StringUtils.randomAlphabetic(15);
-                            log.warn("Device profile with name {} already exists on the edge. Renaming device profile name to {}",
-                                    deviceProfileUpdateMsg.getName(), deviceProfileName);
+        try {
+            edgeSynchronizationManager.getSync().set(true);
+            switch (deviceProfileUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE:
+                case ENTITY_UPDATED_RPC_MESSAGE:
+                    deviceCreationLock.lock();
+                    try {
+                        DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
+                        String deviceProfileName = deviceProfileUpdateMsg.getName();
+                        boolean created = false;
+                        if (deviceProfile == null) {
+                            created = true;
+                            deviceProfile = new DeviceProfile();
+                            deviceProfile.setId(deviceProfileId);
+                            deviceProfile.setCreatedTime(Uuids.unixTimestamp(deviceProfileId.getId()));
+                            deviceProfile.setTenantId(tenantId);
+                            DeviceProfile deviceProfileByName = deviceProfileService.findDeviceProfileByName(tenantId, deviceProfileName);
+                            if (deviceProfileByName != null) {
+                                deviceProfileName = deviceProfileName + "_" + StringUtils.randomAlphabetic(15);
+                                log.warn("Device profile with name {} already exists on the edge. Renaming device profile name to {}",
+                                        deviceProfileUpdateMsg.getName(), deviceProfileName);
+                            }
                         }
+                        deviceProfile.setName(deviceProfileName);
+                        deviceProfile.setDescription(deviceProfileUpdateMsg.hasDescription() ? deviceProfileUpdateMsg.getDescription() : null);
+                        deviceProfile.setDefault(deviceProfileUpdateMsg.getDefault());
+                        deviceProfile.setType(DeviceProfileType.valueOf(deviceProfileUpdateMsg.getType()));
+                        deviceProfile.setTransportType(deviceProfileUpdateMsg.hasTransportType()
+                                ? DeviceTransportType.valueOf(deviceProfileUpdateMsg.getTransportType()) : DeviceTransportType.DEFAULT);
+                        deviceProfile.setImage(deviceProfileUpdateMsg.hasImage()
+                                ? new String(deviceProfileUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8) : null);
+                        deviceProfile.setProvisionType(deviceProfileUpdateMsg.hasProvisionType()
+                                ? DeviceProfileProvisionType.valueOf(deviceProfileUpdateMsg.getProvisionType()) : DeviceProfileProvisionType.DISABLED);
+                        deviceProfile.setProvisionDeviceKey(deviceProfileUpdateMsg.hasProvisionDeviceKey()
+                                ? deviceProfileUpdateMsg.getProvisionDeviceKey() : null);
+
+                        Optional<DeviceProfileData> profileDataOpt =
+                                dataDecodingEncodingService.decode(deviceProfileUpdateMsg.getProfileDataBytes().toByteArray());
+                        deviceProfile.setProfileData(profileDataOpt.orElse(null));
+
+                        UUID defaultRuleChainUUID = safeGetUUID(deviceProfileUpdateMsg.getDefaultRuleChainIdMSB(), deviceProfileUpdateMsg.getDefaultRuleChainIdLSB());
+                        deviceProfile.setDefaultRuleChainId(defaultRuleChainUUID != null ? new RuleChainId(defaultRuleChainUUID) : null);
+
+                        UUID defaultDashboardUUID = safeGetUUID(deviceProfileUpdateMsg.getDefaultDashboardIdMSB(), deviceProfileUpdateMsg.getDefaultDashboardIdLSB());
+                        deviceProfile.setDefaultDashboardId(defaultDashboardUUID != null ? new DashboardId(defaultDashboardUUID) : null);
+
+                        String defaultQueueName = StringUtils.isNotBlank(deviceProfileUpdateMsg.getDefaultQueueName())
+                                ? deviceProfileUpdateMsg.getDefaultQueueName() : null;
+                        deviceProfile.setDefaultQueueName(defaultQueueName);
+
+                        UUID firmwareUUID = safeGetUUID(deviceProfileUpdateMsg.getFirmwareIdMSB(), deviceProfileUpdateMsg.getFirmwareIdLSB());
+                        deviceProfile.setFirmwareId(firmwareUUID != null ? new OtaPackageId(firmwareUUID) : null);
+
+                        UUID softwareUUID = safeGetUUID(deviceProfileUpdateMsg.getSoftwareIdMSB(), deviceProfileUpdateMsg.getSoftwareIdLSB());
+                        deviceProfile.setSoftwareId(softwareUUID != null ? new OtaPackageId(softwareUUID) : null);
+
+                        DeviceProfile savedDeviceProfile = deviceProfileService.saveDeviceProfile(deviceProfile, false);
+
+                        // TODO: @voba - move this part to device profile notification service
+                        notifyCluster(tenantId, deviceProfile, created, savedDeviceProfile);
+
+                        break;
+                    } finally {
+                        deviceCreationLock.unlock();
                     }
-                    deviceProfile.setName(deviceProfileName);
-                    deviceProfile.setDescription(deviceProfileUpdateMsg.hasDescription() ? deviceProfileUpdateMsg.getDescription() : null);
-                    deviceProfile.setDefault(deviceProfileUpdateMsg.getDefault());
-                    deviceProfile.setType(DeviceProfileType.valueOf(deviceProfileUpdateMsg.getType()));
-                    deviceProfile.setTransportType(deviceProfileUpdateMsg.hasTransportType()
-                            ? DeviceTransportType.valueOf(deviceProfileUpdateMsg.getTransportType()) : DeviceTransportType.DEFAULT);
-                    deviceProfile.setImage(deviceProfileUpdateMsg.hasImage()
-                            ? new String(deviceProfileUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8) : null);
-                    deviceProfile.setProvisionType(deviceProfileUpdateMsg.hasProvisionType()
-                            ? DeviceProfileProvisionType.valueOf(deviceProfileUpdateMsg.getProvisionType()) : DeviceProfileProvisionType.DISABLED);
-                    deviceProfile.setProvisionDeviceKey(deviceProfileUpdateMsg.hasProvisionDeviceKey()
-                            ? deviceProfileUpdateMsg.getProvisionDeviceKey() : null);
-
-                    Optional<DeviceProfileData> profileDataOpt =
-                            dataDecodingEncodingService.decode(deviceProfileUpdateMsg.getProfileDataBytes().toByteArray());
-                    deviceProfile.setProfileData(profileDataOpt.orElse(null));
-
-                    UUID defaultRuleChainUUID = safeGetUUID(deviceProfileUpdateMsg.getDefaultRuleChainIdMSB(), deviceProfileUpdateMsg.getDefaultRuleChainIdLSB());
-                    deviceProfile.setDefaultRuleChainId(defaultRuleChainUUID != null ? new RuleChainId(defaultRuleChainUUID) : null);
-
-                    UUID defaultDashboardUUID = safeGetUUID(deviceProfileUpdateMsg.getDefaultDashboardIdMSB(), deviceProfileUpdateMsg.getDefaultDashboardIdLSB());
-                    deviceProfile.setDefaultDashboardId(defaultDashboardUUID != null ? new DashboardId(defaultDashboardUUID) : null);
-
-                    String defaultQueueName = StringUtils.isNotBlank(deviceProfileUpdateMsg.getDefaultQueueName())
-                            ? deviceProfileUpdateMsg.getDefaultQueueName() : null;
-                    deviceProfile.setDefaultQueueName(defaultQueueName);
-
-                    UUID firmwareUUID = safeGetUUID(deviceProfileUpdateMsg.getFirmwareIdMSB(), deviceProfileUpdateMsg.getFirmwareIdLSB());
-                    deviceProfile.setFirmwareId(firmwareUUID != null ? new OtaPackageId(firmwareUUID) : null);
-
-                    UUID softwareUUID = safeGetUUID(deviceProfileUpdateMsg.getSoftwareIdMSB(), deviceProfileUpdateMsg.getSoftwareIdLSB());
-                    deviceProfile.setSoftwareId(softwareUUID != null ? new OtaPackageId(softwareUUID) : null);
-
-                    DeviceProfile savedDeviceProfile = deviceProfileService.saveDeviceProfile(deviceProfile, false);
-
-                    // TODO: @voba - move this part to device profile notification service
-                    notifyCluster(tenantId, deviceProfile, created, savedDeviceProfile);
-
+                case ENTITY_DELETED_RPC_MESSAGE:
+                    DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
+                    if (deviceProfile != null) {
+                        deviceProfileService.deleteDeviceProfile(tenantId, deviceProfileId);
+                        tbClusterService.onDeviceProfileDelete(deviceProfile, null);
+                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, deviceProfileId, ComponentLifecycleEvent.DELETED);
+                    }
                     break;
-                } finally {
-                    deviceCreationLock.unlock();
-                }
-            case ENTITY_DELETED_RPC_MESSAGE:
-                DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
-                if (deviceProfile != null) {
-                    deviceProfileService.deleteDeviceProfile(tenantId, deviceProfileId);
-                    tbClusterService.onDeviceProfileDelete(deviceProfile, null);
-                    tbClusterService.broadcastEntityStateChangeEvent(tenantId, deviceProfileId, ComponentLifecycleEvent.DELETED);
-                }
-                break;
-            case UNRECOGNIZED:
-                return handleUnsupportedMsgType(deviceProfileUpdateMsg.getMsgType());
+                case UNRECOGNIZED:
+                    return handleUnsupportedMsgType(deviceProfileUpdateMsg.getMsgType());
+            }
+        } finally {
+            edgeSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
     }

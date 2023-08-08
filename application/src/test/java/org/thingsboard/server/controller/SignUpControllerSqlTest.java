@@ -139,7 +139,7 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
         Assert.assertNotNull(user);
         Assert.assertEquals(TEST_EMAIL, user.getEmail());
 
-        verify(notificationService, times(1)).notifyCreateOrUpdateEntity(
+        verify(notificationService, times(1)).logEntityAction(
                 eq(tenantId),
                 eq(customer.getId()),
                 eq(customer),
@@ -147,22 +147,19 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
                 eq(ActionType.ADDED),
                 eq(null)
         );
-        verify(notificationService, times(1)).notifyCreateOrUpdateOrDelete(
+        verify(notificationService, times(1)).logEntityAction(
                 eq(tenantId),
-                eq(customer.getId()),
                 eq(user.getId()),
                 argThat(o -> {
                     if (!(o instanceof User)) return false;
                     User u = (User) o;
                     return u.getId().equals(user.getId()) && u.getEmail().equals(user.getEmail());
                 }),
-                eq(null),
+                eq(customer.getId()),
                 eq(ActionType.ADDED),
-                eq(true),
-                eq(false),
                 eq(null)
         );
-        verify(notificationService, times(1)).notifyAddToEntityGroup(
+        verify(notificationService, times(1)).logEntityAction(
                 eq(tenantId),
                 eq(user.getId()),
                 argThat(o -> {
@@ -171,7 +168,7 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
                     return u.getId().equals(user.getId()) && u.getEmail().equals(user.getEmail());
                 }),
                 eq(customer.getId()),
-                eq(entityGroup.getId()),
+                eq(ActionType.ADDED_TO_ENTITY_GROUP),
                 eq(null),
                 eq(entityGroup.toString()),
                 eq(entityGroup.getName())

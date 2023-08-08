@@ -43,7 +43,8 @@ import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.HasEntityType;
+import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.ConverterId;
@@ -51,8 +52,6 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
@@ -161,9 +160,9 @@ public class TbMsgGeneratorNode implements TbNode {
         }
     }
 
-    private HasEntityType getEntityByEntityType(TbContext ctx, EntityType entityType) {
+    private HasTenantId getEntityByEntityType(TbContext ctx, EntityType entityType) {
         TenantId tenantId = ctx.getTenantId();
-        HasEntityType entity;
+        HasTenantId entity;
         switch (entityType) {
             case DEVICE:
                 entity = ctx.getDeviceService().findDeviceById(tenantId, (DeviceId) originatorId);

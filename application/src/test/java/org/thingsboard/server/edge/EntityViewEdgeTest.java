@@ -31,16 +31,15 @@
 package org.thingsboard.server.edge;
 
 import com.google.protobuf.AbstractMessage;
-import com.google.protobuf.InvalidProtocolBufferException;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.edge.v1.EntityGroupRequestMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
@@ -131,20 +130,6 @@ public class EntityViewEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, entityViewUpdateMsg.getMsgType());
         Assert.assertEquals(savedEntityView.getUuidId().getMostSignificantBits(), entityViewUpdateMsg.getIdMSB());
         Assert.assertEquals(savedEntityView.getUuidId().getLeastSignificantBits(), entityViewUpdateMsg.getIdLSB());
-    }
-
-    private void verifyEntityViewUpdateMsg(EntityView entityView, Device device) throws InvalidProtocolBufferException {
-        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-        Assert.assertTrue(latestMessage instanceof EntityViewUpdateMsg);
-        EntityViewUpdateMsg entityViewUpdateMsg = (EntityViewUpdateMsg) latestMessage;
-        Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, entityViewUpdateMsg.getMsgType());
-        Assert.assertEquals(entityView.getType(), entityViewUpdateMsg.getType());
-        Assert.assertEquals(entityView.getName(), entityViewUpdateMsg.getName());
-        Assert.assertEquals(entityView.getUuidId().getMostSignificantBits(), entityViewUpdateMsg.getIdMSB());
-        Assert.assertEquals(entityView.getUuidId().getLeastSignificantBits(), entityViewUpdateMsg.getIdLSB());
-        Assert.assertEquals(device.getUuidId().getMostSignificantBits(), entityViewUpdateMsg.getEntityIdMSB());
-        Assert.assertEquals(device.getUuidId().getLeastSignificantBits(), entityViewUpdateMsg.getEntityIdLSB());
-        Assert.assertEquals(device.getId().getEntityType().name(), entityViewUpdateMsg.getEntityType().name());
     }
 
     private void testEntityViewEntityGroupRequestMsg(long msbId, long lsbId, EntityViewId expectedEntityViewId) throws Exception {

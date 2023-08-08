@@ -34,16 +34,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustStrategy;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.ssl.SSLContexts;
 import org.awaitility.Awaitility;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -51,7 +41,6 @@ import org.junit.Rule;
 import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.Customer;
@@ -130,7 +119,6 @@ import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 
-import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -856,20 +844,9 @@ public abstract class AbstractContainerTest {
         RuleChainMetaData ruleChainMetaData = new RuleChainMetaData();
         ruleChainMetaData.setRuleChainId(ruleChain.getId());
 
-        RuleNode ruleNode1 = new RuleNode();
-        ruleNode1.setName("name1");
-        ruleNode1.setType("type1");
-        ruleNode1.setConfiguration(JacksonUtil.OBJECT_MAPPER.readTree("\"key1\": \"val1\""));
-
-        RuleNode ruleNode2 = new RuleNode();
-        ruleNode2.setName("name2");
-        ruleNode2.setType("type2");
-        ruleNode2.setConfiguration(JacksonUtil.OBJECT_MAPPER.readTree("\"key2\": \"val2\""));
-
-        RuleNode ruleNode3 = new RuleNode();
-        ruleNode3.setName("name3");
-        ruleNode3.setType("type3");
-        ruleNode3.setConfiguration(JacksonUtil.OBJECT_MAPPER.readTree("\"key3\": \"val3\""));
+        RuleNode ruleNode1 = createRuleNode("name1");
+        RuleNode ruleNode2 = createRuleNode("name2");
+        RuleNode ruleNode3 = createRuleNode("name3");
 
         List<RuleNode> ruleNodes = new ArrayList<>();
         ruleNodes.add(ruleNode1);
@@ -885,6 +862,17 @@ public abstract class AbstractContainerTest {
         // ruleChainMetaData.addRuleChainConnectionInfo(2, edge.getRootRuleChainId(), "success", JacksonUtil.OBJECT_MAPPER.createObjectNode());
 
         cloudRestClient.saveRuleChainMetaData(ruleChainMetaData);
+    }
+
+    private RuleNode createRuleNode(String name) {
+        RuleNode ruleNode = new RuleNode();
+        ruleNode.setName(name);
+        ruleNode.setType("org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode");
+        ruleNode.setDebugMode(true);
+        ObjectNode configuration = JacksonUtil.newObjectNode();
+        configuration.put("version", 0);
+        ruleNode.setConfiguration(JacksonUtil.valueToTree(configuration));
+        return ruleNode;
     }
 
     protected void unAssignFromEdgeAndDeleteRuleChain(RuleChainId ruleChainId) {

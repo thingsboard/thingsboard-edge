@@ -63,7 +63,6 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.permission.GroupPermission;
-import org.thingsboard.server.common.data.permission.ShareGroupRequest;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
@@ -338,7 +337,7 @@ public class AlarmControllerTest extends AbstractControllerTest {
 
         doDelete("/api/alarm/" + alarm.getId()).andExpect(status().isOk());
 
-        testNotifyEntityOneTimeMsgToEdgeServiceNever(new Alarm(alarm), alarm.getId(), alarm.getOriginator(),
+        testNotifyEntityEntityGroupNullAllOneTime(new Alarm(alarm), alarm.getId(), alarm.getOriginator(),
                 tenantId, customerId, customerAdminUserId, CUSTOMER_ADMIN_EMAIL, ActionType.DELETED);
 
     }
@@ -363,7 +362,7 @@ public class AlarmControllerTest extends AbstractControllerTest {
 
         doDelete("/api/alarm/" + alarm.getId()).andExpect(status().isOk());
 
-        testNotifyEntityOneTimeMsgToEdgeServiceNever(new Alarm(alarm), alarm.getId(), alarm.getOriginator(),
+        testNotifyEntityEntityGroupNullAllOneTime(new Alarm(alarm), alarm.getId(), alarm.getOriginator(),
                 tenantId, customerId, tenantAdminUserId, TENANT_ADMIN_EMAIL, ActionType.DELETED);
     }
 
