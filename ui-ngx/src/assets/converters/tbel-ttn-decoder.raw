@@ -20,25 +20,26 @@ function decodeFrmPayload(input) {
 
     output.telemetry.HEX_bytes = bytesToHex(input);
 
-    for (var i = 0; i < input.length; ) {
-        var channel_id = input[i++];
-        var channel_type = input[i++];
-        // BATTERY
-        if (channel_id === 0x01 && channel_type === 0x75) {
-            output.telemetry.battery = input[i];
-            i += 1;
-        }
-        // PIR
-        else if (channel_id === 0x03 && channel_type === 0x00) {
-            output.telemetry.pir = input[i] === 0 ? "normal" : "trigger";
-            i += 1;
-        }
-        // DAYLIGHT
-        else if (channel_id === 0x04 && channel_type === 0x00) {
-            output.telemetry.daylight = input[i] === 0 ? "dark" : "light";
-            i += 1;
-        } else {
-            break;
+    // If we have only one byte - we cannot parse it like it is in example
+    if (input.length > 1) {
+        for (var i = 0; i < input.length; ) {
+            var channel_id = input[i++];
+            var channel_type = input[i++];
+            // BATTERY
+            if (channel_id === 0x01 && channel_type === 0x75) {
+                output.telemetry.battery = input[i];
+                i += 1;
+            }
+            // PIR
+            else if (channel_id === 0x03 && channel_type === 0x00) {
+                output.telemetry.pir = input[i] === 0 ? "normal" : "trigger";
+                i += 1;
+            }
+            // DAYLIGHT
+            else if (channel_id === 0x04 && channel_type === 0x00) {
+                output.telemetry.daylight = input[i] === 0 ? "dark" : "light";
+                i += 1;
+            }
         }
     }
 
@@ -53,6 +54,10 @@ var attributes = {};
 
 // --- Timestamp parsing
 var dateString = data.uplink_message.received_at;
+// If data is simulated or device doesn't send his own date string - we will use date from upcoming message, set by network server
+if ((data.simulated != null && data.simulated) || dateString == null) {
+    dateString = data.received_at;
+}
 var timestamp = new Date(dateString).getTime();
 if (timestamp == -1) {
     // Specific data parsing for The Things Industries incoming message
