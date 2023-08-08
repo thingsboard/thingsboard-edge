@@ -204,10 +204,11 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
                 entityGroupService.addEntityToEntityGroupAll(user.getTenantId(), savedUser.getOwnerId(), savedUser.getId());
             }
         }
-        if (!Authority.SYS_ADMIN.equals(user.getAuthority())) {
-            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId == null ? TenantId.SYS_TENANT_ID : tenantId)
-                    .entityId(savedUser.getId()).added(user.getId() == null).build());
-        }
+        eventPublisher.publishEvent(SaveEntityEvent.builder()
+                .tenantId(tenantId == null ? TenantId.SYS_TENANT_ID : tenantId)
+                .entity(user)
+                .entityId(savedUser.getId())
+                .added(user.getId() == null).build());
         return savedUser;
     }
 
@@ -244,8 +245,10 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
             userCredentialsValidator.validate(userCredentials, data -> tenantId);
         }
         UserCredentials result = userCredentialsDao.save(tenantId, userCredentials);
-        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId)
-                .entityId(userCredentials.getUserId()).actionType(ActionType.CREDENTIALS_UPDATED).build());
+        eventPublisher.publishEvent(ActionEntityEvent.builder()
+                .tenantId(tenantId)
+                .entityId(userCredentials.getUserId())
+                .actionType(ActionType.CREDENTIALS_UPDATED).build());
         return result;
     }
 
@@ -318,7 +321,6 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     public void deleteUser(TenantId tenantId, UserId userId) {
         log.trace("Executing deleteUser [{}]", userId);
         validateId(userId, INCORRECT_USER_ID + userId);
-        List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, userId);
         UserCredentials userCredentials = userCredentialsDao.findByUserId(tenantId, userId.getId());
         userCredentialsDao.removeById(tenantId, userCredentials.getUuidId());
         userAuthSettingsDao.removeByUserId(userId);
@@ -326,7 +328,9 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         userDao.removeById(tenantId, userId.getId());
         eventPublisher.publishEvent(new UserCredentialsInvalidationEvent(userId));
         countService.publishCountEntityEvictEvent(tenantId, EntityType.USER);
-        publishDeleteEvent(tenantId, userId, relatedEdgeIds);
+        eventPublisher.publishEvent(DeleteEntityEvent.builder()
+                .tenantId(tenantId)
+                .entityId(userId).build());
     }
 
     @Override

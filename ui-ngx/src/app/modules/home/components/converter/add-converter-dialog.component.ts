@@ -73,8 +73,10 @@ export class AddConverterDialogComponent extends DialogComponent<AddConverterDia
   }
 
   ngAfterViewInit() {
-    this.converterComponent.entityForm.get('type').disable({emitEvent: false});
-    this.converterComponent.entityForm.patchValue(this.converter);
+    setTimeout(() => {
+      this.converterComponent.entityForm.get('type').disable({emitEvent: false});
+      this.converterComponent.entityForm.patchValue(this.converter);
+    }, 0);
   }
 
   helpLinkId(): string {

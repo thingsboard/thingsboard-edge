@@ -132,11 +132,9 @@ public class UserControllerTest extends AbstractControllerTest {
         Assert.assertEquals(foundUser, savedUser);
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(foundUser, foundUser,
-                SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL,
-                ActionType.ADDED_TO_ENTITY_GROUP, ActionType.ADDED_TO_ENTITY_GROUP, 1, 0, 2);
+                SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL, ActionType.ADDED_TO_ENTITY_GROUP, 1, 0, 2);
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(foundUser, foundUser,
-                SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL,
-                ActionType.ADDED, ActionType.ADDED, 1, 1, 2);
+                SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL, ActionType.ADDED,1, 1, 2);
         Mockito.reset(tbClusterService, auditLogService);
 
         resetTokens();
@@ -461,7 +459,7 @@ public class UserControllerTest extends AbstractControllerTest {
         testManyUser.setTenantId(tenantId);
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(testManyUser, testManyUser,
                 SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL,
-                ActionType.ADDED, ActionType.ADDED, cntEntity, cntEntity, cntEntity * 2);
+                ActionType.ADDED, cntEntity, cntEntity, cntEntity * 2);
 
         List<User> loadedTenantAdmins = new ArrayList<>();
         PageLink pageLink = new PageLink(33);
@@ -574,7 +572,7 @@ public class UserControllerTest extends AbstractControllerTest {
         testManyUser.setTenantId(tenantId);
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(testManyUser, testManyUser,
                 SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL,
-                ActionType.DELETED, ActionType.DELETED, cntEntity, cntEntity, cntEntity, "");
+                ActionType.DELETED, cntEntity, NUMBER_OF_USERS, cntEntity, "");
 
         pageLink = new PageLink(4, 0, email1);
         pageData = doGetTypedWithPageLink("/api/tenant/" + tenantId.getId().toString() + "/users?",

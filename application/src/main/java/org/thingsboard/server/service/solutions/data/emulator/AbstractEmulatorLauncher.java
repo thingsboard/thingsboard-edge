@@ -38,10 +38,10 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.discovery.PartitionService;
@@ -151,7 +151,7 @@ public abstract class AbstractEmulatorLauncher<T extends GroupEntity<?>> {
         log.debug("[{}] Publishing telemetry: {}", entity.getName(), msgData);
         TbMsgMetaData md = new TbMsgMetaData();
         md.putValue("ts", Long.toString(ts));
-        TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(), entity.getId(), md, TbMsgDataType.JSON, msgData);
+        TbMsg tbMsg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, entity.getId(), md, TbMsgDataType.JSON, msgData);
         tbClusterService.pushMsgToRuleEngine(entity.getTenantId(), entity.getId(), tbMsg, null);
     }
 }

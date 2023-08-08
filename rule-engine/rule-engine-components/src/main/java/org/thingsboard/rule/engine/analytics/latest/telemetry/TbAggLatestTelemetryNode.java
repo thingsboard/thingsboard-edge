@@ -41,6 +41,7 @@ import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 
 import java.util.ArrayList;
@@ -68,9 +69,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class TbAggLatestTelemetryNode extends TbAbstractLatestNode<TbAggLatestTelemetryNodeConfiguration> {
 
-    private static final String TB_AGG_LATEST_NODE_MSG = "TbAggLatestNodeMsg";
-
-    private Map<String, ScriptEngine> attributesScriptEngineMap = new ConcurrentHashMap<>();
+    private final Map<String, ScriptEngine> attributesScriptEngineMap = new ConcurrentHashMap<>();
 
     @Override
     protected TbAggLatestTelemetryNodeConfiguration loadMapperNodeConfig(TbNodeConfiguration configuration) throws TbNodeException {
@@ -78,8 +77,8 @@ public class TbAggLatestTelemetryNode extends TbAbstractLatestNode<TbAggLatestTe
     }
 
     @Override
-    protected String tickMessageType() {
-        return TB_AGG_LATEST_NODE_MSG;
+    protected TbMsgType tickMessageType() {
+        return TbMsgType.TB_AGG_LATEST_SELF_MSG;
     }
 
     @Override
@@ -95,12 +94,10 @@ public class TbAggLatestTelemetryNode extends TbAbstractLatestNode<TbAggLatestTe
 
     @Override
     public void destroy() {
-        if (this.attributesScriptEngineMap != null) {
-            for (ScriptEngine se : this.attributesScriptEngineMap.values()) {
-                se.destroy();
-            }
-            this.attributesScriptEngineMap.clear();
+        for (ScriptEngine se : this.attributesScriptEngineMap.values()) {
+            se.destroy();
         }
+        this.attributesScriptEngineMap.clear();
     }
 
 }

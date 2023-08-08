@@ -750,11 +750,11 @@ public class EntityGroupController extends AutoCommitController {
                 entityIds.add(entityId);
             }
             entityGroupService.addEntitiesToEntityGroup(getTenantId(), entityGroupId, entityIds);
-            if (entityGroup.getType() == EntityType.USER) {
+            if (EntityType.USER.equals(entityGroup.getType())) {
                 for (EntityId entityId : entityIds) {
                     userPermissionsService.onUserUpdatedOrRemoved(userService.findUserById(getTenantId(), new UserId(entityId.getId())));
                 }
-            } else if (entityGroup.getType() == EntityType.DEVICE) {
+            } else if (EntityType.DEVICE.equals(entityGroup.getType())) {
                 DeviceGroupOtaPackage fw =
                         deviceGroupOtaPackageService.findDeviceGroupOtaPackageByGroupIdAndType(entityGroupId, OtaPackageType.FIRMWARE);
                 DeviceGroupOtaPackage sw =

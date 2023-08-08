@@ -73,6 +73,7 @@ import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -385,7 +386,7 @@ public class DefaultTransportApiService implements TransportApiService {
 
                     DeviceId deviceId = device.getId();
                     JsonNode entityNode = JacksonUtil.valueToTree(device);
-                    TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, deviceId, customerId, metaData, TbMsgDataType.JSON, JacksonUtil.toString(entityNode));
+                    TbMsg tbMsg = TbMsg.newMsg(TbMsgType.ENTITY_CREATED, deviceId, customerId, metaData, TbMsgDataType.JSON, JacksonUtil.toString(entityNode));
                     tbClusterService.pushMsgToRuleEngine(tenantId, deviceId, tbMsg, null);
                     sendDeviceAddedMsgToCloud(tenantId, deviceId);
                 } else {

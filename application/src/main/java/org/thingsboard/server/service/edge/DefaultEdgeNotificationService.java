@@ -202,43 +202,43 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                     future = edgeProcessor.processEdgeNotification(tenantId, edgeNotificationMsg);
                     break;
                 case ASSET:
-                    future = assetProcessor.processAssetNotification(tenantId, edgeNotificationMsg);
+                    future = assetProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                     break;
                 case DEVICE:
-                    future = deviceProcessor.processDeviceNotification(tenantId, edgeNotificationMsg);
+                    future = deviceProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                     break;
                 case ENTITY_VIEW:
-                    future = entityViewProcessor.processEntityViewNotification(tenantId, edgeNotificationMsg);
+                    future = entityViewProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                     break;
                 case DASHBOARD:
-                    future = dashboardProcessor.processDashboardNotification(tenantId, edgeNotificationMsg);
+                    future = dashboardProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                     break;
                 case RULE_CHAIN:
-                    future = ruleChainProcessor.processRuleChainNotification(tenantId, edgeNotificationMsg);
+                    future = ruleChainProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                     break;
                 case USER:
-                    future = userProcessor.processUserNotification(tenantId, edgeNotificationMsg);
+                    future = userProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                     break;
                 case CUSTOMER:
                     future = customerProcessor.processCustomerNotification(tenantId, edgeNotificationMsg);
                     break;
                 case DEVICE_PROFILE:
-                    future = deviceProfileProcessor.processDeviceProfileNotification(tenantId, edgeNotificationMsg);
+                    future = deviceProfileProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                     break;
                 case ASSET_PROFILE:
-                    future = assetProfileProcessor.processAssetProfileNotification(tenantId, edgeNotificationMsg);
+                    future = assetProfileProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                     break;
                 case OTA_PACKAGE:
-                    future = otaPackageProcessor.processOtaPackageNotification(tenantId, edgeNotificationMsg);
+                    future = otaPackageProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                     break;
                 case WIDGETS_BUNDLE:
-                    future = widgetBundleProcessor.processWidgetsBundleNotification(tenantId, edgeNotificationMsg);
+                    future = widgetBundleProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                     break;
                 case WIDGET_TYPE:
-                    future = widgetTypeProcessor.processWidgetTypeNotification(tenantId, edgeNotificationMsg);
+                    future = widgetTypeProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                     break;
                 case QUEUE:
-                    future = queueProcessor.processQueueNotification(tenantId, edgeNotificationMsg);
+                    future = queueProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                     break;
                 case ALARM:
                     future = alarmProcessor.processAlarmNotification(tenantId, edgeNotificationMsg);
@@ -253,16 +253,16 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                     future = groupPermissionsProcessor.processGroupPermissionNotification(tenantId, edgeNotificationMsg);
                     break;
                 case SCHEDULER_EVENT:
-                    future = schedulerEventProcessor.processSchedulerEventNotification(tenantId, edgeNotificationMsg);
+                    future = schedulerEventProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                     break;
                 case ENTITY_GROUP:
-                    future = entityGroupProcessor.processEntityGroupNotification(tenantId, edgeNotificationMsg);
+                    future = entityGroupProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                     break;
                 case INTEGRATION:
-                    future = integrationProcessor.processIntegrationNotification(tenantId, edgeNotificationMsg);
+                    future = integrationProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                     break;
                 case CONVERTER:
-                    future = converterProcessor.processConverterNotification(tenantId, edgeNotificationMsg);
+                    future = converterProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                     break;
                 case WHITE_LABELING:
                 case LOGIN_WHITE_LABELING:

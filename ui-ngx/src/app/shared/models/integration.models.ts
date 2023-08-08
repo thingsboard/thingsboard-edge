@@ -44,6 +44,7 @@ export enum IntegrationType {
   SIGFOX = 'SIGFOX',
   TTI = 'TTI',
   CHIRPSTACK = 'CHIRPSTACK',
+  PARTICLE = 'PARTICLE',
   AZURE_EVENT_HUB = 'AZURE_EVENT_HUB',
   AZURE_SERVICE_BUS = 'AZURE_SERVICE_BUS',
   COAP = 'COAP',
@@ -219,6 +220,14 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
       }
     ],
     [
+      IntegrationType.PARTICLE,
+      {
+        name: 'integration.type-particle',
+        description: 'integration.type-particle-description',
+        icon: 'assets/integration-icon/particle.svg'
+      }
+    ],
+    [
       IntegrationType.AZURE_EVENT_HUB,
       {
         name: 'integration.type-azure-event-hub',
@@ -352,6 +361,7 @@ const integrationHelpLinkMap = new Map<IntegrationType, string>(
     [IntegrationType.TTN, 'integrationTheThingsNetwork'],
     [IntegrationType.TTI, 'integrationTheThingsIndustries'],
     [IntegrationType.CHIRPSTACK, 'integrationChirpStack'],
+    [IntegrationType.PARTICLE, 'integrationParticle'],
     [IntegrationType.AZURE_EVENT_HUB, 'integrationAzureEventHub'],
     [IntegrationType.AZURE_IOT_HUB, 'integrationAzureIoTHub'],
     [IntegrationType.OPC_UA, 'integrationOpcUa'],
@@ -369,8 +379,8 @@ const integrationHelpLinkMap = new Map<IntegrationType, string>(
 
 export type IntegrationConfiguration = ApachePulsarIntegration | HttpIntegration | ThingParkIntegration | LoriotIntegration |
   MqttIntegration | AwsIotIntegration | AwsSqsIntegration | AwsKinesisIntegration | IbmWatsonIotIntegration | TtnIntegration |
-  ChipStackIntegration | AzureEventHubIntegration | AzureIotHubIntegration | OpcUaIntegration | UpdIntegration | TcpIntegration |
-  KafkaIntegration | RabbitMqIntegration | PubSubIntegration | CoapIntegration | TuyaIntegration | CustomIntegration;
+  ChipStackIntegration | ParticleIntegration | AzureEventHubIntegration | AzureIotHubIntegration | OpcUaIntegration | UpdIntegration |
+  TcpIntegration | KafkaIntegration | RabbitMqIntegration | PubSubIntegration | CoapIntegration | TuyaIntegration | CustomIntegration;
 
 export function getIntegrationHelpLink(integration: Integration): string {
   if (integration && integration.type) {
@@ -684,6 +694,15 @@ export interface ChipStackIntegration {
     httpEndpoint: string,
     applicationServerUrl: string;
     applicationServerAPIToken: string;
+  };
+}
+
+export interface ParticleIntegration {
+  clientConfiguration: {
+    baseUrl: string;
+    httpEndpoint: string;
+    enableSecurity?: boolean;
+    headersFilter?: {[key: string]: string} | null;
   };
 }
 

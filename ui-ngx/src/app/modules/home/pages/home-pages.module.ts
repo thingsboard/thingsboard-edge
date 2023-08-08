@@ -66,6 +66,7 @@ import { AlarmModule } from '@home/pages/alarm/alarm.module';
 import { EntitiesModule } from '@home/pages/entities/entities.module';
 import { FeaturesModule } from '@home/pages/features/features.module';
 import { NotificationModule } from '@home/pages/notification/notification.module';
+import { AccountModule } from '@home/pages/account/account.module';
 import { IntegrationsCenterModule } from '@home/pages/integration/integrations-center.module';
 
 @NgModule({
@@ -104,6 +105,7 @@ import { IntegrationsCenterModule } from '@home/pages/integration/integrations-c
     OtaUpdateModule,
     SolutionTemplatesModule,
     VcModule,
+    AccountModule,
     CloudEventModule,
     EdgeStatusModule
   ]

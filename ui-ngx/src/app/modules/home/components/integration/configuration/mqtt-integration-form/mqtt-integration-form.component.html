@@ -83,10 +83,6 @@
       <mat-form-field class="mat-block">
         <mat-label translate>integration.client-id</mat-label>
         <input matInput formControlName="clientId" autocomplete="new-clientId">
-        <mat-error translate *ngIf="mqttIntegrationConfigForm.get('clientConfiguration.clientId').hasError('pattern')">integration.client-id-pattern
-        </mat-error>
-        <mat-error translate *ngIf="mqttIntegrationConfigForm.get('clientConfiguration.clientId').hasError('maxlength')">integration.client-id-range
-        </mat-error>
       </mat-form-field>
       <div class="tb-hint client-id" [ngClass]="{invisible: mqttIntegrationConfigForm.get('clientConfiguration.clientId').errors}" translate>
         integration.client-id-hint

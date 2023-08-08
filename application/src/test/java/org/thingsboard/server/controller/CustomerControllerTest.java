@@ -375,9 +375,9 @@ public class CustomerControllerTest extends AbstractControllerTest {
         }
         List<Customer> customers = Futures.allAsList(futures).get(TIMEOUT, TimeUnit.SECONDS);
 
-        testNotifyManyCustomerManyTimeMsgToEdgeServiceEntityEqAny(new Customer(), new Customer(),
+        testNotifyAddedManyCustomerManyTimeMsgToEdgeServiceEntityEqAny(new Customer(), new Customer(),
                 tenantId, tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, ActionType.ADDED, cntEntity, cntEntity, cntEntity);
+                cntEntity, cntEntity, cntEntity);
 
         List<Customer> loadedCustomers = new ArrayList<>(135);
         PageLink pageLink = new PageLink(23);

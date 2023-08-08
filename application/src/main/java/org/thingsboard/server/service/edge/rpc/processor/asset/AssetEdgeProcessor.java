@@ -55,13 +55,14 @@ import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
+import org.thingsboard.server.dao.asset.BaseAssetService;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
-import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -128,7 +129,7 @@ public class AssetEdgeProcessor extends BaseAssetProcessor {
         try {
             Asset asset = assetService.findAssetById(tenantId, assetId);
             ObjectNode entityNode = JacksonUtil.OBJECT_MAPPER.valueToTree(asset);
-            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, assetId, asset.getCustomerId(),
+            TbMsg tbMsg = TbMsg.newMsg(TbMsgType.ENTITY_CREATED, assetId, asset.getCustomerId(),
                     getActionTbMsgMetaData(edge, asset.getCustomerId()), TbMsgDataType.JSON, JacksonUtil.OBJECT_MAPPER.writeValueAsString(entityNode));
             tbClusterService.pushMsgToRuleEngine(tenantId, assetId, tbMsg, new TbQueueCallback() {
                 @Override
@@ -188,7 +189,7 @@ public class AssetEdgeProcessor extends BaseAssetProcessor {
             case UPDATED:
             case ASSIGNED_TO_EDGE:
                 Asset asset = assetService.findAssetById(edgeEvent.getTenantId(), assetId);
-                if (asset != null) {
+                if (asset != null && !BaseAssetService.TB_SERVICE_QUEUE.equals(asset.getType())) {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     AssetUpdateMsg assetUpdateMsg =
                             assetMsgConstructor.constructAssetUpdatedMsg(msgType, asset, entityGroupId);
@@ -215,10 +216,6 @@ public class AssetEdgeProcessor extends BaseAssetProcessor {
                 break;
         }
         return downlinkMsg;
-    }
-
-    public ListenableFuture<Void> processAssetNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
-        return processEntityNotification(tenantId, edgeNotificationMsg);
     }
 }
 

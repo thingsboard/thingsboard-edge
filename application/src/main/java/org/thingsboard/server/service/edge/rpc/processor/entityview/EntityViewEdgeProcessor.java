@@ -54,13 +54,13 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
-import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -127,7 +127,7 @@ public class EntityViewEdgeProcessor extends BaseEntityViewProcessor {
         try {
             EntityView entityView = entityViewService.findEntityViewById(tenantId, entityViewId);
             ObjectNode entityNode = JacksonUtil.OBJECT_MAPPER.valueToTree(entityView);
-            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, entityViewId, entityView.getCustomerId(),
+            TbMsg tbMsg = TbMsg.newMsg(TbMsgType.ENTITY_CREATED, entityViewId, entityView.getCustomerId(),
                     getActionTbMsgMetaData(edge, entityView.getCustomerId()), TbMsgDataType.JSON, JacksonUtil.OBJECT_MAPPER.writeValueAsString(entityNode));
             tbClusterService.pushMsgToRuleEngine(tenantId, entityViewId, tbMsg, new TbQueueCallback() {
                 @Override
@@ -210,9 +210,5 @@ public class EntityViewEdgeProcessor extends BaseEntityViewProcessor {
                 break;
         }
         return downlinkMsg;
-    }
-
-    public ListenableFuture<Void> processEntityViewNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
-        return processEntityNotification(tenantId, edgeNotificationMsg);
     }
 }

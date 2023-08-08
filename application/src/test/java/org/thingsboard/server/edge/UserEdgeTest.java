@@ -65,7 +65,7 @@ public class UserEdgeTest extends AbstractEdgeTest {
     @Ignore
     public void testCreateUpdateDeleteTenantUser() throws Exception {
         // create user and add to tenant admin group
-        edgeImitator.expectMessageAmount(3);
+        edgeImitator.expectMessageAmount(2);
         User newTenantAdmin = new User();
         newTenantAdmin.setAuthority(Authority.TENANT_ADMIN);
         newTenantAdmin.setTenantId(tenantId);
@@ -74,7 +74,7 @@ public class UserEdgeTest extends AbstractEdgeTest {
         newTenantAdmin.setLastName("Johnson");
         EntityGroupInfo tenantAdminsGroup = findTenantAdminsGroup();
         User savedTenantAdmin = createUser(newTenantAdmin, "tenant", tenantAdminsGroup.getId());
-        Assert.assertTrue(edgeImitator.waitForMessages()); // wait 3 messages - user update msg, user update msg with entityGroupId and user credentials update msg
+        Assert.assertTrue(edgeImitator.waitForMessages()); // user update msg with entityGroupId and user credentials update msg
         Optional<UserUpdateMsg> latestMessageOpt = edgeImitator.findMessageByType(UserUpdateMsg.class);
         Assert.assertTrue(latestMessageOpt.isPresent());
         UserUpdateMsg userUpdateMsg = latestMessageOpt.get();
@@ -169,7 +169,7 @@ public class UserEdgeTest extends AbstractEdgeTest {
         changeEdgeOwnerToCustomer(savedCustomer);
 
         // create user and add to customer admin group
-        edgeImitator.expectMessageAmount(3);
+        edgeImitator.expectMessageAmount(2);
         User customerUser = new User();
         customerUser.setAuthority(Authority.CUSTOMER_USER);
         customerUser.setTenantId(tenantId);
@@ -179,7 +179,7 @@ public class UserEdgeTest extends AbstractEdgeTest {
         customerUser.setLastName("Edwards");
         EntityGroupInfo customerAdminsGroup = findCustomerAdminsGroup(savedCustomer);
         User savedCustomerUser = createUser(customerUser, "customer", customerAdminsGroup.getId());
-        Assert.assertTrue(edgeImitator.waitForMessages());  // wait 3 messages - user update msg, user update msg with entityGroupId and user credentials update msg
+        Assert.assertTrue(edgeImitator.waitForMessages());  // user update msg with entityGroupId and user credentials update msg
         Optional<UserUpdateMsg> latestMessageOpt = edgeImitator.findMessageByType(UserUpdateMsg.class);
         Assert.assertTrue(latestMessageOpt.isPresent());
         UserUpdateMsg userUpdateMsg = latestMessageOpt.get();
@@ -266,7 +266,7 @@ public class UserEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(savedCustomerUser.getUuidId().getLeastSignificantBits(), userUpdateMsg.getIdLSB());
 
         // change owner to tenant
-        changeEdgeOwnerFromCustomerToTenant(savedCustomer);
+        changeEdgeOwnerFromCustomerToTenant(savedCustomer, 2);
 
         // delete customers
         doDelete("/api/customer/" + savedCustomer.getUuidId())

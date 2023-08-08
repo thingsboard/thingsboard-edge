@@ -1,0 +1,131 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+.tb-image-cards-select.tb-form-panel {
+  .tb-form-row {
+    transition: all .3s;
+    &.expanded {
+      padding: 11px 7px 11px 16px;
+    }
+  }
+  .tb-image-cards-value-field {
+    cursor: pointer;
+    user-select: none;
+    input {
+      cursor: pointer;
+      pointer-events: none;
+    }
+  }
+  .mat-expansion-panel {
+    &.tb-settings {
+      > .mat-expansion-panel-header {
+        height: auto;
+        .mat-content {
+          margin: 0;
+        }
+        .tb-form-row {
+          font-weight: normal;
+          font-size: 16px;
+          color: rgba(0, 0, 0, 0.87);
+        }
+        .mat-expansion-indicator {
+          display: none;
+        }
+      }
+      > .mat-expansion-panel-content {
+        > .mat-expansion-panel-body {
+          padding: 0 16px 16px !important;
+        }
+      }
+    }
+  }
+  .tb-image-cards-option {
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    padding: 8px 12px 12px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: start;
+    position: relative;
+    .tb-image-cards-option-background {
+      border-radius: 4px;
+      position: absolute;
+      top: 1px;
+      left: 1px;
+      right: 1px;
+      bottom: 1px;
+      background: rgba(0, 0, 0, 0.04);
+    }
+    &:before {
+      content: unset;
+      border-radius: 4px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+    .tb-image-cards-option-title {
+      z-index: 1;
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 400;
+      line-height: 16px;
+      letter-spacing: 0.25px;
+      color: rgba(0, 0, 0, 0.54);
+    }
+    .tb-image-cards-option-image-container {
+      z-index: 1;
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+      display: flex;
+      justify-content: center;
+    }
+    &.selected {
+      .tb-image-cards-option-background {
+        background: var(--tb-primary-500);
+        opacity: 0.04;
+      }
+      &:before {
+        content: "";
+        border: 1px solid var(--tb-primary-500);
+        opacity: 0.32;
+      }
+      .tb-image-cards-option-title {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--tb-primary-500);
+      }
+    }
+  }
+}

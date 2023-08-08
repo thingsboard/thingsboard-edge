@@ -80,7 +80,8 @@ import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityQueryDao;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
-import org.thingsboard.server.dao.eventsourcing.SaveEntityGroupEvent;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.relation.RelationDao;
@@ -228,12 +229,11 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 throw t;
             }
         }
-        eventPublisher.publishEvent(SaveEntityGroupEvent.builder()
+        eventPublisher.publishEvent(SaveEntityEvent.builder()
                 .tenantId(tenantId)
                 .entityId(savedEntityGroup.getId())
+                .entity(entityGroup)
                 .added(entityGroup.getId() == null)
-                .entityGroupIsAll(entityGroup.isGroupAll())
-                .entityEdgeGroupIsAll(entityGroup.isEdgeGroupAll())
                 .build());
         return savedEntityGroup;
     }
@@ -509,12 +509,11 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     public void deleteEntityGroup(TenantId tenantId, EntityGroupId entityGroupId) {
         log.trace("Executing deleteEntityGroup [{}]", entityGroupId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
-        List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, entityGroupId);
         groupPermissionService.deleteGroupPermissionsByTenantIdAndUserGroupId(tenantId, entityGroupId);
         groupPermissionService.deleteGroupPermissionsByTenantIdAndEntityGroupId(tenantId, entityGroupId);
         deleteEntityRelations(tenantId, entityGroupId);
         entityGroupDao.removeById(tenantId, entityGroupId.getId());
-        publishDeleteEvent(tenantId, entityGroupId, relatedEdgeIds);
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(entityGroupId).build());
     }
 
     @Override
@@ -710,10 +709,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 .tenantId(tenantId)
                 .entityId(entityId)
                 .actionType(ActionType.ADDED_TO_ENTITY_GROUP)
-                .entityGroupType(entityId.getEntityType())
-                .entityGroupIsAll(entityGroup.isGroupAll())
-                .entityEdgeGroupIsAll(entityGroup.isEdgeGroupAll())
-                .entityGroupId(entityGroupId).build());
+                .entityGroup(entityGroup).build());
     }
 
     @Override
@@ -732,13 +728,13 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             return entityRelation;
         }).collect(Collectors.toList());
         relationService.saveRelations(tenantId, relations);
+        EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
         for (EntityId entityId : entityIds) {
             eventPublisher.publishEvent(ActionEntityEvent.builder()
                     .tenantId(tenantId)
                     .entityId(entityId)
                     .actionType(ActionType.ADDED_TO_ENTITY_GROUP)
-                    .entityGroupType(entityId.getEntityType())
-                    .entityGroupId(entityGroupId).build());
+                    .entityGroup(entityGroup).build());
         }
     }
 
@@ -765,12 +761,12 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
         relationService.deleteRelation(tenantId, entityGroupId, entityId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP);
+        EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
         eventPublisher.publishEvent(ActionEntityEvent.builder()
                 .tenantId(tenantId)
                 .entityId(entityId)
                 .actionType(ActionType.REMOVED_FROM_ENTITY_GROUP)
-                .entityGroupType(entityId.getEntityType())
-                .entityGroupId(entityGroupId).build());
+                .entityGroup(entityGroup).build());
     }
 
     @Override
@@ -982,10 +978,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             log.warn("[{}] Failed to create entity group relation. Edge Id: [{}]", entityGroupId, edgeId);
             throw new RuntimeException(e);
         }
-        if (!entityGroup.isEdgeGroupAll()) {
-            eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(entityGroupId)
-                    .actionType(ActionType.ASSIGNED_TO_EDGE).entityGroupType(groupType).build());
-        }
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(entityGroupId)
+                .actionType(ActionType.ASSIGNED_TO_EDGE).entityGroup(entityGroup).build());
         return entityGroup;
     }
 
@@ -1004,7 +998,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             throw new RuntimeException(e);
         }
         eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(entityGroupId)
-                .actionType(ActionType.UNASSIGNED_FROM_EDGE).entityGroupType(groupType).build());
+                .actionType(ActionType.UNASSIGNED_FROM_EDGE).entityGroup(entityGroup).build());
         return entityGroup;
     }
 

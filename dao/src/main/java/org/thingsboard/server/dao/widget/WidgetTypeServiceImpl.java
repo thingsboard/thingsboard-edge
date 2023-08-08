@@ -58,6 +58,7 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String INCORRECT_RESOURCE_ID = "Incorrect resourceId ";
     public static final String INCORRECT_BUNDLE_ALIAS = "Incorrect bundleAlias ";
+
     @Autowired
     private WidgetTypeDao widgetTypeDao;
 
