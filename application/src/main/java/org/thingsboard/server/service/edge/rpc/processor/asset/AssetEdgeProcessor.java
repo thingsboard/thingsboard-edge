@@ -54,23 +54,17 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
-import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.msg.queue.TbMsgCallback;
+import org.thingsboard.server.dao.asset.BaseAssetService;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
-import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
-import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
-import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.UUID;
@@ -195,7 +189,7 @@ public class AssetEdgeProcessor extends BaseAssetProcessor {
             case UPDATED:
             case ASSIGNED_TO_EDGE:
                 Asset asset = assetService.findAssetById(edgeEvent.getTenantId(), assetId);
-                if (asset != null) {
+                if (asset != null && !BaseAssetService.TB_SERVICE_QUEUE.equals(asset.getType())) {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     AssetUpdateMsg assetUpdateMsg =
                             assetMsgConstructor.constructAssetUpdatedMsg(msgType, asset, entityGroupId);
