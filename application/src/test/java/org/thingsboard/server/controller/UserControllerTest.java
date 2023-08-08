@@ -763,9 +763,13 @@ public class UserControllerTest extends AbstractControllerTest {
         Assert.assertEquals(1, loadedTenantUserIds.size());
         Assert.assertEquals(tenantAdminUserId, loadedTenantUserIds.get(0));
 
+        doDelete("/api/alarm/" + alarm.getId().getId().toString());
+
         //change device owner
         doPost("/api/owner/CUSTOMER/" + customerId.getId() + "/DEVICE/" + savedDevice.getId().getId());
+        savedDevice = doGet("/api/device/" + savedDevice.getId().getId(), Device.class);
 
+        alarm = createTestAlarm(savedDevice);
         List<UserId> loadedUserIds = new ArrayList<>();
         pageLink = new PageLink(16, 0);
         do {
