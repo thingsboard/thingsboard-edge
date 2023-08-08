@@ -135,7 +135,7 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
         boolean buildDetails = !config.isUseMessageAlarmData() || config.isOverwriteAlarmDetails();
         if (buildDetails) {
             ctx.logJsEvalRequest();
-            asyncDetails = buildAlarmDetails(ctx, msg, null);
+            asyncDetails = buildAlarmDetails(msg, null);
         } else {
             asyncDetails = Futures.immediateFuture(null);
         }
@@ -164,7 +164,7 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
         boolean buildDetails = !config.isUseMessageAlarmData() || config.isOverwriteAlarmDetails();
         if (buildDetails) {
             ctx.logJsEvalRequest();
-            asyncDetails = buildAlarmDetails(ctx, msg, existingAlarm.getDetails());
+            asyncDetails = buildAlarmDetails(msg, existingAlarm.getDetails());
         } else {
             asyncDetails = Futures.immediateFuture(null);
         }

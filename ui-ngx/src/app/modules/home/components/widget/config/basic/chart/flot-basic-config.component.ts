@@ -81,6 +81,8 @@ export class FlotBasicConfigComponent extends BasicWidgetConfigComponent {
       series: [this.getSeries(configData.config.datasources), []],
       showTitle: [configData.config.showTitle, []],
       title: [configData.config.title, []],
+      titleFont: [configData.config.titleFont, []],
+      titleColor: [configData.config.titleColor, []],
       showTitleIcon: [configData.config.showTitleIcon, []],
       titleIcon: [configData.config.titleIcon, []],
       iconColor: [configData.config.iconColor, []],
@@ -104,6 +106,8 @@ export class FlotBasicConfigComponent extends BasicWidgetConfigComponent {
     this.widgetConfig.config.actions = config.actions;
     this.widgetConfig.config.showTitle = config.showTitle;
     this.widgetConfig.config.title = config.title;
+    this.widgetConfig.config.titleFont = config.titleFont;
+    this.widgetConfig.config.titleColor = config.titleColor;
     this.widgetConfig.config.showTitleIcon = config.showTitleIcon;
     this.widgetConfig.config.titleIcon = config.titleIcon;
     this.widgetConfig.config.iconColor = config.iconColor;
@@ -129,6 +133,8 @@ export class FlotBasicConfigComponent extends BasicWidgetConfigComponent {
     const showLegend: boolean = this.flotWidgetConfigForm.get('showLegend').value;
     if (showTitle) {
       this.flotWidgetConfigForm.get('title').enable();
+      this.flotWidgetConfigForm.get('titleFont').enable();
+      this.flotWidgetConfigForm.get('titleColor').enable();
       this.flotWidgetConfigForm.get('showTitleIcon').enable({emitEvent: false});
       if (showTitleIcon) {
         this.flotWidgetConfigForm.get('titleIcon').enable();
@@ -139,6 +145,8 @@ export class FlotBasicConfigComponent extends BasicWidgetConfigComponent {
       }
     } else {
       this.flotWidgetConfigForm.get('title').disable();
+      this.flotWidgetConfigForm.get('titleFont').disable();
+      this.flotWidgetConfigForm.get('titleColor').disable();
       this.flotWidgetConfigForm.get('showTitleIcon').disable({emitEvent: false});
       this.flotWidgetConfigForm.get('titleIcon').disable();
       this.flotWidgetConfigForm.get('iconColor').disable();
@@ -149,6 +157,8 @@ export class FlotBasicConfigComponent extends BasicWidgetConfigComponent {
       this.flotWidgetConfigForm.get('legendConfig').disable();
     }
     this.flotWidgetConfigForm.get('title').updateValueAndValidity({emitEvent});
+    this.flotWidgetConfigForm.get('titleFont').updateValueAndValidity({emitEvent});
+    this.flotWidgetConfigForm.get('titleColor').updateValueAndValidity({emitEvent});
     this.flotWidgetConfigForm.get('showTitleIcon').updateValueAndValidity({emitEvent: false});
     this.flotWidgetConfigForm.get('titleIcon').updateValueAndValidity({emitEvent});
     this.flotWidgetConfigForm.get('iconColor').updateValueAndValidity({emitEvent});

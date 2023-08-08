@@ -164,7 +164,7 @@ public class RoleEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(savedRole.getUuidId().getLeastSignificantBits(), roleProto.getIdLSB());
 
         // change owner to tenant
-        changeEdgeOwnerFromCustomerToTenant(savedCustomer);
+        changeEdgeOwnerFromCustomerToTenant(savedCustomer, 2);
 
         // delete customers
         doDelete("/api/customer/" + savedCustomer.getUuidId())

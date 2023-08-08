@@ -121,7 +121,7 @@ public class BaseCustomTranslationService implements CustomTranslationService {
         ((ObjectNode) customTranslationSettings.getJsonValue()).put("value", json);
         adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, customTranslationSettings);
         eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID)
-                .type(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
+                .edgeEventType(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
         return getSystemCustomTranslation(TenantId.SYS_TENANT_ID);
     }
 
@@ -184,7 +184,7 @@ public class BaseCustomTranslationService implements CustomTranslationService {
         }
         saveEntityAttribute(tenantId, entityId, json);
         eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(entityId)
-                .type(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
+                .edgeEventType(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
     }
 
     private void saveEntityAttribute(TenantId tenantId, EntityId entityId, String value) {

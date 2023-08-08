@@ -35,6 +35,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -123,7 +124,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         loginTenantAdmin();
         Assert.assertTrue(edgeImitator.waitForMessages());
 
-        updateAndVerifyLoginWhiteLabelingUpdate("tenant_updated.org");
+        updateAndVerifyLoginWhiteLabelingUpdate(StringUtils.randomAlphanumeric(5) + "tenant_updated.org");
     }
 
     private void testLoginWhiteLabeling_customer() throws Exception {
@@ -142,10 +143,10 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         changeEdgeOwnerFromTenantToSubCustomer(savedCustomerA, savedSubCustomerA);
 
         createCustomerUserAndLogin(savedCustomerA, "customerA@thingsboard.org");
-        updateAndVerifyLoginWhiteLabelingUpdate("customerA_updated.org");
+        updateAndVerifyLoginWhiteLabelingUpdate(savedCustomerA.getId() + "customerA_updated.org");
 
         createCustomerUserAndLogin(savedSubCustomerA, "subCustomerA@thingsboard.org");
-        updateAndVerifyLoginWhiteLabelingUpdate("subCustomerA_updated.org");
+        updateAndVerifyLoginWhiteLabelingUpdate(savedSubCustomerA.getId() + "subCustomerA_updated.org");
     }
 
     private void updateAndVerifyLoginWhiteLabelingUpdate(String updatedDomainName) throws Exception {
@@ -204,7 +205,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
     }
 
     private void createCustomerUserAndLogin(Customer customer, String email) throws Exception {
-        edgeImitator.expectMessageAmount(3);
+        edgeImitator.expectMessageAmount(2);
         User customerAUser = new User();
         customerAUser.setAuthority(Authority.CUSTOMER_USER);
         customerAUser.setTenantId(TenantId.SYS_TENANT_ID);
@@ -212,7 +213,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         customerAUser.setEmail(email);
         EntityGroupInfo customerAdminsGroup = findCustomerAdminsGroup(customer);
         User savedCustomerUser = createUser(customerAUser, "customer", customerAdminsGroup.getId());
-        Assert.assertTrue(edgeImitator.waitForMessages());  // wait 3 messages - two user update msgs and user credentials update msg
+        Assert.assertTrue(edgeImitator.waitForMessages());  // user update msg and user credentials update msg
 
         edgeImitator.expectMessageAmount(2);
         loginUser(savedCustomerUser.getEmail(), "customer");

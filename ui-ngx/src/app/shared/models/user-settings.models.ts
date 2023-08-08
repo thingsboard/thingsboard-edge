@@ -31,6 +31,7 @@
 
 export interface UserSettings {
   openedMenuSections?: string[];
+  notDisplayConnectivityAfterAddDevice?: boolean;
 }
 
 export const initialUserSettings: UserSettings = {

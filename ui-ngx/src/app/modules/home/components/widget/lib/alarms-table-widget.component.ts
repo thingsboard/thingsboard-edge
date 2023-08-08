@@ -203,6 +203,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
   public displayedColumns: string[] = [];
   public alarmsDatasource: AlarmsDatasource;
   public noDataDisplayMessageText: string;
+  public hasRowAction: boolean;
   private setCellButtonAction: boolean;
 
   private cellContentCache: Array<any> = [];
@@ -521,6 +522,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     }
 
     this.setCellButtonAction = !!(actionCellDescriptors.length + this.ctx.actionsApi.getActionDescriptors('actionCellButton').length);
+    this.hasRowAction = !!this.ctx.actionsApi.getActionDescriptors('rowClick').length;
 
     if (this.setCellButtonAction) {
       this.displayedColumns.push('actions');
@@ -608,10 +610,13 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
       $event.stopPropagation();
     }
     const target = $event.target || $event.srcElement || $event.currentTarget;
-    const config = new OverlayConfig();
-    config.backdropClass = 'cdk-overlay-transparent-backdrop';
-    config.panelClass = 'tb-filter-panel';
-    config.hasBackdrop = true;
+    const config = new OverlayConfig({
+      panelClass: 'tb-filter-panel',
+      backdropClass: 'cdk-overlay-transparent-backdrop',
+      hasBackdrop: true,
+      height: 'fit-content',
+      maxHeight: '75vh'
+    });
     const connectedPosition: ConnectedPosition = {
       originX: 'end',
       originY: 'bottom',
@@ -653,7 +658,11 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     const injector = Injector.create({parent: this.viewContainerRef.injector, providers});
     const componentRef = overlayRef.attach(new ComponentPortal(AlarmFilterConfigComponent,
       this.viewContainerRef, injector));
+
+    const resizeWindows = this.utils.updateOverlayMaxHeigth(overlayRef, componentRef.location);
+
     componentRef.onDestroy(() => {
+      resizeWindows.unsubscribe();
       if (componentRef.instance.panelResult) {
         const result = componentRef.instance.panelResult;
         const alarmFilter = this.entityService.resolveAlarmFilter(result, false);

@@ -33,14 +33,14 @@ package org.thingsboard.rule.engine.analytics.latest.telemetry;
 import lombok.Data;
 import org.thingsboard.rule.engine.analytics.incoming.MathFunction;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
-import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class TbAggLatestTelemetryNodeV2Configuration implements NodeConfiguration {
+public class TbAggLatestTelemetryNodeV2Configuration implements NodeConfiguration<TbAggLatestTelemetryNodeV2Configuration> {
 
     private static final int MIN_DEDUPLICATION_IN_SEC = 10;
 
@@ -66,7 +66,7 @@ public class TbAggLatestTelemetryNodeV2Configuration implements NodeConfiguratio
         aggMappings.add(aggMapping);
 
         configuration.setAggMappings(aggMappings);
-        configuration.setOutMsgType(SessionMsgType.POST_TELEMETRY_REQUEST.name());
+        configuration.setOutMsgType(TbMsgType.POST_TELEMETRY_REQUEST.name());
         return configuration;
     }
 

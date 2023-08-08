@@ -433,6 +433,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
     elem.classList.add(this.widgetContext.widgetNamespace);
     this.widgetType = this.widgetInfo.widgetTypeFunction;
     this.typeParameters = this.widgetInfo.typeParameters;
+    this.widgetContext.absoluteHeader = this.typeParameters.absoluteHeader;
 
     if (!this.widgetType) {
       this.widgetTypeInstance = {};
@@ -1085,7 +1086,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
         const state = objToBase64URI([ stateObject ]);
         const isSinglePage = this.route.snapshot.data.singlePageMode;
         let url;
-        if (isSinglePage && !this.route.snapshot.routeConfig.path.startsWith('dashboards')) {
+        if (isSinglePage && !this.router.url.startsWith('/dashboards')) {
           url = `/dashboard/${targetDashboardId}?state=${state}`;
         } else {
           url = `/dashboards/${targetDashboardId}?state=${state}`;

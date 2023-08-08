@@ -55,6 +55,7 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
@@ -105,10 +106,8 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
             if (integration.getId() == null) {
                 entityCountService.publishCountEntityEvictEvent(integration.getTenantId(), EntityType.INTEGRATION);
             }
-            if (result.isEdgeTemplate()) {
-                eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getTenantId()).entityId(result.getId())
-                        .added(integration.getId() == null).build());
-            }
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getTenantId()).entity(result)
+                    .entityId(result.getId()).added(integration.getId() == null).build());
             return result;
         } catch (Exception t) {
             checkConstraintViolation(t,
@@ -201,12 +200,11 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     public void deleteIntegration(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing deleteIntegration [{}]", integrationId);
         validateId(integrationId, INCORRECT_INTEGRATION_ID + integrationId);
-        List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, integrationId);
         deleteEntityRelations(tenantId, integrationId);
         integrationDao.removeById(tenantId, integrationId.getId());
         publishEvictEvent(new IntegrationCacheEvictEvent(integrationId));
         entityCountService.publishCountEntityEvictEvent(tenantId, EntityType.INTEGRATION);
-        publishDeleteEvent(tenantId, integrationId, relatedEdgeIds);
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(integrationId).build());
     }
 
     @Override

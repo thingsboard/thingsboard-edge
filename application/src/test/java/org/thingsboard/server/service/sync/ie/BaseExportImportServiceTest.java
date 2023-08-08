@@ -79,6 +79,7 @@ import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.permission.GroupPermission;
@@ -420,7 +421,7 @@ public abstract class BaseExportImportServiceTest extends AbstractControllerTest
 
         metaData.setNodes(Arrays.asList(ruleNode1, ruleNode2));
         metaData.setFirstNodeIndex(0);
-        metaData.addConnectionInfo(0, 1, "Success");
+        metaData.addConnectionInfo(0, 1, TbNodeConnectionType.SUCCESS);
         ruleChainService.saveRuleChainMetaData(tenantId, metaData, Function.identity());
 
         return ruleChainService.findRuleChainById(tenantId, ruleChain.getId());
@@ -458,7 +459,7 @@ public abstract class BaseExportImportServiceTest extends AbstractControllerTest
 
         metaData.setNodes(Arrays.asList(ruleNode1, ruleNode2));
         metaData.setFirstNodeIndex(0);
-        metaData.addConnectionInfo(0, 1, "Success");
+        metaData.addConnectionInfo(0, 1, TbNodeConnectionType.SUCCESS);
         ruleChainService.saveRuleChainMetaData(tenantId, metaData, Function.identity());
 
         return ruleChainService.findRuleChainById(tenantId, ruleChain.getId());
