@@ -42,6 +42,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ContextConfiguration;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.StringUtils;
@@ -53,6 +55,8 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
@@ -226,6 +230,44 @@ public class AssetControllerTest extends AbstractControllerTest {
         testNotifyEntityNever(savedAsset.getId(), savedAsset);
 
         deleteDifferentTenant();
+    }
+
+    @Test
+    public void testUpdateAssetWithNewOwnerShouldBeProhibited() throws Exception {
+        Customer customer = new Customer();
+        customer.setTitle("Test customer");
+        Customer savedTestCustomer = doPost("/api/customer", customer, Customer.class);
+
+        Customer customer2 = new Customer();
+        customer2.setTitle("Test customer2");
+        Customer savedTestCustomer2 = doPost("/api/customer", customer2, Customer.class);
+
+        Asset asset = new Asset();
+        asset.setName("My asset");
+        asset.setType("default");
+        asset.setCustomerId(savedTestCustomer.getId());
+        Asset savedAsset = doPost("/api/asset", asset, Asset.class);
+
+        Mockito.reset(tbClusterService, auditLogService);
+
+        savedAsset.setCustomerId(savedTestCustomer2.getId());
+        doPost("/api/asset", savedAsset)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString("Entity owner can`t be changed. Please use owner api to change owner")));
+
+        testNotifyEntityEqualsOneTimeServiceNeverError(savedAsset, savedTenant.getId(),
+                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.UPDATED,
+                new DataValidationException("Entity owner can`t be changed. Please use owner api to change owner"));
+
+        Mockito.reset(tbClusterService, auditLogService);
+        savedAsset.setCustomerId(new CustomerId(EntityId.NULL_UUID));
+        doPost("/api/asset", savedAsset)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString("Entity owner can`t be changed. Please use owner api to change owner")));
+
+        testNotifyEntityEqualsOneTimeServiceNeverError(savedAsset, savedTenant.getId(),
+                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.UPDATED,
+                new DataValidationException("Entity owner can`t be changed. Please use owner api to change owner"));
     }
 
     @Test
