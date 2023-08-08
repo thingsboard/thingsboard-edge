@@ -765,10 +765,12 @@ public class UserControllerTest extends AbstractControllerTest {
 
         doDelete("/api/alarm/" + alarm.getId().getId().toString());
 
-        savedDevice.setOwnerId(customerId);
-        savedDevice = doPost("/api/device", savedDevice, Device.class);
+        Device device2 = new Device();
+        device2.setName("testDevice2");
+        device2.setOwnerId(customerId);
+        Device savedDevice2 = doPost("/api/device", device2, Device.class);
 
-        alarm = createTestAlarm(savedDevice);
+        alarm = createTestAlarm(savedDevice2);
 
         List<UserId> loadedUserIds = new ArrayList<>();
         pageLink = new PageLink(16, 0);
