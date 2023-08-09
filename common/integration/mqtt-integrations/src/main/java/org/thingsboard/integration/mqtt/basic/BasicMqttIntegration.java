@@ -39,13 +39,12 @@ import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
-import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.integration.mqtt.AbstractMqttIntegration;
 import org.thingsboard.integration.mqtt.MqttClientConfiguration;
 import org.thingsboard.integration.mqtt.MqttTopicFilter;
-import org.thingsboard.integration.mqtt.messages.BasicMqttIntegrationMsg;
+import org.thingsboard.integration.mqtt.BasicMqttIntegrationMsg;
 import org.thingsboard.mqtt.MqttClientCallback;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -73,7 +72,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        mqttClient = initClient(mqttClientConfiguration, (topic, data) -> process(createMqttIntegrationMsg(topic, data)));
+        mqttClient = initClient(mqttClientConfiguration, (topic, data) -> process(new BasicMqttIntegrationMsg(topic, data)));
         subscribeToTopics();
         this.downlinkTopicPattern = getDownlinkTopicPattern();
         this.mqttClient.setCallback(new MqttClientCallback() {
@@ -100,7 +99,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
         this.configuration = integration;
         try {
             mqttClientConfiguration = getClientConfiguration(configuration, MqttClientConfiguration.class);
-            mqttClient = initClient(mqttClientConfiguration, (topic, data) -> process(createMqttIntegrationMsg(topic, data)));
+            mqttClient = initClient(mqttClientConfiguration, (topic, data) -> process(new BasicMqttIntegrationMsg(topic, data)));
         } catch (RuntimeException e) {
             throw new ThingsboardException(e.getMessage(), ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         } catch (Exception e) {
@@ -116,7 +115,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
 
         for (MqttTopicFilter topicFilter : topics) {
             mqttClient.on(topicFilter.getFilter(), (topic, data) ->
-                    process(createMqttIntegrationMsg(topic, data)), MqttQoS.valueOf(topicFilter.getQos()));
+                    process(new BasicMqttIntegrationMsg(topic, data)), MqttQoS.valueOf(topicFilter.getQos()));
         }
     }
 

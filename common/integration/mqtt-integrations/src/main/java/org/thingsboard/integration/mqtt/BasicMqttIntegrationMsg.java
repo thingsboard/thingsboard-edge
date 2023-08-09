@@ -28,19 +28,53 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.mqtt.messages;
+package org.thingsboard.integration.mqtt;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.buffer.ByteBuf;
+import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.UplinkContentType;
+import org.thingsboard.integration.api.util.ConvertUtil;
 
-public class BinaryMqttIntegrationMsg extends BasicMqttIntegrationMsg {
+import java.nio.charset.StandardCharsets;
 
-    public BinaryMqttIntegrationMsg(String topic, ByteBuf payload) {
-        super(topic, payload);
+/**
+ * Created by ashvayka on 04.12.17.
+ */
+@Data
+public class BasicMqttIntegrationMsg implements MqttIntegrationMsg {
+
+    private final String topic;
+    private final byte[] payload;
+
+    public BasicMqttIntegrationMsg(String topic, ByteBuf payload) {
+        this.topic = topic;
+        this.payload = new byte[payload.readableBytes()];
+        payload.readBytes(this.payload);
+    }
+
+    @Override
+    public JsonNode toJson() {
+        ObjectNode json = JacksonUtil.newObjectNode().put("topic", topic);
+        ConvertUtil.putJson(json, payload);
+        return json;
     }
 
     @Override
     public UplinkContentType getContentType() {
+        try {
+            JsonNode node = JacksonUtil.fromBytes(payload);
+            if (node != null) {
+                return UplinkContentType.JSON;
+            }
+        } catch (Exception ignored) {
+        }
+        if (StringUtils.isAsciiPrintable(new String(payload, StandardCharsets.UTF_8))) {
+            return UplinkContentType.TEXT;
+        }
         return UplinkContentType.BINARY;
     }
 }

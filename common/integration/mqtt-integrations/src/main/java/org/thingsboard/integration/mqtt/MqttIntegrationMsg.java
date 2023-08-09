@@ -42,5 +42,5 @@ public interface MqttIntegrationMsg {
 
     JsonNode toJson();
 
-    public abstract UplinkContentType getContentType();
+    UplinkContentType getContentType();
 }
