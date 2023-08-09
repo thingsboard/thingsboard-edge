@@ -60,7 +60,6 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.role.RoleService;
@@ -117,9 +116,6 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
 
     @Autowired
     private RoleService roleService;
-
-    @Autowired
-    private CustomerService customerService;
 
     @Autowired
     private DbCallbackExecutorService dbCallbackExecutorService;

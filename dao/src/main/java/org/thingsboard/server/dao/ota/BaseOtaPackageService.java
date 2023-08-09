@@ -56,6 +56,8 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.exception.DataValidationException;
@@ -97,10 +99,12 @@ public class BaseOtaPackageService extends AbstractCachedEntityService<OtaPackag
         otaPackageInfoValidator.validate(otaPackageInfo, OtaPackageInfo::getTenantId);
         OtaPackageId otaPackageId = otaPackageInfo.getId();
         try {
-            var result = otaPackageInfoDao.save(otaPackageInfo.getTenantId(), otaPackageInfo);
+            OtaPackageInfo result = otaPackageInfoDao.save(otaPackageInfo.getTenantId(), otaPackageInfo);
             if (otaPackageId != null) {
                 publishEvictEvent(new OtaPackageCacheEvictEvent(otaPackageId));
             }
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getTenantId()).entity(result)
+                    .entityId(result.getId()).added(otaPackageId == null).build());
             return result;
         } catch (Exception t) {
             if (otaPackageId != null) {
@@ -125,6 +129,8 @@ public class BaseOtaPackageService extends AbstractCachedEntityService<OtaPackag
             if (otaPackageId != null) {
                 publishEvictEvent(new OtaPackageCacheEvictEvent(otaPackageId));
             }
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getTenantId())
+                    .entityId(result.getId()).added(otaPackageId == null).build());
             return result;
         } catch (Exception t) {
             if (otaPackageId != null) {
@@ -215,6 +221,7 @@ public class BaseOtaPackageService extends AbstractCachedEntityService<OtaPackag
         try {
             otaPackageDao.removeById(tenantId, otaPackageId.getId());
             publishEvictEvent(new OtaPackageCacheEvictEvent(otaPackageId));
+            eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(otaPackageId).build());
         } catch (Exception t) {
             ConstraintViolationException e = DaoUtil.extractConstraintViolationException(t).orElse(null);
             if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("fk_firmware_device")) {

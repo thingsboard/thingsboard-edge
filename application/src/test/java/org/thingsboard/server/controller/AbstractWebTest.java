@@ -111,6 +111,7 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -205,6 +206,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected String username;
 
     protected TenantId tenantId;
+    protected TenantProfileId tenantProfileId;
     protected UserId tenantAdminUserId;
     protected User tenantAdminUser;
     protected CustomerId tenantAdminCustomerId;
@@ -290,6 +292,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);
         Assert.assertNotNull(savedTenant);
         tenantId = savedTenant.getId();
+        tenantProfileId = savedTenant.getTenantProfileId();
 
         tenantAdminUser = new User();
         tenantAdminUser.setAuthority(Authority.TENANT_ADMIN);

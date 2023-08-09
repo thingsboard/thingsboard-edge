@@ -57,7 +57,6 @@ import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.service.integration.IntegrationManagerService;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -239,8 +238,8 @@ public class IntegrationControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        Collections.sort(integrationList, idComparator);
-        Collections.sort(loadedIntegrations, idComparator);
+        integrationList.sort(idComparator);
+        loadedIntegrations.sort(idComparator);
 
         Assert.assertEquals(integrationList, loadedIntegrations);
     }
@@ -287,8 +286,8 @@ public class IntegrationControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        Collections.sort(integrationList, infosIdComparator);
-        Collections.sort(loadedIntegrations, infosIdComparator);
+        integrationList.sort(infosIdComparator);
+        loadedIntegrations.sort(infosIdComparator);
 
         Assert.assertEquals(integrationList, loadedIntegrations);
     }
@@ -337,8 +336,8 @@ public class IntegrationControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        Collections.sort(integrations1, idComparator);
-        Collections.sort(loadedIntegrations1, idComparator);
+        integrations1.sort(idComparator);
+        loadedIntegrations1.sort(idComparator);
 
         Assert.assertEquals(integrations1, loadedIntegrations1);
 
@@ -354,8 +353,8 @@ public class IntegrationControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        Collections.sort(integrations2, idComparator);
-        Collections.sort(loadedIntegrations2, idComparator);
+        integrations2.sort(idComparator);
+        loadedIntegrations2.sort(idComparator);
 
         Assert.assertEquals(integrations2, loadedIntegrations2);
 
@@ -528,8 +527,8 @@ public class IntegrationControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        Collections.sort(edgeIntegrations, idComparator);
-        Collections.sort(loadedEdgeIntegrations, idComparator);
+        edgeIntegrations.sort(idComparator);
+        loadedEdgeIntegrations.sort(idComparator);
 
         Assert.assertEquals(edgeIntegrations, loadedEdgeIntegrations);
 
