@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.usagerecord;
 
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -39,13 +40,20 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.query.BooleanFilterPredicate;
 import org.thingsboard.server.common.data.query.EntityCountQuery;
+import org.thingsboard.server.common.data.query.EntityKey;
+import org.thingsboard.server.common.data.query.EntityKeyType;
+import org.thingsboard.server.common.data.query.EntityKeyValueType;
 import org.thingsboard.server.common.data.query.EntityTypeFilter;
+import org.thingsboard.server.common.data.query.FilterPredicateValue;
+import org.thingsboard.server.common.data.query.KeyFilter;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -63,13 +71,31 @@ public class DefaultApiLimitService implements ApiLimitService {
         if (limit > 0) {
             EntityTypeFilter filter = new EntityTypeFilter();
             filter.setEntityType(entityType);
+            EntityCountQuery query;
+            if (EntityType.INTEGRATION.equals(entityType)) {
+                query = new EntityCountQuery(filter, List.of(createExcludeEdgeTemplateIntegrationFilter()));
+            } else {
+                query = new EntityCountQuery(filter);
+            }
             long currentCount = entityService.countEntitiesByQuery(tenantId, new CustomerId(EntityId.NULL_UUID),
                     new MergedUserPermissions(Map.of(Resource.ALL, Set.of(Operation.ALL)), Collections.emptyMap()),
-                    new EntityCountQuery(filter));
+                    query);
             return currentCount < limit;
         } else {
             return true;
         }
+    }
+
+    @NotNull
+    private static KeyFilter createExcludeEdgeTemplateIntegrationFilter() {
+        KeyFilter keyFilter = new KeyFilter();
+        keyFilter.setKey(new EntityKey(EntityKeyType.ENTITY_FIELD, "edgeTemplate"));
+        keyFilter.setValueType(EntityKeyValueType.BOOLEAN);
+        BooleanFilterPredicate predicate = new BooleanFilterPredicate();
+        predicate.setOperation(BooleanFilterPredicate.BooleanOperation.EQUAL);
+        predicate.setValue(new FilterPredicateValue<>(false));
+        keyFilter.setPredicate(predicate);
+        return keyFilter;
     }
 
 }
