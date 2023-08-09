@@ -33,6 +33,7 @@ package org.thingsboard.integration.mqtt;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import io.netty.buffer.ByteBuf;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.util.concurrent.Future;
@@ -42,6 +43,11 @@ import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.integration.mqtt.messages.BasicMqttIntegrationMsg;
+import org.thingsboard.integration.mqtt.messages.BinaryMqttIntegrationMsg;
+import org.thingsboard.integration.mqtt.messages.JsonMqttIntegrationMsg;
+import org.thingsboard.integration.mqtt.messages.TextMqttIntegrationMsg;
+import org.thingsboard.integration.mqtt.util.PayloadBytesUtil;
 import org.thingsboard.mqtt.MqttClient;
 import org.thingsboard.mqtt.MqttClientConfig;
 import org.thingsboard.mqtt.MqttConnectResult;
@@ -250,4 +256,17 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
         return result;
     }
 
+    protected BasicMqttIntegrationMsg createMqttIntegrationMsg(String topic, ByteBuf payload) {
+        ByteBuf duplicate = payload.duplicate();
+        byte[] bytes = new byte[duplicate.readableBytes()];
+        duplicate.readBytes(bytes);
+
+        if (PayloadBytesUtil.isJson(bytes)) {
+            return new JsonMqttIntegrationMsg(topic, payload);
+        }
+        if (PayloadBytesUtil.isText(bytes)) {
+            return new TextMqttIntegrationMsg(topic, payload);
+        }
+        return new BinaryMqttIntegrationMsg(topic, payload);
+    }
 }

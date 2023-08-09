@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.mqtt;
+package org.thingsboard.integration.mqtt.messages;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -36,12 +36,13 @@ import io.netty.buffer.ByteBuf;
 import lombok.Data;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.util.ConvertUtil;
+import org.thingsboard.integration.mqtt.MqttIntegrationMsg;
 
 /**
  * Created by ashvayka on 04.12.17.
  */
 @Data
-public class BasicMqttIntegrationMsg implements MqttIntegrationMsg {
+public abstract class BasicMqttIntegrationMsg implements MqttIntegrationMsg {
 
     private final String topic;
     private final byte[] payload;
