@@ -228,7 +228,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 } else {
                     log.info("Skipping cloud events migration");
                 }
-                migrateEdgeEvents("Starting edge events migration. ");
                 break;
             case "3.5.1":
                 log.info("Updating data from version 3.5.1 to 3.5.2 ...");
