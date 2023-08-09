@@ -249,4 +249,5 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
         }
         return result;
     }
+
 }
