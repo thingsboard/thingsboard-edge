@@ -74,7 +74,6 @@ import org.thingsboard.server.dao.user.UserDao;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -133,11 +132,9 @@ public class UserControllerTest extends AbstractControllerTest {
         Assert.assertEquals(foundUser, savedUser);
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(foundUser, foundUser,
-                SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL,
-                ActionType.ADDED_TO_ENTITY_GROUP, ActionType.ADDED_TO_ENTITY_GROUP, 1, 0, 2);
+                SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL, ActionType.ADDED_TO_ENTITY_GROUP, 1, 0, 2);
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(foundUser, foundUser,
-                SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL,
-                ActionType.ADDED, ActionType.ADDED, 1, 0, 2);
+                SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL, ActionType.ADDED,1, 1, 2);
         Mockito.reset(tbClusterService, auditLogService);
 
         resetTokens();
@@ -176,7 +173,7 @@ public class UserControllerTest extends AbstractControllerTest {
 
         testNotifyEntityAllNTimeLogEntityActionEntityEqClass(foundUser, foundUser.getId(), foundUser.getId(),
                 SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL,
-                ActionType.DELETED, 1, 0, SYSTEM_TENANT.getId().toString());
+                ActionType.DELETED, ActionType.DELETED, 1, 1, SYSTEM_TENANT.getId().toString());
     }
 
     @Test
@@ -462,7 +459,7 @@ public class UserControllerTest extends AbstractControllerTest {
         testManyUser.setTenantId(tenantId);
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(testManyUser, testManyUser,
                 SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL,
-                ActionType.ADDED, ActionType.ADDED, cntEntity, 0, cntEntity * 2);
+                ActionType.ADDED, cntEntity, cntEntity, cntEntity * 2);
 
         List<User> loadedTenantAdmins = new ArrayList<>();
         PageLink pageLink = new PageLink(33);
@@ -477,8 +474,8 @@ public class UserControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        Collections.sort(tenantAdmins, idComparator);
-        Collections.sort(loadedTenantAdmins, idComparator);
+        tenantAdmins.sort(idComparator);
+        loadedTenantAdmins.sort(idComparator);
 
         assertThat(tenantAdmins).as("admins list size").hasSameSizeAs(loadedTenantAdmins);
         assertThat(tenantAdmins).as("admins list content").isEqualTo(loadedTenantAdmins);
@@ -542,8 +539,8 @@ public class UserControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        Collections.sort(tenantAdminsEmail1, idComparator);
-        Collections.sort(loadedTenantAdminsEmail1, idComparator);
+        tenantAdminsEmail1.sort(idComparator);
+        loadedTenantAdminsEmail1.sort(idComparator);
 
         Assert.assertEquals(tenantAdminsEmail1, loadedTenantAdminsEmail1);
 
@@ -559,8 +556,8 @@ public class UserControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        Collections.sort(tenantAdminsEmail2, idComparator);
-        Collections.sort(loadedTenantAdminsEmail2, idComparator);
+        tenantAdminsEmail2.sort(idComparator);
+        loadedTenantAdminsEmail2.sort(idComparator);
 
         Assert.assertEquals(tenantAdminsEmail2, loadedTenantAdminsEmail2);
 
@@ -575,7 +572,7 @@ public class UserControllerTest extends AbstractControllerTest {
         testManyUser.setTenantId(tenantId);
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(testManyUser, testManyUser,
                 SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL,
-                ActionType.DELETED, ActionType.DELETED, cntEntity, 0, cntEntity, new String());
+                ActionType.DELETED, cntEntity, NUMBER_OF_USERS, cntEntity, "");
 
         pageLink = new PageLink(4, 0, email1);
         pageData = doGetTypedWithPageLink("/api/tenant/" + tenantId.getId().toString() + "/users?",
@@ -628,8 +625,8 @@ public class UserControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        Collections.sort(customerUsers, idComparator);
-        Collections.sort(loadedCustomerUsers, idComparator);
+        customerUsers.sort(idComparator);
+        loadedCustomerUsers.sort(idComparator);
 
         Assert.assertEquals(customerUsers, loadedCustomerUsers);
 
@@ -672,8 +669,8 @@ public class UserControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        Collections.sort(customerUsersEmail1, idComparator);
-        Collections.sort(loadedCustomerUsersEmail1, idComparator);
+        customerUsersEmail1.sort(idComparator);
+        loadedCustomerUsersEmail1.sort(idComparator);
 
         Assert.assertEquals(customerUsersEmail1, loadedCustomerUsersEmail1);
 
@@ -689,8 +686,8 @@ public class UserControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        Collections.sort(customerUsersEmail2, idComparator);
-        Collections.sort(loadedCustomerUsersEmail2, idComparator);
+        customerUsersEmail2.sort(idComparator);
+        loadedCustomerUsersEmail2.sort(idComparator);
 
         Assert.assertEquals(customerUsersEmail2, loadedCustomerUsersEmail2);
 
@@ -765,11 +762,11 @@ public class UserControllerTest extends AbstractControllerTest {
 
         doDelete("/api/alarm/" + alarm.getId().getId().toString());
 
-        savedDevice.setOwnerId(customerId);
-        savedDevice = doPost("/api/device", savedDevice, Device.class);
+        //change device owner
+        doPost("/api/owner/CUSTOMER/" + customerId.getId() + "/DEVICE/" + savedDevice.getId().getId());
+        savedDevice = doGet("/api/device/" + savedDevice.getId().getId(), Device.class);
 
         alarm = createTestAlarm(savedDevice);
-
         List<UserId> loadedUserIds = new ArrayList<>();
         pageLink = new PageLink(16, 0);
         do {
@@ -1215,18 +1212,6 @@ public class UserControllerTest extends AbstractControllerTest {
         customerAdmin.setAuthority(Authority.CUSTOMER_USER);
         customerAdmin = createUser(customerAdmin, testPassword2, entityGroup.getId());
         return customerAdmin;
-    }
-
-    private User createUser() throws Exception {
-        loginSysAdmin();
-        String email = "tenant2@thingsboard.org";
-        User user = new User();
-        user.setAuthority(Authority.TENANT_ADMIN);
-        user.setTenantId(tenantId);
-        user.setEmail(email);
-        user.setFirstName("Joe");
-        user.setLastName("Downs");
-        return doPost("/api/user", user, User.class);
     }
 
     private Alarm createTestAlarm(Device device) {

@@ -75,6 +75,7 @@ export interface Font {
   family: string;
   weight: fontWeight;
   style: fontStyle;
+  lineHeight: string;
 }
 
 export enum ColorType {
@@ -103,6 +104,22 @@ export interface ColorSettings {
   rangeList?: ColorRange[];
   colorFunction?: string;
 }
+
+export interface TimewindowStyle {
+  showIcon: boolean;
+  icon: string;
+  iconSize: string;
+  iconPosition: 'left' | 'right';
+  font?: Font;
+  color?: string;
+}
+
+export const defaultTimewindowStyle: TimewindowStyle = {
+  showIcon: true,
+  icon: 'query_builder',
+  iconSize: '24px',
+  iconPosition: 'left'
+};
 
 export const constantColor = (color: string): ColorSettings => ({
   type: ColorType.constant,
@@ -313,19 +330,19 @@ export interface BackgroundSettings {
   overlay: OverlaySettings;
 }
 
-export const iconStyle = (size: number, sizeUnit: cssUnit): ComponentStyle => {
-  const iconSize = size + sizeUnit;
+export const iconStyle = (size: number | string, sizeUnit: cssUnit = 'px'): ComponentStyle => {
+  const iconSize = typeof size === 'number' ? size + sizeUnit : size;
   return {
     width: iconSize,
+    minWidth: iconSize,
     height: iconSize,
     fontSize: iconSize,
     lineHeight: iconSize
   };
 };
 
-export const textStyle = (font?: Font, lineHeight = '1.5', letterSpacing = '0.25px'): ComponentStyle => {
+export const textStyle = (font?: Font, letterSpacing = 'normal'): ComponentStyle => {
   const style: ComponentStyle = {
-    lineHeight,
     letterSpacing
   };
   if (font?.style) {
@@ -333,6 +350,9 @@ export const textStyle = (font?: Font, lineHeight = '1.5', letterSpacing = '0.25
   }
   if (font?.weight) {
     style.fontWeight = font.weight;
+  }
+  if (font?.lineHeight) {
+    style.lineHeight = font.lineHeight;
   }
   if (font?.size) {
     style.fontSize = (font.size + (font.sizeUnit || 'px'));

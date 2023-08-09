@@ -222,7 +222,7 @@ public abstract class AbstractOAuth2ClientMapper {
                     ((ObjectNode) additionalInfo).put("defaultDashboardFullscreen", oauth2User.isAlwaysFullScreen());
                     ((ObjectNode) additionalInfo).put("defaultDashboardId", dashboardIdOpt.get().getId().toString());
                     user.setAdditionalInfo(additionalInfo);
-                    user = userService.saveUser(user);
+                    user = userService.saveUser(tenantId, user);
                     securityUser = new SecurityUser(user, true, principal, getMergedUserPermissions(user));
                 }
             } catch (Exception e) {

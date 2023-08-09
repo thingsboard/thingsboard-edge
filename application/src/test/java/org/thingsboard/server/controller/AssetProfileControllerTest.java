@@ -406,7 +406,7 @@ public class AssetProfileControllerTest extends AbstractControllerTest {
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new AssetProfile(), new AssetProfile(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, ActionType.ADDED, cntEntity, cntEntity, cntEntity);
+                ActionType.ADDED, cntEntity, cntEntity, cntEntity);
         Mockito.reset(tbClusterService, auditLogService);
 
         List<AssetProfile> loadedAssetProfiles = new ArrayList<>();
@@ -435,7 +435,7 @@ public class AssetProfileControllerTest extends AbstractControllerTest {
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(loadedAssetProfiles.get(0), loadedAssetProfiles.get(0),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.DELETED, ActionType.DELETED, cntEntity, cntEntity, cntEntity, loadedAssetProfiles.get(0).getId().getId().toString());
+                ActionType.DELETED, cntEntity, cntEntity, cntEntity, loadedAssetProfiles.get(0).getId().getId().toString());
 
         pageLink = new PageLink(17);
         pageData = doGetTypedWithPageLink("/api/assetProfiles?",

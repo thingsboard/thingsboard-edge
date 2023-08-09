@@ -45,6 +45,8 @@ import { WidgetSettingsModule } from '@home/components/widget/lib/settings/widge
 import { WidgetSettingsComponent } from '@home/components/widget/config/widget-settings.component';
 import { TimewindowConfigPanelComponent } from '@home/components/widget/config/timewindow-config-panel.component';
 import { WidgetSettingsCommonModule } from '@home/components/widget/lib/settings/common/widget-settings-common.module';
+import { TimewindowStyleComponent } from '@home/components/widget/config/timewindow-style.component';
+import { TimewindowStylePanelComponent } from '@home/components/widget/config/timewindow-style-panel.component';
 
 @NgModule({
   declarations:
@@ -58,6 +60,8 @@ import { WidgetSettingsCommonModule } from '@home/components/widget/lib/settings
       DatasourcesComponent,
       EntityAliasSelectComponent,
       FilterSelectComponent,
+      TimewindowStyleComponent,
+      TimewindowStylePanelComponent,
       TimewindowConfigPanelComponent,
       WidgetSettingsComponent
     ],
@@ -77,6 +81,8 @@ import { WidgetSettingsCommonModule } from '@home/components/widget/lib/settings
     DatasourcesComponent,
     EntityAliasSelectComponent,
     FilterSelectComponent,
+    TimewindowStyleComponent,
+    TimewindowStylePanelComponent,
     TimewindowConfigPanelComponent,
     WidgetSettingsComponent,
     WidgetSettingsCommonModule

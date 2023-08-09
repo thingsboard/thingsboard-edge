@@ -64,9 +64,8 @@ public class DefaultTbOtaPackageService extends AbstractTbEntityService implemen
         try {
             OtaPackageInfo savedOtaPackageInfo = otaPackageService.saveOtaPackageInfo(new OtaPackageInfo(saveOtaPackageInfoRequest), saveOtaPackageInfoRequest.isUsesUrl());
 
-            boolean sendMsgToEdge = savedOtaPackageInfo.hasUrl() || savedOtaPackageInfo.isHasData();
-            notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, savedOtaPackageInfo.getId(),
-                    savedOtaPackageInfo, user, actionType, sendMsgToEdge, null);
+            notificationEntityService.logEntityAction(tenantId, savedOtaPackageInfo.getId(), savedOtaPackageInfo,
+                    null, actionType, user);
 
             return savedOtaPackageInfo;
         } catch (Exception e) {
@@ -79,6 +78,7 @@ public class DefaultTbOtaPackageService extends AbstractTbEntityService implemen
     @Override
     public OtaPackageInfo saveOtaPackageData(OtaPackageInfo otaPackageInfo, String checksum, ChecksumAlgorithm checksumAlgorithm,
                                              byte[] data, String filename, String contentType, User user) throws ThingsboardException {
+        ActionType actionType = ActionType.UPDATED;
         TenantId tenantId = otaPackageInfo.getTenantId();
         OtaPackageId otaPackageId = otaPackageInfo.getId();
         try {
@@ -102,27 +102,26 @@ public class DefaultTbOtaPackageService extends AbstractTbEntityService implemen
             otaPackage.setDataSize((long) data.length);
             OtaPackageInfo savedOtaPackage = otaPackageService.saveOtaPackage(otaPackage);
 
-            notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, savedOtaPackage.getId(),
-                    savedOtaPackage, user, ActionType.UPDATED, true, null);
+            notificationEntityService.logEntityAction(tenantId, savedOtaPackage.getId(), savedOtaPackage, null, actionType, user);
             return savedOtaPackage;
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.OTA_PACKAGE), ActionType.UPDATED,
-                    user, e, otaPackageId.toString());
+            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.OTA_PACKAGE), actionType, user, e, otaPackageId.toString());
             throw e;
         }
     }
 
     @Override
     public void delete(OtaPackageInfo otaPackageInfo, User user) throws ThingsboardException {
+        ActionType actionType = ActionType.DELETED;
         TenantId tenantId = otaPackageInfo.getTenantId();
         OtaPackageId otaPackageId = otaPackageInfo.getId();
         try {
             otaPackageService.deleteOtaPackage(tenantId, otaPackageId);
-            notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, otaPackageId, otaPackageInfo,
-                    user, ActionType.DELETED, true, null, otaPackageInfo.getId().toString());
+            notificationEntityService.logEntityAction(tenantId, otaPackageId, otaPackageInfo, null,
+                    actionType, user, otaPackageInfo.getId().toString());
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.OTA_PACKAGE),
-                    ActionType.DELETED, user, e, otaPackageId.toString());
+                    actionType, user, e, otaPackageId.toString());
             throw e;
         }
     }
