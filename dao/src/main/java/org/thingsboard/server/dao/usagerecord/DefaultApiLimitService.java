@@ -31,7 +31,6 @@
 package org.thingsboard.server.dao.usagerecord;
 
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -86,7 +85,6 @@ public class DefaultApiLimitService implements ApiLimitService {
         }
     }
 
-    @NotNull
     private static KeyFilter createExcludeEdgeTemplateIntegrationFilter() {
         KeyFilter keyFilter = new KeyFilter();
         keyFilter.setKey(new EntityKey(EntityKeyType.ENTITY_FIELD, "edgeTemplate"));
