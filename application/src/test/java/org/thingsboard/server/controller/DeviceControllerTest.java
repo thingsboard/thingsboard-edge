@@ -77,11 +77,10 @@ import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportColumnType;
 import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportRequest;
 import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportResult;
-import org.thingsboard.server.dao.customer.CustomerServiceImpl;
 import org.thingsboard.server.dao.device.DeviceDao;
 import org.thingsboard.server.dao.exception.DeviceCredentialsValidationException;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.service.gateway_device.GatewayNotificationsService;
 
 import java.util.ArrayList;
@@ -172,9 +171,8 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
         Device oldDevice = new Device(savedDevice);
 
-        testNotifyEntityOneTimeMsgToEdgeServiceNever(savedDevice, savedDevice.getId(), savedDevice.getId(),
-                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED);
+        testNotifyEntityEntityGroupNullAllOneTime(savedDevice, savedDevice.getId(), savedDevice.getId(), savedTenant.getId(),
+                tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED);
         testNotificationUpdateGatewayNever();
 
         Assert.assertNotNull(savedDevice);
@@ -201,7 +199,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(savedDevice, savedDevice,
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.UPDATED, ActionType.UPDATED, 1 , 1, 1);
+                ActionType.UPDATED, 1 , 1, 1);
         testNotificationUpdateGatewayOneTime(savedDevice, oldDevice);
 
         Device foundDevice = doGet("/api/device/" + savedDevice.getId().getId(), Device.class);
@@ -228,7 +226,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
         Device oldDevice = new Device(savedDevice);
 
-        testNotifyEntityOneTimeMsgToEdgeServiceNever(savedDevice, savedDevice.getId(), savedDevice.getId(),
+        testNotifyEntityEntityGroupNullAllOneTime(savedDevice, savedDevice.getId(), savedDevice.getId(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED);
         testNotificationUpdateGatewayNever();
@@ -257,7 +255,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(savedDevice, savedDevice,
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.UPDATED, ActionType.UPDATED, 1 , 1, 1);
+                ActionType.UPDATED, 1 , 1, 1);
         testNotificationUpdateGatewayOneTime(savedDevice, oldDevice);
     }
 
@@ -458,7 +456,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
     public void testFindDeviceTypesByTenantId() throws Exception {
         // TODO: @voba device profiles are not created on edge at the moment
         doPost("/api/deviceProfile", this.createDeviceProfile("typeA"), DeviceProfile.class);
-        doPost("/api/deviceProfile", this.createDeviceProfile("typeB"), DeviceProfile.class);
+        DeviceProfile deviceProfile = doPost("/api/deviceProfile", this.createDeviceProfile("typeB"), DeviceProfile.class);
         doPost("/api/deviceProfile", this.createDeviceProfile("typeC"), DeviceProfile.class);
 
         List<Device> devices = new ArrayList<>();
@@ -474,9 +472,9 @@ public class DeviceControllerTest extends AbstractControllerTest {
             devices.add(doPost("/api/device", device, Device.class));
         }
 
-        testNotifyManyEntityManyTimeMsgToEdgeServiceNever(new Device(), new Device(),
+        testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new Device(), new Device(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, cntEntity);
+                ActionType.ADDED, cntEntity, cntEntity, cntEntity);
         testNotificationUpdateGatewayNever();
 
         for (int i = 0; i < 7; i++) {
@@ -516,7 +514,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
         doDelete("/api/device/" + savedDevice.getId().getId())
                 .andExpect(status().isOk());
 
-        testNotifyEntityOneTimeMsgToEdgeServiceNever(savedDevice, savedDevice.getId(), savedDevice.getId(), savedTenant.getId(),
+        testNotifyEntityEntityGroupNullAllOneTime(savedDevice, savedDevice.getId(), savedDevice.getId(), savedTenant.getId(),
                 tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.DELETED, savedDevice.getId().getId().toString());
         testNotificationDeleteGatewayOneTime(savedDevice);
 
@@ -536,7 +534,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
         Device savedDevice = doPost("/api/device", device, Device.class);
         Assert.assertEquals("default", savedDevice.getType());
 
-        testNotifyEntityOneTimeMsgToEdgeServiceNever(savedDevice, savedDevice.getId(), savedDevice.getId(),
+        testNotifyEntityEntityGroupNullAllOneTime(savedDevice, savedDevice.getId(), savedDevice.getId(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED);
         testNotificationUpdateGatewayNever();
@@ -723,9 +721,9 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
         List<Device> devices = Futures.allAsList(futures).get(TIMEOUT, TimeUnit.SECONDS);
 
-        testNotifyManyEntityManyTimeMsgToEdgeServiceNever(new Device(), new Device(),
+        testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new Device(), new Device(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, cntEntity);
+                ActionType.ADDED, cntEntity, cntEntity, cntEntity);
         testNotificationUpdateGatewayNever();
 
         List<Device> loadedDevices = new ArrayList<>(cntEntity);
@@ -746,9 +744,9 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
         deleteEntitiesAsync("/api/device/", loadedDevices, executor).get(TIMEOUT, TimeUnit.SECONDS);
 
-        testNotifyManyEntityManyTimeMsgToEdgeServiceNeverAdditionalInfoAny(new Device(), new Device(),
+        testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAnyAdditionalInfoAny(new Device(), new Device(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.DELETED, cntEntity, 1);
+                ActionType.DELETED, ActionType.DELETED, cntEntity, cntEntity,1);
         testNotificationUpdateGatewayNever();
     }
 

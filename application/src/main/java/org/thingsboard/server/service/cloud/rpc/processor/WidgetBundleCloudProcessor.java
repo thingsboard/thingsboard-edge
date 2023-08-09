@@ -63,48 +63,53 @@ public class WidgetBundleCloudProcessor extends BaseEdgeProcessor {
                                                                    WidgetsBundleUpdateMsg widgetsBundleUpdateMsg,
                                                                    Long queueStartTs) throws ExecutionException, InterruptedException {
         WidgetsBundleId widgetsBundleId = new WidgetsBundleId(new UUID(widgetsBundleUpdateMsg.getIdMSB(), widgetsBundleUpdateMsg.getIdLSB()));
-        switch (widgetsBundleUpdateMsg.getMsgType()) {
-            case ENTITY_CREATED_RPC_MESSAGE:
-            case ENTITY_UPDATED_RPC_MESSAGE:
-                widgetCreationLock.lock();
-                try {
-                    deleteSystemWidgetBundleIfAlreadyExists(tenantId, widgetsBundleUpdateMsg.getAlias(), widgetsBundleId, queueStartTs);
-                    WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
-                    boolean created = false;
-                    if (widgetsBundle == null) {
-                        created = true;
-                        widgetsBundle = new WidgetsBundle();
-                        if (widgetsBundleUpdateMsg.getIsSystem()) {
-                            widgetsBundle.setTenantId(TenantId.SYS_TENANT_ID);
-                        } else {
-                            widgetsBundle.setTenantId(tenantId);
+        try {
+            edgeSynchronizationManager.getSync().set(true);
+            switch (widgetsBundleUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE:
+                case ENTITY_UPDATED_RPC_MESSAGE:
+                    widgetCreationLock.lock();
+                    try {
+                        deleteSystemWidgetBundleIfAlreadyExists(tenantId, widgetsBundleUpdateMsg.getAlias(), widgetsBundleId, queueStartTs);
+                        WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
+                        boolean created = false;
+                        if (widgetsBundle == null) {
+                            created = true;
+                            widgetsBundle = new WidgetsBundle();
+                            if (widgetsBundleUpdateMsg.getIsSystem()) {
+                                widgetsBundle.setTenantId(TenantId.SYS_TENANT_ID);
+                            } else {
+                                widgetsBundle.setTenantId(tenantId);
+                            }
+                            widgetsBundle.setId(widgetsBundleId);
+                            widgetsBundle.setCreatedTime(Uuids.unixTimestamp(widgetsBundleId.getId()));
                         }
-                        widgetsBundle.setId(widgetsBundleId);
-                        widgetsBundle.setCreatedTime(Uuids.unixTimestamp(widgetsBundleId.getId()));
-                    }
-                    widgetsBundle.setTitle(widgetsBundleUpdateMsg.getTitle());
-                    widgetsBundle.setAlias(widgetsBundleUpdateMsg.getAlias());
-                    widgetsBundle.setImage(widgetsBundleUpdateMsg.hasImage()
-                            ? new String(widgetsBundleUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8) : null);
-                    widgetsBundle.setDescription(widgetsBundleUpdateMsg.hasDescription() ? widgetsBundleUpdateMsg.getDescription() : null);
-                    widgetsBundleService.saveWidgetsBundle(widgetsBundle, false);
+                        widgetsBundle.setTitle(widgetsBundleUpdateMsg.getTitle());
+                        widgetsBundle.setAlias(widgetsBundleUpdateMsg.getAlias());
+                        widgetsBundle.setImage(widgetsBundleUpdateMsg.hasImage()
+                                ? new String(widgetsBundleUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8) : null);
+                        widgetsBundle.setDescription(widgetsBundleUpdateMsg.hasDescription() ? widgetsBundleUpdateMsg.getDescription() : null);
+                        widgetsBundleService.saveWidgetsBundle(widgetsBundle, false);
 
-                    if (created) {
-                        return requestWidgetsBundleTypes(tenantId, widgetsBundleId, queueStartTs);
-                    } else {
-                        return Futures.immediateFuture(null);
+                        if (created) {
+                            return requestWidgetsBundleTypes(tenantId, widgetsBundleId, queueStartTs);
+                        } else {
+                            return Futures.immediateFuture(null);
+                        }
+                    } finally {
+                        widgetCreationLock.unlock();
                     }
-                } finally {
-                    widgetCreationLock.unlock();
-                }
-            case ENTITY_DELETED_RPC_MESSAGE:
-                WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
-                if (widgetsBundle != null) {
-                    widgetsBundleService.deleteWidgetsBundle(tenantId, widgetsBundle.getId());
-                }
-                return Futures.immediateFuture(null);
-            case UNRECOGNIZED:
-                return handleUnsupportedMsgType(widgetsBundleUpdateMsg.getMsgType());
+                case ENTITY_DELETED_RPC_MESSAGE:
+                    WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
+                    if (widgetsBundle != null) {
+                        widgetsBundleService.deleteWidgetsBundle(tenantId, widgetsBundle.getId());
+                    }
+                    return Futures.immediateFuture(null);
+                case UNRECOGNIZED:
+                    return handleUnsupportedMsgType(widgetsBundleUpdateMsg.getMsgType());
+            }
+        } finally {
+            edgeSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
     }

@@ -38,7 +38,6 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.DashboardId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -70,15 +69,14 @@ public class DefaultTbDashboardService extends AbstractTbEntityService implement
 
     @Override
     public void delete(Dashboard dashboard, User user) {
+        ActionType actionType = ActionType.DELETED;
         DashboardId dashboardId = dashboard.getId();
         TenantId tenantId = dashboard.getTenantId();
         try {
-            List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, dashboardId);
             dashboardService.deleteDashboard(tenantId, dashboardId);
-            notificationEntityService.notifyDeleteEntity(tenantId, dashboardId, dashboard, null,
-                    ActionType.DELETED, relatedEdgeIds, user, dashboardId.toString());
+            notificationEntityService.logEntityAction(tenantId, dashboardId, dashboard, null, actionType, user, dashboardId.toString());
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.DASHBOARD), ActionType.DELETED, user, e, dashboardId.toString());
+            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.DASHBOARD), actionType, user, e, dashboardId.toString());
             throw e;
         }
     }

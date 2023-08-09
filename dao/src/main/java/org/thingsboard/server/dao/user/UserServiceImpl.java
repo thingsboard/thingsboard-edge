@@ -46,6 +46,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.UserInfo;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -62,6 +63,9 @@ import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.security.event.UserCredentialsInvalidationEvent;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityCountService;
+import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
@@ -170,16 +174,16 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     }
 
     @Override
-    public User saveUser(User user, boolean doValidate) {
-        return doSaveUser(user, doValidate);
+    public User saveUser(TenantId tenantId, User user, boolean doValidate) {
+        return doSaveUser(tenantId, user, doValidate);
     }
 
     @Override
-    public User saveUser(User user) {
-        return doSaveUser(user, true);
+    public User saveUser(TenantId tenantId, User user) {
+        return doSaveUser(tenantId, user, true);
     }
 
-    private User doSaveUser(User user, boolean doValidate) {
+    private User doSaveUser(TenantId tenantId, User user, boolean doValidate) {
         log.trace("Executing saveUser [{}]", user);
         if (doValidate) {
             userValidator.validate(user, User::getTenantId);
@@ -200,6 +204,11 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
                 entityGroupService.addEntityToEntityGroupAll(user.getTenantId(), savedUser.getOwnerId(), savedUser.getId());
             }
         }
+        eventPublisher.publishEvent(SaveEntityEvent.builder()
+                .tenantId(tenantId == null ? TenantId.SYS_TENANT_ID : tenantId)
+                .entity(user)
+                .entityId(savedUser.getId())
+                .added(user.getId() == null).build());
         return savedUser;
     }
 
@@ -235,7 +244,12 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         if (doValidate) {
             userCredentialsValidator.validate(userCredentials, data -> tenantId);
         }
-        return userCredentialsDao.save(tenantId, userCredentials);
+        UserCredentials result = userCredentialsDao.save(tenantId, userCredentials);
+        eventPublisher.publishEvent(ActionEntityEvent.builder()
+                .tenantId(tenantId)
+                .entityId(userCredentials.getUserId())
+                .actionType(ActionType.CREDENTIALS_UPDATED).build());
+        return result;
     }
 
     @Override
@@ -294,7 +308,12 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         if (userCredentials.getPassword() != null) {
             updatePasswordHistory(userCredentials);
         }
-        return userCredentialsDao.save(tenantId, userCredentials);
+        UserCredentials result = userCredentialsDao.save(tenantId, userCredentials);
+        eventPublisher.publishEvent(ActionEntityEvent.builder()
+                .tenantId(tenantId)
+                .entityId(userCredentials.getUserId())
+                .actionType(ActionType.CREDENTIALS_UPDATED).build());
+        return result;
     }
 
     @Override
@@ -309,6 +328,9 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         userDao.removeById(tenantId, userId.getId());
         eventPublisher.publishEvent(new UserCredentialsInvalidationEvent(userId));
         countService.publishCountEntityEvictEvent(tenantId, EntityType.USER);
+        eventPublisher.publishEvent(DeleteEntityEvent.builder()
+                .tenantId(tenantId)
+                .entityId(userId).build());
     }
 
     @Override
@@ -441,7 +463,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         log.trace("Executing onUserLoginSuccessful [{}]", userId);
         User user = findUserById(tenantId, userId);
         resetFailedLoginAttempts(user);
-        saveUser(user);
+        saveUser(tenantId, user);
     }
 
     private void resetFailedLoginAttempts(User user) {
@@ -462,7 +484,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         }
         ((ObjectNode) additionalInfo).put(LAST_LOGIN_TS, System.currentTimeMillis());
         user.setAdditionalInfo(additionalInfo);
-        saveUser(user);
+        saveUser(tenantId, user);
     }
 
     @Override
@@ -504,7 +526,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         log.trace("Executing onUserLoginIncorrectCredentials [{}]", userId);
         User user = findUserById(tenantId, userId);
         int failedLoginAttempts = increaseFailedLoginAttempts(user);
-        saveUser(user);
+        saveUser(tenantId, user);
         return failedLoginAttempts;
     }
 

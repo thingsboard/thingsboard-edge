@@ -327,7 +327,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 } else {
                     log.info("Skipping audit logs migration");
                 }
-                migrateEdgeEvents("Starting edge events migration. ");
                 boolean skipBlobEntitiesMigration = getEnv("TB_SKIP_BLOB_ENTITIES_MIGRATION", false);
                 if (!skipBlobEntitiesMigration) {
                     log.info("Starting blob entities migration. Can be skipped with TB_SKIP_BLOB_ENTITIES_MIGRATION set to true");
@@ -335,6 +334,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 } else {
                     log.info("Skipping blob entities migration");
                 }
+                migrateEdgeEvents("Starting edge events migration. ");
                 break;
             case "3.4.4":
                 log.info("Updating data from version 3.4.4 to 3.5.0 ...");

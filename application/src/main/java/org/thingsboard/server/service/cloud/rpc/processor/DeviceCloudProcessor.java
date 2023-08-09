@@ -46,9 +46,7 @@ import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
@@ -76,29 +74,34 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                                                             Long queueStartTs) throws ThingsboardException {
         log.trace("[{}] executing processDeviceMsgFromCloud [{}]", tenantId, deviceUpdateMsg);
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
-        switch (deviceUpdateMsg.getMsgType()) {
-            case ENTITY_CREATED_RPC_MESSAGE:
-            case ENTITY_UPDATED_RPC_MESSAGE:
-                saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, queueStartTs);
-                return Futures.transformAsync(requestForAdditionalData(tenantId, deviceId, queueStartTs),
-                        ignored -> cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_REQUEST,
-                        deviceId, null, null, queueStartTs), dbCallbackExecutorService);
-            case ENTITY_DELETED_RPC_MESSAGE:
-                if (deviceUpdateMsg.hasEntityGroupIdMSB() && deviceUpdateMsg.hasEntityGroupIdLSB()) {
-                    UUID entityGroupUUID = safeGetUUID(deviceUpdateMsg.getEntityGroupIdMSB(),
-                            deviceUpdateMsg.getEntityGroupIdLSB());
-                    EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
-                    entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, deviceId);
-                } else {
-                    Device deviceById = deviceService.findDeviceById(tenantId, deviceId);
-                    if (deviceById != null) {
-                        deviceService.deleteDevice(tenantId, deviceId);
+        try {
+            edgeSynchronizationManager.getSync().set(true);
+            switch (deviceUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE:
+                case ENTITY_UPDATED_RPC_MESSAGE:
+                    saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, queueStartTs);
+                    return Futures.transformAsync(requestForAdditionalData(tenantId, deviceId, queueStartTs),
+                            ignored -> cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_REQUEST,
+                                    deviceId, null, null, queueStartTs), dbCallbackExecutorService);
+                case ENTITY_DELETED_RPC_MESSAGE:
+                    if (deviceUpdateMsg.hasEntityGroupIdMSB() && deviceUpdateMsg.hasEntityGroupIdLSB()) {
+                        UUID entityGroupUUID = safeGetUUID(deviceUpdateMsg.getEntityGroupIdMSB(),
+                                deviceUpdateMsg.getEntityGroupIdLSB());
+                        EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
+                        entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, deviceId);
+                    } else {
+                        Device deviceById = deviceService.findDeviceById(tenantId, deviceId);
+                        if (deviceById != null) {
+                            deviceService.deleteDevice(tenantId, deviceId);
+                        }
                     }
-                }
-                return Futures.immediateFuture(null);
+                    return Futures.immediateFuture(null);
             case UNRECOGNIZED:
             default:
                 return handleUnsupportedMsgType(deviceUpdateMsg.getMsgType());
+            }
+        } finally {
+            edgeSynchronizationManager.getSync().remove();
         }
     }
 

@@ -65,51 +65,56 @@ public class DashboardCloudProcessor extends BaseEdgeProcessor {
                                                                Long queueStartTs) throws ThingsboardException {
         DashboardId dashboardId = new DashboardId(new UUID(dashboardUpdateMsg.getIdMSB(), dashboardUpdateMsg.getIdLSB()));
         CustomerId customerId = safeGetCustomerId(dashboardUpdateMsg.getCustomerIdMSB(), dashboardUpdateMsg.getCustomerIdLSB());
-        switch (dashboardUpdateMsg.getMsgType()) {
-            case ENTITY_CREATED_RPC_MESSAGE:
-            case ENTITY_UPDATED_RPC_MESSAGE:
-                dashboardCreationLock.lock();
-                try {
-                    Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
-                    boolean created = false;
-                    if (dashboard == null) {
-                        dashboard = new Dashboard();
-                        dashboard.setId(dashboardId);
-                        dashboard.setCreatedTime(Uuids.unixTimestamp(dashboardId.getId()));
-                        dashboard.setTenantId(tenantId);
-                        created = true;
+        try {
+            edgeSynchronizationManager.getSync().set(true);
+            switch (dashboardUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE:
+                case ENTITY_UPDATED_RPC_MESSAGE:
+                    dashboardCreationLock.lock();
+                    try {
+                        Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
+                        boolean created = false;
+                        if (dashboard == null) {
+                            dashboard = new Dashboard();
+                            dashboard.setId(dashboardId);
+                            dashboard.setCreatedTime(Uuids.unixTimestamp(dashboardId.getId()));
+                            dashboard.setTenantId(tenantId);
+                            created = true;
+                        } else {
+                            changeOwnerIfRequired(tenantId, customerId, dashboardId);
+                        }
+                        dashboard.setTitle(dashboardUpdateMsg.getTitle());
+                        dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
+                        dashboard.setCustomerId(customerId);
+                        Dashboard savedDashboard = dashboardService.saveDashboard(dashboard, false);
+                        if (created) {
+                            entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());
+                        }
+                        safeAddToEntityGroup(tenantId, dashboardUpdateMsg, dashboardId);
+                    } finally {
+                        dashboardCreationLock.unlock();
+                    }
+                    return requestForAdditionalData(tenantId, dashboardId, queueStartTs);
+                case ENTITY_DELETED_RPC_MESSAGE:
+                    if (dashboardUpdateMsg.hasEntityGroupIdMSB() && dashboardUpdateMsg.hasEntityGroupIdLSB()) {
+                        UUID entityGroupUUID = safeGetUUID(dashboardUpdateMsg.getEntityGroupIdMSB(),
+                                dashboardUpdateMsg.getEntityGroupIdLSB());
+                        EntityGroupId entityGroupId =
+                                new EntityGroupId(entityGroupUUID);
+                        entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, dashboardId);
                     } else {
-                        changeOwnerIfRequired(tenantId, customerId, dashboardId);
+                        Dashboard dashboardById = dashboardService.findDashboardById(tenantId, dashboardId);
+                        if (dashboardById != null) {
+                            dashboardService.deleteDashboard(tenantId, dashboardId);
+                        }
                     }
-                    dashboard.setTitle(dashboardUpdateMsg.getTitle());
-                    dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
-                    dashboard.setCustomerId(customerId);
-                    Dashboard savedDashboard = dashboardService.saveDashboard(dashboard, false);
-                    if (created) {
-                        entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());
-                    }
-                    safeAddToEntityGroup(tenantId, dashboardUpdateMsg, dashboardId);
-                } finally {
-                    dashboardCreationLock.unlock();
-                }
-                return requestForAdditionalData(tenantId, dashboardId, queueStartTs);
-            case ENTITY_DELETED_RPC_MESSAGE:
-                if (dashboardUpdateMsg.hasEntityGroupIdMSB() && dashboardUpdateMsg.hasEntityGroupIdLSB()) {
-                    UUID entityGroupUUID = safeGetUUID(dashboardUpdateMsg.getEntityGroupIdMSB(),
-                            dashboardUpdateMsg.getEntityGroupIdLSB());
-                    EntityGroupId entityGroupId =
-                            new EntityGroupId(entityGroupUUID);
-                    entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, dashboardId);
-                } else {
-                    Dashboard dashboardById = dashboardService.findDashboardById(tenantId, dashboardId);
-                    if (dashboardById != null) {
-                        dashboardService.deleteDashboard(tenantId, dashboardId);
-                    }
-                }
-                return Futures.immediateFuture(null);
-            case UNRECOGNIZED:
-            default:
-                return handleUnsupportedMsgType(dashboardUpdateMsg.getMsgType());
+                    return Futures.immediateFuture(null);
+                case UNRECOGNIZED:
+                default:
+                    return handleUnsupportedMsgType(dashboardUpdateMsg.getMsgType());
+            }
+        } finally {
+            edgeSynchronizationManager.getSync().remove();
         }
     }
 
