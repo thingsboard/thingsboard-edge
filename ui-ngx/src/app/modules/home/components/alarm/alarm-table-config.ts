@@ -103,7 +103,8 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
               private overlay: Overlay,
               private cd: ChangeDetectorRef,
               private utilsService: UtilsService,
-              private readonly,
+              private writeEnabled,
+              private removeEnabled,
               pageMode = false) {
     super();
     this.loadDataOnInit = pageMode;
@@ -176,31 +177,31 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
       }
     );
 
-    let deleteEnabled = this.userPermissionsService.hasGenericPermission(Resource.ALARM, Operation.DELETE);
-    
-    if (isUndefinedOrNull(this.readonly)) {
-      this.readonly = !this.userPermissionsService.hasGenericPermission(Resource.ALARM, Operation.WRITE);
-    } else {
-      deleteEnabled = deleteEnabled && !this.readonly;
+    if (isUndefinedOrNull(this.writeEnabled)) {
+      this.writeEnabled = this.userPermissionsService.hasGenericPermission(Resource.ALARM, Operation.WRITE);
+    }
+
+    if (isUndefinedOrNull(this.removeEnabled)) {
+      this.removeEnabled = this.userPermissionsService.hasGenericPermission(Resource.ALARM, Operation.DELETE);
     }
 
     this.groupActionDescriptors.push(
       {
         name: this.translate.instant('alarm.acknowledge'),
         icon: 'done',
-        isEnabled: !this.readonly,
+        isEnabled: this.writeEnabled,
         onAction: ($event, entities) => this.ackAlarms($event, entities)
       },
       {
         name: this.translate.instant('alarm.clear'),
         icon: 'clear',
-        isEnabled: !this.readonly,
+        isEnabled: this.writeEnabled,
         onAction: ($event, entities) => this.clearAlarms($event, entities)
       },
       {
         name: this.translate.instant('alarm.delete'),
         icon: 'delete',
-        isEnabled: deleteEnabled,
+        isEnabled: this.removeEnabled,
         onAction: ($event, entities) => this.deleteAlarms($event, entities)
       }
     )
@@ -226,8 +227,8 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
         data: {
           alarmId: entity.id.id,
           alarm: entity,
-          allowAcknowledgment: !this.readonly,
-          allowClear: !this.readonly,
+          allowAcknowledgment: this.writeEnabled,
+          allowClear: this.writeEnabled,
           displayDetails: true,
           allowAssign: true
         }

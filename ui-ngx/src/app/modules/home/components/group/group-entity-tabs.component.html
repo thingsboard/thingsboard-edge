@@ -53,7 +53,8 @@
          label="{{ 'alarm.alarms' | translate }}" #alarmsTab="matTab">
   <tb-alarm-table [active]="alarmsTab.isActive"
                   [entityId]="entity.id"
-                  [readonly]="!(entityGroup | hasGroupEntityOrGenericPermission: entityResource: operation.WRITE) || !(resource.ALARM | hasGenericPermission: operation.WRITE)">
+                  [writeEnabled]="(entityGroup | hasGroupEntityOrGenericPermission: entityResource: operation.WRITE) && (resource.ALARM | hasGenericPermission: operation.WRITE)"
+                  [removeEnabled]="(entityGroup | hasGroupEntityOrGenericPermission: entityResource: operation.DELETE) && (resource.ALARM | hasGenericPermission: operation.DELETE)">
   </tb-alarm-table>
 </mat-tab>
 <mat-tab *ngIf="entity"
