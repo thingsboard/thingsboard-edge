@@ -604,4 +604,5 @@ public abstract class BaseEdgeProcessor {
         }
         return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
     }
+
 }
