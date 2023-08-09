@@ -63,6 +63,18 @@ public class DefaultApiLimitService implements ApiLimitService {
     private final EntityService entityService;
     private final TbTenantProfileCache tenantProfileCache;
 
+    private static final KeyFilter edgeTemplateExcludeFilter;
+
+    static {
+        edgeTemplateExcludeFilter = new KeyFilter();
+        edgeTemplateExcludeFilter.setKey(new EntityKey(EntityKeyType.ENTITY_FIELD, "edgeTemplate"));
+        edgeTemplateExcludeFilter.setValueType(EntityKeyValueType.BOOLEAN);
+        BooleanFilterPredicate predicate = new BooleanFilterPredicate();
+        predicate.setOperation(BooleanFilterPredicate.BooleanOperation.EQUAL);
+        predicate.setValue(new FilterPredicateValue<>(false));
+        edgeTemplateExcludeFilter.setPredicate(predicate);
+    }
+
     @Override
     public boolean checkEntitiesLimit(TenantId tenantId, EntityType entityType) {
         DefaultTenantProfileConfiguration profileConfiguration = tenantProfileCache.get(tenantId).getDefaultProfileConfiguration();
@@ -71,8 +83,8 @@ public class DefaultApiLimitService implements ApiLimitService {
             EntityTypeFilter filter = new EntityTypeFilter();
             filter.setEntityType(entityType);
             EntityCountQuery query;
-            if (EntityType.INTEGRATION.equals(entityType)) {
-                query = new EntityCountQuery(filter, List.of(createExcludeEdgeTemplateIntegrationFilter()));
+            if (EntityType.INTEGRATION.equals(entityType) || EntityType.CONVERTER.equals(entityType)) {
+                query = new EntityCountQuery(filter, List.of(edgeTemplateExcludeFilter));
             } else {
                 query = new EntityCountQuery(filter);
             }
@@ -83,17 +95,6 @@ public class DefaultApiLimitService implements ApiLimitService {
         } else {
             return true;
         }
-    }
-
-    private static KeyFilter createExcludeEdgeTemplateIntegrationFilter() {
-        KeyFilter keyFilter = new KeyFilter();
-        keyFilter.setKey(new EntityKey(EntityKeyType.ENTITY_FIELD, "edgeTemplate"));
-        keyFilter.setValueType(EntityKeyValueType.BOOLEAN);
-        BooleanFilterPredicate predicate = new BooleanFilterPredicate();
-        predicate.setOperation(BooleanFilterPredicate.BooleanOperation.EQUAL);
-        predicate.setValue(new FilterPredicateValue<>(false));
-        keyFilter.setPredicate(predicate);
-        return keyFilter;
     }
 
 }

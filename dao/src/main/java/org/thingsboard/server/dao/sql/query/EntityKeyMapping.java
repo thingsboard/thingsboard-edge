@@ -127,6 +127,7 @@ public class EntityKeyMapping {
         allowedEntityFieldMap.put(EntityType.WIDGET_TYPE, new HashSet<>(widgetEntityFields));
         allowedEntityFieldMap.put(EntityType.WIDGETS_BUNDLE, new HashSet<>(widgetEntityFields));
         allowedEntityFieldMap.put(EntityType.CONVERTER, new HashSet<>(typedEntityFields));
+        allowedEntityFieldMap.get(EntityType.CONVERTER).add(EDGE_TEMPLATE);
         allowedEntityFieldMap.put(EntityType.INTEGRATION, new HashSet<>(typedEntityFields));
         allowedEntityFieldMap.get(EntityType.INTEGRATION).add(EDGE_TEMPLATE);
 
