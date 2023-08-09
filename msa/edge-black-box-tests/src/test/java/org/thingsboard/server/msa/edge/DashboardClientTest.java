@@ -145,7 +145,10 @@ public class DashboardClientTest extends AbstractContainerTest {
     @Test
     public void testSendDashboardToCloud() {
         // create dashboard on edge
-        Dashboard savedDashboardOnEdge = saveDashboardOnEdge("Edge Dashboard 3");
+        EntityGroup savedDashboardEntityGroup = createEntityGroup(EntityType.DASHBOARD);
+        assignEntityGroupToEdge(savedDashboardEntityGroup);
+
+        Dashboard savedDashboardOnEdge = saveDashboardOnEdge("Edge Dashboard 3", savedDashboardEntityGroup.getId());
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
@@ -168,6 +171,7 @@ public class DashboardClientTest extends AbstractContainerTest {
                 .until(() -> cloudRestClient.getEntityGroupsForEntity(savedDashboardOnEdge.getId()).size() == 1);
 
         cloudRestClient.deleteDashboard(savedDashboardOnEdge.getId());
+        cloudRestClient.deleteEntityGroup(savedDashboardEntityGroup.getId());
     }
 
 }

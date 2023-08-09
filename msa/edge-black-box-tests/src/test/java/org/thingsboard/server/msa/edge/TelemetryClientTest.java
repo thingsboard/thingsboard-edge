@@ -56,7 +56,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
 
     @Test
     public void testSendPostTelemetryRequestToCloud_performanceTest() throws Exception {
-        Device device = saveAndAssignDeviceToEdge();
+        Device device = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
 
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)

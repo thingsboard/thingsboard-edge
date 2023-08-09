@@ -145,8 +145,10 @@ public class AssetClientTest extends AbstractContainerTest {
     @Test
     public void testSendAssetToCloud() {
         // create asset on edge
-        String defaultAssetProfileName = edgeRestClient.getDefaultAssetProfileInfo().getName();
-        Asset savedAssetOnEdge = saveAssetOnEdge("Edge Asset 2", defaultAssetProfileName);
+        EntityGroup savedAssetEntityGroup = createEntityGroup(EntityType.ASSET);
+        assignEntityGroupToEdge(savedAssetEntityGroup);
+
+        Asset savedAssetOnEdge = saveAssetOnEdge("Edge Asset 2", edgeRestClient.getDefaultAssetProfileInfo().getName(), savedAssetEntityGroup.getId());
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
@@ -168,13 +170,17 @@ public class AssetClientTest extends AbstractContainerTest {
                 .until(() -> cloudRestClient.getEntityGroupsForEntity(savedAssetOnEdge.getId()).size() == 1);
 
         cloudRestClient.deleteAsset(savedAssetOnEdge.getId());
+        cloudRestClient.deleteEntityGroup(savedAssetEntityGroup.getId());
     }
 
     @Test
     public void testSendAssetToCloudWithNameThatAlreadyExistsOnCloud() {
         // create asset on cloud and edge with the same name
-        Asset savedAssetOnCloud = saveAssetOnCloud("Edge Asset 3", "Building");
-        Asset savedAssetOnEdge = saveAssetOnEdge("Edge Asset 3", "Building");
+        EntityGroup savedAssetEntityGroup = createEntityGroup(EntityType.ASSET);
+        assignEntityGroupToEdge(savedAssetEntityGroup);
+
+        Asset savedAssetOnCloud = saveAssetOnCloud("Edge Asset 3", "Building", savedAssetEntityGroup.getId());
+        Asset savedAssetOnEdge = saveAssetOnEdge("Edge Asset 3", "Building", savedAssetEntityGroup.getId());
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
@@ -192,6 +198,7 @@ public class AssetClientTest extends AbstractContainerTest {
 
         cloudRestClient.deleteAsset(savedAssetOnEdge.getId());
         cloudRestClient.deleteAsset(savedAssetOnCloud.getId());
+        cloudRestClient.deleteEntityGroup(savedAssetEntityGroup.getId());
     }
 
 }

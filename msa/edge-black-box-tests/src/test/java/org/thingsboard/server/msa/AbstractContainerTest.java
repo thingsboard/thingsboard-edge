@@ -424,33 +424,17 @@ public abstract class AbstractContainerTest {
         return cloudRestClient.saveDashboard(dashboard, entityGroupId);
     }
 
-    protected Asset saveAssetOnCloud(String assetName, String type) {
-        return saveAsset(assetName, type, cloudRestClient);
-    }
-
-    protected Asset saveAssetOnEdge(String assetName, String type) {
-        return saveAsset(assetName, type, edgeRestClient);
-    }
-
-    protected Asset saveAsset(String assetName, String type, RestClient restClient) {
+    protected Asset saveAssetOnEdge(String assetName, String type, EntityGroupId entityGroupId) {
         Asset asset = new Asset();
         asset.setName(assetName);
         asset.setType(type);
-        return restClient.saveAsset(asset);
+        return edgeRestClient.saveAsset(asset, entityGroupId);
     }
 
-    protected Dashboard saveDashboardOnCloud(String dashboardTitle) {
-        return saveDashboard(dashboardTitle, cloudRestClient);
-    }
-
-    protected Dashboard saveDashboardOnEdge(String dashboardTitle) {
-        return saveDashboard(dashboardTitle, edgeRestClient);
-    }
-
-    private Dashboard saveDashboard(String dashboardTitle, RestClient restClient) {
+    protected Dashboard saveDashboardOnEdge(String dashboardTitle, EntityGroupId entityGroupId) {
         Dashboard dashboard = new Dashboard();
         dashboard.setTitle(dashboardTitle);
-        return restClient.saveDashboard(dashboard);
+        return edgeRestClient.saveDashboard(dashboard, entityGroupId);
     }
 
     protected void assertEntitiesByIdsAndType(List<EntityId> entityIds, EntityType entityType) {

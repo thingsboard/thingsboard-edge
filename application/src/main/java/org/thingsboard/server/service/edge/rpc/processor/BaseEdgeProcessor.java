@@ -308,6 +308,7 @@ public abstract class BaseEdgeProcessor {
     @Autowired
     protected DataValidator<Tenant> tenantValidator;
 
+    @Autowired
     protected DataValidator<DeviceProfile> deviceProfileValidator;
 
     @Autowired

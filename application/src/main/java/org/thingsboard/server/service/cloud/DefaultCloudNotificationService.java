@@ -120,7 +120,6 @@ public class DefaultCloudNotificationService implements CloudNotificationService
         CloudEventType cloudEventType = CloudEventType.valueOf(cloudNotificationMsg.getCloudEventType());
         EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEventType, new UUID(cloudNotificationMsg.getEntityIdMSB(), cloudNotificationMsg.getEntityIdLSB()));
         switch (cloudEventActionType) {
-            case ADDED:
             case UPDATED:
             case CREDENTIALS_UPDATED:
             case ADDED_TO_ENTITY_GROUP:
