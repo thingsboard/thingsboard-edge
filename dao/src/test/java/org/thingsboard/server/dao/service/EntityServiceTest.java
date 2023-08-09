@@ -71,8 +71,8 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
-import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
@@ -277,7 +277,7 @@ public class EntityServiceTest extends AbstractServiceTest {
             user.setAuthority(Authority.TENANT_ADMIN);
             user.setEmail(StringUtils.randomAlphabetic(10) + "@gmail.com");
             user.setPhone(StringUtils.randomNumeric(10));
-            user = userService.saveUser(user);
+            user = userService.saveUser(tenantId, user);
             users.add(user);
             createRelation(tenantId, "Contains", tenantId, user.getId());
         }
