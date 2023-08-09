@@ -39,6 +39,7 @@ import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.edge.EdgeSynchronizationManager;
@@ -134,8 +135,9 @@ public class CloudEventSourcingListener {
                 return;
             }
             log.trace("ActionEntityEvent called: {}", event);
+            EntityGroupId entityGroupId = event.getEntityGroup() != null ? event.getEntityGroup().getId() : null;
             tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), event.getEntityId(),
-                    event.getBody(), null, edgeTypeByActionType(event.getActionType()), event.getEntityGroup().getId());
+                    event.getBody(), null, edgeTypeByActionType(event.getActionType()), entityGroupId);
         } catch (Exception e) {
             log.error("failed to process ActionEntityEvent: {}", event);
         }

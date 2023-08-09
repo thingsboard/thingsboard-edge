@@ -72,6 +72,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @Slf4j
@@ -617,14 +619,21 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         return loginWhiteLabelKey;
     }
 
+    private final Lock edgeLoginWhiteLabelSettingsLock = new ReentrantLock();
+
     @Override
     public AdminSettings saveOrUpdateEdgeLoginWhiteLabelSettings(TenantId tenantId, EntityId currentEntityId) {
-        String loginWhiteLabelKey = constructLoginWhileLabelKey(EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME);
-        AdminSettings adminSettingsByKey = adminSettingsService.findAdminSettingsByKey(tenantId, loginWhiteLabelKey);
-        if (adminSettingsByKey != null) {
-            adminSettingsService.deleteAdminSettingsByKey(tenantId, loginWhiteLabelKey);
+        edgeLoginWhiteLabelSettingsLock.lock();
+        try {
+            String loginWhiteLabelKey = constructLoginWhileLabelKey(EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME);
+            AdminSettings adminSettingsByKey = adminSettingsService.findAdminSettingsByKey(tenantId, loginWhiteLabelKey);
+            if (adminSettingsByKey != null) {
+                adminSettingsService.deleteAdminSettingsByKey(tenantId, loginWhiteLabelKey);
+            }
+            return saveLoginWhiteLabelSettings(tenantId, currentEntityId, loginWhiteLabelKey);
+        } finally {
+            edgeLoginWhiteLabelSettingsLock.unlock();
         }
-        return saveLoginWhiteLabelSettings(tenantId, currentEntityId, loginWhiteLabelKey);
     }
 
 }

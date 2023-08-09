@@ -750,7 +750,7 @@ public class DefaultTbClusterService implements TbClusterService {
             if (entityId != null) {
                 cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
             } else {
-                log.trace("[{}] cloud id and type are null. Ignoring this notification", tenantId);
+                log.trace("[{}] entity id and type are null. Ignoring this notification", tenantId);
                 return;
             }
             if (cloudEventType == null) {

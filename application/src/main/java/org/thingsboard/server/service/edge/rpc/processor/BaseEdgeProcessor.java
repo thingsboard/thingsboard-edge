@@ -438,25 +438,12 @@ public abstract class BaseEdgeProcessor {
     @Autowired
     protected OwnersCacheService ownersCacheService;
 
-    protected ListenableFuture<Void> saveEdgeEvent(TenantId tenantId,
-                                                   EdgeId edgeId,
-                                                   EdgeEventType type,
-                                                   EdgeEventActionType action,
-                                                   EntityId entityId,
-                                                   JsonNode body) {
+    protected ListenableFuture<Void> saveEdgeEvent(TenantId tenantId, EdgeId edgeId, EdgeEventType type, EdgeEventActionType action, EntityId entityId, JsonNode body) {
         return saveEdgeEvent(tenantId, edgeId, type, action, entityId, body, null);
     }
 
-    protected ListenableFuture<Void> saveEdgeEvent(TenantId tenantId,
-                                                   EdgeId edgeId,
-                                                   EdgeEventType type,
-                                                   EdgeEventActionType action,
-                                                   EntityId entityId,
-                                                   JsonNode body,
-                                                   EntityGroupId entityGroupId) {
-        log.debug("Pushing event to edge queue. tenantId [{}], edgeId [{}], type[{}], " +
-                        "action [{}], entityId [{}], body [{}]",
-                tenantId, edgeId, type, action, entityId, body);
+    protected ListenableFuture<Void> saveEdgeEvent(TenantId tenantId, EdgeId edgeId, EdgeEventType type, EdgeEventActionType action, EntityId entityId, JsonNode body, EntityGroupId entityGroupId) {
+        log.debug("Pushing event to edge queue. tenantId [{}], edgeId [{}], type[{}], " + "action [{}], entityId [{}], body [{}]", tenantId, edgeId, type, action, entityId, body);
 
         EdgeEvent edgeEvent = EdgeUtils.constructEdgeEvent(tenantId, edgeId, type, action, entityId, body, entityGroupId);
 

@@ -45,6 +45,7 @@ public enum CloudEventType {
     CUSTOMER,
     RELATION,
     ENTITY_GROUP,
+    TENANT_PROFILE,
     WIDGETS_BUNDLE,
     WIDGET_TYPE,
     SCHEDULER_EVENT,
