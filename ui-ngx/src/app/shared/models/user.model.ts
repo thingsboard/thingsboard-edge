@@ -65,14 +65,13 @@ export interface AuthUser {
   sub: string;
   scopes: string[];
   userId: string;
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
   enabled: boolean;
   tenantId: string;
   customerId: string;
   isPublic: boolean;
   authority: Authority;
-  phone: string;
 }
 
 export interface UserEmailInfo {
