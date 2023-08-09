@@ -29,47 +29,43 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, UntypedFormControl } from '@angular/forms';
-import { cssUnit, cssUnits } from '@shared/models/widget-settings.models';
-import { coerceBoolean } from '@shared/decorators/coercion';
+import { Component, forwardRef, Input, OnInit, Renderer2, ViewContainerRef } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { TimewindowStyle } from '@shared/models/widget-settings.models';
+import { MatButton } from '@angular/material/button';
+import { TbPopoverService } from '@shared/components/popover.service';
+import { Timewindow } from '@shared/models/time/time.models';
+import { TimewindowStylePanelComponent } from '@home/components/widget/config/timewindow-style-panel.component';
 
 @Component({
-  selector: 'tb-css-unit-select',
-  templateUrl: './css-unit-select.component.html',
+  selector: 'tb-timewindow-style',
+  templateUrl: './timewindow-style.component.html',
   styleUrls: [],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => CssUnitSelectComponent),
+      useExisting: forwardRef(() => TimewindowStyleComponent),
       multi: true
     }
   ]
 })
-export class CssUnitSelectComponent implements OnInit, ControlValueAccessor {
+export class TimewindowStyleComponent implements OnInit, ControlValueAccessor {
 
   @Input()
   disabled: boolean;
 
   @Input()
-  @coerceBoolean()
-  allowEmpty = false;
+  previewValue: Timewindow;
 
-  cssUnitsList = cssUnits;
-
-  cssUnitFormControl: UntypedFormControl;
-
-  modelValue: cssUnit;
+  private modelValue: TimewindowStyle;
 
   private propagateChange = null;
 
-  constructor() {}
+  constructor(private popoverService: TbPopoverService,
+              private renderer: Renderer2,
+              private viewContainerRef: ViewContainerRef) {}
 
   ngOnInit(): void {
-    this.cssUnitFormControl = new UntypedFormControl();
-    this.cssUnitFormControl.valueChanges.subscribe((value: cssUnit) => {
-      this.updateModel(value);
-    });
   }
 
   registerOnChange(fn: any): void {
@@ -81,22 +77,36 @@ export class CssUnitSelectComponent implements OnInit, ControlValueAccessor {
 
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
-    if (this.disabled) {
-      this.cssUnitFormControl.disable({emitEvent: false});
-    } else {
-      this.cssUnitFormControl.enable({emitEvent: false});
-    }
   }
 
-  writeValue(value: cssUnit): void {
+  writeValue(value: TimewindowStyle): void {
     this.modelValue = value;
-    this.cssUnitFormControl.patchValue(this.modelValue, {emitEvent: false});
   }
 
-  updateModel(value: cssUnit): void {
-    if (this.modelValue !== value) {
-      this.modelValue = value;
-      this.propagateChange(this.modelValue);
+  openTimewindowStylePopup($event: Event, matButton: MatButton) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const trigger = matButton._elementRef.nativeElement;
+    if (this.popoverService.hasPopover(trigger)) {
+      this.popoverService.hidePopover(trigger);
+    } else {
+      const ctx: any = {
+        timewindowStyle: this.modelValue,
+        previewValue: this.previewValue
+      };
+      const timewindowStylePanelPopover = this.popoverService.displayPopover(trigger, this.renderer,
+        this.viewContainerRef, TimewindowStylePanelComponent, 'left', true, null,
+        ctx,
+        {},
+        {}, {}, true);
+      timewindowStylePanelPopover.tbComponentRef.instance.popover = timewindowStylePanelPopover;
+      timewindowStylePanelPopover.tbComponentRef.instance.timewindowStyleApplied.subscribe((timewindowStyle) => {
+        timewindowStylePanelPopover.hide();
+        this.modelValue = timewindowStyle;
+        this.propagateChange(this.modelValue);
+      });
     }
   }
+
 }

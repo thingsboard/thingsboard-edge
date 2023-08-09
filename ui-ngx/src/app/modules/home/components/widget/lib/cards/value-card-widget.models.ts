@@ -104,7 +104,8 @@ export const valueCardDefaultSettings = (horizontal: boolean): ValueCardWidgetSe
     size: 16,
     sizeUnit: 'px',
     style: 'normal',
-    weight: '500'
+    weight: '500',
+    lineHeight: '1.5'
   },
   labelColor: constantColor('rgba(0, 0, 0, 0.87)'),
   showIcon: true,
@@ -117,7 +118,8 @@ export const valueCardDefaultSettings = (horizontal: boolean): ValueCardWidgetSe
     size: 52,
     sizeUnit: 'px',
     style: 'normal',
-    weight: '500'
+    weight: '500',
+    lineHeight: '100%'
   },
   valueColor: constantColor('rgba(0, 0, 0, 0.87)'),
   showDate: true,
@@ -127,7 +129,8 @@ export const valueCardDefaultSettings = (horizontal: boolean): ValueCardWidgetSe
     size: 12,
     sizeUnit: 'px',
     style: 'normal',
-    weight: '500'
+    weight: '500',
+    lineHeight: '1.33'
   },
   dateColor: constantColor('rgba(0, 0, 0, 0.38)'),
   background: {

@@ -61,13 +61,13 @@ import {
   WidgetActionsApi,
   WidgetSubscriptionApi
 } from '@core/api/widget-api.models';
-import { ChangeDetectorRef, ComponentFactory, Injector, NgZone, Type } from '@angular/core';
+import { ChangeDetectorRef, Injector, NgModuleRef, NgZone, Type } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { RafService } from '@core/services/raf.service';
 import { WidgetTypeId } from '@shared/models/id/widget-type-id';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { WidgetLayout } from '@shared/models/dashboard.models';
-import { formatValue, isDefined } from '@core/utils';
+import { createLabelFromDatasource, formatValue, hasDatasourceLabelsVariables, isDefined } from '@core/utils';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import {
@@ -105,11 +105,13 @@ import * as RxJSOperators from 'rxjs/operators';
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { EntityId } from '@shared/models/id/entity-id';
 import { ReportService } from '@core/http/report.service';
-import { AlarmQuery, AlarmSearchStatus, AlarmStatus} from '@app/shared/models/alarm.models';
+import { AlarmQuery, AlarmSearchStatus, AlarmStatus } from '@app/shared/models/alarm.models';
 import { MillisecondsToTimeStringPipe, TelemetrySubscriber } from '@app/shared/public-api';
 import { UserId } from '@shared/models/id/user-id';
 import { UserSettingsService } from '@core/http/user-settings.service';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
+import { DynamicComponentModule } from '@core/services/dynamic-component-factory.service';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 export interface IWidgetAction {
   name: string;
@@ -222,6 +224,8 @@ export class WidgetContext {
   subscriptions: {[id: string]: IWidgetSubscription} = {};
   defaultSubscription: IWidgetSubscription = null;
 
+  labelPatterns = new Map<Observable<string>, LabelVariablePattern>();
+
   timewindowFunctions: TimewindowFunctions = {
     onUpdateTimewindow: (startTimeMs, endTimeMs, interval) => {
       if (this.defaultSubscription) {
@@ -290,7 +294,7 @@ export class WidgetContext {
   hiddenData?: Array<{data: DataSet}>;
   timeWindow?: WidgetTimewindow;
 
-  absoluteHeader?: boolean;
+  embedTitlePanel?: boolean;
 
   hideTitlePanel = false;
 
@@ -335,6 +339,23 @@ export class WidgetContext {
     this.popoverComponents.forEach(comp => {
       comp.tbHidden = hidden;
     });
+  }
+
+  registerLabelPattern(label: string, label$: Observable<string>): Observable<string> {
+    let labelPattern = label$ ? this.labelPatterns.get(label$) : null;
+    if (labelPattern) {
+      labelPattern.setupPattern(label);
+    } else {
+      labelPattern = new LabelVariablePattern(label, this);
+      this.labelPatterns.set(labelPattern.label$, labelPattern);
+    }
+    return labelPattern.label$;
+  }
+
+  updateLabelPatterns() {
+    for (const labelPattern of this.labelPatterns.values()) {
+      labelPattern.update();
+    }
   }
 
   showSuccessToast(message: string, duration: number = 1000,
@@ -431,6 +452,14 @@ export class WidgetContext {
     this.widgetActions = undefined;
   }
 
+  destroy() {
+    for (const labelPattern of this.labelPatterns.values()) {
+      labelPattern.destroy();
+    }
+    this.labelPatterns.clear();
+    this.destroyed = true;
+  }
+
   closeDialog(resultData: any = null) {
     const dialogRef = this.$scope.dialogRef || this.stateController.dashboardCtrl.dashboardCtx.getDashboard().dialogRef;
     if (dialogRef) {
@@ -448,6 +477,41 @@ export class WidgetContext {
 
   alarmQuery(entityId: EntityId, pageLink: TimePageLink, searchStatus: AlarmSearchStatus, status: AlarmStatus, fetchOriginator: boolean, assigneeId: UserId) {
     return new AlarmQuery(entityId, pageLink, searchStatus, status, fetchOriginator, assigneeId);
+  }
+}
+
+export class LabelVariablePattern {
+
+  private pattern: string;
+  private hasVariables: boolean;
+
+  private labelSubject = new BehaviorSubject<string>('');
+
+  public label$ = this.labelSubject.asObservable();
+
+  constructor(label: string,
+              private ctx: WidgetContext) {
+    this.setupPattern(label);
+  }
+
+  setupPattern(label: string) {
+    this.pattern = this.ctx.dashboard.utils.customTranslation(label, label);
+    this.hasVariables = hasDatasourceLabelsVariables(this.pattern);
+    this.update();
+  }
+
+  update() {
+    let label = this.pattern;
+    if (this.hasVariables && this.ctx.defaultSubscription?.datasources?.length) {
+      label = createLabelFromDatasource(this.ctx.defaultSubscription.datasources[0], label);
+    }
+    if (this.labelSubject.value !== label) {
+      this.labelSubject.next(label);
+    }
+  }
+
+  destroy() {
+    this.labelSubject.complete();
   }
 }
 
@@ -471,7 +535,8 @@ export interface WidgetInfo extends WidgetTypeDescriptor, WidgetControllerDescri
   typeLatestDataKeySettingsSchema?: string | any;
   image?: string;
   description?: string;
-  componentFactory?: ComponentFactory<IDynamicWidgetComponent>;
+  componentType?: Type<IDynamicWidgetComponent>;
+  componentModuleRef?: NgModuleRef<DynamicComponentModule>;
 }
 
 export interface WidgetConfigComponentData {
