@@ -58,7 +58,7 @@ public class BaseDeviceProfileProcessor extends BaseEdgeProcessor {
     @Autowired
     private DataDecodingEncodingService dataDecodingEncodingService;
 
-    protected boolean saveOrUpdateDeviceProfile(TenantId tenantId, DeviceProfileId deviceProfileId, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
+    protected Boolean saveOrUpdateDeviceProfile(TenantId tenantId, DeviceProfileId deviceProfileId, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
         boolean created = false;
         deviceProfileCreationLock.lock();
         try {
