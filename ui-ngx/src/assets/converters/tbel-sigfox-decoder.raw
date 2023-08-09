@@ -21,16 +21,32 @@ var transmitPower = ((attrByte & 0x4) >> 2) === 1 ? "full" : "low"; // bitmask f
 var powerControl = ((attrByte & 0x8) >> 3) === 1 ? "on" : "off"; // bitmask for third bit; right shift three bits to get fourth bit to the LSB position
 var firmwareVersion = attrByte >> 4; // shift right to bring the nibble down to the first four bits; result is INT
 
-var temperature = parseInt(json.data.substring(2, 6), 16) / 10.0 - 40;
-var humidity = parseInt(json.data.substring(6, 8), 16);
-var co2 = parseInt(json.data.substring(8, 12), 16);
+var data = json.data;
 
-var co2Baseline = 0;
-var co2BaselineN = parseInt(json.data.substring(12, 14), 16);
-if (co2BaselineN === 0) {
-    co2Baseline = 400;
-} else {
-    co2Baseline = co2BaselineN * 10;
+var temperature = null;
+var humidity = null;
+var co2 = null;
+var co2Baseline = null;
+
+if (data != null) {
+  if (data.length() >= 6) {
+    temperature = toFixed(parseInt(json.data.substring(2, 6), 16) / 10.0 - 40, 1);
+  }
+  if (data.length() >= 8) {
+    humidity = parseInt(json.data.substring(6, 8), 16);
+  }
+  if (data.length() >= 12) {
+    co2 = parseInt(json.data.substring(8, 12), 16);
+  }
+
+  if (data.length() >= 14) {
+    var co2BaselineN = parseInt(json.data.substring(12, 14), 16);
+    if (co2BaselineN === 0) {
+        co2Baseline = 400;
+    } else {
+        co2Baseline = co2BaselineN * 10;
+    }
+  }
 }
 
 var result = {
@@ -53,7 +69,7 @@ var result = {
     telemetry: {
         ts: json.time + "000",
         values: {
-            temperature: toFixed(temperature, 1),
+            temperature: temperature,
             humidity: humidity,
             co2: co2,
             co2Baseline: co2Baseline,
