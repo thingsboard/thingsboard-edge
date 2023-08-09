@@ -176,8 +176,12 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
       }
     );
 
+    let deleteEnabled = this.userPermissionsService.hasGenericPermission(Resource.ALARM, Operation.DELETE);
+    
     if (isUndefinedOrNull(this.readonly)) {
       this.readonly = !this.userPermissionsService.hasGenericPermission(Resource.ALARM, Operation.WRITE);
+    } else {
+      deleteEnabled = deleteEnabled && !this.readonly;
     }
 
     this.groupActionDescriptors.push(
@@ -196,7 +200,7 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
       {
         name: this.translate.instant('alarm.delete'),
         icon: 'delete',
-        isEnabled: !this.readonly,
+        isEnabled: deleteEnabled,
         onAction: ($event, entities) => this.deleteAlarms($event, entities)
       }
     )
