@@ -44,6 +44,7 @@ import { PopoverPlacement } from '@shared/components/popover.models';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { isDefinedAndNotNull } from '@core/utils';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -77,6 +78,11 @@ export class HelpPopupComponent implements OnChanges, OnDestroy {
 
   popoverVisible = false;
   popoverReady = true;
+
+
+  @Input()
+  @coerceBoolean()
+  hintMode = false;
 
   triggerSafeHtml: SafeHtml = null;
   textMode = false;
