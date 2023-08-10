@@ -176,16 +176,14 @@ public class ChirpStackIntegration extends BasicHttpIntegration<JsonHttpIntegrat
     }
 
     private ObjectNode createBodyForParameter(Map<String, String> metadata, String payload) {
-        String downlinkQueueParameter = DEVICE_DOWNLINK_QUEUE_PARAMETER;
-        if (this.useNewAPI.get()) {
-            downlinkQueueParameter = DOWNLINK_QUEUE_PARAMETER;
-        }
+        String downlinkQueueParameter = useNewAPI.get() ? DOWNLINK_QUEUE_PARAMETER : DEVICE_DOWNLINK_QUEUE_PARAMETER;
         ObjectNode body = JacksonUtil.newObjectNode();
+        ObjectNode queue = body.putObject(downlinkQueueParameter);
         if (metadata.containsKey(CONFIRMED)) {
-            body.with(downlinkQueueParameter).put(CONFIRMED, metadata.get(CONFIRMED));
+            queue.put(CONFIRMED, metadata.get(CONFIRMED));
         }
-        body.with(downlinkQueueParameter).put(DATA, payload);
-        body.with(downlinkQueueParameter).put(F_PORT, metadata.get(F_PORT));
+        queue.put(DATA, payload);
+        queue.put(F_PORT, metadata.get(F_PORT));
         return body;
     }
 
