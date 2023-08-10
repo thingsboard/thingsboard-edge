@@ -639,13 +639,19 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         // creation of edge template integrations will not impact creation of core integrations
         Converter edgeConverter = doPost("/api/converter", createConverter("My edge converter", true), Converter.class);
         for (int i = 0; i < limit; i++) {
-            Integration integration = createIntegration("EdgeTemplateIntegration" + i, true, edgeConverter.getId());
+            Integration integration = createIntegration("My edge integration before" + i, true, edgeConverter.getId());
             doPost("/api/integration", integration, Integration.class);
         }
 
         Converter converter = doPost("/api/converter", createConverter("My converter", false), Converter.class);
         for (int i = 0; i < limit; i++) {
-            Integration integration = createIntegration("Integration" + i, false, converter.getId());
+            Integration integration = createIntegration("My integration" + i, false, converter.getId());
+            doPost("/api/integration", integration, Integration.class);
+        }
+
+        // creation of edge template integrations allowed in case core integrations limit reached
+        for (int i = 0; i < limit; i++) {
+            Integration integration = createIntegration("My edge integration after" + i, true, edgeConverter.getId());
             doPost("/api/integration", integration, Integration.class);
         }
 
