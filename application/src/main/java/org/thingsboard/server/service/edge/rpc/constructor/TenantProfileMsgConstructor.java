@@ -28,27 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.cloud;
+package org.thingsboard.server.service.edge.rpc.constructor;
 
-public enum CloudEventType {
-    DASHBOARD,
-    ASSET,
-    DEVICE,
-    ENTITY_VIEW,
-    ALARM,
-    RULE_CHAIN,
-    RULE_CHAIN_METADATA,
-    USER,
-    TENANT,
-    TENANT_PROFILE,
-    CUSTOMER,
-    RELATION,
-    ENTITY_GROUP,
-    DEVICE_PROFILE,
-    WIDGETS_BUNDLE,
-    WIDGET_TYPE,
-    SCHEDULER_EVENT,
-    ROLE,
-    GROUP_PERMISSION,
-    EDGE
+import com.google.protobuf.ByteString;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.gen.edge.v1.TenantProfileUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+
+@Component
+@TbCoreComponent
+public class TenantProfileMsgConstructor {
+
+    @Autowired
+    private DataDecodingEncodingService dataDecodingEncodingService;
+
+    public TenantProfileUpdateMsg constructTenantProfileUpdateMsg(UpdateMsgType msgType, TenantProfile tenantProfile) {
+        TenantProfileUpdateMsg.Builder builder = TenantProfileUpdateMsg.newBuilder()
+                .setMsgType(msgType)
+                .setIdMSB(tenantProfile.getId().getId().getMostSignificantBits())
+                .setIdLSB(tenantProfile.getId().getId().getLeastSignificantBits())
+                .setName(tenantProfile.getName())
+                .setDefault(tenantProfile.isDefault())
+                .setIsolatedRuleChain(tenantProfile.isIsolatedTbRuleEngine())
+                .setProfileDataBytes(ByteString.copyFrom(dataDecodingEncodingService.encode(tenantProfile.getProfileData())));
+        if (tenantProfile.getDescription() != null) {
+            builder.setDescription(tenantProfile.getDescription());
+        }
+        return builder.build();
+    }
 }

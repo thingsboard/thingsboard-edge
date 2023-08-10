@@ -28,27 +28,40 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.cloud;
+package org.thingsboard.server.msa.edge;
 
-public enum CloudEventType {
-    DASHBOARD,
-    ASSET,
-    DEVICE,
-    ENTITY_VIEW,
-    ALARM,
-    RULE_CHAIN,
-    RULE_CHAIN_METADATA,
-    USER,
-    TENANT,
-    TENANT_PROFILE,
-    CUSTOMER,
-    RELATION,
-    ENTITY_GROUP,
-    DEVICE_PROFILE,
-    WIDGETS_BUNDLE,
-    WIDGET_TYPE,
-    SCHEDULER_EVENT,
-    ROLE,
-    GROUP_PERMISSION,
-    EDGE
+import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
+import org.junit.Test;
+import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.msa.AbstractContainerTest;
+
+import java.util.concurrent.TimeUnit;
+
+@Slf4j
+public class TenantProfileClientTest extends AbstractContainerTest {
+
+    @Test
+    public void testTenantProfileUpdate() {
+        cloudRestClient.login("sysadmin@thingsboard.org", "sysadmin");
+
+        // get edge tenant and tenant profile
+        Tenant tenant = cloudRestClient.getTenantById(edge.getTenantId()).get();
+        TenantProfile tenantProfile = cloudRestClient.getTenantProfileById(tenant.getTenantProfileId()).get();
+
+        // update tenant profile
+        tenantProfile.setDescription("Updated Tenant Profile Description");
+        cloudRestClient.saveTenantProfile(tenantProfile);
+
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    Tenant edgeTenant = edgeRestClient.getTenantById(edge.getTenantId()).get();
+                    return edgeTenant.getTenantProfileId().equals(cloudRestClient.getTenantProfileById(tenantProfile.getId()).get().getId());
+                });
+
+        cloudRestClient.login("tenant@thingsboard.org", "tenant");
+    }
 }

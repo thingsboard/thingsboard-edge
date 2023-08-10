@@ -28,45 +28,41 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.tenant;
+package org.thingsboard.server.service.edge.rpc.processor.tenant;
 
-import org.thingsboard.server.common.data.EntityInfo;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.TenantProfile;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.TenantProfileId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.entity.EntityDaoService;
+import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.TenantProfileUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
-import java.util.List;
-import java.util.UUID;
+@Component
+@Slf4j
+@TbCoreComponent
+public class TenantProfileEdgeProcessor extends BaseEdgeProcessor {
 
-public interface TenantProfileService extends EntityDaoService {
-
-    TenantProfile findTenantProfileById(TenantId tenantId, TenantProfileId tenantProfileId);
-
-    EntityInfo findTenantProfileInfoById(TenantId tenantId, TenantProfileId tenantProfileId);
-
-    TenantProfile saveTenantProfile(TenantId tenantId, TenantProfile tenantProfile);
-
-    TenantProfile saveTenantProfile(TenantId tenantId, TenantProfile tenantProfile, boolean doValidate);
-
-    void deleteTenantProfile(TenantId tenantId, TenantProfileId tenantProfileId);
-
-    PageData<TenantProfile> findTenantProfiles(TenantId tenantId, PageLink pageLink);
-
-    PageData<EntityInfo> findTenantProfileInfos(TenantId tenantId, PageLink pageLink);
-
-    TenantProfile findOrCreateDefaultTenantProfile(TenantId tenantId);
-
-    TenantProfile findDefaultTenantProfile(TenantId tenantId);
-
-    EntityInfo findDefaultTenantProfileInfo(TenantId tenantId);
-
-    boolean setDefaultTenantProfile(TenantId tenantId, TenantProfileId tenantProfileId);
-
-    void deleteTenantProfiles(TenantId tenantId);
-
-    List<TenantProfile> findTenantProfilesByIds(TenantId tenantId, UUID[] ids);
-
+    public DownlinkMsg convertTenantProfileEventToDownlink(EdgeEvent edgeEvent) {
+        TenantProfileId tenantProfileId = new TenantProfileId(edgeEvent.getEntityId());
+        DownlinkMsg downlinkMsg = null;
+        if (EdgeEventActionType.UPDATED.equals(edgeEvent.getAction())) {
+            TenantProfile tenantProfile = tenantProfileService.findTenantProfileById(edgeEvent.getTenantId(), tenantProfileId);
+            if (tenantProfile != null) {
+                UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
+                TenantProfileUpdateMsg tenantProfileUpdateMsg =
+                        tenantProfileMsgConstructor.constructTenantProfileUpdateMsg(msgType, tenantProfile);
+                downlinkMsg = DownlinkMsg.newBuilder()
+                        .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                        .addTenantProfileUpdateMsg(tenantProfileUpdateMsg)
+                        .build();
+            }
+        }
+        return downlinkMsg;
+    }
 }

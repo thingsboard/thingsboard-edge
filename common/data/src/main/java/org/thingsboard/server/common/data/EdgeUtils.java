@@ -104,6 +104,8 @@ public final class EdgeUtils {
                 return EdgeEventType.INTEGRATION;
             case CONVERTER:
                 return EdgeEventType.CONVERTER;
+            case TENANT_PROFILE:
+                return EdgeEventType.TENANT_PROFILE;
             default:
                 log.warn("Unsupported entity type [{}]", entityType);
                 return null;

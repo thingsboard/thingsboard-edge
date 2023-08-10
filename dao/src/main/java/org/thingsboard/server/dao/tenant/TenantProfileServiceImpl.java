@@ -48,6 +48,8 @@ import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileCon
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileData;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
@@ -102,12 +104,25 @@ public class TenantProfileServiceImpl extends AbstractCachedEntityService<Tenant
 
     @Override
     public TenantProfile saveTenantProfile(TenantId tenantId, TenantProfile tenantProfile) {
+        return doSaveTenantProfile(tenantId, tenantProfile, true);
+    }
+
+    @Override
+    public TenantProfile saveTenantProfile(TenantId tenantId, TenantProfile tenantProfile, boolean doValidate) {
+        return doSaveTenantProfile(tenantId, tenantProfile, doValidate);
+    }
+
+    private TenantProfile doSaveTenantProfile(TenantId tenantId, TenantProfile tenantProfile, boolean doValidate) {
         log.trace("Executing saveTenantProfile [{}]", tenantProfile);
-        tenantProfileValidator.validate(tenantProfile, (tenantProfile1) -> TenantId.SYS_TENANT_ID);
+        if (doValidate) {
+            tenantProfileValidator.validate(tenantProfile, (tenantProfile1) -> TenantId.SYS_TENANT_ID);
+        }
         TenantProfile savedTenantProfile;
         try {
             savedTenantProfile = tenantProfileDao.save(tenantId, tenantProfile);
             publishEvictEvent(new TenantProfileEvictEvent(savedTenantProfile.getId(), savedTenantProfile.isDefault()));
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId)
+                    .entityId(savedTenantProfile.getId()).added(tenantProfile.getId() == null).build());
         } catch (Exception t) {
             handleEvictEvent(new TenantProfileEvictEvent(null, tenantProfile.isDefault()));
             ConstraintViolationException e = DaoUtil.extractConstraintViolationException(t).orElse(null);
@@ -144,6 +159,7 @@ public class TenantProfileServiceImpl extends AbstractCachedEntityService<Tenant
         }
         deleteEntityRelations(tenantId, tenantProfileId);
         publishEvictEvent(new TenantProfileEvictEvent(tenantProfileId, isDefault));
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(tenantProfileId).build());
     }
 
     @Override
