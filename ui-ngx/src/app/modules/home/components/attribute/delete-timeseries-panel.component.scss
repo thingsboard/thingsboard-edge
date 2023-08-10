@@ -28,28 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.kv;
+@import '../../../../../scss/constants';
 
-import lombok.Data;
+:host {
+  width: 100%;
 
-@Data
-public class BaseDeleteTsKvQuery extends BaseTsKvQuery implements DeleteTsKvQuery {
+  .mat-toolbar {
+    background: none;
+  }
 
-    private final Boolean rewriteLatestIfDeleted;
-    private final Boolean deleteLatest;
+  .tb-form-settings {
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 0;
+  }
 
-    public BaseDeleteTsKvQuery(String key, long startTs, long endTs, boolean rewriteLatestIfDeleted, boolean deleteLatest) {
-        super(key, startTs, endTs);
-        this.rewriteLatestIfDeleted = rewriteLatestIfDeleted;
-        this.deleteLatest = deleteLatest;
+  .tb-select-interval {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    @media #{$mat-xs} {
+      flex-direction: column;
+      gap: 0;
     }
+  }
 
-    public BaseDeleteTsKvQuery(String key, long startTs, long endTs, boolean rewriteLatestIfDeleted) {
-        this(key, startTs, endTs, rewriteLatestIfDeleted, true);
-    }
-
-    public BaseDeleteTsKvQuery(String key, long startTs, long endTs) {
-        this(key, startTs, endTs, false, true);
-    }
-
+  .tb-slide-toggle {
+    margin-bottom: 8px;
+  }
 }
