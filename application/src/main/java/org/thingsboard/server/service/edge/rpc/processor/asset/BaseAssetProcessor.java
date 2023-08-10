@@ -62,15 +62,15 @@ public abstract class BaseAssetProcessor extends BaseEdgeProcessor {
                 asset = new Asset();
                 asset.setTenantId(tenantId);
                 asset.setCreatedTime(Uuids.unixTimestamp(assetId.getId()));
-                Asset assetByName = assetService.findAssetByTenantIdAndName(tenantId, assetName);
-                if (assetByName != null) {
-                    assetName = assetName + "_" + StringUtils.randomAlphanumeric(15);
-                    log.warn("Asset with name {} already exists. Renaming asset name to {}",
-                            assetUpdateMsg.getName(), assetName);
-                    assetNameUpdated = true;
-                }
             } else {
                 changeOwnerIfRequired(tenantId, customerId, assetId);
+            }
+            Asset assetByName = assetService.findAssetByTenantIdAndName(tenantId, assetName);
+            if (assetByName != null && !assetByName.getId().equals(assetId)) {
+                assetName = assetName + "_" + StringUtils.randomAlphanumeric(15);
+                log.warn("Asset with name {} already exists. Renaming asset name to {}",
+                        assetUpdateMsg.getName(), assetName);
+                assetNameUpdated = true;
             }
             asset.setName(assetName);
             asset.setType(assetUpdateMsg.getType());
