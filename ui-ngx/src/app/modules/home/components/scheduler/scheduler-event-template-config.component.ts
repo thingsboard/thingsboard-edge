@@ -32,12 +32,10 @@
 import {
   AfterViewInit,
   Component,
-  ComponentFactory,
-  ComponentFactoryResolver,
   ComponentRef,
   forwardRef,
   Injector,
-  Input,
+  Input, NgModuleRef,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -52,11 +50,14 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { SchedulerEventConfiguration } from '@shared/models/scheduler-event.models';
 import { cloneMetadata, deepClone } from '@core/utils';
-import { DynamicComponentFactoryService } from '@core/services/dynamic-component-factory.service';
+import {
+  DynamicComponentFactoryService,
+  DynamicComponentModule
+} from '@core/services/dynamic-component-factory.service';
 import { CustomSchedulerEventConfigComponent } from '@home/components/scheduler/config/custom-scheduler-event-config.component';
 import { SharedModule } from '@shared/shared.module';
 import { SchedulerEventConfigType } from '@home/components/scheduler/scheduler-event-config.models';
-import { tap } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 import { OtaUpdateEventConfigComponent } from '@home/components/scheduler/config/ota-update-event-config.component';
 
 @Component({
@@ -84,16 +85,14 @@ export class SchedulerEventTemplateConfigComponent implements ControlValueAccess
   @Input()
   schedulerEventType: string;
 
-  private customSchedulerEventConfigFactory: ComponentFactory<CustomSchedulerEventConfigComponent>;
+  private customSchedulerEventComponentType: Type<CustomSchedulerEventConfigComponent>;
   private configComponentRef: ComponentRef<ControlValueAccessor>;
   private configComponent: ControlValueAccessor;
 
   private propagateChange = (v: any) => { };
 
   constructor(private store: Store<AppState>,
-              private dynamicComponentFactoryService: DynamicComponentFactoryService,
-              private injector: Injector,
-              private resolver: ComponentFactoryResolver) {
+              private dynamicComponentFactoryService: DynamicComponentFactoryService) {
   }
 
   registerOnChange(fn: any): void {
@@ -124,9 +123,9 @@ export class SchedulerEventTemplateConfigComponent implements ControlValueAccess
       this.configComponentRef = null;
       this.configComponent = null;
     }
-    if (this.customSchedulerEventConfigFactory) {
-      this.dynamicComponentFactoryService.destroyDynamicComponentFactory(this.customSchedulerEventConfigFactory);
-      this.customSchedulerEventConfigFactory = null;
+    if (this.customSchedulerEventComponentType) {
+      this.dynamicComponentFactoryService.destroyDynamicComponent(this.customSchedulerEventComponentType);
+      this.customSchedulerEventComponentType = null;
     }
     if (this.schedulerEventType) {
       let template = '<div>Not defined!</div>';
@@ -140,9 +139,13 @@ export class SchedulerEventTemplateConfigComponent implements ControlValueAccess
           template = configType.template;
         }
       }
-      this.resolveComponentFactory(componentType, template).subscribe((factory) => {
+      this.resolveComponent(componentType, template).subscribe((data) => {
         this.configContentContainer.clear();
-        this.configComponentRef = this.configContentContainer.createComponent(factory);
+        const options = {} as any;
+        if (data[1]) {
+          options.ngModuleRef = data[1];
+        }
+        this.configComponentRef = this.configContentContainer.createComponent(data[0], options);
         this.configComponent = this.configComponentRef.instance;
         if (this.configComponent instanceof OtaUpdateEventConfigComponent) {
           this.configComponent.schedulerEventType = this.schedulerEventType;
@@ -156,25 +159,26 @@ export class SchedulerEventTemplateConfigComponent implements ControlValueAccess
     }
   }
 
-  private resolveComponentFactory(componentType: Type<ControlValueAccessor>,
-                                  template: string): Observable<ComponentFactory<ControlValueAccessor|OtaUpdateEventConfigComponent>> {
+  private resolveComponent(componentType: Type<ControlValueAccessor>,
+                           template: string): Observable<[Type<ControlValueAccessor|OtaUpdateEventConfigComponent>,
+                                                          NgModuleRef<DynamicComponentModule>]> {
     if (componentType) {
-      const factory = this.resolver.resolveComponentFactory(componentType);
-      return of(factory);
+      return of([componentType, null]);
     } else if (template) {
       class CustomSchedulerEventConfigComponentInstance extends CustomSchedulerEventConfigComponent {
       }
       cloneMetadata(CustomSchedulerEventConfigComponent, CustomSchedulerEventConfigComponentInstance);
-      return this.dynamicComponentFactoryService.createDynamicComponentFactory(
+      return this.dynamicComponentFactoryService.createDynamicComponent(
         CustomSchedulerEventConfigComponentInstance,
         template,
         [SharedModule]).pipe(
-        tap((factory: ComponentFactory<CustomSchedulerEventConfigComponent>) => {
-          this.customSchedulerEventConfigFactory = factory;
-        })
+        tap((componentData) => {
+          this.customSchedulerEventComponentType = componentData.componentType;
+        }),
+        map((componentData) => [componentData.componentType, componentData.componentModuleRef])
       );
     } else {
-      return of(null);
+      return of([null, null]);
     }
   }
 
@@ -185,8 +189,8 @@ export class SchedulerEventTemplateConfigComponent implements ControlValueAccess
     if (this.configComponentRef) {
       this.configComponentRef.destroy();
     }
-    if (this.customSchedulerEventConfigFactory) {
-      this.dynamicComponentFactoryService.destroyDynamicComponentFactory(this.customSchedulerEventConfigFactory);
+    if (this.customSchedulerEventComponentType) {
+      this.dynamicComponentFactoryService.destroyDynamicComponent(this.customSchedulerEventComponentType);
     }
   }
 
