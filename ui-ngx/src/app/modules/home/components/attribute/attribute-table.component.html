@@ -35,7 +35,7 @@
         <span fxFlex></span>
         <!-- @voba - merge comment -->
         <button mat-icon-button
-                *ngIf="!isClientSideTelemetryTypeMap.get(attributeScope) && !readonly"
+                *ngIf="attributeScope !== attributeScopeTypes.CLIENT_SCOPE && !readonly"
                 [disabled]="isLoading$ | async"
                 (click)="addAttribute($event)"
                 matTooltip="{{ 'action.add' | translate }}"
