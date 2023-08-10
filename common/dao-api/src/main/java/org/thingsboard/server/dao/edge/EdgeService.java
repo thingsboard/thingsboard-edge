@@ -100,8 +100,6 @@ public interface EdgeService extends EntityDaoService {
 
     PageData<Edge> findEdgesByTenantProfileId(TenantProfileId tenantProfileId, PageLink pageLink);
 
-    PageData<Edge> findEdgesByTenantProfileId(TenantProfileId tenantProfileId, PageLink pageLink);
-
     List<EdgeId> findAllRelatedEdgeIds(TenantId tenantId, EntityId entityId);
 
     PageData<EdgeId> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink);
