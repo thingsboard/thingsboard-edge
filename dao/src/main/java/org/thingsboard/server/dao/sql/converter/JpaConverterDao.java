@@ -126,7 +126,7 @@ public class JpaConverterDao extends JpaAbstractDao<ConverterEntity, Converter> 
 
     @Override
     public Long countByTenantId(TenantId tenantId) {
-        return converterRepository.countByTenantId(tenantId.getId());
+        return converterRepository.countByTenantIdAndEdgeTemplateFalse(tenantId.getId());
     }
 
     @Override

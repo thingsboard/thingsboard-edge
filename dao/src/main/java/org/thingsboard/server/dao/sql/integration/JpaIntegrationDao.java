@@ -138,7 +138,7 @@ public class JpaIntegrationDao extends JpaAbstractDao<IntegrationEntity, Integra
 
     @Override
     public Long countByTenantId(TenantId tenantId) {
-        return integrationRepository.countByTenantId(tenantId.getId());
+        return integrationRepository.countByTenantIdAndEdgeTemplateFalse(tenantId.getId());
     }
 
     @Override
