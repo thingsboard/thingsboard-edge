@@ -68,13 +68,13 @@ import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileQueueConfiguration;
-import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.common.data.util.TbPair;
+import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
+import org.thingsboard.server.dao.audit.AuditLogDao;
 import org.thingsboard.server.dao.cloud.CloudEventDao;
 import org.thingsboard.server.dao.cloud.CloudEventService;
-import org.thingsboard.server.dao.audit.AuditLogDao;
 import org.thingsboard.server.dao.edge.EdgeEventDao;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
@@ -94,9 +94,7 @@ import org.thingsboard.server.service.install.SystemDataLoaderService;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
@@ -219,7 +217,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     log.info("Skipping audit logs migration");
                 }
                 migrateEdgeEvents("Starting edge events migration. ");
-
                 break;
             case "3.4.4":
                 log.info("Updating data from version 3.4.4 to 3.5.0 ...");
