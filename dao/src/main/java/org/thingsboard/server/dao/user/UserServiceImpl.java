@@ -48,7 +48,6 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.UserInfo;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
@@ -196,7 +195,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         }
         eventPublisher.publishEvent(SaveEntityEvent.builder()
                 .tenantId(tenantId == null ? TenantId.SYS_TENANT_ID : tenantId)
-                .entity(user)
+                .entity(savedUser)
                 .entityId(savedUser.getId())
                 .added(user.getId() == null).build());
         return savedUser;

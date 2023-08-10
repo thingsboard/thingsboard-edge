@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -423,6 +424,33 @@ public class EdgeServiceTest extends AbstractServiceTest {
                 savedEdge.getId(),
                 "org.thingsboard.rule.engine.flow.TbRuleChainInputNode");
         Assert.assertEquals("{\"Rule Chain #3\":[\"Rule Chain #1\",\"Rule Chain #2\"]}", missingToRelatedRuleChains);
+    }
+
+    @Test
+    public void testFindEdgesByTenantProfileId() {
+        Tenant tenant1 = createTenant();
+        Tenant tenant2 = createTenant();
+        Assert.assertNotNull(tenant1);
+        Assert.assertNotNull(tenant2);
+        System.out.println("tenant1" + tenant1);
+        System.out.println("tenant2" + tenant2);
+
+        Edge edge1 = constructEdge(tenant1.getId(), "Tenant1 edge", "default");
+        Edge edge2 = constructEdge(tenant2.getId(), "Tenant2 edge", "default");
+        Edge savedEdge1 = edgeService.saveEdge(edge1);
+        Edge savedEdge2 = edgeService.saveEdge(edge2);
+        System.out.println("1" + savedEdge1);
+        System.out.println("2" + savedEdge2);
+        Assert.assertNotNull(savedEdge1);
+        Assert.assertNotNull(savedEdge2);
+        Assert.assertEquals(tenant1.getTenantProfileId(), tenant2.getTenantProfileId());
+
+        System.out.println(edgeService.findEdgesByTenantId(tenant1.getId(), new PageLink(1000)).getData());
+        System.out.println(edgeService.findEdgesByTenantId(tenant2.getId(), new PageLink(1000)).getData());
+
+        PageData<Edge> edgesPageData = edgeService.findEdgesByTenantProfileId(tenant2.getTenantProfileId(),
+                new PageLink(1000));
+        Assert.assertEquals(2, edgesPageData.getTotalElements());
     }
 
 }

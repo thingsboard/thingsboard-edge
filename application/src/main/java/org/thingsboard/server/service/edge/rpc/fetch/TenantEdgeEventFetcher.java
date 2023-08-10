@@ -28,31 +28,39 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.device.profile;
+package org.thingsboard.server.service.edge.rpc.fetch;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.tenant.TenantService;
 
-import javax.validation.Valid;
-import java.io.Serializable;
 import java.util.List;
 
-@ApiModel
-@Data
-public class DeviceProfileData implements Serializable {
+@AllArgsConstructor
+@Slf4j
+public class TenantEdgeEventFetcher extends BasePageableEdgeEventFetcher<Tenant> {
 
-    private static final long serialVersionUID = -3864805547939495272L;
+    private final TenantService tenantService;
 
-    @ApiModelProperty(position = 1, value = "JSON object of device profile configuration")
-    private DeviceProfileConfiguration configuration;
-    @Valid
-    @ApiModelProperty(position = 2, value = "JSON object of device profile transport configuration")
-    private DeviceProfileTransportConfiguration transportConfiguration;
-    @ApiModelProperty(position = 3, value = "JSON object of provisioning strategy type per device profile")
-    private DeviceProfileProvisionConfiguration provisionConfiguration;
-    @Valid
-    @ApiModelProperty(position = 4, value = "JSON array of alarm rules configuration per device profile")
-    private List<DeviceProfileAlarm> alarms;
+    @Override
+    PageData<Tenant> fetchPageData(TenantId tenantId, Edge edge, PageLink pageLink) {
+        Tenant tenant = tenantService.findTenantById(tenantId);
+        // returns PageData object to be in sync with other fetchers
+        return new PageData<>(List.of(tenant), 1, 1, false);
+    }
 
+    @Override
+    EdgeEvent constructEdgeEvent(TenantId tenantId, Edge edge, Tenant entity) {
+        return EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.TENANT,
+                EdgeEventActionType.UPDATED, entity.getId(), null);
+    }
 }

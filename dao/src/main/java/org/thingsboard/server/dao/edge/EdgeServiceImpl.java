@@ -66,6 +66,7 @@ import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -86,6 +87,7 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
+import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import javax.annotation.Nullable;
@@ -136,6 +138,9 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
 
     @Autowired
     private IntegrationService integrationService;
+
+    @Autowired
+    private TenantService tenantService;
 
     @Autowired
     private DataValidator<Edge> edgeValidator;
@@ -425,6 +430,13 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         return edgeDao.findEdgeIdsByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupUuids, groupType, pageLink);
     }
 
+    public PageData<Edge> findEdgesByTenantProfileId(TenantProfileId tenantProfileId, PageLink pageLink) {
+        log.trace("Executing findEdgesByTenantProfileId, tenantProfileId [{}], pageLink [{}]", tenantProfileId, pageLink);
+        Validator.validateId(tenantProfileId, "Incorrect tenantProfileId " + tenantProfileId);
+        validatePageLink(pageLink);
+        return edgeDao.findEdgesByTenantProfileId(tenantProfileId.getId(), pageLink);
+    }
+
     private PaginatedRemover<TenantId, Edge> tenantEdgesRemover =
             new PaginatedRemover<TenantId, Edge>() {
 
@@ -523,6 +535,8 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
                         integrationService.findIntegrationsByConverterId(tenantId, new ConverterId(entityId.getId()));
                 List<EntityId> integrationIds = integrationsByConverterId.stream().map(Integration::getId).collect(Collectors.toList());
                 return findEdgeIdsByTenantIdAndEntityIds(tenantId, integrationIds, EntityType.INTEGRATION, pageLink);
+            case TENANT_PROFILE:
+                return convertToEdgeIds(findEdgesByTenantProfileId(new TenantProfileId(entityId.getId()), pageLink));
             default:
                 log.warn("[{}] Unsupported entity type {}", tenantId, entityId.getEntityType());
                 return createEmptyEdgeIdPageData();
