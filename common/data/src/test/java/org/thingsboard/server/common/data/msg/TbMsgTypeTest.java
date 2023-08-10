@@ -37,6 +37,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.thingsboard.server.common.data.msg.TbMsgType.ALARM;
 import static org.thingsboard.server.common.data.msg.TbMsgType.ALARM_DELETE;
+import static org.thingsboard.server.common.data.msg.TbMsgType.CUSTOM_OR_NA_TYPE;
 import static org.thingsboard.server.common.data.msg.TbMsgType.DEDUPLICATION_TIMEOUT_SELF_MSG;
 import static org.thingsboard.server.common.data.msg.TbMsgType.DELAY_TIMEOUT_SELF_MSG;
 import static org.thingsboard.server.common.data.msg.TbMsgType.DEVICE_PROFILE_PERIODIC_SELF_MSG;
@@ -82,11 +83,12 @@ class TbMsgTypeTest {
             TB_SIMPLE_AGG_PERSIST_SELF_MSG,
             TB_SIMPLE_AGG_ENTITIES_SELF_MSG,
             OPC_UA_INT_SUCCESS,
-            OPC_UA_INT_FAILURE
+            OPC_UA_INT_FAILURE,
+            CUSTOM_OR_NA_TYPE
     );
 
     // backward-compatibility tests
-    
+
     @Test
     void getRuleNodeConnectionsTest() {
         var tbMsgTypes = TbMsgType.values();
@@ -106,13 +108,25 @@ class TbMsgTypeTest {
         var tbMsgTypes = TbMsgType.values();
         for (var type : tbMsgTypes) {
             if (typesWithNullRuleNodeConnection.contains(type)) {
-                assertThat(TbMsgType.getRuleNodeConnectionOrElseOther(type.name()))
+                assertThat(TbMsgType.getRuleNodeConnectionOrElseOther(type))
                         .isEqualTo(TbNodeConnectionType.OTHER);
             } else {
-                assertThat(TbMsgType.getRuleNodeConnectionOrElseOther(type.name())).isNotNull()
+                assertThat(TbMsgType.getRuleNodeConnectionOrElseOther(type)).isNotNull()
                         .isNotEqualTo(TbNodeConnectionType.OTHER);
             }
         }
     }
-    
+
+    @Test
+    void getCustomTypeTest() {
+        var tbMsgTypes = TbMsgType.values();
+        for (var type : tbMsgTypes) {
+            if (type.equals(CUSTOM_OR_NA_TYPE)) {
+                assertThat(type.isCustomType()).isTrue();
+                continue;
+            }
+            assertThat(type.isCustomType()).isFalse();
+        }
+    }
+
 }
