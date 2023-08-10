@@ -447,13 +447,19 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
 
         // creation of edge template converters will not impact creation of core converters
         for (int i = 0; i < limit; i++) {
-            Converter edgeConverter = createConverter("My edge converter" + i, true);
+            Converter edgeConverter = createConverter("My edge converter before" + i, true);
             doPost("/api/converter", edgeConverter, Converter.class);
         }
 
         for (int i = 0; i < limit; i++) {
             Converter converter = createConverter("My converter" + i, false);
             doPost("/api/converter", converter, Converter.class);
+        }
+
+        // creation of edge template converters allowed in case core converters limit reached
+        for (int i = 0; i < limit; i++) {
+            Converter edgeConverter = createConverter("My edge converter after" + i, true);
+            doPost("/api/converter", edgeConverter, Converter.class);
         }
 
         try {
