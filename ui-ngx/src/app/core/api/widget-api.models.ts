@@ -302,6 +302,8 @@ export interface IWidgetSubscription {
 
   legendData: LegendData;
 
+  readonly firstDatasource?: Datasource;
+
   datasourcePages?: PageData<Datasource>[];
   dataPages?: PageData<Array<DatasourceData>>[];
   datasources?: Array<Datasource>;
