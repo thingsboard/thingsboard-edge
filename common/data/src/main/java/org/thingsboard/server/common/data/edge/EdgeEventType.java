@@ -33,8 +33,6 @@ package org.thingsboard.server.common.data.edge;
 import lombok.Getter;
 import org.thingsboard.server.common.data.EntityType;
 
-import java.util.Arrays;
-
 @Getter
 public enum EdgeEventType {
     DASHBOARD(false, EntityType.DASHBOARD),
@@ -75,12 +73,5 @@ public enum EdgeEventType {
     EdgeEventType(boolean allEdgesRelated, EntityType entityType) {
         this.allEdgesRelated = allEdgesRelated;
         this.entityType = entityType;
-    }
-
-    public static EdgeEventType getEdgeEventTypeByEntityType(EntityType entityType) {
-        return Arrays.stream(values())
-                .filter(edgeEventType -> entityType.equals(edgeEventType.getEntityType()))
-                .findFirst()
-                .orElse(null);
     }
 }
