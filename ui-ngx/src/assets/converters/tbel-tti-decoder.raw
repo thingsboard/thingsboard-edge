@@ -2,6 +2,12 @@ var data = decodeToJson(payload);
 
 var deviceName = data.end_device_ids.device_id;
 var deviceType = data.end_device_ids.application_ids.application_id;
+var groupName = 'IAQ devices';
+// var customerName = 'Customer A';
+// use assetName and assetType instead of deviceName and deviceType
+// to automatically create assets instead of devices.
+// var assetName = 'Asset A';
+// var assetType = 'building';
 
 // If you want to parse incoming data somehow, you can add your code to this function.
 // input: bytes
@@ -20,25 +26,26 @@ function decodeFrmPayload(input) {
 
     output.telemetry.HEX_bytes = bytesToHex(input);
 
-    for (var i = 0; i < input.length; ) {
-        var channel_id = input[i++];
-        var channel_type = input[i++];
-        // BATTERY
-        if (channel_id === 0x01 && channel_type === 0x75) {
-            output.telemetry.battery = input[i];
-            i += 1;
-        }
-        // PIR
-        else if (channel_id === 0x03 && channel_type === 0x00) {
-            output.telemetry.pir = input[i] === 0 ? "normal" : "trigger";
-            i += 1;
-        }
-        // DAYLIGHT
-        else if (channel_id === 0x04 && channel_type === 0x00) {
-            output.telemetry.daylight = input[i] === 0 ? "dark" : "light";
-            i += 1;
-        } else {
-            break;
+    // If we have only one byte - we cannot parse it like it is in example
+    if (input.length > 1) {
+        for (var i = 0; i < input.length; ) {
+            var channel_id = input[i++];
+            var channel_type = input[i++];
+            // BATTERY
+            if (channel_id === 0x01 && channel_type === 0x75) {
+                output.telemetry.battery = input[i];
+                i += 1;
+            }
+            // PIR
+            else if (channel_id === 0x03 && channel_type === 0x00) {
+                output.telemetry.pir = input[i] === 0 ? "normal" : "trigger";
+                i += 1;
+            }
+            // DAYLIGHT
+            else if (channel_id === 0x04 && channel_type === 0x00) {
+                output.telemetry.daylight = input[i] === 0 ? "dark" : "light";
+                i += 1;
+            }
         }
     }
 
@@ -53,26 +60,32 @@ var attributes = {};
 
 // --- Timestamp parsing
 var dateString = data.uplink_message.received_at;
-var timestamp = new Date(dateString).getTime();
-if (timestamp == -1) {
-    // Specific data parsing for The Things Industries incoming message
-    var secondsSeparatorIndex = dateString.lastIndexOf('.') + 1;
-    var millisecondsEndIndex = dateString.lastIndexOf('+');
-    if (millisecondsEndIndex == -1) {
-        millisecondsEndIndex = dateString.lastIndexOf('Z');
-    }
-    if (millisecondsEndIndex == -1) {
-        millisecondsEndIndex = dateString.lastIndexOf('-');
-    }
-    if (millisecondsEndIndex == -1) {
-        if (dateString.length >= secondsSeparatorIndex + 3) {
-            dateString = dateString.substring(0, secondsSeparatorIndex + 3);
-        }
-    } else {
-        dateString = dateString.substring(0, secondsSeparatorIndex + 3) +
-            dateString.substring(millisecondsEndIndex, dateString.length);
-    }
-    timestamp = new Date(dateString).getTime();
+// If data is simulated or device doesn't send his own date string - we will use date from upcoming message, set by network server
+if ((data.simulated != null && data.simulated) || dateString == null) {
+    dateString = data.received_at;
+}
+var timestamp = -1;
+if (dateString != null) {
+  timestamp = new Date(dateString).getTime();
+  if (timestamp == -1) {
+      var secondsSeparatorIndex = dateString.lastIndexOf('.') + 1;
+      var millisecondsEndIndex = dateString.lastIndexOf('+');
+      if (millisecondsEndIndex == -1) {
+          millisecondsEndIndex = dateString.lastIndexOf('Z');
+      }
+      if (millisecondsEndIndex == -1) {
+          millisecondsEndIndex = dateString.lastIndexOf('-');
+      }
+      if (millisecondsEndIndex == -1) {
+          if (dateString.length >= secondsSeparatorIndex + 3) {
+              dateString = dateString.substring(0, secondsSeparatorIndex + 3);
+          }
+      } else {
+          dateString = dateString.substring(0, secondsSeparatorIndex + 3) +
+              dateString.substring(millisecondsEndIndex, dateString.length);
+      }
+      timestamp = new Date(dateString).getTime();
+  }
 }
 // If we cannot parse timestamp - we will use the current timestamp
 if (timestamp == -1) {
@@ -120,6 +133,10 @@ attributes.putAll(attributesData);
 var result = {
     deviceName: deviceName,
     deviceType: deviceType,
+//  assetName: assetName,
+//  assetType: assetType,
+//  customerName: customerName,
+    groupName: groupName,
     attributes: attributes,
     telemetry: {
         ts: timestamp,

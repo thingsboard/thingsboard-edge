@@ -51,6 +51,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ContextConfiguration;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntitySubtype;
@@ -64,6 +65,7 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceCredentialsId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -376,6 +378,45 @@ public class DeviceControllerTest extends AbstractControllerTest {
         testNotificationUpdateGatewayNever();
 
         deleteDifferentTenant();
+    }
+
+    @Test
+    public void testUpdateDeviceWithNewOwnerShouldBeProhibited() throws Exception {
+        Customer customer = new Customer();
+        customer.setTitle("Test customer");
+        Customer savedTestCustomer = doPost("/api/customer", customer, Customer.class);
+
+        Customer customer2 = new Customer();
+        customer2.setTitle("Test customer2");
+        Customer savedTestCustomer2 = doPost("/api/customer", customer2, Customer.class);
+
+        Device device = new Device();
+        device.setName("My device");
+        device.setType("default");
+        device.setCustomerId(savedTestCustomer.getId());
+
+        Device savedDevice = doPost("/api/device", device, Device.class);
+
+        Mockito.reset(tbClusterService, auditLogService, gatewayNotificationsService);
+
+        savedDevice.setCustomerId(savedTestCustomer2.getId());
+        doPost("/api/device", savedDevice)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString("Entity owner can`t be changed. Please use owner api to change owner")));
+
+        testNotifyEntityEqualsOneTimeServiceNeverError(savedDevice, savedTenant.getId(),
+                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.UPDATED,
+                new DataValidationException("Entity owner can`t be changed. Please use owner api to change owner"));
+
+        Mockito.reset(tbClusterService, auditLogService, gatewayNotificationsService);
+        savedDevice.setCustomerId(new CustomerId(EntityId.NULL_UUID));
+        doPost("/api/device", savedDevice)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString("Entity owner can`t be changed. Please use owner api to change owner")));
+
+        testNotifyEntityEqualsOneTimeServiceNeverError(savedDevice, savedTenant.getId(),
+                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.UPDATED,
+                new DataValidationException("Entity owner can`t be changed. Please use owner api to change owner"));
     }
 
     @Test

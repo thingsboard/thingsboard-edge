@@ -247,8 +247,9 @@ public class EntityViewControllerTest extends AbstractControllerTest {
 
     @Test
     public void testDeleteEntityView() throws Exception {
-        EntityView view = getNewSavedEntityView("Test entity view");
         Customer customer = doPost("/api/customer", getNewCustomer("My customer"), Customer.class);
+
+        EntityView view = createEntityView("Test entity view", 0, 0);
         view.setCustomerId(customer.getId());
         EntityView savedView = doPost("/api/entityView", view, EntityView.class);
 
@@ -559,7 +560,7 @@ public class EntityViewControllerTest extends AbstractControllerTest {
             viewNameFutures.add(Futures.transform(customerFuture, customerId -> {
                 String fullName = partOfName + ' ' + StringUtils.randomAlphanumeric(15);
                 fullName = even ? fullName.toLowerCase() : fullName.toUpperCase();
-                EntityView view = getNewSavedEntityView(fullName);
+                EntityView view = createEntityView(fullName, 0, 0);
                 view.setCustomerId(customerId);
                 return doPost("/api/entityView", view, EntityView.class);
             }, MoreExecutors.directExecutor()));
