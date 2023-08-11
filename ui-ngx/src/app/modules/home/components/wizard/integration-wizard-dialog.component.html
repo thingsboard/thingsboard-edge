@@ -82,10 +82,10 @@
     </mat-step>
     <mat-step [stepControl]="uplinkConverterForm">
       <form [formGroup]="uplinkConverterForm">
-        <ng-template #label matStepLabel>{{ "integration.uplink-converter" | translate }}</ng-template>
+        <ng-template #uplinkLabel matStepLabel>{{ "integration.uplink-converter" | translate }}</ng-template>
         <div class="tb-form-panel stroked">
           <div class="select-panel">
-            <div class="select-panel--header"><ng-container *ngTemplateOutlet=label></ng-container></div>
+            <div class="select-panel--header"><ng-container *ngTemplateOutlet=uplinkLabel></ng-container></div>
             <tb-toggle-select formControlName="converterType" selectMediaBreakpoint="xs">
               <tb-toggle-option [value]="'new'">{{ 'integration.new-uplink-converter' | translate }}</tb-toggle-option>
               <tb-toggle-option [value]="'exist'">{{ 'integration.existing-uplink-converter' | translate }}</tb-toggle-option>
@@ -113,36 +113,32 @@
     </mat-step>
     <mat-step [stepControl]="downlinkConverterForm" optional="true" *ngIf="showDownlinkStep">
       <form [formGroup]="downlinkConverterForm">
-        <ng-template matStepLabel>{{ "integration.downlink-converter" | translate }}</ng-template>
-        <mat-radio-group formControlName="converterType" fxLayout="column" class="tb-radio-button-group">
-          <section class="tb-radio-button-content" [ngClass]="{'tb-select-button': downlinkConverterForm.get('converterType').value === 'exist'}">
-            <mat-radio-button value="exist" color="primary" class="tb-radio-button">
-              <span translate>integration.existing-downlink-converter</span>
-            </mat-radio-button>
-            <tb-converter-autocomplete fxFlex formControlName="downlinkConverterId"
-                                       *ngIf="downlinkConverterForm.get('converterType').value === 'exist'"
-                                       labelText="integration.downlink-converter"
-                                       [converterType]="converterType.DOWNLINK"
-                                       [useFullEntityId]="true"
-                                       [isEdgeTemplate]="isEdgeTemplate">
-            </tb-converter-autocomplete>
-          </section>
-          <mat-divider class="tb-button-divider"></mat-divider>
-          <section class="tb-radio-button-content" [ngClass]="{'tb-select-button': downlinkConverterForm.get('converterType').value === 'new'}">
-            <mat-radio-button value="new" color="primary" class="tb-radio-button">
-              <span translate>integration.new-downlink-converter</span>
-            </mat-radio-button>
-            <tb-converter #downlinkDataConverter
-              [fxShow]="downlinkConverterForm.get('converterType').value === 'new'"
-              [integrationType]="integrationWizardForm.get('type').value"
-              [integrationName]="integrationWizardForm.get('name').value"
-              [convertorName]="createConvertorName(converterType.DOWNLINK)"
-              hideType="true"
-              isEdit="true"
-              [entity]="downlinkConverter"
-            ></tb-converter>
-          </section>
-        </mat-radio-group>
+        <ng-template #downlinkLabel matStepLabel>{{ "integration.downlink-converter" | translate }}</ng-template>
+        <div class="tb-form-panel stroked">
+          <div class="select-panel">
+            <div class="select-panel--header"><ng-container *ngTemplateOutlet=downlinkLabel></ng-container></div>
+            <tb-toggle-select formControlName="converterType" selectMediaBreakpoint="xs">
+              <tb-toggle-option [value]="'new'">{{ 'integration.new-downlink-converter' | translate }}</tb-toggle-option>
+              <tb-toggle-option [value]="'exist'">{{ 'integration.existing-downlink-converter' | translate }}</tb-toggle-option>
+            </tb-toggle-select>
+          </div>
+          <tb-converter-autocomplete fxFlex formControlName="downlinkConverterId"
+                                     *ngIf="downlinkConverterForm.get('converterType').value === 'exist'"
+                                     labelText="integration.downlink-converter"
+                                     [converterType]="converterType.DOWNLINK"
+                                     [useFullEntityId]="true"
+                                     [isEdgeTemplate]="isEdgeTemplate">
+          </tb-converter-autocomplete>
+          <tb-converter #downlinkDataConverter
+                        [fxShow]="downlinkConverterForm.get('converterType').value === 'new'"
+                        [integrationType]="integrationWizardForm.get('type').value"
+                        [integrationName]="integrationWizardForm.get('name').value"
+                        [convertorName]="createConvertorName(converterType.DOWNLINK)"
+                        hideType="true"
+                        isEdit="true"
+                        [entity]="downlinkConverter"
+          ></tb-converter>
+        </div>
       </form>
     </mat-step>
     <mat-step [stepControl]="integrationConfigurationForm">
