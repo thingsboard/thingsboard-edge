@@ -60,6 +60,6 @@ public class LocalConverterContext implements ConverterContext {
 
     @Override
     public Optional<IntegrationRateLimitService> getRateLimitService() {
-        return ctx.getRateLimitService();
+        return Optional.of(ctx.getRateLimitService());
     }
 }

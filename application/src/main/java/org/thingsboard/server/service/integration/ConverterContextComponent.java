@@ -37,9 +37,9 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.integration.api.IntegrationRateLimitService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.Optional;
-
+@TbCoreComponent
 @Component
 @Data
 public class ConverterContextComponent {
@@ -52,5 +52,5 @@ public class ConverterContextComponent {
     private TbServiceInfoProvider serviceInfoProvider;
 
     @Autowired
-    private Optional<IntegrationRateLimitService> rateLimitService;
+    private IntegrationRateLimitService rateLimitService;
 }
