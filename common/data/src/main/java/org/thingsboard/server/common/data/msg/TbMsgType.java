@@ -109,7 +109,7 @@ public enum TbMsgType {
     OPC_UA_INT_FAILURE(null),
 
     // Custom or N/A type:
-    CUSTOM_OR_NA_TYPE(null, false);
+    NA(null, false);
 
     public static final List<String> NODE_CONNECTIONS = EnumSet.allOf(TbMsgType.class).stream()
             .filter(tbMsgType -> !tbMsgType.isTellSelfOnly())

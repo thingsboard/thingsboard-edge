@@ -37,7 +37,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.thingsboard.server.common.data.msg.TbMsgType.ALARM;
 import static org.thingsboard.server.common.data.msg.TbMsgType.ALARM_DELETE;
-import static org.thingsboard.server.common.data.msg.TbMsgType.CUSTOM_OR_NA_TYPE;
+import static org.thingsboard.server.common.data.msg.TbMsgType.NA;
 import static org.thingsboard.server.common.data.msg.TbMsgType.DEDUPLICATION_TIMEOUT_SELF_MSG;
 import static org.thingsboard.server.common.data.msg.TbMsgType.DELAY_TIMEOUT_SELF_MSG;
 import static org.thingsboard.server.common.data.msg.TbMsgType.DEVICE_PROFILE_PERIODIC_SELF_MSG;
@@ -84,7 +84,7 @@ class TbMsgTypeTest {
             TB_SIMPLE_AGG_ENTITIES_SELF_MSG,
             OPC_UA_INT_SUCCESS,
             OPC_UA_INT_FAILURE,
-            CUSTOM_OR_NA_TYPE
+            NA
     );
 
     // backward-compatibility tests

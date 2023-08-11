@@ -513,7 +513,7 @@ public final class TbMsg implements Serializable {
         try {
             return TbMsgType.valueOf(type);
         } catch (IllegalArgumentException e) {
-            return TbMsgType.CUSTOM_OR_NA_TYPE;
+            return TbMsgType.NA;
         }
     }
 
