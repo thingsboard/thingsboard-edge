@@ -55,16 +55,7 @@ public final class EdgeUtils {
     private static final String ATTRIBUTE_REGEXP_PLACEHOLDER_PATTERN = "\\$\\{\\{%s}}";
     private static final int STACK_TRACE_LIMIT = 10;
 
-    private EdgeUtils() {
-    }
-
-    public static EdgeEventType getEdgeEventTypeByEntityType(EntityType entityType) {
-        EdgeEventType edgeEventType = entityType.getEdgeEventType();
-        if (edgeEventType == null) {
-            log.warn("Unsupported entity type [{}]", entityType);
-        }
-        return edgeEventType;
-    }
+    private EdgeUtils() {}
 
     public static int nextPositiveInt() {
         return ThreadLocalRandom.current().nextInt(0, Integer.MAX_VALUE);

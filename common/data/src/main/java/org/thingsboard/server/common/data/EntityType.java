@@ -32,7 +32,6 @@ package org.thingsboard.server.common.data;
 
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import org.thingsboard.server.common.data.edge.EdgeEventType;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -42,51 +41,51 @@ import java.util.stream.Collectors;
  * @author Andrew Shvayka
  */
 public enum EntityType {
-    TENANT(EdgeEventType.TENANT),
-    CUSTOMER(EdgeEventType.CUSTOMER),
-    USER(EdgeEventType.USER),
-    DASHBOARD(EdgeEventType.DASHBOARD),
-    ASSET(EdgeEventType.ASSET),
-    DEVICE(EdgeEventType.DEVICE),
-    ALARM(EdgeEventType.ALARM),
-    ENTITY_GROUP(EdgeEventType.ENTITY_GROUP) {
+    TENANT,
+    CUSTOMER,
+    USER,
+    DASHBOARD,
+    ASSET,
+    DEVICE,
+    ALARM,
+    ENTITY_GROUP {
         // backward compatibility for TbOriginatorTypeSwitchNode to return correct rule node connection.
         @Override
         public String getNormalName() {
             return "Entity Group";
         }
     },
-    CONVERTER(EdgeEventType.CONVERTER),
-    INTEGRATION(EdgeEventType.INTEGRATION),
-    RULE_CHAIN(EdgeEventType.RULE_CHAIN),
-    RULE_NODE(null),
-    SCHEDULER_EVENT(EdgeEventType.SCHEDULER_EVENT),
-    BLOB_ENTITY(null),
-    ENTITY_VIEW(EdgeEventType.ENTITY_VIEW) {
+    CONVERTER,
+    INTEGRATION,
+    RULE_CHAIN,
+    RULE_NODE,
+    SCHEDULER_EVENT,
+    BLOB_ENTITY,
+    ENTITY_VIEW {
         // backward compatibility for TbOriginatorTypeSwitchNode to return correct rule node connection.
         @Override
         public String getNormalName() {
             return "Entity View";
         }
     },
-    WIDGETS_BUNDLE(EdgeEventType.WIDGETS_BUNDLE),
-    WIDGET_TYPE(EdgeEventType.WIDGET_TYPE),
-    ROLE(EdgeEventType.ROLE),
-    GROUP_PERMISSION(EdgeEventType.GROUP_PERMISSION),
-    TENANT_PROFILE(EdgeEventType.TENANT_PROFILE),
-    DEVICE_PROFILE(EdgeEventType.DEVICE_PROFILE),
-    ASSET_PROFILE(EdgeEventType.ASSET_PROFILE),
-    API_USAGE_STATE(null),
-    TB_RESOURCE(null),
-    OTA_PACKAGE(EdgeEventType.OTA_PACKAGE),
-    EDGE(EdgeEventType.EDGE),
-    RPC(null),
-    QUEUE(EdgeEventType.QUEUE),
-    NOTIFICATION_TARGET(null),
-    NOTIFICATION_TEMPLATE(null),
-    NOTIFICATION_REQUEST(null),
-    NOTIFICATION(null),
-    NOTIFICATION_RULE(null);
+    WIDGETS_BUNDLE,
+    WIDGET_TYPE,
+    ROLE,
+    GROUP_PERMISSION,
+    TENANT_PROFILE,
+    DEVICE_PROFILE,
+    ASSET_PROFILE,
+    API_USAGE_STATE,
+    TB_RESOURCE,
+    OTA_PACKAGE,
+    EDGE,
+    RPC,
+    QUEUE,
+    NOTIFICATION_TARGET,
+    NOTIFICATION_TEMPLATE,
+    NOTIFICATION_REQUEST,
+    NOTIFICATION,
+    NOTIFICATION_RULE;
 
     public static final List<String> NORMAL_NAMES = EnumSet.allOf(EntityType.class).stream()
             .map(EntityType::getNormalName).collect(Collectors.toUnmodifiableList());
@@ -94,12 +93,5 @@ public enum EntityType {
     @Getter
     private final String normalName = StringUtils.capitalize(StringUtils.removeStart(name(), "TB_")
             .toLowerCase().replaceAll("_", " "));
-
-    @Getter
-    private final EdgeEventType edgeEventType;
-
-    EntityType(EdgeEventType edgeEventType) {
-        this.edgeEventType = edgeEventType;
-    }
 
 }
