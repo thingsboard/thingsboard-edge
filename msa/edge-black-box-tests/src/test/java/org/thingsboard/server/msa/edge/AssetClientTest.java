@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
 import java.util.Collections;
@@ -56,6 +57,10 @@ public class AssetClientTest extends AbstractContainerTest {
         // create asset #1, add to group #1 and assign group #1 to edge
         EntityGroup savedAssetEntityGroup1 = createEntityGroup(EntityType.ASSET);
         Asset savedAsset1 = saveAssetAndAssignEntityGroupToEdge("Building", savedAssetEntityGroup1);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getEntityGroupById(savedAssetEntityGroup1.getId()).isPresent());
 
         // update asset #1
         String updatedAssetName = savedAsset1.getName() + "Updated";
@@ -64,7 +69,8 @@ public class AssetClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> updatedAssetName.equals(edgeRestClient.getAssetById(savedAsset1.getId()).get().getName()));
+                .until(() -> updatedAssetName.equals(cloudRestClient.getAssetById(savedAsset1.getId()).get().getName())
+                        && updatedAssetName.equals(edgeRestClient.getAssetById(savedAsset1.getId()).get().getName()));
 
         // save asset #1 attribute
         JsonNode assetAttributes = JacksonUtil.OBJECT_MAPPER.readTree("{\"assetKey\":\"assetValue\"}");
@@ -102,8 +108,8 @@ public class AssetClientTest extends AbstractContainerTest {
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
-                    List<EntityGroupId> asset2Groups = edgeRestClient.getEntityGroupsForEntity(savedAsset2.getId());
-                    return !asset2Groups.contains(savedAssetEntityGroup2.getId());
+                    List<Asset> assets = edgeRestClient.getAssetsByEntityGroupId(savedAssetEntityGroup2.getId(), new PageLink(1000)).getData();
+                    return !assets.contains(savedAsset2);
                 });
 
         // delete asset #2
@@ -148,19 +154,21 @@ public class AssetClientTest extends AbstractContainerTest {
         EntityGroup savedAssetEntityGroup = createEntityGroup(EntityType.ASSET);
         assignEntityGroupToEdge(savedAssetEntityGroup);
 
-        Asset savedAssetOnEdge = saveAssetOnEdge("Edge Asset 2", edgeRestClient.getDefaultAssetProfileInfo().getName(), savedAssetEntityGroup.getId());
+        String assetName = "Edge Asset_" + StringUtils.randomAlphanumeric(15);
+        Asset savedAssetOnEdge = saveAssetOnEdge(assetName, edgeRestClient.getDefaultAssetProfileInfo().getName(), savedAssetEntityGroup.getId());
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> cloudRestClient.getAssetById(savedAssetOnEdge.getId()).isPresent());
 
         // update asset
-        savedAssetOnEdge.setName("Edge Asset 2 Updated");
+        String assetNameUpdated = assetName + "Updated";
+        savedAssetOnEdge.setName(assetNameUpdated);
         edgeRestClient.saveAsset(savedAssetOnEdge);
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> "Edge Asset 2 Updated".equals(cloudRestClient.getAssetById(savedAssetOnEdge.getId()).get().getName()));
+                .until(() -> assetNameUpdated.equals(cloudRestClient.getAssetById(savedAssetOnEdge.getId()).get().getName()));
 
         // delete asset
         edgeRestClient.deleteAsset(savedAssetOnEdge.getId());
@@ -171,6 +179,10 @@ public class AssetClientTest extends AbstractContainerTest {
 
         cloudRestClient.deleteAsset(savedAssetOnEdge.getId());
         cloudRestClient.deleteEntityGroup(savedAssetEntityGroup.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getEntityGroupById(savedAssetEntityGroup.getId()).isEmpty());
     }
 
     @Test
@@ -179,8 +191,9 @@ public class AssetClientTest extends AbstractContainerTest {
         EntityGroup savedAssetEntityGroup = createEntityGroup(EntityType.ASSET);
         assignEntityGroupToEdge(savedAssetEntityGroup);
 
-        Asset savedAssetOnCloud = saveAssetOnCloud("Edge Asset 3", "Building", savedAssetEntityGroup.getId());
-        Asset savedAssetOnEdge = saveAssetOnEdge("Edge Asset 3", "Building", savedAssetEntityGroup.getId());
+        String assetName = "Edge Asset_" + StringUtils.randomAlphanumeric(15);
+        Asset savedAssetOnCloud = saveAssetOnCloud(assetName, "Building", savedAssetEntityGroup.getId());
+        Asset savedAssetOnEdge = saveAssetOnEdge(assetName, "Building", savedAssetEntityGroup.getId());
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
@@ -199,6 +212,19 @@ public class AssetClientTest extends AbstractContainerTest {
         cloudRestClient.deleteAsset(savedAssetOnEdge.getId());
         cloudRestClient.deleteAsset(savedAssetOnCloud.getId());
         cloudRestClient.deleteEntityGroup(savedAssetEntityGroup.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getAssetById(savedAssetOnEdge.getId()).isEmpty() &&
+                                edgeRestClient.getAssetById(savedAssetOnCloud.getId()).isEmpty() &&
+                        edgeRestClient.getEntityGroupById(savedAssetEntityGroup.getId()).isEmpty());
+
+        // delete "building" asset profile
+        cloudRestClient.deleteAssetProfile(savedAssetOnCloud.getAssetProfileId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getAssetProfileById(savedAssetOnCloud.getAssetProfileId()).isEmpty());
     }
 
 }

@@ -44,6 +44,7 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
 import java.util.Collections;
@@ -63,6 +64,10 @@ public class EntityViewClientTest extends AbstractContainerTest {
         EntityView savedEntityView1 = saveEntityViewOnCloud("Edge Entity View 1", "Default", device.getId(), savedEntityViewEntityGroup1.getId());
 
         assignEntityGroupToEdge(savedEntityViewEntityGroup1);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getEntityGroupById(savedEntityViewEntityGroup1.getId()).isPresent());
 
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
@@ -76,7 +81,8 @@ public class EntityViewClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> updatedEntityViewName.equals(edgeRestClient.getEntityViewById(savedEntityView1.getId()).get().getName()));
+                .until(() -> updatedEntityViewName.equals(cloudRestClient.getEntityViewById(savedEntityView1.getId()).get().getName()) &&
+                        updatedEntityViewName.equals(edgeRestClient.getEntityViewById(savedEntityView1.getId()).get().getName()));
 
         // save entity view #1 attribute
         JsonNode entityViewAttributes = JacksonUtil.OBJECT_MAPPER.readTree("{\"entityViewKey\":\"entityViewValue\"}");
@@ -114,8 +120,8 @@ public class EntityViewClientTest extends AbstractContainerTest {
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
-                    List<EntityGroupId> entityView2Groups = edgeRestClient.getEntityGroupsForEntity(savedEntityView2.getId());
-                    return !entityView2Groups.contains(savedEntityViewEntityGroup2.getId());
+                    List<EntityView> entityViews = edgeRestClient.getEntityViewsByEntityGroupId(savedEntityViewEntityGroup2.getId(), new PageLink(1000)).getData();
+                    return !entityViews.contains(savedEntityView2);
                 });
 
         // delete entity view #2
@@ -144,7 +150,9 @@ public class EntityViewClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getEntityGroupById(savedEntityViewEntityGroup2.getId()).isEmpty());
+                .until(() -> edgeRestClient.getEntityViewById(savedEntityView1.getId()).isEmpty() &&
+                        edgeRestClient.getEntityGroupById(savedEntityViewEntityGroup1.getId()).isEmpty() &&
+                        edgeRestClient.getEntityGroupById(savedEntityViewEntityGroup2.getId()).isEmpty());
         // cleanup
         cloudRestClient.deleteDevice(device.getId());
     }
@@ -203,6 +211,11 @@ public class EntityViewClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> cloudRestClient.getAssetById(savedAssetOnEdge.getId()).isEmpty());
         cloudRestClient.deleteEntityGroup(savedAssetEntityGroup.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getEntityGroupById(savedAssetEntityGroup.getId()).isEmpty()
+                        && cloudRestClient.getEntityGroupById(savedAssetEntityGroup.getId()).isEmpty());
     }
 
     @Test
@@ -232,6 +245,10 @@ public class EntityViewClientTest extends AbstractContainerTest {
                         cloudRestClient.getEntityViewById(savedEntityViewOnEdge.getId()).isEmpty() &&
                         cloudRestClient.getEntityViewById(savedEntityViewOnCloud.getId()).isEmpty());
         cloudRestClient.deleteEntityGroup(savedEntityViewEntityGroup.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getEntityGroupById(savedEntityViewEntityGroup.getId()).isEmpty());
 
         // cleanup
         cloudRestClient.deleteDevice(device.getId());
