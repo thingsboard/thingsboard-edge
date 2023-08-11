@@ -54,6 +54,7 @@ public final class EdgeUtils {
     private static final Pattern ATTRIBUTE_PATTERN = Pattern.compile("(\\$\\{\\{)(.*?)(}})");
     private static final String ATTRIBUTE_PLACEHOLDER_PATTERN = "${{%s}}";
     private static final String ATTRIBUTE_REGEXP_PLACEHOLDER_PATTERN = "\\$\\{\\{%s}}";
+    private static final int STACK_TRACE_LIMIT = 10;
     private static final EnumMap<EntityType, EdgeEventType> entityTypeEdgeEventTypeEnumMap;
 
     static {
@@ -64,8 +65,6 @@ public final class EdgeUtils {
             }
         }
     }
-
-    private static final int STACK_TRACE_LIMIT = 10;
 
     private EdgeUtils() {}
 
