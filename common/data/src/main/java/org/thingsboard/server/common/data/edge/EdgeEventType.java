@@ -45,7 +45,7 @@ public enum EdgeEventType {
     RULE_CHAIN(false, EntityType.RULE_CHAIN),
     RULE_CHAIN_METADATA(false, null),
     EDGE(false, EntityType.EDGE),
-    USER(true, EntityType.USER),
+    USER(false, EntityType.USER),
     CUSTOMER(true, EntityType.CUSTOMER),
     RELATION(true, null),
     TENANT(true, EntityType.TENANT),
