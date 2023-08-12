@@ -53,10 +53,10 @@ public enum TbMsgType {
     ENTITY_UNASSIGNED("Entity Unassigned"),
     ATTRIBUTES_UPDATED("Attributes Updated"),
     ATTRIBUTES_DELETED("Attributes Deleted"),
-    ALARM(null),
+    ALARM,
     ALARM_ACK("Alarm Acknowledged"),
     ALARM_CLEAR("Alarm Cleared"),
-    ALARM_DELETE(null),
+    ALARM_DELETE,
     ALARM_ASSIGNED("Alarm Assigned"),
     ALARM_UNASSIGNED("Alarm Unassigned"),
     COMMENT_CREATED("Comment Created"),
@@ -64,8 +64,8 @@ public enum TbMsgType {
     RPC_CALL_FROM_SERVER_TO_DEVICE("RPC Request to Device"),
     ENTITY_ASSIGNED_FROM_TENANT("Entity Assigned From Tenant"),
     ENTITY_ASSIGNED_TO_TENANT("Entity Assigned To Tenant"),
-    ENTITY_ASSIGNED_TO_EDGE(null),
-    ENTITY_UNASSIGNED_FROM_EDGE(null),
+    ENTITY_ASSIGNED_TO_EDGE,
+    ENTITY_UNASSIGNED_FROM_EDGE,
     TIMESERIES_UPDATED("Timeseries Updated"),
     TIMESERIES_DELETED("Timeseries Deleted"),
     RPC_QUEUED("RPC Queued"),
@@ -79,9 +79,9 @@ public enum TbMsgType {
     RELATION_ADD_OR_UPDATE("Relation Added or Updated"),
     RELATION_DELETED("Relation Deleted"),
     RELATIONS_DELETED("All Relations Deleted"),
-    PROVISION_SUCCESS(null),
-    PROVISION_FAILURE(null),
-    SEND_EMAIL(null),
+    PROVISION_SUCCESS,
+    PROVISION_FAILURE,
+    SEND_EMAIL,
 
     // tellSelfOnly types
     GENERATOR_NODE_SELF_MSG(null, true),
@@ -109,7 +109,7 @@ public enum TbMsgType {
     OPC_UA_INT_FAILURE(null),
 
     // Custom or N/A type:
-    NA(null, false);
+    NA;
 
     public static final List<String> NODE_CONNECTIONS = EnumSet.allOf(TbMsgType.class).stream()
             .filter(tbMsgType -> !tbMsgType.isTellSelfOnly())
@@ -130,6 +130,10 @@ public enum TbMsgType {
 
     TbMsgType(String ruleNodeConnection) {
         this(ruleNodeConnection, false);
+    }
+
+    TbMsgType() {
+        this(null, false);
     }
 
 }
