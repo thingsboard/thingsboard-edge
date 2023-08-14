@@ -54,7 +54,7 @@
   <tb-alarm-table [active]="alarmsTab.isActive"
                   [entityId]="entity.id"
                   [writeEnabled]="(entityGroup | hasGroupEntityOrGenericPermission: entityResource: operation.WRITE) && (resource.ALARM | hasGenericPermission: operation.WRITE)"
-                  [removeEnabled]="(entityGroup | hasGroupEntityOrGenericPermission: entityResource: operation.DELETE) && (resource.ALARM | hasGenericPermission: operation.DELETE)">
+                  [removeEnabled]="(entityGroup | hasGroupEntityOrGenericPermission: entityResource: operation.WRITE) && (resource.ALARM | hasGenericPermission: operation.DELETE)">
   </tb-alarm-table>
 </mat-tab>
 <mat-tab *ngIf="entity"
