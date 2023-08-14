@@ -28,38 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration;
+package org.thingsboard.integration.api;
 
-import lombok.Data;
-import org.thingsboard.common.util.DonAsynchron;
-import org.thingsboard.integration.api.IntegrationCallback;
-import org.thingsboard.integration.api.IntegrationRateLimitService;
-import org.thingsboard.integration.api.converter.ConverterContext;
-import org.thingsboard.server.common.data.event.Event;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 
-import java.util.Optional;
+import java.util.function.Supplier;
 
-@Data
-public class LocalConverterContext implements ConverterContext {
+public interface IntegrationRateLimitService {
 
-    private final ConverterContextComponent ctx;
-    private final TenantId tenantId;
-    private final ConverterId converterId;
+    void checkLimit(TenantId tenantId, Supplier<String> msg);
 
-    @Override
-    public String getServiceId() {
-        return ctx.getServiceInfoProvider().getServiceId();
-    }
+    void checkLimit(TenantId tenantId, String deviceName, Supplier<String> msg);
 
-    @Override
-    public void saveEvent(Event event, IntegrationCallback<Void> callback) {
-        DonAsynchron.withCallback(ctx.getEventService().saveAsync(event), res -> callback.onSuccess(null), callback::onError);
-    }
+    boolean checkLimit(TenantId tenantId, IntegrationId integrationId, boolean throwException);
 
-    @Override
-    public Optional<IntegrationRateLimitService> getRateLimitService() {
-        return Optional.of(ctx.getRateLimitService());
-    }
+    boolean checkLimit(TenantId tenantId, ConverterId converterId, boolean throwException);
+
+    boolean alreadyProcessed(EntityId entityId, EntityType entityType);
 }

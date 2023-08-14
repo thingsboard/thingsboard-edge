@@ -50,9 +50,12 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.FSTUtils;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.event.ConverterDebugEvent;
 import org.thingsboard.server.common.data.event.Event;
 import org.thingsboard.server.common.data.event.EventType;
+import org.thingsboard.server.common.data.event.IntegrationDebugEvent;
 import org.thingsboard.server.common.data.event.LifecycleEvent;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -69,6 +72,7 @@ import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
+import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.ConnectRequestMsg;
@@ -235,6 +239,8 @@ public final class IntegrationGrpcSession implements Closeable {
         try {
             if (msg.getDeviceDataCount() > 0) {
                 for (DeviceUplinkDataProto data : msg.getDeviceDataList()) {
+                    ctx.getRateLimitService().checkLimit(configuration.getTenantId(), data::toString);
+                    ctx.getRateLimitService().checkLimit(configuration.getTenantId(), data.getDeviceName(), data::toString);
                     Device device = ctx.getPlatformIntegrationService().getOrCreateDevice(configuration, data.getDeviceName(), data.getDeviceType(), data.getDeviceLabel(), data.getCustomerName(), data.getGroupName());
 
                     UUID sessionId = this.sessionId;
@@ -270,6 +276,7 @@ public final class IntegrationGrpcSession implements Closeable {
 
             if (msg.getAssetDataCount() > 0) {
                 for (AssetUplinkDataProto data : msg.getAssetDataList()) {
+                    ctx.getRateLimitService().checkLimit(configuration.getTenantId(), data::toString);
                     Asset asset = ctx.getPlatformIntegrationService().getOrCreateAsset(configuration, data.getAssetName(), data.getAssetType(), data.getAssetLabel(), data.getCustomerName(), data.getGroupName());
 
                     if (data.hasPostTelemetryMsg()) {
@@ -314,10 +321,15 @@ public final class IntegrationGrpcSession implements Closeable {
                 for (TbEventProto proto : msg.getEventsDataList()) {
                     switch (proto.getSource()) {
                         case INTEGRATION:
+                            ctx.getRateLimitService().checkLimit(configuration.getTenantId(), configuration.getId(), true);
                             saveEvent(configuration.getTenantId(), configuration.getId(), proto);
                             break;
                         case UPLINK_CONVERTER:
-                            saveEvent(configuration.getTenantId(), configuration.getDefaultConverterId(), proto);
+                            if (ctx.getRateLimitService().checkLimit(configuration.getTenantId(), configuration.getDefaultConverterId(), false)) {
+                                saveEvent(configuration.getTenantId(), configuration.getDefaultConverterId(), proto);
+                            } else {
+                                sendConverterRateLimitEvent(proto);
+                            }
                             break;
                         case DOWNLINK_CONVERTER:
                             saveEvent(configuration.getTenantId(), configuration.getDownlinkConverterId(), proto);
@@ -339,6 +351,10 @@ public final class IntegrationGrpcSession implements Closeable {
                 }
             }
         } catch (Exception e) {
+            if (e instanceof TbRateLimitsException) {
+                sendIntegrationRateLimitEvent((TbRateLimitsException) e, msg.toString());
+            }
+
             String errorMsg = e.getMessage() != null ? e.getMessage() : "";
             return UplinkResponseMsg.newBuilder()
                     .setSuccess(false)
@@ -351,18 +367,67 @@ public final class IntegrationGrpcSession implements Closeable {
                 .build();
     }
 
+    private void sendIntegrationRateLimitEvent(TbRateLimitsException exception, String message) {
+        IntegrationId integrationId = configuration.getId();
+        EntityType limitedEntity = exception.getEntityType();
+        if (ctx.getRateLimitService().alreadyProcessed(integrationId, limitedEntity)) {
+            log.trace("[{}] [{}] [{}] Rate limited debug event already sent.", configuration.getTenantId(), integrationId, limitedEntity);
+            return;
+        }
+
+        var event = IntegrationDebugEvent.builder()
+                .tenantId(configuration.getTenantId())
+                .entityId(configuration.getId().getId())
+                .serviceId(serviceId)
+                .eventType("Uplink")
+                .message(message)
+                .status("ERROR")
+                .error(exception.getMessage());
+        saveEvent(configuration.getTenantId(), configuration.getId(), event.build());
+    }
+
+    private void sendConverterRateLimitEvent(TbEventProto proto) {
+        ConverterId converterId = configuration.getDefaultConverterId();
+        if (ctx.getRateLimitService().alreadyProcessed(converterId, EntityType.CONVERTER)) {
+            log.trace("[{}] [{}] Converter rate limited debug event already sent.", configuration.getTenantId(), converterId);
+            return;
+        }
+
+        ConverterDebugEvent event = FSTUtils.decode(proto.getEvent().toByteArray());
+
+        var newConverterEvent = ConverterDebugEvent.builder()
+                .tenantId(configuration.getTenantId())
+                .entityId(converterId.getId())
+                .serviceId(getServiceId())
+                .eventType("Uplink")
+                .inMsgType(event.getInMsgType())
+                .inMsg(event.getInMsg())
+                .outMsgType(null)
+                .outMsg(null)
+                .metadata(event.getMetadata())
+                .error("Converter debug rate limits reached!");
+
+        saveEvent(configuration.getTenantId(), converterId, newConverterEvent.build());
+    }
+
     private void saveEvent(TenantId tenantId, EntityId entityId, TbEventProto proto) {
         try {
-            Event event;
             if (proto.getEvent() != null && !proto.getEvent().isEmpty()) {
-                event = FSTUtils.decode(proto.getEvent().toByteArray());
+                Event event = FSTUtils.decode(proto.getEvent().toByteArray());
                 event.setTenantId(tenantId);
                 event.setEntityId(entityId.getId());
+                saveEvent(tenantId, entityId, event);
             } else {
                 //TODO: support backward compatibility by parsing the incoming data and converting it to the corresponding event.
                 log.warn("[{}][{}] Remote integration [{}] version is not compatible with new event api", configuration.getTenantId(), configuration.getId(), configuration.getName());
-                return;
             }
+        } catch (Exception e) {
+            log.warn("[{}] Failed to convert event body!", proto.getEvent(), e);
+        }
+    }
+
+    private void saveEvent(TenantId tenantId, EntityId entityId, Event event) {
+        try {
             ListenableFuture<Void> future = ctx.getEventService().saveAsync(event);
 
             if (entityId.getEntityType().equals(EntityType.INTEGRATION) && event.getType().equals(EventType.LC_EVENT)) {
@@ -404,7 +469,7 @@ public final class IntegrationGrpcSession implements Closeable {
                 }
             }, MoreExecutors.directExecutor());
         } catch (Exception e) {
-            log.warn("[{}] Failed to convert event body!", proto.getEvent(), e);
+            log.warn("[{}] Failed to save event!", event, e);
         }
     }
 

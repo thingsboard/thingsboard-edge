@@ -47,11 +47,15 @@ import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.integration.api.util.ExceptionUtil;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.event.IntegrationDebugEvent;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
@@ -64,6 +68,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Created by ashvayka on 25.12.17.
@@ -185,6 +190,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     private void processDeviceUplinkData(IntegrationContext context, UplinkData data) {
+        TenantId tenantId = configuration.getTenantId();
+        context.getRateLimitService().ifPresent(rls -> rls.checkLimit(tenantId, data.getDeviceName(), data::toString));
         DeviceUplinkDataProto.Builder builder = DeviceUplinkDataProto.newBuilder()
                 .setDeviceName(data.getDeviceName())
                 .setDeviceType(data.getDeviceType());
@@ -251,6 +258,22 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     protected void persistDebug(IntegrationContext context, String type, String messageType, String message, String status, Throwable exception) {
+        IntegrationId integrationId = configuration.getId();
+        if (exception instanceof TbRateLimitsException) {
+            EntityType limitedEntity = ((TbRateLimitsException) exception).getEntityType();
+            if (context.getRateLimitService().get().alreadyProcessed(integrationId, limitedEntity)) {
+                log.trace("[{}] [{}] [{}] Rate limited debug event already sent.", configuration.getTenantId(), integrationId, limitedEntity);
+                return;
+            }
+        } else if (!context.getRateLimitService().map(s -> s.checkLimit(configuration.getTenantId(), integrationId, false)).orElse(true)) {
+            if (context.getRateLimitService().get().alreadyProcessed(integrationId, EntityType.INTEGRATION)) {
+                log.trace("[{}] [{}] [{}] Rate limited debug event already sent.", configuration.getTenantId(), integrationId, EntityType.INTEGRATION);
+            } else {
+                exception = new TbRateLimitsException(EntityType.INTEGRATION, "Integration debug rate limits reached!");
+                status = "ERROR";
+            }
+        }
+
         var event = IntegrationDebugEvent.builder()
                 .tenantId(configuration.getTenantId())
                 .entityId(configuration.getId().getId())
@@ -283,6 +306,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
     //Please, prefer async method convertToUplinkDataListAsync
     protected List<UplinkData> convertToUplinkDataList(IntegrationContext context, byte[] data, UplinkMetaData md) throws Exception {
+        Optional<IntegrationRateLimitService> rateLimitService = context.getRateLimitService();
+        rateLimitService.ifPresent(s -> s.checkLimit(configuration.getTenantId(), () -> JacksonUtil.toString(JacksonUtil.fromBytes(data))));
         return convertToUplinkDataListAsync(context, data, md).get();
     }
 
