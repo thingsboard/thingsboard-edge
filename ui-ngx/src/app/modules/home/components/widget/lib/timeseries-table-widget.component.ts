@@ -228,8 +228,6 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
     }
   };
 
-  textSearch = this.fb.control('', {nonNullable: true});
-
   constructor(protected store: Store<AppState>,
               private elementRef: ElementRef,
               private overlay: Overlay,
