@@ -891,7 +891,6 @@ public abstract class AbstractContainerTest {
     protected void unAssignFromEdgeAndDeleteRuleChain(RuleChainId ruleChainId) {
         // unassign rule chain from edge
         cloudRestClient.unassignRuleChainFromEdge(edge.getId(), ruleChainId);
-
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
@@ -899,6 +898,10 @@ public abstract class AbstractContainerTest {
 
         // delete rule chain
         cloudRestClient.deleteRuleChain(ruleChainId);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getRuleChainById(ruleChainId).isEmpty());
     }
 
     protected DashboardId createDashboardAndAssignToEdge(String dashboardName, EntityGroup dashboardGroup) {
@@ -922,6 +925,10 @@ public abstract class AbstractContainerTest {
 
         cloudRestClient.deleteDashboard(dashboardId);
         cloudRestClient.deleteEntityGroup(dashboardGroupId);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getEntityGroupById(dashboardGroupId).isEmpty());
     }
 
     protected OtaPackageId createOtaPackageInfo(DeviceProfileId deviceProfileId, OtaPackageType otaPackageType) throws Exception {

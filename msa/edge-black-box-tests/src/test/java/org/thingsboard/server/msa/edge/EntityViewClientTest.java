@@ -81,8 +81,8 @@ public class EntityViewClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> updatedEntityViewName.equals(cloudRestClient.getEntityViewById(savedEntityView1.getId()).get().getName()) &&
-                        updatedEntityViewName.equals(edgeRestClient.getEntityViewById(savedEntityView1.getId()).get().getName()));
+                .until(() -> updatedEntityViewName.equals(cloudRestClient.getEntityViewById(savedEntityView1.getId()).get().getName())
+                        && updatedEntityViewName.equals(edgeRestClient.getEntityViewById(savedEntityView1.getId()).get().getName()));
 
         // save entity view #1 attribute
         JsonNode entityViewAttributes = JacksonUtil.OBJECT_MAPPER.readTree("{\"entityViewKey\":\"entityViewValue\"}");
@@ -236,6 +236,7 @@ public class EntityViewClientTest extends AbstractContainerTest {
                 });
 
         // delete entity view
+        edgeRestClient.deleteEntityView(savedEntityViewOnEdge.getId());
         cloudRestClient.deleteEntityView(savedEntityViewOnEdge.getId());
         cloudRestClient.deleteEntityView(savedEntityViewOnCloud.getId());
         Awaitility.await()

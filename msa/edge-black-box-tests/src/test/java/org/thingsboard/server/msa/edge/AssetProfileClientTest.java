@@ -33,6 +33,7 @@ package org.thingsboard.server.msa.edge;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.junit.Test;
+import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -57,7 +58,7 @@ public class AssetProfileClientTest extends AbstractContainerTest {
         EntityGroup dashboardGroup = createEntityGroup(EntityType.DASHBOARD);
         DashboardId dashboardId = createDashboardAndAssignToEdge("Asset Profile Test Dashboard", dashboardGroup);
         RuleChainId savedRuleChainId = createRuleChainAndAssignToEdge("Asset Profile Test RuleChain");
-        AssetProfile savedAssetProfile = createCustomAssetProfile(dashboardId, savedRuleChainId);
+        AssetProfile savedAssetProfile = createCustomAssetProfile("Buildings", dashboardId, savedRuleChainId, cloudRestClient);
 
         verifyAssetProfilesOnEdge(3);
 
@@ -77,13 +78,20 @@ public class AssetProfileClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testAssetProfileToCloud() {
+    public void testAssetProfileToCloud() throws Exception {
         // create asset profile on edge
-        AssetProfile saveAssetProfileOnEdge = saveAssetProfileOnEdge("Asset Profile On Edge");
+        EntityGroup dashboardGroup = createEntityGroup(EntityType.DASHBOARD);
+        DashboardId dashboardId = createDashboardAndAssignToEdge("Asset Profile Test Dashboard", dashboardGroup);
+        RuleChainId savedRuleChainId = createRuleChainAndAssignToEdge("Asset Profile Test RuleChain");
+        AssetProfile saveAssetProfileOnEdge = createCustomAssetProfile("Asset Profile To Cloud", dashboardId, savedRuleChainId, edgeRestClient);
+
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> cloudRestClient.getAssetProfileById(saveAssetProfileOnEdge.getId()).isPresent());
+                .until(() -> {
+                    System.out.println("asset profiles on cloud = " + cloudRestClient.getAssetProfiles(new PageLink(1000)).getData());
+                    return cloudRestClient.getAssetProfileById(saveAssetProfileOnEdge.getId()).isPresent();
+                });
 
         // update asset profile
         saveAssetProfileOnEdge.setName("Asset Profile On Edge Updated");
@@ -99,18 +107,21 @@ public class AssetProfileClientTest extends AbstractContainerTest {
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getAssetProfileById(saveAssetProfileOnEdge.getId()).isEmpty());
+
+        unAssignFromEdgeAndDeleteDashboard(dashboardId, dashboardGroup.getId());
+        unAssignFromEdgeAndDeleteRuleChain(savedRuleChainId);
     }
 
-    private AssetProfile createCustomAssetProfile(DashboardId defaultDashboardId, RuleChainId edgeRuleChainId) {
+    private AssetProfile createCustomAssetProfile(String name, DashboardId defaultDashboardId, RuleChainId edgeRuleChainId, RestClient restClient) {
         AssetProfile assetProfile = new AssetProfile();
-        assetProfile.setName("Buildings");
+        assetProfile.setName(name);
         assetProfile.setImage("iVBORw0KGgoAAAANSUhEUgAAAQAAAAEABA");
         assetProfile.setDefault(false);
         assetProfile.setDescription("Asset profile description");
         assetProfile.setDefaultQueueName("Main");
         assetProfile.setDefaultDashboardId(defaultDashboardId);
         assetProfile.setDefaultEdgeRuleChainId(edgeRuleChainId);
-        return cloudRestClient.saveAssetProfile(assetProfile);
+        return restClient.saveAssetProfile(assetProfile);
     }
 
     private void verifyAssetProfilesOnEdge(int expectedAssetProfilesCnt) {
@@ -121,12 +132,6 @@ public class AssetProfileClientTest extends AbstractContainerTest {
 
         PageData<AssetProfile> pageData = edgeRestClient.getAssetProfiles(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.ASSET_PROFILE);
-    }
-
-    private AssetProfile saveAssetProfileOnEdge(String assetProfileName) {
-        AssetProfile assetProfile = new AssetProfile();
-        assetProfile.setName(assetProfileName);
-        return edgeRestClient.saveAssetProfile(assetProfile);
     }
 
 }

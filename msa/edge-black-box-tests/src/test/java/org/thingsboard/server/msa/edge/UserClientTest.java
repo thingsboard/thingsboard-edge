@@ -110,6 +110,10 @@ public class UserClientTest extends AbstractContainerTest {
 
         // clean up
         cloudRestClient.deleteEntityGroup(savedCustomUserGroup.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getEntityGroupById(savedCustomUserGroup.getId()).isEmpty());
     }
 
     @Test
