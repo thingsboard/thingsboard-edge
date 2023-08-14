@@ -31,43 +31,47 @@
 package org.thingsboard.server.common.data.edge;
 
 import lombok.Getter;
+import org.thingsboard.server.common.data.EntityType;
 
 @Getter
 public enum EdgeEventType {
-
-    DASHBOARD(false),
-    ASSET(false),
-    DEVICE(false),
-    DEVICE_PROFILE(true),
-    ASSET_PROFILE(true),
-    ENTITY_VIEW(false),
-    ALARM(false),
-    RULE_CHAIN(false),
-    RULE_CHAIN_METADATA(false),
-    EDGE(false),
-    USER(false),
-    CUSTOMER(true),
-    RELATION(true),
-    TENANT(true),
-    TENANT_PROFILE(true),
-    WIDGETS_BUNDLE(true),
-    WIDGET_TYPE(true),
-    ADMIN_SETTINGS(true),
-    OTA_PACKAGE(true),
-    QUEUE(true),
-    ENTITY_GROUP(false),
-    SCHEDULER_EVENT(false),
-    WHITE_LABELING(true),
-    LOGIN_WHITE_LABELING(true),
-    CUSTOM_TRANSLATION(true),
-    ROLE(true),
-    GROUP_PERMISSION(true),
-    CONVERTER(false),
-    INTEGRATION(false);
+    DASHBOARD(false, EntityType.DASHBOARD),
+    ASSET(false, EntityType.ASSET),
+    DEVICE(false, EntityType.DEVICE),
+    DEVICE_PROFILE(true, EntityType.DEVICE_PROFILE),
+    ASSET_PROFILE(true, EntityType.ASSET_PROFILE),
+    ENTITY_VIEW(false, EntityType.ENTITY_VIEW),
+    ALARM(false, EntityType.ALARM),
+    RULE_CHAIN(false, EntityType.RULE_CHAIN),
+    RULE_CHAIN_METADATA(false, null),
+    EDGE(false, EntityType.EDGE),
+    USER(false, EntityType.USER),
+    CUSTOMER(true, EntityType.CUSTOMER),
+    RELATION(true, null),
+    TENANT(true, EntityType.TENANT),
+    TENANT_PROFILE(true, EntityType.TENANT_PROFILE),
+    WIDGETS_BUNDLE(true, EntityType.WIDGETS_BUNDLE),
+    WIDGET_TYPE(true, EntityType.WIDGET_TYPE),
+    ADMIN_SETTINGS(true, null),
+    OTA_PACKAGE(true, EntityType.OTA_PACKAGE),
+    QUEUE(true, EntityType.QUEUE),
+    ENTITY_GROUP(false, EntityType.ENTITY_GROUP),
+    SCHEDULER_EVENT(false, EntityType.SCHEDULER_EVENT),
+    WHITE_LABELING(true, null),
+    LOGIN_WHITE_LABELING(true, null),
+    CUSTOM_TRANSLATION(true, null),
+    ROLE(true, EntityType.ROLE),
+    GROUP_PERMISSION(true, EntityType.GROUP_PERMISSION),
+    CONVERTER(false, EntityType.CONVERTER),
+    INTEGRATION(false, EntityType.INTEGRATION);
 
     private final boolean allEdgesRelated;
 
-    EdgeEventType(boolean allEdgesRelated) {
+    private final EntityType entityType;
+
+
+    EdgeEventType(boolean allEdgesRelated, EntityType entityType) {
         this.allEdgesRelated = allEdgesRelated;
+        this.entityType = entityType;
     }
 }
