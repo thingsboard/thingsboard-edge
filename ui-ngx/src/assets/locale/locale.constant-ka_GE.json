@@ -323,6 +323,7 @@
     "attributes": "ატრიბუტები",
     "latest-telemetry": "უახლესი ტელემეტრია",
     "attributes-scope": "ობიექტის ატრიბუტების ფარგლები",
+    "scope-telemetry": "ტელემეტრია",
     "scope-latest-telemetry": "უახლესი ტელემეტრია",
     "scope-client": "კლიენტის ატრიბუტები",
     "scope-server": "სერვერის ატრიბუტები",

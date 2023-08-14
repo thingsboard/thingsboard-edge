@@ -97,6 +97,14 @@
             [functionArgs]="['payload', 'metadata']"
             helpId="converter/decoder_fn"
             noValidate>
+              <button toolbarSuffixButton
+                      mat-icon-button
+                      matTooltip="{{ 'converter.test-decoder-fuction' | translate }}"
+                      matTooltipPosition="above"
+                      class="tb-mat-32"
+                      (click)="openConverterTestDialog()">
+                <mat-icon class="material-icons" color="primary">bug_report</mat-icon>
+              </button>
           </tb-js-func>
           <tb-js-func
             *ngIf="entityForm.get('configuration').get('scriptLang').value === scriptLanguage.TBEL"
@@ -107,6 +115,14 @@
             [scriptLanguage]="scriptLanguage.TBEL"
             helpId="converter/tbel/decoder_fn"
             noValidate>
+              <button toolbarSuffixButton
+                      mat-icon-button
+                      matTooltip="{{ 'converter.test-decoder-fuction' | translate }}"
+                      matTooltipPosition="above"
+                      class="tb-mat-32"
+                      (click)="openConverterTestDialog()">
+                <mat-icon class="material-icons" color="primary">bug_report</mat-icon>
+              </button>
           </tb-js-func>
         </section>
         <section *ngIf="entityForm.get('type').value === converterType.DOWNLINK">
@@ -117,6 +133,14 @@
             [functionArgs]="['msg', 'metadata', 'msgType', 'integrationMetadata']"
             helpId="converter/encoder_fn"
             noValidate>
+            <button toolbarSuffixButton
+                    mat-icon-button
+                    matTooltip="{{ 'converter.test-encoder-fuction' | translate }}"
+                    matTooltipPosition="above"
+                    class="tb-mat-32"
+                    (click)="openConverterTestDialog()">
+              <mat-icon class="material-icons" color="primary">bug_report</mat-icon>
+            </button>
           </tb-js-func>
           <tb-js-func
             *ngIf="entityForm.get('configuration').get('scriptLang').value === scriptLanguage.TBEL"
@@ -126,6 +150,14 @@
             [functionArgs]="['msg', 'metadata', 'msgType', 'integrationMetadata']"
             helpId="converter/tbel/encoder_fn"
             noValidate>
+            <button toolbarSuffixButton
+                    mat-icon-button
+                    matTooltip="{{ 'converter.test-encoder-fuction' | translate }}"
+                    matTooltipPosition="above"
+                    class="tb-mat-32"
+                    (click)="openConverterTestDialog()">
+              <mat-icon class="material-icons" color="primary">bug_report</mat-icon>
+            </button>
           </tb-js-func>
         </section>
         <div fxLayout="row" style="padding-bottom: 16px;">

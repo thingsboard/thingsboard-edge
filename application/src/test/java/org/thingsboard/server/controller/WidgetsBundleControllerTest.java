@@ -99,7 +99,7 @@ public class WidgetsBundleControllerTest extends AbstractControllerTest {
         WidgetsBundle savedWidgetsBundle = doPost("/api/widgetsBundle", widgetsBundle, WidgetsBundle.class);
 
         testNotifyEntityAllOneTimeLogEntityActionEntityEqClass(savedWidgetsBundle, savedWidgetsBundle.getId(), savedWidgetsBundle.getId(), savedTenant.getId(),
-                tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED);
+                tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, ActionType.ADDED);
 
         Mockito.reset(tbClusterService, auditLogService);
 
@@ -117,7 +117,7 @@ public class WidgetsBundleControllerTest extends AbstractControllerTest {
         Assert.assertEquals(foundWidgetsBundle.getTitle(), savedWidgetsBundle.getTitle());
 
         testNotifyEntityAllOneTimeLogEntityActionEntityEqClass(savedWidgetsBundle, savedWidgetsBundle.getId(), savedWidgetsBundle.getId(), savedTenant.getId(),
-                tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.UPDATED);
+                tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.UPDATED, ActionType.UPDATED);
     }
 
     @Test
@@ -181,7 +181,7 @@ public class WidgetsBundleControllerTest extends AbstractControllerTest {
         String savedWidgetsBundleIdStr = savedWidgetsBundle.getId().getId().toString();
 
         testNotifyEntityAllOneTimeLogEntityActionEntityEqClass(savedWidgetsBundle, savedWidgetsBundle.getId(), savedWidgetsBundle.getId(), savedTenant.getId(),
-                tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.DELETED);
+                tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.DELETED, ActionType.DELETED);
 
         doGet("/api/widgetsBundle/" + savedWidgetsBundleIdStr)
                 .andExpect(status().isNotFound())

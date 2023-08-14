@@ -42,12 +42,17 @@ export interface ColorPickerDialogData {
   useThemePalette?: boolean;
 }
 
+export interface ColorPickerDialogResult {
+  color?: string;
+  canceled?: boolean;
+}
+
 @Component({
   selector: 'tb-color-picker-dialog',
   templateUrl: './color-picker-dialog.component.html',
   styleUrls: ['./color-picker-dialog.component.scss']
 })
-export class ColorPickerDialogComponent extends DialogComponent<ColorPickerDialogComponent, string> {
+export class ColorPickerDialogComponent extends DialogComponent<ColorPickerDialogComponent, ColorPickerDialogResult> {
 
   color: string;
   colorClearButton: boolean;
@@ -56,7 +61,7 @@ export class ColorPickerDialogComponent extends DialogComponent<ColorPickerDialo
   constructor(protected store: Store<AppState>,
               protected router: Router,
               @Inject(MAT_DIALOG_DATA) public data: ColorPickerDialogData,
-              public dialogRef: MatDialogRef<ColorPickerDialogComponent, string>) {
+              public dialogRef: MatDialogRef<ColorPickerDialogComponent, ColorPickerDialogResult>) {
     super(store, router, dialogRef);
     this.color = data.color;
     this.colorClearButton = data.colorClearButton;
@@ -64,11 +69,11 @@ export class ColorPickerDialogComponent extends DialogComponent<ColorPickerDialo
   }
 
   selectColor(color: string) {
-    this.dialogRef.close(color);
+    this.dialogRef.close({color});
   }
 
   cancel(): void {
-    this.dialogRef.close(null);
+    this.dialogRef.close({canceled: true});
   }
 
 }
