@@ -70,11 +70,21 @@ import {
 import cssjs from '@core/css/css';
 import { CollectionViewer, DataSource } from '@angular/cdk/collections';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
-import { BehaviorSubject, EMPTY, fromEvent, merge, Observable } from 'rxjs';
+import { BehaviorSubject, EMPTY, merge, Observable } from 'rxjs';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import { EntityId } from '@shared/models/id/entity-id';
 import { entityTypeTranslations } from '@shared/models/entity-type.models';
-import { concatMap, debounceTime, distinctUntilChanged, expand, map, tap, toArray } from 'rxjs/operators';
+import {
+  concatMap,
+  debounceTime,
+  distinctUntilChanged,
+  expand,
+  map,
+  skip,
+  startWith,
+  tap,
+  toArray
+} from 'rxjs/operators';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, SortDirection } from '@angular/material/sort';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -134,6 +144,7 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { hidePageSizePixelValue } from '@shared/models/constants';
 import { AggregationType } from '@shared/models/time/time.models';
+import { FormBuilder } from '@angular/forms';
 
 interface EntitiesTableWidgetSettings extends TableWidgetSettings {
   entitiesTitle: string;
@@ -217,6 +228,9 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
 
   private postProcessingFunctionMap = new Map<string, any>();
 
+
+  textSearch = this.fb.control('', {nonNullable: true});
+
   constructor(protected store: Store<AppState>,
               private elementRef: ElementRef,
               private ngZone: NgZone,
@@ -227,7 +241,8 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
               private datePipe: DatePipe,
               private translate: TranslateService,
               private domSanitizer: DomSanitizer,
-              private cd: ChangeDetectorRef) {
+              private cd: ChangeDetectorRef,
+              private fb: FormBuilder) {
     super(store);
     this.pageLink = {
       page: 0,
@@ -264,18 +279,18 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
   }
 
   ngAfterViewInit(): void {
-    fromEvent(this.searchInputField.nativeElement, 'keyup')
-      .pipe(
-        debounceTime(150),
-        distinctUntilChanged(),
-        tap(() => {
-          if (this.displayPagination) {
-            this.paginator.pageIndex = 0;
-          }
-          this.updateData();
-        })
-      )
-      .subscribe();
+    this.textSearch.valueChanges.pipe(
+      debounceTime(150),
+      startWith(''),
+      distinctUntilChanged((a: string, b: string) => a.trim() === b.trim()),
+      skip(1)
+    ).subscribe((value) => {
+      if (this.displayPagination) {
+        this.paginator.pageIndex = 0;
+      }
+      this.pageLink.textSearch = value.trim();
+      this.updateData();
+    });
 
     if (this.displayPagination) {
       this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
@@ -549,7 +564,6 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
 
   private enterFilterMode() {
     this.textSearchMode = true;
-    this.pageLink.textSearch = '';
     this.ctx.hideTitlePanel = true;
     this.ctx.detectChanges(true);
     setTimeout(() => {
@@ -560,11 +574,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
 
   exitFilterMode() {
     this.textSearchMode = false;
-    this.pageLink.textSearch = null;
-    if (this.displayPagination) {
-      this.paginator.pageIndex = 0;
-    }
-    this.updateData();
+    this.textSearch.reset();
     this.ctx.hideTitlePanel = false;
     this.ctx.detectChanges(true);
   }

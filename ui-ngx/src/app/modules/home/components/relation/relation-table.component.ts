@@ -36,6 +36,7 @@ import {
   Component,
   ElementRef,
   Input,
+  OnDestroy,
   OnInit,
   ViewChild
 } from '@angular/core';
@@ -50,8 +51,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { DialogService } from '@core/services/dialog.service';
 import { EntityRelationService } from '@core/http/entity-relation.service';
 import { Direction, SortOrder } from '@shared/models/page/sort-order';
-import { forkJoin, fromEvent, merge, Observable } from 'rxjs';
-import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
+import { forkJoin, merge, Observable, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, skip, startWith, takeUntil } from 'rxjs/operators';
 import {
   EntityRelation,
   EntityRelationInfo,
@@ -68,6 +69,7 @@ import { EntityType } from '@shared/models/entity-type.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { hidePageSizePixelValue } from '@shared/models/constants';
 import { ResizeObserver } from '@juggle/resize-observer';
+import { FormBuilder } from '@angular/forms';
 
 @Component({
   selector: 'tb-relation-table',
@@ -75,7 +77,7 @@ import { ResizeObserver } from '@juggle/resize-observer';
   styleUrls: ['./relation-table.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class RelationTableComponent extends PageComponent implements AfterViewInit, OnInit {
+export class RelationTableComponent extends PageComponent implements AfterViewInit, OnInit, OnDestroy {
 
   directions = EntitySearchDirection;
 
@@ -95,8 +97,6 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
   entityIdValue: EntityId;
 
   viewsInited = false;
-
-  private widgetResize$: ResizeObserver;
 
   @Input()
   set active(active: boolean) {
@@ -139,6 +139,11 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
 
+  textSearch = this.fb.control('', {nonNullable: true});
+
+  private widgetResize$: ResizeObserver;
+  private destroy$ = new Subject<void>();
+
   constructor(protected store: Store<AppState>,
               private entityRelationService: EntityRelationService,
               public translate: TranslateService,
@@ -146,7 +151,8 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
               private userPermissionsService: UserPermissionsService,
               private dialogService: DialogService,
               private cd: ChangeDetectorRef,
-              private elementRef: ElementRef) {
+              private elementRef: ElementRef,
+              private fb: FormBuilder) {
     super(store);
     this.dirtyValue = !this.activeValue;
     const sortOrder: SortOrder = { property: 'type', direction: Direction.ASC };
@@ -171,6 +177,8 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
     if (this.widgetResize$) {
       this.widgetResize$.disconnect();
     }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   updateColumns() {
@@ -192,25 +200,23 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
   }
 
   ngAfterViewInit() {
-
-    fromEvent(this.searchInputField.nativeElement, 'keyup')
-      .pipe(
-        debounceTime(150),
-        distinctUntilChanged(),
-        tap(() => {
-          this.paginator.pageIndex = 0;
-          this.updateData();
-        })
-      )
-      .subscribe();
+    this.textSearch.valueChanges.pipe(
+      debounceTime(150),
+      startWith(''),
+      distinctUntilChanged((a: string, b: string) => a.trim() === b.trim()),
+      skip(1),
+      takeUntil(this.destroy$)
+    ).subscribe((value) => {
+      this.paginator.pageIndex = 0;
+      this.pageLink.textSearch = value.trim();
+      this.updateData();
+    });
 
     this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
 
-    merge(this.sort.sortChange, this.paginator.page)
-      .pipe(
-        tap(() => this.updateData())
-      )
-      .subscribe();
+    merge(this.sort.sortChange, this.paginator.page).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.updateData());
 
     this.viewsInited = true;
     if (this.activeValue && this.entityIdValue) {
@@ -228,7 +234,6 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
 
   enterFilterMode() {
     this.textSearchMode = true;
-    this.pageLink.textSearch = '';
     setTimeout(() => {
       this.searchInputField.nativeElement.focus();
       this.searchInputField.nativeElement.setSelectionRange(0, 0);
@@ -237,14 +242,13 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
 
   exitFilterMode() {
     this.textSearchMode = false;
-    this.pageLink.textSearch = null;
-    this.paginator.pageIndex = 0;
-    this.updateData();
+    this.textSearch.reset();
   }
 
   resetSortAndFilter(update: boolean = true) {
     this.direction = EntitySearchDirection.FROM;
     this.updateColumns();
+    this.textSearch.reset('', {emitEvent: false});
     this.pageLink.textSearch = null;
     this.paginator.pageIndex = 0;
     const sortable = this.sort.sortables.get('type');
