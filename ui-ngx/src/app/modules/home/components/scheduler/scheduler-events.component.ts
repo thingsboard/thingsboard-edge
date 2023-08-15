@@ -750,11 +750,9 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
 
   private onDayClick(event: DateClickArg) {
     if (this.addEnabled) {
-      const calendarDate = new Date(event.date.getTime() + event.date.getTimezoneOffset() * 60 * 1000);
-      const date = toMoment(calendarDate, this.calendarApi);
       const schedulerEvent = {
         schedule: {
-          startTime: date.utc().valueOf()
+          startTime: event.date.getTime()
         },
         configuration: {
           originatorId: null,
