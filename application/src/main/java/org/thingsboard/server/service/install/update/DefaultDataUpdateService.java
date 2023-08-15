@@ -337,10 +337,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
                 //White Labeling updates
                 updateSystemWhiteLabelingParameters();
-                List<ListenableFuture<WhiteLabelingParams>> futures = tenantsWhiteLabelingUpdater.updateEntities(null);
-                for (ListenableFuture<WhiteLabelingParams> future : futures) {
-                    future.get();
-                }
+                tenantsWhiteLabelingUpdater.updateEntities(null);
                 // todo: update TbDuplicateMsgToGroupNode to use TbVersionedNode interface.
                 updateDuplicateMsgRuleNode();
                 break;
@@ -1041,14 +1038,10 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
 
         @Override
-        protected ListenableFuture<WhiteLabelingParams> updateEntity(Tenant tenant) throws Exception {
-            List<ListenableFuture<WhiteLabelingParams>> futures = customersWhiteLabelingUpdater.updateEntities(tenant.getId());
-            for (ListenableFuture<WhiteLabelingParams> future : futures) {
-                future.get();
-            }
-            ListenableFuture<List<String>> future = updateTenantMailTemplates(tenant.getId());
-            return Futures.transformAsync(future, l -> updateEntityWhiteLabelingParameters(tenant.getId()),
-                    MoreExecutors.directExecutor());
+        protected WhiteLabelingParams updateEntity(Tenant tenant) throws Exception {
+            customersWhiteLabelingUpdater.updateEntities(tenant.getId());
+            updateTenantMailTemplates(tenant.getId()).get();
+            return updateEntityWhiteLabelingParameters(tenant.getId());
         }
     };
 
@@ -1065,7 +1058,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
 
         @Override
-        protected ListenableFuture<WhiteLabelingParams> updateEntity(Customer customer) {
+        protected WhiteLabelingParams updateEntity(Customer customer) {
             return updateEntityWhiteLabelingParameters(customer.getId());
         }
     };
@@ -1166,11 +1159,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
         adminSettingsService.deleteAdminSettingsByKey(TenantId.SYS_TENANT_ID, LOGO_IMAGE_CHECKSUM);
     }
 
-    private ListenableFuture<WhiteLabelingParams> updateEntityWhiteLabelingParameters(EntityId entityId) {
+    private WhiteLabelingParams updateEntityWhiteLabelingParameters(EntityId entityId) {
         JsonNode storedWl = getEntityWhiteLabelParams(entityId);
         String logoImageUrl = getEntityAttributeValue(entityId, LOGO_IMAGE);
         WhiteLabelingParams preparedWhiteLabelingParams = createWhiteLabelingParams(storedWl, logoImageUrl, false);
-        ListenableFuture<WhiteLabelingParams> result = Futures.immediateFuture(null);
+        WhiteLabelingParams result = new WhiteLabelingParams();
         if (entityId.getEntityType() == EntityType.TENANT) {
             result = whiteLabelingService.saveTenantWhiteLabelingParams(new TenantId(entityId.getId()), preparedWhiteLabelingParams);
         }
@@ -1422,11 +1415,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
         private static final int DEFAULT_LIMIT = 100;
         private int updated = 0;
 
-        public List<ListenableFuture<WhiteLabelingParams>> updateEntities(I id) throws Exception {
+        public List<WhiteLabelingParams> updateEntities(I id) throws Exception {
             updated = 0;
             PageLink pageLink = new PageLink(DEFAULT_LIMIT);
             boolean hasNext = true;
-            List<ListenableFuture<WhiteLabelingParams>> result = new ArrayList<>();
+            List<WhiteLabelingParams> result = new ArrayList<>();
             while (hasNext) {
                 PageData<D> entities = findEntities(id, pageLink);
                 for (D entity : entities.getData()) {
@@ -1450,7 +1443,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
         protected abstract PageData<D> findEntities(I id, PageLink pageLink);
 
-        protected abstract ListenableFuture<WhiteLabelingParams> updateEntity(D entity) throws Exception;
+        protected abstract WhiteLabelingParams updateEntity(D entity) throws Exception;
     }
 
     boolean convertDeviceProfileAlarmRulesForVersion330(JsonNode spec) {

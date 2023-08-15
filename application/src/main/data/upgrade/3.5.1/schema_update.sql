@@ -142,3 +142,33 @@ UPDATE resource
 
 ALTER TABLE notification_request ALTER COLUMN info SET DATA TYPE varchar(1000000);
 
+-- WHITE LABELING ATTRIBUTES MIGRATION START
+
+CREATE TABLE IF NOT EXISTS white_labeling (
+    entity_type varchar(255),
+    entity_id uuid,
+    type VARCHAR(255),
+    settings VARCHAR(10000),
+    domain_name VARCHAR(255) UNIQUE,
+    CONSTRAINT white_labeling_pkey PRIMARY KEY (entity_type, entity_id, type)
+);
+
+WITH whiteLabelAttributes AS (
+    DELETE FROM attribute_kv
+        WHERE attribute_key = 'whiteLabelParams'
+        RETURNING *
+)
+INSERT INTO white_labeling(entity_type, entity_id, type, settings)
+SELECT entity_type, entity_id, 'general', str_v FROM whiteLabelAttributes;
+
+WITH loginWhiteLabelAttributes AS (
+    DELETE FROM attribute_kv
+        WHERE attribute_key = 'loginWhiteLabelParams'
+        RETURNING *
+)
+INSERT INTO white_labeling(entity_type, entity_id, type, settings, domain_name)
+SELECT entity_type, entity_id, 'login', str_v , str_v::json ->> 'domainName' FROM loginWhiteLabelAttributes;
+
+DELETE FROM admin_settings WHERE key LIKE ANY (array['loginWhiteLabel%', 'whiteLabelParams']);
+
+-- WHITE LABELING ATTRIBUTES MIGRATION END

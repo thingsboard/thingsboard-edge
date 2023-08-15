@@ -562,6 +562,9 @@ cache:
     resourceInfo:
       timeToLiveInMinutes: "${CACHE_SPECS_RESOURCE_INFO_TTL:1440}"
       maxSize: "${CACHE_SPECS_RESOURCE_INFO_MAX_SIZE:100000}"
+    whiteLabeling:
+      timeToLiveInMinutes: "${CACHE_SPECS_RESOURCE_INFO_TTL:1440}"
+      maxSize: "${CACHE_SPECS_RESOURCE_INFO_MAX_SIZE:100000}"
 
     # PE cache specs
     downlink:
