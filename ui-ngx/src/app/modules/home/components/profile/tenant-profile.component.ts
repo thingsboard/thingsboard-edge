@@ -74,8 +74,8 @@ export class TenantProfileComponent extends EntityComponent<TenantProfile> {
         consumerPerPartition: true,
         name: 'Main',
         packProcessingTimeout: 2000,
-        partitions: 10,
-        pollInterval: 25,
+        partitions: 2,
+        pollInterval: 2000,
         processingStrategy: {
           failurePercentage: 0,
           maxPauseBetweenRetries: 3,
@@ -89,7 +89,56 @@ export class TenantProfileComponent extends EntityComponent<TenantProfile> {
         },
         topic: 'tb_rule_engine.main',
         additionalInfo: {
-          description: ''
+          description: '',
+          customProperties: ''
+        }
+      },
+      {
+        id: guid(),
+        name: 'HighPriority',
+        topic: 'tb_rule_engine.hp',
+        pollInterval: 2000,
+        partitions: 2,
+        consumerPerPartition: true,
+        packProcessingTimeout: 2000,
+        submitStrategy: {
+          type: 'BURST',
+          batchSize: 100
+        },
+        processingStrategy: {
+          type: 'RETRY_FAILED_AND_TIMED_OUT',
+          retries: 0,
+          failurePercentage: 0,
+          pauseBetweenRetries: 5,
+          maxPauseBetweenRetries: 5
+        },
+        additionalInfo: {
+          description: '',
+          customProperties: ''
+        }
+      },
+      {
+        id: guid(),
+        name: 'SequentialByOriginator',
+        topic: 'tb_rule_engine.sq',
+        pollInterval: 2000,
+        partitions: 2,
+        consumerPerPartition: true,
+        packProcessingTimeout: 2000,
+        submitStrategy: {
+          type: 'SEQUENTIAL_BY_ORIGINATOR',
+          batchSize: 100
+        },
+        processingStrategy: {
+          type: 'RETRY_FAILED_AND_TIMED_OUT',
+          retries: 3,
+          failurePercentage: 0,
+          pauseBetweenRetries: 5,
+          maxPauseBetweenRetries: 5
+        },
+        additionalInfo: {
+          description: '',
+          customProperties: ''
         }
       }
     ];
@@ -133,9 +182,6 @@ export class TenantProfileComponent extends EntityComponent<TenantProfile> {
     if (this.entityForm) {
       if (this.isEditValue) {
         this.entityForm.enable({emitEvent: false});
-        if (!this.isAdd) {
-          this.entityForm.get('isolatedTbRuleEngine').disable({emitEvent: false});
-        }
       } else {
         this.entityForm.disable({emitEvent: false});
       }

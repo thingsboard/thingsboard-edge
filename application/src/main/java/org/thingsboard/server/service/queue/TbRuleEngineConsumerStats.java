@@ -33,6 +33,7 @@ package org.thingsboard.server.service.queue;
 import io.micrometer.core.instrument.Timer;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.msg.queue.RuleEngineException;
 import org.thingsboard.server.common.stats.StatsCounter;
 import org.thingsboard.server.common.stats.StatsFactory;
@@ -78,9 +79,11 @@ public class TbRuleEngineConsumerStats {
     private final ConcurrentMap<TenantId, RuleEngineException> tenantExceptions = new ConcurrentHashMap<>();
 
     private final String queueName;
+    private final TenantId tenantId;
 
-    public TbRuleEngineConsumerStats(String queueName, StatsFactory statsFactory) {
-        this.queueName = queueName;
+    public TbRuleEngineConsumerStats(Queue queue, StatsFactory statsFactory) {
+        this.queueName = queue.getName();
+        this.tenantId = queue.getTenantId();
         this.statsFactory = statsFactory;
 
         String statsKey = StatsType.RULE_ENGINE.getName() + "." + queueName;
@@ -171,7 +174,11 @@ public class TbRuleEngineConsumerStats {
             counters.forEach(counter -> {
                 stats.append(counter.getName()).append(" = [").append(counter.get()).append("] ");
             });
-            log.info("[{}] Stats: {}", queueName, stats);
+            if (tenantId.isSysTenantId()) {
+                log.info("[{}] Stats: {}", queueName, stats);
+            } else {
+                log.info("[{}][{}] Stats: {}", queueName, tenantId, stats);
+            }
         }
     }
 
