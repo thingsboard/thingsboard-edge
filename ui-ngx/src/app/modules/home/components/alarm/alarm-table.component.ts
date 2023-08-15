@@ -44,7 +44,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { Overlay } from '@angular/cdk/overlay';
 import { UtilsService } from '@core/services/utils.service';
-import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { coerceBoolean } from '@shared/decorators/coercion';
 import { ActivatedRoute, Router } from '@angular/router';
 import { deepClone, isDefinedAndNotNull } from '@core/utils';
 import { EntityService } from '@core/http/entity.service';
@@ -95,15 +95,13 @@ export class AlarmTableComponent implements OnInit {
     }
   }
 
-  private readonlyValue: boolean;
-  get readonly(): boolean {
-    return this.readonlyValue;
-  }
+  @Input()
+  @coerceBoolean()
+  writeEnabled: boolean;
 
   @Input()
-  set readonly(value: boolean) {
-    this.readonlyValue = coerceBooleanProperty(value);
-  }
+  @coerceBoolean()
+  removeEnabled: boolean;
 
   @ViewChild(EntitiesTableComponent, {static: true}) entitiesTable: EntitiesTableComponent;
 
@@ -186,7 +184,8 @@ export class AlarmTableComponent implements OnInit {
       this.overlay,
       this.cd,
       this.utilsService,
-      this.readonly,
+      this.writeEnabled,
+      this.removeEnabled,
       pageMode
     );
   }

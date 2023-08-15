@@ -763,6 +763,13 @@ public abstract class BaseController {
 
             checkEntityWithGroupIds(entity.getId(), entity, Resource.resourceFromEntityType(entity.getEntityType()), entityGroupIds);
 
+            if (entity.getId() != null) {
+                EntityId oldOwner = ownersCacheService.getOwner(entity.getTenantId(), entity.getId());
+                if (!entity.getOwnerId().equals(oldOwner)) {
+                    throw new DataValidationException("Entity owner can`t be changed. Please use owner api to change owner");
+                }
+            }
+
             return saveEntityFunction.apply(entity, entityGroups);
         } catch (Exception e) {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(entity.getEntityType()), entity,

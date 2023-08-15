@@ -3,6 +3,11 @@ var data = decodeToJson(payload);
 var deviceName = data.deviceId != null ? data.deviceId : "Device A";
 var deviceType = data.deviceType != null ? data.deviceType : "default";
 var groupName = "Control room";
+// var customerName = 'Customer A';
+// use assetName and assetType instead of deviceName and deviceType
+// to automatically create assets instead of devices.
+// var assetName = 'Asset A';
+// var assetType = 'building';
 var dateString = data.timestamp != null ? data.timestamp : "";
 
 // --- attributes and telemetry objects ---
@@ -11,25 +16,28 @@ var attributes = {};
 // --- attributes and telemetry objects ---
 
 // --- Timestamp parsing
-var timestamp = new Date(dateString).getTime();
-if (timestamp == -1) {
-    var secondsSeparatorIndex = dateString.lastIndexOf('.') + 1;
-    var millisecondsEndIndex = dateString.lastIndexOf('+');
-    if (millisecondsEndIndex == -1) {
-        millisecondsEndIndex = dateString.lastIndexOf('Z');
-    }
-    if (millisecondsEndIndex == -1) {
-        millisecondsEndIndex = dateString.lastIndexOf('-');
-    }
-    if (millisecondsEndIndex == -1) {
-        if (dateString.length >= secondsSeparatorIndex + 3) {
-            dateString = dateString.substring(0, secondsSeparatorIndex + 3);
-        }
-    } else {
-        dateString = dateString.substring(0, secondsSeparatorIndex + 3) +
-            dateString.substring(millisecondsEndIndex, dateString.length);
-    }
-    timestamp = new Date(dateString).getTime();
+var timestamp = -1;
+if (dateString != null) {
+  timestamp = new Date(dateString).getTime();
+  if (timestamp == -1) {
+      var secondsSeparatorIndex = dateString.lastIndexOf('.') + 1;
+      var millisecondsEndIndex = dateString.lastIndexOf('+');
+      if (millisecondsEndIndex == -1) {
+          millisecondsEndIndex = dateString.lastIndexOf('Z');
+      }
+      if (millisecondsEndIndex == -1) {
+          millisecondsEndIndex = dateString.lastIndexOf('-');
+      }
+      if (millisecondsEndIndex == -1) {
+          if (dateString.length >= secondsSeparatorIndex + 3) {
+              dateString = dateString.substring(0, secondsSeparatorIndex + 3);
+          }
+      } else {
+          dateString = dateString.substring(0, secondsSeparatorIndex + 3) +
+              dateString.substring(millisecondsEndIndex, dateString.length);
+      }
+      timestamp = new Date(dateString).getTime();
+  }
 }
 // If we cannot parse timestamp - we will use the current timestamp
 if (timestamp == -1) {
@@ -62,6 +70,9 @@ if (!attributesData.isEmpty()) {
 var result = {
     deviceName: deviceName,
     deviceType: deviceType,
+//  assetName: assetName,
+//  assetType: assetType,
+//  customerName: customerName,
     groupName: groupName,
     attributes: attributes,
     telemetry: {
