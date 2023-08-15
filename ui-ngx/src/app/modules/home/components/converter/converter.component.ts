@@ -68,7 +68,7 @@ import { Observable, Subject } from 'rxjs';
 @Component({
   selector: 'tb-converter',
   templateUrl: './converter.component.html',
-  styleUrls: ['./converter.component.scss']
+  styleUrls: []
 })
 export class ConverterComponent extends EntityComponent<Converter> implements OnInit, OnDestroy {
 
