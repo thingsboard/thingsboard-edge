@@ -30,16 +30,34 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<button type="button"
-        mat-stroked-button
-        class="tb-box-button"
-        [disabled]="disabled"
-        #matButton
-        (click)="openColorSettingsPopup($event, matButton)">
-  <tb-icon matButtonIcon *ngIf="modelValue?.type === colorType.function; else colorPreview">mdi:function-variant</tb-icon>
-</button>
-<ng-template #colorPreview>
-  <div class="tb-color-preview box" [ngClass]="{'disabled': disabled}">
-    <div class="tb-color-result" [style]="colorStyle"></div>
+<ng-container [formGroup]="aggregatedValueCardKeySettingsForm">
+  <div class="tb-form-panel">
+    <div class="tb-form-panel-title" translate>widgets.aggregated-value-card.value-appearance</div>
+    <div class="tb-form-row space-between">
+      <div>{{ 'widgets.aggregated-value-card.position' | translate }}</div>
+      <mat-form-field class="medium-width" appearance="outline" subscriptSizing="dynamic">
+        <mat-select formControlName="position">
+          <mat-option *ngFor="let position of aggregatedValueCardKeyPositions" [value]="position">
+            {{ aggregatedValueCardKeyPositionTranslationMap.get(position) | translate }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <div class="tb-form-row space-between">
+      <div>{{ 'widgets.aggregated-value-card.font' | translate }}</div>
+      <tb-font-settings formControlName="font"
+                        previewText="22 °C">
+      </tb-font-settings>
+    </div>
+    <div class="tb-form-row space-between">
+      <div>{{ 'widgets.aggregated-value-card.color' | translate }}</div>
+      <tb-color-settings formControlName="color">
+      </tb-color-settings>
+    </div>
+    <div class="tb-form-row">
+      <mat-slide-toggle class="mat-slide" formControlName="showArrow">
+        {{ 'widgets.aggregated-value-card.display-up-down-arrow' | translate }}
+      </mat-slide-toggle>
+    </div>
   </div>
-</ng-template>
+</ng-container>

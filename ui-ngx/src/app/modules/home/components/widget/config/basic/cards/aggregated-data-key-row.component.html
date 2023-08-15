@@ -1,0 +1,109 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div [formGroup]="keyRowFormGroup" class="tb-form-table-row tb-aggregated-data-key-row">
+  <mat-form-field class="tb-inline-field tb-position-field" appearance="outline" subscriptSizing="dynamic">
+    <mat-select formControlName="position">
+      <mat-option *ngFor="let position of aggregatedValueCardKeyPositions" [value]="position">
+        {{ aggregatedValueCardKeyPositionTranslationMap.get(position) | translate }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field class="tb-inline-field tb-aggregation-field" subscriptSizing="dynamic">
+    <mat-chip-grid #chipList>
+      <mat-chip-row class="tb-datakey-chip">
+        <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="4px" class="tb-attribute-chip">
+          <div class="tb-chip-labels">
+            <div class="tb-chip-label tb-chip-text">
+              <ng-container *ngTemplateOutlet="keyName"></ng-container>
+            </div>
+          </div>
+          <button type="button"
+                  (click)="editKey()" mat-icon-button class="tb-mat-24">
+            <mat-icon class="tb-mat-18">edit</mat-icon>
+          </button>
+        </div>
+      </mat-chip-row>
+    </mat-chip-grid>
+    <input matInput
+           type="text"
+           fxHide
+           readonly
+           [matChipInputFor]="chipList"
+    />
+  </mat-form-field>
+  <div class="tb-units-field">
+    <tb-unit-input formControlName="units">
+    </tb-unit-input>
+  </div>
+  <div class="tb-decimals-field">
+    <mat-form-field appearance="outline" class="tb-inline-field number" subscriptSizing="dynamic">
+      <input matInput formControlName="decimals" type="number" min="0" max="15" step="1" placeholder="{{ 'widget-config.set' | translate }}">
+    </mat-form-field>
+  </div>
+  <div class="tb-font-field">
+    <tb-font-settings formControlName="font"
+                      [previewText]="valuePreviewFn">
+    </tb-font-settings>
+  </div>
+  <div class="tb-color-field">
+    <tb-color-settings formControlName="color">
+    </tb-color-settings>
+  </div>
+  <div class="tb-form-table-row-cell-buttons">
+    <button type="button"
+            mat-icon-button
+            (click)="keyRemoved.emit()"
+            matTooltip="{{ 'widgets.aggregated-value-card.remove-value' | translate }}"
+            matTooltipPosition="above">
+      <mat-icon>delete</mat-icon>
+    </button>
+  </div>
+</div>
+<ng-template #keyName>
+  <ng-container *ngIf="dataKeyHasPostprocessing(); else keyName">
+    <strong><span>f(</span></strong><ng-container *ngTemplateOutlet="keyNameTemplate"></ng-container><strong><span>)</span></strong>
+  </ng-container>
+  <ng-template #keyName>
+    <ng-container *ngTemplateOutlet="keyNameTemplate"></ng-container>
+  </ng-template>
+</ng-template>
+<ng-template #keyNameTemplate>
+  <ng-container>
+    <strong><span class="tb-agg-func">{{ (modelValue?.aggregationType || aggregationTypes.NONE) }}</span></strong>
+    <span *ngIf="!modelValue?.aggregationType || modelValue?.aggregationType === aggregationTypes.NONE; else aggValue">({{ 'datakey.latest-value' | translate }})</span>
+  </ng-container>
+  <ng-template #aggValue>
+    <span *ngIf="modelValue?.comparisonEnabled && modelValue?.comparisonResultType !== comparisonResultTypes.PREVIOUS_VALUE">({{ 'datakey.delta' | translate }}:{{ (modelValue?.comparisonResultType === comparisonResultTypes.DELTA_PERCENT ? 'datakey.percent' : 'datakey.absolute') | translate }})</span>
+    <span *ngIf="modelValue?.comparisonEnabled && modelValue?.comparisonResultType === comparisonResultTypes.PREVIOUS_VALUE">({{ 'datakey.delta-calculation-result-previous-value' | translate }})</span>
+  </ng-template>
+</ng-template>

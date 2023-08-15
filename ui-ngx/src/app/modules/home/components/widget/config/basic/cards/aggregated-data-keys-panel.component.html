@@ -30,54 +30,36 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-form-panel">
-  <div class="tb-form-panel-title">{{ panelTitle }}</div>
+<div class="tb-form-panel tb-aggregated-data-keys-panel">
+  <div class="tb-form-panel-title">{{ 'widgets.aggregated-value-card.values' | translate }}</div>
   <div class="tb-form-table">
-    <div class="tb-form-table-header no-padding-right">
-      <div *ngIf="hasAdditionalLatestDataKeys" class="tb-form-table-header-cell tb-source-header" translate>datakey.source</div>
-      <div class="tb-form-table-header-cell tb-key-header" translate>datakey.key</div>
-      <div class="tb-form-table-header-cell tb-label-header" translate>datakey.label</div>
-      <div *ngIf="!hideDataKeyColor" class="tb-form-table-header-cell tb-color-header" translate>datakey.color</div>
-      <div *ngIf="!hideUnits" class="tb-form-table-header-cell tb-units-header" translate>widget-config.units-short</div>
-      <div *ngIf="!hideDecimals" class="tb-form-table-header-cell tb-decimals-header" translate>widget-config.decimals-short</div>
+    <div class="tb-form-table-header">
+      <div class="tb-form-table-header-cell tb-position-header" translate>widgets.aggregated-value-card.position</div>
+      <div class="tb-form-table-header-cell tb-aggregation-header" translate>widgets.aggregated-value-card.aggregation</div>
+      <div class="tb-form-table-header-cell tb-units-header" translate>widget-config.units-short</div>
+      <div class="tb-form-table-header-cell tb-decimals-header" translate>widget-config.decimals-short</div>
+      <div class="tb-form-table-header-cell tb-font-header" translate>widgets.aggregated-value-card.font</div>
+      <div class="tb-form-table-header-cell tb-color-header" translate>widgets.aggregated-value-card.color</div>
       <div class="tb-form-table-header-cell tb-actions-header"></div>
     </div>
-    <div *ngIf="keysFormArray().controls.length; else noKeys" class="tb-form-table-body tb-drop-list"
-         cdkDropList cdkDropListOrientation="vertical"
-         [cdkDropListDisabled]="!dragEnabled"
-         (cdkDropListDropped)="keyDrop($event)">
-      <div cdkDrag [cdkDragDisabled]="!dragEnabled"
-           class="tb-draggable-form-table-row"
-           *ngFor="let keyControl of keysFormArray().controls; trackBy: trackByKey; let $index = index;">
-        <tb-data-key-row fxFlex
+    <div *ngIf="keysFormArray().controls.length; else noKeys" class="tb-form-table-body">
+      <div *ngFor="let keyControl of keysFormArray().controls; trackBy: trackByKey; let $index = index;">
+        <tb-aggregated-data-key-row fxFlex
                          [formControl]="keyControl"
                          [datasourceType]="datasourceType"
-                         [deviceId]="deviceId"
-                         [entityAliasId]="entityAliasId"
+                         [keyName]="keyName"
                          (keyRemoved)="removeKey($index)">
-        </tb-data-key-row>
-        <div class="tb-form-table-row-cell-buttons">
-          <button fxHide.lt-lg
-                  mat-icon-button
-                  type="button"
-                  cdkDragHandle
-                  [ngClass]="{'tb-hidden': !dragEnabled}"
-                  matTooltip="{{ 'action.drag' | translate }}"
-                  matTooltipPosition="above">
-            <mat-icon>drag_indicator</mat-icon>
-          </button>
-        </div>
+        </tb-aggregated-data-key-row>
       </div>
     </div>
-    <tb-error *ngIf="errorText" noMargin [error]="errorText" style="padding-left: 12px;"></tb-error>
   </div>
   <div>
     <button type="button" mat-stroked-button color="primary" (click)="addKey()">
-      {{ addKeyTitle }}
+      {{ 'widgets.aggregated-value-card.add-value' | translate }}
     </button>
   </div>
 </div>
 <ng-template #noKeys>
   <span fxLayoutAlign="center center"
-        class="tb-prompt">{{ noKeysText }}</span>
+        class="tb-prompt">{{ 'widgets.aggregated-value-card.no-values' | translate }}</span>
 </ng-template>
