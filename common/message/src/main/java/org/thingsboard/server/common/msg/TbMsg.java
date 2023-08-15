@@ -232,7 +232,7 @@ public final class TbMsg implements Serializable {
 
     @Deprecated(since = "3.5.2", forRemoval = true)
     public static TbMsg newMsg(String queueName, String type, EntityId originator, TbMsgMetaData metaData, TbMsgDataType dataType, String data) {
-        return new TbMsg(queueName, UUID.randomUUID(), System.currentTimeMillis(), type, originator, null, metaData.copy(), dataType, data, null, null, null, TbMsgCallback.EMPTY);
+        return new TbMsg(queueName, UUID.randomUUID(), System.currentTimeMillis(), null, type, originator, null, metaData.copy(), dataType, data, null, null, null, TbMsgCallback.EMPTY);
     }
 
     public static TbMsg newMsg(String queueName, TbMsgType type, EntityId originator, TbMsgMetaData metaData, String data) {
