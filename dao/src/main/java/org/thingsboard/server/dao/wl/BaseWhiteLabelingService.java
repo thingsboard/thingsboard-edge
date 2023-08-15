@@ -251,6 +251,9 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     }
 
     private void saveEntityLoginWhiteLabelingParams(TenantId tenantId, EntityId entityId, LoginWhiteLabelingParams loginWhiteLabelParams) {
+        if (loginWhiteLabelParams.getDomainName() == null) {
+            throw new IncorrectParameterException("Domain name could not be empty!");
+        }
         if (!validateDomain(loginWhiteLabelParams.getDomainName())) {
             throw new IncorrectParameterException("Current domain name [" + loginWhiteLabelParams.getDomainName() + "] already used in the system level!");
         }
@@ -262,12 +265,16 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         }
         prepareChecksums(loginWhiteLabelParams);
         saveLoginWhiteLabelParams(tenantId, entityId, loginWhiteLabelParams);
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(entityId)
+                .edgeEventType(EdgeEventType.LOGIN_WHITE_LABELING).actionType(ActionType.UPDATED).build());
     }
 
     @Override
     public WhiteLabelingParams saveTenantWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams) {
         prepareChecksums(whiteLabelingParams);
         saveWhiteLabelParams(tenantId, tenantId, whiteLabelingParams);
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(tenantId)
+                .edgeEventType(EdgeEventType.WHITE_LABELING).actionType(ActionType.UPDATED).build());
         return getTenantWhiteLabelingParams(tenantId);
     }
 
@@ -275,6 +282,8 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     public WhiteLabelingParams saveCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, WhiteLabelingParams whiteLabelingParams) {
         prepareChecksums(whiteLabelingParams);
         saveWhiteLabelParams(tenantId, customerId, whiteLabelingParams);
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(customerId)
+                .edgeEventType(EdgeEventType.WHITE_LABELING).actionType(ActionType.UPDATED).build());
         return getCustomerWhiteLabelingParams(tenantId, customerId);
     }
 
@@ -303,8 +312,8 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
 
     @Override
     public void deleteDomainWhiteLabelingByEntityId(TenantId tenantId, EntityId entityId) {
-        if (findById(tenantId, entityId, LOGIN_WHITE_LABEL_PARAMS_TYPE) != null) {
-            WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(entityId.getEntityType().name(), entityId.getId(), LOGIN_WHITE_LABEL_PARAMS_TYPE);
+        WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(entityId.getEntityType().name(), entityId.getId(), LOGIN_WHITE_LABEL_PARAMS_TYPE);
+        if (whiteLabelingDao.findById(tenantId, key) != null) {
             whiteLabelingDao.removeById(tenantId, key);
             publishEvictEvent(new WhiteLabelingEvictEvent(key));
         }
@@ -464,8 +473,8 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     }
 
     private WhiteLabeling findById(TenantId tenantId, EntityId entityId, String type) {
-        log.trace("Executing findById for entity [{}] and type [{}]", entityId, type);
         WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(entityId.getEntityType().name(), entityId.getId(), type);
+        log.trace("Executing findById for key [{}] ", key);
         return cache.getAndPutInTransaction(key,
                 () -> whiteLabelingDao.findById(tenantId,
                         key), true);
