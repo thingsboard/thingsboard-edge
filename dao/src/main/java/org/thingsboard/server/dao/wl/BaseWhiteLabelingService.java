@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.wl;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
@@ -41,6 +42,8 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -49,6 +52,7 @@ import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.entity.AbstractCachedService;
+import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.model.sql.WhiteLabelingCompositeKey;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
@@ -73,6 +77,8 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     private final WhiteLabelingDao whiteLabelingDao;
     private final TenantService tenantService;
     private final CustomerService customerService;
+    private final ApplicationEventPublisher eventPublisher;
+
 
     @Override
     public LoginWhiteLabelingParams getSystemLoginWhiteLabelingParams(TenantId tenantId) {
@@ -180,7 +186,9 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     @Override
     public WhiteLabelingParams saveSystemWhiteLabelingParams(WhiteLabelingParams whiteLabelingParams) {
         prepareChecksums(whiteLabelingParams);
-        saveEntityWhiteLabelParams(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID, whiteLabelingParams);
+        saveWhiteLabelParams(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID, whiteLabelingParams);
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID)
+                .edgeEventType(EdgeEventType.WHITE_LABELING).actionType(ActionType.UPDATED).build());
         return getSystemWhiteLabelingParams(TenantId.SYS_TENANT_ID);
     }
 
@@ -191,6 +199,8 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         }
         prepareChecksums(loginWhiteLabelingParams);
         saveLoginWhiteLabelParams(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID, loginWhiteLabelingParams);
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID)
+                .edgeEventType(EdgeEventType.LOGIN_WHITE_LABELING).actionType(ActionType.UPDATED).build());
         return getSystemLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID);
     }
 
@@ -257,14 +267,14 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     @Override
     public WhiteLabelingParams saveTenantWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams) {
         prepareChecksums(whiteLabelingParams);
-        saveEntityWhiteLabelParams(tenantId, tenantId, whiteLabelingParams);
+        saveWhiteLabelParams(tenantId, tenantId, whiteLabelingParams);
         return getTenantWhiteLabelingParams(tenantId);
     }
 
     @Override
     public WhiteLabelingParams saveCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, WhiteLabelingParams whiteLabelingParams) {
         prepareChecksums(whiteLabelingParams);
-        saveEntityWhiteLabelParams(tenantId, customerId, whiteLabelingParams);
+        saveWhiteLabelParams(tenantId, customerId, whiteLabelingParams);
         return getCustomerWhiteLabelingParams(tenantId, customerId);
     }
 
@@ -296,6 +306,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         if (findById(tenantId, entityId, LOGIN_WHITE_LABEL_PARAMS_TYPE) != null) {
             WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(entityId.getEntityType().name(), entityId.getId(), LOGIN_WHITE_LABEL_PARAMS_TYPE);
             whiteLabelingDao.removeById(tenantId, key);
+            publishEvictEvent(new WhiteLabelingEvictEvent(key));
         }
     }
 
@@ -343,17 +354,19 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     }
 
     private LoginWhiteLabelingParams constructLoginWlParams(JsonNode json) {
+        LoginWhiteLabelingParams result = null;
         if (json != null) {
             try {
-                return JacksonUtil.treeToValue(json, LoginWhiteLabelingParams.class);
+                result = JacksonUtil.treeToValue(json, LoginWhiteLabelingParams.class);
             } catch (IllegalArgumentException e) {
                 log.error("Unable to read Login White Labeling Params from JSON!", e);
                 throw new IncorrectParameterException("Unable to read Login White Labeling Params from JSON!");
             }
         }
-        else {
-            return new LoginWhiteLabelingParams();
+        if (result == null) {
+            result = new LoginWhiteLabelingParams();
         }
+        return result;
     }
 
 
@@ -435,7 +448,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         doSaveWhiteLabelingSettings(tenantId, whiteLabeling);
     }
 
-    private void saveEntityWhiteLabelParams(TenantId tenantId, EntityId entityId, WhiteLabelingParams whiteLabelingParams) {
+    private void saveWhiteLabelParams(TenantId tenantId, EntityId entityId, WhiteLabelingParams whiteLabelingParams) {
         WhiteLabeling whiteLabeling = new WhiteLabeling();
         whiteLabeling.setEntityId(entityId);
         whiteLabeling.setType(GENERAL_WHITE_LABEL_PARAMS_TYPE);

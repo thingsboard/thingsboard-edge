@@ -562,9 +562,6 @@ cache:
     resourceInfo:
       timeToLiveInMinutes: "${CACHE_SPECS_RESOURCE_INFO_TTL:1440}"
       maxSize: "${CACHE_SPECS_RESOURCE_INFO_MAX_SIZE:100000}"
-    whiteLabeling:
-      timeToLiveInMinutes: "${CACHE_SPECS_RESOURCE_INFO_TTL:1440}"
-      maxSize: "${CACHE_SPECS_RESOURCE_INFO_MAX_SIZE:100000}"
 
     # PE cache specs
     downlink:
@@ -585,6 +582,9 @@ cache:
     integrations:
       timeToLiveInMinutes: "${CACHE_SPECS_INTEGRATIONS_TTL:1440}"
       maxSize: "${CACHE_SPECS_INTEGRATIONS_MAX_SIZE:10000}"
+    whiteLabeling:
+      timeToLiveInMinutes: "${CACHE_SPECS_WHITE_LABELING_TTL:1440}"
+      maxSize: "${CACHE_SPECS_WHITE_LABELING_MAX_SIZE:100000}"
 
   # deliberately placed outside 'specs' group above
   notificationRules:
