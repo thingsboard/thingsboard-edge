@@ -75,7 +75,7 @@ import { BehaviorSubject, EMPTY, merge, Observable, Subject } from 'rxjs';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import { EntityId } from '@shared/models/id/entity-id';
 import { entityTypeTranslations } from '@shared/models/entity-type.models';
-import { concatMap, debounceTime, distinctUntilChanged, expand, map, takeUntil, tap, toArray } from 'rxjs/operators';
+import { concatMap, debounceTime, distinctUntilChanged, expand, map, takeUntil, toArray } from 'rxjs/operators';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, SortDirection } from '@angular/material/sort';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -285,13 +285,11 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     });
 
     if (this.displayPagination) {
-      this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
+      this.sort.sortChange.pipe(takeUntil(this.destroy$)).subscribe(() => this.paginator.pageIndex = 0);
     }
-    ((this.displayPagination ? merge(this.sort.sortChange, this.paginator.page) : this.sort.sortChange) as Observable<any>)
-      .pipe(
-        tap(() => this.updateData())
-      )
-      .subscribe();
+    ((this.displayPagination ? merge(this.sort.sortChange, this.paginator.page) : this.sort.sortChange) as Observable<any>).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.updateData());
     this.updateData();
   }
 

@@ -31,9 +31,9 @@
 
 import {
   AfterViewChecked,
-  AfterViewInit, ChangeDetectorRef,
+  AfterViewInit,
+  ChangeDetectorRef,
   Component,
-  ElementRef,
   EventEmitter,
   HostBinding,
   Inject,
@@ -92,8 +92,8 @@ import {
 } from '@shared/models/rule-node.models';
 import { FcRuleNodeModel, FcRuleNodeTypeModel, RuleChainMenuContextInfo } from './rulechain-page.models';
 import { RuleChainService } from '@core/http/rule-chain.service';
-import { NEVER, Observable, of, ReplaySubject, Subscription, startWith, skip } from 'rxjs';
-import { debounceTime, distinctUntilChanged, mergeMap, tap } from 'rxjs/operators';
+import { NEVER, Observable, of, ReplaySubject, skip, startWith, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, mergeMap, takeUntil, tap } from 'rxjs/operators';
 import { ISearchableComponent } from '../../models/searchable-component.models';
 import { deepClone, isDefinedAndNotNull } from '@core/utils';
 import { RuleNodeDetailsComponent } from '@home/pages/rulechain/rule-node-details.component';
@@ -131,8 +131,6 @@ export class RuleChainPageComponent extends PageComponent
 
   @HostBinding('style.width') width = '100%';
   @HostBinding('style.height') height = '100%';
-
-  @ViewChild('ruleNodeSearchInput') ruleNodeSearchInputField: ElementRef;
 
   @ViewChild('ruleChainCanvas', {static: true}) ruleChainCanvas: NgxFlowchartComponent;
 
@@ -276,7 +274,7 @@ export class RuleChainPageComponent extends PageComponent
 
   updateBreadcrumbs = new EventEmitter();
 
-  private rxSubscription: Subscription;
+  private destroy$ = new Subject<void>();
 
   private tooltipTimeout: Timeout;
 
@@ -296,7 +294,9 @@ export class RuleChainPageComponent extends PageComponent
               public dialogService: DialogService,
               public fb: FormBuilder) {
     super(store);
-    this.rxSubscription = this.route.data.subscribe(
+    this.route.data.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(
       () => {
         this.reset();
         this.init();
@@ -305,6 +305,15 @@ export class RuleChainPageComponent extends PageComponent
   }
 
   ngOnInit() {
+    if (!this.readonly) {
+      this.ruleNodeTypeSearch.valueChanges.pipe(
+        debounceTime(150),
+        startWith(''),
+        distinctUntilChanged((a: string, b: string) => a.trim() === b.trim()),
+        skip(1),
+        takeUntil(this.destroy$)
+      ).subscribe(() => this.updateRuleChainLibrary());
+    }
   }
 
   ngAfterViewChecked(){
@@ -312,14 +321,7 @@ export class RuleChainPageComponent extends PageComponent
   }
 
   ngAfterViewInit() {
-    if (!this.readonly) {
-      this.ruleNodeTypeSearch.valueChanges.pipe(
-        debounceTime(150),
-        startWith(''),
-        distinctUntilChanged((a: string, b: string) => a.trim() === b.trim()),
-        skip(1)
-      ).subscribe(() => this.updateRuleChainLibrary());
-    } else {
+    if (this.readonly) {
       this.ruleChainCanvas.modelService.isEditable = () => false;
       this.ruleChainCanvas.modelService.edges.handleEdgeMouseClick = (edge) => {
         this.openLinkDetails(edge);
@@ -333,7 +335,8 @@ export class RuleChainPageComponent extends PageComponent
 
   ngOnDestroy() {
     super.ngOnDestroy();
-    this.rxSubscription.unsubscribe();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   currentRuleChainIdChanged(ruleChainId: string) {
