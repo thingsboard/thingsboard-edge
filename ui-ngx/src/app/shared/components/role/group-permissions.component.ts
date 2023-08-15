@@ -51,7 +51,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { DialogService } from '@core/services/dialog.service';
 import { Direction, SortOrder } from '@shared/models/page/sort-order';
 import { forkJoin, merge, Observable, Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged, skip, startWith, takeUntil, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { Operation, Resource } from '@shared/models/security.models';
 import { EntityType } from '@shared/models/entity-type.models';
@@ -265,9 +265,7 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
   ngAfterViewInit() {
     this.textSearch.valueChanges.pipe(
       debounceTime(150),
-      startWith(''),
-      distinctUntilChanged((a: string, b: string) => a.trim() === b.trim()),
-      skip(1),
+      distinctUntilChanged((prev, current) => (this.pageLink.textSearch ?? '') === current.trim()),
       takeUntil(this.destroy$)
     ).subscribe(value => {
       this.paginator.pageIndex = 0;
@@ -309,7 +307,10 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
   }
 
   resetSortAndFilter(update: boolean = true) {
-    this.textSearch.reset('', {emitEvent: false});
+    this.textSearchMode = false;
+    this.pageLink.textSearch = null;
+    this.textSearch.reset();
+    this.paginator.pageIndex = 0;
     const sortable = this.sort.sortables.get('roleName');
     this.sort.active = sortable.id;
     this.sort.direction = 'asc';

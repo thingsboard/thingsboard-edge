@@ -56,17 +56,7 @@ import { blobEntityTypeTranslationMap, BlobEntityWithCustomerInfo } from '@share
 import { BehaviorSubject, forkJoin, merge, Observable, of, ReplaySubject, Subject } from 'rxjs';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import { BlobEntityService } from '@core/http/blob-entity.service';
-import {
-  catchError,
-  debounceTime,
-  distinctUntilChanged,
-  map,
-  skip,
-  startWith,
-  take,
-  takeUntil,
-  tap
-} from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, map, takeUntil, tap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { Direction, SortOrder, sortOrderFromString } from '@shared/models/page/sort-order';
 import { DAY, historyInterval, HistoryWindowType, Timewindow } from '@shared/models/time/time.models';
@@ -269,9 +259,7 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
     if (this.showData) {
       this.textSearch.valueChanges.pipe(
         debounceTime(150),
-        startWith(''),
-        distinctUntilChanged((a: string, b: string) => a.trim() === b.trim()),
-        skip(1),
+        distinctUntilChanged((prev, current) => (this.pageLink.textSearch ?? '') === current.trim()),
         takeUntil(this.destroy$)
       ).subscribe((value) => {
         if (this.displayPagination) {
@@ -489,19 +477,15 @@ class BlobEntitiesDatasource implements DataSource<BlobEntityWithCustomerInfo> {
   }
 
   masterToggle() {
-    this.entitiesSubject.pipe(
-      tap((entities) => {
-        const numSelected = this.selection.selected.length;
-        if (numSelected === entities.length) {
-          this.selection.clear();
-        } else {
-          entities.forEach(row => {
-            this.selection.select(row);
-          });
-        }
-      }),
-      take(1)
-    ).subscribe();
+    const entities = this.entitiesSubject.getValue();
+    const numSelected = this.selection.selected.length;
+    if (numSelected === entities.length) {
+      this.selection.clear();
+    } else {
+      entities.forEach(row => {
+        this.selection.select(row);
+      });
+    }
   }
 
 }

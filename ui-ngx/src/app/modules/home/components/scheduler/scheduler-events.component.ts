@@ -61,18 +61,7 @@ import {
 import { CollectionViewer, DataSource, SelectionModel } from '@angular/cdk/collections';
 import { BehaviorSubject, forkJoin, merge, Observable, of, ReplaySubject, Subject } from 'rxjs';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
-import {
-  catchError,
-  debounceTime,
-  distinctUntilChanged,
-  map,
-  share,
-  skip,
-  startWith,
-  take,
-  takeUntil,
-  tap
-} from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, map, share, skip, takeUntil, tap } from 'rxjs/operators';
 import { PageLink, PageQueryParam } from '@shared/models/page/page-link';
 import { SchedulerEventService } from '@core/http/scheduler-event.service';
 import { MatPaginator } from '@angular/material/paginator';
@@ -80,7 +69,7 @@ import { MatSort, SortDirection } from '@angular/material/sort';
 import { Direction, SortOrder, sortOrderFromString } from '@shared/models/page/sort-order';
 import { UtilsService } from '@core/services/utils.service';
 import { TranslateService } from '@ngx-translate/core';
-import { deepClone, isDefined, isDefinedAndNotNull, isEmptyStr, isNotEmptyStr, isNumber } from '@core/utils';
+import { deepClone, isDefined, isDefinedAndNotNull, isNotEmptyStr, isNumber } from '@core/utils';
 import { MatDialog } from '@angular/material/dialog';
 import {
   SchedulerEventDialogComponent,
@@ -237,11 +226,12 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       if (routerQueryParams.hasOwnProperty('pageSize')) {
         this.pageLink.pageSize = Number(routerQueryParams.pageSize);
       }
-      if (routerQueryParams.hasOwnProperty('textSearch') && !isEmptyStr(routerQueryParams.textSearch)) {
-        const decodedTextSearch = decodeURI(routerQueryParams.textSearch);
+      const textSearchParam = routerQueryParams.textSearch;
+      if (isNotEmptyStr(textSearchParam)) {
         this.textSearchMode = true;
-        this.textSearch.setValue(decodedTextSearch, { emitEvent: false });
+        const decodedTextSearch = decodeURI(textSearchParam);
         this.pageLink.textSearch = decodedTextSearch.trim();
+        this.textSearch.setValue(decodedTextSearch);
       }
       this.schedulerEventConfigTypes = deepClone(defaultSchedulerEventConfigTypes);
       this.dataSource = new SchedulerEventsDatasource(this.schedulerEventService, this.schedulerEventConfigTypes);
@@ -430,9 +420,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
 
       this.textSearch.valueChanges.pipe(
         debounceTime(150),
-        startWith(''),
-        distinctUntilChanged((a: string, b: string) => a.trim() === b.trim()),
-        skip(1),
+        distinctUntilChanged((prev, current) => (this.pageLink.textSearch ?? '') === current.trim()),
         takeUntil(this.destroy$)
       ).subscribe(value => {
         if (this.displayPagination) {
@@ -448,6 +436,9 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
           } else {
             queryParams.textSearch = null;
             this.pageLink.textSearch = null;
+          }
+          if (this.displayPagination) {
+            queryParams.page = null;
           }
           this.updatedRouterQueryParams(queryParams);
         }
@@ -470,14 +461,12 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       );
 
       if (this.displayPagination) {
-        if (this.displayPagination) {
-          paginatorSubscription$ = this.paginator.page.asObservable().pipe(
-            map((data) => ({
-              page: data.pageIndex === 0 ? null : data.pageIndex,
-              pageSize: data.pageSize === this.defaultPageSize ? null : data.pageSize
-            }))
-          );
-        }
+        paginatorSubscription$ = this.paginator.page.asObservable().pipe(
+          map((data) => ({
+            page: data.pageIndex === 0 ? null : data.pageIndex,
+            pageSize: data.pageSize === this.defaultPageSize ? null : data.pageSize
+          }))
+        );
       }
 
       ((this.displayPagination ? merge(sortSubscription$, paginatorSubscription$) : sortSubscription$) as Observable<PageQueryParam>).pipe(
@@ -496,6 +485,15 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
           this.paginator.pageSize = Number(params.pageSize) || this.defaultPageSize;
           this.sort.active = params.property || this.defaultSortOrder;
           this.sort.direction = (params.direction || Direction.ASC).toLowerCase() as SortDirection;
+          const textSearchParam = params.textSearch;
+          if (isNotEmptyStr(textSearchParam)) {
+            this.textSearchMode = true;
+            const decodedTextSearch = decodeURI(textSearchParam);
+            this.pageLink.textSearch = decodedTextSearch.trim();
+            this.textSearch.setValue(decodedTextSearch);
+          } else {
+            this.pageLink.textSearch = null;
+          }
           this.updateData();
         });
       }
@@ -1176,18 +1174,14 @@ class SchedulerEventsDatasource implements DataSource<SchedulerEventWithCustomer
   }
 
   masterToggle() {
-    this.entitiesSubject.pipe(
-      tap((entities) => {
-        const numSelected = this.selection.selected.length;
-        if (numSelected === entities.length) {
-          this.selection.clear();
-        } else {
-          entities.forEach(row => {
-            this.selection.select(row);
-          });
-        }
-      }),
-      take(1)
-    ).subscribe();
+    const entities = this.entitiesSubject.getValue();
+    const numSelected = this.selection.selected.length;
+    if (numSelected === entities.length) {
+      this.selection.clear();
+    } else {
+      entities.forEach(row => {
+        this.selection.select(row);
+      });
+    }
   }
 }
