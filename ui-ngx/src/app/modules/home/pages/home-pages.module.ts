@@ -93,6 +93,7 @@ import { IntegrationsCenterModule } from '@home/pages/integration/integrations-c
     AuditLogModule,
     ApiUsageModule,
     UserModule,
+    AccountModule,
     RoleModule,
     IntegrationsCenterModule,
     ConverterModule,

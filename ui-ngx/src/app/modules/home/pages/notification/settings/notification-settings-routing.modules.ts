@@ -29,44 +29,28 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { MenuService } from '@core/services/menu.service';
-import { Observable } from 'rxjs';
-import { MenuSection } from '@core/services/menu.models';
-import { map, share } from 'rxjs/operators';
+import { Routes } from '@angular/router';
+import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
+import { Authority } from '@shared/models/authority.enum';
+import { inject, NgModule } from '@angular/core';
+import { NotificationSettingsComponent } from '@home/pages/notification/settings/notification-settings.component';
+import { NotificationService } from '@core/http/notification.service';
 
-@Component({
-  selector: 'tb-side-menu',
-  templateUrl: './side-menu.component.html',
-  styleUrls: ['./side-menu.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
-})
-export class SideMenuComponent implements OnInit {
-
-  menuSections$: Observable<Array<MenuSection>>;
-
-  constructor(private menuService: MenuService) {
-    this.menuSections$ = this.menuService.menuSections().pipe(
-      map((sections) => this.filterSections(sections)),
-      share()
-    );
-  }
-
-  trackByMenuSection(index: number, section: MenuSection){
-    return section.id;
-  }
-  ngOnInit() {
-  }
-
-  private filterSections(sections: Array<MenuSection>): Array<MenuSection> {
-    const enabledSections = sections.filter(section => !section.disabled);
-    const filteredSections: MenuSection[] = [];
-    for (const enabledSection of enabledSections) {
-      const sectionPages = enabledSection.pages || [];
-      if (!sectionPages.length || sectionPages.filter((page) => !page.disabled).length > 0) {
-        filteredSections.push(enabledSection);
+export const notificationUserSettingsRoutes: Routes = [
+  {
+    path: 'notificationSettings',
+    component: NotificationSettingsComponent,
+    canDeactivate: [ConfirmOnExitGuard],
+    data: {
+      auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      title: 'account.notification-settings',
+      breadcrumb: {
+        label: 'account.notification-settings',
+        icon: 'settings'
       }
+    },
+    resolve: {
+      userSettings: () => inject(NotificationService).getNotificationUserSettings()
     }
-    return filteredSections;
   }
-}
+];
