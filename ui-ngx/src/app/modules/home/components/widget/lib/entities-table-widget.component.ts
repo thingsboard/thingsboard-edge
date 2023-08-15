@@ -62,7 +62,8 @@ import {
   checkNumericStringAndConvert,
   deepClone,
   hashCode,
-  isDefined, isDefinedAndNotNull,
+  isDefined,
+  isDefinedAndNotNull,
   isNumber,
   isObject,
   isUndefined
@@ -70,21 +71,11 @@ import {
 import cssjs from '@core/css/css';
 import { CollectionViewer, DataSource } from '@angular/cdk/collections';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
-import { BehaviorSubject, EMPTY, merge, Observable } from 'rxjs';
+import { BehaviorSubject, EMPTY, merge, Observable, Subject } from 'rxjs';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import { EntityId } from '@shared/models/id/entity-id';
 import { entityTypeTranslations } from '@shared/models/entity-type.models';
-import {
-  concatMap,
-  debounceTime,
-  distinctUntilChanged,
-  expand,
-  map,
-  skip,
-  startWith,
-  tap,
-  toArray
-} from 'rxjs/operators';
+import { concatMap, debounceTime, distinctUntilChanged, expand, map, takeUntil, tap, toArray } from 'rxjs/operators';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, SortDirection } from '@angular/material/sort';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -171,6 +162,8 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
 
+  textSearch = this.fb.control('', {nonNullable: true});
+
   public displayPagination = true;
   public enableStickyHeader = true;
   public enableStickyAction = true;
@@ -195,6 +188,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
   private widgetConfig: WidgetConfig;
   private subscription: IWidgetSubscription;
   private widgetResize$: ResizeObserver;
+  private destroy$ = new Subject<void>();
 
   private defaultPageSize = 10;
   private defaultSortOrder = 'entityName';
@@ -227,9 +221,6 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
   };
 
   private postProcessingFunctionMap = new Map<string, any>();
-
-
-  textSearch = this.fb.control('', {nonNullable: true});
 
   constructor(protected store: Store<AppState>,
               private elementRef: ElementRef,
@@ -276,14 +267,15 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     if (this.widgetResize$) {
       this.widgetResize$.disconnect();
     }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   ngAfterViewInit(): void {
     this.textSearch.valueChanges.pipe(
       debounceTime(150),
-      startWith(''),
-      distinctUntilChanged((a: string, b: string) => a.trim() === b.trim()),
-      skip(1)
+      distinctUntilChanged((prev, current) => (this.pageLink.textSearch ?? '') === current.trim()),
+      takeUntil(this.destroy$)
     ).subscribe((value) => {
       if (this.displayPagination) {
         this.paginator.pageIndex = 0;

@@ -39,9 +39,12 @@ import {
   EventEmitter,
   Input,
   OnChanges,
-  OnInit, Renderer2,
+  OnDestroy,
+  OnInit,
+  Renderer2,
   SimpleChanges,
-  ViewChild, ViewContainerRef
+  ViewChild,
+  ViewContainerRef
 } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
@@ -51,9 +54,9 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, SortDirection } from '@angular/material/sort';
 import { EntitiesDataSource } from '@home/models/datasource/entity-datasource';
-import { catchError, debounceTime, distinctUntilChanged, map, skip, startWith, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, map, skip, takeUntil } from 'rxjs/operators';
 import { Direction, SortOrder } from '@shared/models/page/sort-order';
-import { forkJoin, merge, Observable, of, Subscription } from 'rxjs';
+import { forkJoin, merge, Observable, of, Subject, Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { BaseData, HasId } from '@shared/models/base-data';
 import { ActivatedRoute, QueryParamsHandling, Router } from '@angular/router';
@@ -65,7 +68,8 @@ import {
   EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
-  GroupActionDescriptor, GroupChipsEntityTableColumn,
+  GroupActionDescriptor,
+  GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { EntityTypeTranslation } from '@shared/models/entity-type.models';
@@ -75,7 +79,7 @@ import { AddEntityDialogData, EntityAction } from '@home/models/entity/entity-co
 import { calculateIntervalStartEndTime, HistoryWindowType, Timewindow } from '@shared/models/time/time.models';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TbAnchorComponent } from '@shared/components/tb-anchor.component';
-import { isDefined, isEmptyStr, isEqual, isNotEmptyStr, isUndefined } from '@core/utils';
+import { isDefined, isEqual, isNotEmptyStr, isUndefined } from '@core/utils';
 import { HasUUID } from '@shared/models/id/has-uuid';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { hidePageSizePixelValue } from '@shared/models/constants';
@@ -89,7 +93,7 @@ import { FormBuilder } from '@angular/forms';
   styleUrls: ['./entities-table.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class EntitiesTableComponent extends PageComponent implements IEntitiesTableComponent, AfterViewInit, OnInit, OnChanges {
+export class EntitiesTableComponent extends PageComponent implements IEntitiesTableComponent, AfterViewInit, OnInit, OnChanges, OnDestroy {
 
   @Input()
   entitiesTableConfig: EntityTableConfig<BaseData<HasId>>;
@@ -138,14 +142,13 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
 
   @ViewChild('entityDetailsPanel') entityDetailsPanel: EntityDetailsPanelComponent;
 
+  textSearch = this.fb.control('', {nonNullable: true});
+
   private updateDataSubscription: Subscription;
   private viewInited = false;
 
   private widgetResize$: ResizeObserver;
-
-  private rxSubscriptions = new Array<Subscription>();
-
-  textSearch = this.fb.control('', {nonNullable: true});
+  private destroy$ = new Subject<void>();
 
   constructor(protected store: Store<AppState>,
               public route: ActivatedRoute,
@@ -167,11 +170,11 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     if (this.entitiesTableConfig) {
       this.init(this.entitiesTableConfig);
     } else {
-      this.rxSubscriptions.push(this.route.data.subscribe(
-        (data) => {
-          this.init(data.entitiesTableConfig);
-        }
-      ));
+      this.route.data.pipe(
+        takeUntil(this.destroy$)
+      ).subscribe((data) => {
+        this.init(data.entitiesTableConfig);
+      });
     }
     this.widgetResize$ = new ResizeObserver(() => {
       const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
@@ -187,10 +190,8 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     if (this.widgetResize$) {
       this.widgetResize$.disconnect();
     }
-    this.rxSubscriptions.forEach((subscription) => {
-      subscription.unsubscribe();
-    });
-    this.rxSubscriptions.length = 0;
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -295,11 +296,11 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
         this.pageLink.pageSize = Number(routerQueryParams.pageSize);
       }
       const textSearchParam = routerQueryParams.textSearch;
-      if (textSearchParam && !isEmptyStr(textSearchParam)) {
-        const decodedTextSearch = decodeURI(routerQueryParams.textSearch);
+      if (isNotEmptyStr(textSearchParam)) {
+        const decodedTextSearch = decodeURI(textSearchParam);
         this.textSearchMode = true;
-        this.textSearch.setValue(decodedTextSearch, { emitEvent: false });
         this.pageLink.textSearch = decodedTextSearch.trim();
+        this.textSearch.setValue(decodedTextSearch);
       }
     }
     this.dataSource = this.entitiesTableConfig.dataSource(this.dataLoaded.bind(this));
@@ -335,10 +336,9 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
   ngAfterViewInit() {
 
     this.textSearch.valueChanges.pipe(
-        debounceTime(150),
-        startWith(''),
-        distinctUntilChanged((a: string, b: string) => a.trim() === b.trim()),
-        skip(1)
+      debounceTime(150),
+      distinctUntilChanged((prev, current) => (this.pageLink.textSearch ?? '') === current.trim()),
+      takeUntil(this.destroy$)
     ).subscribe(value => {
       const queryParams: PageQueryParam = {};
       if (isNotEmptyStr(value)) {
@@ -356,13 +356,25 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     });
 
     if (this.pageMode) {
-      this.route.queryParams.pipe(skip(1)).subscribe((params: PageQueryParam) => {
+      this.route.queryParams.pipe(
+        skip(1),
+        takeUntil(this.destroy$)
+      ).subscribe((params: PageQueryParam) => {
         if (this.displayPagination) {
           this.paginator.pageIndex = Number(params.page) || 0;
           this.paginator.pageSize = Number(params.pageSize) || this.defaultPageSize;
         }
         this.sort.active = params.property || this.entitiesTableConfig.defaultSortOrder.property;
         this.sort.direction = (params.direction || this.entitiesTableConfig.defaultSortOrder.direction).toLowerCase() as SortDirection;
+        const textSearchParam = params.textSearch;
+        if (isNotEmptyStr(textSearchParam)) {
+          const decodedTextSearch = decodeURI(textSearchParam);
+          this.textSearchMode = true;
+          this.pageLink.textSearch = decodedTextSearch.trim();
+          this.textSearch.setValue(decodedTextSearch);
+        } else {
+          this.pageLink.textSearch = null;
+        }
         this.updateData();
       });
     }
@@ -393,20 +405,16 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     );
     if (this.displayPagination) {
       paginatorSubscription$ = this.paginator.page.asObservable().pipe(
-        map((data) => {
-          return {
-            page: data.pageIndex === 0 ? null : data.pageIndex,
-            pageSize: data.pageSize === this.defaultPageSize ? null : data.pageSize
-          };
-        })
+        map((data) => ({
+          page: data.pageIndex === 0 ? null : data.pageIndex,
+          pageSize: data.pageSize === this.defaultPageSize ? null : data.pageSize
+        }))
       );
     }
     this.updateDataSubscription = ((this.displayPagination ? merge(sortSubscription$, paginatorSubscription$)
       : sortSubscription$) as Observable<PageQueryParam>).pipe(
-      tap((queryParams) => {
-        this.updatedRouterParamsAndData(queryParams);
-      })
-    ).subscribe();
+      takeUntil(this.destroy$)
+    ).subscribe(queryParams => this.updatedRouterParamsAndData(queryParams));
   }
 
   addEnabled() {
@@ -612,7 +620,8 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
 
   resetSortAndFilter(update: boolean = true, preserveTimewindow: boolean = false) {
     this.textSearchMode = false;
-    this.textSearch.reset('', {emitEvent: false});
+    this.pageLink.textSearch = null;
+    this.textSearch.reset();
     if (this.entitiesTableConfig.useTimePageLink && !preserveTimewindow) {
       this.timewindow = this.entitiesTableConfig.defaultTimewindowInterval;
     }

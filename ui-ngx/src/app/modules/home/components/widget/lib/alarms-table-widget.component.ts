@@ -57,7 +57,7 @@ import cssjs from '@core/css/css';
 import { sortItems } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
 import { CollectionViewer, DataSource, SelectionModel } from '@angular/cdk/collections';
-import { BehaviorSubject, EMPTY, forkJoin, merge, Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, EMPTY, forkJoin, merge, Observable, Subject, Subscription } from 'rxjs';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import {
   concatMap,
@@ -65,9 +65,8 @@ import {
   distinctUntilChanged,
   expand,
   map,
-  skip,
-  startWith,
   take,
+  takeUntil,
   tap,
   toArray
 } from 'rxjs/operators';
@@ -191,6 +190,8 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
 
+  textSearch = this.fb.control('', {nonNullable: true});
+
   public readonly = !this.userPermissionsService.hasGenericPermission(Resource.ALARM, Operation.WRITE);
   public enableSelection = true;
   public displayPagination = true;
@@ -217,6 +218,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
   private widgetConfig: WidgetConfig;
   private subscription: IWidgetSubscription;
   private widgetResize$: ResizeObserver;
+  private destroy$ = new Subject<void>();
 
   private displayActivity = false;
   private displayDetails = true;
@@ -264,8 +266,6 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     },
     icon: 'filter_list'
   };
-
-  textSearch = this.fb.control('', {nonNullable: true});
 
   constructor(protected store: Store<AppState>,
               private userPermissionsService: UserPermissionsService,
@@ -323,14 +323,15 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     if (this.widgetResize$) {
       this.widgetResize$.disconnect();
     }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   ngAfterViewInit(): void {
     this.textSearch.valueChanges.pipe(
       debounceTime(150),
-      startWith(''),
-      distinctUntilChanged((a: string, b: string) => a.trim() === b.trim()),
-      skip(1)
+      distinctUntilChanged((prev, current) => (this.pageLink.textSearch ?? '') === current.trim()),
+      takeUntil(this.destroy$)
     ).subscribe((value) => {
       this.resetPageIndex();
       this.pageLink.textSearch = value.trim();

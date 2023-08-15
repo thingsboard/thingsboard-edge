@@ -29,10 +29,10 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, ElementRef, Inject, OnInit, ViewChild } from '@angular/core';
-import { combineLatest, Observable } from 'rxjs';
+import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { combineLatest, Observable, Subject } from 'rxjs';
 import { Store } from '@ngrx/store';
-import { debounceTime, distinctUntilChanged, map, share, skip, startWith } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, map, share, skip, startWith, takeUntil } from 'rxjs/operators';
 
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
 import { PageComponent } from '@shared/components/page.component';
@@ -55,7 +55,7 @@ import { TranslateService } from '@ngx-translate/core';
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
-export class HomeComponent extends PageComponent implements AfterViewInit, OnInit {
+export class HomeComponent extends PageComponent implements AfterViewInit, OnInit, OnDestroy {
 
   authState: AuthState = getCurrentAuthState(this.store);
 
@@ -80,6 +80,8 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
 
   hideLoadingBar = false;
 
+  private destroy$ = new Subject<void>();
+
   constructor(protected store: Store<AppState>,
               @Inject(WINDOW) private window: Window,
               private activeComponentService: ActiveComponentService,
@@ -98,6 +100,7 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
 
     this.breakpointObserver
       .observe(MediaBreakpoints['gt-sm'])
+      .pipe(takeUntil(this.destroy$))
       .subscribe((state: BreakpointState) => {
           if (state.matches) {
             this.sidenavMode = 'side';
@@ -110,13 +113,19 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
       );
   }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   ngAfterViewInit() {
     this.textSearch.valueChanges.pipe(
       debounceTime(150),
       startWith(''),
       distinctUntilChanged((a: string, b: string) => a.trim() === b.trim()),
-      skip(1)
-    ).subscribe((value) => this.searchTextUpdated(value));
+      skip(1),
+      takeUntil(this.destroy$)
+    ).subscribe(value => this.searchTextUpdated(value.trim()));
   }
 
   sidenavClicked() {
@@ -196,7 +205,7 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
 
   private searchTextUpdated(searchText: string) {
     if (this.searchableComponent) {
-      this.searchableComponent.onSearchTextUpdated(searchText.trim());
+      this.searchableComponent.onSearchTextUpdated(searchText);
     }
   }
 }
