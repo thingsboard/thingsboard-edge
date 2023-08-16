@@ -30,23 +30,144 @@
  */
 package org.thingsboard.server.service.edge.rpc.processor.dashboard;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.TbMsgDataType;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.queue.TbQueueCallback;
+import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
+
+import java.util.UUID;
 
 @Component
 @Slf4j
 @TbCoreComponent
-public class DashboardEdgeProcessor extends BaseEdgeProcessor {
+public class DashboardEdgeProcessor extends BaseDashboardProcessor {
+
+    public ListenableFuture<Void> processDashboardMsgFromEdge(TenantId tenantId, Edge edge, DashboardUpdateMsg dashboardUpdateMsg) {
+        log.trace("[{}] executing processDashboardMsgFromEdge [{}] from edge [{}]", tenantId, dashboardUpdateMsg, edge.getName());
+        DashboardId dashboardId = new DashboardId(new UUID(dashboardUpdateMsg.getIdMSB(), dashboardUpdateMsg.getIdLSB()));
+        try {
+            edgeSynchronizationManager.getSync().set(true);
+
+            switch (dashboardUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE:
+                case ENTITY_UPDATED_RPC_MESSAGE:
+                    saveOrUpdateDashboard(tenantId, dashboardId, dashboardUpdateMsg, edge);
+                    return Futures.immediateFuture(null);
+                case ENTITY_DELETED_RPC_MESSAGE:
+                    if (dashboardUpdateMsg.hasEntityGroupIdMSB() && dashboardUpdateMsg.hasEntityGroupIdLSB()) {
+                        EntityGroupId entityGroupId = new EntityGroupId(
+                                new UUID(dashboardUpdateMsg.getEntityGroupIdMSB(), dashboardUpdateMsg.getEntityGroupIdLSB()));
+                        entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, dashboardId);
+                    } else {
+                        removeDashboardFromEdgeAllDashboardGroup(tenantId, edge, dashboardId);
+                    }
+                    return Futures.immediateFuture(null);
+                case UNRECOGNIZED:
+                default:
+                    return handleUnsupportedMsgType(dashboardUpdateMsg.getMsgType());
+            }
+        } catch (DataValidationException | ThingsboardException e) {
+            if (e.getMessage().contains("limit reached")) {
+                log.warn("[{}] Number of allowed dashboard violated {}", tenantId, dashboardUpdateMsg, e);
+                return Futures.immediateFuture(null);
+            } else {
+                return Futures.immediateFailedFuture(e);
+            }
+        } finally {
+            edgeSynchronizationManager.getSync().remove();
+        }
+    }
+
+    private void saveOrUpdateDashboard(TenantId tenantId, DashboardId dashboardId, DashboardUpdateMsg dashboardUpdateMsg, Edge edge) throws ThingsboardException {
+        CustomerId customerId = safeGetCustomerId(dashboardUpdateMsg.getCustomerIdMSB(), dashboardUpdateMsg.getCustomerIdLSB());
+        boolean created = super.saveOrUpdateDashboard(tenantId, dashboardId, dashboardUpdateMsg, customerId);
+        if (created) {
+            createRelationFromEdge(tenantId, edge.getId(), dashboardId);
+            pushDashboardCreatedEventToRuleEngine(tenantId, edge, dashboardId);
+            addDashboardToEdgeAllDashboardGroup(tenantId, edge, dashboardId);
+        }
+    }
+
+    private void pushDashboardCreatedEventToRuleEngine(TenantId tenantId, Edge edge, DashboardId dashboardId) {
+        try {
+            Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
+            ObjectNode entityNode = JacksonUtil.OBJECT_MAPPER.valueToTree(dashboard);
+            TbMsg tbMsg = TbMsg.newMsg(TbMsgType.ENTITY_CREATED, dashboardId, null,
+                    getActionTbMsgMetaData(edge, null), TbMsgDataType.JSON, JacksonUtil.OBJECT_MAPPER.writeValueAsString(entityNode));
+            tbClusterService.pushMsgToRuleEngine(tenantId, dashboardId, tbMsg, new TbQueueCallback() {
+                @Override
+                public void onSuccess(TbQueueMsgMetadata metadata) {
+                    log.debug("Successfully send ENTITY_CREATED EVENT to rule engine [{}]", dashboard);
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    log.debug("Failed to send ENTITY_CREATED EVENT to rule engine [{}]", dashboard, t);
+                }
+            });
+        } catch (JsonProcessingException | IllegalArgumentException e) {
+            log.warn("[{}] Failed to push dashboard action to rule engine: {}", dashboardId, DataConstants.ENTITY_CREATED, e);
+        }
+    }
+
+    private void removeDashboardFromEdgeAllDashboardGroup(TenantId tenantId, Edge edge, DashboardId dashboardId) {
+        Dashboard dashboardToDelete = dashboardService.findDashboardById(tenantId, dashboardId);
+        if (dashboardToDelete != null) {
+            ListenableFuture<EntityGroup> edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.DASHBOARD);
+            Futures.addCallback(edgeDeviceGroup, new FutureCallback<>() {
+                @Override
+                public void onSuccess(EntityGroup entityGroup) {
+                    if (entityGroup != null) {
+                        entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroup.getId(), dashboardToDelete.getId());
+                    }
+                }
+
+                @Override
+                public void onFailure(@NotNull Throwable t) {
+                    log.warn("Can't remove from edge dashboard group, dashboard id [{}]", dashboardId, t);
+                }
+            }, dbCallbackExecutorService);
+        }
+    }
+
+    private void addDashboardToEdgeAllDashboardGroup(TenantId tenantId, Edge edge, DashboardId dashboardId) {
+        try {
+            EntityGroup edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.DASHBOARD).get();
+            if (edgeDeviceGroup != null) {
+                entityGroupService.addEntityToEntityGroup(tenantId, edgeDeviceGroup.getId(), dashboardId);
+            }
+        } catch (Exception e) {
+            log.warn("Can't add dashboard to edge dashboard group, dashboard id [{}]", dashboardId, e);
+            throw new RuntimeException(e);
+        }
+    }
 
     public DownlinkMsg convertDashboardEventToDownlink(EdgeEvent edgeEvent) {
         DashboardId dashboardId = new DashboardId(edgeEvent.getEntityId());
