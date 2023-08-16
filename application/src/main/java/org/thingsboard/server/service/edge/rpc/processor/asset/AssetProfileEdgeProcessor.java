@@ -79,12 +79,8 @@ public class AssetProfileEdgeProcessor extends BaseAssetProfileProcessor {
                     return handleUnsupportedMsgType(assetProfileUpdateMsg.getMsgType());
             }
         } catch (DataValidationException e) {
-            if (e.getMessage().contains("limit reached")) {
-                log.warn("[{}] Number of allowed asset profile violated {}", tenantId, assetProfileUpdateMsg, e);
-                return Futures.immediateFuture(null);
-            } else {
-                return Futures.immediateFailedFuture(e);
-            }
+            log.warn("Failed to process AssetProfileUpdateMsg from Edge [{}]", assetProfileUpdateMsg, e);
+            return Futures.immediateFailedFuture(e);
         } finally {
             edgeSynchronizationManager.getSync().remove();
         }
@@ -112,7 +108,7 @@ public class AssetProfileEdgeProcessor extends BaseAssetProfileProcessor {
 
                 @Override
                 public void onFailure(Throwable t) {
-                    log.debug("Failed to send ENTITY_CREATED EVENT to rule engine [{}]", assetProfile, t);
+                    log.warn("Failed to send ENTITY_CREATED EVENT to rule engine [{}]", assetProfile, t);
                 }
             });
         } catch (JsonProcessingException | IllegalArgumentException e) {
