@@ -837,9 +837,9 @@ public class AlarmControllerTest extends AbstractControllerTest {
 
         Device device = createDevice("Different customer device", "default", "differentTenantTest");
 
-        Device assignedDevice = doPost("/api/customer/" + differentTenantCustomerId.getId()
-                + "/device/" + device.getId().getId(), Device.class);
-        Assert.assertEquals(differentTenantCustomerId, assignedDevice.getCustomerId());
+        doPost(String.format("/api/owner/CUSTOMER/%s/%s/%s", differentTenantCustomerId, EntityType.DEVICE, device.getId()));
+        Device assignedDevice = doGet("/api/device/" + device.getId(), Device.class);
+        Assert.assertEquals(differentTenantCustomerId, assignedDevice.getOwnerId());
 
         Alarm alarm = Alarm.builder()
                 .type(TEST_ALARM_TYPE)

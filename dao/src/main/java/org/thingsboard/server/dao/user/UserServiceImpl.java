@@ -301,6 +301,13 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
 
     @Override
     @Transactional
+    public void deleteUser(TenantId tenantId, UserId userId) {
+        User user = findUserById(tenantId, userId);
+        deleteUser(tenantId, user);
+    }
+
+    @Override
+    @Transactional
     public void deleteUser(TenantId tenantId, User user) {
         UserId userId = user.getId();
         log.trace("Executing deleteUser [{}]", userId);
