@@ -4671,6 +4671,7 @@ var JSHINT = (function() {
       case "else":
       case "finally":
       case "for":
+      case "foreach":
       case "if":
       case "in":
       case "instanceof":
@@ -8150,7 +8151,7 @@ var JSHINT = (function() {
       state.funct["(breakage)"] += 1;
       state.funct["(loopage)"] += 1;
 
-      state.funct["(breakage)"] -= 1;
+      // state.funct["(breakage)"] -= 1;
       state.funct["(loopage)"] -= 1;
     } else {
       nolinebreak(state.tokens.curr);
@@ -9770,7 +9771,7 @@ Lexer.prototype = {
   scanKeyword: function() {
     var result = /^[a-zA-Z_$][a-zA-Z0-9_$]*/.exec(this.input);
     var keywords = [
-      "if", "in", "do", "var", "for", "new",
+      "if", "in", "do", "var", "for", "foreach", "new",
       "try", "let", "this", "else", "case",
       "void", "with", "enum", "while", "break",
       "catch", "throw", "const", "yield", "class",
