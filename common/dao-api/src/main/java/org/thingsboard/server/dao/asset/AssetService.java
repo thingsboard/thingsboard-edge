@@ -56,6 +56,8 @@ public interface AssetService extends EntityDaoService {
 
     Asset findAssetByTenantIdAndName(TenantId tenantId, String name);
 
+    Asset saveAsset(Asset asset, boolean doValidate);
+
     Asset saveAsset(Asset asset);
 
     void deleteAsset(TenantId tenantId, AssetId assetId);
