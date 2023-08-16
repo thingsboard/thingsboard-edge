@@ -206,6 +206,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
     public UplinkMsg convertDeviceEventToUplink(TenantId tenantId, CloudEvent cloudEvent) {
         DeviceId deviceId = new DeviceId(cloudEvent.getEntityId());
         UplinkMsg msg = null;
+        EntityGroupId entityGroupId = cloudEvent.getEntityGroupId() != null ? new EntityGroupId(cloudEvent.getEntityGroupId()) : null;
         switch (cloudEvent.getAction()) {
             case ADDED:
             case UPDATED:
@@ -213,7 +214,6 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                 Device device = deviceService.findDeviceById(cloudEvent.getTenantId(), deviceId);
                 if (device != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                    EntityGroupId entityGroupId = cloudEvent.getEntityGroupId() != null ? new EntityGroupId(cloudEvent.getEntityGroupId()) : null;
                     DeviceUpdateMsg deviceUpdateMsg =
                             deviceMsgConstructor.constructDeviceUpdatedMsg(msgType, device, entityGroupId);
                     msg = UplinkMsg.newBuilder()
@@ -225,7 +225,6 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                 break;
             case DELETED:
             case REMOVED_FROM_ENTITY_GROUP:
-                EntityGroupId entityGroupId = cloudEvent.getEntityGroupId() != null ? new EntityGroupId(cloudEvent.getEntityGroupId()) : null;
                 DeviceUpdateMsg deviceUpdateMsg =
                         deviceMsgConstructor.constructDeviceDeleteMsg(deviceId, entityGroupId);
                 msg = UplinkMsg.newBuilder()

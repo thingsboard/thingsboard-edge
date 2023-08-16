@@ -33,7 +33,9 @@ package org.thingsboard.server.common.data.cloud;
 public enum CloudEventType {
     DASHBOARD,
     ASSET,
+    ASSET_PROFILE,
     DEVICE,
+    DEVICE_PROFILE,
     ENTITY_VIEW,
     ALARM,
     RULE_CHAIN,
@@ -44,7 +46,6 @@ public enum CloudEventType {
     RELATION,
     ENTITY_GROUP,
     TENANT_PROFILE,
-    DEVICE_PROFILE,
     WIDGETS_BUNDLE,
     WIDGET_TYPE,
     SCHEDULER_EVENT,

@@ -35,6 +35,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.thingsboard.common.util.JacksonUtil;
@@ -43,6 +44,7 @@ import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
@@ -50,6 +52,7 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.edge.Edge;
@@ -78,9 +81,12 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -168,8 +174,11 @@ import java.util.concurrent.locks.ReentrantLock;
 public abstract class BaseEdgeProcessor {
 
     protected static final Lock deviceCreationLock = new ReentrantLock();
-
+    protected static final Lock deviceProfileCreationLock = new ReentrantLock();
     protected static final Lock assetCreationLock = new ReentrantLock();
+    protected static final Lock assetProfileCreationLock = new ReentrantLock();
+    protected static final Lock dashboardCreationLock = new ReentrantLock();
+    protected static final Lock entityViewCreationLock = new ReentrantLock();
 
     protected static final Lock widgetCreationLock = new ReentrantLock();
 
@@ -298,6 +307,18 @@ public abstract class BaseEdgeProcessor {
 
     @Autowired
     protected DataValidator<Tenant> tenantValidator;
+
+    @Autowired
+    protected DataValidator<DeviceProfile> deviceProfileValidator;
+
+    @Autowired
+    protected DataValidator<AssetProfile> assetProfileValidator;
+
+    @Autowired
+    protected DataValidator<Dashboard> dashboardValidator;
+
+    @Autowired
+    protected DataValidator<EntityView> entityViewValidator;
 
     @Autowired
     protected EdgeMsgConstructor edgeMsgConstructor;
@@ -719,6 +740,30 @@ public abstract class BaseEdgeProcessor {
         }
     }
 
+    protected void createRelationFromEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId) {
+        EntityRelation relation = new EntityRelation();
+        relation.setFrom(edgeId);
+        relation.setTo(entityId);
+        relation.setTypeGroup(RelationTypeGroup.COMMON);
+        relation.setType(EntityRelation.EDGE_TYPE);
+        relationService.saveRelation(tenantId, relation);
+    }
+
+    protected TbMsgMetaData getActionTbMsgMetaData(Edge edge, CustomerId customerId) {
+        TbMsgMetaData metaData = getTbMsgMetaData(edge);
+        if (customerId != null && !customerId.isNullUid()) {
+            metaData.putValue("customerId", customerId.toString());
+        }
+        return metaData;
+    }
+
+    protected TbMsgMetaData getTbMsgMetaData(Edge edge) {
+        TbMsgMetaData metaData = new TbMsgMetaData();
+        metaData.putValue("edgeId", edge.getId().toString());
+        metaData.putValue("edgeName", edge.getName());
+        return metaData;
+    }
+
     protected void changeOwnerIfRequired(TenantId tenantId, CustomerId customerId, EntityId entityId) throws ThingsboardException {
         EntityId newOwnerId = getOwnerId(tenantId, customerId);
         EntityId currentOwnerId;
@@ -791,7 +836,7 @@ public abstract class BaseEdgeProcessor {
                 }
 
                 @Override
-                public void onFailure(Throwable t) {
+                public void onFailure(@NotNull Throwable t) {
                     log.warn("[{}] Failed to add entity to group: {}", entityId, t.getMessage(), t);
                 }
             }, dbCallbackExecutorService);

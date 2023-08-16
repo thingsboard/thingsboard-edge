@@ -163,12 +163,12 @@ public class DeviceProfileServiceImpl extends AbstractCachedEntityService<Device
 
     @Override
     public DeviceProfile saveDeviceProfile(DeviceProfile deviceProfile, boolean doValidate) {
-        return doSaveDeviceProfile(deviceProfile,  doValidate);
+        return doSaveDeviceProfile(deviceProfile, doValidate);
     }
 
     @Override
     public DeviceProfile saveDeviceProfile(DeviceProfile deviceProfile) {
-        return doSaveDeviceProfile(deviceProfile,  true);
+        return doSaveDeviceProfile(deviceProfile, true);
     }
 
     private DeviceProfile doSaveDeviceProfile(DeviceProfile deviceProfile, boolean doValidate) {

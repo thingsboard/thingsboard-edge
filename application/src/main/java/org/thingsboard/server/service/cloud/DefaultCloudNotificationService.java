@@ -91,6 +91,8 @@ public class DefaultCloudNotificationService implements CloudNotificationService
                 case EDGE:
                 case ASSET:
                 case DEVICE:
+                case ASSET_PROFILE:
+                case DEVICE_PROFILE:
                 case ENTITY_VIEW:
                 case DASHBOARD:
                 case RULE_CHAIN:
