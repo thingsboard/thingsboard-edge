@@ -447,6 +447,11 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         }
     }
 
+    @Override
+    public boolean isWhiteLabelingConfigured(TenantId tenantId) {
+        return findById(tenantId, TenantId.SYS_TENANT_ID, GENERAL_WHITE_LABEL_PARAMS_TYPE) != null;
+    }
+
     private void saveLoginWhiteLabelParams(TenantId tenantId, EntityId entityId, LoginWhiteLabelingParams whiteLabelingParams) {
         WhiteLabeling whiteLabeling = new WhiteLabeling();
         whiteLabeling.setEntityId(entityId);

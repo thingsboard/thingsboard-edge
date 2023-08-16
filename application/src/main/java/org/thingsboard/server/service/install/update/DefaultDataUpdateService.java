@@ -106,8 +106,6 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileQueueConfiguration;
 import org.thingsboard.server.common.data.util.TbPair;
-import org.thingsboard.server.common.data.wl.Favicon;
-import org.thingsboard.server.common.data.wl.PaletteSettings;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
@@ -162,7 +160,6 @@ import static org.thingsboard.server.common.data.StringUtils.isBlank;
 @Slf4j
 public class DefaultDataUpdateService implements DataUpdateService {
 
-    private static final String WHITE_LABEL_PARAMS = "whiteLabelParams";
     private static final String LOGO_IMAGE = "logoImage";
     private static final String LOGO_IMAGE_CHECKSUM = "logoImageChecksum";
     private static final String MAIL_TEMPLATES = "mailTemplates";
@@ -1136,38 +1133,29 @@ public class DefaultDataUpdateService implements DataUpdateService {
     }
 
     private void updateSystemWhiteLabelingParameters() {
-        AdminSettings whiteLabelParamsSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, WHITE_LABEL_PARAMS);
-        JsonNode storedWl = null;
+        WhiteLabelingParams systemWLParams = whiteLabelingService.getSystemWhiteLabelingParams(TenantId.SYS_TENANT_ID);
         String logoImageUrl = null;
-        if (whiteLabelParamsSettings != null) {
-            String json = whiteLabelParamsSettings.getJsonValue().get("value").asText();
-            if (!StringUtils.isEmpty(json)) {
-                try {
-                    storedWl = JacksonUtil.toJsonNode(json);
-                } catch (IllegalArgumentException e) {
-                    log.error("Unable to read System White Labeling Params!", e);
-                }
-            }
-        }
         AdminSettings logoImageSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, LOGO_IMAGE);
         if (logoImageSettings != null) {
             logoImageUrl = logoImageSettings.getJsonValue().get("value").asText();
         }
-        WhiteLabelingParams preparedWhiteLabelingParams = createWhiteLabelingParams(storedWl, logoImageUrl, true);
-        whiteLabelingService.saveSystemWhiteLabelingParams(preparedWhiteLabelingParams);
+        systemWLParams.setLogoImageUrl(logoImageUrl);
+        whiteLabelingService.saveSystemWhiteLabelingParams(systemWLParams);
         adminSettingsService.deleteAdminSettingsByKey(TenantId.SYS_TENANT_ID, LOGO_IMAGE);
         adminSettingsService.deleteAdminSettingsByKey(TenantId.SYS_TENANT_ID, LOGO_IMAGE_CHECKSUM);
     }
 
     private WhiteLabelingParams updateEntityWhiteLabelingParameters(EntityId entityId) {
-        JsonNode storedWl = getEntityWhiteLabelParams(entityId);
         String logoImageUrl = getEntityAttributeValue(entityId, LOGO_IMAGE);
-        WhiteLabelingParams preparedWhiteLabelingParams = createWhiteLabelingParams(storedWl, logoImageUrl, false);
         WhiteLabelingParams result;
         if (entityId.getEntityType() == EntityType.TENANT) {
-            result = whiteLabelingService.saveTenantWhiteLabelingParams(new TenantId(entityId.getId()), preparedWhiteLabelingParams);
+            WhiteLabelingParams tenantWLParams = whiteLabelingService.getTenantWhiteLabelingParams((TenantId) entityId);
+            tenantWLParams.setLogoImageUrl(logoImageUrl);
+            result = whiteLabelingService.saveTenantWhiteLabelingParams(new TenantId(entityId.getId()), tenantWLParams);
         } else if (entityId.getEntityType() == EntityType.CUSTOMER) {
-            result = whiteLabelingService.saveCustomerWhiteLabelingParams(TenantId.SYS_TENANT_ID, new CustomerId(entityId.getId()), preparedWhiteLabelingParams);
+            WhiteLabelingParams customerWLParams = whiteLabelingService.getCustomerWhiteLabelingParams(TenantId.SYS_TENANT_ID, (CustomerId) entityId);
+            customerWLParams.setLogoImageUrl(logoImageUrl);
+            result = whiteLabelingService.saveCustomerWhiteLabelingParams(TenantId.SYS_TENANT_ID, new CustomerId(entityId.getId()), customerWLParams);
         } else {
             return null;
         }
@@ -1267,116 +1255,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
     }
 
-    private WhiteLabelingParams createWhiteLabelingParams(JsonNode storedWl, String logoImageUrl, boolean isSystem) {
-        WhiteLabelingParams whiteLabelingParams = new WhiteLabelingParams();
-        whiteLabelingParams.setLogoImageUrl(logoImageUrl);
-        if (storedWl != null) {
-            if (storedWl.has("logoImageUrl")) {
-                logoImageUrl = storedWl.get("logoImageUrl").asText();
-                if (!StringUtils.isEmpty(logoImageUrl) && !"null".equals(logoImageUrl)) {
-                    whiteLabelingParams.setLogoImageUrl(logoImageUrl);
-                }
-            }
-            if (storedWl.has("logoImageHeight")) {
-                int logoImageHeight = storedWl.get("logoImageHeight").asInt();
-                if (logoImageHeight > 0) {
-                    whiteLabelingParams.setLogoImageHeight(logoImageHeight);
-                }
-            }
-            if (storedWl.has("appTitle")) {
-                String appTitle = storedWl.get("appTitle").asText();
-                if (!StringUtils.isEmpty(appTitle) && !"null".equals(appTitle)) {
-                    whiteLabelingParams.setAppTitle(appTitle);
-                }
-            }
-            if (storedWl.has("faviconUrl")) {
-                String faviconUrl = storedWl.get("faviconUrl").asText();
-                if (!StringUtils.isEmpty(faviconUrl) && !"null".equals(faviconUrl)) {
-                    String faviconType = "";
-                    if (storedWl.has("faviconType")) {
-                        faviconType = storedWl.get("faviconType").asText();
-                    }
-                    Favicon favicon;
-                    if (StringUtils.isEmpty(faviconType)) {
-                        favicon = new Favicon(faviconUrl);
-                    } else {
-                        favicon = new Favicon(faviconUrl, faviconType);
-                    }
-                    whiteLabelingParams.setFavicon(favicon);
-                }
-            }
-            if (storedWl.has("favicon")) {
-                JsonNode faviconJson = storedWl.get("favicon");
-                Favicon favicon = null;
-                try {
-                    favicon = JacksonUtil.treeToValue(faviconJson, Favicon.class);
-                } catch (IllegalArgumentException e) {
-                    log.error("Unable to read Favicon from previous White Labeling Params!", e);
-                }
-                whiteLabelingParams.setFavicon(favicon);
-            }
-            if (storedWl.has("paletteSettings")) {
-                JsonNode paletteSettingsJson = storedWl.get("paletteSettings");
-                PaletteSettings paletteSettings = null;
-                try {
-                    paletteSettings = JacksonUtil.treeToValue(paletteSettingsJson, PaletteSettings.class);
-                } catch (IllegalArgumentException e) {
-                    log.error("Unable to read Palette Settings from previous White Labeling Params!", e);
-                }
-                whiteLabelingParams.setPaletteSettings(paletteSettings);
-            }
-            if (storedWl.has("customCss")) {
-                String customCss = storedWl.get("customCss").asText();
-                if (!StringUtils.isEmpty(customCss) && !"null".equals(customCss)) {
-                    whiteLabelingParams.setCustomCss(customCss);
-                }
-            }
-        }
-        if (isSystem) {
-            String helpLinkBaseUrl = "https://thingsboard.io";
-            if (storedWl != null && storedWl.has("helpLinkBaseUrl")) {
-                JsonNode helpLinkBaseUrlJson = storedWl.get("helpLinkBaseUrl");
-                if (helpLinkBaseUrlJson.isTextual()) {
-                    if (!StringUtils.isEmpty(helpLinkBaseUrlJson.asText())) {
-                        helpLinkBaseUrl = helpLinkBaseUrlJson.asText();
-                    }
-                }
-            }
-            whiteLabelingParams.setHelpLinkBaseUrl(helpLinkBaseUrl);
-            String uiHelpBaseUrl = null;
-            if (storedWl != null && storedWl.has("uiHelpBaseUrl")) {
-                JsonNode uiHelpBaseUrlJson = storedWl.get("uiHelpBaseUrl");
-                if (uiHelpBaseUrlJson.isTextual()) {
-                    if (!StringUtils.isEmpty(uiHelpBaseUrlJson.asText())) {
-                        uiHelpBaseUrl = uiHelpBaseUrlJson.asText();
-                    }
-                }
-            }
-            whiteLabelingParams.setUiHelpBaseUrl(uiHelpBaseUrl);
-            if (storedWl != null && storedWl.has("enableHelpLinks")) {
-                whiteLabelingParams.setEnableHelpLinks(storedWl.get("enableHelpLinks").asBoolean());
-            } else {
-                whiteLabelingParams.setEnableHelpLinks(true);
-            }
-        }
-        return whiteLabelingParams;
-    }
-
-    private JsonNode getEntityWhiteLabelParams(EntityId entityId) {
-        String value = getEntityAttributeValue(entityId, WHITE_LABEL_PARAMS);
-        if (!StringUtils.isEmpty(value)) {
-            try {
-                return JacksonUtil.toJsonNode(value);
-            } catch (IllegalArgumentException e) {
-                log.error("Unable to read White Labeling Params from JSON!", e);
-                return null;
-            }
-        } else {
-            return null;
-        }
-    }
-
-    private String getEntityAttributeValue(EntityId entityId, String key) {
+       private String getEntityAttributeValue(EntityId entityId, String key) {
         List<AttributeKvEntry> attributeKvEntries = null;
         try {
             attributeKvEntries = attributesService.find(TenantId.SYS_TENANT_ID, entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
