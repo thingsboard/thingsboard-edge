@@ -34,6 +34,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
@@ -44,20 +45,20 @@ import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.alarm.AlarmCommentType;
 import org.thingsboard.server.common.data.alarm.AlarmCreateOrUpdateActiveRequest;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
-import org.thingsboard.server.common.data.alarm.AlarmQueryV2;
 import org.thingsboard.server.common.data.alarm.AlarmUpdateRequest;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.AlarmId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.housekeeper.HouseKeeperService;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 @Service
 @AllArgsConstructor
@@ -66,6 +67,9 @@ public class DefaultTbAlarmService extends AbstractTbEntityService implements Tb
 
     @Autowired
     protected TbAlarmCommentService alarmCommentService;
+
+    @Autowired
+    private HouseKeeperService housekeeper;
 
     @Override
     public Alarm save(Alarm alarm, User user) throws ThingsboardException {
@@ -236,36 +240,50 @@ public class DefaultTbAlarmService extends AbstractTbEntityService implements Tb
     }
 
     @Override
-    public void unassignUserAlarms(TenantId tenantId, User user, long unassignTs) {
-        AlarmQueryV2 alarmQuery = AlarmQueryV2.builder().assigneeId(user.getId()).pageLink(new TimePageLink(Integer.MAX_VALUE)).build();
-        try {
-            List<AlarmInfo> alarms = alarmService.findAlarmsV2(tenantId, alarmQuery).get(30, TimeUnit.SECONDS).getData();
-            for (AlarmInfo alarm : alarms) {
-                AlarmApiCallResult result = alarmSubscriptionService.unassignAlarm(tenantId, alarm.getId(), getOrDefault(unassignTs));
+    public List<AlarmId> unassignDeletedUserAlarms(TenantId tenantId, User user) {
+        List<AlarmId> totalAlarmIds = new ArrayList<>();
+        List<AlarmId> alarmIds;
+        do {
+            alarmIds = alarmService.findAlarmIdsByAssigneeId(tenantId, user.getId(), 100);
+            for (AlarmId alarmId : alarmIds) {
+                log.trace("[{}] Unassigning alarm {} userId {}", tenantId, alarmId.getId(), user.getId().getId());
+                AlarmApiCallResult result = alarmSubscriptionService.unassignAlarm(user.getTenantId(), alarmId, System.currentTimeMillis());
+                Alarm alarm = result.getAlarm();
                 if (!result.isSuccessful()) {
                     continue;
                 }
                 if (result.isModified()) {
-                    AlarmComment alarmComment = AlarmComment.builder()
-                            .alarmId(alarm.getId())
-                            .type(AlarmCommentType.SYSTEM)
-                            .comment(JacksonUtil.newObjectNode().put("text", String.format("Alarm was unassigned because user %s - was deleted",
-                                            (user.getFirstName() == null || user.getLastName() == null) ? user.getName() : user.getFirstName() + " " + user.getLastName()))
-                                    .put("userId", user.getId().toString())
-                                    .put("subtype", "ASSIGN"))
-                            .build();
                     try {
-                        alarmCommentService.saveAlarmComment(alarm, alarmComment, user);
+                        AlarmComment alarmComment = AlarmComment.builder()
+                                .alarmId(alarmId)
+                                .type(AlarmCommentType.SYSTEM)
+                                .comment(JacksonUtil.newObjectNode()
+                                        .put("text", String.format("Alarm was unassigned because user with id %s - was deleted",
+                                                (user.getFirstName() == null || user.getLastName() == null) ? user.getName() : user.getFirstName() + " " + user.getLastName()))
+                                        .put("userId", user.getId().toString())
+                                        .put("subtype", "ASSIGN"))
+                                .build();
+                        alarmCommentService.saveAlarmComment(alarm, alarmComment, null);
                     } catch (ThingsboardException e) {
                         log.error("Failed to save alarm comment", e);
                     }
                     notificationEntityService.logEntityAction(alarm.getTenantId(), alarm.getOriginator(), result.getAlarm(),
-                            alarm.getCustomerId(), ActionType.ALARM_UNASSIGNED, user);
+                            alarm.getCustomerId(), ActionType.ALARM_UNASSIGNED, null);
                 }
-            }
 
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            throw new RuntimeException(e);
+                totalAlarmIds.addAll(alarmIds);
+            }
+        }
+        while (!alarmIds.isEmpty());
+        return totalAlarmIds;
+    }
+
+    @TransactionalEventListener(fallbackExecution = true)
+    public void handleEvent(DeleteEntityEvent<?> event) {
+        log.trace("[{}] DeleteEntityEvent handler: {}", event.getTenantId(), event);
+        EntityId entityId = event.getEntityId();
+        if (EntityType.USER.equals(entityId.getEntityType())) {
+            housekeeper.unassignDeletedUserAlarms(event.getTenantId(), (User) event.getEntity());
         }
     }
 

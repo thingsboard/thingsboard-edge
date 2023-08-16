@@ -423,6 +423,13 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
     }
 
     @Override
+    public List<AlarmId> findAlarmIdsByAssigneeId(TenantId tenantId, UserId userId, int limit) {
+        log.trace("Executing findAlarmIdsByAssigneeId [{}]", userId);
+        validateId(userId, "Incorrect userId " + userId);
+        return alarmDao.findAlarmIdsByAssigneeId(tenantId, userId.getId(), limit);
+    }
+
+    @Override
     public AlarmSeverity findHighestAlarmSeverity(TenantId tenantId, EntityId entityId, AlarmSearchStatus alarmSearchStatus,
                                                   AlarmStatus alarmStatus, String assigneeId) {
         AlarmStatusFilter asf;
@@ -574,5 +581,4 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
             request.setEndTs(request.getStartTs());
         }
     }
-
 }
