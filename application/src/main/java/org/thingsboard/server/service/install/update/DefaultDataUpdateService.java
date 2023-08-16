@@ -1163,12 +1163,13 @@ public class DefaultDataUpdateService implements DataUpdateService {
         JsonNode storedWl = getEntityWhiteLabelParams(entityId);
         String logoImageUrl = getEntityAttributeValue(entityId, LOGO_IMAGE);
         WhiteLabelingParams preparedWhiteLabelingParams = createWhiteLabelingParams(storedWl, logoImageUrl, false);
-        WhiteLabelingParams result = new WhiteLabelingParams();
+        WhiteLabelingParams result;
         if (entityId.getEntityType() == EntityType.TENANT) {
             result = whiteLabelingService.saveTenantWhiteLabelingParams(new TenantId(entityId.getId()), preparedWhiteLabelingParams);
-        }
-        if (entityId.getEntityType() == EntityType.CUSTOMER) {
+        } else if (entityId.getEntityType() == EntityType.CUSTOMER) {
             result = whiteLabelingService.saveCustomerWhiteLabelingParams(TenantId.SYS_TENANT_ID, new CustomerId(entityId.getId()), preparedWhiteLabelingParams);
+        } else {
+            return null;
         }
         deleteEntityAttribute(entityId, LOGO_IMAGE);
         deleteEntityAttribute(entityId, LOGO_IMAGE_CHECKSUM);

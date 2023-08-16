@@ -193,7 +193,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     }
 
     @Override
-    public LoginWhiteLabelingParams saveSystemLoginWhiteLabelingParams(LoginWhiteLabelingParams loginWhiteLabelingParams) throws Exception {
+    public LoginWhiteLabelingParams saveSystemLoginWhiteLabelingParams(LoginWhiteLabelingParams loginWhiteLabelingParams) {
         if (!StringUtils.isBlank(loginWhiteLabelingParams.getDomainName())) {
             throw new DataValidationException("Domain name is prohibited for system level");
         }

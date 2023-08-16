@@ -584,7 +584,7 @@ cache:
       maxSize: "${CACHE_SPECS_INTEGRATIONS_MAX_SIZE:10000}"
     whiteLabeling:
       timeToLiveInMinutes: "${CACHE_SPECS_WHITE_LABELING_TTL:1440}"
-      maxSize: "${CACHE_SPECS_WHITE_LABELING_MAX_SIZE:100000}"
+      maxSize: "${CACHE_SPECS_WHITE_LABELING_MAX_SIZE:10000}"
 
   # deliberately placed outside 'specs' group above
   notificationRules:
