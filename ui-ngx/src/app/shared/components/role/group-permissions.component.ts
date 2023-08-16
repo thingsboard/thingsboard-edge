@@ -309,7 +309,7 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
   resetSortAndFilter(update: boolean = true) {
     this.textSearchMode = false;
     this.pageLink.textSearch = null;
-    this.textSearch.reset();
+    this.textSearch.reset('', {emitEvent: false});
     this.paginator.pageIndex = 0;
     const sortable = this.sort.sortables.get('roleName');
     this.sort.active = sortable.id;

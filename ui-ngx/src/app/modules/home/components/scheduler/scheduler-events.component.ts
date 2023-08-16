@@ -231,7 +231,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
         this.textSearchMode = true;
         const decodedTextSearch = decodeURI(textSearchParam);
         this.pageLink.textSearch = decodedTextSearch.trim();
-        this.textSearch.setValue(decodedTextSearch);
+        this.textSearch.setValue(decodedTextSearch, {emitEvent: false});
       }
       this.schedulerEventConfigTypes = deepClone(defaultSchedulerEventConfigTypes);
       this.dataSource = new SchedulerEventsDatasource(this.schedulerEventService, this.schedulerEventConfigTypes);
@@ -423,23 +423,17 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
         distinctUntilChanged((prev, current) => (this.pageLink.textSearch ?? '') === current.trim()),
         takeUntil(this.destroy$)
       ).subscribe(value => {
-        if (this.displayPagination) {
-          this.paginator.pageIndex = 0;
-        }
-        this.pageLink.textSearch = value.trim();
         if (this.widgetMode) {
+          if (this.displayPagination) {
+            this.paginator.pageIndex = 0;
+          }
+          this.pageLink.textSearch = value.trim();
           this.updateData();
         } else {
-          const queryParams: PageQueryParam = {};
-          if (isNotEmptyStr(value)) {
-            queryParams.textSearch = encodeURI(value);
-          } else {
-            queryParams.textSearch = null;
-            this.pageLink.textSearch = null;
-          }
-          if (this.displayPagination) {
-            queryParams.page = null;
-          }
+          const queryParams: PageQueryParam = {
+            textSearch: isNotEmptyStr(value) ? encodeURI(value) : null,
+            page: null
+          };
           this.updatedRouterQueryParams(queryParams);
         }
       });
@@ -490,9 +484,11 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
             this.textSearchMode = true;
             const decodedTextSearch = decodeURI(textSearchParam);
             this.pageLink.textSearch = decodedTextSearch.trim();
-            this.textSearch.setValue(decodedTextSearch);
+            this.textSearch.setValue(decodedTextSearch, {emitEvent: false});
           } else {
+            this.textSearchMode = false;
             this.pageLink.textSearch = null;
+            this.textSearch.reset('', {emitEvent: false});
           }
           this.updateData();
         });
