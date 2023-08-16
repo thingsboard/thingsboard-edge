@@ -70,7 +70,7 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
             switch (deviceProfileUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    deviceProfileCreationLock.lock();
+                    deviceCreationLock.lock();
                     try {
                         DeviceProfile deviceProfileByName = deviceProfileService.findDeviceProfileByName(tenantId, deviceProfileUpdateMsg.getName());
                         boolean removePreviousProfile = false;
@@ -89,7 +89,7 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
                         }
                         notifyCluster(tenantId, deviceProfile, created);
                     } finally {
-                        deviceProfileCreationLock.unlock();
+                        deviceCreationLock.unlock();
                     }
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:

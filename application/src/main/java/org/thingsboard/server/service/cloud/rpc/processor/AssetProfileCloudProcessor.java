@@ -72,7 +72,7 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
             switch (assetProfileUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    assetProfileCreationLock.lock();
+                    assetCreationLock.lock();
                     try {
                         AssetProfile assetProfileByName = assetProfileService.findAssetProfileByName(tenantId, assetProfileUpdateMsg.getName());
                         boolean removePreviousProfile = false;
@@ -91,7 +91,7 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
                             tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileByName.getId(), ComponentLifecycleEvent.DELETED);
                         }
                     } finally {
-                        assetProfileCreationLock.unlock();
+                        assetCreationLock.unlock();
                     }
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
