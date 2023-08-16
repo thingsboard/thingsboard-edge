@@ -1145,8 +1145,6 @@ public class EdgeControllerTest extends AbstractControllerTest {
         resetSysAdminWhiteLabelingSettings();
         loginTenantAdmin();
 
-        Edge edge = doPost("/api/edge", constructEdge("Sync Test EG Edge", "test"), Edge.class);
-
         EntityGroup savedDeviceGroup = new EntityGroup();
         savedDeviceGroup.setType(EntityType.DEVICE);
         savedDeviceGroup.setName("DeviceGroup");
@@ -1161,6 +1159,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
         savedAssetGroup.setType(EntityType.ASSET);
         savedAssetGroup.setName("AssetGroup");
         savedAssetGroup = doPost("/api/entityGroup", savedAssetGroup, EntityGroup.class);
+
+        Edge edge = doPost("/api/edge", constructEdge("Sync Test EG Edge", "test"), Edge.class);
 
         Asset asset = new Asset();
         asset.setName("Sync Test EG Edge Asset 1");
@@ -1242,8 +1242,6 @@ public class EdgeControllerTest extends AbstractControllerTest {
         resetSysAdminWhiteLabelingSettings();
         loginTenantAdmin();
 
-        Edge edge = doPost("/api/edge", constructEdge("Sync Test EG Edge", "test"), Edge.class);
-
         // create customer
         Customer customer = new Customer();
         customer.setTitle("Edge Customer");
@@ -1266,6 +1264,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
         savedCustomerAssetGroup.setName("CustomerAssetGroup");
         savedCustomerAssetGroup.setOwnerId(savedCustomer.getId());
         savedCustomerAssetGroup = doPost("/api/entityGroup", savedCustomerAssetGroup, EntityGroup.class);
+
+        Edge edge = doPost("/api/edge", constructEdge("Sync Test EG Edge", "test"), Edge.class);
 
         Asset customerAsset = new Asset();
         customerAsset.setName("Sync Test EG Edge Customer Asset 1");

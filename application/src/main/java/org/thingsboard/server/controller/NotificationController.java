@@ -58,6 +58,7 @@ import org.thingsboard.server.common.data.notification.NotificationRequest;
 import org.thingsboard.server.common.data.notification.NotificationRequestInfo;
 import org.thingsboard.server.common.data.notification.NotificationRequestPreview;
 import org.thingsboard.server.common.data.notification.settings.NotificationSettings;
+import org.thingsboard.server.common.data.notification.settings.UserNotificationSettings;
 import org.thingsboard.server.common.data.notification.targets.MicrosoftTeamsNotificationTargetConfig;
 import org.thingsboard.server.common.data.notification.targets.NotificationRecipient;
 import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
@@ -314,7 +315,7 @@ public class NotificationController extends BaseController {
                 case PLATFORM_USERS: {
                     PageData<User> recipients = notificationTargetService.findRecipientsForNotificationTargetConfig(user.getTenantId(),
                             (PlatformUsersNotificationTargetConfig) target.getConfiguration(), new PageLink(recipientsPreviewSize, 0, null,
-                                    new SortOrder("createdTime", SortOrder.Direction.DESC)));
+                                    SortOrder.BY_CREATED_TIME_DESC));
                     recipientsCount = (int) recipients.getTotalElements();
                     recipientsPart = recipients.getData().stream().map(r -> (NotificationRecipient) r).collect(Collectors.toList());
                     break;
@@ -465,10 +466,24 @@ public class NotificationController extends BaseController {
             notes = "Returns the list of delivery methods that are properly configured and are allowed to be used for sending notifications." +
                     SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @GetMapping("/notification/deliveryMethods")
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     public Set<NotificationDeliveryMethod> getAvailableDeliveryMethods(@AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
-        accessControlService.checkPermission(user, Resource.ADMIN_SETTINGS, Operation.READ);
         return notificationCenter.getAvailableDeliveryMethods(user.getTenantId());
+    }
+
+
+    @PostMapping("/notification/settings/user")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    public UserNotificationSettings saveUserNotificationSettings(@RequestBody @Valid UserNotificationSettings settings,
+                                                                 @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
+        accessControlService.checkPermission(user, Resource.PROFILE, Operation.WRITE);
+        return notificationSettingsService.saveUserNotificationSettings(user.getTenantId(), user.getId(), settings);
+    }
+
+    @GetMapping("/notification/settings/user")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    public UserNotificationSettings getUserNotificationSettings(@AuthenticationPrincipal SecurityUser user) {
+        return notificationSettingsService.getUserNotificationSettings(user.getTenantId(), user.getId(), true);
     }
 
 }
