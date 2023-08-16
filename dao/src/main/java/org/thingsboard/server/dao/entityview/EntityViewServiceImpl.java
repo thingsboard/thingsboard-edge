@@ -108,7 +108,7 @@ public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityVie
 
     @Override
     public EntityView saveEntityView(EntityView entityView) {
-        return saveEntityView(entityView, true);
+        return doSaveEntityView(entityView, true);
     }
 
     private EntityView doSaveEntityView(EntityView entityView, boolean doValidate) {

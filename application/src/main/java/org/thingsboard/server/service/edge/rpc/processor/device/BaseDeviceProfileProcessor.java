@@ -43,9 +43,9 @@ public class BaseDeviceProfileProcessor extends BaseEdgeProcessor {
     @Autowired
     private DataDecodingEncodingService dataDecodingEncodingService;
 
-    protected Boolean saveOrUpdateDeviceProfile(TenantId tenantId, DeviceProfileId deviceProfileId, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
+    protected boolean saveOrUpdateDeviceProfile(TenantId tenantId, DeviceProfileId deviceProfileId, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
         boolean created = false;
-        deviceProfileCreationLock.lock();
+        deviceCreationLock.lock();
         try {
             DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
             if (deviceProfile == null) {
@@ -95,7 +95,7 @@ public class BaseDeviceProfileProcessor extends BaseEdgeProcessor {
             }
             deviceProfileService.saveDeviceProfile(deviceProfile, false);
         } finally {
-            deviceProfileCreationLock.unlock();
+            deviceCreationLock.unlock();
         }
         return created;
     }
