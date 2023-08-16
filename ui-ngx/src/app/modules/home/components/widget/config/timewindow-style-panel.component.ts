@@ -78,7 +78,8 @@ export class TimewindowStylePanelComponent extends PageComponent implements OnIn
         icon: [computedTimewindowStyle.icon, []],
         iconPosition: [computedTimewindowStyle.iconPosition, []],
         font: [computedTimewindowStyle.font, []],
-        color: [computedTimewindowStyle.color, []]
+        color: [computedTimewindowStyle.color, []],
+        displayTypePrefix: [computedTimewindowStyle.displayTypePrefix, []]
       }
     );
     this.updatePreviewStyle(this.timewindowStyle);

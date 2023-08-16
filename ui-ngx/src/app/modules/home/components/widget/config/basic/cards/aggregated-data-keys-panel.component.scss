@@ -28,25 +28,56 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.notification;
+@import '../../../../../../../../scss/constants';
 
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.notification.DefaultNotificationSettingsService;
-import org.thingsboard.server.dao.settings.AdminSettingsService;
-
-@Service
-@Primary
-public class MockNotificationSettingsService extends DefaultNotificationSettingsService {
-
-    public MockNotificationSettingsService(AdminSettingsService adminSettingsService) {
-        super(adminSettingsService, null, null, null);
+.tb-aggregated-data-keys-panel {
+  .tb-form-table-header-cell {
+    &.tb-position-header {
+      width: 132px;
+      min-width: 132px;
     }
 
-    @Override
-    public void createDefaultNotificationConfigs(TenantId tenantId) {
-        // do nothing
+    &.tb-aggregation-header {
+      flex: 1;
+      min-width: 150px;
     }
 
+    &.tb-units-header {
+      width: 80px;
+      min-width: 80px;
+    }
+
+    &.tb-decimals-header {
+      width: 60px;
+      min-width: 60px;
+    }
+
+    &.tb-font-header {
+      width: 40px;
+      min-width: 40px;
+    }
+
+    &.tb-color-header {
+      width: 40px;
+      min-width: 40px;
+    }
+
+    &.tb-actions-header {
+      width: 40px;
+      min-width: 40px;
+    }
+
+    &.tb-units-header, &.tb-decimals-header {
+      display: none;
+      @media #{$mat-gt-sm} {
+        display: block;
+      }
+    }
+  }
+  .tb-form-table-body {
+    tb-aggregated-data-key-row {
+      overflow: hidden;
+    }
+  }
 }
+

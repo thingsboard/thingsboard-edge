@@ -291,6 +291,9 @@ import {
   ValueCardWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/cards/value-card-widget-settings.component';
 import { WidgetSettingsCommonModule } from '@home/components/widget/lib/settings/common/widget-settings-common.module';
+import {
+  AggregatedValueCardKeySettingsComponent
+} from '@home/components/widget/lib/settings/cards/aggregated-value-card-key-settings.component';
 
 @NgModule({
   declarations: [
@@ -391,6 +394,7 @@ import { WidgetSettingsCommonModule } from '@home/components/widget/lib/settings
     DocLinksWidgetSettingsComponent,
     QuickLinksWidgetSettingsComponent,
     ValueCardWidgetSettingsComponent,
+    AggregatedValueCardKeySettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -499,6 +503,7 @@ import { WidgetSettingsCommonModule } from '@home/components/widget/lib/settings
     DocLinksWidgetSettingsComponent,
     QuickLinksWidgetSettingsComponent,
     ValueCardWidgetSettingsComponent,
+    AggregatedValueCardKeySettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -572,6 +577,7 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-doc-links-widget-settings': DocLinksWidgetSettingsComponent,
   'tb-quick-links-widget-settings': QuickLinksWidgetSettingsComponent,
   'tb-value-card-widget-settings': ValueCardWidgetSettingsComponent,
+  'tb-aggregated-value-card-key-settings': AggregatedValueCardKeySettingsComponent,
   'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
   'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
 };
