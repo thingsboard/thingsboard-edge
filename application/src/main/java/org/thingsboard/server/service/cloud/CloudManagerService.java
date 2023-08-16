@@ -277,9 +277,10 @@ public class CloudManagerService {
                     if (initialized) {
                         queueStartTs = getQueueStartTs().get();
                         Long seqIdOffset = getQueueSeqIdOffset().get();
+                        long now = System.currentTimeMillis();
                         TimePageLink pageLink = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
-                                0, null, new SortOrder("seqId"), queueStartTs, System.currentTimeMillis());
-                        if (newCloudEventsAvailable(seqIdOffset, pageLink)) {
+                                0, null, new SortOrder("seqId"), queueStartTs, now);
+                        if (newCloudEventsAvailable(seqIdOffset, now)) {
                             PageData<CloudEvent> pageData;
                             boolean success = true;
                             CloudEvent latestCloudEvent = null;
@@ -331,7 +332,8 @@ public class CloudManagerService {
         });
     }
 
-    private boolean newCloudEventsAvailable(Long seqIdOffset, TimePageLink pageLink) {
+    private boolean newCloudEventsAvailable(Long seqIdOffset, long now) {
+        TimePageLink pageLink = new TimePageLink(Short.MAX_VALUE,0, null, new SortOrder("seqId"), queueStartTs, now);
         PageData<CloudEvent> cloudEvents = cloudEventService.findCloudEvents(tenantId, 0L, null, pageLink);
         // next seq_id available or new cycle started (seq_id starts from '1')
         return cloudEvents.getData().stream().anyMatch(ce -> ce.getSeqId() > seqIdOffset || ce.getSeqId() == 1);
