@@ -150,8 +150,8 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
         } else if (asset.getId() != null) {
             oldAsset = findAssetById(asset.getTenantId(), asset.getId());
         }
-        Asset savedAsset;
         AssetCacheEvictEvent evictEvent = new AssetCacheEvictEvent(asset.getTenantId(), asset.getName(), oldAsset != null ? oldAsset.getName() : null);
+        Asset savedAsset;
         try {
             AssetProfile assetProfile;
             if (asset.getAssetProfileId() == null) {

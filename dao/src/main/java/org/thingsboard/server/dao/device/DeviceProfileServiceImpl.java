@@ -144,12 +144,12 @@ public class DeviceProfileServiceImpl extends AbstractCachedEntityService<Device
 
     @Override
     public DeviceProfile saveDeviceProfile(DeviceProfile deviceProfile, boolean doValidate) {
-        return doSaveDeviceProfile(deviceProfile,  doValidate);
+        return doSaveDeviceProfile(deviceProfile, doValidate);
     }
 
     @Override
     public DeviceProfile saveDeviceProfile(DeviceProfile deviceProfile) {
-        return doSaveDeviceProfile(deviceProfile,  true);
+        return doSaveDeviceProfile(deviceProfile, true);
     }
 
     private DeviceProfile doSaveDeviceProfile(DeviceProfile deviceProfile, boolean doValidate) {
@@ -164,7 +164,7 @@ public class DeviceProfileServiceImpl extends AbstractCachedEntityService<Device
         if (doValidate) {
             oldDeviceProfile = deviceProfileValidator.validate(deviceProfile, DeviceProfile::getTenantId);
         } else if (deviceProfile.getId() != null) {
-            oldDeviceProfile = deviceProfileDao.findById(deviceProfile.getTenantId(), deviceProfile.getId().getId());
+            oldDeviceProfile = findDeviceProfileById(deviceProfile.getTenantId(), deviceProfile.getId());
         }
         DeviceProfile savedDeviceProfile;
         try {

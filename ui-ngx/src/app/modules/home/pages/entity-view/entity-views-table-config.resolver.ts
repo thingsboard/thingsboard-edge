@@ -156,13 +156,6 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
           this.config.componentsData.entityViewScope === 'edge_customer_user');
         this.config.entitiesDeleteEnabled = this.config.componentsData.entityViewScope === 'tenant';
         this.config.deleteEnabled = () => this.config.componentsData.entityViewScope === 'tenant';
-
-        // @voba - edge read-only
-        this.config.detailsReadonly = () => true;
-        this.config.deleteEnabled = () => false;
-        this.config.addEnabled = false;
-        this.config.entitiesDeleteEnabled = false;
-
         return this.config;
       })
     );
@@ -203,7 +196,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
 
   configureCellActions(entityViewScope: string): Array<CellActionDescriptor<EntityViewInfo>> {
     const actions: Array<CellActionDescriptor<EntityViewInfo>> = [];
-    /*if (entityViewScope === 'tenant') {
+    if (entityViewScope === 'tenant') {
       actions.push(
         {
           name: this.translate.instant('entity-view.make-public'),
@@ -256,13 +249,13 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
           onAction: ($event, entity) => this.unassignFromEdge($event, entity)
         }
       );
-    } */
+    }
     return actions;
   }
 
   configureGroupActions(entityViewScope: string): Array<GroupActionDescriptor<EntityViewInfo>> {
     const actions: Array<GroupActionDescriptor<EntityViewInfo>> = [];
-    /*if (entityViewScope === 'tenant') {
+    if (entityViewScope === 'tenant') {
       actions.push(
         {
           name: this.translate.instant('entity-view.assign-entity-views'),
@@ -291,13 +284,13 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
           onAction: ($event, entities) => this.unassignEntityViewsFromEdge($event, entities)
         }
       );
-    }*/
+    }
     return actions;
   }
 
   configureAddActions(entityViewScope: string): Array<HeaderActionDescriptor> {
     const actions: Array<HeaderActionDescriptor> = [];
-    /*if (entityViewScope === 'customer') {
+    if (entityViewScope === 'customer') {
       actions.push(
         {
           name: this.translate.instant('entity-view.assign-new-entity-view'),
@@ -316,7 +309,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
           onAction: ($event) => this.addEntityViewsToEdge($event)
         }
       );
-    }*/
+    }
     return actions;
   }
 

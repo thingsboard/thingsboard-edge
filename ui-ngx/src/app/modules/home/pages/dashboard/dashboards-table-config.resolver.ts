@@ -165,13 +165,6 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           this.config.componentsData.dashboardScope === 'edge_customer_user');
         this.config.entitiesDeleteEnabled = this.config.componentsData.dashboardScope === 'tenant';
         this.config.deleteEnabled = () => this.config.componentsData.dashboardScope === 'tenant';
-
-        // @voba - edge read-only
-        this.config.detailsReadonly = () => true;
-        this.config.deleteEnabled = () => false;
-        this.config.addEnabled = false;
-        this.config.entitiesDeleteEnabled = false;
-
         return this.config;
       })
     );
@@ -223,7 +216,6 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           isEnabled: () => true,
           onAction: ($event, entity) => this.exportDashboard($event, entity)
         },
-        /* @voba - merge comment
         {
           name: this.translate.instant('dashboard.make-public'),
           icon: 'share',
@@ -242,7 +234,6 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           isEnabled: () => true,
           onAction: ($event, entity) => this.manageAssignedCustomers($event, entity)
         }
-         */
       );
     }
     if (dashboardScope === 'customer') {
@@ -253,7 +244,6 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           isEnabled: () => true,
           onAction: ($event, entity) => this.exportDashboard($event, entity)
         },
-        /* @voba - merge comment
         {
           name: this.translate.instant('dashboard.make-private'),
           icon: 'reply',
@@ -266,7 +256,6 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           isEnabled: (entity) => !isCurrentPublicDashboardCustomer(entity, this.config.componentsData.customerId),
           onAction: ($event, entity) => this.unassignFromCustomer($event, entity, this.config.componentsData.customerId)
         }
-         */
       );
     }
     if (dashboardScope === 'edge') {
@@ -298,7 +287,6 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
 
   configureGroupActions(dashboardScope: string): Array<GroupActionDescriptor<DashboardInfo>> {
     const actions: Array<GroupActionDescriptor<DashboardInfo>> = [];
-    /* @voba - merge comment
     if (dashboardScope === 'tenant') {
       actions.push(
         {
@@ -338,13 +326,11 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
         }
       );
     }
-     */
     return actions;
   }
 
   configureAddActions(dashboardScope: string): Array<HeaderActionDescriptor> {
     const actions: Array<HeaderActionDescriptor> = [];
-    /* @voba - merge comment
     if (dashboardScope === 'tenant') {
       actions.push(
         {
@@ -381,7 +367,6 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
         }
       );
     }
-    */
     return actions;
   }
 

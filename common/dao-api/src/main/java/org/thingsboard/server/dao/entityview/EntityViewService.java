@@ -36,9 +36,9 @@ import java.util.List;
  */
 public interface EntityViewService extends EntityDaoService {
 
-    EntityView saveEntityView(EntityView entityView, boolean doValidate);
-
     EntityView saveEntityView(EntityView entityView);
+
+    EntityView saveEntityView(EntityView entityView, boolean doValidate);
 
     EntityView assignEntityViewToCustomer(TenantId tenantId, EntityViewId entityViewId, CustomerId customerId);
 

@@ -22,7 +22,7 @@
           [fxShow]="!isEdit && !isDetailsPage">
     {{'common.open-details-page' | translate }}
   </button>
-  <!--<button mat-raised-button color="primary"
+  <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'makePublic')"
           [fxShow]="!isEdit && entityViewScope === 'tenant' && !isAssignedToCustomer(entity) && !entity?.customerIsPublic">
@@ -52,7 +52,6 @@
           [fxShow]="!hideDelete() && !isEdit">
     {{'entity-view.delete' | translate }}
   </button>
-  -->
   <div fxLayout="row" fxLayout.xs="column">
     <button mat-raised-button
             ngxClipboard

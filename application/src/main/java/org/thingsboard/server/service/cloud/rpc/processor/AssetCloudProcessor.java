@@ -15,76 +15,97 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
-import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.AssetId;
-import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.asset.BaseAssetService;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
-import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.service.edge.rpc.processor.asset.BaseAssetProcessor;
 
 import java.util.UUID;
 
 @Component
 @Slf4j
-public class AssetCloudProcessor extends BaseEdgeProcessor {
+public class AssetCloudProcessor extends BaseAssetProcessor {
 
     public ListenableFuture<Void> processAssetMsgFromCloud(TenantId tenantId,
                                                            CustomerId edgeCustomerId,
                                                            AssetUpdateMsg assetUpdateMsg,
                                                            Long queueStartTs) {
         AssetId assetId = new AssetId(new UUID(assetUpdateMsg.getIdMSB(), assetUpdateMsg.getIdLSB()));
-        switch (assetUpdateMsg.getMsgType()) {
-            case ENTITY_CREATED_RPC_MESSAGE:
-            case ENTITY_UPDATED_RPC_MESSAGE:
-                saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, edgeCustomerId);
-                return requestForAdditionalData(tenantId, assetId, queueStartTs);
-            case ENTITY_DELETED_RPC_MESSAGE:
-                Asset assetById = assetService.findAssetById(tenantId, assetId);
-                if (assetById != null) {
-                    assetService.deleteAsset(tenantId, assetId);
-                }
-                return Futures.immediateFuture(null);
-            case UNRECOGNIZED:
-            default:
-                return handleUnsupportedMsgType(assetUpdateMsg.getMsgType());
+        try {
+            edgeSynchronizationManager.getSync().set(true);
+
+            switch (assetUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE:
+                case ENTITY_UPDATED_RPC_MESSAGE:
+                    CustomerId customerId = safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId);
+                    saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, customerId, queueStartTs);
+                    return requestForAdditionalData(tenantId, assetId, queueStartTs);
+                case ENTITY_DELETED_RPC_MESSAGE:
+                    Asset assetById = assetService.findAssetById(tenantId, assetId);
+                    if (assetById != null) {
+                        assetService.deleteAsset(tenantId, assetId);
+                    }
+                    return Futures.immediateFuture(null);
+                case UNRECOGNIZED:
+                default:
+                    return handleUnsupportedMsgType(assetUpdateMsg.getMsgType());
+            }
+        } finally {
+            edgeSynchronizationManager.getSync().remove();
         }
     }
 
-    private void saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, CustomerId edgeCustomerId) {
+    private void saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, CustomerId edgeCustomerId, Long queueStartTs) {
         CustomerId customerId = safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId);
-        assetCreationLock.lock();
-        try {
-            edgeSynchronizationManager.getSync().set(true);
-            Asset asset = assetService.findAssetById(tenantId, assetId);
-            boolean created = false;
-            if (asset == null) {
-                asset = new Asset();
-                asset.setTenantId(tenantId);
-                asset.setCreatedTime(Uuids.unixTimestamp(assetId.getId()));
-                created = true;
-            }
-            asset.setName(assetUpdateMsg.getName());
-            asset.setType(assetUpdateMsg.getType());
-            asset.setLabel(assetUpdateMsg.hasLabel() ? assetUpdateMsg.getLabel() : null);
-            asset.setAdditionalInfo(assetUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(assetUpdateMsg.getAdditionalInfo()) : null);
-            asset.setCustomerId(customerId);
-            UUID assetProfileUUID = safeGetUUID(assetUpdateMsg.getAssetProfileIdMSB(), assetUpdateMsg.getAssetProfileIdLSB());
-            asset.setAssetProfileId(assetProfileUUID != null ? new AssetProfileId(assetProfileUUID) : null);
-            assetValidator.validate(asset, Asset::getTenantId);
-            if (created) {
-                asset.setId(assetId);
-            }
-            assetService.saveAsset(asset, false);
-        } finally {
-            edgeSynchronizationManager.getSync().remove();
-            assetCreationLock.unlock();
+        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, customerId);
+        Boolean assetNameUpdated = resultPair.getSecond();
+        if (assetNameUpdated) {
+            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ASSET, EdgeEventActionType.UPDATED, assetId, null, queueStartTs);
         }
+    }
+
+    public UplinkMsg convertAssetEventToUplink(CloudEvent cloudEvent) {
+        AssetId assetId = new AssetId(cloudEvent.getEntityId());
+        UplinkMsg msg = null;
+        switch (cloudEvent.getAction()) {
+            case ADDED:
+            case UPDATED:
+            case ASSIGNED_TO_CUSTOMER:
+            case UNASSIGNED_FROM_CUSTOMER:
+                Asset asset = assetService.findAssetById(cloudEvent.getTenantId(), assetId);
+                if (asset != null && !BaseAssetService.TB_SERVICE_QUEUE.equals(asset.getType())) {
+                    UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
+                    AssetUpdateMsg assetUpdateMsg =
+                            assetMsgConstructor.constructAssetUpdatedMsg(msgType, asset);
+                    msg = UplinkMsg.newBuilder()
+                            .setUplinkMsgId(EdgeUtils.nextPositiveInt())
+                            .addAssetUpdateMsg(assetUpdateMsg).build();
+                } else {
+                    log.info("Skipping event as asset was not found [{}]", cloudEvent);
+                }
+                break;
+            case DELETED:
+                AssetUpdateMsg assetUpdateMsg =
+                        assetMsgConstructor.constructAssetDeleteMsg(assetId);
+                msg = UplinkMsg.newBuilder()
+                        .setUplinkMsgId(EdgeUtils.nextPositiveInt())
+                        .addAssetUpdateMsg(assetUpdateMsg).build();
+                break;
+        }
+        return msg;
     }
 }
