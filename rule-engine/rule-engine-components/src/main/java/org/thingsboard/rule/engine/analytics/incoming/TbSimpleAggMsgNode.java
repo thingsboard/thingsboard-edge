@@ -130,23 +130,24 @@ public class TbSimpleAggMsgNode implements TbVersionedNode {
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
-        if (msg.isTypeOf(TbMsgType.TB_SIMPLE_AGG_REPORT_SELF_MSG)) {
-            onIntervalTickMsg(ctx, msg);
-            return;
+        switch (msg.getInternalType()) {
+            case TB_SIMPLE_AGG_REPORT_SELF_MSG:
+                onIntervalTickMsg(ctx, msg);
+                break;
+            case TB_SIMPLE_AGG_PERSIST_SELF_MSG:
+                onPersistTickMsg(ctx, msg);
+                break;
+            case TB_SIMPLE_AGG_ENTITIES_SELF_MSG:
+                try {
+                    onEntitiesTickMsg(ctx, msg);
+                } catch (Exception e) {
+                    throw new TbNodeException(e);
+                }
+                break;
+            default:
+                onDataMsg(ctx, msg);
+                break;
         }
-        if (msg.isTypeOf(TbMsgType.TB_SIMPLE_AGG_PERSIST_SELF_MSG)) {
-            onPersistTickMsg(ctx, msg);
-            return;
-        }
-        if (msg.isTypeOf(TbMsgType.TB_SIMPLE_AGG_ENTITIES_SELF_MSG)) {
-            try {
-                onEntitiesTickMsg(ctx, msg);
-            } catch (Exception e) {
-                throw new TbNodeException(e);
-            }
-            return;
-        }
-        onDataMsg(ctx, msg);
     }
 
     @Override

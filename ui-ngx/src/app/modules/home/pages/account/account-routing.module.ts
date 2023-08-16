@@ -38,6 +38,9 @@ import { profileRoutes } from '@home/pages/profile/profile-routing.module';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
+import {
+  notificationUserSettingsRoutes
+} from '@home/pages/notification/settings/notification-settings-routing.modules';
 
 const routes: Routes = [
   {
@@ -64,7 +67,8 @@ const routes: Routes = [
         }
       },
       ...profileRoutes,
-      ...securityRoutes
+      ...securityRoutes,
+      ...notificationUserSettingsRoutes
     ]
   }
 ];

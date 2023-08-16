@@ -170,6 +170,10 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         return dashboardInfoDao.findDashboardsByIdsAsync(tenantId.getId(), toUUIDs(dashboardIds));
     }
 
+    public Dashboard saveDashboard(Dashboard dashboard, boolean doValidate) {
+        return doSaveDashboard(dashboard, doValidate);
+    }
+
     @Override
     public Dashboard saveDashboard(Dashboard dashboard, boolean doValidate) {
         return doSaveDashboard(dashboard, doValidate);

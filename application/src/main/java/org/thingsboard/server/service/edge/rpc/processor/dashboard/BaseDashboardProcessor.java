@@ -49,32 +49,27 @@ public abstract class BaseDashboardProcessor extends BaseEdgeProcessor {
 
     protected boolean saveOrUpdateDashboard(TenantId tenantId, DashboardId dashboardId, DashboardUpdateMsg dashboardUpdateMsg, CustomerId customerId) throws ThingsboardException {
         boolean created = false;
-        dashboardCreationLock.lock();
-        try {
-            Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
-            if (dashboard == null) {
-                created = true;
-                dashboard = new Dashboard();
-                dashboard.setTenantId(tenantId);
-                dashboard.setCreatedTime(Uuids.unixTimestamp(dashboardId.getId()));
-            } else {
-                changeOwnerIfRequired(tenantId, null, dashboardId);
-            }
-            dashboard.setTitle(dashboardUpdateMsg.getTitle());
-            dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
-            dashboard.setCustomerId(customerId);
-            dashboardValidator.validate(dashboard, Dashboard::getTenantId);
-            if (created) {
-                dashboard.setId(dashboardId);
-            }
-            Dashboard savedDashboard = dashboardService.saveDashboard(dashboard, false);
-            if (created) {
-                entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());
-            }
-            safeAddToEntityGroup(tenantId, dashboardUpdateMsg, dashboardId);
-        } finally {
-            dashboardCreationLock.unlock();
+        Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
+        if (dashboard == null) {
+            created = true;
+            dashboard = new Dashboard();
+            dashboard.setTenantId(tenantId);
+            dashboard.setCreatedTime(Uuids.unixTimestamp(dashboardId.getId()));
+        } else {
+            changeOwnerIfRequired(tenantId, null, dashboardId);
         }
+        dashboard.setTitle(dashboardUpdateMsg.getTitle());
+        dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
+        dashboard.setCustomerId(customerId);
+        dashboardValidator.validate(dashboard, Dashboard::getTenantId);
+        if (created) {
+            dashboard.setId(dashboardId);
+        }
+        Dashboard savedDashboard = dashboardService.saveDashboard(dashboard, false);
+        if (created) {
+            entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());
+        }
+        safeAddToEntityGroup(tenantId, dashboardUpdateMsg, dashboardId);
         return created;
     }
 

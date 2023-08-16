@@ -95,6 +95,7 @@ import {IntegrationsCenterModule} from '@home/pages/integration/integrations-cen
     AuditLogModule,
     ApiUsageModule,
     UserModule,
+    AccountModule,
     RoleModule,
     IntegrationsCenterModule,
     ConverterModule,

@@ -130,6 +130,10 @@ export class DatasourcesComponent implements ControlValueAccessor, OnInit, Valid
 
   @Input()
   @coerceBoolean()
+  hideLatestDataKeys = false;
+
+  @Input()
+  @coerceBoolean()
   forceSingleDatasource = false;
 
   @Input()
