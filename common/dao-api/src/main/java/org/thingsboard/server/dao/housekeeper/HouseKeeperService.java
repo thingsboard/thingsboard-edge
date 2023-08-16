@@ -39,6 +39,6 @@ import java.util.List;
 
 public interface HouseKeeperService {
 
-    ListenableFuture<List<AlarmId>> unassignDeletedUserAlarms(TenantId tenantId, User user);
+    ListenableFuture<List<AlarmId>> unassignDeletedUserAlarms(TenantId tenantId, User user, long unassignTs);
 
 }
