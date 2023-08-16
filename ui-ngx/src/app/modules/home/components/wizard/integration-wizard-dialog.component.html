@@ -83,9 +83,9 @@
     <mat-step [stepControl]="uplinkConverterForm">
       <form [formGroup]="uplinkConverterForm">
         <ng-template #uplinkLabel matStepLabel>{{ "integration.uplink-converter" | translate }}</ng-template>
-        <div class="tb-form-panel stroked">
-          <div class="tb-form-row no-border no-padding">
-            <div fxFlex class="tb-form-panel-title"><ng-container *ngTemplateOutlet=uplinkLabel></ng-container></div>
+        <div class="tb-form-panel" ngClass.gt-xs="stroked" ngClass.xs="no-padding no-border">
+          <div class="tb-form-row no-border no-padding column-xs">
+            <div fxFlex fxHide.xs class="tb-form-panel-title"><ng-container *ngTemplateOutlet=uplinkLabel></ng-container></div>
             <tb-toggle-select fxFlex appearance="fill" formControlName="converterType">
               <tb-toggle-option [value]="'new'">{{ 'integration.new-converter' | translate }}</tb-toggle-option>
               <tb-toggle-option [value]="'exist'">{{ 'integration.existing-converter' | translate }}</tb-toggle-option>
@@ -114,9 +114,9 @@
     <mat-step [stepControl]="downlinkConverterForm" optional="true" *ngIf="showDownlinkStep">
       <form [formGroup]="downlinkConverterForm">
         <ng-template #downlinkLabel matStepLabel>{{ "integration.downlink-converter" | translate }}</ng-template>
-        <div class="tb-form-panel stroked">
-          <div class="tb-form-row no-border no-padding">
-            <div fxFlex class="tb-form-panel-title"><ng-container *ngTemplateOutlet=downlinkLabel></ng-container></div>
+        <div class="tb-form-panel" ngClass.gt-xs="stroked" ngClass.xs="no-padding no-border">
+          <div class="tb-form-row no-border no-padding column-xs">
+            <div fxFlex fxHide.xs class="tb-form-panel-title"><ng-container *ngTemplateOutlet=downlinkLabel></ng-container></div>
             <tb-toggle-select fxFlex appearance="fill" formControlName="converterType">
               <tb-toggle-option [value]="'new'">{{ 'integration.new-converter' | translate }}</tb-toggle-option>
               <tb-toggle-option [value]="'exist'">{{ 'integration.existing-converter' | translate }}</tb-toggle-option>
