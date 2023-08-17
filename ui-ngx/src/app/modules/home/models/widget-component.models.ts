@@ -554,6 +554,7 @@ export interface WidgetConfigComponentData {
   settingsDirective: string;
   dataKeySettingsDirective: string;
   latestDataKeySettingsDirective: string;
+  hasBasicMode: boolean;
   basicModeDirective: string;
 }
 
