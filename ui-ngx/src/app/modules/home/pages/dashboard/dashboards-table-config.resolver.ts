@@ -157,6 +157,9 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     );
     config.onEntityAction = action => this.onDashboardAction(action, config);
     config.headerComponent = DashboardTableHeaderComponent;
+    config.entityAdded = dashboard => {
+      this.openDashboard(null, dashboard, config);
+    };
   }
 
   configureColumns(authUser: AuthUser, config: EntityTableConfig<DashboardInfo>): Array<EntityColumn<DashboardInfo>> {

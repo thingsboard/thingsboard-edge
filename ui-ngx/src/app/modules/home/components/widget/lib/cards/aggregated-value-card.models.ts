@@ -56,7 +56,6 @@ export interface AggregatedValueCardWidgetSettings {
   dateFont: Font;
   dateColor: string;
   showChart: boolean;
-  chartColor: string;
   background: BackgroundSettings;
 }
 
@@ -151,7 +150,6 @@ export const aggregatedValueCardDefaultSettings: AggregatedValueCardWidgetSettin
   },
   dateColor: 'rgba(0, 0, 0, 0.38)',
   showChart: true,
-  chartColor: 'rgba(0, 0, 0, 0.87)',
   background: {
     type: BackgroundType.color,
     color: '#fff',
@@ -179,7 +177,7 @@ export const aggregatedValueCardDefaultKeySettings: AggregatedValueCardKeySettin
 
 export const createDefaultAggregatedValueLatestDataKeys = (keyName: string, units): DataKey[] => [
     {
-      name: keyName, label: keyName, type: DataKeyType.timeseries, units, decimals: 0,
+      name: keyName, label: 'Latest', type: DataKeyType.timeseries, units, decimals: 0,
       aggregationType: AggregationType.NONE,
       settings: {
         position: AggregatedValueCardKeyPosition.center,
@@ -196,7 +194,7 @@ export const createDefaultAggregatedValueLatestDataKeys = (keyName: string, unit
       } as AggregatedValueCardKeySettings
     },
     {
-      name: keyName, label: 'Delta percent ' + keyName, type: DataKeyType.timeseries, units: '%', decimals: 0,
+      name: keyName, label: 'Delta percent', type: DataKeyType.timeseries, units: '%', decimals: 0,
       aggregationType: AggregationType.AVG,
       comparisonEnabled: true,
       timeForComparison: 'previousInterval',
@@ -225,7 +223,7 @@ export const createDefaultAggregatedValueLatestDataKeys = (keyName: string, unit
       } as AggregatedValueCardKeySettings
     },
     {
-      name: keyName, label: 'Delta absolute ' + keyName, type: DataKeyType.timeseries, units, decimals: 1,
+      name: keyName, label: 'Delta absolute', type: DataKeyType.timeseries, units, decimals: 1,
       aggregationType: AggregationType.AVG,
       comparisonEnabled: true,
       timeForComparison: 'previousInterval',

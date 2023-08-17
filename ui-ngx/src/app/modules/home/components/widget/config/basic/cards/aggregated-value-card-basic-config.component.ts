@@ -105,7 +105,7 @@ export class AggregatedValueCardBasicConfigComponent extends BasicWidgetConfigCo
 
   protected setupDefaults(configData: WidgetConfigComponentData) {
     this.setupDefaultDatasource(configData, [
-        { name: 'watermeter', label: 'Watermeter', type: DataKeyType.timeseries, units: 'm³', decimals: 0 }
+        { name: 'watermeter', label: 'Watermeter', type: DataKeyType.timeseries, color: 'rgba(0, 0, 0, 0.87)', units: 'm³', decimals: 0 }
       ],
       createDefaultAggregatedValueLatestDataKeys('watermeter', 'm³')
     );
@@ -158,7 +158,7 @@ export class AggregatedValueCardBasicConfigComponent extends BasicWidgetConfigCo
       showChart: [settings.showChart, []],
       chartUnits: [dataKey?.units, []],
       chartDecimals: [dataKey?.decimals, []],
-      chartColor: [settings.chartColor, []],
+      chartColor: [dataKey?.color, []],
 
       values: [this.getValues(configData.config.datasources, keyName), []],
 
@@ -203,9 +203,8 @@ export class AggregatedValueCardBasicConfigComponent extends BasicWidgetConfigCo
     if (dataKey) {
       dataKey.units = config.chartUnits;
       dataKey.decimals = config.chartDecimals;
+      dataKey.color = config.chartColor;
     }
-
-    this.widgetConfig.config.settings.chartColor = config.chartColor;
 
     this.setValues(config.values, this.widgetConfig.config.datasources);
 
