@@ -28,21 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification;
+package org.thingsboard.server.common.data.notification.targets;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-@RequiredArgsConstructor
-public enum NotificationDeliveryMethod {
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 
-    WEB("web"),
-    EMAIL("email"),
-    SMS("SMS"),
-    SLACK("Slack"),
-    MICROSOFT_TEAMS("Microsoft Teams");
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class MicrosoftTeamsNotificationTargetConfig extends NotificationTargetConfig implements NotificationRecipient {
 
-    @Getter
-    private final String name;
+    @NotBlank
+    private String webhookUrl;
+    @NotEmpty
+    private String channelName;
+
+    @Override
+    public NotificationTargetType getType() {
+        return NotificationTargetType.MICROSOFT_TEAMS;
+    }
+
+    @Override
+    public Object getId() {
+        return webhookUrl;
+    }
+
+    @Override
+    public String getTitle() {
+        return channelName;
+    }
 
 }

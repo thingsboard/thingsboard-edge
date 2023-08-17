@@ -28,21 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification;
+package org.thingsboard.server.common.data.notification.template;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Collection;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 @RequiredArgsConstructor
-public enum NotificationDeliveryMethod {
+public class TemplatableValue {
+    private final Supplier<String> getter;
+    private final Consumer<String> setter;
 
-    WEB("web"),
-    EMAIL("email"),
-    SMS("SMS"),
-    SLACK("Slack"),
-    MICROSOFT_TEAMS("Microsoft Teams");
+    public static TemplatableValue of(Supplier<String> getter, Consumer<String> setter) {
+        return new TemplatableValue(getter, setter);
+    }
 
-    @Getter
-    private final String name;
+    public String get() {
+        return getter.get();
+    }
+
+    public void set(String processed) {
+        setter.accept(processed);
+    }
+
+    public boolean containsParams(Collection<String> params) {
+        return StringUtils.containsAny(get(), params.toArray(String[]::new));
+    }
 
 }
