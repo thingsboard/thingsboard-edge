@@ -133,15 +133,17 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
-        if (msg.isTypeOf(TbMsgType.TB_AGG_LATEST_SELF_MSG)) {
-            processDelayedMsg(ctx, msg.getOriginator());
-            return;
+        switch (msg.getInternalType()) {
+            case TB_AGG_LATEST_SELF_MSG:
+                processDelayedMsg(ctx, msg.getOriginator());
+                break;
+            case TB_AGG_LATEST_CLEAR_INACTIVE_ENTITIES_SELF_MSG:
+                processClearInactiveEntitiesMsg(ctx);
+                break;
+            default:
+                processRegularMsg(ctx, msg);
+                break;
         }
-        if (msg.isTypeOf(TbMsgType.TB_AGG_LATEST_CLEAR_INACTIVE_ENTITIES_SELF_MSG)) {
-            processClearInactiveEntitiesMsg(ctx);
-            return;
-        }
-        processRegularMsg(ctx, msg);
     }
 
     private void processRegularMsg(TbContext ctx, TbMsg msg) {

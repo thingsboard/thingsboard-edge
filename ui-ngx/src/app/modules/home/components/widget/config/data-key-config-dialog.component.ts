@@ -65,10 +65,11 @@ export interface DataKeyConfigDialogData {
   entityAliasId?: string;
   showPostProcessing?: boolean;
   callbacks?: DataKeysCallbacks;
-  hideDataKeyLabel: boolean;
-  hideDataKeyColor: boolean;
-  hideDataKeyUnits: boolean;
-  hideDataKeyDecimals: boolean;
+  hideDataKeyName?: boolean;
+  hideDataKeyLabel?: boolean;
+  hideDataKeyColor?: boolean;
+  hideDataKeyUnits?: boolean;
+  hideDataKeyDecimals?: boolean;
 }
 
 @Component({

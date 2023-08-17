@@ -64,7 +64,7 @@ public class ExceptionUtil {
         return lookupExceptionInCause(source.getCause(), clazzes);
     }
 
-    public static String toString(Exception e, EntityId componentId, boolean stackTraceEnabled) {
+    public static String toString(Throwable e, EntityId componentId, boolean stackTraceEnabled) {
         Exception exception = lookupExceptionInCause(e, ScriptException.class, JsonParseException.class);
         if (exception != null && StringUtils.isNotEmpty(exception.getMessage())) {
             return exception.getMessage();

@@ -71,8 +71,6 @@ public class EdgeSyncCursor {
             fetchers.add(new QueuesEdgeEventFetcher(ctx.getQueueService()));
             fetchers.add(new RuleChainsEdgeEventFetcher(ctx.getRuleChainService()));
             fetchers.add(new AdminSettingsEdgeEventFetcher(ctx.getAdminSettingsService(), ctx.getAttributesService()));
-            fetchers.add(new DeviceProfilesEdgeEventFetcher(ctx.getDeviceProfileService()));
-            fetchers.add(new AssetProfilesEdgeEventFetcher(ctx.getAssetProfileService()));
             fetchers.add(new TenantEdgeEventFetcher(ctx.getTenantService()));
             Customer publicCustomer = ctx.getCustomerService().findOrCreatePublicCustomer(edge.getTenantId(), edge.getTenantId());
             fetchers.add(new CustomerEdgeEventFetcher(ctx.getCustomerService(), publicCustomer.getId()));
@@ -89,6 +87,8 @@ public class EdgeSyncCursor {
             fetchers.add(new SystemWidgetsBundlesEdgeEventFetcher(ctx.getWidgetsBundleService()));
             fetchers.add(new TenantWidgetsBundlesEdgeEventFetcher(ctx.getWidgetsBundleService()));
         }
+        fetchers.add(new DeviceProfilesEdgeEventFetcher(ctx.getDeviceProfileService()));
+        fetchers.add(new AssetProfilesEdgeEventFetcher(ctx.getAssetProfileService()));
         fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.DEVICE));
         fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.ASSET));
         fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.ENTITY_VIEW));

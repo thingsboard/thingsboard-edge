@@ -48,7 +48,6 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.DeviceInfo;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
@@ -484,28 +483,6 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         return savedDevice;
     }
 
-    protected Device findDeviceByName(String deviceName) throws Exception {
-        List<DeviceInfo> edgeDevices = doGetTypedWithPageLink("/api/edge/" + edge.getUuidId() + "/devices?",
-                new TypeReference<PageData<DeviceInfo>>() {
-                }, new PageLink(100)).getData();
-        Optional<DeviceInfo> foundDevice = edgeDevices.stream().filter(d -> d.getName().equals(deviceName)).findAny();
-        Assert.assertTrue(foundDevice.isPresent());
-        Device device = foundDevice.get();
-        Assert.assertEquals(deviceName, device.getName());
-        return device;
-    }
-
-    protected Asset findAssetByName(String assetName) throws Exception {
-        List<Asset> edgeAssets = doGetTypedWithPageLink("/api/edge/" + edge.getUuidId() + "/assets?",
-                new TypeReference<PageData<Asset>>() {
-                }, new PageLink(100)).getData();
-
-        Assert.assertEquals(1, edgeAssets.size());
-        Asset asset = edgeAssets.get(0);
-        Assert.assertEquals(assetName, asset.getName());
-        return asset;
-    }
-
     protected Device saveDevice(String deviceName, String type) {
         return saveDevice(deviceName, type, null);
     }
@@ -594,7 +571,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         return savedAsset;
     }
 
-    private void verifyEntityGroupUpdateMsg(AbstractMessage latestMessage, EntityGroup entityGroup) {
+    protected void verifyEntityGroupUpdateMsg(AbstractMessage latestMessage, EntityGroup entityGroup) {
         Assert.assertTrue(latestMessage instanceof EntityGroupUpdateMsg);
         EntityGroupUpdateMsg entityGroupUpdateMsg = (EntityGroupUpdateMsg) latestMessage;
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, entityGroupUpdateMsg.getMsgType());
@@ -604,9 +581,9 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(entityGroupUpdateMsg.getType(), entityGroup.getType().name());
     }
 
-    protected EntityView saveEntityView(String entityViewName, String type, DeviceId deviceId, EntityGroupId entityGroupId) {
+    protected EntityView saveEntityView(String name, DeviceId deviceId, EntityGroupId entityGroupId) {
         EntityView entityView = new EntityView();
-        entityView.setName("Edge EntityView 1");
+        entityView.setName(name);
         entityView.setType("test");
         entityView.setEntityId(deviceId);
         if (entityGroupId != null) {

@@ -45,7 +45,6 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
-import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
@@ -89,7 +88,6 @@ import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
-import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.QueueId;
@@ -124,6 +122,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
@@ -269,7 +268,7 @@ public abstract class AbstractContainerTest {
 
     protected static DeviceProfile createCustomDeviceProfile(String deviceProfileName,
                                                              DeviceProfileTransportConfiguration deviceProfileTransportConfiguration) {
-        return createDeviceProfile(deviceProfileName, deviceProfileTransportConfiguration);
+        return doCreateDeviceProfile(deviceProfileName, deviceProfileTransportConfiguration, cloudRestClient);
     }
 
     protected static DeviceProfile createCustomDeviceProfile(String deviceProfileName) {
@@ -303,7 +302,11 @@ public abstract class AbstractContainerTest {
         }
     };
 
-    protected static DeviceProfile createDeviceProfile(String name, DeviceProfileTransportConfiguration deviceProfileTransportConfiguration) {
+    protected static DeviceProfile createDeviceProfileOnEdge(String name) {
+        return doCreateDeviceProfile(name, new DefaultDeviceProfileTransportConfiguration(), edgeRestClient);
+    }
+
+    private static DeviceProfile doCreateDeviceProfile(String name, DeviceProfileTransportConfiguration deviceProfileTransportConfiguration, RestClient restClient) {
         DeviceProfile deviceProfile = new DeviceProfile();
         deviceProfile.setName(name);
         deviceProfile.setType(DeviceProfileType.DEFAULT);
@@ -314,17 +317,14 @@ public abstract class AbstractContainerTest {
         DeviceProfileData deviceProfileData = new DeviceProfileData();
         DefaultDeviceProfileConfiguration configuration = new DefaultDeviceProfileConfiguration();
         deviceProfileData.setConfiguration(configuration);
-        if (deviceProfileTransportConfiguration != null) {
-            deviceProfileData.setTransportConfiguration(deviceProfileTransportConfiguration);
-        } else {
-            deviceProfileData.setTransportConfiguration(new DefaultDeviceProfileTransportConfiguration());
-        }
+        deviceProfileData.setTransportConfiguration(Objects.requireNonNullElseGet(deviceProfileTransportConfiguration,
+                DefaultDeviceProfileTransportConfiguration::new));
         deviceProfile.setProfileData(deviceProfileData);
         deviceProfile.setDefault(false);
         deviceProfile.setDefaultRuleChainId(null);
         deviceProfile.setDefaultQueueName("Main");
         extendDeviceProfileData(deviceProfile);
-        return cloudRestClient.saveDeviceProfile(deviceProfile);
+        return restClient.saveDeviceProfile(deviceProfile);
     }
 
     protected static void extendDeviceProfileData(DeviceProfile deviceProfile) {
@@ -422,6 +422,19 @@ public abstract class AbstractContainerTest {
         Dashboard dashboard = new Dashboard();
         dashboard.setTitle(dashboardTitle);
         return cloudRestClient.saveDashboard(dashboard, entityGroupId);
+    }
+
+    protected Asset saveAssetOnEdge(String assetName, String type, EntityGroupId entityGroupId) {
+        Asset asset = new Asset();
+        asset.setName(assetName);
+        asset.setType(type);
+        return edgeRestClient.saveAsset(asset, entityGroupId);
+    }
+
+    protected Dashboard saveDashboardOnEdge(String dashboardTitle, EntityGroupId entityGroupId) {
+        Dashboard dashboard = new Dashboard();
+        dashboard.setTitle(dashboardTitle);
+        return edgeRestClient.saveDashboard(dashboard, entityGroupId);
     }
 
     protected void assertEntitiesByIdsAndType(List<EntityId> entityIds, EntityType entityType) {
@@ -878,7 +891,6 @@ public abstract class AbstractContainerTest {
     protected void unAssignFromEdgeAndDeleteRuleChain(RuleChainId ruleChainId) {
         // unassign rule chain from edge
         cloudRestClient.unassignRuleChainFromEdge(edge.getId(), ruleChainId);
-
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
@@ -886,6 +898,10 @@ public abstract class AbstractContainerTest {
 
         // delete rule chain
         cloudRestClient.deleteRuleChain(ruleChainId);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getRuleChainById(ruleChainId).isEmpty());
     }
 
     protected DashboardId createDashboardAndAssignToEdge(String dashboardName, EntityGroup dashboardGroup) {
@@ -909,6 +925,10 @@ public abstract class AbstractContainerTest {
 
         cloudRestClient.deleteDashboard(dashboardId);
         cloudRestClient.deleteEntityGroup(dashboardGroupId);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getEntityGroupById(dashboardGroupId).isEmpty());
     }
 
     protected OtaPackageId createOtaPackageInfo(DeviceProfileId deviceProfileId, OtaPackageType otaPackageType) throws Exception {

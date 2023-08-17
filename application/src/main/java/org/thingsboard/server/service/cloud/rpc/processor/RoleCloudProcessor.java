@@ -82,6 +82,10 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
             Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY, Operation.RPC_CALL,
             Operation.READ_CREDENTIALS, Operation.WRITE_ATTRIBUTES, Operation.WRITE_TELEMETRY));
 
+    private final Set<Operation> allowedProfileOperations = new HashSet<>(Arrays.asList(Operation.READ, Operation.WRITE,
+            Operation.CREATE, Operation.READ_ATTRIBUTES, Operation.WRITE_ATTRIBUTES, Operation.READ_TELEMETRY,
+            Operation.WRITE_TELEMETRY, Operation.CHANGE_OWNER));
+
     public ListenableFuture<Void> processRoleMsgFromCloud(TenantId tenantId, RoleProto roleProto) {
         try {
             RoleId roleId = new RoleId(new UUID(roleProto.getIdMSB(), roleProto.getIdLSB()));
@@ -166,14 +170,29 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
                 List<Operation> newOperations;
                 switch (entry.getKey()) {
                     case DEVICE:
+                    case ASSET:
+                    case ENTITY_VIEW:
+                    case DASHBOARD:
                     case ALARM:
                         newOperations = entry.getValue();
+                        break;
+                    case PROFILE:
+                        newPermissions.put(Resource.PROFILE, new ArrayList<>(allowedProfileOperations));
+                        newOperations = new ArrayList<>(allowedGenericOperations);
                         break;
                     case ALL:
                         if (originOperations.contains(Operation.ALL)) {
                             newPermissions.put(Resource.ALARM, Collections.singletonList(Operation.ALL));
                             newPermissions.put(Resource.DEVICE, Collections.singletonList(Operation.ALL));
                             newPermissions.put(Resource.DEVICE_GROUP, Arrays.asList(Operation.ADD_TO_GROUP, Operation.REMOVE_FROM_GROUP));
+                            newPermissions.put(Resource.ASSET, Collections.singletonList(Operation.ALL));
+                            newPermissions.put(Resource.ASSET_GROUP, Arrays.asList(Operation.ADD_TO_GROUP, Operation.REMOVE_FROM_GROUP));
+                            newPermissions.put(Resource.ENTITY_VIEW, Collections.singletonList(Operation.ALL));
+                            newPermissions.put(Resource.ENTITY_VIEW_GROUP, Arrays.asList(Operation.ADD_TO_GROUP, Operation.REMOVE_FROM_GROUP));
+                            newPermissions.put(Resource.DASHBOARD, Collections.singletonList(Operation.ALL));
+                            newPermissions.put(Resource.DASHBOARD_GROUP, Arrays.asList(Operation.ADD_TO_GROUP, Operation.REMOVE_FROM_GROUP));
+                            newPermissions.put(Resource.DEVICE_PROFILE, new ArrayList<>(allowedProfileOperations));
+                            newPermissions.put(Resource.ASSET_PROFILE, new ArrayList<>(allowedProfileOperations));
                             newOperations = new ArrayList<>(allowedGenericOperations);
                         } else {
                             newOperations = originOperations.stream()
@@ -201,6 +220,5 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
         }
         return role;
     }
-
 
 }

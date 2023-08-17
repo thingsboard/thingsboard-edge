@@ -100,7 +100,7 @@ message ConnectResponseMsg {
 }
 
 message SyncRequestMsg {
-  bool syncRequired = 1;
+  bool syncRequired = 1; // deprecated
   optional bool fullSync = 2;
 }
 
@@ -738,6 +738,11 @@ message UplinkMsg {
   repeated EntityViewsRequestMsg entityViewsRequestMsg = 15;
   repeated EntityGroupRequestMsg entityGroupEntitiesRequestMsg = 16;
   repeated EntityGroupRequestMsg entityGroupPermissionsRequestMsg = 17;
+  repeated AssetUpdateMsg assetUpdateMsg = 18;
+  repeated DashboardUpdateMsg dashboardUpdateMsg = 19;
+  repeated EntityViewUpdateMsg entityViewUpdateMsg = 20;
+  repeated AssetProfileUpdateMsg assetProfileUpdateMsg = 21;
+  repeated DeviceProfileUpdateMsg deviceProfileUpdateMsg = 22;
 }
 
 message UplinkResponseMsg {
