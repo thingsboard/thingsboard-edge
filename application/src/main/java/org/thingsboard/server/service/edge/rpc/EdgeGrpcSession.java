@@ -680,6 +680,10 @@ public final class EdgeGrpcSession implements Closeable {
                 return ctx.getIntegrationProcessor().convertIntegrationEventToDownlink(edgeEvent);
             case CONVERTER:
                 return ctx.getConverterProcessor().convertConverterEventToDownlink(edgeEvent);
+            case TENANT:
+                return ctx.getTenantEdgeProcessor().convertTenantEventToDownlink(edgeEvent);
+            case TENANT_PROFILE:
+                return ctx.getTenantProfileEdgeProcessor().convertTenantProfileEventToDownlink(edgeEvent);
             default:
                 log.warn("Unsupported edge event type [{}]", edgeEvent);
                 return null;

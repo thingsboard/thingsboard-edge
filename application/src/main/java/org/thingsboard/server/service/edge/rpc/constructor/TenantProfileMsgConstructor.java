@@ -28,50 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.edge;
+package org.thingsboard.server.service.edge.rpc.constructor;
 
-import lombok.Getter;
-import org.thingsboard.server.common.data.EntityType;
+import com.google.protobuf.ByteString;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.gen.edge.v1.TenantProfileUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
-@Getter
-public enum EdgeEventType {
-    DASHBOARD(false, EntityType.DASHBOARD),
-    ASSET(false, EntityType.ASSET),
-    DEVICE(false, EntityType.DEVICE),
-    DEVICE_PROFILE(true, EntityType.DEVICE_PROFILE),
-    ASSET_PROFILE(true, EntityType.ASSET_PROFILE),
-    ENTITY_VIEW(false, EntityType.ENTITY_VIEW),
-    ALARM(false, EntityType.ALARM),
-    RULE_CHAIN(false, EntityType.RULE_CHAIN),
-    RULE_CHAIN_METADATA(false, null),
-    EDGE(false, EntityType.EDGE),
-    USER(false, EntityType.USER),
-    CUSTOMER(true, EntityType.CUSTOMER),
-    RELATION(true, null),
-    TENANT(true, EntityType.TENANT),
-    TENANT_PROFILE(true, EntityType.TENANT_PROFILE),
-    WIDGETS_BUNDLE(true, EntityType.WIDGETS_BUNDLE),
-    WIDGET_TYPE(true, EntityType.WIDGET_TYPE),
-    ADMIN_SETTINGS(true, null),
-    OTA_PACKAGE(true, EntityType.OTA_PACKAGE),
-    QUEUE(true, EntityType.QUEUE),
-    ENTITY_GROUP(false, EntityType.ENTITY_GROUP),
-    SCHEDULER_EVENT(false, EntityType.SCHEDULER_EVENT),
-    WHITE_LABELING(true, null),
-    LOGIN_WHITE_LABELING(true, null),
-    CUSTOM_TRANSLATION(true, null),
-    ROLE(true, EntityType.ROLE),
-    GROUP_PERMISSION(true, EntityType.GROUP_PERMISSION),
-    CONVERTER(false, EntityType.CONVERTER),
-    INTEGRATION(false, EntityType.INTEGRATION);
+@Component
+@TbCoreComponent
+public class TenantProfileMsgConstructor {
 
-    private final boolean allEdgesRelated;
+    @Autowired
+    private DataDecodingEncodingService dataDecodingEncodingService;
 
-    private final EntityType entityType;
-
-
-    EdgeEventType(boolean allEdgesRelated, EntityType entityType) {
-        this.allEdgesRelated = allEdgesRelated;
-        this.entityType = entityType;
+    public TenantProfileUpdateMsg constructTenantProfileUpdateMsg(UpdateMsgType msgType, TenantProfile tenantProfile) {
+        TenantProfileUpdateMsg.Builder builder = TenantProfileUpdateMsg.newBuilder()
+                .setMsgType(msgType)
+                .setIdMSB(tenantProfile.getId().getId().getMostSignificantBits())
+                .setIdLSB(tenantProfile.getId().getId().getLeastSignificantBits())
+                .setName(tenantProfile.getName())
+                .setDefault(tenantProfile.isDefault())
+                .setIsolatedRuleChain(tenantProfile.isIsolatedTbRuleEngine())
+                .setProfileDataBytes(ByteString.copyFrom(dataDecodingEncodingService.encode(tenantProfile.getProfileData())));
+        if (tenantProfile.getDescription() != null) {
+            builder.setDescription(tenantProfile.getDescription());
+        }
+        return builder.build();
     }
 }
