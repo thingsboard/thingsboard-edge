@@ -81,6 +81,7 @@ public class Queue extends BaseDataWithAdditionalInfo<QueueId> implements HasNam
         setAdditionalInfo(queueConfiguration.getAdditionalInfo());
     }
 
+
     @JsonIgnore
     public String getCustomProperties() {
         return Optional.ofNullable(getAdditionalInfo())

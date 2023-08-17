@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
@@ -84,7 +85,7 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
         loginTenantAdmin();
 
         InputStream resourceAsStream = ObjectNode.class.getClassLoader().getResourceAsStream(HTTP_UPLINK_CONVERTER_FILEPATH);
-        ObjectNode jsonFile = mapper.readValue(resourceAsStream, ObjectNode.class);
+        ObjectNode jsonFile = new ObjectMapper().readValue(resourceAsStream, ObjectNode.class);
         Assert.assertNotNull(jsonFile);
 
         if (jsonFile.has("configuration") && jsonFile.get("configuration").has("decoder")) {

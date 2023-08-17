@@ -30,13 +30,10 @@
  */
 package org.thingsboard.rule.engine.math;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import lombok.extern.slf4j.Slf4j;
-import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,10 +42,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.verification.Timeout;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.thingsboard.common.util.AbstractListeningExecutor;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
@@ -74,13 +70,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -98,7 +92,6 @@ import static org.mockito.Mockito.verify;
 
 @Slf4j
 @ExtendWith(MockitoExtension.class)
-@Slf4j
 public class TbMathNodeTest {
 
     static final int RULE_DISPATCHER_POOL_SIZE = 2;
@@ -183,10 +176,8 @@ public class TbMathNodeTest {
 
         node.onMsg(ctx, msg);
 
-        ConcurrentMap<EntityId, Semaphore> semaphores = (ConcurrentMap<EntityId, Semaphore>) ReflectionTestUtils.getField(node, "semaphores");
+        ConcurrentMap<EntityId, TbMathNode.SemaphoreWithQueue<TbMathNode.TbMsgTbContext>> semaphores = (ConcurrentMap<EntityId, TbMathNode.SemaphoreWithQueue<TbMathNode.TbMsgTbContext>>) ReflectionTestUtils.getField(node, "locks");
         Assert.assertNotNull(semaphores);
-        Semaphore originatorSemaphore = semaphores.get(originator);
-        Assert.assertNotNull(originatorSemaphore);
 
         metaData.putValue("key1", "secondMsgResult");
         metaData.putValue("key2", "argumentC");
@@ -196,7 +187,7 @@ public class TbMathNodeTest {
 
         node.onMsg(ctx, msg);
 
-        Awaitility.await("Semaphore released").atMost(5, TimeUnit.SECONDS).until(semaphores.get(originator)::tryAcquire);
+        Awaitility.await("Semaphore released").atMost(5, TimeUnit.SECONDS).until(() -> semaphores.get(originator).semaphore.tryAcquire());
 
         ArgumentCaptor<TbMsg> msgCaptor = ArgumentCaptor.forClass(TbMsg.class);
         Mockito.verify(ctx, Mockito.times(2)).tellSuccess(msgCaptor.capture());

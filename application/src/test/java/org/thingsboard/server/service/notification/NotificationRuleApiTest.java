@@ -437,10 +437,10 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
 
         int n = 10;
         updateDefaultTenantProfile(profileConfiguration -> {
-            profileConfiguration.setTenantEntityExportRateLimit(n + ":600");
-            profileConfiguration.setCustomerServerRestLimitsConfiguration(n + ":600");
-            profileConfiguration.setTenantNotificationRequestsPerRuleRateLimit(n + ":600");
-            profileConfiguration.setTransportDeviceTelemetryMsgRateLimit(n + ":600");
+            profileConfiguration.getProfileConfiguration().get().setTenantEntityExportRateLimit(n + ":600");
+            profileConfiguration.getProfileConfiguration().get().setCustomerServerRestLimitsConfiguration(n + ":600");
+            profileConfiguration.getProfileConfiguration().get().setTenantNotificationRequestsPerRuleRateLimit(n + ":600");
+            profileConfiguration.getProfileConfiguration().get().setTransportDeviceTelemetryMsgRateLimit(n + ":600");
         });
         loginTenantAdmin();
         NotificationRule rule = createNotificationRule(AlarmCommentNotificationRuleTriggerConfig.builder()
@@ -707,8 +707,8 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
 
         int n = 5;
         updateDefaultTenantProfile(profileConfiguration -> {
-            profileConfiguration.setTenantEntityExportRateLimit(n + ":600");
-            profileConfiguration.setTransportDeviceTelemetryMsgRateLimit(n + ":800");
+            profileConfiguration.getProfileConfiguration().get().setTenantEntityExportRateLimit(n + ":600");
+            profileConfiguration.getProfileConfiguration().get().setTransportDeviceTelemetryMsgRateLimit(n + ":800");
         });
 
         RateLimitsTrigger expectedTrigger = RateLimitsTrigger.builder()
