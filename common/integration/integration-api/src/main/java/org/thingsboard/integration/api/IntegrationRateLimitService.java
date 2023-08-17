@@ -28,30 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.discovery;
+package org.thingsboard.integration.api;
 
-import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.common.msg.queue.ServiceType;
-import org.thingsboard.server.gen.transport.TransportProtos.ServiceInfo;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
 
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.function.Supplier;
 
-public interface TbServiceInfoProvider {
+public interface IntegrationRateLimitService {
 
-    String getServiceId();
+    void checkLimit(TenantId tenantId, Supplier<String> msg);
 
-    String getServiceType();
+    void checkLimit(TenantId tenantId, String deviceName, Supplier<String> msg);
 
-    ServiceInfo getServiceInfo();
+    boolean checkLimit(TenantId tenantId, IntegrationId integrationId, boolean throwException);
 
-    boolean isService(ServiceType serviceType);
+    boolean checkLimit(TenantId tenantId, ConverterId converterId, boolean throwException);
 
-    ServiceInfo generateNewServiceInfoWithCurrentSystemInfo();
-
-    List<IntegrationType> getSupportedIntegrationTypes();
-
-    Set<UUID> getAssignedTenantProfiles();
-
+    boolean alreadyProcessed(EntityId entityId, EntityType entityType);
 }

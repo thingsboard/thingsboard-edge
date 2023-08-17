@@ -210,6 +210,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected UserId tenantAdminUserId;
     protected User tenantAdminUser;
     protected CustomerId tenantAdminCustomerId;
+    protected TenantId differentTenantId;
     protected CustomerId customerId;
     protected CustomerId differentCustomerId;
 
@@ -413,6 +414,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         tenant.setTitle(TEST_DIFFERENT_TENANT_NAME);
         savedDifferentTenant = doPost("/api/tenant", tenant, Tenant.class);
         Assert.assertNotNull(savedDifferentTenant);
+        differentTenantId = savedDifferentTenant.getId();
         User differentTenantAdmin = new User();
         differentTenantAdmin.setAuthority(Authority.TENANT_ADMIN);
         differentTenantAdmin.setTenantId(savedDifferentTenant.getId());
@@ -486,6 +488,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
             doDelete("/api/tenant/" + savedDifferentTenant.getId().getId().toString())
                     .andExpect(status().isOk());
             savedDifferentTenant = null;
+            differentTenantId = null;
         }
     }
 
@@ -1063,13 +1066,20 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         return (DeviceActorMessageProcessor) ReflectionTestUtils.getField(actor, "processor");
     }
 
-    protected void updateDefaultTenantProfile(Consumer<DefaultTenantProfileConfiguration> updater) throws ThingsboardException {
-        TenantProfile tenantProfile = tenantProfileService.findDefaultTenantProfile(TenantId.SYS_TENANT_ID);
-        TenantProfileData profileData = tenantProfile.getProfileData();
-        DefaultTenantProfileConfiguration profileConfiguration = (DefaultTenantProfileConfiguration) profileData.getConfiguration();
-        updater.accept(profileConfiguration);
-        tenantProfile.setProfileData(profileData);
-        tbTenantProfileService.save(TenantId.SYS_TENANT_ID, tenantProfile, null);
+    protected void updateDefaultTenantProfileConfig(Consumer<DefaultTenantProfileConfiguration> updater) throws ThingsboardException {
+        updateDefaultTenantProfile(tenantProfile -> {
+            TenantProfileData profileData = tenantProfile.getProfileData();
+            DefaultTenantProfileConfiguration profileConfiguration = (DefaultTenantProfileConfiguration) profileData.getConfiguration();
+            updater.accept(profileConfiguration);
+            tenantProfile.setProfileData(profileData);
+        });
+    }
+
+    protected void updateDefaultTenantProfile(Consumer<TenantProfile> updater) throws ThingsboardException {
+        TenantProfile oldTenantProfile = tenantProfileService.findDefaultTenantProfile(TenantId.SYS_TENANT_ID);
+        TenantProfile tenantProfile = JacksonUtil.clone(oldTenantProfile);
+        updater.accept(tenantProfile);
+        tbTenantProfileService.save(TenantId.SYS_TENANT_ID, tenantProfile, oldTenantProfile);
     }
 
 }
