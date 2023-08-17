@@ -33,7 +33,6 @@ package org.thingsboard.rule.engine.math;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import lombok.extern.slf4j.Slf4j;
-import org.awaitility.Awaitility;
 import org.junit.Assert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,8 +42,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.verification.Timeout;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.thingsboard.common.util.AbstractListeningExecutor;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
@@ -70,7 +67,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -87,6 +83,7 @@ import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -96,6 +93,7 @@ public class TbMathNodeTest {
 
     static final int RULE_DISPATCHER_POOL_SIZE = 2;
     static final int DB_CALLBACK_POOL_SIZE = 3;
+    static final long TIMEOUT = TimeUnit.SECONDS.toMillis(5);
     private final EntityId originator = DeviceId.fromString("ccd71696-0586-422d-940e-755a41ec3b0d");
     private final TenantId tenantId = TenantId.fromUUID(UUID.fromString("e7f46b23-0c7d-42f5-9b06-fc35ab17af8a"));
 
@@ -176,9 +174,6 @@ public class TbMathNodeTest {
 
         node.onMsg(ctx, msg);
 
-        ConcurrentMap<EntityId, TbMathNode.SemaphoreWithQueue<TbMathNode.TbMsgTbContext>> semaphores = (ConcurrentMap<EntityId, TbMathNode.SemaphoreWithQueue<TbMathNode.TbMsgTbContext>>) ReflectionTestUtils.getField(node, "locks");
-        Assert.assertNotNull(semaphores);
-
         metaData.putValue("key1", "secondMsgResult");
         metaData.putValue("key2", "argumentC");
         msgNode = JacksonUtil.newObjectNode()
@@ -187,10 +182,8 @@ public class TbMathNodeTest {
 
         node.onMsg(ctx, msg);
 
-        Awaitility.await("Semaphore released").atMost(5, TimeUnit.SECONDS).until(() -> semaphores.get(originator).semaphore.tryAcquire());
-
         ArgumentCaptor<TbMsg> msgCaptor = ArgumentCaptor.forClass(TbMsg.class);
-        Mockito.verify(ctx, Mockito.times(2)).tellSuccess(msgCaptor.capture());
+        verify(ctx, timeout(TIMEOUT).times(2)).tellSuccess(msgCaptor.capture());
 
         List<TbMsg> resultMsgs = msgCaptor.getAllValues();
         Assert.assertFalse(resultMsgs.isEmpty());
@@ -205,7 +198,6 @@ public class TbMathNodeTest {
             Assert.assertTrue(resultJson.has(resultKey));
             Assert.assertEquals(i == 0 ? 10 : 17, resultJson.get(resultKey).asInt());
         }
-        semaphores.remove(originator);
     }
 
     @Test
@@ -272,7 +264,7 @@ public class TbMathNodeTest {
         node.onMsg(ctx, msg);
 
         ArgumentCaptor<TbMsg> msgCaptor = ArgumentCaptor.forClass(TbMsg.class);
-        Mockito.verify(ctx, Mockito.timeout(5000).times(1)).tellSuccess(msgCaptor.capture());
+        verify(ctx, timeout(TIMEOUT).times(1)).tellSuccess(msgCaptor.capture());
 
         TbMsg resultMsg = msgCaptor.getValue();
         Assert.assertNotNull(resultMsg);
@@ -295,7 +287,7 @@ public class TbMathNodeTest {
         node.onMsg(ctx, msg);
 
         ArgumentCaptor<TbMsg> msgCaptor = ArgumentCaptor.forClass(TbMsg.class);
-        Mockito.verify(ctx, Mockito.timeout(5000)).tellSuccess(msgCaptor.capture());
+        verify(ctx, timeout(TIMEOUT)).tellSuccess(msgCaptor.capture());
 
         TbMsg resultMsg = msgCaptor.getValue();
         Assert.assertNotNull(resultMsg);
@@ -318,7 +310,7 @@ public class TbMathNodeTest {
         node.onMsg(ctx, msg);
 
         ArgumentCaptor<TbMsg> msgCaptor = ArgumentCaptor.forClass(TbMsg.class);
-        Mockito.verify(ctx, Mockito.timeout(5000)).tellSuccess(msgCaptor.capture());
+        verify(ctx, timeout(TIMEOUT)).tellSuccess(msgCaptor.capture());
 
         TbMsg resultMsg = msgCaptor.getValue();
         Assert.assertNotNull(resultMsg);
@@ -341,7 +333,7 @@ public class TbMathNodeTest {
         node.onMsg(ctx, msg);
 
         ArgumentCaptor<TbMsg> msgCaptor = ArgumentCaptor.forClass(TbMsg.class);
-        Mockito.verify(ctx, Mockito.timeout(5000)).tellSuccess(msgCaptor.capture());
+        verify(ctx, timeout(TIMEOUT)).tellSuccess(msgCaptor.capture());
 
         TbMsg resultMsg = msgCaptor.getValue();
         Assert.assertNotNull(resultMsg);
@@ -371,7 +363,7 @@ public class TbMathNodeTest {
         node.onMsg(ctx, msg);
 
         ArgumentCaptor<TbMsg> msgCaptor = ArgumentCaptor.forClass(TbMsg.class);
-        Mockito.verify(ctx, Mockito.timeout(5000)).tellSuccess(msgCaptor.capture());
+        verify(ctx, timeout(TIMEOUT)).tellSuccess(msgCaptor.capture());
 
         TbMsg resultMsg = msgCaptor.getValue();
         Assert.assertNotNull(resultMsg);
@@ -393,7 +385,7 @@ public class TbMathNodeTest {
         node.onMsg(ctx, msg);
 
         ArgumentCaptor<TbMsg> msgCaptor = ArgumentCaptor.forClass(TbMsg.class);
-        Mockito.verify(ctx, Mockito.timeout(5000)).tellSuccess(msgCaptor.capture());
+        verify(ctx, timeout(TIMEOUT)).tellSuccess(msgCaptor.capture());
 
         TbMsg resultMsg = msgCaptor.getValue();
         Assert.assertNotNull(resultMsg);
@@ -415,7 +407,7 @@ public class TbMathNodeTest {
         node.onMsg(ctx, msg);
 
         ArgumentCaptor<TbMsg> msgCaptor = ArgumentCaptor.forClass(TbMsg.class);
-        Mockito.verify(ctx, Mockito.timeout(5000)).tellSuccess(msgCaptor.capture());
+        verify(ctx, timeout(TIMEOUT)).tellSuccess(msgCaptor.capture());
 
         TbMsg resultMsg = msgCaptor.getValue();
         Assert.assertNotNull(resultMsg);
@@ -440,8 +432,8 @@ public class TbMathNodeTest {
         node.onMsg(ctx, msg);
 
         ArgumentCaptor<TbMsg> msgCaptor = ArgumentCaptor.forClass(TbMsg.class);
-        Mockito.verify(ctx, Mockito.timeout(5000)).tellSuccess(msgCaptor.capture());
-        Mockito.verify(telemetryService, times(1)).saveAttrAndNotify(any(), any(), anyString(), anyString(), anyDouble());
+        verify(ctx, timeout(TIMEOUT)).tellSuccess(msgCaptor.capture());
+        verify(telemetryService, times(1)).saveAttrAndNotify(any(), any(), anyString(), anyString(), anyDouble());
 
         TbMsg resultMsg = msgCaptor.getValue();
         Assert.assertNotNull(resultMsg);
@@ -465,8 +457,8 @@ public class TbMathNodeTest {
         node.onMsg(ctx, msg);
 
         ArgumentCaptor<TbMsg> msgCaptor = ArgumentCaptor.forClass(TbMsg.class);
-        verify(ctx, Mockito.timeout(5000)).tellSuccess(msgCaptor.capture());
-        Mockito.verify(telemetryService, times(1)).saveAndNotify(any(), any(), any(TsKvEntry.class));
+        verify(ctx, timeout(TIMEOUT)).tellSuccess(msgCaptor.capture());
+        verify(telemetryService, times(1)).saveAndNotify(any(), any(), any(TsKvEntry.class));
 
         TbMsg resultMsg = msgCaptor.getValue();
         Assert.assertNotNull(resultMsg);
@@ -490,8 +482,8 @@ public class TbMathNodeTest {
         node.onMsg(ctx, msg);
 
         ArgumentCaptor<TbMsg> msgCaptor = ArgumentCaptor.forClass(TbMsg.class);
-        verify(ctx, Mockito.timeout(5000)).tellSuccess(msgCaptor.capture());
-        Mockito.verify(telemetryService, times(1)).saveAndNotify(any(), any(), any(TsKvEntry.class));
+        verify(ctx, timeout(TIMEOUT)).tellSuccess(msgCaptor.capture());
+        verify(telemetryService, times(1)).saveAndNotify(any(), any(), any(TsKvEntry.class));
 
         TbMsg resultMsg = msgCaptor.getValue();
         Assert.assertNotNull(resultMsg);
@@ -518,7 +510,7 @@ public class TbMathNodeTest {
 
         node.onMsg(ctx, msg);
         ArgumentCaptor<TbMsg> msgCaptor = ArgumentCaptor.forClass(TbMsg.class);
-        Mockito.verify(ctx, Mockito.timeout(5000)).tellSuccess(msgCaptor.capture());
+        verify(ctx, timeout(TIMEOUT)).tellSuccess(msgCaptor.capture());
 
         TbMsg resultMsg = msgCaptor.getValue();
         Assert.assertNotNull(resultMsg);
@@ -609,16 +601,16 @@ public class TbMathNodeTest {
         // submit slow msg may block all rule engine dispatcher threads
         slowMsgList.forEach(msg -> ruleEngineDispatcherExecutor.executeAsync(() -> node.onMsg(ctx, msg)));
         // wait until dispatcher threads started with all slowMsg
-        verify(node, new Timeout(TimeUnit.SECONDS.toMillis(5), times(slowMsgList.size()))).onMsg(eq(ctx), argThat(slowMsgList::contains));
+        verify(node, timeout(TIMEOUT).times(slowMsgList.size())).onMsg(eq(ctx), argThat(slowMsgList::contains));
 
         // submit fast have to return immediately
         fastMsgList.forEach(msg -> ruleEngineDispatcherExecutor.executeAsync(() -> node.onMsg(ctx, msg)));
         // wait until all fast messages processed
-        verify(ctx, new Timeout(TimeUnit.SECONDS.toMillis(5), times(fastMsgList.size()))).tellSuccess(any());
+        verify(ctx, timeout(TIMEOUT).times(fastMsgList.size())).tellSuccess(any());
 
         slowProcessingLatch.countDown();
 
-        verify(ctx, new Timeout(TimeUnit.SECONDS.toMillis(5), times(fastMsgList.size() + slowMsgList.size()))).tellSuccess(any());
+        verify(ctx, timeout(TIMEOUT).times(fastMsgList.size() + slowMsgList.size())).tellSuccess(any());
 
         verify(ctx, never()).tellFailure(any(), any());
     }
