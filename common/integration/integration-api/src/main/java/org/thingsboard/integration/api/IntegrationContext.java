@@ -41,6 +41,7 @@ import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -142,4 +143,6 @@ public interface IntegrationContext {
     void onUplinkMessageProcessed(boolean success);
 
     void onDownlinkMessageProcessed(boolean success);
+
+    Optional<IntegrationRateLimitService> getRateLimitService();
 }

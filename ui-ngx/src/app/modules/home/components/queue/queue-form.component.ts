@@ -132,7 +132,8 @@ export class QueueFormComponent implements ControlValueAccessor, OnInit, OnDestr
         }),
         topic: [''],
         additionalInfo: this.fb.group({
-          description: ['']
+          description: [''],
+          customProperties: ['']
         })
       });
     this.valueChange$ = this.queueFormGroup.valueChanges.subscribe(() => {

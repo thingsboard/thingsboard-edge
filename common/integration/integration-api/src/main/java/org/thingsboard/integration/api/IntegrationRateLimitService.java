@@ -28,25 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.notification;
+package org.thingsboard.integration.api;
 
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.notification.DefaultNotificationSettingsService;
-import org.thingsboard.server.dao.settings.AdminSettingsService;
 
-@Service
-@Primary
-public class MockNotificationSettingsService extends DefaultNotificationSettingsService {
+import java.util.function.Supplier;
 
-    public MockNotificationSettingsService(AdminSettingsService adminSettingsService) {
-        super(adminSettingsService, null, null, null);
-    }
+public interface IntegrationRateLimitService {
 
-    @Override
-    public void createDefaultNotificationConfigs(TenantId tenantId) {
-        // do nothing
-    }
+    void checkLimit(TenantId tenantId, Supplier<String> msg);
 
+    void checkLimit(TenantId tenantId, String deviceName, Supplier<String> msg);
+
+    boolean checkLimit(TenantId tenantId, IntegrationId integrationId, boolean throwException);
+
+    boolean checkLimit(TenantId tenantId, ConverterId converterId, boolean throwException);
+
+    boolean alreadyProcessed(EntityId entityId, EntityType entityType);
 }
