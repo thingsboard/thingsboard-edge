@@ -111,7 +111,7 @@ public class TbMailSender extends JavaMailSenderImpl {
     @Override
     public void testConnection() {
         if (oauth2Enabled && (System.currentTimeMillis() > tokenExpires)){
-            refreshAccessToken();
+            refreshAccessToken(tenantId);
             setPassword(accessToken);
         }
         super.testConnection();
