@@ -87,6 +87,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
@@ -297,7 +298,11 @@ public class HomePageApiTest extends AbstractControllerTest {
 
     @Test
     public void testGetFeaturesInfo() throws Exception {
-        adminSettingsService.deleteAdminSettingsByTenantIdAndKey(TenantId.SYS_TENANT_ID, "whiteLabelParams");
+        loginSysAdmin();
+
+        WhiteLabelingParams whiteLabelingParams = doGet("/api/whiteLabel/currentWhiteLabelParams", WhiteLabelingParams.class);
+        whiteLabelingParams.setAppTitle("App name");
+        doPost("/api/whiteLabel/whiteLabelParams", whiteLabelingParams, WhiteLabelingParams.class);
 
         String mail = "test@thingsboard.org";
         Mockito.doAnswer(invocation -> {
@@ -312,15 +317,13 @@ public class HomePageApiTest extends AbstractControllerTest {
         Mockito.when(smsService.isConfigured(TenantId.SYS_TENANT_ID))
                 .then(a -> adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "sms") != null);
 
-        loginSysAdmin();
-
         FeaturesInfo featuresInfo = doGet("/api/admin/featuresInfo", FeaturesInfo.class);
         Assert.assertNotNull(featuresInfo);
         Assert.assertFalse(featuresInfo.isEmailEnabled());
         Assert.assertFalse(featuresInfo.isSmsEnabled());
         Assert.assertFalse(featuresInfo.isTwoFaEnabled());
         Assert.assertFalse(featuresInfo.isNotificationEnabled());
-        Assert.assertFalse(featuresInfo.isWhiteLabelingEnabled());
+        Assert.assertTrue(featuresInfo.isWhiteLabelingEnabled());
         Assert.assertFalse(featuresInfo.isOauthEnabled());
 
         AdminSettings mailSettings = doGet("/api/admin/settings/mail", AdminSettings.class);
@@ -336,7 +339,7 @@ public class HomePageApiTest extends AbstractControllerTest {
         Assert.assertFalse(featuresInfo.isSmsEnabled());
         Assert.assertFalse(featuresInfo.isTwoFaEnabled());
         Assert.assertFalse(featuresInfo.isNotificationEnabled());
-        Assert.assertFalse(featuresInfo.isWhiteLabelingEnabled());
+        Assert.assertTrue(featuresInfo.isWhiteLabelingEnabled());
         Assert.assertFalse(featuresInfo.isOauthEnabled());
 
         AdminSettings smsSettings = new AdminSettings();
@@ -349,7 +352,7 @@ public class HomePageApiTest extends AbstractControllerTest {
         Assert.assertTrue(featuresInfo.isSmsEnabled());
         Assert.assertFalse(featuresInfo.isTwoFaEnabled());
         Assert.assertFalse(featuresInfo.isNotificationEnabled());
-        Assert.assertFalse(featuresInfo.isWhiteLabelingEnabled());
+        Assert.assertTrue(featuresInfo.isWhiteLabelingEnabled());
         Assert.assertFalse(featuresInfo.isOauthEnabled());
 
         AdminSettings twoFaSettingsSettings = new AdminSettings();
@@ -367,7 +370,7 @@ public class HomePageApiTest extends AbstractControllerTest {
         Assert.assertTrue(featuresInfo.isSmsEnabled());
         Assert.assertTrue(featuresInfo.isTwoFaEnabled());
         Assert.assertFalse(featuresInfo.isNotificationEnabled());
-        Assert.assertFalse(featuresInfo.isWhiteLabelingEnabled());
+        Assert.assertTrue(featuresInfo.isWhiteLabelingEnabled());
         Assert.assertFalse(featuresInfo.isOauthEnabled());
 
         AdminSettings notificationsSettings = new AdminSettings();
@@ -380,18 +383,6 @@ public class HomePageApiTest extends AbstractControllerTest {
 
         notificationsSettings.setJsonValue(notificationSettings);
         doPost("/api/admin/settings", notificationsSettings).andExpect(status().isOk());
-
-        featuresInfo = doGet("/api/admin/featuresInfo", FeaturesInfo.class);
-        Assert.assertTrue(featuresInfo.isEmailEnabled());
-        Assert.assertTrue(featuresInfo.isSmsEnabled());
-        Assert.assertTrue(featuresInfo.isTwoFaEnabled());
-        Assert.assertTrue(featuresInfo.isNotificationEnabled());
-        Assert.assertFalse(featuresInfo.isWhiteLabelingEnabled());
-        Assert.assertFalse(featuresInfo.isOauthEnabled());
-
-        WhiteLabelingParams whiteLabelingParams = doGet("/api/whiteLabel/currentWhiteLabelParams", WhiteLabelingParams.class);
-        whiteLabelingParams.setAppTitle("App name");
-        doPost("/api/whiteLabel/whiteLabelParams", whiteLabelingParams, WhiteLabelingParams.class);
 
         featuresInfo = doGet("/api/admin/featuresInfo", FeaturesInfo.class);
         Assert.assertTrue(featuresInfo.isEmailEnabled());
