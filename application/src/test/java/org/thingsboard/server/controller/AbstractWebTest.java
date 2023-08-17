@@ -86,6 +86,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.SaveDeviceWithCredentialsRequest;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
@@ -105,6 +106,8 @@ import org.thingsboard.server.common.data.device.profile.ProtoTransportPayloadCo
 import org.thingsboard.server.common.data.device.profile.TransportPayloadTypeConfiguration;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -181,7 +184,9 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     private static final String DIFFERENT_TENANT_ADMIN_PASSWORD = "difftenant";
 
     protected static final String CUSTOMER_USER_EMAIL = "testcustomer@thingsboard.org";
+    protected static final String CUSTOMER_ADMIN_EMAIL = "testcustomeradmin@thingsboard.org";
     private static final String CUSTOMER_USER_PASSWORD = "customer";
+    private static final String CUSTOMER_ADMIN_USER_PASSWORD = "customerAdmin";
 
     protected static final String DIFFERENT_CUSTOMER_USER_EMAIL = "testdifferentcustomer@thingsboard.org";
 
@@ -316,8 +321,16 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         customerUser.setCustomerId(savedCustomer.getId());
         customerUser.setEmail(CUSTOMER_USER_EMAIL);
 
-        customerUser = createUserAndLogin(customerUser, CUSTOMER_USER_PASSWORD);
+        customerUser = createUser(customerUser, CUSTOMER_USER_PASSWORD);
         customerUserId = customerUser.getId();
+
+        User customerAUser = new User();
+        customerAUser.setAuthority(Authority.CUSTOMER_USER);
+        customerAUser.setTenantId(tenantId);
+        customerAUser.setCustomerId(customerId);
+        customerAUser.setEmail(CUSTOMER_ADMIN_EMAIL);
+        EntityGroupInfo customerAdminsGroup = findCustomerAdminsGroup(customerId);
+        customerAdminUserId = createUser(customerAUser, CUSTOMER_ADMIN_USER_PASSWORD, customerAdminsGroup.getId()).getId();
 
         resetTokens();
 
@@ -387,6 +400,10 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     protected void loginCustomerUser() throws Exception {
         login(CUSTOMER_USER_EMAIL, CUSTOMER_USER_PASSWORD);
+    }
+
+    protected void loginCustomerAdminUser() throws Exception {
+        login(CUSTOMER_ADMIN_EMAIL, CUSTOMER_ADMIN_USER_PASSWORD);
     }
 
     protected void loginUser(String userName, String password) throws Exception {
@@ -515,6 +532,28 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         ResultActions resultActions = doPost("/api/noauth/activate", activateRequest);
         resultActions.andExpect(status().isOk());
         return savedUser;
+    }
+
+    protected EntityGroupInfo findCustomerAdminsGroup(CustomerId customerId) throws Exception {
+        return findGroupByOwnerIdTypeAndName(customerId, EntityType.USER, EntityGroup.GROUP_CUSTOMER_ADMINS_NAME);
+    }
+
+    protected EntityGroupInfo findGroupByOwnerIdTypeAndName(EntityId ownerId, EntityType groupType, String name) throws Exception {
+        List<EntityGroupInfo> groupsList = getEntityGroupsByOwnerAndType(ownerId, groupType);
+        EntityGroupInfo result = null;
+        for (EntityGroupInfo tmp : groupsList) {
+            if (name.equals(tmp.getName())) {
+                result = tmp;
+            }
+        }
+        Assert.assertNotNull(result);
+        return result;
+    }
+
+    protected List<EntityGroupInfo> getEntityGroupsByOwnerAndType(EntityId ownerId, EntityType groupType) throws Exception {
+        return JacksonUtil.convertValue(
+                doGet("/api/entityGroups/" + ownerId.getEntityType() + "/" + ownerId.getId() + "/" + groupType.name(), JsonNode.class),
+                new TypeReference<>() {});
     }
 
     private JsonNode getActivateRequest(String password) throws Exception {

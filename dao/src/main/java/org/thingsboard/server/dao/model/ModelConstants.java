@@ -113,6 +113,15 @@ public class ModelConstants {
     public static final String USER_SETTINGS_SETTINGS = "settings";
 
     /**
+     * White labeling settings constants.
+     */
+    public static final String WHITE_LABELING_TABLE_NAME = "white_labeling";
+    public static final String WHITE_LABELING_SETTINGS_TYPE = "type";
+    public static final String WHITE_LABELING_SETTINGS = "settings";
+    public static final String WHITE_LABELING_DOMAIN = "domain_name";
+
+
+    /**
      * Admin_settings constants.
      */
     public static final String ADMIN_SETTINGS_TABLE_NAME = "admin_settings";

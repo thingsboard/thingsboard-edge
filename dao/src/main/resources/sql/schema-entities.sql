@@ -1032,3 +1032,11 @@ CREATE TABLE IF NOT EXISTS notification (
     additional_config VARCHAR(1000),
     status VARCHAR(32)
 ) PARTITION BY RANGE (created_time);
+
+CREATE TABLE IF NOT EXISTS white_labeling (
+    entity_type varchar(255),
+    entity_id uuid,
+    type VARCHAR(16),
+    settings VARCHAR(10000000),
+    domain_name VARCHAR(255) UNIQUE,
+    CONSTRAINT white_labeling_pkey PRIMARY KEY (entity_type, entity_id, type));
