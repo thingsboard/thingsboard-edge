@@ -47,9 +47,10 @@ import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.whitelabeling.WhiteLabeling;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.entity.AbstractCachedService;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
@@ -63,13 +64,13 @@ import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import static org.thingsboard.server.dao.entity.AbstractEntityService.checkConstraintViolation;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelingCompositeKey, WhiteLabeling, WhiteLabelingEvictEvent>  implements WhiteLabelingService {
 
-    private static final String GENERAL_WHITE_LABEL_PARAMS_TYPE = "general";
-    private static final String LOGIN_WHITE_LABEL_PARAMS_TYPE = "login";
     private static final String ALLOW_WHITE_LABELING = "allowWhiteLabeling";
     private static final String ALLOW_CUSTOMER_WHITE_LABELING = "allowCustomerWhiteLabeling";
 
@@ -82,13 +83,13 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
 
     @Override
     public LoginWhiteLabelingParams getSystemLoginWhiteLabelingParams(TenantId tenantId) {
-        WhiteLabeling whiteLabeling = findById(tenantId, TenantId.SYS_TENANT_ID, LOGIN_WHITE_LABEL_PARAMS_TYPE);
+        WhiteLabeling whiteLabeling = findById(tenantId, TenantId.SYS_TENANT_ID, WhiteLabelingType.LOGIN);
         return constructLoginWlParams(whiteLabeling != null ? whiteLabeling.getSettings() : null);
     }
 
     @Override
     public WhiteLabelingParams getSystemWhiteLabelingParams(TenantId tenantId) {
-        WhiteLabeling whiteLabeling = findById(tenantId, TenantId.SYS_TENANT_ID, GENERAL_WHITE_LABEL_PARAMS_TYPE);
+        WhiteLabeling whiteLabeling = findById(tenantId, TenantId.SYS_TENANT_ID, WhiteLabelingType.GENERAL);
         return constructWlParams(whiteLabeling != null ? whiteLabeling.getSettings() : null, true);
     }
 
@@ -258,11 +259,6 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
             throw new IncorrectParameterException("Current domain name [" + loginWhiteLabelParams.getDomainName() + "] already used in the system level!");
         }
 
-        WhiteLabeling byDomain =  whiteLabelingDao.findByDomain(tenantId, loginWhiteLabelParams.getDomainName());
-        if (byDomain != null && !byDomain.getEntityId().equals(entityId)) {
-            log.error("Current domain name [{}] already registered in the system!", loginWhiteLabelParams.getDomainName());
-            throw new IncorrectParameterException("Current domain name [" + loginWhiteLabelParams.getDomainName() + "] already registered in the system!");
-        }
         prepareChecksums(loginWhiteLabelParams);
         saveLoginWhiteLabelParams(tenantId, entityId, loginWhiteLabelParams);
         eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(entityId)
@@ -312,11 +308,11 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
 
     @Override
     public void deleteDomainWhiteLabelingByEntityId(TenantId tenantId, EntityId entityId) {
-        WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(entityId.getEntityType().name(), entityId.getId(), LOGIN_WHITE_LABEL_PARAMS_TYPE);
+        WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(entityId.getEntityType().name(), entityId.getId(), WhiteLabelingType.LOGIN);
         if (whiteLabelingDao.findById(tenantId, key) != null) {
             whiteLabelingDao.removeById(tenantId, key);
-            publishEvictEvent(new WhiteLabelingEvictEvent(key));
         }
+        publishEvictEvent(new WhiteLabelingEvictEvent(key));
     }
 
     private WhiteLabelingParams constructWlParams(JsonNode json, boolean isSystem) {
@@ -354,7 +350,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     private WhiteLabelingParams getEntityWhiteLabelParams(TenantId tenantId, EntityId entityId) {
         JsonNode jsonNode = null;
         if (isWhiteLabelingAllowed(tenantId, entityId)) {
-            WhiteLabeling whiteLabeling = findById(tenantId, entityId, GENERAL_WHITE_LABEL_PARAMS_TYPE);
+            WhiteLabeling whiteLabeling = findById(tenantId, entityId, WhiteLabelingType.GENERAL);
             if (whiteLabeling != null) {
                 jsonNode = whiteLabeling.getSettings();
             }
@@ -382,7 +378,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     private LoginWhiteLabelingParams getEntityLoginWhiteLabelParams(TenantId tenantId, EntityId entityId) {
         JsonNode jsonNode = null;
         if (isWhiteLabelingAllowed(tenantId, entityId)) {
-            WhiteLabeling whiteLabeling = findById(tenantId, entityId, LOGIN_WHITE_LABEL_PARAMS_TYPE);
+            WhiteLabeling whiteLabeling = findById(tenantId, entityId, WhiteLabelingType.LOGIN);
             if (whiteLabeling != null) {
                 jsonNode = whiteLabeling.getSettings();
             }
@@ -449,13 +445,13 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
 
     @Override
     public boolean isWhiteLabelingConfigured(TenantId tenantId) {
-        return findById(tenantId, TenantId.SYS_TENANT_ID, GENERAL_WHITE_LABEL_PARAMS_TYPE) != null;
+        return findById(tenantId, TenantId.SYS_TENANT_ID, WhiteLabelingType.GENERAL) != null;
     }
 
     private void saveLoginWhiteLabelParams(TenantId tenantId, EntityId entityId, LoginWhiteLabelingParams whiteLabelingParams) {
         WhiteLabeling whiteLabeling = new WhiteLabeling();
         whiteLabeling.setEntityId(entityId);
-        whiteLabeling.setType(LOGIN_WHITE_LABEL_PARAMS_TYPE);
+        whiteLabeling.setType(WhiteLabelingType.LOGIN);
         whiteLabeling.setSettings(JacksonUtil.valueToTree(whiteLabelingParams));
         whiteLabeling.setDomain(whiteLabelingParams.getDomainName());
 
@@ -465,19 +461,25 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     private void saveWhiteLabelParams(TenantId tenantId, EntityId entityId, WhiteLabelingParams whiteLabelingParams) {
         WhiteLabeling whiteLabeling = new WhiteLabeling();
         whiteLabeling.setEntityId(entityId);
-        whiteLabeling.setType(GENERAL_WHITE_LABEL_PARAMS_TYPE);
+        whiteLabeling.setType(WhiteLabelingType.GENERAL);
         whiteLabeling.setSettings(JacksonUtil.valueToTree(whiteLabelingParams));
 
         doSaveWhiteLabelingSettings(tenantId, whiteLabeling);
     }
 
     private void doSaveWhiteLabelingSettings(TenantId tenantId, WhiteLabeling whiteLabeling) {
-        WhiteLabeling saved = whiteLabelingDao.save(tenantId, whiteLabeling);
-        WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(saved.getEntityId().getEntityType().name(), saved.getEntityId().getId(), saved.getType());
-        publishEvictEvent(new WhiteLabelingEvictEvent(key));
+        try {
+            WhiteLabeling saved = whiteLabelingDao.save(tenantId, whiteLabeling);
+            WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(saved.getEntityId().getEntityType().name(), saved.getEntityId().getId(), saved.getType());
+            publishEvictEvent(new WhiteLabelingEvictEvent(key));
+        } catch (Exception t) {
+            checkConstraintViolation(t,
+                    "white_labeling_domain_name_key", "Such domain name already registered in the system!");
+            throw t;
+        }
     }
 
-    private WhiteLabeling findById(TenantId tenantId, EntityId entityId, String type) {
+    private WhiteLabeling findById(TenantId tenantId, EntityId entityId, WhiteLabelingType type) {
         WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(entityId.getEntityType().name(), entityId.getId(), type);
         log.trace("Executing findById for key [{}] ", key);
         return cache.getAndPutInTransaction(key,

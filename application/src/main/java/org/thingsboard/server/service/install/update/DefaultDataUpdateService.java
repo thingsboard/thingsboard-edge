@@ -106,7 +106,6 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileQueueConfiguration;
 import org.thingsboard.server.common.data.util.TbPair;
-import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -134,7 +133,6 @@ import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
-import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
@@ -210,9 +208,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     @Autowired
     private SystemDataLoaderService systemDataLoaderService;
-
-    @Autowired
-    private WhiteLabelingService whiteLabelingService;
 
     @Autowired
     private AttributesService attributesService;
@@ -332,9 +327,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     systemDataLoaderService.updateMailTemplates(mailTemplateSettings.getId(), mailTemplateSettings.getJsonValue());
                 }
 
-                //White Labeling updates
-                updateSystemWhiteLabelingParameters();
-                tenantsWhiteLabelingUpdater.updateEntities(null);
                 // todo: update TbDuplicateMsgToGroupNode to use TbVersionedNode interface.
                 updateDuplicateMsgRuleNode();
                 break;
@@ -1022,44 +1014,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
     }
 
-    private WhiteLabelingPaginatedUpdater<String, Tenant> tenantsWhiteLabelingUpdater = new WhiteLabelingPaginatedUpdater<String, Tenant>() {
-
-        @Override
-        protected String getName() {
-            return "Tenants white-labeling updater";
-        }
-
-        @Override
-        protected PageData<Tenant> findEntities(String id, PageLink pageLink) {
-            return tenantService.findTenants(pageLink);
-        }
-
-        @Override
-        protected WhiteLabelingParams updateEntity(Tenant tenant) throws Exception {
-            customersWhiteLabelingUpdater.updateEntities(tenant.getId());
-            updateTenantMailTemplates(tenant.getId()).get();
-            return updateEntityWhiteLabelingParameters(tenant.getId());
-        }
-    };
-
-    private WhiteLabelingPaginatedUpdater<TenantId, Customer> customersWhiteLabelingUpdater = new WhiteLabelingPaginatedUpdater<TenantId, Customer>() {
-
-        @Override
-        protected String getName() {
-            return "Customers white-labeling updater";
-        }
-
-        @Override
-        protected PageData<Customer> findEntities(TenantId id, PageLink pageLink) {
-            return customerService.findCustomersByTenantId(id, pageLink);
-        }
-
-        @Override
-        protected WhiteLabelingParams updateEntity(Customer customer) {
-            return updateEntityWhiteLabelingParameters(customer.getId());
-        }
-    };
-
     private PaginatedUpdater<String, Tenant> tenantIntegrationUpdater = new PaginatedUpdater<String, Tenant>() {
         @Override
         protected PageData<Tenant> findEntities(String id, PageLink pageLink) {
@@ -1130,38 +1084,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
             }
             return Futures.immediateFuture(null);
         }, MoreExecutors.directExecutor());
-    }
-
-    private void updateSystemWhiteLabelingParameters() {
-        WhiteLabelingParams systemWLParams = whiteLabelingService.getSystemWhiteLabelingParams(TenantId.SYS_TENANT_ID);
-        String logoImageUrl = null;
-        AdminSettings logoImageSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, LOGO_IMAGE);
-        if (logoImageSettings != null) {
-            logoImageUrl = logoImageSettings.getJsonValue().get("value").asText();
-        }
-        systemWLParams.setLogoImageUrl(logoImageUrl);
-        whiteLabelingService.saveSystemWhiteLabelingParams(systemWLParams);
-        adminSettingsService.deleteAdminSettingsByKey(TenantId.SYS_TENANT_ID, LOGO_IMAGE);
-        adminSettingsService.deleteAdminSettingsByKey(TenantId.SYS_TENANT_ID, LOGO_IMAGE_CHECKSUM);
-    }
-
-    private WhiteLabelingParams updateEntityWhiteLabelingParameters(EntityId entityId) {
-        String logoImageUrl = getEntityAttributeValue(entityId, LOGO_IMAGE);
-        WhiteLabelingParams result;
-        if (entityId.getEntityType() == EntityType.TENANT) {
-            WhiteLabelingParams tenantWLParams = whiteLabelingService.getTenantWhiteLabelingParams((TenantId) entityId);
-            tenantWLParams.setLogoImageUrl(logoImageUrl);
-            result = whiteLabelingService.saveTenantWhiteLabelingParams(new TenantId(entityId.getId()), tenantWLParams);
-        } else if (entityId.getEntityType() == EntityType.CUSTOMER) {
-            WhiteLabelingParams customerWLParams = whiteLabelingService.getCustomerWhiteLabelingParams(TenantId.SYS_TENANT_ID, (CustomerId) entityId);
-            customerWLParams.setLogoImageUrl(logoImageUrl);
-            result = whiteLabelingService.saveCustomerWhiteLabelingParams(TenantId.SYS_TENANT_ID, new CustomerId(entityId.getId()), customerWLParams);
-        } else {
-            return null;
-        }
-        deleteEntityAttribute(entityId, LOGO_IMAGE);
-        deleteEntityAttribute(entityId, LOGO_IMAGE_CHECKSUM);
-        return result;
     }
 
     private ListenableFuture<List<String>> updateTenantMailTemplates(TenantId tenantId) throws IOException {
@@ -1280,50 +1202,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
             log.error("Unable to save White Labeling Params to attributes!", e);
             throw new IncorrectParameterException("Unable to save White Labeling Params to attributes!");
         }
-    }
-
-    private void deleteEntityAttribute(EntityId entityId, String key) {
-        try {
-            attributesService.removeAll(TenantId.SYS_TENANT_ID, entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
-        } catch (Exception e) {
-            log.error("Unable to delete attribute for " + key + "!", e);
-        }
-    }
-
-    private abstract static class WhiteLabelingPaginatedUpdater<I, D extends BaseDataWithAdditionalInfo<? extends UUIDBased>> {
-
-        private static final int DEFAULT_LIMIT = 100;
-        private int updated = 0;
-
-        public List<WhiteLabelingParams> updateEntities(I id) throws Exception {
-            updated = 0;
-            PageLink pageLink = new PageLink(DEFAULT_LIMIT);
-            boolean hasNext = true;
-            List<WhiteLabelingParams> result = new ArrayList<>();
-            while (hasNext) {
-                PageData<D> entities = findEntities(id, pageLink);
-                for (D entity : entities.getData()) {
-                    result.add(updateEntity(entity));
-                }
-                updated += entities.getData().size();
-                hasNext = entities.hasNext();
-                if (hasNext) {
-                    log.info("{}: {} entities updated so far...", getName(), updated);
-                    pageLink = pageLink.nextPageLink();
-                } else {
-                    if (updated > DEFAULT_LIMIT) {
-                        log.info("{}: {} total entities updated.", getName(), updated);
-                    }
-                }
-            }
-            return result;
-        }
-
-        protected abstract String getName();
-
-        protected abstract PageData<D> findEntities(I id, PageLink pageLink);
-
-        protected abstract WhiteLabelingParams updateEntity(D entity) throws Exception;
     }
 
     boolean convertDeviceProfileAlarmRulesForVersion330(JsonNode spec) {

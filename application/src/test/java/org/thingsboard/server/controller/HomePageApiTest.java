@@ -71,6 +71,7 @@ import org.thingsboard.server.common.data.query.EntityTypeFilter;
 import org.thingsboard.server.common.data.query.TsValue;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.common.stats.TbApiUsageStateClient;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
@@ -388,10 +389,9 @@ public class HomePageApiTest extends AbstractControllerTest {
         Assert.assertFalse(featuresInfo.isWhiteLabelingEnabled());
         Assert.assertFalse(featuresInfo.isOauthEnabled());
 
-        AdminSettings whiteLabelParamsSettings = new AdminSettings();
-        whiteLabelParamsSettings.setKey("whiteLabelParams");
-        whiteLabelParamsSettings.setJsonValue(JacksonUtil.newObjectNode());
-        doPost("/api/admin/settings", whiteLabelParamsSettings).andExpect(status().isOk());
+        WhiteLabelingParams whiteLabelingParams = doGet("/api/whiteLabel/currentWhiteLabelParams", WhiteLabelingParams.class);
+        whiteLabelingParams.setAppTitle("App name");
+        doPost("/api/whiteLabel/whiteLabelParams", whiteLabelingParams, WhiteLabelingParams.class);
 
         featuresInfo = doGet("/api/admin/featuresInfo", FeaturesInfo.class);
         Assert.assertTrue(featuresInfo.isEmailEnabled());

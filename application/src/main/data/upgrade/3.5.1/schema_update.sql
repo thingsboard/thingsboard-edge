@@ -147,27 +147,50 @@ ALTER TABLE notification_request ALTER COLUMN info SET DATA TYPE varchar(1000000
 CREATE TABLE IF NOT EXISTS white_labeling (
     entity_type varchar(255),
     entity_id uuid,
-    type VARCHAR(255),
-    settings VARCHAR(10000),
+    type VARCHAR(16),
+    settings VARCHAR(10000000),
     domain_name VARCHAR(255) UNIQUE,
-    CONSTRAINT white_labeling_pkey PRIMARY KEY (entity_type, entity_id, type)
-);
+    CONSTRAINT white_labeling_pkey PRIMARY KEY (entity_type, entity_id, type));
 
-WITH whiteLabelAttributes AS (
-    DELETE FROM attribute_kv
-        WHERE attribute_key = 'whiteLabelParams'
-        RETURNING *
-)
+-- move system settings
 INSERT INTO white_labeling(entity_type, entity_id, type, settings)
-SELECT entity_type, entity_id, 'general', str_v FROM whiteLabelAttributes;
+    (SELECT 'TENANT', tenant_id, 'GENERAL', trim('"' FROM json_value::json ->> 'value') FROM admin_settings
+        WHERE key = 'whiteLabelParams');
 
-WITH loginWhiteLabelAttributes AS (
-    DELETE FROM attribute_kv
-        WHERE attribute_key = 'loginWhiteLabelParams'
-        RETURNING *
-)
+INSERT INTO white_labeling(entity_type, entity_id, type, settings)
+    (SELECT 'TENANT', tenant_id, 'LOGIN', trim('"' FROM json_value::json ->> 'value') FROM admin_settings
+       WHERE key = 'loginWhiteLabelParams');
+
+-- move loginWhiteLabelParams attributes
 INSERT INTO white_labeling(entity_type, entity_id, type, settings, domain_name)
-SELECT entity_type, entity_id, 'login', str_v , str_v::json ->> 'domainName' FROM loginWhiteLabelAttributes;
+    (SELECT entity_type, entity_id, 'LOGIN', str_v, str_v::json ->> 'domainName' FROM attribute_kv
+            WHERE (entity_type, entity_id::text, attribute_type, attribute_key) in
+                (SELECT trim('"' FROM json_value::json ->> 'entityType'), trim('"' FROM json_value::json ->> 'entityId'), 'SERVER_SCOPE', 'loginWhiteLabelParams'
+            FROM admin_settings WHERE key LIKE 'loginWhiteLabelDomainNamePrefix_%'));
+
+-- move whiteLabelParams attributes
+INSERT INTO white_labeling(entity_type, entity_id, type, settings)
+    (SELECT entity_type, entity_id, 'GENERAL', str_v FROM attribute_kv
+     WHERE entity_type = 'TENANT' AND entity_id IN (SELECT id FROM TENANT) AND attribute_type = 'SERVER_SCOPE'
+       AND  attribute_key = 'whiteLabelParams');
+
+INSERT INTO white_labeling(entity_type, entity_id, type, settings)
+    (SELECT entity_type, entity_id, 'GENERAL', str_v FROM attribute_kv
+     WHERE entity_type = 'CUSTOMER' AND entity_id IN (SELECT id FROM CUSTOMER) AND attribute_type = 'SERVER_SCOPE'
+       AND  attribute_key = 'whiteLabelParams');
+
+-- delete attributes
+DELETE FROM attribute_kv WHERE entity_type = 'TENANT' AND entity_id IN (SELECT id FROM TENANT)
+                           AND attribute_type = 'SERVER_SCOPE' AND  attribute_key = 'whiteLabelParams';
+
+DELETE FROM attribute_kv WHERE entity_type = 'CUSTOMER' AND entity_id IN (SELECT id FROM CUSTOMER)
+                           AND attribute_type = 'SERVER_SCOPE' AND  attribute_key = 'whiteLabelParams';
+
+DELETE FROM attribute_kv WHERE entity_type = 'TENANT' AND entity_id IN (SELECT id FROM TENANT)
+                           AND attribute_type = 'SERVER_SCOPE' AND  attribute_key = 'loginWhiteLabelParams';
+
+DELETE FROM attribute_kv WHERE entity_type = 'CUSTOMER' AND entity_id IN (SELECT id FROM CUSTOMER)
+                           AND attribute_type = 'SERVER_SCOPE' AND  attribute_key = 'loginWhiteLabelParams';
 
 DELETE FROM admin_settings WHERE key LIKE ANY (array['loginWhiteLabel%', 'whiteLabelParams']);
 

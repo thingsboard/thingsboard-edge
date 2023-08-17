@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.model.sql;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 
 import java.io.Serializable;
 import java.util.UUID;
@@ -44,5 +45,5 @@ public class WhiteLabelingCompositeKey implements Serializable {
 
     private String entityType;
     private UUID entityId;
-    private String type;
+    private WhiteLabelingType type;
 }

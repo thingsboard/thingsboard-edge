@@ -36,13 +36,16 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
-import org.thingsboard.server.common.data.whitelabeling.WhiteLabeling;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
+import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.ToData;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
@@ -61,6 +64,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.WHITE_LABELING_SET
 @IdClass(WhiteLabelingCompositeKey.class)
 public class WhiteLabelingEntity implements ToData<WhiteLabeling>, Serializable {
 
+    @Id
     @Column(name = ENTITY_TYPE_COLUMN)
     private String entityType;
 
@@ -69,8 +73,9 @@ public class WhiteLabelingEntity implements ToData<WhiteLabeling>, Serializable 
     private UUID entityId;
 
     @Id
+    @Enumerated(EnumType.STRING)
     @Column(name = WHITE_LABELING_SETTINGS_TYPE)
-    private String type;
+    private WhiteLabelingType type;
 
     @Type(type = "json")
     @Column(name = ModelConstants.WHITE_LABELING_SETTINGS)
@@ -94,10 +99,10 @@ public class WhiteLabelingEntity implements ToData<WhiteLabeling>, Serializable 
         WhiteLabeling whiteLabeling = new WhiteLabeling();
         whiteLabeling.setEntityId(EntityIdFactory.getByTypeAndId(entityType, entityId.toString()));
         whiteLabeling.setType(type);
-        whiteLabeling.setDomain(domain);
         if (settings != null) {
             whiteLabeling.setSettings(settings);
         }
+        whiteLabeling.setDomain(domain);
         return whiteLabeling;
     }
 }

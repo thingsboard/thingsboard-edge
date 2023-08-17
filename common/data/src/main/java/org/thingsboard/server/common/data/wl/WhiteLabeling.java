@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.whitelabeling;
+package org.thingsboard.server.common.data.wl;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -51,14 +51,14 @@ public class WhiteLabeling implements Serializable {
 
     @NoXss
     @Length(fieldName = "type", max = 50)
-    private String type;
+    private WhiteLabelingType type;
 
     @NoXss
-    @Length(fieldName = "settings", max = 100000)
+    @Length(fieldName = "settings", max = 10000000)
     private transient JsonNode settings;
 
     @NoXss
-    @Length(fieldName = "domain", max = 255)
+    @Length(fieldName = "domain")
     private String domain;
 
     @JsonIgnore

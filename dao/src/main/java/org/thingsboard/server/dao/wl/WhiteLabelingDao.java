@@ -31,7 +31,7 @@
 package org.thingsboard.server.dao.wl;
 
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.whitelabeling.WhiteLabeling;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.dao.model.sql.WhiteLabelingCompositeKey;
 
 public interface WhiteLabelingDao {
