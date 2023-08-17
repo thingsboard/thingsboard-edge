@@ -15,33 +15,33 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetInfo;
 import org.thingsboard.server.common.data.asset.AssetProfile;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.AssetProfileId;
-import org.thingsboard.server.common.data.id.DashboardId;
-import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
-import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.service.edge.rpc.processor.asset.BaseAssetProfileProcessor;
 
-import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @Component
 @Slf4j
-public class AssetProfileCloudProcessor extends BaseEdgeProcessor {
+public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
 
     @Autowired
     private AssetProfileService assetProfileService;
@@ -49,10 +49,11 @@ public class AssetProfileCloudProcessor extends BaseEdgeProcessor {
     @Autowired
     private AssetService assetService;
 
-    public ListenableFuture<Void> processAssetProfileMsgFromCloud(TenantId tenantId, AssetProfileUpdateMsg assetProfileUpdateMsg) {
+    public ListenableFuture<Void> processAssetProfileMsgFromCloud(TenantId tenantId, AssetProfileUpdateMsg assetProfileUpdateMsg, Long queueStartTs) {
         AssetProfileId assetProfileId = new AssetProfileId(new UUID(assetProfileUpdateMsg.getIdMSB(), assetProfileUpdateMsg.getIdLSB()));
         try {
             edgeSynchronizationManager.getSync().set(true);
+
             switch (assetProfileUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
@@ -61,42 +62,16 @@ public class AssetProfileCloudProcessor extends BaseEdgeProcessor {
                         AssetProfile assetProfileByName = assetProfileService.findAssetProfileByName(tenantId, assetProfileUpdateMsg.getName());
                         boolean removePreviousProfile = false;
                         if (assetProfileByName != null && !assetProfileByName.getId().equals(assetProfileId)) {
-                            renamePreviousAssetProfileCreatedByUpdateScript(assetProfileByName);
+                            renamePreviousAssetProfile(assetProfileByName);
                             removePreviousProfile = true;
                         }
+                        saveOrUpdateAssetProfile(tenantId, assetProfileId, assetProfileUpdateMsg, queueStartTs);
                         AssetProfile assetProfile = assetProfileService.findAssetProfileById(tenantId, assetProfileId);
-                        boolean created = false;
-                        if (assetProfile == null) {
-                            created = true;
-                            assetProfile = new AssetProfile();
-                            assetProfile.setId(assetProfileId);
-                            assetProfile.setCreatedTime(Uuids.unixTimestamp(assetProfileId.getId()));
-                            assetProfile.setTenantId(tenantId);
-                        }
-                        assetProfile.setName(assetProfileUpdateMsg.getName());
-                        AssetProfile defaultAssetProfile = assetProfileService.findDefaultAssetProfile(tenantId);
-                        if (defaultAssetProfile != null && assetProfileId.equals(defaultAssetProfile.getId())) {
-                            assetProfile.setDefault(true);
-                        }
-                        assetProfile.setDefaultQueueName(assetProfileUpdateMsg.hasDefaultQueueName() ? assetProfileUpdateMsg.getDefaultQueueName() : null);
-                        assetProfile.setDescription(assetProfileUpdateMsg.hasDescription() ? assetProfileUpdateMsg.getDescription() : null);
-                        assetProfile.setImage(assetProfileUpdateMsg.hasImage()
-                                ? new String(assetProfileUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8) : null);
-
-                        UUID defaultRuleChainUUID = safeGetUUID(assetProfileUpdateMsg.getDefaultRuleChainIdMSB(), assetProfileUpdateMsg.getDefaultRuleChainIdLSB());
-                        assetProfile.setDefaultRuleChainId(defaultRuleChainUUID != null ? new RuleChainId(defaultRuleChainUUID) : null);
-
-                        UUID defaultDashboardUUID = safeGetUUID(assetProfileUpdateMsg.getDefaultDashboardIdMSB(), assetProfileUpdateMsg.getDefaultDashboardIdLSB());
-                        assetProfile.setDefaultDashboardId(defaultDashboardUUID != null ? new DashboardId(defaultDashboardUUID) : null);
-
-                        AssetProfile savedAssetProfile = assetProfileService.saveAssetProfile(assetProfile, false);
-                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, savedAssetProfile.getId(),
-                                created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
                         if (!assetProfile.isDefault() && assetProfileUpdateMsg.getDefault()) {
-                            assetProfileService.setDefaultAssetProfile(tenantId, savedAssetProfile.getId());
+                            assetProfileService.setDefaultAssetProfile(tenantId, assetProfileId);
                         }
                         if (removePreviousProfile) {
-                            updateAssets(tenantId, savedAssetProfile.getId(), assetProfileByName.getId());
+                            updateAssets(tenantId, assetProfileId, assetProfileByName.getId());
                             assetProfileService.deleteAssetProfile(tenantId, assetProfileByName.getId());
                             tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileByName.getId(), ComponentLifecycleEvent.DELETED);
                         }
@@ -120,23 +95,53 @@ public class AssetProfileCloudProcessor extends BaseEdgeProcessor {
         return Futures.immediateFuture(null);
     }
 
-    private void renamePreviousAssetProfileCreatedByUpdateScript(AssetProfile assetProfileByName) {
-        assetProfileByName.setName(assetProfileByName.getName() + "_old");
+    private void saveOrUpdateAssetProfile(TenantId tenantId, AssetProfileId assetProfileId, AssetProfileUpdateMsg assetProfileUpdateMsg, long queueStartTs) {
+        boolean created = super.saveOrUpdateAssetProfile(tenantId, assetProfileId, assetProfileUpdateMsg);
+        tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileId,
+                created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+    }
+
+    private void renamePreviousAssetProfile(AssetProfile assetProfileByName) {
+        assetProfileByName.setName(assetProfileByName.getName() + StringUtils.randomAlphanumeric(15));
         assetProfileService.saveAssetProfile(assetProfileByName);
     }
 
     private void updateAssets(TenantId tenantId, AssetProfileId newAssetProfileId, AssetProfileId previousAssetProfileId) {
-        PageLink pageLink = new PageLink(100);
-        PageData<AssetInfo> pageData;
-        do {
-            pageData = assetService.findAssetInfosByTenantIdAndAssetProfileId(tenantId, previousAssetProfileId, pageLink);
-            pageData.getData().forEach(assetInfo -> {
-                assetInfo.setAssetProfileId(newAssetProfileId);
-                assetService.saveAsset(new Asset(assetInfo));
-            });
-            if (pageData.hasNext()) {
-                pageLink = pageLink.nextPageLink();
-            }
-        } while (pageData.hasNext() && !pageData.getData().isEmpty());
+        PageDataIterable<AssetInfo> assetInfosIterable = new PageDataIterable<>(
+                link -> assetService.findAssetInfosByTenantIdAndAssetProfileId(tenantId, previousAssetProfileId, link), 1024);
+        assetInfosIterable.forEach(assetInfo -> {
+            assetInfo.setAssetProfileId(newAssetProfileId);
+            assetService.saveAsset(new Asset(assetInfo));
+        });
     }
+
+    public UplinkMsg convertAssetProfileEventToUplink(CloudEvent cloudEvent) {
+        AssetProfileId assetProfileId = new AssetProfileId(cloudEvent.getEntityId());
+        UplinkMsg msg = null;
+        switch (cloudEvent.getAction()) {
+            case ADDED:
+            case UPDATED:
+                AssetProfile assetProfile = assetProfileService.findAssetProfileById(cloudEvent.getTenantId(), assetProfileId);
+                if (assetProfile != null) {
+                    UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
+                    AssetProfileUpdateMsg assetProfileUpdateMsg =
+                            assetProfileMsgConstructor.constructAssetProfileUpdatedMsg(msgType, assetProfile);
+                    msg = UplinkMsg.newBuilder()
+                            .setUplinkMsgId(EdgeUtils.nextPositiveInt())
+                            .addAssetProfileUpdateMsg(assetProfileUpdateMsg).build();
+                } else {
+                    log.info("Skipping event as asset profile was not found [{}]", cloudEvent);
+                }
+                break;
+            case DELETED:
+                AssetProfileUpdateMsg assetProfileUpdateMsg =
+                        assetProfileMsgConstructor.constructAssetProfileDeleteMsg(assetProfileId);
+                msg = UplinkMsg.newBuilder()
+                        .setUplinkMsgId(EdgeUtils.nextPositiveInt())
+                        .addAssetProfileUpdateMsg(assetProfileUpdateMsg).build();
+                break;
+        }
+        return msg;
+    }
+
 }

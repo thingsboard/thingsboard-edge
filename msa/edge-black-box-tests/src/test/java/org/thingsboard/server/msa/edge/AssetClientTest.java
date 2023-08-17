@@ -23,9 +23,13 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -106,6 +110,89 @@ public class AssetClientTest extends AbstractContainerTest {
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getAssetProfileById(savedAsset1.getAssetProfileId()).isEmpty());
+    }
+
+    @Test
+    public void testSendAssetToCloud() {
+        // create asset on edge
+        String defaultAssetProfileName = edgeRestClient.getDefaultAssetProfileInfo().getName();
+        Asset savedAssetOnEdge = saveAssetOnEdge("Edge Asset 2", defaultAssetProfileName);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getAssetById(savedAssetOnEdge.getId()).isPresent());
+
+        // update asset
+        savedAssetOnEdge.setName("Edge Asset 2 Updated");
+        edgeRestClient.saveAsset(savedAssetOnEdge);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> "Edge Asset 2 Updated".equals(cloudRestClient.getAssetById(savedAssetOnEdge.getId()).get().getName()));
+
+        // assign asset to customer
+        Customer customer = new Customer();
+        customer.setTitle("Asset On Edge Test Customer");
+        Customer savedCustomer = cloudRestClient.saveCustomer(customer);
+        assignEdgeToCustomerAndValidateAssignmentOnCloud(savedCustomer);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isPresent());
+        edgeRestClient.assignAssetToCustomer(savedCustomer.getId(), savedAssetOnEdge.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> savedCustomer.getId().equals(cloudRestClient.getAssetById(savedAssetOnEdge.getId()).get().getCustomerId()));
+
+        // unassign asset from customer
+        edgeRestClient.unassignAssetFromCustomer(savedAssetOnEdge.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> EntityId.NULL_UUID.equals(cloudRestClient.getAssetById(savedAssetOnEdge.getId()).get().getCustomerId().getId()));
+        cloudRestClient.deleteCustomer(savedCustomer.getId());
+
+        // delete asset
+        edgeRestClient.deleteAsset(savedAssetOnEdge.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    PageData<Asset> edgeAssets = cloudRestClient.getEdgeAssets(edge.getId(), new PageLink(1000));
+                    long count = edgeAssets.getData().stream().filter(d -> savedAssetOnEdge.getId().equals(d.getId())).count();
+                    return count == 0;
+                });
+
+        cloudRestClient.deleteAsset(savedAssetOnEdge.getId());
+    }
+
+    @Test
+    public void testSendAssetToCloudWithNameThatAlreadyExistsOnCloud() {
+        // create asset on cloud and edge with the same name
+        Asset savedAssetOnCloud = saveAssetOnCloud("Edge Asset 3", "Building");
+        Asset savedAssetOnEdge = saveAssetOnEdge("Edge Asset 3", "Building");
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    Optional<Asset> assetOptional = cloudRestClient.getAssetById(savedAssetOnEdge.getId());
+                    return assetOptional.isPresent() && !assetOptional.get().getName().equals(savedAssetOnCloud.getName());
+                });
+
+        // delete asset
+        edgeRestClient.deleteAsset(savedAssetOnEdge.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    PageData<Asset> edgeAssets = cloudRestClient.getEdgeAssets(edge.getId(), new PageLink(1000));
+                    long count = edgeAssets.getData().stream().filter(d -> savedAssetOnEdge.getId().equals(d.getId())).count();
+                    return count == 0;
+                });
+
+        cloudRestClient.deleteAsset(savedAssetOnEdge.getId());
+        cloudRestClient.deleteAsset(savedAssetOnCloud.getId());
     }
 
 }

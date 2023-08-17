@@ -59,8 +59,12 @@ import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.AssetCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.AssetProfileCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.CustomerCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.DashboardCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.DeviceProfileCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EdgeCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityViewCloudProcessor;
@@ -144,6 +148,9 @@ public class CloudManagerService {
     private DeviceCloudProcessor deviceProcessor;
 
     @Autowired
+    private DeviceProfileCloudProcessor deviceProfileProcessor;
+
+    @Autowired
     private AlarmCloudProcessor alarmProcessor;
 
     @Autowired
@@ -157,6 +164,15 @@ public class CloudManagerService {
 
     @Autowired
     private EntityViewCloudProcessor entityViewProcessor;
+
+    @Autowired
+    private DashboardCloudProcessor dashboardProcessor;
+
+    @Autowired
+    private AssetCloudProcessor assetProcessor;
+
+    @Autowired
+    private AssetProfileCloudProcessor assetProfileProcessor;
 
     @Autowired
     private RuleChainCloudProcessor ruleChainProcessor;
@@ -421,8 +437,18 @@ public class CloudManagerService {
         switch (cloudEvent.getType()) {
             case DEVICE:
                 return deviceProcessor.convertDeviceEventToUplink(tenantId, cloudEvent);
+            case DEVICE_PROFILE:
+                return deviceProfileProcessor.convertDeviceProfileEventToUplink(cloudEvent);
             case ALARM:
                 return alarmProcessor.convertAlarmEventToUplink(cloudEvent);
+            case ASSET:
+                return assetProcessor.convertAssetEventToUplink(cloudEvent);
+            case ASSET_PROFILE:
+                return assetProfileProcessor.convertAssetProfileEventToUplink(cloudEvent);
+            case DASHBOARD:
+                return dashboardProcessor.convertDashboardEventToUplink(cloudEvent);
+            case ENTITY_VIEW:
+                return entityViewProcessor.convertEntityViewEventToUplink(cloudEvent);
             case RELATION:
                 return relationProcessor.convertRelationEventToUplink(cloudEvent);
             default:
@@ -577,6 +603,7 @@ public class CloudManagerService {
     private void onDownlink(DownlinkMsg downlinkMsg) {
         boolean edgeCustomerIdUpdated = updateCustomerIdIfRequired(downlinkMsg);
         if (this.syncInProgress && downlinkMsg.hasSyncCompletedMsg()) {
+            log.trace("[{}] downlinkMsg hasSyncCompletedMsg = true", downlinkMsg);
             this.syncInProgress = false;
         }
         ListenableFuture<List<Void>> future =
@@ -592,7 +619,7 @@ public class CloudManagerService {
                 if (downlinkMsg.hasEdgeConfiguration()) {
                     if (edgeCustomerIdUpdated && !syncInProgress) {
                         log.info("Edge customer id has been updated. Sending sync request...");
-                        edgeRpcClient.sendSyncRequestMsg(true, false);
+                        edgeRpcClient.sendSyncRequestMsg(false);
                         syncInProgress = true;
                     }
                 }

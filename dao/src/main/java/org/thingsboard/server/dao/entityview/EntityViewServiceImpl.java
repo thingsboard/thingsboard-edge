@@ -101,13 +101,17 @@ public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityVie
         cache.evict(keys);
     }
 
+    @Override
+    public EntityView saveEntityView(EntityView entityView, boolean doValidate) {
+        return doSaveEntityView(entityView, doValidate);
+    }
 
     @Override
     public EntityView saveEntityView(EntityView entityView) {
-        return saveEntityView(entityView, true);
+        return doSaveEntityView(entityView, true);
     }
 
-    public EntityView saveEntityView(EntityView entityView, boolean doValidate) {
+    private EntityView doSaveEntityView(EntityView entityView, boolean doValidate) {
         log.trace("Executing save entity view [{}]", entityView);
         EntityView old = null;
         if (doValidate) {

@@ -162,6 +162,8 @@ public class EntityIdFactory {
                 return new DeviceProfileId(uuid);
             case ASSET:
                 return new AssetId(uuid);
+            case ASSET_PROFILE:
+                return new AssetProfileId(uuid);
             case ALARM:
                 return new AlarmId(uuid);
             case RULE_CHAIN:

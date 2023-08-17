@@ -25,10 +25,14 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
@@ -47,8 +51,11 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -120,11 +127,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public abstract class BaseEdgeProcessor {
 
     protected static final Lock deviceCreationLock = new ReentrantLock();
-
     protected static final Lock assetCreationLock = new ReentrantLock();
-
     protected static final Lock widgetCreationLock = new ReentrantLock();
-
     protected static final Lock customerCreationLock = new ReentrantLock();
 
     protected static final int DEFAULT_PAGE_SIZE = 100;
@@ -240,7 +244,19 @@ public abstract class BaseEdgeProcessor {
     protected DataValidator<Device> deviceValidator;
 
     @Autowired
+    protected DataValidator<DeviceProfile> deviceProfileValidator;
+
+    @Autowired
     protected DataValidator<Asset> assetValidator;
+
+    @Autowired
+    protected DataValidator<AssetProfile> assetProfileValidator;
+
+    @Autowired
+    protected DataValidator<Dashboard> dashboardValidator;
+
+    @Autowired
+    protected DataValidator<EntityView> entityViewValidator;
 
     @Autowired
     protected EdgeMsgConstructor edgeMsgConstructor;
@@ -605,4 +621,27 @@ public abstract class BaseEdgeProcessor {
         return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
     }
 
+    protected void createRelationFromEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId) {
+        EntityRelation relation = new EntityRelation();
+        relation.setFrom(edgeId);
+        relation.setTo(entityId);
+        relation.setTypeGroup(RelationTypeGroup.COMMON);
+        relation.setType(EntityRelation.EDGE_TYPE);
+        relationService.saveRelation(tenantId, relation);
+    }
+
+    protected TbMsgMetaData getActionTbMsgMetaData(Edge edge, CustomerId customerId) {
+        TbMsgMetaData metaData = getTbMsgMetaData(edge);
+        if (customerId != null && !customerId.isNullUid()) {
+            metaData.putValue("customerId", customerId.toString());
+        }
+        return metaData;
+    }
+
+    protected TbMsgMetaData getTbMsgMetaData(Edge edge) {
+        TbMsgMetaData metaData = new TbMsgMetaData();
+        metaData.putValue("edgeId", edge.getId().toString());
+        metaData.putValue("edgeName", edge.getName());
+        return metaData;
+    }
 }

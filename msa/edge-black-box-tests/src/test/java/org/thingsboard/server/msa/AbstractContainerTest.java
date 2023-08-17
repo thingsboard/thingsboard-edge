@@ -95,6 +95,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
@@ -240,7 +241,7 @@ public abstract class AbstractContainerTest {
 
     protected static DeviceProfile createCustomDeviceProfile(String deviceProfileName,
                                                              DeviceProfileTransportConfiguration deviceProfileTransportConfiguration) {
-        return createDeviceProfile(deviceProfileName, deviceProfileTransportConfiguration);
+        return doCreateDeviceProfile(deviceProfileName, deviceProfileTransportConfiguration, cloudRestClient);
     }
 
     protected static DeviceProfile createCustomDeviceProfile(String deviceProfileName) {
@@ -274,7 +275,11 @@ public abstract class AbstractContainerTest {
         }
     };
 
-    protected static DeviceProfile createDeviceProfile(String name, DeviceProfileTransportConfiguration deviceProfileTransportConfiguration) {
+    protected static DeviceProfile createDeviceProfileOnEdge(String name) {
+        return doCreateDeviceProfile(name, new DefaultDeviceProfileTransportConfiguration(), edgeRestClient);
+    }
+
+    private static DeviceProfile doCreateDeviceProfile(String name, DeviceProfileTransportConfiguration deviceProfileTransportConfiguration, RestClient restClient) {
         DeviceProfile deviceProfile = new DeviceProfile();
         deviceProfile.setName(name);
         deviceProfile.setType(DeviceProfileType.DEFAULT);
@@ -285,17 +290,14 @@ public abstract class AbstractContainerTest {
         DeviceProfileData deviceProfileData = new DeviceProfileData();
         DefaultDeviceProfileConfiguration configuration = new DefaultDeviceProfileConfiguration();
         deviceProfileData.setConfiguration(configuration);
-        if (deviceProfileTransportConfiguration != null) {
-            deviceProfileData.setTransportConfiguration(deviceProfileTransportConfiguration);
-        } else {
-            deviceProfileData.setTransportConfiguration(new DefaultDeviceProfileTransportConfiguration());
-        }
+        deviceProfileData.setTransportConfiguration(Objects.requireNonNullElseGet(deviceProfileTransportConfiguration,
+                DefaultDeviceProfileTransportConfiguration::new));
         deviceProfile.setProfileData(deviceProfileData);
         deviceProfile.setDefault(false);
         deviceProfile.setDefaultRuleChainId(null);
         deviceProfile.setDefaultQueueName("Main");
         extendDeviceProfileData(deviceProfile);
-        return cloudRestClient.saveDeviceProfile(deviceProfile);
+        return restClient.saveDeviceProfile(deviceProfile);
     }
 
     protected static void extendDeviceProfileData(DeviceProfile deviceProfile) {
@@ -367,17 +369,33 @@ public abstract class AbstractContainerTest {
         return asset;
     }
 
-    private Asset saveAssetOnCloud(String assetName, String type) {
+    protected Asset saveAssetOnCloud(String assetName, String type) {
+        return saveAsset(assetName, type, cloudRestClient);
+    }
+
+    protected Asset saveAssetOnEdge(String assetName, String type) {
+        return saveAsset(assetName, type, edgeRestClient);
+    }
+
+    protected Asset saveAsset(String assetName, String type, RestClient restClient) {
         Asset asset = new Asset();
         asset.setName(assetName);
         asset.setType(type);
-        return cloudRestClient.saveAsset(asset);
+        return restClient.saveAsset(asset);
     }
 
     protected Dashboard saveDashboardOnCloud(String dashboardTitle) {
+        return saveDashboard(dashboardTitle, cloudRestClient);
+    }
+
+    protected Dashboard saveDashboardOnEdge(String dashboardTitle) {
+        return saveDashboard(dashboardTitle, edgeRestClient);
+    }
+
+    private Dashboard saveDashboard(String dashboardTitle, RestClient restClient) {
         Dashboard dashboard = new Dashboard();
         dashboard.setTitle(dashboardTitle);
-        return cloudRestClient.saveDashboard(dashboard);
+        return restClient.saveDashboard(dashboard);
     }
 
     protected void assertEntitiesByIdsAndType(List<EntityId> entityIds, EntityType entityType) {
