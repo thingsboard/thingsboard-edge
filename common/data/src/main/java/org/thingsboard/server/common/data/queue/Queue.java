@@ -31,6 +31,7 @@
 package org.thingsboard.server.common.data.queue;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
 import org.thingsboard.server.common.data.EntityType;
@@ -41,6 +42,8 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileQueueConfiguration;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
+
+import java.util.Optional;
 
 @Data
 public class Queue extends BaseDataWithAdditionalInfo<QueueId> implements HasName, TenantEntity {
@@ -78,9 +81,18 @@ public class Queue extends BaseDataWithAdditionalInfo<QueueId> implements HasNam
         setAdditionalInfo(queueConfiguration.getAdditionalInfo());
     }
 
+
+    @JsonIgnore
+    public String getCustomProperties() {
+        return Optional.ofNullable(getAdditionalInfo())
+                .map(info -> info.get("customProperties"))
+                .filter(JsonNode::isTextual).map(JsonNode::asText).orElse(null);
+    }
+
     @Override
     @JsonIgnore
     public EntityType getEntityType() {
         return EntityType.QUEUE;
     }
+
 }

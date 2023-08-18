@@ -79,6 +79,7 @@ import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.sync.ie.DeviceExportData;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
@@ -93,9 +94,12 @@ import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.security.permission.AccessControlService;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -353,6 +357,47 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
         checkImportedRuleChainData(ruleChain, metaData, importedRuleChain, importedMetaData);
     }
 
+    @Test
+    public void testImportRuleChain_ruleNodesConfigs() throws Exception {
+        Customer customer = createCustomer(tenantId1, null, "Customer 1");
+        RuleChain ruleChain = createRuleChain(tenantId1, "Rule chain 1");
+        RuleChainMetaData metaData = ruleChainService.loadRuleChainMetaData(tenantId1, ruleChain.getId());
+
+        List<RuleNode> nodes = new ArrayList<>(metaData.getNodes());
+        RuleNode generatorNode = new RuleNode();
+        generatorNode.setName("Generator");
+        generatorNode.setType(TbMsgGeneratorNode.class.getName());
+        TbMsgGeneratorNodeConfiguration generatorNodeConfig = new TbMsgGeneratorNodeConfiguration();
+        generatorNodeConfig.setOriginatorType(EntityType.ASSET_PROFILE);
+        generatorNodeConfig.setOriginatorId(customer.getId().toString());
+        generatorNodeConfig.setPeriodInSeconds(5);
+        generatorNodeConfig.setMsgCount(1);
+        generatorNodeConfig.setScriptLang(ScriptLanguage.JS);
+        UUID someUuid = UUID.randomUUID();
+        generatorNodeConfig.setJsScript("var msg = { temp: 42, humidity: 77 };\n" +
+                "var metadata = { data: 40 };\n" +
+                "var msgType = \"POST_TELEMETRY_REQUEST\";\n" +
+                "var someUuid = \"" + someUuid + "\";\n" +
+                "return { msg: msg, metadata: metadata, msgType: msgType };");
+        generatorNode.setConfiguration(JacksonUtil.valueToTree(generatorNodeConfig));
+        nodes.add(generatorNode);
+        metaData.setNodes(nodes);
+        ruleChainService.saveRuleChainMetaData(tenantId1, metaData, Function.identity());
+
+        EntityExportData<RuleChain> ruleChainExportData = exportEntity(tenantAdmin1, ruleChain.getId());
+        EntityExportData<Customer> customerExportData = exportEntity(tenantAdmin1, customer.getId());
+
+        Customer importedCustomer = importEntity(tenantAdmin2, customerExportData).getSavedEntity();
+        RuleChain importedRuleChain = importEntity(tenantAdmin2, ruleChainExportData).getSavedEntity();
+        RuleChainMetaData importedMetaData = ruleChainService.loadRuleChainMetaData(tenantId2, importedRuleChain.getId());
+
+        TbMsgGeneratorNodeConfiguration importedGeneratorNodeConfig = JacksonUtil.treeToValue(importedMetaData.getNodes().stream()
+                .filter(node -> node.getName().equals(generatorNode.getName()))
+                .findFirst().get().getConfiguration(), TbMsgGeneratorNodeConfiguration.class);
+        assertThat(importedGeneratorNodeConfig.getOriginatorId()).isEqualTo(importedCustomer.getId().toString());
+        assertThat(importedGeneratorNodeConfig.getJsScript()).contains("var someUuid = \"" + someUuid + "\";");
+    }
+
 
     @Test
     public void testExportImportWithInboundRelations_betweenTenants() throws Exception {
@@ -600,8 +645,6 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
         Role importedRole = (Role) importEntity(tenantAdmin2, entitiesExportData.get(EntityType.ROLE)).getSavedEntity();
         verify(userPermissionsService).onRoleUpdated(argThat(r -> r.getId().equals(importedRole.getId())));
         verify(entityActionService).logEntityAction(any(), eq(importedRole.getId()), notNull(), any(), eq(ActionType.ADDED), isNull());
-        verify(tbClusterService).sendNotificationMsgToEdge(any(), any(), eq(importedRole.getId()),
-                any(), any(), eq(EdgeEventActionType.ADDED), any(), any());
     }
 
     @Test

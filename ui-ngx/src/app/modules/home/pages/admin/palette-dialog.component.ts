@@ -94,7 +94,7 @@ export class PaletteDialogComponent extends
       return {
         backgroundColor: hex,
         color: contrast
-      }
+      };
     } else {
       return {};
     }
@@ -120,9 +120,9 @@ export class PaletteDialogComponent extends
   };
 
   editColor(hue: string) {
-    this.dialogs.colorPicker(tinycolor(this.colors[hue]).toRgbString()).subscribe((color) => {
-      if (color) {
-        this.colors[hue] = tinycolor(color).toHexString();
+    this.dialogs.colorPicker(tinycolor(this.colors[hue]).toRgbString()).subscribe((result) => {
+      if (!result?.canceled) {
+        this.colors[hue] = tinycolor(result?.color).toHexString();
         this.paletteForm.form.markAsDirty();
       }
     });

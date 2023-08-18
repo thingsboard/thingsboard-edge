@@ -227,9 +227,6 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     @Autowired
     private DefaultTbAssetProfileCache assetProfileCache;
 
-    @Autowired
-    private RateLimitService rateLimitService;
-
     @Value("${integrations.reinit.enabled:false}")
     private boolean reinitEnabled;
 
@@ -417,7 +414,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                         attributesService.save(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(attr));
                         return null;
                     }, MoreExecutors.directExecutor());
-                } else if (lcEvent.getLcEventType().equals("STOPPED")){
+                } else if (lcEvent.getLcEventType().equals("STOPPED")) {
                     saveEventFuture = Futures.transformAsync(saveEventFuture, v -> {
                         attributesService.removeAll(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(key));
                         return null;
@@ -435,39 +432,35 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     @Override
     public void process(SessionInfoProto sessionInfo, PostTelemetryMsg msg, IntegrationCallback<Void> callback) {
-        if (checkLimits(sessionInfo, msg, callback)) {
-            reportActivity(sessionInfo);
-            TenantId tenantId = new TenantId(new UUID(sessionInfo.getTenantIdMSB(), sessionInfo.getTenantIdLSB()));
-            DeviceId deviceId = new DeviceId(new UUID(sessionInfo.getDeviceIdMSB(), sessionInfo.getDeviceIdLSB()));
-            int dataPoints = 0;
-            for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
-                dataPoints += tsKv.getKvCount();
-            }
-            MsgPackCallback packCallback = new MsgPackCallback(msg.getTsKvListCount(), new ApiStatsProxyCallback<>(tenantId, getCustomerId(sessionInfo), dataPoints, callback));
-            for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
-                TbMsgMetaData metaData = new TbMsgMetaData();
-                metaData.putValue("deviceName", sessionInfo.getDeviceName());
-                metaData.putValue("deviceType", sessionInfo.getDeviceType());
-                metaData.putValue("ts", tsKv.getTs() + "");
-                JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
-                sendToRuleEngine(tenantId, deviceId, sessionInfo, json, metaData, TbMsgType.POST_TELEMETRY_REQUEST, packCallback);
-            }
+        reportActivity(sessionInfo);
+        TenantId tenantId = new TenantId(new UUID(sessionInfo.getTenantIdMSB(), sessionInfo.getTenantIdLSB()));
+        DeviceId deviceId = new DeviceId(new UUID(sessionInfo.getDeviceIdMSB(), sessionInfo.getDeviceIdLSB()));
+        int dataPoints = 0;
+        for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
+            dataPoints += tsKv.getKvCount();
+        }
+        MsgPackCallback packCallback = new MsgPackCallback(msg.getTsKvListCount(), new ApiStatsProxyCallback<>(tenantId, getCustomerId(sessionInfo), dataPoints, callback));
+        for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
+            TbMsgMetaData metaData = new TbMsgMetaData();
+            metaData.putValue("deviceName", sessionInfo.getDeviceName());
+            metaData.putValue("deviceType", sessionInfo.getDeviceType());
+            metaData.putValue("ts", tsKv.getTs() + "");
+            JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
+            sendToRuleEngine(tenantId, deviceId, sessionInfo, json, metaData, TbMsgType.POST_TELEMETRY_REQUEST, packCallback);
         }
     }
 
     @Override
     public void process(SessionInfoProto sessionInfo, PostAttributeMsg msg, IntegrationCallback<Void> callback) {
-        if (checkLimits(sessionInfo, msg, callback)) {
-            reportActivity(sessionInfo);
-            TenantId tenantId = new TenantId(new UUID(sessionInfo.getTenantIdMSB(), sessionInfo.getTenantIdLSB()));
-            DeviceId deviceId = new DeviceId(new UUID(sessionInfo.getDeviceIdMSB(), sessionInfo.getDeviceIdLSB()));
-            JsonObject json = JsonUtils.getJsonObject(msg.getKvList());
-            TbMsgMetaData metaData = new TbMsgMetaData();
-            metaData.putValue("deviceName", sessionInfo.getDeviceName());
-            metaData.putValue("deviceType", sessionInfo.getDeviceType());
-            sendToRuleEngine(tenantId, deviceId, sessionInfo, json, metaData, TbMsgType.POST_ATTRIBUTES_REQUEST,
-                    new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(tenantId, getCustomerId(sessionInfo), msg.getKvList().size(), callback)));
-        }
+        reportActivity(sessionInfo);
+        TenantId tenantId = new TenantId(new UUID(sessionInfo.getTenantIdMSB(), sessionInfo.getTenantIdLSB()));
+        DeviceId deviceId = new DeviceId(new UUID(sessionInfo.getDeviceIdMSB(), sessionInfo.getDeviceIdLSB()));
+        JsonObject json = JsonUtils.getJsonObject(msg.getKvList());
+        TbMsgMetaData metaData = new TbMsgMetaData();
+        metaData.putValue("deviceName", sessionInfo.getDeviceName());
+        metaData.putValue("deviceType", sessionInfo.getDeviceType());
+        sendToRuleEngine(tenantId, deviceId, sessionInfo, json, metaData, TbMsgType.POST_ATTRIBUTES_REQUEST,
+                new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(tenantId, getCustomerId(sessionInfo), msg.getKvList().size(), callback)));
     }
 
     @Override
@@ -822,37 +815,6 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     protected DeviceId getDeviceId(TransportProtos.SessionInfoProto sessionInfo) {
         return new DeviceId(new UUID(sessionInfo.getDeviceIdMSB(), sessionInfo.getDeviceIdLSB()));
-    }
-
-    private boolean checkLimits(SessionInfoProto sessionInfo, Object msg, IntegrationCallback<Void> callback) {
-        if (log.isTraceEnabled()) {
-            log.trace("[{}] Processing msg: {}", toId(sessionInfo), msg);
-        }
-        TenantId tenantId = new TenantId(new UUID(sessionInfo.getTenantIdMSB(), sessionInfo.getTenantIdLSB()));
-        if (!rateLimitService.checkRateLimit(LimitedApi.INTEGRATION_MSGS_PER_TENANT, tenantId)) {
-            if (callback != null) {
-                callback.onError(new TbRateLimitsException(EntityType.TENANT));
-            }
-            if (log.isTraceEnabled()) {
-                log.trace("[{}][{}] Tenant level rate limit detected: {}", toId(sessionInfo), tenantId, msg);
-            }
-            return false;
-        }
-        DeviceId deviceId = new DeviceId(new UUID(sessionInfo.getDeviceIdMSB(), sessionInfo.getDeviceIdLSB()));
-        if (!rateLimitService.checkRateLimit(LimitedApi.INTEGRATION_MSGS_PER_DEVICE, tenantId, deviceId)) {
-            if (callback != null) {
-                callback.onError(new TbRateLimitsException(EntityType.DEVICE));
-            }
-            if (log.isTraceEnabled()) {
-                log.trace("[{}][{}] Device level rate limit detected: {}", toId(sessionInfo), deviceId, msg);
-            }
-            return false;
-        }
-        return true;
-    }
-
-    private UUID toId(SessionInfoProto sessionInfo) {
-        return new UUID(sessionInfo.getSessionIdMSB(), sessionInfo.getSessionIdLSB());
     }
 
     private class IntegrationTbQueueCallback implements TbQueueCallback {

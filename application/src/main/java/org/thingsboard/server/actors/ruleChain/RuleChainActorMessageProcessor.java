@@ -182,7 +182,8 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
     private TbActorRef createRuleNodeActor(TbActorCtx ctx, RuleNode ruleNode) {
         return ctx.getOrCreateChildActor(new TbEntityActorId(ruleNode.getId()),
                 () -> DefaultActorService.RULE_DISPATCHER_NAME,
-                () -> new RuleNodeActor.ActorCreator(systemContext, tenantId, entityId, ruleChainName, ruleNode.getId()));
+                () -> new RuleNodeActor.ActorCreator(systemContext, tenantId, entityId, ruleChainName, ruleNode.getId()),
+                () -> true);
     }
 
     private void initRoutes(RuleChain ruleChain, List<RuleNode> ruleNodeList) {
@@ -247,7 +248,7 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
         } catch (RuleNodeException rne) {
             msg.getCallback().onFailure(rne);
         } catch (Exception e) {
-            msg.getCallback().onFailure(new RuleEngineException(e.getMessage()));
+            msg.getCallback().onFailure(new RuleEngineException(e.getMessage(), e));
         }
     }
 
@@ -350,7 +351,7 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
             msg.getCallback().onFailure(rne);
         } catch (Exception e) {
             log.warn("[" + tenantId + "]" + "[" + entityId + "]" + "[" + msg.getId() + "]" + " onTellNext failure", e);
-            msg.getCallback().onFailure(new RuleEngineException("onTellNext - " + e.getMessage()));
+            msg.getCallback().onFailure(new RuleEngineException("onTellNext - " + e.getMessage(), e));
         }
     }
 

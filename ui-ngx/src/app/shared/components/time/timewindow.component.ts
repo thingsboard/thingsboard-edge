@@ -35,7 +35,7 @@ import {
   ElementRef,
   forwardRef, HostBinding,
   Injector,
-  Input,
+  Input, OnChanges, OnInit, SimpleChanges,
   StaticProvider,
   ViewContainerRef
 } from '@angular/core';
@@ -65,6 +65,12 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { ConnectedPosition, Overlay, OverlayConfig, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { coerceBoolean } from '@shared/decorators/coercion';
+import {
+  ComponentStyle,
+  defaultTimewindowStyle, iconStyle,
+  textStyle,
+  TimewindowStyle
+} from '@shared/models/widget-settings.models';
 
 // @dynamic
 @Component({
@@ -79,7 +85,7 @@ import { coerceBoolean } from '@shared/decorators/coercion';
     }
   ]
 })
-export class TimewindowComponent implements ControlValueAccessor {
+export class TimewindowComponent implements ControlValueAccessor, OnInit, OnChanges {
 
   historyOnlyValue = false;
 
@@ -98,10 +104,23 @@ export class TimewindowComponent implements ControlValueAccessor {
     return this.historyOnlyValue;
   }
 
+  get displayTypePrefix(): boolean {
+    return isDefinedAndNotNull(this.computedTimewindowStyle?.displayTypePrefix)
+      ? this.computedTimewindowStyle?.displayTypePrefix : true;
+  }
+
   @HostBinding('class.no-margin')
   @Input()
   @coerceBoolean()
   noMargin = false;
+
+  @Input()
+  @coerceBoolean()
+  noPadding = false;
+
+  @Input()
+  @coerceBoolean()
+  disablePanel = false;
 
   @Input()
   @coerceBoolean()
@@ -160,10 +179,10 @@ export class TimewindowComponent implements ControlValueAccessor {
   }
 
   @Input()
-  direction: 'left' | 'right' = 'left';
+  tooltipPosition: TooltipPosition = 'above';
 
   @Input()
-  tooltipPosition: TooltipPosition = 'above';
+  timewindowStyle: TimewindowStyle;
 
   @Input()
   @coerceBoolean()
@@ -172,6 +191,10 @@ export class TimewindowComponent implements ControlValueAccessor {
   innerValue: Timewindow;
 
   timewindowDisabled: boolean;
+
+  computedTimewindowStyle: TimewindowStyle;
+  timewindowComponentStyle: ComponentStyle;
+  timewindowIconStyle: ComponentStyle;
 
   private propagateChange = (_: any) => {};
 
@@ -185,9 +208,28 @@ export class TimewindowComponent implements ControlValueAccessor {
               public viewContainerRef: ViewContainerRef) {
   }
 
+  ngOnInit() {
+    this.updateTimewindowStyle();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    for (const propName of Object.keys(changes)) {
+      const change = changes[propName];
+      if (!change.firstChange && change.currentValue !== change.previousValue) {
+        if (propName === 'timewindowStyle') {
+          this.updateTimewindowStyle();
+          this.updateDisplayValue();
+        }
+      }
+    }
+  }
+
   toggleTimewindow($event: Event) {
     if ($event) {
       $event.stopPropagation();
+    }
+    if (this.disablePanel) {
+      return;
     }
     const config = new OverlayConfig({
       panelClass: 'tb-timewindow-panel',
@@ -241,6 +283,17 @@ export class TimewindowComponent implements ControlValueAccessor {
     this.cd.detectChanges();
   }
 
+  private updateTimewindowStyle() {
+    if (!this.asButton) {
+      this.computedTimewindowStyle = {...defaultTimewindowStyle, ...(this.timewindowStyle || {})};
+      this.timewindowComponentStyle = textStyle(this.computedTimewindowStyle.font);
+      if (this.computedTimewindowStyle.color) {
+        this.timewindowComponentStyle.color = this.computedTimewindowStyle.color;
+      }
+      this.timewindowIconStyle = this.computedTimewindowStyle.iconSize ? iconStyle(this.computedTimewindowStyle.iconSize) : {};
+    }
+  }
+
   private onHistoryOnlyChanged(): boolean {
     if (this.historyOnlyValue && this.innerValue && this.innerValue.selectedTab !== TimewindowType.HISTORY) {
       this.innerValue.selectedTab = TimewindowType.HISTORY;
@@ -284,7 +337,7 @@ export class TimewindowComponent implements ControlValueAccessor {
 
   updateDisplayValue() {
     if (this.innerValue.selectedTab === TimewindowType.REALTIME && !this.historyOnly) {
-      this.innerValue.displayValue = this.translate.instant('timewindow.realtime') + ' - ';
+      this.innerValue.displayValue = this.displayTypePrefix ? (this.translate.instant('timewindow.realtime') + ' - ') : '';
       if (this.innerValue.realtime.realtimeType === RealtimeWindowType.INTERVAL) {
         this.innerValue.displayValue += this.translate.instant(QuickTimeIntervalTranslationMap.get(this.innerValue.realtime.quickInterval));
       } else {
@@ -292,7 +345,7 @@ export class TimewindowComponent implements ControlValueAccessor {
           this.millisecondsToTimeStringPipe.transform(this.innerValue.realtime.timewindowMs);
       }
     } else {
-      this.innerValue.displayValue = (!this.historyOnly || this.alwaysDisplayTypePrefix) ?
+      this.innerValue.displayValue = this.displayTypePrefix && (!this.historyOnly || this.alwaysDisplayTypePrefix) ?
         (this.translate.instant('timewindow.history') + ' - ') : '';
       if (this.innerValue.history.historyType === HistoryWindowType.LAST_INTERVAL) {
         this.innerValue.displayValue += this.translate.instant('timewindow.last-prefix') + ' ' +

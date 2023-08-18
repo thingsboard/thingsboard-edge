@@ -34,13 +34,18 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
 import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
+import org.thingsboard.server.common.data.event.EventType;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -48,7 +53,9 @@ import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.controller.AbstractControllerTest;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -125,8 +132,11 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
 
     protected abstract JsonNode createIntegrationClientConfiguration();
 
-
     public List<EventInfo> getIntegrationDebugMessages(long startTs, String expectedMessageType, IntegrationDebugMessageStatus expectedStatus, long timeout) throws Exception {
+        return getIntegrationDebugMessages(startTs, expectedMessageType, expectedStatus.name(), timeout);
+    }
+
+    public List<EventInfo> getIntegrationDebugMessages(long startTs, String expectedMessageType, String expectedStatus, long timeout) throws Exception {
         long endTs = startTs + timeout * 1000;
         List<EventInfo> targetMsgs;
         List<EventInfo> allMsgs;
@@ -139,8 +149,8 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
                     pageLink, integration.getId(), integration.getTenantId());
             allMsgs = events.getData();
             targetMsgs = events.getData().stream().filter(event -> expectedMessageType.equals(event.getBody().get("type").asText())
-                    && (IntegrationDebugMessageStatus.ANY.equals(expectedStatus)
-                    || expectedStatus.name().equals(event.getBody().get("status").asText()))).collect(Collectors.toList());
+                    && (IntegrationDebugMessageStatus.ANY.name().equals(expectedStatus)
+                    || expectedStatus.equals(event.getBody().get("status").asText()))).collect(Collectors.toList());
             if (targetMsgs.size() > 0) {
                 break;
             }
@@ -154,5 +164,28 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
             allMsgs.forEach(event -> log.error("DEBUG EVENT: {}", event));
         }
         return targetMsgs;
+    }
+
+    protected void waitUntilIntegrationStarted(TenantId tenantId, IntegrationId integrationId) {
+        Awaitility
+                .await()
+                .alias("Get integration events")
+                .atMost(20, TimeUnit.SECONDS)
+                .until(() -> {
+                    PageData<EventInfo> events = getEvents(tenantId, integrationId);
+                    if (events.getData().isEmpty()) {
+                        return false;
+                    }
+
+                    EventInfo event = events.getData().stream().max(Comparator.comparingLong(EventInfo::getCreatedTime)).orElse(null);
+                    return event != null
+                            && "STARTED".equals(event.getBody().get("event").asText())
+                            && "true".equals(event.getBody().get("success").asText());
+                });
+    }
+
+    private PageData<EventInfo> getEvents(TenantId tenantId, IntegrationId integrationId) throws Exception {
+        return doGetTyped("/api/events/{entityType}/{entityId}/{eventType}?tenantId={tenantId}&pageSize={pageSize}&page={page}",
+                new TypeReference<>() {}, EntityType.INTEGRATION, integrationId.toString(), EventType.LC_EVENT, tenantId.toString(), 1024, 0);
     }
 }

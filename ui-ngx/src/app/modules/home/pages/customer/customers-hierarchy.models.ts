@@ -176,5 +176,5 @@ function materialIconByEntityType (entityType: EntityType): string {
       materialIcon = 'input';
       break;
   }
-  return '<mat-icon class="node-icon material-icons" role="img" aria-hidden="false">' + materialIcon + '</mat-icon>';
+  return '<mat-icon class="mat-icon node-icon material-icons" role="img" aria-hidden="false">' + materialIcon + '</mat-icon>';
 }

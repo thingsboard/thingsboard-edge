@@ -71,9 +71,9 @@ import cssjs from '@core/css/css';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction, SortOrder, sortOrderFromString } from '@shared/models/page/sort-order';
 import { CollectionViewer, DataSource } from '@angular/cdk/collections';
-import { BehaviorSubject, fromEvent, merge, Observable, of, Subscription } from 'rxjs';
+import { BehaviorSubject, merge, Observable, of, Subject, Subscription } from 'rxjs';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
-import { catchError, debounceTime, distinctUntilChanged, map, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, map, skip, startWith, takeUntil } from 'rxjs/operators';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -84,7 +84,9 @@ import {
   constructTableCssString,
   DisplayColumn,
   getCellContentInfo,
-  getCellStyleInfo, getColumnDefaultVisibility, getColumnSelectionAvailability,
+  getCellStyleInfo,
+  getColumnDefaultVisibility,
+  getColumnSelectionAvailability,
   getRowStyleInfo,
   getTableCellButtonActions,
   noDataMessage,
@@ -105,6 +107,7 @@ import {
   DisplayColumnsPanelComponent
 } from '@home/components/widget/lib/display-columns-panel.component';
 import { ComponentPortal } from '@angular/cdk/portal';
+import { FormBuilder } from '@angular/forms';
 
 export interface TimeseriesTableWidgetSettings extends TableWidgetSettings {
   showTimestamp: boolean;
@@ -166,6 +169,8 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
   @ViewChildren(MatPaginator) paginators: QueryList<MatPaginator>;
   @ViewChildren(MatSort) sorts: QueryList<MatSort>;
 
+  textSearch = this.fb.control('', {nonNullable: true});
+
   public displayPagination = true;
   public enableStickyHeader = true;
   public enableStickyAction = true;
@@ -173,7 +178,6 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
   public pageSizeOptions;
   public textSearchMode = false;
   public hidePageSize = false;
-  public textSearch: string = null;
   public sources: TimeseriesTableSource[];
   public sourceIndex: number;
   public noDataDisplayMessageText: string;
@@ -204,6 +208,7 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
   private subscriptions: Subscription[] = [];
   private widgetTimewindowChanged$: Subscription;
   private widgetResize$: ResizeObserver;
+  private destroy$ = new Subject<void>();
 
   private searchAction: WidgetAction = {
     name: 'action.search',
@@ -231,7 +236,8 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
               private translate: TranslateService,
               private domSanitizer: DomSanitizer,
               private datePipe: DatePipe,
-              private cd: ChangeDetectorRef) {
+              private cd: ChangeDetectorRef,
+              private fb: FormBuilder) {
     super(store);
   }
 
@@ -277,24 +283,24 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
   }
 
   ngAfterViewInit(): void {
-    fromEvent(this.searchInputField.nativeElement, 'keyup')
-      .pipe(
-        debounceTime(150),
-        distinctUntilChanged(),
-        tap(() => {
-          this.sources.forEach((source) => {
-            source.pageLink.textSearch = this.textSearch;
-            if (this.displayPagination) {
-              source.pageLink.page = 0;
-            }
-          });
-          this.loadCurrentSourceRow();
-          this.ctx.detectChanges();
-        })
-      )
-      .subscribe();
+    this.textSearch.valueChanges.pipe(
+      debounceTime(150),
+      startWith(''),
+      distinctUntilChanged((a: string, b: string) => a.trim() === b.trim()),
+      skip(1),
+      takeUntil(this.destroy$)
+    ).subscribe((textSearch) => {
+      this.sources.forEach((source) => {
+        source.pageLink.textSearch = textSearch.trim();
+        if (this.displayPagination) {
+          source.pageLink.page = 0;
+        }
+      });
+      this.loadCurrentSourceRow();
+      this.ctx.detectChanges();
+    });
 
-    this.sorts.changes.subscribe(() => {
+    this.sorts.changes.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.initSubscriptionsToSortAndPaginator();
     });
 
@@ -574,9 +580,7 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
         observables.push(paginator.page);
       }
       this.updateData(sort, paginator);
-      this.subscriptions.push(merge(...observables).pipe(
-        tap(() => this.updateData(sort, paginator))
-      ).subscribe());
+      this.subscriptions.push(merge(...observables).subscribe(() => this.updateData(sort, paginator)));
     });
   }
 
@@ -588,10 +592,6 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
 
   private enterFilterMode() {
     this.textSearchMode = true;
-    this.textSearch = '';
-    this.sources.forEach((source) => {
-      source.pageLink.textSearch = this.textSearch;
-    });
     this.ctx.hideTitlePanel = true;
     this.ctx.detectChanges(true);
     setTimeout(() => {
@@ -602,13 +602,7 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
 
   exitFilterMode() {
     this.textSearchMode = false;
-    this.textSearch = null;
-    this.sources.forEach((source) => {
-      source.pageLink.textSearch = this.textSearch;
-      if (this.displayPagination) {
-        source.pageLink.page = 0;
-      }
-    });
+    this.textSearch.reset();
     this.loadCurrentSourceRow();
     this.ctx.hideTitlePanel = false;
     this.ctx.detectChanges(true);

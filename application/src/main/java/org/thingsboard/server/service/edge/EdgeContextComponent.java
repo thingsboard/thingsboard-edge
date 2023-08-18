@@ -55,6 +55,8 @@ import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.dao.tenant.TenantProfileService;
+import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
@@ -83,6 +85,8 @@ import org.thingsboard.server.service.edge.rpc.processor.rule.RuleChainEdgeProce
 import org.thingsboard.server.service.edge.rpc.processor.scheduler.SchedulerEventEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.settings.AdminSettingsEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.telemetry.TelemetryEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.tenant.TenantEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.tenant.TenantProfileEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.user.UserEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.widget.WidgetBundleEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.widget.WidgetTypeEdgeProcessor;
@@ -155,6 +159,12 @@ public class EdgeContextComponent {
     private OtaPackageService otaPackageService;
 
     @Autowired
+    private TenantService tenantService;
+
+    @Autowired
+    private TenantProfileService tenantProfileService;
+
+    @Autowired
     private QueueService queueService;
 
     @Autowired
@@ -210,6 +220,12 @@ public class EdgeContextComponent {
 
     @Autowired
     private QueueEdgeProcessor queueEdgeProcessor;
+
+    @Autowired
+    private TenantEdgeProcessor tenantEdgeProcessor;
+
+    @Autowired
+    private TenantProfileEdgeProcessor tenantProfileEdgeProcessor;
 
     @Autowired
     private EdgeMsgConstructor edgeMsgConstructor;

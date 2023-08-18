@@ -74,15 +74,15 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
                 device = new Device();
                 device.setTenantId(tenantId);
                 device.setCreatedTime(Uuids.unixTimestamp(deviceId.getId()));
-                Device deviceByName = deviceService.findDeviceByTenantIdAndName(tenantId, deviceName);
-                if (deviceByName != null) {
-                    deviceName = deviceName + "_" + StringUtils.randomAlphabetic(15);
-                    log.warn("Device with name {} already exists. Renaming device name to {}",
-                            deviceUpdateMsg.getName(), deviceName);
-                    deviceNameUpdated = true;
-                }
             } else {
                 changeOwnerIfRequired(tenantId, customerId, deviceId);
+            }
+            Device deviceByName = deviceService.findDeviceByTenantIdAndName(tenantId, deviceName);
+            if (deviceByName != null && !deviceByName.getId().equals(deviceId)) {
+                deviceName = deviceName + "_" + StringUtils.randomAlphabetic(15);
+                log.warn("Device with name {} already exists. Renaming device name to {}",
+                        deviceUpdateMsg.getName(), deviceName);
+                deviceNameUpdated = true;
             }
             device.setName(deviceName);
             device.setType(deviceUpdateMsg.getType());
@@ -118,7 +118,7 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
                 entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
             }
             safeAddToEntityGroup(tenantId, deviceUpdateMsg, deviceId);
-            tbClusterService.onDeviceUpdated(savedDevice, created ? null : device, false);
+            tbClusterService.onDeviceUpdated(savedDevice, created ? null : device);
         } finally {
             deviceCreationLock.unlock();
         }
@@ -142,6 +142,8 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
                 log.debug("Updating device credentials for device [{}]. New device credentials Id [{}], value [{}]",
                         device.getName(), deviceCredentialsUpdateMsg.getCredentialsId(), deviceCredentialsUpdateMsg.getCredentialsValue());
                 try {
+                    edgeSynchronizationManager.getSync().set(true);
+
                     DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, device.getId());
                     deviceCredentials.setCredentialsType(DeviceCredentialsType.valueOf(deviceCredentialsUpdateMsg.getCredentialsType()));
                     deviceCredentials.setCredentialsId(deviceCredentialsUpdateMsg.getCredentialsId());
@@ -152,6 +154,8 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
                     log.error("Can't update device credentials for device [{}], deviceCredentialsUpdateMsg [{}]",
                             device.getName(), deviceCredentialsUpdateMsg, e);
                     throw new RuntimeException(e);
+                } finally {
+                    edgeSynchronizationManager.getSync().remove();
                 }
             } else {
                 log.warn("Can't find device by id [{}], deviceCredentialsUpdateMsg [{}]", deviceId, deviceCredentialsUpdateMsg);

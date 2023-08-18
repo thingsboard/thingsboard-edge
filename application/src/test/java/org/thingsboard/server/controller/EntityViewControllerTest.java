@@ -74,9 +74,8 @@ import org.thingsboard.server.common.data.query.EntityKey;
 import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.dao.entityview.EntityViewDao;
-import org.thingsboard.server.exception.DataValidationException;
-import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -180,7 +179,7 @@ public class EntityViewControllerTest extends AbstractControllerTest {
         testBroadcastEntityStateChangeEventTime(foundEntityView.getId(), tenantId, 1);
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(foundEntityView, foundEntityView,
                 tenantId, tenantAdminCustomerId, tenantAdminUserId, TENANT_ADMIN_EMAIL,
-                ActionType.ADDED, ActionType.ADDED, 1, 0, 1);
+                ActionType.ADDED, 1, 1, 1);
         Mockito.reset(tbClusterService, auditLogService);
 
         savedView.setName("New test entity view");
@@ -193,7 +192,7 @@ public class EntityViewControllerTest extends AbstractControllerTest {
         testBroadcastEntityStateChangeEventTime(foundEntityView.getId(), tenantId, 1);
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(foundEntityView, foundEntityView,
                 tenantId, tenantAdminCustomerId, tenantAdminUserId, TENANT_ADMIN_EMAIL,
-                ActionType.UPDATED, ActionType.UPDATED, 1, 1, 5);
+                ActionType.UPDATED, 1, 1, 5);
 
         doGet("/api/tenant/entityViews?entityViewName=" + name)
                 .andExpect(status().isNotFound())
@@ -248,8 +247,9 @@ public class EntityViewControllerTest extends AbstractControllerTest {
 
     @Test
     public void testDeleteEntityView() throws Exception {
-        EntityView view = getNewSavedEntityView("Test entity view");
         Customer customer = doPost("/api/customer", getNewCustomer("My customer"), Customer.class);
+
+        EntityView view = createEntityView("Test entity view", 0, 0);
         view.setCustomerId(customer.getId());
         EntityView savedView = doPost("/api/entityView", view, EntityView.class);
 
@@ -259,7 +259,7 @@ public class EntityViewControllerTest extends AbstractControllerTest {
         doDelete("/api/entityView/" + entityIdStr)
                 .andExpect(status().isOk());
 
-        testNotifyEntityBroadcastEntityStateChangeEventOneTimeMsgToEdgeServiceNever(savedView, savedView.getId(), savedView.getId(),
+        testNotifyEntityBroadcastEntityStateChangeEventOneTime(savedView, savedView.getId(), savedView.getId(),
                 tenantId, view.getCustomerId(), tenantAdminUserId, TENANT_ADMIN_EMAIL,
                 ActionType.DELETED, entityIdStr);
 
@@ -560,7 +560,7 @@ public class EntityViewControllerTest extends AbstractControllerTest {
             viewNameFutures.add(Futures.transform(customerFuture, customerId -> {
                 String fullName = partOfName + ' ' + StringUtils.randomAlphanumeric(15);
                 fullName = even ? fullName.toLowerCase() : fullName.toUpperCase();
-                EntityView view = getNewSavedEntityView(fullName);
+                EntityView view = createEntityView(fullName, 0, 0);
                 view.setCustomerId(customerId);
                 return doPost("/api/entityView", view, EntityView.class);
             }, MoreExecutors.directExecutor()));
