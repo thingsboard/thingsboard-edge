@@ -104,8 +104,19 @@ public class TenantProfileServiceImpl extends AbstractCachedEntityService<Tenant
 
     @Override
     public TenantProfile saveTenantProfile(TenantId tenantId, TenantProfile tenantProfile) {
+        return doSaveTenantProfile(tenantId, tenantProfile, true);
+    }
+
+    @Override
+    public TenantProfile saveTenantProfile(TenantId tenantId, TenantProfile tenantProfile, boolean doValidate) {
+        return doSaveTenantProfile(tenantId, tenantProfile, doValidate);
+    }
+
+    private TenantProfile doSaveTenantProfile(TenantId tenantId, TenantProfile tenantProfile, boolean doValidate) {
         log.trace("Executing saveTenantProfile [{}]", tenantProfile);
-        tenantProfileValidator.validate(tenantProfile, (tenantProfile1) -> TenantId.SYS_TENANT_ID);
+        if (doValidate) {
+            tenantProfileValidator.validate(tenantProfile, (tenantProfile1) -> TenantId.SYS_TENANT_ID);
+        }
         TenantProfile savedTenantProfile;
         try {
             savedTenantProfile = tenantProfileDao.save(tenantId, tenantProfile);

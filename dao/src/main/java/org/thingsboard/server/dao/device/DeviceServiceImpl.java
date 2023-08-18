@@ -239,9 +239,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
             DeviceProfile deviceProfile;
             if (device.getDeviceProfileId() == null) {
                 if (!StringUtils.isEmpty(device.getType())) {
-                    // TODO: @voba device profiles are not created on edge at the moment
-                    // deviceProfile = this.deviceProfileService.findOrCreateDeviceProfile(device.getTenantId(), device.getType());
-                    deviceProfile = findDeviceProfileByNameOrDefault(device.getTenantId(), device.getType());
+                    deviceProfile = this.deviceProfileService.findOrCreateDeviceProfile(device.getTenantId(), device.getType());
                 } else {
                     deviceProfile = this.deviceProfileService.findDefaultDeviceProfile(device.getTenantId());
                 }

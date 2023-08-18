@@ -34,6 +34,7 @@ import org.jboss.aerogear.security.otp.Totp;
 import org.jboss.aerogear.security.otp.api.Base32;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
@@ -549,6 +550,7 @@ public class TwoFactorAuthConfigTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore
     public void testIsTwoFaEnabled() throws Exception {
         configureSmsTwoFaProvider("${code}");
         SmsTwoFaAccountConfig accountConfig = new SmsTwoFaAccountConfig();

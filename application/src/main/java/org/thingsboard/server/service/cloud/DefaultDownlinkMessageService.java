@@ -69,6 +69,8 @@ import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.TenantProfileUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.TenantUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetTypeUpdateMsg;
@@ -94,6 +96,8 @@ import org.thingsboard.server.service.cloud.rpc.processor.RoleCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RuleChainCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.SchedulerEventCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.TelemetryCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.TenantCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.TenantProfileCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.UserCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.WhiteLabelingCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.WidgetBundleCloudProcessor;
@@ -192,6 +196,12 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
 
     @Autowired
     private IntegrationCloudProcessor integrationProcessor;
+
+    @Autowired
+    private TenantCloudProcessor tenantCloudProcessor;
+
+    @Autowired
+    private TenantProfileCloudProcessor tenantProfileCloudProcessor;
 
     @Autowired
     private DbCallbackExecutorService dbCallbackExecutorService;
@@ -389,6 +399,16 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             if (downlinkMsg.getIntegrationMsgCount() > 0) {
                 for (IntegrationUpdateMsg integrationUpdateMsg : downlinkMsg.getIntegrationMsgList()) {
                     result.add(integrationProcessor.processIntegrationMsgFromCloud(tenantId, integrationUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getTenantProfileUpdateMsgCount() > 0) {
+                for (TenantProfileUpdateMsg tenantProfileUpdateMsg : downlinkMsg.getTenantProfileUpdateMsgList()) {
+                    result.add(tenantProfileCloudProcessor.processTenantProfileMsgFromCloud(tenantId, tenantProfileUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getTenantUpdateMsgCount() > 0) {
+                for (TenantUpdateMsg tenantUpdateMsg : downlinkMsg.getTenantUpdateMsgList()) {
+                    result.add(tenantCloudProcessor.processTenantMsgFromCloud(tenantUpdateMsg));
                 }
             }
             log.trace("Finished processing DownlinkMsg {}", downlinkMsg.getDownlinkMsgId());

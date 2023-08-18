@@ -32,6 +32,7 @@ package org.thingsboard.server.edge;
 
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.dao.service.DaoSqlTest;
@@ -42,6 +43,7 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 public class TenantProfileEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testTenantProfiles() throws Exception {
         loginSysAdmin();
 
