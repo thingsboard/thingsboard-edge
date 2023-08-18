@@ -100,7 +100,7 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
             throw new IllegalArgumentException("Import of new groups with type All is not allowed. " +
                     "Consider enabling import option to find existing entities by name");
         }
-        replaceIdsRecursively(ctx, idProvider, JacksonUtil.getSafely(entity.getConfiguration(), "actions"), Collections.singleton("id"), HINTS);
+        replaceIdsRecursively(ctx, idProvider, JacksonUtil.getSafely(entity.getConfiguration(), "actions"), Collections.singleton("id"), null, HINTS);
         return entity;
     }
 

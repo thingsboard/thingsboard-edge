@@ -101,6 +101,10 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
 
     config.onEntityAction = action => this.onDashboardAction(action, config, params);
 
+    config.entityAdded = dashboard => {
+      this.openDashboard(null, dashboard, config, params);
+    };
+
     if (config.entityGroup.additionalInfo && config.entityGroup.additionalInfo.isPublic) {
       config.cellActionDescriptors.push(
         {

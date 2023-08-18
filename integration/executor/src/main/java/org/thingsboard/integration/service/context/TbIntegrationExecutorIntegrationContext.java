@@ -37,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
+import org.thingsboard.integration.api.IntegrationRateLimitService;
 import org.thingsboard.integration.api.IntegrationStatisticsService;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
@@ -61,6 +62,7 @@ import org.thingsboard.server.gen.integration.TbEventSource;
 import org.thingsboard.server.gen.integration.TbIntegrationEventProto;
 import org.thingsboard.server.service.integration.IntegrationProtoUtil;
 
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -166,6 +168,11 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
     }
 
     @Override
+    public Optional<IntegrationRateLimitService> getRateLimitService() {
+        return Optional.of(contextComponent.getRateLimitService());
+    }
+
+    @Override
     public ExecutorService getExecutorService() {
         return contextComponent.getGeneralExecutorService();
     }
@@ -239,6 +246,11 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
         @Override
         public void saveEvent(Event event, IntegrationCallback<Void> callback) {
             TbIntegrationExecutorIntegrationContext.this.doSaveEvent(eventSource, converterId, event, null, callback);
+        }
+
+        @Override
+        public Optional<IntegrationRateLimitService> getRateLimitService() {
+            return Optional.of(contextComponent.getRateLimitService());
         }
     }
 }

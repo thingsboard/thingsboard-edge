@@ -119,7 +119,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
 
     private void testLoginWhiteLabeling_sysAdmin() throws Exception {
         loginSysAdmin();
-        updateAndVerifyLoginWhiteLabelingUpdate("sysadmin_updated.org");
+        updateAndVerifySystemLoginWhiteLabelingUpdate("pink");
     }
 
     private void testLoginWhiteLabeling_tenant() throws Exception {
@@ -150,6 +150,18 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
 
         createCustomerUserAndLogin(savedSubCustomerA, "subCustomerA@thingsboard.org");
         updateAndVerifyLoginWhiteLabelingUpdate(savedSubCustomerA.getId() + "subCustomerA_updated.org");
+    }
+
+    private void updateAndVerifySystemLoginWhiteLabelingUpdate(String color) throws Exception {
+        LoginWhiteLabelingParams loginWhiteLabelingParams = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
+        edgeImitator.expectMessageAmount(1);
+        loginWhiteLabelingParams.setPageBackgroundColor(color);
+        doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof LoginWhiteLabelingParamsProto);
+        LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto = (LoginWhiteLabelingParamsProto) latestMessage;
+        Assert.assertEquals(color, loginWhiteLabelingParamsProto.getPageBackgroundColor());
     }
 
     private void updateAndVerifyLoginWhiteLabelingUpdate(String updatedDomainName) throws Exception {

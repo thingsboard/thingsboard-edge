@@ -4671,10 +4671,12 @@ var JSHINT = (function() {
       case "else":
       case "finally":
       case "for":
+      case "foreach":
       case "if":
       case "in":
       case "instanceof":
       case "return":
+      case "until":
       case "switch":
       case "throw":
       case "try":
@@ -5402,6 +5404,7 @@ var JSHINT = (function() {
     }
     switch (state.funct["(verb)"]) {
     case "break":
+    case "until":
     case "continue":
     case "return":
     case "throw":
@@ -7706,6 +7709,20 @@ var JSHINT = (function() {
     return this;
   }).labelled = true;
 
+  blockstmt("until", function(context) {
+    var t = state.tokens.next;
+    state.funct["(breakage)"] += 1;
+    state.funct["(loopage)"] += 1;
+    increaseComplexityCount();
+    advance("(");
+    checkCondAssignment(expression(context, 0));
+    advance(")", t);
+    block(context, true, true);
+    state.funct["(breakage)"] -= 1;
+    state.funct["(loopage)"] -= 1;
+    return this;
+  }).labelled = true;
+
   blockstmt("with", function(context) {
     var t = state.tokens.next;
     if (state.isStrict()) {
@@ -7855,7 +7872,12 @@ var JSHINT = (function() {
       increaseComplexityCount();
 
       this.first = block(context, true, true);
-      advance("while");
+      var s = state.tokens.next;
+      if (s.value !== "while") {
+        advance("until");
+      } else {
+        advance("while");
+      }
       var t = state.tokens.next;
       advance("(");
       checkCondAssignment(expression(context, 0));
@@ -8150,7 +8172,7 @@ var JSHINT = (function() {
       state.funct["(breakage)"] += 1;
       state.funct["(loopage)"] += 1;
 
-      state.funct["(breakage)"] -= 1;
+      // state.funct["(breakage)"] -= 1;
       state.funct["(loopage)"] -= 1;
     } else {
       nolinebreak(state.tokens.curr);
@@ -9770,9 +9792,9 @@ Lexer.prototype = {
   scanKeyword: function() {
     var result = /^[a-zA-Z_$][a-zA-Z0-9_$]*/.exec(this.input);
     var keywords = [
-      "if", "in", "do", "var", "for", "new",
+      "if", "in", "do", "var", "for", "foreach", "new",
       "try", "let", "this", "else", "case",
-      "void", "with", "enum", "while", "break",
+      "void", "with", "enum", "while", "until", "break",
       "catch", "throw", "const", "yield", "class",
       "super", "return", "typeof", "delete",
       "switch", "export", "import", "default",

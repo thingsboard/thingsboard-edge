@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject, OnInit, SkipSelf, ViewEncapsulation } from '@angular/core';
+import { Component, Inject, OnInit, SkipSelf, ViewChild, ViewEncapsulation } from '@angular/core';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
@@ -43,6 +43,7 @@ import { IAliasController, IStateController } from '@core/api/widget-api.models'
 import { WidgetConfigComponentData, WidgetInfo } from '@home/models/widget-component.models';
 import { isDefined, isDefinedAndNotNull, isString } from '@core/utils';
 import { TranslateService } from '@ngx-translate/core';
+import { WidgetConfigComponent } from '@home/components/widget/widget-config.component';
 
 export interface AddWidgetDialogData {
   dashboard: Dashboard;
@@ -62,7 +63,8 @@ export interface AddWidgetDialogData {
 export class AddWidgetDialogComponent extends DialogComponent<AddWidgetDialogComponent, Widget>
   implements OnInit, ErrorStateMatcher {
 
-  widgetConfigModes = WidgetConfigMode;
+  @ViewChild('widgetConfigComponent')
+  widgetConfigComponent: WidgetConfigComponent;
 
   widgetFormGroup: UntypedFormGroup;
 
@@ -75,17 +77,17 @@ export class AddWidgetDialogComponent extends DialogComponent<AddWidgetDialogCom
 
   previewMode = false;
 
-  hasBasicMode = false;
+  hideHeader = false;
+
+  private readonly initialWidgetConfigMode: WidgetConfigMode;
 
   get widgetConfigMode(): WidgetConfigMode {
-    return this.hasBasicMode ? (this.widgetConfig?.config?.configMode || WidgetConfigMode.advanced) : WidgetConfigMode.advanced;
+    return this.widgetConfigComponent?.widgetConfigMode || this.initialWidgetConfigMode;
   }
 
   set widgetConfigMode(widgetConfigMode: WidgetConfigMode) {
-    if (this.hasBasicMode) {
-      this.widgetConfig.config.configMode = widgetConfigMode;
-      this.widgetFormGroup.markAsDirty();
-    }
+    this.widgetConfigComponent.setWidgetConfigMode(widgetConfigMode);
+    this.hideHeader = this.widgetConfigComponent?.widgetConfigMode === WidgetConfigMode.basic;
   }
 
   submitted = false;
@@ -145,9 +147,16 @@ export class AddWidgetDialogComponent extends DialogComponent<AddWidgetDialogCom
       settingsDirective: widgetInfo.settingsDirective,
       dataKeySettingsDirective: widgetInfo.dataKeySettingsDirective,
       latestDataKeySettingsDirective: widgetInfo.latestDataKeySettingsDirective,
+      hasBasicMode: isDefinedAndNotNull(widgetInfo.hasBasicMode) ? widgetInfo.hasBasicMode : false,
       basicModeDirective: widgetInfo.basicModeDirective
     };
-    this.hasBasicMode = isDefinedAndNotNull(widgetInfo.hasBasicMode) ? widgetInfo.hasBasicMode : false;
+    if (this.widgetConfig.hasBasicMode && this.widgetConfig.config?.configMode === WidgetConfigMode.basic) {
+      this.hideHeader = true;
+      this.initialWidgetConfigMode = WidgetConfigMode.basic;
+    } else {
+      this.initialWidgetConfigMode = WidgetConfigMode.advanced;
+    }
+
     this.widgetFormGroup = this.fb.group({
         widgetConfig: [this.widgetConfig, []]
       }
