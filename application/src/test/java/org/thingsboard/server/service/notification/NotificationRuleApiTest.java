@@ -575,10 +575,6 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
         String template = "Device ${deviceName} (${deviceLabel}) of type ${deviceType} is now ${eventType}";
         createNotificationRule(triggerConfig, "Test", template, target.getId());
 
-        // edge only - temporary method, to fix creation of device profile during saving device in DeviceServiceImpl
-        DeviceProfile deviceProfile = createDeviceProfile("test");
-        doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
-
         Device device = new Device();
         device.setName("A");
         device.setLabel("Test Device A");

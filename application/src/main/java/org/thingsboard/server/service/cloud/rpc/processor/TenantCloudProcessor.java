@@ -34,7 +34,6 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DataConstants;
@@ -61,9 +60,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TenantCloudProcessor extends BaseEdgeProcessor {
 
-    @Autowired
-    private TenantProfileCloudProcessor tenantProfileCloudProcessor;
-
     public void createTenantIfNotExists(TenantId tenantId, Long queueStartTs) throws Exception {
         try {
             edgeSynchronizationManager.getSync().set(true);
@@ -73,8 +69,6 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
             }
             tenant = new Tenant();
             tenant.setTitle("Tenant");
-            // TODO: voba - add validation once tenant profile are propagated to edge from cloud
-            // tenantValidator.validate(tenant, Tenant::getId);
             tenant.setId(tenantId);
             tenant.setCreatedTime(Uuids.unixTimestamp(tenantId.getId()));
             Tenant savedTenant = tenantService.saveTenant(tenant, false);
@@ -99,7 +93,7 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
         TenantProfileId tenantProfileId = new TenantProfileId(new UUID(tenantUpdateMsg.getProfileIdMSB(), tenantUpdateMsg.getProfileIdLSB()));
         switch (tenantUpdateMsg.getMsgType()) {
             case ENTITY_UPDATED_RPC_MESSAGE:
-                processTenantUpdatedRpcMessage(entityId, tenantUpdateMsg, tenantProfileId);
+                processTenantUpdatedMessage(entityId, tenantUpdateMsg, tenantProfileId);
                 break;
             case UNRECOGNIZED:
                 return handleUnsupportedMsgType(tenantUpdateMsg.getMsgType());
@@ -107,7 +101,7 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
         return Futures.immediateFuture(null);
     }
 
-    private void processTenantUpdatedRpcMessage(TenantId entityId, TenantUpdateMsg tenantUpdateMsg, TenantProfileId tenantProfileId) {
+    private void processTenantUpdatedMessage(TenantId entityId, TenantUpdateMsg tenantUpdateMsg, TenantProfileId tenantProfileId) {
         Tenant tenant = tenantService.findTenantById(entityId);
         if (tenant == null) {
             tenant = new Tenant();
