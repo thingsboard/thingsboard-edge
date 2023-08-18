@@ -37,6 +37,7 @@ import { PageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
 import { WidgetsBundle } from '@shared/models/widgets-bundle.model';
 import {
+  fullWidgetTypeFqn,
   Widget,
   WidgetType,
   widgetType,
@@ -137,16 +138,14 @@ export class WidgetService {
 
   public deleteWidgetsBundle(widgetsBundleId: string, config?: RequestConfig) {
     return this.getWidgetsBundle(widgetsBundleId, config).pipe(
-      mergeMap((widgetsBundle) => {
-        return this.http.delete(`/api/widgetsBundle/${widgetsBundleId}`,
+      mergeMap((widgetsBundle) => this.http.delete(`/api/widgetsBundle/${widgetsBundleId}`,
           defaultHttpOptionsFromConfig(config)).pipe(
           tap(() => {
             this.invalidateWidgetsBundleCache();
             this.widgetsBundleDeleted(widgetsBundle);
           })
-        );
-      }
-    ));
+        )
+      ));
   }
 
   public getBundleWidgetTypes(bundleAlias: string, isSystem: boolean,
@@ -196,9 +195,7 @@ export class WidgetService {
           const sizeY = Math.floor(widgetTypeInfo.sizeY);
           const widget: Widget = {
             typeId: type.id,
-            isSystemType: isSystem,
-            bundleAlias,
-            typeAlias: widgetTypeInfo.alias,
+            typeFullFqn: widgetTypeInfo.fullFqn,
             type: widgetTypeInfo.type,
             title: widgetTypeInfo.widgetName,
             sizeX,
@@ -227,9 +224,8 @@ export class WidgetService {
     );
   }
 
-  public getWidgetType(bundleAlias: string, widgetTypeAlias: string, isSystem: boolean,
-                       config?: RequestConfig): Observable<WidgetType> {
-    return this.http.get<WidgetType>(`/api/widgetType?isSystem=${isSystem}&bundleAlias=${bundleAlias}&alias=${widgetTypeAlias}`,
+  public getWidgetType(fullFqn: string, config?: RequestConfig): Observable<WidgetType> {
+    return this.http.get<WidgetType>(`/api/widgetType?fqn=${fullFqn}`,
       defaultHttpOptionsFromConfig(config));
   }
 
@@ -255,17 +251,15 @@ export class WidgetService {
       }));
   }
 
-  public deleteWidgetType(bundleAlias: string, widgetTypeAlias: string, isSystem: boolean,
+  public deleteWidgetType(fullFqn: string,
                           config?: RequestConfig) {
-    return this.getWidgetType(bundleAlias, widgetTypeAlias, isSystem, config).pipe(
-      mergeMap((widgetTypeInstance) => {
-          return this.http.delete(`/api/widgetType/${widgetTypeInstance.id.id}`,
+    return this.getWidgetType(fullFqn, config).pipe(
+      mergeMap((widgetTypeInstance) => this.http.delete(`/api/widgetType/${widgetTypeInstance.id.id}`,
             defaultHttpOptionsFromConfig(config)).pipe(
             tap(() => {
               this.widgetTypeUpdated(widgetTypeInstance);
             })
-          );
-        }
+          )
       ));
   }
 
@@ -278,52 +272,44 @@ export class WidgetService {
   public getWidgetTemplate(widgetTypeParam: widgetType,
                            config?: RequestConfig): Observable<WidgetInfo> {
     const templateWidgetType = widgetTypesData.get(widgetTypeParam);
-    return this.getWidgetType(templateWidgetType.template.bundleAlias, templateWidgetType.template.alias, true,
+    return this.getWidgetType(templateWidgetType.template.fullFqn,
       config).pipe(
         map((result) => {
           const widgetInfo = toWidgetInfo(result);
-          widgetInfo.alias = undefined;
+          widgetInfo.fullFqn = undefined;
           return widgetInfo;
         })
       );
-  }
-
-  public createWidgetInfoCacheKey(bundleAlias: string, widgetTypeAlias: string, isSystem: boolean): string {
-    return `${isSystem ? 'sys_' : ''}${bundleAlias}_${widgetTypeAlias}`;
   }
 
   public clearWidgetInfoInMemoryCache() {
     this.widgetsInfoInMemoryCache.clear();
   }
 
-  public getWidgetInfoFromCache(bundleAlias: string, widgetTypeAlias: string, isSystem: boolean): WidgetInfo | undefined {
-    const key = this.createWidgetInfoCacheKey(bundleAlias, widgetTypeAlias, isSystem);
-    return this.widgetsInfoInMemoryCache.get(key);
+  public getWidgetInfoFromCache(fullFqn: string): WidgetInfo | undefined {
+    return this.widgetsInfoInMemoryCache.get(fullFqn);
   }
 
-  public putWidgetInfoToCache(widgetInfo: WidgetInfo, bundleAlias: string, widgetTypeAlias: string, isSystem: boolean) {
-    const key = this.createWidgetInfoCacheKey(bundleAlias, widgetTypeAlias, isSystem);
-    this.widgetsInfoInMemoryCache.set(key, widgetInfo);
+  public putWidgetInfoToCache(widgetInfo: WidgetInfo) {
+    this.widgetsInfoInMemoryCache.set(widgetInfo.fullFqn, widgetInfo);
   }
 
   private widgetTypeUpdated(updatedWidgetType: WidgetType): void {
-    this.deleteWidgetInfoFromCache(updatedWidgetType.bundleAlias, updatedWidgetType.alias, updatedWidgetType.tenantId.id === NULL_UUID);
+    this.deleteWidgetInfoFromCache(fullWidgetTypeFqn(updatedWidgetType));
   }
 
   private widgetsBundleDeleted(widgetsBundle: WidgetsBundle): void {
-    this.deleteWidgetsBundleFromCache(widgetsBundle.alias, widgetsBundle.tenantId.id === NULL_UUID);
+    this.deleteWidgetsBundleFromCache(widgetsBundle.alias);
   }
 
-  public deleteWidgetInfoFromCache(bundleAlias: string, widgetTypeAlias: string, isSystem: boolean) {
-    const key = this.createWidgetInfoCacheKey(bundleAlias, widgetTypeAlias, isSystem);
-    this.widgetsInfoInMemoryCache.delete(key);
+  public deleteWidgetInfoFromCache(fullFqn: string) {
+    this.widgetsInfoInMemoryCache.delete(fullFqn);
   }
 
-  private deleteWidgetsBundleFromCache(bundleAlias: string, isSystem: boolean) {
-    const key = (isSystem ? 'sys_' : '') + bundleAlias;
-    this.widgetsInfoInMemoryCache.forEach((widgetInfo, cacheKey) => {
-      if (cacheKey.startsWith(key)) {
-        this.widgetsInfoInMemoryCache.delete(cacheKey);
+  private deleteWidgetsBundleFromCache(bundleAlias: string) {
+    this.widgetsInfoInMemoryCache.forEach((widgetInfo, fullFqn) => {
+      if (widgetInfo.bundleAlias === bundleAlias) {
+        this.widgetsInfoInMemoryCache.delete(fullFqn);
       }
     });
   }

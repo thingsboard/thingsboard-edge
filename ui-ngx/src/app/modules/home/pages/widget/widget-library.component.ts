@@ -106,12 +106,9 @@ export class WidgetLibraryComponent extends PageComponent implements OnInit {
   aliasController: IAliasController = new AliasController(this.utils,
     this.entityService,
     this.translate,
-    () => { return {
-      getStateParams(): StateParams {
-        return {};
-      }
-    } as IStateController;
-    },
+    () => ({
+      getStateParams: (): StateParams => ({})
+    } as IStateController),
     {},
     {});
 
@@ -210,7 +207,7 @@ export class WidgetLibraryComponent extends PageComponent implements OnInit {
     ).pipe(
       mergeMap((result) => {
         if (result) {
-          return this.widgetService.deleteWidgetType(widget.bundleAlias, widget.typeAlias, widget.isSystemType);
+          return this.widgetService.deleteWidgetType(widget.typeFullFqn);
         } else {
           return of(false);
         }

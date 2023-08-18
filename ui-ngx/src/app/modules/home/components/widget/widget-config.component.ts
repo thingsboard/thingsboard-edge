@@ -36,10 +36,8 @@ import {
   ComponentRef,
   forwardRef,
   Input,
-  OnChanges,
   OnDestroy,
   OnInit,
-  SimpleChanges,
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
@@ -126,7 +124,7 @@ const defaultSettingsForm = [
     }
   ]
 })
-export class WidgetConfigComponent extends PageComponent implements OnInit, OnDestroy, ControlValueAccessor, Validator, OnChanges {
+export class WidgetConfigComponent extends PageComponent implements OnInit, OnDestroy, ControlValueAccessor, Validator {
 
   @ViewChild('basicModeContainer', {read: ViewContainerRef, static: false}) basicModeContainer: ViewContainerRef;
 
@@ -270,19 +268,6 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
     this.actionsSettings = this.fb.group({
       actions: [null, []]
     });
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    for (const propName of Object.keys(changes)) {
-      const change = changes[propName];
-      if (!change.firstChange && change.currentValue !== change.previousValue) {
-        if (propName === 'widgetConfigMode') {
-          if (this.hasBasicModeDirective) {
-            this.setupConfig();
-          }
-        }
-      }
-    }
   }
 
   ngOnDestroy(): void {
