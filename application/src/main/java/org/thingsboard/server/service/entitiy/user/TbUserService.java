@@ -49,5 +49,5 @@ public interface TbUserService {
               boolean sendActivationMail, HttpServletRequest request,
               List<EntityGroup> entityGroups, User user) throws ThingsboardException;
 
-    void delete(TenantId tenantId, CustomerId customerId, User tbUser, User user) throws ThingsboardException;
+    void delete(TenantId tenantId, CustomerId customerId, User user, User responsibleUser) throws ThingsboardException;
 }

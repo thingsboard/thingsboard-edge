@@ -64,6 +64,7 @@ import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.query.AlarmCountQuery;
 import org.thingsboard.server.common.data.query.AlarmData;
@@ -423,10 +424,10 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
     }
 
     @Override
-    public List<AlarmId> findAlarmIdsByAssigneeId(TenantId tenantId, UserId userId, int limit) {
-        log.trace("Executing findAlarmIdsByAssigneeId [{}]", userId);
+    public PageData<AlarmId> findAlarmIdsByAssigneeId(TenantId tenantId, UserId userId, PageLink pageLink) {
+        log.trace("[{}] Executing findAlarmIdsByAssigneeId [{}]", tenantId, userId);
         validateId(userId, "Incorrect userId " + userId);
-        return alarmDao.findAlarmIdsByAssigneeId(tenantId, userId.getId(), limit);
+        return alarmDao.findAlarmIdsByAssigneeId(tenantId, userId.getId(), pageLink);
     }
 
     @Override
