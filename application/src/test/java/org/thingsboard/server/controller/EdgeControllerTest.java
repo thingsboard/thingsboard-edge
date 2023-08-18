@@ -1226,6 +1226,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
         return false;
     }
 
+    // @voba - merge comment
+    // edge assign functionality only in CE/PE
     @Test
     public void testSyncEdge_tenantLevel() throws Exception {
         resetSysAdminWhiteLabelingSettings();
