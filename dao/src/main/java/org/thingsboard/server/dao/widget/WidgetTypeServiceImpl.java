@@ -73,7 +73,6 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
         if (doValidate) {
             widgetTypeValidator.validate(widgetTypeDetails, WidgetType::getTenantId);
         }
-
         WidgetTypeDetails result = widgetTypeDao.save(widgetTypeDetails.getTenantId(), widgetTypeDetails);
         eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getTenantId())
                 .entityId(result.getId()).added(widgetTypeDetails.getId() == null).build());

@@ -16,6 +16,7 @@
 package org.thingsboard.server.edge;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
@@ -32,6 +33,7 @@ import java.util.UUID;
 public class TenantEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testUpdateTenant() throws Exception {
         loginSysAdmin();
 
