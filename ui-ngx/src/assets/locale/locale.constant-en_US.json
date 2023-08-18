@@ -1426,6 +1426,7 @@
             "use-following-instructions": "Use the following instructions for sending telemetry on behalf of the device using shell",
             "execute-following-command": "Execute the following command",
             "install-curl-windows": "Starting Windows 10 b17063, cURL is available by default",
+            "install-curl-macos": "Starting Mac OS X 10.2 6C115 (Jaguar), cURL is available by default",
             "install-mqtt-windows": "Use the instructions to download, install, setup and run mosquitto_pub",
             "install-coap-client": "Use the instructions to download, install, setup and run coap-client",
             "install-necessary-client-tools": "Install necessary client tools",
@@ -3022,6 +3023,8 @@
             "email-preview": "Email notification preview",
             "slack": "Slack",
             "slack-preview": "Slack notification preview",
+            "microsoft-teams": "Microsoft Teams",
+            "microsoft-teams-preview": "Microsoft Teams notification preview",
             "sms": "SMS",
             "sms-preview": "SMS notification preview",
             "web": "Web",
@@ -3187,6 +3190,7 @@
         "tenant-profiles-list-rule-hint": "If the field is empty, the trigger will be applied to all tenant profiles",
         "tenants-list-rule-hint": "If the field is empty, the trigger will be applied to all tenants",
         "threshold": "Threshold",
+        "theme-color": "Theme color",
         "time": "Time",
         "track-rule-node-events": "Track rule node events",
         "trigger": {
@@ -3209,6 +3213,10 @@
         "use-template": "Use template",
         "view-all": "View all",
         "warning": "Warning",
+        "webhook-url": "Webhook URL",
+        "webhook-url-required": "Webhook URL is required",
+        "channel-name": "Channel name",
+        "channel-name-required": "Channel name is required",
         "settings": {
             "notification-settings": "Notification settings",
             "reset-all": "Reset all settings",
@@ -3668,6 +3676,8 @@
         "description": "Description",
         "description-hint": "This text will be displayed in the Queue description instead of the selected strategy",
         "alt-description": "Submit Strategy: {{submitStrategy}}, Processing Strategy: {{processingStrategy}}",
+        "custom-properties": "Custom properties",
+        "custom-properties-hint": "Custom queue (topic) creation properties, e.g. 'retention.ms:604800000;retention.bytes:1048576000'",
         "strategies": {
             "sequential-by-originator-label": "Sequential by originator",
             "sequential-by-originator-hint": "New message for e.g. device A is not submitted until previous message for device A is acknowledged",
@@ -3735,8 +3745,8 @@
         "tenant-required": "Tenant is required",
         "search": "Search tenants",
         "selected-tenants": "{ count, plural, =1 {1 tenant} other {# tenants} } selected",
-        "isolated-tb-rule-engine": "Processing in isolated ThingsBoard Rule Engine container",
-        "isolated-tb-rule-engine-details": "Requires separate microservice(s) per isolated Tenant"
+        "isolated-tb-rule-engine": "Use isolated ThingsBoard Rule Engine queues",
+        "isolated-tb-rule-engine-details": "Each tenant will have dedicated Rule Engine queues"
     },
     "tenant-profile": {
         "tenant-profile": "Tenant profile",
@@ -5823,11 +5833,13 @@
             "position-left-bottom": "Left bottom",
             "font": "Font",
             "color": "Color",
+            "arrow": "Arrow",
             "display-up-down-arrow": "Display Up/Down arrow",
             "add-value": "Add value",
             "remove-value": "Remove value",
             "no-values": "No values configured",
-            "aggregation": "Aggregation"
+            "aggregation": "Aggregation",
+            "aggregated-value-card-style": "Aggregated value card style"
         },
         "table": {
             "common-table-settings": "Common Table Settings",
