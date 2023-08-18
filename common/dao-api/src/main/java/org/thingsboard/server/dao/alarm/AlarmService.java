@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.alarm;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmApiCallResult;
@@ -50,6 +51,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.query.AlarmCountQuery;
 import org.thingsboard.server.common.data.query.AlarmData;
@@ -92,6 +94,10 @@ public interface AlarmService extends EntityDaoService {
     AlarmApiCallResult unassignAlarm(TenantId tenantId, AlarmId alarmId, long ts);
 
     AlarmApiCallResult delAlarm(TenantId tenantId, AlarmId alarmId);
+
+    AlarmApiCallResult delAlarm(TenantId tenantId, AlarmId alarmId, boolean deleteAlarmType);
+
+    void delAlarmTypes(TenantId tenantId, Set<String> types);
 
     /*
      *  Legacy API, before 3.5.
@@ -146,4 +152,6 @@ public interface AlarmService extends EntityDaoService {
     void deleteEntityAlarmRelations(TenantId tenantId, EntityId entityId);
 
     long countAlarmsByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions mergedUserPermissions, AlarmCountQuery query);
+
+    PageData<EntitySubtype> findAlarmTypesByTenantId(TenantId tenantId, PageLink pageLink);
 }
