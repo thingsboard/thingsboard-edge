@@ -873,6 +873,13 @@ export interface PublishTelemetryCommand {
   snmp?: string;
 }
 
+export interface PublishLaunchCommand {
+  mqtt: {
+    linux: string;
+    windows: string;
+  };
+}
+
 export const dayOfWeekTranslations = new Array<string>(
   'device-profile.schedule-day.monday',
   'device-profile.schedule-day.tuesday',
