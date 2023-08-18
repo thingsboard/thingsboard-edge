@@ -729,6 +729,7 @@ public class UserControllerTest extends AbstractControllerTest {
         List<UserId> expectedCustomerUserIds = new ArrayList<>();
         expectedCustomerUserIds.add(customerAdminUser.getId());
         expectedCustomerUserIds.add(customerUserId);
+        expectedCustomerUserIds.add(customerAdminUserId);
         for (int i = 0; i < 45; i++) {
             User customerUser = createCustomerUser( customerId);
             customerUser.setEmail(email + StringUtils.randomAlphanumeric((int) (5 + Math.random() * 10)) + "@thingsboard.org");

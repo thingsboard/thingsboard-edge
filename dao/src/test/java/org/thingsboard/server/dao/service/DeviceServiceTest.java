@@ -90,7 +90,7 @@ public class DeviceServiceTest extends AbstractServiceTest {
 
     @Before
     public void before() {
-        anotherTenantId = createTenant();
+        anotherTenantId = createTenant().getId();
     }
 
     @After

@@ -45,4 +45,9 @@ public class TbRateLimitsException extends AbstractRateLimitException {
         super(entityType.name() + " rate limits reached!");
         this.entityType = entityType;
     }
+
+    public TbRateLimitsException(EntityType entityType, String msg) {
+        super(msg);
+        this.entityType = entityType;
+    }
 }

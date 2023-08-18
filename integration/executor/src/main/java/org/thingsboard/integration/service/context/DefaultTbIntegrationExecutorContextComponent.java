@@ -37,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.integration.api.IntegrationRateLimitService;
 import org.thingsboard.integration.api.IntegrationStatisticsService;
 import org.thingsboard.server.cache.TbCacheValueWrapper;
 import org.thingsboard.server.cache.TbTransactionalCache;
@@ -47,6 +48,7 @@ import org.thingsboard.server.service.integration.downlink.DownlinkCacheService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -60,6 +62,7 @@ public class DefaultTbIntegrationExecutorContextComponent implements TbIntegrati
     private final DownlinkCacheService downlinkCacheService;
     private final TbTransactionalCache<DeviceCacheKey, Device> deviceCache;
     private final IntegrationStatisticsService integrationStatisticsService;
+    private final IntegrationRateLimitService rateLimitService;
     private EventLoopGroup eventLoopGroup;
     private ScheduledExecutorService scheduledExecutorService;
     private ExecutorService generalExecutorService;

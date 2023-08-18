@@ -74,10 +74,10 @@ public class DashboardImportService extends BaseGroupEntityImportService<Dashboa
     @Override
     protected Dashboard prepare(EntitiesImportCtx ctx, Dashboard dashboard, Dashboard old, GroupEntityExportData<Dashboard> exportData, IdProvider idProvider) {
         for (JsonNode entityAlias : dashboard.getEntityAliasesConfig()) {
-            replaceIdsRecursively(ctx, idProvider, entityAlias, Set.of("id"), HINTS);
+            replaceIdsRecursively(ctx, idProvider, entityAlias, Set.of("id"), null, HINTS);
         }
         for (JsonNode widgetConfig : dashboard.getWidgetsConfig()) {
-            replaceIdsRecursively(ctx, idProvider, JacksonUtil.getSafely(widgetConfig, "config", "actions"), Set.of("id"), HINTS);
+            replaceIdsRecursively(ctx, idProvider, JacksonUtil.getSafely(widgetConfig, "config", "actions"), Set.of("id"), null, HINTS);
         }
         return dashboard;
     }

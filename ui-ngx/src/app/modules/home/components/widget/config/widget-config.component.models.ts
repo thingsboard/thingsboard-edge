@@ -183,6 +183,9 @@ export abstract class BasicWidgetConfigComponent extends PageComponent implement
     if (isDefinedAndNotNull(key.decimals)) {
       dataKey.decimals = key.decimals;
     }
+    if (key.color) {
+      dataKey.color = key.color;
+    }
     if (isDefinedAndNotNull(key.settings)) {
       dataKey.settings = key.settings;
     }

@@ -59,9 +59,9 @@ import {
   schedulerWeekday
 } from '@shared/models/scheduler-event.models';
 import { CollectionViewer, DataSource, SelectionModel } from '@angular/cdk/collections';
-import { BehaviorSubject, forkJoin, fromEvent, merge, Observable, of, ReplaySubject } from 'rxjs';
+import { BehaviorSubject, forkJoin, merge, Observable, of, ReplaySubject, Subject } from 'rxjs';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
-import { catchError, debounceTime, distinctUntilChanged, map, share, skip, take, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, map, share, skip, takeUntil, tap } from 'rxjs/operators';
 import { PageLink, PageQueryParam } from '@shared/models/page/page-link';
 import { SchedulerEventService } from '@core/http/scheduler-event.service';
 import { MatPaginator } from '@angular/material/paginator';
@@ -69,7 +69,7 @@ import { MatSort, SortDirection } from '@angular/material/sort';
 import { Direction, SortOrder, sortOrderFromString } from '@shared/models/page/sort-order';
 import { UtilsService } from '@core/services/utils.service';
 import { TranslateService } from '@ngx-translate/core';
-import { deepClone, isDefined, isDefinedAndNotNull, isEmptyStr, isNotEmptyStr, isNumber, isString } from '@core/utils';
+import { deepClone, isDefined, isDefinedAndNotNull, isNotEmptyStr, isNumber } from '@core/utils';
 import { MatDialog } from '@angular/material/dialog';
 import {
   SchedulerEventDialogComponent,
@@ -105,6 +105,7 @@ import { ResizeObserver } from '@juggle/resize-observer';
 import { hidePageSizePixelValue } from '@shared/models/constants';
 import { asRoughMs, rangeContainsMarker } from '@fullcalendar/core/internal';
 import * as _moment from 'moment';
+import { FormBuilder } from '@angular/forms';
 
 @Component({
   selector: 'tb-scheduler-events',
@@ -151,7 +152,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   mode = 'list';
 
   displayPagination = true;
-  pageSizeOptions;
+  pageSizeOptions: Array<number>;
   defaultPageSize = 10;
   defaultSortOrder = 'createdTime';
   defaultEventType: string;
@@ -176,10 +177,13 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
 
   calendarOptions: CalendarOptions;
 
+  textSearch = this.fb.control('', {nonNullable: true});
+
   private calendarApi: Calendar;
   private schedulerEvents: Array<SchedulerEventWithCustomerInfo> = [];
   private currentCalendarViewValue = schedulerCalendarViewValueMap.get(this.currentCalendarView);
   private widgetResize$: ResizeObserver;
+  private destroy$ = new Subject<void>();
   private schedulerEventConfigTypes: {[eventType: string]: SchedulerEventConfigType};
 
   constructor(protected store: Store<AppState>,
@@ -191,7 +195,8 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
               private dialog: MatDialog,
               private router: Router,
               private route: ActivatedRoute,
-              private cd: ChangeDetectorRef) {
+              private cd: ChangeDetectorRef,
+              private fb: FormBuilder) {
     super(store);
   }
 
@@ -221,9 +226,12 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       if (routerQueryParams.hasOwnProperty('pageSize')) {
         this.pageLink.pageSize = Number(routerQueryParams.pageSize);
       }
-      if (routerQueryParams.hasOwnProperty('textSearch') && !isEmptyStr(routerQueryParams.textSearch)) {
+      const textSearchParam = routerQueryParams.textSearch;
+      if (isNotEmptyStr(textSearchParam)) {
         this.textSearchMode = true;
-        this.pageLink.textSearch = decodeURI(routerQueryParams.textSearch);
+        const decodedTextSearch = decodeURI(textSearchParam);
+        this.pageLink.textSearch = decodedTextSearch.trim();
+        this.textSearch.setValue(decodedTextSearch, {emitEvent: false});
       }
       this.schedulerEventConfigTypes = deepClone(defaultSchedulerEventConfigTypes);
       this.dataSource = new SchedulerEventsDatasource(this.schedulerEventService, this.schedulerEventConfigTypes);
@@ -282,6 +290,8 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
     if (this.widgetResize$) {
       this.widgetResize$.disconnect();
     }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -408,27 +418,25 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
         }
       }, 0);
 
-      fromEvent(this.searchInputField.nativeElement, 'keyup')
-        .pipe(
-          debounceTime(150),
-          distinctUntilChanged(),
-          tap(() => {
-            if (this.displayPagination) {
-              this.paginator.pageIndex = 0;
-            }
-            if (this.widgetMode) {
-              this.updateData();
-            } else {
-              const queryParams: PageQueryParam = {
-                textSearch: isString(this.pageLink.textSearch) && this.pageLink.textSearch !== ''
-                  ? encodeURI(this.pageLink.textSearch) : null,
-                page: null
-              };
-              this.updatedRouterQueryParams(queryParams);
-            }
-          })
-        )
-        .subscribe();
+      this.textSearch.valueChanges.pipe(
+        debounceTime(150),
+        distinctUntilChanged((prev, current) => (this.pageLink.textSearch ?? '') === current.trim()),
+        takeUntil(this.destroy$)
+      ).subscribe(value => {
+        if (this.widgetMode) {
+          if (this.displayPagination) {
+            this.paginator.pageIndex = 0;
+          }
+          this.pageLink.textSearch = value.trim();
+          this.updateData();
+        } else {
+          const queryParams: PageQueryParam = {
+            textSearch: isNotEmptyStr(value) ? encodeURI(value) : null,
+            page: null
+          };
+          this.updatedRouterQueryParams(queryParams);
+        }
+      });
 
       let paginatorSubscription$: Observable<object>;
       const sortSubscription$: Observable<object> = this.sort.sortChange.asObservable().pipe(
@@ -447,39 +455,40 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       );
 
       if (this.displayPagination) {
-        if (this.displayPagination) {
-          paginatorSubscription$ = this.paginator.page.asObservable().pipe(
-            map((data) => ({
-              page: data.pageIndex === 0 ? null : data.pageIndex,
-              pageSize: data.pageSize === this.defaultPageSize ? null : data.pageSize
-            }))
-          );
-        }
+        paginatorSubscription$ = this.paginator.page.asObservable().pipe(
+          map((data) => ({
+            page: data.pageIndex === 0 ? null : data.pageIndex,
+            pageSize: data.pageSize === this.defaultPageSize ? null : data.pageSize
+          }))
+        );
       }
 
-      ((this.displayPagination ? merge(sortSubscription$, paginatorSubscription$) : sortSubscription$) as Observable<PageQueryParam>)
-        .pipe(
-          tap((queryParams) => {
-            if (this.widgetMode) {
-              this.updateData();
-            } else {
-              this.updatedRouterQueryParams(queryParams);
-            }
-          })
-        )
-        .subscribe();
+      ((this.displayPagination ? merge(sortSubscription$, paginatorSubscription$) : sortSubscription$) as Observable<PageQueryParam>).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe((queryParams) => {
+        if (this.widgetMode) {
+          this.updateData();
+        } else {
+          this.updatedRouterQueryParams(queryParams);
+        }
+      });
 
       if (!this.widgetMode) {
-        this.route.queryParams.pipe(skip(1)).subscribe((params: PageQueryParam) => {
+        this.route.queryParams.pipe(skip(1), takeUntil(this.destroy$)).subscribe((params: PageQueryParam) => {
           this.paginator.pageIndex = Number(params.page) || 0;
           this.paginator.pageSize = Number(params.pageSize) || this.defaultPageSize;
           this.sort.active = params.property || this.defaultSortOrder;
           this.sort.direction = (params.direction || Direction.ASC).toLowerCase() as SortDirection;
-          if (params.hasOwnProperty('textSearch') && !isEmptyStr(params.textSearch)) {
+          const textSearchParam = params.textSearch;
+          if (isNotEmptyStr(textSearchParam)) {
             this.textSearchMode = true;
-            this.pageLink.textSearch = decodeURI(params.textSearch);
+            const decodedTextSearch = decodeURI(textSearchParam);
+            this.pageLink.textSearch = decodedTextSearch.trim();
+            this.textSearch.setValue(decodedTextSearch, {emitEvent: false});
           } else {
+            this.textSearchMode = false;
             this.pageLink.textSearch = null;
+            this.textSearch.reset('', {emitEvent: false});
           }
           this.updateData();
         });
@@ -517,7 +526,6 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
 
   enterFilterMode() {
     this.textSearchMode = true;
-    this.pageLink.textSearch = '';
     if (this.widgetMode) {
       this.ctx.hideTitlePanel = true;
       this.ctx.detectChanges(true);
@@ -530,20 +538,10 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
 
   exitFilterMode() {
     this.textSearchMode = false;
-    this.pageLink.textSearch = null;
-    if (this.displayPagination) {
-      this.paginator.pageIndex = 0;
-    }
+    this.textSearch.reset();
     if (this.widgetMode) {
-      this.updateData();
       this.ctx.hideTitlePanel = false;
       this.ctx.detectChanges(true);
-    } else {
-      const queryParams: PageQueryParam = {
-        textSearch: null,
-        page: null
-      };
-      this.updatedRouterQueryParams(queryParams);
     }
   }
 
@@ -750,11 +748,9 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
 
   private onDayClick(event: DateClickArg) {
     if (this.addEnabled) {
-      const calendarDate = new Date(event.date.getTime() + event.date.getTimezoneOffset() * 60 * 1000);
-      const date = toMoment(calendarDate, this.calendarApi);
       const schedulerEvent = {
         schedule: {
-          startTime: date.utc().valueOf()
+          startTime: event.date.getTime()
         },
         configuration: {
           originatorId: null,
@@ -1172,18 +1168,14 @@ class SchedulerEventsDatasource implements DataSource<SchedulerEventWithCustomer
   }
 
   masterToggle() {
-    this.entitiesSubject.pipe(
-      tap((entities) => {
-        const numSelected = this.selection.selected.length;
-        if (numSelected === entities.length) {
-          this.selection.clear();
-        } else {
-          entities.forEach(row => {
-            this.selection.select(row);
-          });
-        }
-      }),
-      take(1)
-    ).subscribe();
+    const entities = this.entitiesSubject.getValue();
+    const numSelected = this.selection.selected.length;
+    if (numSelected === entities.length) {
+      this.selection.clear();
+    } else {
+      entities.forEach(row => {
+        this.selection.select(row);
+      });
+    }
   }
 }
