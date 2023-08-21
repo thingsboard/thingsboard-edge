@@ -26,8 +26,8 @@ function decodeFrmPayload(input) {
 
     output.telemetry.HEX_bytes = bytesToHex(input);
 
-    // If we have only one byte - we cannot parse it like it is in example
-    if (input.length > 1) {
+    // If the length of the input byte array is odd - we cannot parse it using the example below
+    if (input.length > 0 && input.length % 2 == 0) {
         for (var i = 0; i < input.length; ) {
             var channel_id = input[i++];
             var channel_type = input[i++];
