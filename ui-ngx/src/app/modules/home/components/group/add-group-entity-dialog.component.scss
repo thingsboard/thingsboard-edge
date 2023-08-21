@@ -37,6 +37,10 @@
   .dialog-actions-row {
     padding: 8px;
   }
+
+  .no-padding {
+    padding: 0 !important;
+  }
 }
 
 :host-context(.tb-fullscreen-dialog .mat-mdc-dialog-container) {
