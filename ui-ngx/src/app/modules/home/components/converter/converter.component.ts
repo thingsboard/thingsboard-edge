@@ -79,7 +79,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
 
   @Input()
   set integrationType(value: IntegrationType) {
-    this._integrationType  = value;
+    this._integrationType = value;
     if (isDefinedAndNotNull(value)) {
       this.updatedOnlyKeysValue();
       this.setupDefaultScriptBody(this.entityForm.get('type').value);
@@ -87,7 +87,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   }
 
   get integrationType() {
-    return  this._integrationType;
+    return this._integrationType;
   }
 
   @Input()
@@ -187,7 +187,6 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       form.get('type').patchValue(entity.type || ConverterType.UPLINK, {emitEvent: true});
       form.get('configuration.scriptLang').patchValue(
         this.tbelEnabled ? ScriptLanguage.TBEL : ScriptLanguage.JS, {emitEvent: false});
-      form.get('type').patchValue(entity.type || ConverterType.UPLINK, {emitEvent: true});
     } else {
       form.get('type').disable({emitEvent: false});
       let scriptLang: ScriptLanguage = form.get('configuration.scriptLang').value;
@@ -241,9 +240,12 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       }
     }
 
-    this.resourcesService.loadJsonResource<string>(targetTemplateUrl).subscribe((template) => {
-      this.entityForm.get('configuration').get(targetField).patchValue(template, {emitEvent: false});
-    });
+    const scriptBody: string = this.entityForm.get('configuration').get(targetField).value;
+    if ((!scriptBody || !scriptBody.length) || isDefinedAndNotNull(this.integrationType)) {
+      this.resourcesService.loadJsonResource<string>(targetTemplateUrl).subscribe((template) => {
+        this.entityForm.get('configuration').get(targetField).patchValue(template, {emitEvent: false});
+      });
+    }
   }
 
   updateForm(entity: Converter) {
@@ -264,7 +266,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
           tbelEncoder: entity.configuration ? entity.configuration.tbelEncoder : null,
           updateOnlyKeys: entity.configuration ? entity.configuration.updateOnlyKeys : []
         }
-    });
+    }, {emitEvent: false});
     this.entityForm.patchValue({additionalInfo: {description: entity.additionalInfo ? entity.additionalInfo.description : ''}});
     this.checkIsNewConverter(entity, this.entityForm);
   }
