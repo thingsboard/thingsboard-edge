@@ -216,12 +216,13 @@ public abstract class DaoUtil {
     }
 
     public static List<EntitySubtype> convertTenantEntityTypesToDto(UUID tenantId, EntityType entityType, List<String> types) {
-        List<EntitySubtype> list = Collections.emptyList();
-        if (types != null && !types.isEmpty()) {
-            list = new ArrayList<>();
-            for (String type : types) {
-                list.add(new EntitySubtype(TenantId.fromUUID(tenantId), entityType, type));
-            }
+        if (CollectionUtils.isEmpty(types)) {
+            return Collections.emptyList();
+        }
+
+        List<EntitySubtype> list = new ArrayList<>(types.size());
+        for (String type : types) {
+            list.add(new EntitySubtype(TenantId.fromUUID(tenantId), entityType, type));
         }
         return list;
     }

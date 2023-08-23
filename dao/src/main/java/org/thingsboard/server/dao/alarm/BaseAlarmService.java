@@ -261,6 +261,7 @@ public class BaseAlarmService extends AbstractCachedEntityService<TenantId, Page
     }
 
     @Override
+    @Transactional
     public void delAlarmTypes(TenantId tenantId, Set<String> types) {
         if (!types.isEmpty() && alarmDao.removeAlarmTypes(tenantId.getId(), types)) {
             publishEvictEvent(new AlarmTypesCacheEvictEvent(tenantId));
