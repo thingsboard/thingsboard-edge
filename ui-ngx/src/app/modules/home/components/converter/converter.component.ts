@@ -186,7 +186,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     if (entity && !entity.id) {
       form.get('type').patchValue(entity.type || ConverterType.UPLINK, {emitEvent: true});
       form.get('configuration.scriptLang').patchValue(
-        this.tbelEnabled ? ScriptLanguage.TBEL : ScriptLanguage.JS, {emitEvent: false});
+        this.tbelEnabled ? ScriptLanguage.TBEL : ScriptLanguage.JS, {emitEvent: true});
     } else {
       form.get('type').disable({emitEvent: false});
       let scriptLang: ScriptLanguage = form.get('configuration.scriptLang').value;
