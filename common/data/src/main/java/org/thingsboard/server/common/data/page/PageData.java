@@ -92,10 +92,6 @@ public class PageData<T> implements Serializable {
         return hasNext;
     }
 
-    public static <T> PageData<T> emptyPageData() {
-        return new PageData<>();
-    }
-
     public <D> PageData<D> mapData(Function<T, D> mapper) {
         return new PageData<>(getData().stream().map(mapper).collect(Collectors.toList()), getTotalPages(), getTotalElements(), hasNext());
     }
