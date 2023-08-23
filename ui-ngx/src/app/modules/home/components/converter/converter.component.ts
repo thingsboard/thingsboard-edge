@@ -60,7 +60,7 @@ import {
 import { ScriptLanguage } from '@shared/models/rule-node.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { IntegrationType } from '@shared/models/integration.models';
-import { isDefinedAndNotNull } from '@core/utils';
+import { isDefinedAndNotNull, isNotEmptyStr } from '@core/utils';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { takeUntil } from 'rxjs/operators';
 import { Observable, Subject } from 'rxjs';
@@ -241,7 +241,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     }
 
     const scriptBody: string = this.entityForm.get('configuration').get(targetField).value;
-    if ((!scriptBody || !scriptBody.length) || isDefinedAndNotNull(this.integrationType)) {
+    if (!isNotEmptyStr(scriptBody) || isDefinedAndNotNull(this.integrationType)) {
       this.resourcesService.loadJsonResource<string>(targetTemplateUrl).subscribe((template) => {
         this.entityForm.get('configuration').get(targetField).patchValue(template, {emitEvent: false});
       });
@@ -250,24 +250,22 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
 
   updateForm(entity: Converter) {
     const scriptLang = entity.configuration && entity.configuration.scriptLang ? entity.configuration.scriptLang : ScriptLanguage.JS;
-    this.entityForm.patchValue({type: entity.type}, {emitEvent: false});
-    if (isDefinedAndNotNull(entity?.name)) {
-      this.entityForm.patchValue({name: entity.name});
-    }
-    if (isDefinedAndNotNull(entity?.debugMode)) {
-      this.entityForm.patchValue({debugMode: entity.debugMode});
-    }
-    this.entityForm.patchValue({configuration:
-        {
-          scriptLang,
-          decoder: entity.configuration ? entity.configuration.decoder : null,
-          tbelDecoder: entity.configuration ? entity.configuration.tbelDecoder : null,
-          encoder: entity.configuration ? entity.configuration.encoder : null,
-          tbelEncoder: entity.configuration ? entity.configuration.tbelEncoder : null,
-          updateOnlyKeys: entity.configuration ? entity.configuration.updateOnlyKeys : []
-        }
+    this.entityForm.patchValue({
+      type: entity.type,
+      name: entity?.name ? entity.name : '',
+      debugMode: entity?.debugMode ? entity.debugMode : true,
+      configuration: {
+        scriptLang,
+        decoder: entity.configuration ? entity.configuration.decoder : null,
+        tbelDecoder: entity.configuration ? entity.configuration.tbelDecoder : null,
+        encoder: entity.configuration ? entity.configuration.encoder : null,
+        tbelEncoder: entity.configuration ? entity.configuration.tbelEncoder : null,
+        updateOnlyKeys: entity.configuration ? entity.configuration.updateOnlyKeys : []
+      },
+      additionalInfo: {
+        description: entity.additionalInfo ? entity.additionalInfo.description : ''
+      }
     }, {emitEvent: false});
-    this.entityForm.patchValue({additionalInfo: {description: entity.additionalInfo ? entity.additionalInfo.description : ''}});
     this.checkIsNewConverter(entity, this.entityForm);
   }
 
