@@ -6154,6 +6154,8 @@
         "captcha-site-key": "reCAPTCHA site key",
         "captcha-secret-key": "reCAPTCHA secret key",
         "notification-email": "Notification email",
+        "notification-email-invalid": "Invalid email format.",
+        "notification-email-required": "Notification email is required.",
         "privacy-policy-text": "Privacy policy text",
         "terms-of-use-text": "Terms of Use text",
         "text-message-page": "Text Message for signup page",
