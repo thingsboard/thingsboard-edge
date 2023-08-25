@@ -481,7 +481,7 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
         } else if (value === 'actions') {
           title = 'Actions';
         } else {
-          title = header.dataKey.name;
+          title = header.dataKey.label;
         }
         return {
           title,

@@ -82,7 +82,8 @@ export class NotificationSettingsComponent extends PageComponent implements OnIn
 
   private getNotificationDeliveryMethods(): NotificationDeliveryMethod[] {
     const deliveryMethods = new Set([
-      NotificationDeliveryMethod.SLACK
+      NotificationDeliveryMethod.SLACK,
+      NotificationDeliveryMethod.MICROSOFT_TEAMS
     ]);
     return Object.values(NotificationDeliveryMethod).filter(type => !deliveryMethods.has(type));
   }
