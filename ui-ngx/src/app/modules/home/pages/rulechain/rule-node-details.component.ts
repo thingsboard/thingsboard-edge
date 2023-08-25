@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChange, SimpleChanges, ViewChild } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -132,6 +132,17 @@ export class RuleNodeDetailsComponent extends PageComponent implements OnInit, O
         if (propName === 'ruleNode') {
           this.buildForm();
         }
+      }
+    }
+    this.disableControl(changes.isEdit, changes.isReadOnly);
+  }
+
+  private disableControl(isEdit: SimpleChange, isReadOnly: SimpleChange) {
+    if (isEdit.currentValue !== isEdit.previousValue || isReadOnly.currentValue !== isReadOnly.previousValue) {
+      if (!isEdit.currentValue || isReadOnly.currentValue) {
+        this.ruleNodeFormGroup.disable({emitEvent: false});
+      } else {
+        this.ruleNodeFormGroup.enable({emitEvent: false});
       }
     }
   }
