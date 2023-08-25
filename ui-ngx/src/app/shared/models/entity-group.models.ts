@@ -108,7 +108,7 @@ export interface EntityGroupSettings {
   enableDashboardsManagement: boolean;
   enableEdgesManagement: boolean;
   enableSchedulerEventsManagement: boolean;
-  hideStepper: boolean;
+  addDialogOwnerAndGroupWizard: boolean;
 }
 
 export enum EntityGroupSortOrder {

@@ -109,7 +109,7 @@ export class AddGroupEntityDialogComponent extends
   groupMode = false;
   initialOwnerId: EntityId;
   initialGroups: EntityInfoData[];
-  hideStepper = false;
+  addDialogOwnerAndGroupWizard = true;
 
   private subscriptions: Subscription[] = [];
 
@@ -136,7 +136,7 @@ export class AddGroupEntityDialogComponent extends
     this.entityType = this.groupMode ? this.entityGroup.type : this.entitiesTableConfig.entityType;
     this.translations = this.entitiesTableConfig.entityTranslations;
     this.resources = this.entitiesTableConfig.entityResources;
-    this.hideStepper = this.entitiesTableConfig.hideStepper;
+    this.addDialogOwnerAndGroupWizard = this.entitiesTableConfig.addDialogOwnerAndGroupWizard;
     this.entity = {
       id: {
         entityType: this.entityType,
@@ -196,7 +196,7 @@ export class AddGroupEntityDialogComponent extends
               useValue: this.entitiesTableConfig
             }
           ],
-          parent: this.hideStepper ? null : this.detailsFormStepContainerRef.injector
+          parent: this.addDialogOwnerAndGroupWizard ? this.detailsFormStepContainerRef.injector : null
         }
       );
       const componentRef = viewContainerRef.createComponent(
@@ -278,7 +278,7 @@ export class AddGroupEntityDialogComponent extends
   }
 
   allValid(): boolean {
-    if (this.hideStepper) {
+    if (!this.addDialogOwnerAndGroupWizard) {
       this.detailsForm.markAllAsTouched();
       return this.detailsForm.valid && this.ownerAndGroupsFormGroup.valid;
     }

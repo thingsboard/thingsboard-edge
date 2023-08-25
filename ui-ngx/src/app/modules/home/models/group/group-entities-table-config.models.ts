@@ -123,7 +123,7 @@ export class GroupEntityTableConfig<T extends BaseData<HasId>> extends EntityTab
     this.defaultPageSize = this.settings.defaultPageSize;
     this.detailsPanelEnabled = this.settings.detailsMode !== EntityGroupDetailsMode.disabled;
     this.deleteEnabled = () => this.settings.enableDelete;
-    this.hideStepper = this.settings.hideStepper;
+    this.addDialogOwnerAndGroupWizard = this.settings.addDialogOwnerAndGroupWizard;
   }
 
 }
