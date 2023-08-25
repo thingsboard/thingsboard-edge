@@ -486,7 +486,6 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
             this.pageLink.textSearch = decodedTextSearch.trim();
             this.textSearch.setValue(decodedTextSearch, {emitEvent: false});
           } else {
-            this.textSearchMode = false;
             this.pageLink.textSearch = null;
             this.textSearch.reset('', {emitEvent: false});
           }
