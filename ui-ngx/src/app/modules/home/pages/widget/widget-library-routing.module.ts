@@ -93,35 +93,28 @@ export class WidgetEditorDataResolver implements Resolve<WidgetEditorData> {
 
   resolve(route: ActivatedRouteSnapshot): Observable<WidgetEditorData> {
     const widgetTypeId = route.params.widgetTypeId;
-    return this.widgetsService.getWidgetTypeById(widgetTypeId).pipe(
-      map((result) => ({
+    if (!widgetTypeId || Object.keys(widgetType).includes(widgetTypeId)) {
+      let widgetTypeParam = widgetTypeId as widgetType;
+      if (!widgetTypeParam) {
+        widgetTypeParam = widgetType.timeseries;
+      }
+      return this.widgetsService.getWidgetTemplate(widgetTypeParam).pipe(
+        map((widget) => {
+          widget.widgetName = null;
+          return {
+            widgetTypeDetails: null,
+            widget
+          };
+        })
+      );
+    } else {
+      return this.widgetsService.getWidgetTypeById(widgetTypeId).pipe(
+        map((result) => ({
           widgetTypeDetails: result,
           widget: detailsToWidgetInfo(result)
         }))
-    );
-  }
-}
-
-@Injectable()
-export class WidgetEditorAddDataResolver implements Resolve<WidgetEditorData> {
-
-  constructor(private widgetsService: WidgetService) {
-  }
-
-  resolve(route: ActivatedRouteSnapshot): Observable<WidgetEditorData> {
-    let widgetTypeParam = route.params.widgetType as widgetType;
-    if (!widgetTypeParam) {
-      widgetTypeParam = widgetType.timeseries;
+      );
     }
-    return this.widgetsService.getWidgetTemplate(widgetTypeParam).pipe(
-      map((widget) => {
-        widget.widgetName = null;
-        return {
-          widgetTypeDetails: null,
-          widget
-        };
-      })
-    );
   }
 }
 
@@ -129,7 +122,9 @@ export const widgetTypesBreadcumbLabelFunction: BreadCrumbLabelFunction<any> = (
   route.data.widgetsBundle.title);
 
 export const widgetEditorBreadcumbLabelFunction: BreadCrumbLabelFunction<WidgetEditorComponent> =
-  ((route, translate, component) => component ? component.widget.widgetName : '');
+  ((route, translate, component) =>
+    component?.widget?.widgetName ?
+      (component.widget.widgetName + (component.widget.deprecated ? ` (${translate.instant('widget.deprecated')})` : '')) : '');
 
 export const widgetsBundlesRoutes: Routes = [
   {
@@ -190,22 +185,6 @@ export const widgetsBundlesRoutes: Routes = [
             resolve: {
               widgetEditorData: WidgetEditorDataResolver
             }
-          },
-          {
-            path: 'add/:widgetType',
-            component: WidgetEditorComponent,
-            canDeactivate: [ConfirmOnExitGuard],
-            data: {
-              auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
-              title: 'widget.editor',
-              breadcrumb: {
-                labelFunction: widgetEditorBreadcumbLabelFunction,
-                icon: 'insert_chart'
-              } as BreadCrumbConfig<WidgetEditorComponent>
-            },
-            resolve: {
-              widgetEditorData: WidgetEditorAddDataResolver
-            }
           }
         ]
       }
@@ -231,7 +210,11 @@ const routes: Routes = [
   },
   {
     path: 'widgets-bundles/:widgetsBundleId/widgetTypes/add/:widgetType',
-    redirectTo: '/resources/widgets-bundles/:widgetsBundleId/widgetTypes/add/:widgetType',
+    redirectTo: '/resources/widgets-bundles/:widgetsBundleId/widgetTypes/:widgetType',
+  },
+  {
+    path: 'resources/widgets-bundles/:widgetsBundleId/widgetTypes/add/:widgetType',
+    redirectTo: '/resources/widgets-bundles/:widgetsBundleId/widgetTypes/:widgetType',
   }
 ];
 
@@ -243,8 +226,7 @@ const routes: Routes = [
     WidgetsBundlesTableConfigResolver,
     WidgetsBundleResolver,
     WidgetsTypesDataResolver,
-    WidgetEditorDataResolver,
-    WidgetEditorAddDataResolver
+    WidgetEditorDataResolver
   ]
 })
 export class WidgetLibraryRoutingModule { }
