@@ -114,6 +114,9 @@ export class ImageInputComponent extends PageComponent implements AfterViewInit,
   imageCleared = new EventEmitter();
 
   @Input()
+  showClearButton = true;
+
+  @Input()
   showPreview = true;
 
   imageType: string;
