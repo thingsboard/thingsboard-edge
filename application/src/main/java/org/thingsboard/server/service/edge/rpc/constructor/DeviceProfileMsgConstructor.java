@@ -69,9 +69,10 @@ public class DeviceProfileMsgConstructor {
             builder.setSoftwareIdMSB(deviceProfile.getSoftwareId().getId().getMostSignificantBits())
                     .setSoftwareIdLSB(deviceProfile.getSoftwareId().getId().getLeastSignificantBits());
         }
-        if (deviceProfile.getDefaultEdgeRuleChainId() != null) {
-            builder.setDefaultRuleChainIdMSB(deviceProfile.getDefaultEdgeRuleChainId().getId().getMostSignificantBits())
-                    .setDefaultRuleChainIdLSB(deviceProfile.getDefaultEdgeRuleChainId().getId().getLeastSignificantBits());
+        // on edge and cloud different checks
+        if (deviceProfile.getDefaultRuleChainId() != null) {
+            builder.setDefaultRuleChainIdMSB(deviceProfile.getDefaultRuleChainId().getId().getMostSignificantBits())
+                    .setDefaultRuleChainIdLSB(deviceProfile.getDefaultRuleChainId().getId().getLeastSignificantBits());
         }
         if (deviceProfile.getDefaultDashboardId() != null) {
             builder.setDefaultDashboardIdMSB(deviceProfile.getDefaultDashboardId().getId().getMostSignificantBits())

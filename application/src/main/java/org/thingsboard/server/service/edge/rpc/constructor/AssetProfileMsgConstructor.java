@@ -49,9 +49,10 @@ public class AssetProfileMsgConstructor {
         if (assetProfile.getImage() != null) {
             builder.setImage(ByteString.copyFrom(assetProfile.getImage().getBytes(StandardCharsets.UTF_8)));
         }
-        if (assetProfile.getDefaultEdgeRuleChainId() != null) {
-            builder.setDefaultRuleChainIdMSB(assetProfile.getDefaultEdgeRuleChainId().getId().getMostSignificantBits())
-                    .setDefaultRuleChainIdLSB(assetProfile.getDefaultEdgeRuleChainId().getId().getLeastSignificantBits());
+        // on edge and cloud different checks
+        if (assetProfile.getDefaultRuleChainId() != null) {
+            builder.setDefaultRuleChainIdMSB(assetProfile.getDefaultRuleChainId().getId().getMostSignificantBits())
+                    .setDefaultRuleChainIdLSB(assetProfile.getDefaultRuleChainId().getId().getLeastSignificantBits());
         }
         return builder.build();
     }

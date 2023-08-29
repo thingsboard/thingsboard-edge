@@ -20,6 +20,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceInfo;
 import org.thingsboard.server.common.data.DeviceInfoFilter;
@@ -27,10 +28,13 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
@@ -155,4 +159,22 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
         return msg;
     }
 
+    @Override
+    protected void setDefaultRuleChainId(DeviceProfile deviceProfile, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
+        UUID defaultRuleChainUUID = safeGetUUID(deviceProfileUpdateMsg.getDefaultRuleChainIdMSB(), deviceProfileUpdateMsg.getDefaultRuleChainIdLSB());
+        RuleChain ruleChain = ruleChainService.findRuleChainById(deviceProfile.getTenantId(), new RuleChainId(defaultRuleChainUUID));
+        deviceProfile.setDefaultRuleChainId(ruleChain != null ? ruleChain.getId() : null);
+    }
+
+    @Override
+    protected void setDefaultEdgeRuleChainId(DeviceProfile deviceProfile, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
+        // do nothing on edge
+    }
+
+    @Override
+    protected void setDefaultDashboardId(DeviceProfile deviceProfile, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
+        UUID defaultDashboardUUID = safeGetUUID(deviceProfileUpdateMsg.getDefaultDashboardIdMSB(), deviceProfileUpdateMsg.getDefaultDashboardIdLSB());
+        DashboardInfo dashboard = dashboardService.findDashboardInfoById(deviceProfile.getTenantId(), new DashboardId(defaultDashboardUUID));
+        deviceProfile.setDefaultDashboardId(dashboard != null ? dashboard.getId() : null);
+    }
 }
