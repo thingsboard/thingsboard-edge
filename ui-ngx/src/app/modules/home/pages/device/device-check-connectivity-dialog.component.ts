@@ -90,7 +90,6 @@ export class DeviceCheckConnectivityDialogComponent extends
 
   showDontShowAgain: boolean;
   dialogTitle: string;
-  closeButtonLabel: string;
 
   notShowAgain = false;
 
@@ -118,11 +117,9 @@ export class DeviceCheckConnectivityDialogComponent extends
 
     if (this.data.afterAdd) {
       this.dialogTitle = 'device.connectivity.device-created-check-connectivity';
-      this.closeButtonLabel = 'action.skip';
       this.showDontShowAgain = true;
     } else {
       this.dialogTitle = 'device.connectivity.check-connectivity';
-      this.closeButtonLabel = 'action.close';
       this.showDontShowAgain = false;
     }
   }
