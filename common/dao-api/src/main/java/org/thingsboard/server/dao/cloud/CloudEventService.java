@@ -47,7 +47,7 @@ public interface CloudEventService {
                                                JsonNode entityBody,
                                                Long queueStartTs);
 
-    PageData<CloudEvent> findCloudEvents(TenantId tenantId, Long seqIdOStart, Long seqIdEnd, TimePageLink pageLink);
+    PageData<CloudEvent> findCloudEvents(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink);
 
     EdgeSettings findEdgeSettings(TenantId tenantId);
 
