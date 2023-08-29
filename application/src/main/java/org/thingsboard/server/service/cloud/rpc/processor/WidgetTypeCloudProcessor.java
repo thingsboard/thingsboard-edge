@@ -55,7 +55,7 @@ public class WidgetTypeCloudProcessor extends BaseEdgeProcessor {
                             widgetTypeDetails.setCreatedTime(Uuids.unixTimestamp(widgetTypeId.getId()));
                         }
                         widgetTypeDetails.setBundleAlias(widgetTypeUpdateMsg.hasBundleAlias() ? widgetTypeUpdateMsg.getBundleAlias() : null);
-                        widgetTypeDetails.setAlias(widgetTypeUpdateMsg.hasAlias() ? widgetTypeUpdateMsg.getAlias() : null);
+                        widgetTypeDetails.setFqn(widgetTypeUpdateMsg.hasFqn() ? widgetTypeUpdateMsg.getFqn() : null);
                         widgetTypeDetails.setName(widgetTypeUpdateMsg.hasName() ? widgetTypeUpdateMsg.getName() : null);
                         widgetTypeDetails.setDescriptor(widgetTypeUpdateMsg.hasDescriptorJson() ? JacksonUtil.toJsonNode(widgetTypeUpdateMsg.getDescriptorJson()) : null);
                         widgetTypeDetails.setImage(widgetTypeUpdateMsg.hasImage() ? widgetTypeUpdateMsg.getImage() : null);
