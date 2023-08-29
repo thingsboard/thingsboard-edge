@@ -467,9 +467,6 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
       this.dashboardConfiguration.entityAliases,
       this.dashboardConfiguration.filters);
 
-    // @voba - edge read-only
-    this.readonly = true;
-
     this.updateDashboardCss();
 
     if (this.widgetEditMode) {
@@ -617,7 +614,6 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     }
   }
 
-  /* @voba - merge comment
   public displayUpdateDashboardImage(): boolean {
     if (this.dashboard.configuration.settings &&
       isDefined(this.dashboard.configuration.settings.showUpdateDashboardImage)) {
@@ -625,10 +621,6 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     } else {
       return true;
     }
-  }
-   */
-  public displayUpdateDashboardImage(): boolean {
-    return false;
   }
 
   public displayDashboardTimewindow(): boolean {

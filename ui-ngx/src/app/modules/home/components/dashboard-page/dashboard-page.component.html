@@ -94,14 +94,12 @@
                   (click)="isFullscreen = !isFullscreen">
             <mat-icon>{{ isFullscreen ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
           </button>
-          <!-- @voba - merge comment
           <button [fxShow]="currentDashboardId && !isMobileApp && displayExport() && !isEdit" mat-icon-button
                   matTooltip="{{'dashboard.export' | translate}}"
                   matTooltipPosition="below"
                   (click)="exportDashboard($event)">
             <mat-icon>file_download</mat-icon>
           </button>
-          -->
           <ng-container *ngIf="!readonly && !isEdit">
             <button fxHide.gt-md mat-icon-button (click)="toggleDashboardEditMode()"
                     matTooltip="{{'dashboard.edit-mode' | translate}}"
