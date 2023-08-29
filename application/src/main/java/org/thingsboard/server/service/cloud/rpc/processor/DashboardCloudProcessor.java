@@ -20,8 +20,10 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.ShortCustomerInfo;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
@@ -32,6 +34,7 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.service.edge.rpc.processor.dashboard.BaseDashboardProcessor;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Component
@@ -98,5 +101,19 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
                 break;
         }
         return msg;
+    }
+
+    @Override
+    protected Set<ShortCustomerInfo> filterNonExistingCustomers(TenantId tenantId, Set<ShortCustomerInfo> assignedCustomers) {
+        if (assignedCustomers != null && !assignedCustomers.isEmpty()) {
+            assignedCustomers.removeIf(assignedCustomer ->
+                    checkCustomerOnEdge(tenantId, assignedCustomer.getCustomerId()) == null);
+        }
+        return assignedCustomers;
+    }
+
+    private CustomerId checkCustomerOnEdge(TenantId tenantId, CustomerId customerId) {
+        Customer customer = customerService.findCustomerById(tenantId, customerId);
+        return customer != null ? customer.getId() : null;
     }
 }
