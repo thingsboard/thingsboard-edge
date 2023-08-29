@@ -549,6 +549,9 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         this.deleteSystemWidgetBundle("navigation_widgets");
         this.deleteSystemWidgetBundle("edge_widgets");
         this.deleteSystemWidgetBundle("home_page_widgets");
+        this.deleteSystemWidgetBundle("entity_widgets");
+        this.deleteSystemWidgetBundle("html_widgets");
+        this.deleteSystemWidgetBundle("tables");
         installScripts.loadSystemWidgets();
     }
 
