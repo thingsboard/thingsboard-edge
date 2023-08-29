@@ -60,7 +60,7 @@ public class MqConsumer {
         stopped = false;
         while (!stopped) {
             try {
-                if (!connected) {
+                if (!connected || consumer == null) {
                     connect(true);
                 }
                 processMessages();
@@ -72,6 +72,7 @@ public class MqConsumer {
 
     public void connect(boolean sleep) throws Exception {
         if (stopped) return;
+        String topic = String.format("%s/out/%s", accessId, (env != null ? env : MqEnv.PROD).getValue());
         try {
             if (client == null || client.isClosed()) {
                 client = PulsarClient.builder()
@@ -79,17 +80,18 @@ public class MqConsumer {
                         .allowTlsInsecureConnection(true)
                         .authentication(new MqAuthentication(accessId, accessKey))
                         .build();
+            }
+            if (consumer == null) {
                 consumer = client.newConsumer()
-                        .topic(String.format("%s/out/%s", accessId, (env != null ? env : MqEnv.PROD).getValue()))
+                        .topic(topic)
                         .subscriptionName(String.format("%s-sub", accessId))
                         .subscriptionType(SubscriptionType.Failover)
-//                        .subscriptionType(SubscriptionType.Exclusive)
                         .subscriptionTopicsMode(RegexSubscriptionMode.AllTopics)
                         .autoUpdatePartitions(Boolean.FALSE)
                         .subscribe();
-                if (!checkConnection()) {
-                    throw new RuntimeException("Cannot connect to message producer.");
-                }
+            }
+            if (!checkConnection()) {
+                throw new RuntimeException("Cannot connect to message producer.");
             }
             connected = true;
             resultHandler.onResult("CONNECT", "", null);
@@ -97,6 +99,7 @@ public class MqConsumer {
             connected = false;
             client.shutdown();
             resultHandler.onResult("CONNECT", "", e);
+            log.error("Catched error on connection to topic {}", topic, e);
             if(sleep) {
                 Thread.sleep(60 * 1000);
             }
@@ -113,6 +116,7 @@ public class MqConsumer {
             if (!client.isClosed()) {
                 client.close();
             }
+            log.error("Catched error on connection to topic {}", consumer.getTopic(), e);
             resultHandler.onResult("CONNECT", "", e);
         }
     }
@@ -128,7 +132,7 @@ public class MqConsumer {
     public void stop() throws Exception {
         stopped = true;
         if (consumer != null) {
-            consumer.unsubscribe();
+            consumer.close();
         }
         if (!client.isClosed()) {
             client.close();
