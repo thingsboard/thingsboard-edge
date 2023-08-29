@@ -160,21 +160,21 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
     }
 
     @Override
-    protected void setDefaultRuleChainId(DeviceProfile deviceProfile, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
+    protected void setDefaultRuleChainId(TenantId tenantId, DeviceProfile deviceProfile, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
         UUID defaultRuleChainUUID = safeGetUUID(deviceProfileUpdateMsg.getDefaultRuleChainIdMSB(), deviceProfileUpdateMsg.getDefaultRuleChainIdLSB());
-        RuleChain ruleChain = ruleChainService.findRuleChainById(deviceProfile.getTenantId(), new RuleChainId(defaultRuleChainUUID));
+        RuleChain ruleChain = ruleChainService.findRuleChainById(tenantId, new RuleChainId(defaultRuleChainUUID));
         deviceProfile.setDefaultRuleChainId(ruleChain != null ? ruleChain.getId() : null);
     }
 
     @Override
-    protected void setDefaultEdgeRuleChainId(DeviceProfile deviceProfile, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
+    protected void setDefaultEdgeRuleChainId(TenantId tenantId, DeviceProfile deviceProfile, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
         // do nothing on edge
     }
 
     @Override
-    protected void setDefaultDashboardId(DeviceProfile deviceProfile, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
+    protected void setDefaultDashboardId(TenantId tenantId, DeviceProfile deviceProfile, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
         UUID defaultDashboardUUID = safeGetUUID(deviceProfileUpdateMsg.getDefaultDashboardIdMSB(), deviceProfileUpdateMsg.getDefaultDashboardIdLSB());
-        DashboardInfo dashboard = dashboardService.findDashboardInfoById(deviceProfile.getTenantId(), new DashboardId(defaultDashboardUUID));
+        DashboardInfo dashboard = dashboardService.findDashboardInfoById(tenantId, new DashboardId(defaultDashboardUUID));
         deviceProfile.setDefaultDashboardId(dashboard != null ? dashboard.getId() : null);
     }
 }

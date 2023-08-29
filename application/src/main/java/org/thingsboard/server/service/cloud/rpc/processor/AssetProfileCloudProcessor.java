@@ -149,21 +149,21 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
     }
 
     @Override
-    protected void setDefaultRuleChainId(AssetProfile assetProfile, AssetProfileUpdateMsg assetProfileUpdateMsg) {
+    protected void setDefaultRuleChainId(TenantId tenantId, AssetProfile assetProfile, AssetProfileUpdateMsg assetProfileUpdateMsg) {
         UUID defaultRuleChainUUID = safeGetUUID(assetProfileUpdateMsg.getDefaultRuleChainIdMSB(), assetProfileUpdateMsg.getDefaultRuleChainIdLSB());
-        RuleChain ruleChain = ruleChainService.findRuleChainById(assetProfile.getTenantId(), new RuleChainId(defaultRuleChainUUID));
+        RuleChain ruleChain = ruleChainService.findRuleChainById(tenantId, new RuleChainId(defaultRuleChainUUID));
         assetProfile.setDefaultRuleChainId(ruleChain != null ? ruleChain.getId() : null);
     }
 
     @Override
-    protected void setDefaultEdgeRuleChainId(AssetProfile assetProfile, AssetProfileUpdateMsg assetProfileUpdateMsg) {
+    protected void setDefaultEdgeRuleChainId(TenantId tenantId, AssetProfile assetProfile, AssetProfileUpdateMsg assetProfileUpdateMsg) {
         // do nothing on edge
     }
 
     @Override
-    protected void setDefaultDashboardId(AssetProfile assetProfile, AssetProfileUpdateMsg assetProfileUpdateMsg) {
+    protected void setDefaultDashboardId(TenantId tenantId, AssetProfile assetProfile, AssetProfileUpdateMsg assetProfileUpdateMsg) {
         UUID defaultDashboardUUID = safeGetUUID(assetProfileUpdateMsg.getDefaultDashboardIdMSB(), assetProfileUpdateMsg.getDefaultDashboardIdLSB());
-        DashboardInfo dashboard = dashboardService.findDashboardInfoById(assetProfile.getTenantId(), new DashboardId(defaultDashboardUUID));
+        DashboardInfo dashboard = dashboardService.findDashboardInfoById(tenantId, new DashboardId(defaultDashboardUUID));
         assetProfile.setDefaultDashboardId(dashboard != null ? dashboard.getId() : null);
     }
 }
