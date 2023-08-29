@@ -1623,7 +1623,7 @@ export class MenuService {
           {
             name: 'dashboard.dashboards',
             icon: 'dashboard',
-            path: '/dashboardGroups',
+            path: '/dashboards',
             disabled: disabledItems.indexOf('dashboard_groups') > -1
           }
         );
@@ -2460,7 +2460,7 @@ export class MenuService {
           {
             name: 'dashboard.dashboards',
             icon: 'dashboard',
-            path: '/dashboardGroups',
+            path: '/dashboards',
             disabled: disabledItems.indexOf('dashboard_groups') > -1
           }
         ]
