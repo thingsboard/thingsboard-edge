@@ -151,7 +151,10 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
     @Override
     protected void setDefaultRuleChainId(TenantId tenantId, AssetProfile assetProfile, AssetProfileUpdateMsg assetProfileUpdateMsg) {
         UUID defaultRuleChainUUID = safeGetUUID(assetProfileUpdateMsg.getDefaultRuleChainIdMSB(), assetProfileUpdateMsg.getDefaultRuleChainIdLSB());
-        RuleChain ruleChain = ruleChainService.findRuleChainById(tenantId, new RuleChainId(defaultRuleChainUUID));
+        RuleChain ruleChain = null;
+        if (defaultRuleChainUUID != null) {
+            ruleChain = ruleChainService.findRuleChainById(tenantId, new RuleChainId(defaultRuleChainUUID));
+        }
         assetProfile.setDefaultRuleChainId(ruleChain != null ? ruleChain.getId() : null);
     }
 
@@ -163,7 +166,10 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
     @Override
     protected void setDefaultDashboardId(TenantId tenantId, AssetProfile assetProfile, AssetProfileUpdateMsg assetProfileUpdateMsg) {
         UUID defaultDashboardUUID = safeGetUUID(assetProfileUpdateMsg.getDefaultDashboardIdMSB(), assetProfileUpdateMsg.getDefaultDashboardIdLSB());
-        DashboardInfo dashboard = dashboardService.findDashboardInfoById(tenantId, new DashboardId(defaultDashboardUUID));
+        DashboardInfo dashboard = null;
+        if (defaultDashboardUUID != null) {
+            dashboard = dashboardService.findDashboardInfoById(tenantId, new DashboardId(defaultDashboardUUID));
+        }
         assetProfile.setDefaultDashboardId(dashboard != null ? dashboard.getId() : null);
     }
 }

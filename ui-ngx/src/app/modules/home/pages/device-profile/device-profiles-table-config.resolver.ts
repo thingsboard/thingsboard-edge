@@ -91,14 +91,14 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
         isEnabled: () => true,
         onAction: ($event, entity) => this.exportDeviceProfile($event, entity)
       },
+      /* @voba: not visible on edge
       {
         name: this.translate.instant('device-profile.set-default'),
         icon: 'flag',
-        // @voba - edge read-only
-        // isEnabled: (deviceProfile) => !deviceProfile.default,
-        isEnabled: (deviceProfile) => false,
+        isEnabled: (deviceProfile) => !deviceProfile.default,
         onAction: ($event, entity) => this.setDefaultDeviceProfile($event, entity)
       }
+       */
     );
 
     this.config.deleteEntityTitle = deviceProfile => this.translate.instant('device-profile.delete-device-profile-title',
@@ -117,7 +117,7 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
     this.config.entitySelectionEnabled = (deviceProfile) => deviceProfile && !deviceProfile.default;
     this.config.addActionDescriptors = this.configureAddActions();
 
-    // @voba - edge read-only
+    // @voba: device profile can't be deleted from edge
     this.config.deleteEnabled = () => false;
     this.config.entitiesDeleteEnabled = false;
 

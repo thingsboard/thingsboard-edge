@@ -75,14 +75,14 @@ export class AssetProfilesTableConfigResolver implements Resolve<EntityTableConf
         isEnabled: () => true,
         onAction: ($event, entity) => this.exportAssetProfile($event, entity)
       },
+      /* @voba: not visible on edge
       {
         name: this.translate.instant('asset-profile.set-default'),
         icon: 'flag',
-        // @voba - edge read-only
-        // isEnabled: (assetProfile) => !assetProfile.default && TB_SERVICE_QUEUE !== assetProfile.name,
-        isEnabled: (assetProfile) => false,
+        isEnabled: (assetProfile) => !assetProfile.default && TB_SERVICE_QUEUE !== assetProfile.name,
         onAction: ($event, entity) => this.setDefaultAssetProfile($event, entity)
       }
+       */
     );
 
     this.config.deleteEntityTitle = assetProfile => this.translate.instant('asset-profile.delete-asset-profile-title',
@@ -101,7 +101,7 @@ export class AssetProfilesTableConfigResolver implements Resolve<EntityTableConf
     this.config.detailsReadonly = (assetProfile) => assetProfile && TB_SERVICE_QUEUE === assetProfile.name;
     this.config.addActionDescriptors = this.configureAddActions();
 
-    // @voba - edge read-only
+    // @voba: asset profile can't be deleted from edge
     this.config.deleteEnabled = () => false;
     this.config.entitiesDeleteEnabled = false;
 

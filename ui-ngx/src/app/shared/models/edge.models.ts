@@ -50,10 +50,12 @@ export class CloudEventId implements HasUUID {
 }
 
 export enum CloudEventType {
+  TENANT = 'TENANT',
   DASHBOARD = 'DASHBOARD',
   ASSET = 'ASSET',
   DEVICE = 'DEVICE',
   DEVICE_PROFILE = 'DEVICE_PROFILE',
+  ASSET_PROFILE = 'ASSET_PROFILE',
   ENTITY_VIEW = 'ENTITY_VIEW',
   ALARM = 'ALARM',
   RULE_CHAIN = 'RULE_CHAIN',
@@ -159,10 +161,12 @@ export enum EdgeEventStatus {
 
 export const cloudEventTypeTranslations = new Map<CloudEventType, string>(
   [
+    [CloudEventType.TENANT, 'cloud-event.cloud-event-type-tenant'],
     [CloudEventType.DASHBOARD, 'cloud-event.cloud-event-type-dashboard'],
     [CloudEventType.ASSET, 'cloud-event.cloud-event-type-asset'],
     [CloudEventType.DEVICE, 'cloud-event.cloud-event-type-device'],
     [CloudEventType.DEVICE_PROFILE, 'cloud-event.cloud-event-type-device-profile'],
+    [CloudEventType.ASSET_PROFILE, 'cloud-event.cloud-event-type-asset-profile'],
     [CloudEventType.ENTITY_VIEW, 'cloud-event.cloud-event-type-entity-view'],
     [CloudEventType.ALARM, 'cloud-event.cloud-event-type-alarm'],
     [CloudEventType.RULE_CHAIN, 'cloud-event.cloud-event-type-rule-chain'],

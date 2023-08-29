@@ -162,7 +162,10 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
     @Override
     protected void setDefaultRuleChainId(TenantId tenantId, DeviceProfile deviceProfile, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
         UUID defaultRuleChainUUID = safeGetUUID(deviceProfileUpdateMsg.getDefaultRuleChainIdMSB(), deviceProfileUpdateMsg.getDefaultRuleChainIdLSB());
-        RuleChain ruleChain = ruleChainService.findRuleChainById(tenantId, new RuleChainId(defaultRuleChainUUID));
+        RuleChain ruleChain = null;
+        if (defaultRuleChainUUID != null) {
+            ruleChain = ruleChainService.findRuleChainById(tenantId, new RuleChainId(defaultRuleChainUUID));
+        }
         deviceProfile.setDefaultRuleChainId(ruleChain != null ? ruleChain.getId() : null);
     }
 
@@ -174,7 +177,10 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
     @Override
     protected void setDefaultDashboardId(TenantId tenantId, DeviceProfile deviceProfile, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
         UUID defaultDashboardUUID = safeGetUUID(deviceProfileUpdateMsg.getDefaultDashboardIdMSB(), deviceProfileUpdateMsg.getDefaultDashboardIdLSB());
-        DashboardInfo dashboard = dashboardService.findDashboardInfoById(tenantId, new DashboardId(defaultDashboardUUID));
+        DashboardInfo dashboard = null;
+        if (defaultDashboardUUID != null) {
+            dashboard = dashboardService.findDashboardInfoById(tenantId, new DashboardId(defaultDashboardUUID));
+        }
         deviceProfile.setDefaultDashboardId(dashboard != null ? dashboard.getId() : null);
     }
 }
