@@ -102,15 +102,19 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
             case UPDATED:
             case ADDED_TO_ENTITY_GROUP:
                 Asset asset = assetService.findAssetById(cloudEvent.getTenantId(), assetId);
-                if (asset != null && !BaseAssetService.TB_SERVICE_QUEUE.equals(asset.getType())) {
-                    UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                    AssetUpdateMsg assetUpdateMsg =
-                            assetMsgConstructor.constructAssetUpdatedMsg(msgType, asset, entityGroupId);
-                    msg = UplinkMsg.newBuilder()
-                            .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addAssetUpdateMsg(assetUpdateMsg).build();
+                if (asset != null) {
+                    if (BaseAssetService.TB_SERVICE_QUEUE.equals(asset.getType())) {
+                        log.debug("Skipping TbServiceQueue asset [{}]", cloudEvent);
+                    } else {
+                        UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
+                        AssetUpdateMsg assetUpdateMsg =
+                                assetMsgConstructor.constructAssetUpdatedMsg(msgType, asset, entityGroupId);
+                        msg = UplinkMsg.newBuilder()
+                                .setUplinkMsgId(EdgeUtils.nextPositiveInt())
+                                .addAssetUpdateMsg(assetUpdateMsg).build();
+                    }
                 } else {
-                    log.info("Skipping event as asset was not found [{}]", cloudEvent);
+                    log.debug("Skipping event as asset was not found [{}]", cloudEvent);
                 }
                 break;
             case DELETED:
