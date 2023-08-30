@@ -51,8 +51,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
             switch (assetUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    CustomerId customerId = safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId);
-                    saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, customerId, queueStartTs);
+                    saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, edgeCustomerId, queueStartTs);
                     return requestForAdditionalData(tenantId, assetId, queueStartTs);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     Asset assetById = assetService.findAssetById(tenantId, assetId);
@@ -87,15 +86,19 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
             case ASSIGNED_TO_CUSTOMER:
             case UNASSIGNED_FROM_CUSTOMER:
                 Asset asset = assetService.findAssetById(cloudEvent.getTenantId(), assetId);
-                if (asset != null && !BaseAssetService.TB_SERVICE_QUEUE.equals(asset.getType())) {
-                    UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                    AssetUpdateMsg assetUpdateMsg =
-                            assetMsgConstructor.constructAssetUpdatedMsg(msgType, asset);
-                    msg = UplinkMsg.newBuilder()
-                            .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addAssetUpdateMsg(assetUpdateMsg).build();
+                if (asset != null) {
+                    if (BaseAssetService.TB_SERVICE_QUEUE.equals(asset.getType())) {
+                        log.debug("Skipping TbServiceQueue asset [{}]", cloudEvent);
+                    } else {
+                        UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
+                        AssetUpdateMsg assetUpdateMsg =
+                                assetMsgConstructor.constructAssetUpdatedMsg(msgType, asset);
+                        msg = UplinkMsg.newBuilder()
+                                .setUplinkMsgId(EdgeUtils.nextPositiveInt())
+                                .addAssetUpdateMsg(assetUpdateMsg).build();
+                    }
                 } else {
-                    log.info("Skipping event as asset was not found [{}]", cloudEvent);
+                    log.debug("Skipping event as asset was not found [{}]", cloudEvent);
                 }
                 break;
             case DELETED:

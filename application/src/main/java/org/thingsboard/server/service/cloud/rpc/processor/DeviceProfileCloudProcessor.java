@@ -74,7 +74,9 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
                         }
                         if (removePreviousProfile) {
                             updateDevices(tenantId, deviceProfileId, deviceProfileByName.getId());
-                            deviceProfileService.deleteDeviceProfile(tenantId, deviceProfileByName.getId());
+                            if (!deviceProfileByName.isDefault()) {
+                                deviceProfileService.deleteDeviceProfile(tenantId, deviceProfileByName.getId());
+                            }
                         }
                         notifyCluster(tenantId, deviceProfile, created);
                     } finally {

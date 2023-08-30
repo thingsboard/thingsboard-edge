@@ -323,7 +323,7 @@ public class CloudManagerService {
         if (cloudEvents.getData().isEmpty()) {
             // check if new cycle started (seq_id starts from '1')
             cloudEvents = findCloudEventsFromBeginning(pageLink);
-            return !cloudEvents.getData().isEmpty();
+            return cloudEvents.getData().stream().anyMatch(ce -> ce.getSeqId() == 1);
         } else {
             return true;
         }
