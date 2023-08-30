@@ -114,7 +114,6 @@ public class WidgetTypeServiceImpl extends AbstractEntityService implements Widg
                     .entityId(widgetTypeDetails.getId()).added(widgetTypeDetails.getId() == null).build());
         }
         return widgetTypeDetails;
->>>>>>> pe/develop/3.5.2
     }
 
     @Override

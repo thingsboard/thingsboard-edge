@@ -93,6 +93,7 @@ export class AssetProfilesTableConfigResolver implements Resolve<EntityTableConf
         isEnabled: () => true,
         onAction: ($event, entity) => this.exportAssetProfile($event, entity)
       },
+      /* @voba: not visible on edge
       {
         name: this.translate.instant('asset-profile.set-default'),
         icon: 'flag',
@@ -101,6 +102,7 @@ export class AssetProfilesTableConfigResolver implements Resolve<EntityTableConf
           TB_SERVICE_QUEUE !== assetProfile.name,
         onAction: ($event, entity) => this.setDefaultAssetProfile($event, entity)
       }
+       */
     );
 
     this.config.deleteEntityTitle = assetProfile => this.translate.instant('asset-profile.delete-asset-profile-title',

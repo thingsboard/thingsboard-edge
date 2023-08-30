@@ -171,6 +171,7 @@
               <mat-icon>close</mat-icon>{{ 'action.cancel' | translate }}</button>
             <mat-divider class="tb-toolbar-divider" vertical></mat-divider>
           </ng-container>
+          <!-- @voba: not visible on edge
           <ng-container *ngIf="currentDashboardId && isEdit && ([resource.VERSION_CONTROL, resource.DASHBOARD] | hasGenericPermission: operation.WRITE)">
             <button fxHide.lt-lg fxHide.gt-lg mat-icon-button
                     #versionControlIconButton
@@ -188,6 +189,7 @@
               {{'version-control.versions' | translate}}
             </button>
           </ng-container>
+          -->
           <ng-container *ngIf="isEdit">
             <button fxHide.gt-lg mat-icon-button
                     matTooltip="{{ 'filter.filters' | translate }}"
