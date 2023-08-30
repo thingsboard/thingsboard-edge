@@ -159,6 +159,8 @@ public class DataConstants {
     public static final String ENTITY_CREATION_ON_EDGE_NOT_SUPPORTED_WARNING = "Please create it on the cloud and assign to edge - " +
             "creation of this entity type is not supported on the edge at the moment!";
 
+    public static final String MQTT_TOPIC = "mqttTopic";
+
     public static final String MAIN_QUEUE_NAME = "Main";
     public static final String MAIN_QUEUE_TOPIC = "tb_rule_engine.main";
     public static final String HP_QUEUE_NAME = "HighPriority";

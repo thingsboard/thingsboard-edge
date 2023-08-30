@@ -75,13 +75,6 @@
           {{ 'asset.name-max-length' | translate }}
         </mat-error>
       </mat-form-field>
-      <tb-asset-profile-autocomplete
-        [selectDefaultProfile]="isAdd"
-        required
-        formControlName="assetProfileId"
-        [showDetailsPageLink]="resource.ASSET_PROFILE | hasGenericPermission : operation.READ"
-        (assetProfileUpdated)="onAssetProfileUpdated()">
-      </tb-asset-profile-autocomplete>
       <mat-form-field class="mat-block">
         <mat-label translate>asset.label</mat-label>
         <input matInput formControlName="label">
@@ -89,6 +82,13 @@
           {{ 'asset.label-max-length' | translate }}
         </mat-error>
       </mat-form-field>
+      <tb-asset-profile-autocomplete
+        [selectDefaultProfile]="isAdd"
+        required
+        formControlName="assetProfileId"
+        [showDetailsPageLink]="resource.ASSET_PROFILE | hasGenericPermission : operation.READ"
+        (assetProfileUpdated)="onAssetProfileUpdated()">
+      </tb-asset-profile-autocomplete>
       <div formGroupName="additionalInfo">
         <mat-form-field class="mat-block">
           <mat-label translate>asset.description</mat-label>

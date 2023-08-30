@@ -29,34 +29,22 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { SharedModule } from '@shared/shared.module';
-import { WidgetsBundleComponent } from '@modules/home/pages/widget/widgets-bundle.component';
-import { WidgetLibraryRoutingModule } from '@modules/home/pages/widget/widget-library-routing.module';
-import { HomeComponentsModule } from '@modules/home/components/home-components.module';
-import { WidgetLibraryComponent } from './widget-library.component';
-import { WidgetEditorComponent } from '@home/pages/widget/widget-editor.component';
-import { SelectWidgetTypeDialogComponent } from '@home/pages/widget/select-widget-type-dialog.component';
-import { SaveWidgetTypeAsDialogComponent } from './save-widget-type-as-dialog.component';
-import { WidgetsBundleTabsComponent } from '@home/pages/widget/widgets-bundle-tabs.component';
-import { MoveWidgetTypeDialogComponent } from '@home/pages/widget/move-widget-type-dialog.component';
+import { Component, Input } from '@angular/core';
+import { TooltipPosition } from '@angular/material/tooltip';
 
-@NgModule({
-  declarations: [
-    WidgetsBundleComponent,
-    WidgetLibraryComponent,
-    WidgetEditorComponent,
-    SelectWidgetTypeDialogComponent,
-    SaveWidgetTypeAsDialogComponent,
-    MoveWidgetTypeDialogComponent,
-    WidgetsBundleTabsComponent
-  ],
-  imports: [
-    CommonModule,
-    SharedModule,
-    HomeComponentsModule,
-    WidgetLibraryRoutingModule
-  ]
+@Component({
+  selector: '[tb-hint-tooltip-icon]',
+  templateUrl: './hint-tooltip-icon.component.html',
+  styleUrls: ['./hint-tooltip-icon.component.scss']
 })
-export class WidgetLibraryModule { }
+export class HintTooltipIconComponent {
+
+  @Input('tb-hint-tooltip-icon') tooltipText: string;
+
+  @Input()
+  tooltipPosition: TooltipPosition = 'right';
+
+  @Input()
+  hintIcon = 'info';
+
+}

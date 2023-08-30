@@ -199,6 +199,7 @@ import * as ToggleSelectComponent from '@shared/components/toggle-select.compone
 import * as UnitInputComponent from '@shared/components/unit-input.component';
 import * as MaterialIconsComponent from '@shared/components/material-icons.component';
 import * as TbIconComponent from '@shared/components/icon.component';
+import * as HintTooltipIconComponent from '@shared/components/hint-tooltip-icon.component';
 import * as EntityGroupAutocompleteComponent from '@shared/components/group/entity-group-autocomplete.component';
 import * as OwnerAutocompleteComponent from '@shared/components/group/owner-autocomplete.component';
 import * as EntityGroupSelectComponent from '@shared/components/group/entity-group-select.component';
@@ -543,7 +544,8 @@ class ModulesMap implements IModulesMap {
     '@shared/components/toggle-select.component': ToggleSelectComponent,
     '@shared/components/unit-input.component': UnitInputComponent,
     '@shared/components/material-icons.component': MaterialIconsComponent,
-      '@shared/components/icon.component': TbIconComponent,
+    '@shared/components/icon.component': TbIconComponent,
+    '@shared/components/hint-tooltip-icon.component': HintTooltipIconComponent,
     '@shared/components/group/entity-group-autocomplete.component': EntityGroupAutocompleteComponent,
     '@shared/components/group/owner-autocomplete.component': OwnerAutocompleteComponent,
     '@shared/components/group/entity-group-select.component': EntityGroupSelectComponent,
