@@ -192,7 +192,7 @@ public class AssetClientTest extends AbstractContainerTest {
         assignEntityGroupToEdge(savedAssetEntityGroup);
 
         String assetName = "Edge Asset_" + StringUtils.randomAlphanumeric(15);
-        Asset savedAssetOnCloud = saveAssetOnCloud(assetName, "Building", savedAssetEntityGroup.getId());
+        Asset savedAssetOnCloud = saveAssetOnCloud(assetName, "Building", null);
         Asset savedAssetOnEdge = saveAssetOnEdge(assetName, "Building", savedAssetEntityGroup.getId());
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
