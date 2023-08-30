@@ -39,10 +39,8 @@ import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
-import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
-import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
@@ -53,7 +51,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
-public class BaseDeviceProfileProcessor extends BaseEdgeProcessor {
+public abstract class BaseDeviceProfileProcessor extends BaseEdgeProcessor {
 
     @Autowired
     private DataDecodingEncodingService dataDecodingEncodingService;
@@ -71,7 +69,6 @@ public class BaseDeviceProfileProcessor extends BaseEdgeProcessor {
             }
             deviceProfile.setName(deviceProfileUpdateMsg.getName());
             deviceProfile.setDescription(deviceProfileUpdateMsg.hasDescription() ? deviceProfileUpdateMsg.getDescription() : null);
-            deviceProfile.setDefault(deviceProfileUpdateMsg.getDefault());
             deviceProfile.setType(DeviceProfileType.valueOf(deviceProfileUpdateMsg.getType()));
             deviceProfile.setTransportType(deviceProfileUpdateMsg.hasTransportType()
                     ? DeviceTransportType.valueOf(deviceProfileUpdateMsg.getTransportType()) : DeviceTransportType.DEFAULT);
@@ -87,11 +84,9 @@ public class BaseDeviceProfileProcessor extends BaseEdgeProcessor {
                     dataDecodingEncodingService.decode(deviceProfileUpdateMsg.getProfileDataBytes().toByteArray());
             deviceProfile.setProfileData(profileDataOpt.orElse(null));
 
-            UUID defaultRuleChainUUID = safeGetUUID(deviceProfileUpdateMsg.getDefaultRuleChainIdMSB(), deviceProfileUpdateMsg.getDefaultRuleChainIdLSB());
-            deviceProfile.setDefaultRuleChainId(defaultRuleChainUUID != null ? new RuleChainId(defaultRuleChainUUID) : null);
-
-            UUID defaultDashboardUUID = safeGetUUID(deviceProfileUpdateMsg.getDefaultDashboardIdMSB(), deviceProfileUpdateMsg.getDefaultDashboardIdLSB());
-            deviceProfile.setDefaultDashboardId(defaultDashboardUUID != null ? new DashboardId(defaultDashboardUUID) : null);
+            setDefaultRuleChainId(tenantId, deviceProfile, deviceProfileUpdateMsg);
+            setDefaultEdgeRuleChainId(tenantId, deviceProfile, deviceProfileUpdateMsg);
+            setDefaultDashboardId(tenantId, deviceProfile, deviceProfileUpdateMsg);
 
             String defaultQueueName = StringUtils.isNotBlank(deviceProfileUpdateMsg.getDefaultQueueName())
                     ? deviceProfileUpdateMsg.getDefaultQueueName() : null;
@@ -103,7 +98,6 @@ public class BaseDeviceProfileProcessor extends BaseEdgeProcessor {
             UUID softwareUUID = safeGetUUID(deviceProfileUpdateMsg.getSoftwareIdMSB(), deviceProfileUpdateMsg.getSoftwareIdLSB());
             deviceProfile.setSoftwareId(softwareUUID != null ? new OtaPackageId(softwareUUID) : null);
 
-
             deviceProfileValidator.validate(deviceProfile, DeviceProfile::getTenantId);
             if (created) {
                 deviceProfile.setId(deviceProfileId);
@@ -114,4 +108,10 @@ public class BaseDeviceProfileProcessor extends BaseEdgeProcessor {
         }
         return created;
     }
+
+    protected abstract void setDefaultRuleChainId(TenantId tenantId, DeviceProfile deviceProfile, DeviceProfileUpdateMsg deviceProfileUpdateMsg);
+
+    protected abstract void setDefaultEdgeRuleChainId(TenantId tenantId, DeviceProfile deviceProfile, DeviceProfileUpdateMsg deviceProfileUpdateMsg);
+
+    protected abstract void setDefaultDashboardId(TenantId tenantId, DeviceProfile deviceProfile, DeviceProfileUpdateMsg deviceProfileUpdateMsg);
 }
