@@ -31,20 +31,22 @@
 
 import { Component, OnInit } from '@angular/core';
 import { UserService } from '@core/http/user.service';
-import { User } from '@shared/models/user.model';
+import { AuthUser, User } from '@shared/models/user.model';
 import { Authority } from '@shared/models/authority.enum';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
-import { ActionAuthUpdateUserDetails } from '@core/auth/auth.actions';
+import { ActionAuthUpdateAuthUser, ActionAuthUpdateUserDetails } from '@core/auth/auth.actions';
 import { environment as env } from '@env/environment';
 import { TranslateService } from '@ngx-translate/core';
 import { ActionSettingsChangeLanguage } from '@core/settings/settings.actions';
 import { ActivatedRoute } from '@angular/router';
 import { isDefinedAndNotNull } from '@core/utils';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { AuthService } from '@core/auth/auth.service';
 
 @Component({
   selector: 'tb-profile',
@@ -60,12 +62,16 @@ export class ProfileComponent extends PageComponent implements OnInit, HasConfir
 
   authState = getCurrentAuthState(this.store);
 
+  private readonly authUser: AuthUser;
+
   constructor(protected store: Store<AppState>,
               private route: ActivatedRoute,
               private userService: UserService,
+              private authService: AuthService,
               private translate: TranslateService,
               public fb: UntypedFormBuilder) {
     super(store);
+    this.authUser = getCurrentAuthUser(this.store);
   }
 
   ngOnInit() {
@@ -108,7 +114,13 @@ export class ProfileComponent extends PageComponent implements OnInit, HasConfir
             id: user.id,
             lastName: user.lastName,
           } }));
+        this.store.dispatch(new ActionAuthUpdateAuthUser({ authUser:  {...this.authUser, ...{
+              sub: user.email,
+              firstName: user.firstName,
+              lastName: user.lastName,
+            }}}));
         this.store.dispatch(new ActionSettingsChangeLanguage({ userLang: user.additionalInfo.lang }));
+        this.authService.refreshJwtToken(false);
       }
     );
   }
