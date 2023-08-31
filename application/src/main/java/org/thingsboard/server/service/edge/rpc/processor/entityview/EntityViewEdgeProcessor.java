@@ -32,11 +32,9 @@ package org.thingsboard.server.service.edge.rpc.processor.entityview;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
@@ -115,8 +113,8 @@ public class EntityViewEdgeProcessor extends BaseEntityViewProcessor {
         if (created) {
             createRelationFromEdge(tenantId, edge.getId(), entityViewId);
             pushAssetCreatedEventToRuleEngine(tenantId, edge, entityViewId);
-            addEntityViewToEdgeAllEntityViewGroup(tenantId, edge, entityViewId);
         }
+        addEntityViewToEdgeAllEntityViewGroup(tenantId, edge, entityViewId);
         Boolean assetNameUpdated = resultPair.getSecond();
         if (assetNameUpdated) {
             saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.ENTITY_VIEW, EdgeEventActionType.UPDATED, entityViewId, null);
@@ -132,47 +130,42 @@ public class EntityViewEdgeProcessor extends BaseEntityViewProcessor {
             tbClusterService.pushMsgToRuleEngine(tenantId, entityViewId, tbMsg, new TbQueueCallback() {
                 @Override
                 public void onSuccess(TbQueueMsgMetadata metadata) {
-                    log.debug("Successfully send ENTITY_CREATED EVENT to rule engine [{}]", entityView);
+                    log.debug("[{}] Successfully send ENTITY_CREATED EVENT to rule engine [{}]", tenantId, entityView);
                 }
 
                 @Override
                 public void onFailure(Throwable t) {
-                    log.warn("Failed to send ENTITY_CREATED EVENT to rule engine [{}]", entityView, t);
+                    log.warn("[{}] Failed to send ENTITY_CREATED EVENT to rule engine [{}]", tenantId, entityView, t);
                 }
             });
         } catch (JsonProcessingException | IllegalArgumentException e) {
-            log.warn("[{}] Failed to push entity view action to rule engine: {}", entityViewId, DataConstants.ENTITY_CREATED, e);
+            log.warn("[{}][{}] Failed to push entity view action to rule engine: {}", tenantId, entityViewId, DataConstants.ENTITY_CREATED, e);
         }
     }
 
     private void removeEntityViewFromEdgeAllEntityViewGroup(TenantId tenantId, Edge edge, EntityViewId entityViewId) {
         EntityView entityViewToDelete = entityViewService.findEntityViewById(tenantId, entityViewId);
         if (entityViewToDelete != null) {
-            ListenableFuture<EntityGroup> edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.ENTITY_VIEW);
-            Futures.addCallback(edgeDeviceGroup, new FutureCallback<>() {
-                @Override
-                public void onSuccess(EntityGroup entityGroup) {
-                    if (entityGroup != null) {
-                        entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroup.getId(), entityViewToDelete.getId());
-                    }
+            try {
+                EntityGroup edgeEntityViewGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.ENTITY_VIEW).get();
+                if (edgeEntityViewGroup != null) {
+                    entityGroupService.removeEntityFromEntityGroup(tenantId, edgeEntityViewGroup.getId(), entityViewToDelete.getId());
                 }
-
-                @Override
-                public void onFailure(@NotNull Throwable t) {
-                    log.warn("Can't remove from edge entity view group, entity view id [{}]", entityViewId, t);
-                }
-            }, dbCallbackExecutorService);
+            } catch (Exception e) {
+                log.warn("[{}] Can't delete entity view from edge entity view 'All' group, entity view id [{}]", tenantId, entityViewId, e);
+                throw new RuntimeException(e);
+            }
         }
     }
 
     private void addEntityViewToEdgeAllEntityViewGroup(TenantId tenantId, Edge edge, EntityViewId entityViewId) {
         try {
-            EntityGroup edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.ENTITY_VIEW).get();
-            if (edgeDeviceGroup != null) {
-                entityGroupService.addEntityToEntityGroup(tenantId, edgeDeviceGroup.getId(), entityViewId);
+            EntityGroup edgeEntityViewGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.ENTITY_VIEW).get();
+            if (edgeEntityViewGroup != null) {
+                entityGroupService.addEntityToEntityGroup(tenantId, edgeEntityViewGroup.getId(), entityViewId);
             }
         } catch (Exception e) {
-            log.warn("Can't add entity view to edge entity view group, entityView id [{}]", entityViewId, e);
+            log.warn("Can't add entity view to edge entity view group, entity view id [{}]", entityViewId, e);
             throw new RuntimeException(e);
         }
     }

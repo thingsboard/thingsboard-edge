@@ -57,6 +57,8 @@ import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.BlobEntityId;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -65,7 +67,10 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -653,6 +658,16 @@ public abstract class BaseEdgeProcessor {
                 return new EdgeId(new UUID(entityIdMSB, entityIdLSB));
             case ENTITY_GROUP:
                 return new EntityGroupId(new UUID(entityIdMSB, entityIdLSB));
+            case CONVERTER:
+                return new ConverterId(new UUID(entityIdMSB, entityIdLSB));
+            case INTEGRATION:
+                return new IntegrationId(new UUID(entityIdMSB, entityIdLSB));
+            case SCHEDULER_EVENT:
+                return new SchedulerEventId(new UUID(entityIdMSB, entityIdLSB));
+            case BLOB_ENTITY:
+                return new BlobEntityId(new UUID(entityIdMSB, entityIdLSB));
+            case ROLE:
+                return new RoleId(new UUID(entityIdMSB, entityIdLSB));
             default:
                 log.warn("Unsupported entity type [{}] during construct of entity id. entityIdMSB [{}], entityIdLSB [{}]",
                         entityTypeStr, entityIdMSB, entityIdLSB);
@@ -784,20 +799,10 @@ public abstract class BaseEdgeProcessor {
 
     protected void safeAddEntityToGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
         if (entityGroupId != null && !ModelConstants.NULL_UUID.equals(entityGroupId.getId())) {
-            ListenableFuture<EntityGroup> entityGroupFuture = entityGroupService.findEntityGroupByIdAsync(tenantId, entityGroupId);
-            Futures.addCallback(entityGroupFuture, new FutureCallback<EntityGroup>() {
-                @Override
-                public void onSuccess(EntityGroup entityGroup) {
-                    if (entityGroup != null) {
-                        entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, entityId);
-                    }
-                }
-
-                @Override
-                public void onFailure(@NotNull Throwable t) {
-                    log.warn("[{}] Failed to add entity to group: {}", entityId, t.getMessage(), t);
-                }
-            }, dbCallbackExecutorService);
+            EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
+            if (entityGroup != null) {
+                entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, entityId);
+            }
         }
     }
 }

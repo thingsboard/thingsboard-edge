@@ -32,7 +32,6 @@ package org.thingsboard.server.service.edge.rpc.processor.device;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
@@ -125,8 +124,8 @@ public class DeviceEdgeProcessor extends BaseDeviceProcessor {
         if (created) {
             createRelationFromEdge(tenantId, edge.getId(), deviceId);
             pushDeviceCreatedEventToRuleEngine(tenantId, edge, deviceId);
-            addDeviceToEdgeAllDeviceGroup(tenantId, edge, deviceId);
         }
+        addDeviceToEdgeAllDeviceGroup(tenantId, edge, deviceId);
         Boolean deviceNameUpdated = resultPair.getSecond();
         if (deviceNameUpdated) {
             saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.DEVICE, EdgeEventActionType.UPDATED, deviceId, null);
@@ -151,7 +150,7 @@ public class DeviceEdgeProcessor extends BaseDeviceProcessor {
                 }
             });
         } catch (JsonProcessingException | IllegalArgumentException e) {
-            log.warn("[{}] Failed to push device action to rule engine: {}", deviceId, TbMsgType.ENTITY_CREATED.name(), e);
+            log.warn("[{}][{}] Failed to push device action to rule engine: {}", tenantId, deviceId, TbMsgType.ENTITY_CREATED.name(), e);
         }
     }
 
@@ -162,7 +161,7 @@ public class DeviceEdgeProcessor extends BaseDeviceProcessor {
                 entityGroupService.addEntityToEntityGroup(tenantId, edgeDeviceGroup.getId(), deviceId);
             }
         } catch (Exception e) {
-            log.warn("Can't add device to edge device group, device id [{}]", deviceId, e);
+            log.warn("[{}] Can't add device to edge device group, device id [{}]", tenantId, deviceId, e);
             throw new RuntimeException(e);
         }
     }
@@ -170,20 +169,15 @@ public class DeviceEdgeProcessor extends BaseDeviceProcessor {
     private void removeDeviceFromEdgeAllDeviceGroup(TenantId tenantId, Edge edge, DeviceId deviceId) {
         Device deviceToDelete = deviceService.findDeviceById(tenantId, deviceId);
         if (deviceToDelete != null) {
-            ListenableFuture<EntityGroup> edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.DEVICE);
-            Futures.addCallback(edgeDeviceGroup, new FutureCallback<>() {
-                @Override
-                public void onSuccess(EntityGroup entityGroup) {
-                    if (entityGroup != null) {
-                        entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroup.getId(), deviceToDelete.getId());
-                    }
+            try {
+                EntityGroup edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.DEVICE).get();
+                if (edgeDeviceGroup != null) {
+                    entityGroupService.removeEntityFromEntityGroup(tenantId, edgeDeviceGroup.getId(), deviceToDelete.getId());
                 }
-
-                @Override
-                public void onFailure(Throwable t) {
-                    log.warn("Can't remove from edge device group, device id [{}]", deviceId, t);
-                }
-            }, dbCallbackExecutorService);
+            } catch (Exception e) {
+                log.warn("[{}] Can't delete device from edge device 'All' group, device id [{}]", tenantId, deviceId, e);
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -216,7 +210,7 @@ public class DeviceEdgeProcessor extends BaseDeviceProcessor {
 
             @Override
             public void onFailure(Throwable t) {
-                log.error("Can't process push notification to core [{}]", deviceRpcCallMsg, t);
+                log.error("[{}] Can't process push notification to core [{}]", tenantId, deviceRpcCallMsg, t);
                 futureToSet.setException(t);
             }
         };
@@ -251,18 +245,18 @@ public class DeviceEdgeProcessor extends BaseDeviceProcessor {
             tbClusterService.pushMsgToRuleEngine(tenantId, deviceId, tbMsg, new TbQueueCallback() {
                 @Override
                 public void onSuccess(TbQueueMsgMetadata metadata) {
-                    log.debug("Successfully send TO_SERVER_RPC_REQUEST to rule engine [{}], deviceRpcCallMsg {}",
-                            device, deviceRpcCallMsg);
+                    log.debug("[{}] Successfully send TO_SERVER_RPC_REQUEST to rule engine [{}], deviceRpcCallMsg {}",
+                            tenantId, device, deviceRpcCallMsg);
                 }
 
                 @Override
                 public void onFailure(Throwable t) {
-                    log.debug("Failed to send TO_SERVER_RPC_REQUEST to rule engine [{}], deviceRpcCallMsg {}",
-                            device, deviceRpcCallMsg, t);
+                    log.debug("[{}] Failed to send TO_SERVER_RPC_REQUEST to rule engine [{}], deviceRpcCallMsg {}",
+                            tenantId, device, deviceRpcCallMsg, t);
                 }
             });
         } catch (JsonProcessingException | IllegalArgumentException e) {
-            log.warn("[{}] Failed to push TO_SERVER_RPC_REQUEST to rule engine. deviceRpcCallMsg {}", deviceId, deviceRpcCallMsg, e);
+            log.warn("[{}][{}] Failed to push TO_SERVER_RPC_REQUEST to rule engine. deviceRpcCallMsg {}", tenantId, deviceId, deviceRpcCallMsg, e);
         }
 
         return Futures.immediateFuture(null);

@@ -32,11 +32,9 @@ package org.thingsboard.server.service.edge.rpc.processor.dashboard;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
@@ -111,8 +109,8 @@ public class DashboardEdgeProcessor extends BaseDashboardProcessor {
         if (created) {
             createRelationFromEdge(tenantId, edge.getId(), dashboardId);
             pushDashboardCreatedEventToRuleEngine(tenantId, edge, dashboardId);
-            addDashboardToEdgeAllDashboardGroup(tenantId, edge, dashboardId);
         }
+        addDashboardToEdgeAllDashboardGroup(tenantId, edge, dashboardId);
     }
 
     private void pushDashboardCreatedEventToRuleEngine(TenantId tenantId, Edge edge, DashboardId dashboardId) {
@@ -124,47 +122,42 @@ public class DashboardEdgeProcessor extends BaseDashboardProcessor {
             tbClusterService.pushMsgToRuleEngine(tenantId, dashboardId, tbMsg, new TbQueueCallback() {
                 @Override
                 public void onSuccess(TbQueueMsgMetadata metadata) {
-                    log.debug("Successfully send ENTITY_CREATED EVENT to rule engine [{}]", dashboard);
+                    log.debug("[{}] Successfully send ENTITY_CREATED EVENT to rule engine [{}]", tenantId, dashboard);
                 }
 
                 @Override
                 public void onFailure(Throwable t) {
-                    log.warn("Failed to send ENTITY_CREATED EVENT to rule engine [{}]", dashboard, t);
+                    log.warn("[{}] Failed to send ENTITY_CREATED EVENT to rule engine [{}]", tenantId, dashboard, t);
                 }
             });
         } catch (JsonProcessingException | IllegalArgumentException e) {
-            log.warn("[{}] Failed to push dashboard action to rule engine: {}", dashboardId, DataConstants.ENTITY_CREATED, e);
+            log.warn("[{}][{}] Failed to push dashboard action to rule engine: {}", tenantId, dashboardId, DataConstants.ENTITY_CREATED, e);
         }
     }
 
     private void removeDashboardFromEdgeAllDashboardGroup(TenantId tenantId, Edge edge, DashboardId dashboardId) {
         Dashboard dashboardToDelete = dashboardService.findDashboardById(tenantId, dashboardId);
         if (dashboardToDelete != null) {
-            ListenableFuture<EntityGroup> edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.DASHBOARD);
-            Futures.addCallback(edgeDeviceGroup, new FutureCallback<>() {
-                @Override
-                public void onSuccess(EntityGroup entityGroup) {
-                    if (entityGroup != null) {
-                        entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroup.getId(), dashboardToDelete.getId());
-                    }
+            try {
+                EntityGroup edgeDashboardGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.DASHBOARD).get();
+                if (edgeDashboardGroup != null) {
+                    entityGroupService.removeEntityFromEntityGroup(tenantId, edgeDashboardGroup.getId(), dashboardToDelete.getId());
                 }
-
-                @Override
-                public void onFailure(@NotNull Throwable t) {
-                    log.warn("Can't remove from edge dashboard group, dashboard id [{}]", dashboardId, t);
-                }
-            }, dbCallbackExecutorService);
+            } catch (Exception e) {
+                log.warn("[{}] Can't delete dashboard from edge dashboard 'All' group, dashboard id [{}]", tenantId, dashboardToDelete, e);
+                throw new RuntimeException(e);
+            }
         }
     }
 
     private void addDashboardToEdgeAllDashboardGroup(TenantId tenantId, Edge edge, DashboardId dashboardId) {
         try {
-            EntityGroup edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.DASHBOARD).get();
-            if (edgeDeviceGroup != null) {
-                entityGroupService.addEntityToEntityGroup(tenantId, edgeDeviceGroup.getId(), dashboardId);
+            EntityGroup edgeDashboardGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.DASHBOARD).get();
+            if (edgeDashboardGroup != null) {
+                entityGroupService.addEntityToEntityGroup(tenantId, edgeDashboardGroup.getId(), dashboardId);
             }
         } catch (Exception e) {
-            log.warn("Can't add dashboard to edge dashboard group, dashboard id [{}]", dashboardId, e);
+            log.warn("[{}] Can't add dashboard to edge dashboard group, dashboard id [{}]", tenantId, dashboardId, e);
             throw new RuntimeException(e);
         }
     }
