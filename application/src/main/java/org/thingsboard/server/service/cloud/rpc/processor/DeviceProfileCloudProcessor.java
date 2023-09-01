@@ -19,6 +19,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
@@ -67,7 +68,8 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
                             renameExistingOnEdgeDeviceProfile(deviceProfileByName);
                             removePreviousProfile = true;
                         }
-                        boolean created = super.saveOrUpdateDeviceProfile(tenantId, deviceProfileId, deviceProfileUpdateMsg);
+                        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDeviceProfile(tenantId, deviceProfileId, deviceProfileUpdateMsg);
+                        boolean created = resultPair.getFirst();
                         DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
                         if (!deviceProfile.isDefault() && deviceProfileUpdateMsg.getDefault()) {
                             deviceProfileService.setDefaultDeviceProfile(tenantId, deviceProfileId);
