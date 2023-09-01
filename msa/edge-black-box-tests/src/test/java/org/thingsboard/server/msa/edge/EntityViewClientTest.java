@@ -225,7 +225,7 @@ public class EntityViewClientTest extends AbstractContainerTest {
 
         EntityGroup savedEntityViewEntityGroup = createEntityGroup(EntityType.ENTITY_VIEW);
         assignEntityGroupToEdge(savedEntityViewEntityGroup);
-        EntityView savedEntityViewOnCloud = saveEntityViewOnCloud("Edge Entity View Exists", "Default", device.getId(), savedEntityViewEntityGroup.getId());
+        EntityView savedEntityViewOnCloud = saveEntityViewOnCloud("Edge Entity View Exists", "Default", device.getId(), null);
         EntityView savedEntityViewOnEdge = saveEntityViewOnEdge("Edge Entity View Exists", "Default", device.getId(), savedEntityViewEntityGroup.getId());
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
