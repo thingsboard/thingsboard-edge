@@ -30,28 +30,9 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [fxShow]="!(isLoading$ | async) && widgetsData.widgets.length === 0" fxLayoutAlign="center center"
-         style="display: flex; z-index: 1;"
-         class="tb-absolute-fill">
-  <button mat-button *ngIf="!isReadOnly" class="tb-add-new-widget" (click)="addWidgetType($event)">
-    <mat-icon class="tb-mat-96">add</mat-icon>
-    {{ 'widget.add-widget-type' | translate }}
-  </button>
-  <span translate *ngIf="isReadOnly"
-        fxLayoutAlign="center center"
-        style="display: flex;"
-        class="mat-headline-5 tb-absolute-fill">widgets-bundle.empty</span>
-</section>
-<tb-dashboard class="tb-widget-library"
-              #dashboard
-              [aliasController]="aliasController"
-              [widgets]="widgetsData.widgets"
-              [widgetLayouts]="widgetsData.widgetLayouts"
-              [isEdit]="false"
-              [isEditActionEnabled]="editEnabled"
-              [isExportActionEnabled]="true"
-              [isRemoveActionEnabled]="!isReadOnly && deleteEnabled"
-              [disableWidgetInteraction]="true"
-              [callbacks]="dashboardCallbacks"></tb-dashboard>
-<tb-footer-fab-buttons [fxShow]="!isReadOnly && addEnabled" [footerFabButtons]="footerFabButtons">
-</tb-footer-fab-buttons>
+<mat-tab *ngIf="isTenantWidgetType() && authUser.authority === authorities.TENANT_ADMIN"
+         label="{{ 'version-control.version-control' | translate }}" #versionControlTab="matTab">
+  <tb-version-control detailsMode="true" singleEntityMode="true"
+                      (versionRestored)="entitiesTableConfig.updateData()"
+                      [active]="versionControlTab.isActive" [entityId]="entity.id" [entityName]="entity.name" [externalEntityId]="entity.externalId || entity.id"></tb-version-control>
+</mat-tab>

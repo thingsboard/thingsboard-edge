@@ -102,7 +102,6 @@ export class WidgetComponentService {
         this.editingWidgetType = toWidgetType(
           {
             widgetName: this.utils.editWidgetInfo.widgetName,
-            bundleAlias: 'customWidgetBundle',
             fullFqn: 'system.customWidget',
             deprecated: false,
             type: this.utils.editWidgetInfo.type,
@@ -121,7 +120,7 @@ export class WidgetComponentService {
             hasBasicMode: this.utils.editWidgetInfo.hasBasicMode,
             basicModeDirective: this.utils.editWidgetInfo.basicModeDirective,
             defaultConfig: this.utils.editWidgetInfo.defaultConfig
-          }, new WidgetTypeId('1'), new TenantId( NULL_UUID ), 'customWidgetBundle', undefined
+          }, new WidgetTypeId('1'), new TenantId( NULL_UUID ), undefined
         );
       }
       const initSubject = new ReplaySubject<void>();

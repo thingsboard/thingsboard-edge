@@ -33,65 +33,50 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { DialogComponent } from '@shared/components/dialog.component';
+import { FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
+import { DialogComponent } from '@app/shared/components/dialog.component';
 import { WidgetsBundle } from '@shared/models/widgets-bundle.model';
-import { getCurrentAuthUser } from '@core/auth/auth.selectors';
-import { Authority } from '@shared/models/authority.enum';
 
-export interface MoveWidgetTypeDialogResult {
-  bundleId: string;
-  bundleAlias: string;
+export interface ExportWidgetsBundleDialogData {
+  widgetsBundle: WidgetsBundle;
 }
 
-export interface MoveWidgetTypeDialogData {
-  currentBundleId: string;
+export interface ExportWidgetsBundleDialogResult {
+  exportWidgets: boolean;
 }
 
 @Component({
-  selector: 'tb-move-widget-type-dialog',
-  templateUrl: './move-widget-type-dialog.component.html',
+  selector: 'tb-export-widgets-bundle-dialog',
+  templateUrl: './export-widgets-bundle-dialog.component.html',
+  providers: [],
   styleUrls: []
 })
-export class MoveWidgetTypeDialogComponent extends
-  DialogComponent<MoveWidgetTypeDialogComponent, MoveWidgetTypeDialogResult> implements OnInit {
+export class ExportWidgetsBundleDialogComponent extends DialogComponent<ExportWidgetsBundleDialogComponent, ExportWidgetsBundleDialogResult>
+  implements OnInit {
 
-  moveWidgetTypeFormGroup: UntypedFormGroup;
+  widgetsBundle: WidgetsBundle;
 
-  bundlesScope: string;
+  exportWidgetsFormControl = new FormControl(false);
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
-              @Inject(MAT_DIALOG_DATA) public data: MoveWidgetTypeDialogData,
-              public dialogRef: MatDialogRef<MoveWidgetTypeDialogComponent, MoveWidgetTypeDialogResult>,
-              public fb: UntypedFormBuilder) {
+              @Inject(MAT_DIALOG_DATA) public data: ExportWidgetsBundleDialogData,
+              public dialogRef: MatDialogRef<ExportWidgetsBundleDialogComponent, ExportWidgetsBundleDialogResult>) {
     super(store, router, dialogRef);
-
-    const authUser = getCurrentAuthUser(store);
-    if (authUser.authority === Authority.TENANT_ADMIN) {
-      this.bundlesScope = 'tenant';
-    } else {
-      this.bundlesScope = 'system';
-    }
+    this.widgetsBundle = data.widgetsBundle;
   }
 
   ngOnInit(): void {
-    this.moveWidgetTypeFormGroup = this.fb.group({
-      widgetsBundle: [null, [Validators.required]]
-    });
   }
 
   cancel(): void {
     this.dialogRef.close(null);
   }
 
-  move(): void {
-    const widgetsBundle: WidgetsBundle = this.moveWidgetTypeFormGroup.get('widgetsBundle').value;
-    const result: MoveWidgetTypeDialogResult = {
-      bundleId: widgetsBundle.id.id,
-      bundleAlias: widgetsBundle.alias
-    };
-    this.dialogRef.close(result);
+  export(): void {
+    this.dialogRef.close({
+      exportWidgets: this.exportWidgetsFormControl.value
+    });
   }
 }
