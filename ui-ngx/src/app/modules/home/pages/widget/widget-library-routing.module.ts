@@ -77,21 +77,6 @@ export class WidgetsBundleWidgetsResolver implements Resolve<Array<WidgetTypeInf
   }
 }
 
-/*
-@Injectable()
-export class WidgetsTypesDataResolver implements Resolve<WidgetsData> {
-
-  constructor(private widgetsService: WidgetService) {
-  }
-
-  resolve(route: ActivatedRouteSnapshot): Observable<WidgetsData> {
-    const widgetsBundleId = route.params.widgetsBundleId;
-    return this.widgetsService.loadBundleLibraryWidgets(widgetsBundleId).pipe(
-      map((widgets) => ({ widgets })
-      ));
-  }
-}*/
-
 @Injectable()
 export class WidgetEditorDataResolver implements Resolve<WidgetEditorData> {
 
@@ -294,7 +279,6 @@ const routes: Routes = [
     WidgetsBundlesTableConfigResolver,
     WidgetsBundleResolver,
     WidgetsBundleWidgetsResolver,
-    // WidgetsTypesDataResolver,
     WidgetEditorDataResolver
   ]
 })

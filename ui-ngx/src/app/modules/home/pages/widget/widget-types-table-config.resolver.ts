@@ -174,7 +174,6 @@ export class WidgetTypesTableConfigResolver implements Resolve<EntityTableConfig
       this.isWidgetTypeEditable(widgetType, authUser.authority) &&
       this.userPermissionsService.hasGenericPermission(Resource.WIDGET_TYPE, Operation.DELETE);
     this.config.detailsReadonly = (widgetType) => !this.isWidgetTypeEditable(widgetType, authUser.authority);
-    const authState = getCurrentAuthState(this.store);
     this.config.entitiesFetchFunction = pageLink => this.widgetsService.getWidgetTypes(pageLink);
     return this.config;
   }
