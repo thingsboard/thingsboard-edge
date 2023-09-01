@@ -134,7 +134,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
                 try {
                     cloudEventService.saveCloudEvent(tenantId, cloudEventType, cloudEventActionType, entityId, null, entityGroupId, 0L);
                 } catch (Exception e) {
-                    log.error("[{}] Failed to push event to cloud [{}], cloudEventType [{}], cloudEventActionType [{}], entityId [{}]",
+                    log.error("[{}] Failed to push event to cloud, cloudEventType [{}], cloudEventActionType [{}], entityId [{}]",
                             tenantId, cloudEventType, cloudEventActionType, entityId, e);
                 }
                 break;

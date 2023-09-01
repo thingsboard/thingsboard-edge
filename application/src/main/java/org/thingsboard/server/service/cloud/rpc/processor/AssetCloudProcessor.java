@@ -37,6 +37,7 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -109,9 +110,14 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
                         UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
                         AssetUpdateMsg assetUpdateMsg =
                                 assetMsgConstructor.constructAssetUpdatedMsg(msgType, asset, entityGroupId);
-                        msg = UplinkMsg.newBuilder()
+                        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
                                 .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                                .addAssetUpdateMsg(assetUpdateMsg).build();
+                                .addAssetUpdateMsg(assetUpdateMsg);
+                        if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(msgType)) {
+                            AssetProfile assetProfile = assetProfileService.findAssetProfileById(cloudEvent.getTenantId(), asset.getAssetProfileId());
+                            builder.addAssetProfileUpdateMsg(assetProfileMsgConstructor.constructAssetProfileUpdatedMsg(msgType, assetProfile));
+                        }
+                        msg = builder.build();
                     }
                 } else {
                     log.debug("Skipping event as asset was not found [{}]", cloudEvent);

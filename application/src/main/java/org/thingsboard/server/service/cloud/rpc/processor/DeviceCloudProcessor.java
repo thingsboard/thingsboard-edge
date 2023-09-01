@@ -38,6 +38,7 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
@@ -216,9 +217,14 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
                     DeviceUpdateMsg deviceUpdateMsg =
                             deviceMsgConstructor.constructDeviceUpdatedMsg(msgType, device, entityGroupId);
-                    msg = UplinkMsg.newBuilder()
+                    UplinkMsg.Builder builder = UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addDeviceUpdateMsg(deviceUpdateMsg).build();
+                            .addDeviceUpdateMsg(deviceUpdateMsg);
+                    if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(msgType)) {
+                        DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(cloudEvent.getTenantId(), device.getDeviceProfileId());
+                        builder.addDeviceProfileUpdateMsg(deviceProfileMsgConstructor.constructDeviceProfileUpdatedMsg(msgType, deviceProfile));
+                    }
+                    msg = builder.build();
                 } else {
                     log.info("Skipping event as device was not found [{}]", cloudEvent);
                 }

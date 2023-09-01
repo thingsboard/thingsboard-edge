@@ -87,7 +87,7 @@ public class CloudEventSourcingListener {
 
     @PostConstruct
     public void init() {
-        log.info("EdgeEventSourcingListener initiated");
+        log.info("CloudEventSourcingListener initiated");
     }
 
     @TransactionalEventListener(fallbackExecution = true)
@@ -133,6 +133,12 @@ public class CloudEventSourcingListener {
         try {
             if (event.getEntityId() != null && !supportableEntityTypes.contains(event.getEntityId().getEntityType())) {
                 return;
+            }
+            if (event.getEntityGroup() != null) {
+                if (event.getEntityGroup().isGroupAll()) {
+                    log.trace("skipping entity in case of 'All' group: {}", event);
+                    return;
+                }
             }
             log.trace("ActionEntityEvent called: {}", event);
             EntityGroupId entityGroupId = event.getEntityGroup() != null ? event.getEntityGroup().getId() : null;

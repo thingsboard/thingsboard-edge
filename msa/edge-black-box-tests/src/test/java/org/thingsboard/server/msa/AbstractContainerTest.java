@@ -409,6 +409,11 @@ public abstract class AbstractContainerTest {
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getEntityGroupById(entityGroup.getId()).isPresent());
+
+        try {
+            // wait until GROUP_ENTITIES_REQUEST message from edge processed
+            TimeUnit.SECONDS.sleep(1);
+        } catch (Exception ignored) {}
     }
 
     protected Asset saveAssetOnCloud(String assetName, String type, EntityGroupId entityGroupId) {

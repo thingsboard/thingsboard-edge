@@ -49,8 +49,8 @@ import java.util.List;
 public class CloudEventInsertRepository {
 
     private static final String INSERT =
-            "INSERT INTO cloud_event (id, created_time, entity_body, entity_id, cloud_event_type, cloud_event_action, tenant_id, ts) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?) " +
+            "INSERT INTO cloud_event (id, created_time, entity_body, entity_id, cloud_event_type, cloud_event_action, tenant_id, ts, entity_group_id) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) " +
                     "ON CONFLICT DO NOTHING;";
 
     @Autowired
@@ -77,6 +77,7 @@ public class CloudEventInsertRepository {
                         ps.setString(6, cloudEvent.getCloudEventAction().name());
                         ps.setObject(7, cloudEvent.getTenantId());
                         ps.setLong(8, cloudEvent.getTs());
+                        ps.setObject(9, cloudEvent.getEntityGroupId());
                     }
 
                     @Override

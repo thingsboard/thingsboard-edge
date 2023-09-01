@@ -168,7 +168,7 @@ public class DashboardClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> cloudRestClient.getEntityGroupsForEntity(savedDashboardOnEdge.getId()).size() == 1);
+                .until(() -> cloudRestClient.getEntityGroupsForEntity(savedDashboardOnEdge.getId()).size() == 2);
 
         cloudRestClient.deleteDashboard(savedDashboardOnEdge.getId());
         cloudRestClient.deleteEntityGroup(savedDashboardEntityGroup.getId());

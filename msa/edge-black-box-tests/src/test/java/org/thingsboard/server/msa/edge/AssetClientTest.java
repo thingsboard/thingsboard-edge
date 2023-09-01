@@ -160,6 +160,10 @@ public class AssetClientTest extends AbstractContainerTest {
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> cloudRestClient.getAssetById(savedAssetOnEdge.getId()).isPresent());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getEntityGroupsForEntity(savedAssetOnEdge.getId()).size() == 3);
 
         // update asset
         String assetNameUpdated = assetName + "Updated";
@@ -175,7 +179,7 @@ public class AssetClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> cloudRestClient.getEntityGroupsForEntity(savedAssetOnEdge.getId()).size() == 1);
+                .until(() -> cloudRestClient.getEntityGroupsForEntity(savedAssetOnEdge.getId()).size() == 2);
 
         cloudRestClient.deleteAsset(savedAssetOnEdge.getId());
         cloudRestClient.deleteEntityGroup(savedAssetEntityGroup.getId());
@@ -193,6 +197,11 @@ public class AssetClientTest extends AbstractContainerTest {
 
         String assetName = "Edge Asset_" + StringUtils.randomAlphanumeric(15);
         Asset savedAssetOnCloud = saveAssetOnCloud(assetName, "Building", null);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getAssetProfileById(savedAssetOnCloud.getAssetProfileId()).isPresent());
+
         Asset savedAssetOnEdge = saveAssetOnEdge(assetName, "Building", savedAssetEntityGroup.getId());
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
@@ -207,7 +216,7 @@ public class AssetClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> cloudRestClient.getEntityGroupsForEntity(savedAssetOnEdge.getId()).size() == 1);
+                .until(() -> cloudRestClient.getEntityGroupsForEntity(savedAssetOnEdge.getId()).size() == 2);
 
         cloudRestClient.deleteAsset(savedAssetOnEdge.getId());
         cloudRestClient.deleteAsset(savedAssetOnCloud.getId());
