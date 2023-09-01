@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.EdgeUtils;
@@ -84,7 +85,10 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
                             renamePreviousAssetProfile(assetProfileByName);
                             removePreviousProfile = true;
                         }
-                        saveOrUpdateAssetProfile(tenantId, assetProfileId, assetProfileUpdateMsg, queueStartTs);
+                        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAssetProfile(tenantId, assetProfileId, assetProfileUpdateMsg);
+                        boolean created = resultPair.getFirst();
+                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileId,
+                                created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
                         AssetProfile assetProfile = assetProfileService.findAssetProfileById(tenantId, assetProfileId);
                         if (!assetProfile.isDefault() && assetProfileUpdateMsg.getDefault()) {
                             assetProfileService.setDefaultAssetProfile(tenantId, assetProfileId);
@@ -112,12 +116,6 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
             edgeSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
-    }
-
-    private void saveOrUpdateAssetProfile(TenantId tenantId, AssetProfileId assetProfileId, AssetProfileUpdateMsg assetProfileUpdateMsg, long queueStartTs) {
-        boolean created = super.saveOrUpdateAssetProfile(tenantId, assetProfileId, assetProfileUpdateMsg);
-        tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileId,
-                created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
     }
 
     private void renamePreviousAssetProfile(AssetProfile assetProfileByName) {
