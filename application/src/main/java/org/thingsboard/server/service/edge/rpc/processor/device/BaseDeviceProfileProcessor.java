@@ -33,6 +33,8 @@ package org.thingsboard.server.service.edge.rpc.processor.device;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
+import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.DeviceProfileType;
@@ -56,18 +58,27 @@ public abstract class BaseDeviceProfileProcessor extends BaseEdgeProcessor {
     @Autowired
     private DataDecodingEncodingService dataDecodingEncodingService;
 
-    protected boolean saveOrUpdateDeviceProfile(TenantId tenantId, DeviceProfileId deviceProfileId, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
+    protected Pair<Boolean, Boolean> saveOrUpdateDeviceProfile(TenantId tenantId, DeviceProfileId deviceProfileId, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
         boolean created = false;
+        boolean deviceProfileNameUpdated = false;
         deviceCreationLock.lock();
         try {
             DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
+            String deviceProfileName = deviceProfileUpdateMsg.getName();
             if (deviceProfile == null) {
                 created = true;
                 deviceProfile = new DeviceProfile();
                 deviceProfile.setTenantId(tenantId);
                 deviceProfile.setCreatedTime(Uuids.unixTimestamp(deviceProfileId.getId()));
             }
-            deviceProfile.setName(deviceProfileUpdateMsg.getName());
+            DeviceProfile deviceProfileByName = deviceProfileService.findDeviceProfileByName(tenantId, deviceProfileName);
+            if (deviceProfileByName != null && !deviceProfileByName.getId().equals(deviceProfileId)) {
+                deviceProfileName = deviceProfileName + "_" + StringUtils.randomAlphabetic(15);
+                log.warn("Device profile with name {} already exists. Renaming device profile name to {}",
+                        deviceProfileUpdateMsg.getName(), deviceProfileName);
+                deviceProfileNameUpdated = true;
+            }
+            deviceProfile.setName(deviceProfileName);
             deviceProfile.setDescription(deviceProfileUpdateMsg.hasDescription() ? deviceProfileUpdateMsg.getDescription() : null);
             deviceProfile.setType(DeviceProfileType.valueOf(deviceProfileUpdateMsg.getType()));
             deviceProfile.setTransportType(deviceProfileUpdateMsg.hasTransportType()
@@ -106,7 +117,7 @@ public abstract class BaseDeviceProfileProcessor extends BaseEdgeProcessor {
         } finally {
             deviceCreationLock.unlock();
         }
-        return created;
+        return Pair.of(created, deviceProfileNameUpdated);
     }
 
     protected abstract void setDefaultRuleChainId(TenantId tenantId, DeviceProfile deviceProfile, DeviceProfileUpdateMsg deviceProfileUpdateMsg);

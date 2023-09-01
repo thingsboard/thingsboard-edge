@@ -32,11 +32,9 @@ package org.thingsboard.server.service.edge.rpc.processor.asset;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
@@ -117,8 +115,8 @@ public class AssetEdgeProcessor extends BaseAssetProcessor {
         if (created) {
             createRelationFromEdge(tenantId, edge.getId(), assetId);
             pushAssetCreatedEventToRuleEngine(tenantId, edge, assetId);
-            addAssetToEdgeAllAssetGroup(tenantId, edge, assetId);
         }
+        addAssetToEdgeAllAssetGroup(tenantId, edge, assetId);
         Boolean assetNameUpdated = resultPair.getSecond();
         if (assetNameUpdated) {
             saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.ASSET, EdgeEventActionType.UPDATED, assetId, null);
@@ -134,44 +132,39 @@ public class AssetEdgeProcessor extends BaseAssetProcessor {
             tbClusterService.pushMsgToRuleEngine(tenantId, assetId, tbMsg, new TbQueueCallback() {
                 @Override
                 public void onSuccess(TbQueueMsgMetadata metadata) {
-                    log.debug("Successfully send ENTITY_CREATED EVENT to rule engine [{}]", asset);
+                    log.debug("[{}] Successfully send ENTITY_CREATED EVENT to rule engine [{}]", tenantId, asset);
                 }
 
                 @Override
                 public void onFailure(Throwable t) {
-                    log.warn("Failed to send ENTITY_CREATED EVENT to rule engine [{}]", asset, t);
+                    log.warn("[{}] Failed to send ENTITY_CREATED EVENT to rule engine [{}]", tenantId, asset, t);
                 }
             });
         } catch (JsonProcessingException | IllegalArgumentException e) {
-            log.warn("[{}] Failed to push asset action to rule engine: {}", assetId, DataConstants.ENTITY_CREATED, e);
+            log.warn("[{}][{}] Failed to push asset action to rule engine: {}", tenantId, assetId, DataConstants.ENTITY_CREATED, e);
         }
     }
 
     private void removeAssetFromEdgeAllAssetGroup(TenantId tenantId, Edge edge, AssetId assetId) {
         Asset assetToDelete = assetService.findAssetById(tenantId, assetId);
         if (assetToDelete != null) {
-            ListenableFuture<EntityGroup> edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.ASSET);
-            Futures.addCallback(edgeDeviceGroup, new FutureCallback<>() {
-                @Override
-                public void onSuccess(EntityGroup entityGroup) {
-                    if (entityGroup != null) {
-                        entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroup.getId(), assetToDelete.getId());
-                    }
+            try {
+                EntityGroup edgeAssetGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.ASSET).get();
+                if (edgeAssetGroup != null) {
+                    entityGroupService.removeEntityFromEntityGroup(tenantId, edgeAssetGroup.getId(), assetToDelete.getId());
                 }
-
-                @Override
-                public void onFailure(@NotNull Throwable t) {
-                    log.warn("Can't remove from edge asset group, asset id [{}]", assetId, t);
-                }
-            }, dbCallbackExecutorService);
+            } catch (Exception e) {
+                log.warn("[{}] Can't delete asset from edge asset 'All' group, asset id [{}]", tenantId, assetId, e);
+                throw new RuntimeException(e);
+            }
         }
     }
 
     private void addAssetToEdgeAllAssetGroup(TenantId tenantId, Edge edge, AssetId assetId) {
         try {
-            EntityGroup edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.ASSET).get();
-            if (edgeDeviceGroup != null) {
-                entityGroupService.addEntityToEntityGroup(tenantId, edgeDeviceGroup.getId(), assetId);
+            EntityGroup edgeAssetGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.ASSET).get();
+            if (edgeAssetGroup != null) {
+                entityGroupService.addEntityToEntityGroup(tenantId, edgeAssetGroup.getId(), assetId);
             }
         } catch (Exception e) {
             log.warn("Can't add asset to edge asset group, asset id [{}]", assetId, e);
