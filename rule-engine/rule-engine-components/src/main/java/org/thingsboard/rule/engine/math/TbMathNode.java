@@ -97,7 +97,7 @@ import java.util.stream.Collectors;
 )
 public class TbMathNode implements TbNode {
 
-    private static final ConcurrentMap<EntityId, SemaphoreWithQueue<TbMsgTbContext>> locks = new ConcurrentReferenceHashMap<>(16, ConcurrentReferenceHashMap.ReferenceType.WEAK);
+    private static final ConcurrentMap<EntityId, SemaphoreWithQueue<TbMsgTbContextBiFunction>> locks = new ConcurrentReferenceHashMap<>(16, ConcurrentReferenceHashMap.ReferenceType.WEAK);
     private final ThreadLocal<Expression> customExpression = new ThreadLocal<>();
     private TbMathNodeConfiguration config;
     private boolean msgBodyToJsonConversionRequired;
@@ -124,21 +124,21 @@ public class TbMathNode implements TbNode {
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
         var semaphoreWithQueue = locks.computeIfAbsent(msg.getOriginator(), SemaphoreWithQueue::new);
-        semaphoreWithQueue.getQueue().add(new TbMsgTbContext(msg, ctx));
+        semaphoreWithQueue.getQueue().add(new TbMsgTbContextBiFunction(msg, ctx, this::processMsgAsync));
 
         tryProcessQueue(semaphoreWithQueue);
     }
 
-    void tryProcessQueue(SemaphoreWithQueue<TbMsgTbContext> lockAndQueue) {
+    void tryProcessQueue(SemaphoreWithQueue<TbMsgTbContextBiFunction> lockAndQueue) {
         final Semaphore semaphore = lockAndQueue.getSemaphore();
-        final Queue<TbMsgTbContext> queue = lockAndQueue.getQueue();
+        final Queue<TbMsgTbContextBiFunction> queue = lockAndQueue.getQueue();
         while (!queue.isEmpty()) {
             // The semaphore have to be acquired before EACH poll and released before NEXT poll.
             // Otherwise, some message will remain unprocessed in queue
             if (!semaphore.tryAcquire()) {
                 return;
             }
-            TbMsgTbContext tbMsgTbContext = null;
+            TbMsgTbContextBiFunction tbMsgTbContext = null;
             try {
                 tbMsgTbContext = queue.poll();
                 if (tbMsgTbContext == null) {
@@ -153,7 +153,7 @@ public class TbMathNode implements TbNode {
                 }
                 //DO PROCESSING
                 final TbContext ctx = tbMsgTbContext.getCtx();
-                final ListenableFuture<TbMsg> resultMsgFuture = processMsgAsync(ctx, msg);
+                final ListenableFuture<TbMsg> resultMsgFuture = tbMsgTbContext.getBiFunction().apply(ctx, msg);
                 DonAsynchron.withCallback(resultMsgFuture, resultMsg -> {
                     try {
                         ctx.tellSuccess(resultMsg);
@@ -169,10 +169,17 @@ public class TbMathNode implements TbNode {
                         tryProcessQueue(lockAndQueue);
                     }
                 }, ctx.getDbCallbackExecutor());
-            } catch (Throwable e) {
+            } catch (Throwable t) {
                 semaphore.release();
-                log.warn("[{}] Failed to process message: {}", lockAndQueue.getEntityId(), tbMsgTbContext == null ? null : tbMsgTbContext.getMsg(), e);
-                throw e;
+                if (tbMsgTbContext == null) { // if no message polled, the loop become infinite, will throw exception
+                    log.error("[{}] Failed to process TbMsgTbContext queue", lockAndQueue.getEntityId(), t);
+                    throw t;
+                }
+                TbMsg msg = tbMsgTbContext.getMsg();
+                TbContext ctx = tbMsgTbContext.getCtx();
+                log.warn("[{}] Failed to process message: {}", lockAndQueue.getEntityId(), msg, t);
+                ctx.tellFailure(msg, t); // you are not allowed to throw here, because queue will remain unprocessed
+                continue; // We are probably the last who process the queue. We have to continue poll until get successful callback or queue is empty
             }
             break; //submitted async exact one task. next poll will try on callback
         }
@@ -378,7 +385,7 @@ public class TbMathNode implements TbNode {
         return function.apply(arg1.getValue(), arg2.getValue());
     }
 
-    private ListenableFuture<TbMathArgumentValue> resolveArguments(TbContext ctx, TbMsg msg, Optional<ObjectNode> msgBodyOpt, TbMathArgument arg) {
+    ListenableFuture<TbMathArgumentValue> resolveArguments(TbContext ctx, TbMsg msg, Optional<ObjectNode> msgBodyOpt, TbMathArgument arg) {
         switch (arg.getType()) {
             case CONSTANT:
                 return Futures.immediateFuture(TbMathArgumentValue.constant(arg));
@@ -439,9 +446,10 @@ public class TbMathNode implements TbNode {
 
     @Data
     @RequiredArgsConstructor
-    static public class TbMsgTbContext {
+    static public class TbMsgTbContextBiFunction {
         final TbMsg msg;
         final TbContext ctx;
+        final BiFunction<TbContext, TbMsg, ListenableFuture<TbMsg>> biFunction;
     }
 
 }
