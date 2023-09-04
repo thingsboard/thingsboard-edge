@@ -73,12 +73,15 @@ import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
@@ -114,6 +117,8 @@ import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.queue.TbQueueCallback;
+import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.service.edge.rpc.CustomersHierarchyEdgeService;
@@ -722,19 +727,30 @@ public abstract class BaseEdgeProcessor {
         relationService.saveRelation(tenantId, relation);
     }
 
-    protected TbMsgMetaData getActionTbMsgMetaData(Edge edge, CustomerId customerId) {
-        TbMsgMetaData metaData = getTbMsgMetaData(edge);
+    protected TbMsgMetaData getEdgeActionTbMsgMetaData(Edge edge, CustomerId customerId) {
+        TbMsgMetaData metaData = new TbMsgMetaData();
+        metaData.putValue("edgeId", edge.getId().toString());
+        metaData.putValue("edgeName", edge.getName());
         if (customerId != null && !customerId.isNullUid()) {
             metaData.putValue("customerId", customerId.toString());
         }
         return metaData;
     }
 
-    protected TbMsgMetaData getTbMsgMetaData(Edge edge) {
-        TbMsgMetaData metaData = new TbMsgMetaData();
-        metaData.putValue("edgeId", edge.getId().toString());
-        metaData.putValue("edgeName", edge.getName());
-        return metaData;
+    protected void pushEntityCreatedEventToRuleEngine(TenantId tenantId, EntityId entityId, CustomerId customerId,
+                                                      String entity, TbMsgMetaData metaData) {
+        TbMsg tbMsg = TbMsg.newMsg(TbMsgType.ENTITY_CREATED, entityId, customerId, metaData, TbMsgDataType.JSON, entity);
+        tbClusterService.pushMsgToRuleEngine(tenantId, entityId, tbMsg, new TbQueueCallback() {
+            @Override
+            public void onSuccess(TbQueueMsgMetadata metadata) {
+                log.debug("[{}] Successfully send ENTITY_CREATED EVENT to rule engine [{}]", tenantId, entity);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.warn("[{}] Failed to send ENTITY_CREATED EVENT to rule engine [{}]", tenantId, entity, t);
+            }
+        });
     }
 
     protected void changeOwnerIfRequired(TenantId tenantId, CustomerId customerId, EntityId entityId) throws ThingsboardException {
