@@ -1,12 +1,12 @@
 /**
  * Copyright © 2016-2023 The Thingsboard Authors
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -63,7 +63,7 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
                     Dashboard dashboardById = dashboardService.findDashboardById(tenantId, dashboardId);
                     if (dashboardById != null) {
                         dashboardService.deleteDashboard(tenantId, dashboardId);
-                        pushDashboardDeletedEventToRuleEngine(tenantId, dashboardId);
+                        pushDashboardDeletedEventToRuleEngine(tenantId, dashboardById);
                     }
                     return Futures.immediateFuture(null);
                 case UNRECOGNIZED:
@@ -84,20 +84,20 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
     }
 
     private void pushDashboardCreatedEventToRuleEngine(TenantId tenantId, DashboardId dashboardId) {
-        pushDashboardEventToRuleEngine(tenantId, dashboardId, TbMsgType.ENTITY_CREATED);
+        Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
+        pushDashboardEventToRuleEngine(tenantId, dashboard, TbMsgType.ENTITY_CREATED);
     }
 
-    private void pushDashboardDeletedEventToRuleEngine(TenantId tenantId, DashboardId dashboardId) {
-        pushDashboardEventToRuleEngine(tenantId, dashboardId, TbMsgType.ENTITY_DELETED);
+    private void pushDashboardDeletedEventToRuleEngine(TenantId tenantId, Dashboard dashboard) {
+        pushDashboardEventToRuleEngine(tenantId, dashboard, TbMsgType.ENTITY_DELETED);
     }
 
-    private void pushDashboardEventToRuleEngine(TenantId tenantId, DashboardId dashboardId, TbMsgType msgType) {
+    private void pushDashboardEventToRuleEngine(TenantId tenantId, Dashboard dashboard, TbMsgType msgType) {
         try {
-            Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
             String dashboardAsString = JacksonUtil.toString(dashboard);
-            pushEntityEventToRuleEngine(tenantId, dashboardId, null, msgType, dashboardAsString, new TbMsgMetaData());
+            pushEntityEventToRuleEngine(tenantId, dashboard.getId(), null, msgType, dashboardAsString, new TbMsgMetaData());
         } catch (Exception e) {
-            log.warn("[{}][{}] Failed to push dashboard action to rule engine: {}", tenantId, dashboardId, msgType.name(), e);
+            log.warn("[{}][{}] Failed to push dashboard action to rule engine: {}", tenantId, dashboard.getId(), msgType.name(), e);
         }
     }
 

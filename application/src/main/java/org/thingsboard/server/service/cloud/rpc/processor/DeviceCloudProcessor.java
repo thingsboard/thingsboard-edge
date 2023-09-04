@@ -74,7 +74,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                     Device deviceById = deviceService.findDeviceById(tenantId, deviceId);
                     if (deviceById != null) {
                         deviceService.deleteDevice(tenantId, deviceId);
-                        pushDeviceDeletedEventToRuleEngine(tenantId, deviceId);
+                        pushDeviceDeletedEventToRuleEngine(tenantId, deviceById);
                     }
                     return Futures.immediateFuture(null);
                 case UNRECOGNIZED:
@@ -100,20 +100,20 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
     }
 
     private void pushDeviceCreatedEventToRuleEngine(TenantId tenantId, DeviceId deviceId) {
-        pushDeviceEventToRuleEngine(tenantId, deviceId, TbMsgType.ENTITY_CREATED);
+        Device device = deviceService.findDeviceById(tenantId, deviceId);
+        pushDeviceEventToRuleEngine(tenantId, device, TbMsgType.ENTITY_CREATED);
     }
 
-    private void pushDeviceDeletedEventToRuleEngine(TenantId tenantId, DeviceId deviceId) {
-        pushDeviceEventToRuleEngine(tenantId, deviceId, TbMsgType.ENTITY_DELETED);
+    private void pushDeviceDeletedEventToRuleEngine(TenantId tenantId, Device device) {
+        pushDeviceEventToRuleEngine(tenantId, device, TbMsgType.ENTITY_DELETED);
     }
 
-    private void pushDeviceEventToRuleEngine(TenantId tenantId, DeviceId deviceId, TbMsgType msgType) {
+    private void pushDeviceEventToRuleEngine(TenantId tenantId, Device device, TbMsgType msgType) {
         try {
-            Device device = deviceService.findDeviceById(tenantId, deviceId);
             String deviceAsString = JacksonUtil.toString(device);
-            pushEntityEventToRuleEngine(tenantId, deviceId, device.getCustomerId(), msgType, deviceAsString, new TbMsgMetaData());
+            pushEntityEventToRuleEngine(tenantId, device.getId(), device.getCustomerId(), msgType, deviceAsString, new TbMsgMetaData());
         } catch (Exception e) {
-            log.warn("[{}][{}] Failed to push device action to rule engine: {}", tenantId, deviceId, msgType.name(), e);
+            log.warn("[{}][{}] Failed to push device action to rule engine: {}", tenantId, device.getId(), msgType.name(), e);
         }
     }
 
