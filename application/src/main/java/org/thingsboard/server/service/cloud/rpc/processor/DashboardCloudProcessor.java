@@ -83,7 +83,7 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
                         Dashboard dashboardById = dashboardService.findDashboardById(tenantId, dashboardId);
                         if (dashboardById != null) {
                             dashboardService.deleteDashboard(tenantId, dashboardId);
-                            pushDashboardDeletedEventToRuleEngine(tenantId, dashboardId);
+                            pushDashboardDeletedEventToRuleEngine(tenantId, dashboardById);
                         }
                     }
                     return Futures.immediateFuture(null);
@@ -105,20 +105,20 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
     }
 
     private void pushDashboardCreatedEventToRuleEngine(TenantId tenantId, DashboardId dashboardId) {
-        pushDashboardEventToRuleEngine(tenantId, dashboardId, TbMsgType.ENTITY_CREATED);
+        Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
+        pushDashboardEventToRuleEngine(tenantId, dashboard, TbMsgType.ENTITY_CREATED);
     }
 
-    private void pushDashboardDeletedEventToRuleEngine(TenantId tenantId, DashboardId dashboardId) {
-        pushDashboardEventToRuleEngine(tenantId, dashboardId, TbMsgType.ENTITY_DELETED);
+    private void pushDashboardDeletedEventToRuleEngine(TenantId tenantId, Dashboard dashboard) {
+        pushDashboardEventToRuleEngine(tenantId, dashboard, TbMsgType.ENTITY_DELETED);
     }
 
-    private void pushDashboardEventToRuleEngine(TenantId tenantId, DashboardId dashboardId, TbMsgType msgType) {
+    private void pushDashboardEventToRuleEngine(TenantId tenantId, Dashboard dashboard, TbMsgType msgType) {
         try {
-            Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
             String dashboardAsString = JacksonUtil.toString(dashboard);
-            pushEntityEventToRuleEngine(tenantId, dashboardId, null, msgType, dashboardAsString, new TbMsgMetaData());
+            pushEntityEventToRuleEngine(tenantId, dashboard.getId(), null, msgType, dashboardAsString, new TbMsgMetaData());
         } catch (Exception e) {
-            log.warn("[{}][{}] Failed to push dashboard action to rule engine: {}", tenantId, dashboardId, msgType.name(), e);
+            log.warn("[{}][{}] Failed to push dashboard action to rule engine: {}", tenantId, dashboard.getId(), msgType.name(), e);
         }
     }
 

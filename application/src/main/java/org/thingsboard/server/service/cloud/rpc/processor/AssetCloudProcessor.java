@@ -77,7 +77,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
                     Asset assetById = assetService.findAssetById(tenantId, assetId);
                     if (assetById != null) {
                         assetService.deleteAsset(tenantId, assetId);
-                        pushAssetDeletedEventToRuleEngine(tenantId, assetId);
+                        pushAssetDeletedEventToRuleEngine(tenantId, assetById);
                     }
                     return Futures.immediateFuture(null);
                 case UNRECOGNIZED:
@@ -103,20 +103,20 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
     }
 
     private void pushAssetCreatedEventToRuleEngine(TenantId tenantId, AssetId assetId) {
-        pushAssetEventToRuleEngine(tenantId, assetId, TbMsgType.ENTITY_CREATED);
+        Asset asset = assetService.findAssetById(tenantId, assetId);
+        pushAssetEventToRuleEngine(tenantId, asset, TbMsgType.ENTITY_CREATED);
     }
 
-    private void pushAssetDeletedEventToRuleEngine(TenantId tenantId, AssetId assetId) {
-        pushAssetEventToRuleEngine(tenantId, assetId, TbMsgType.ENTITY_DELETED);
+    private void pushAssetDeletedEventToRuleEngine(TenantId tenantId, Asset asset) {
+        pushAssetEventToRuleEngine(tenantId, asset, TbMsgType.ENTITY_DELETED);
     }
 
-    private void pushAssetEventToRuleEngine(TenantId tenantId, AssetId assetId, TbMsgType msgType) {
+    private void pushAssetEventToRuleEngine(TenantId tenantId, Asset asset, TbMsgType msgType) {
         try {
-            Asset asset = assetService.findAssetById(tenantId, assetId);
             String assetAsString = JacksonUtil.toString(asset);
-            pushEntityEventToRuleEngine(tenantId, assetId, asset.getCustomerId(), msgType, assetAsString, new TbMsgMetaData());
+            pushEntityEventToRuleEngine(tenantId, asset.getId(), asset.getCustomerId(), msgType, assetAsString, new TbMsgMetaData());
         } catch (Exception e) {
-            log.warn("[{}][{}] Failed to push asset action to rule engine: {}", tenantId, assetId, msgType.name(), e);
+            log.warn("[{}][{}] Failed to push asset action to rule engine: {}", tenantId, asset.getId(), msgType.name(), e);
         }
     }
 

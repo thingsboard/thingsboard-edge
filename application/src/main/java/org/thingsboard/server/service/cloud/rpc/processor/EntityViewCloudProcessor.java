@@ -86,7 +86,7 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
                     if (entityViewById != null) {
                         entityViewService.deleteEntityView(tenantId, entityViewId);
                         tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityViewId, ComponentLifecycleEvent.DELETED);
-                        pushEntityViewDeletedEventToRuleEngine(tenantId, entityViewId);
+                        pushEntityViewDeletedEventToRuleEngine(tenantId, entityViewById);
                     }
                 }
                 return Futures.immediateFuture(null);
@@ -115,20 +115,20 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
     }
 
     private void pushEntityViewCreatedEventToRuleEngine(TenantId tenantId, EntityViewId entityViewId) {
-        pushEntityViewEventToRuleEngine(tenantId, entityViewId, TbMsgType.ENTITY_CREATED);
+        EntityView entityView = entityViewService.findEntityViewById(tenantId, entityViewId);
+        pushEntityViewEventToRuleEngine(tenantId, entityView, TbMsgType.ENTITY_CREATED);
     }
 
-    private void pushEntityViewDeletedEventToRuleEngine(TenantId tenantId, EntityViewId entityViewId) {
-        pushEntityViewEventToRuleEngine(tenantId, entityViewId, TbMsgType.ENTITY_DELETED);
+    private void pushEntityViewDeletedEventToRuleEngine(TenantId tenantId, EntityView entityView) {
+        pushEntityViewEventToRuleEngine(tenantId, entityView, TbMsgType.ENTITY_DELETED);
     }
 
-    private void pushEntityViewEventToRuleEngine(TenantId tenantId, EntityViewId entityViewId, TbMsgType msgType) {
+    private void pushEntityViewEventToRuleEngine(TenantId tenantId, EntityView entityView, TbMsgType msgType) {
         try {
-            EntityView entityView = entityViewService.findEntityViewById(tenantId, entityViewId);
             String entityViewAsString = JacksonUtil.toString(entityView);
-            pushEntityEventToRuleEngine(tenantId, entityViewId, entityView.getCustomerId(), msgType, entityViewAsString, new TbMsgMetaData());
+            pushEntityEventToRuleEngine(tenantId, entityView.getId(), entityView.getCustomerId(), msgType, entityViewAsString, new TbMsgMetaData());
         } catch (Exception e) {
-            log.warn("[{}][{}] Failed to push entityView action to rule engine: {}", tenantId, entityViewId, msgType.name(), e);
+            log.warn("[{}][{}] Failed to push entityView action to rule engine: {}", tenantId, entityView.getId(), msgType.name(), e);
         }
     }
 

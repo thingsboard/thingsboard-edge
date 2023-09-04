@@ -112,7 +112,7 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
                         deviceProfileService.deleteDeviceProfile(tenantId, deviceProfileId);
                         tbClusterService.onDeviceProfileDelete(deviceProfileToDelete, null);
                         tbClusterService.broadcastEntityStateChangeEvent(tenantId, deviceProfileId, ComponentLifecycleEvent.DELETED);
-                        pushDeviceProfileDeletedEventToRuleEngine(tenantId, deviceProfileId);
+                        pushDeviceProfileDeletedEventToRuleEngine(tenantId, deviceProfileToDelete);
                     }
                     break;
                 case UNRECOGNIZED:
@@ -125,20 +125,20 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
     }
 
     private void pushDeviceProfileCreatedEventToRuleEngine(TenantId tenantId, DeviceProfileId deviceProfileId) {
-        pushDeviceProfileEventToRuleEngine(tenantId, deviceProfileId, TbMsgType.ENTITY_CREATED);
+        DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
+        pushDeviceProfileEventToRuleEngine(tenantId, deviceProfile, TbMsgType.ENTITY_CREATED);
     }
 
-    private void pushDeviceProfileDeletedEventToRuleEngine(TenantId tenantId, DeviceProfileId deviceProfileId) {
-        pushDeviceProfileEventToRuleEngine(tenantId, deviceProfileId, TbMsgType.ENTITY_DELETED);
+    private void pushDeviceProfileDeletedEventToRuleEngine(TenantId tenantId, DeviceProfile deviceProfile) {
+        pushDeviceProfileEventToRuleEngine(tenantId, deviceProfile, TbMsgType.ENTITY_DELETED);
     }
 
-    private void pushDeviceProfileEventToRuleEngine(TenantId tenantId, DeviceProfileId deviceProfileId, TbMsgType msgType) {
+    private void pushDeviceProfileEventToRuleEngine(TenantId tenantId, DeviceProfile deviceProfile, TbMsgType msgType) {
         try {
-            DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
             String deviceProfileAsString = JacksonUtil.toString(deviceProfile);
-            pushEntityEventToRuleEngine(tenantId, deviceProfileId, null, msgType, deviceProfileAsString, new TbMsgMetaData());
+            pushEntityEventToRuleEngine(tenantId, deviceProfile.getId(), null, msgType, deviceProfileAsString, new TbMsgMetaData());
         } catch (Exception e) {
-            log.warn("[{}][{}] Failed to push device action to rule engine: {}", tenantId, deviceProfileId, msgType.name(), e);
+            log.warn("[{}][{}] Failed to push device action to rule engine: {}", tenantId, deviceProfile.getId(), msgType.name(), e);
         }
     }
 

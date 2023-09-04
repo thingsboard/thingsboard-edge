@@ -113,7 +113,7 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
                     if (assetProfile != null) {
                         assetProfileService.deleteAssetProfile(tenantId, assetProfileId);
                         tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileId, ComponentLifecycleEvent.DELETED);
-                        pushAssetProfileDeletedEventToRuleEngine(tenantId, assetProfileId);
+                        pushAssetProfileDeletedEventToRuleEngine(tenantId, assetProfile);
                     }
                     break;
                 case UNRECOGNIZED:
@@ -126,20 +126,20 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
     }
 
     private void pushAssetProfileCreatedEventToRuleEngine(TenantId tenantId, AssetProfileId assetProfileId) {
-        pushAssetProfileEventToRuleEngine(tenantId, assetProfileId, TbMsgType.ENTITY_CREATED);
+        AssetProfile assetProfile = assetProfileService.findAssetProfileById(tenantId, assetProfileId);
+        pushAssetProfileEventToRuleEngine(tenantId, assetProfile, TbMsgType.ENTITY_CREATED);
     }
 
-    private void pushAssetProfileDeletedEventToRuleEngine(TenantId tenantId, AssetProfileId assetProfileId) {
-        pushAssetProfileEventToRuleEngine(tenantId, assetProfileId, TbMsgType.ENTITY_DELETED);
+    private void pushAssetProfileDeletedEventToRuleEngine(TenantId tenantId, AssetProfile assetProfile) {
+        pushAssetProfileEventToRuleEngine(tenantId, assetProfile, TbMsgType.ENTITY_DELETED);
     }
 
-    private void pushAssetProfileEventToRuleEngine(TenantId tenantId, AssetProfileId assetProfileId, TbMsgType msgType) {
+    private void pushAssetProfileEventToRuleEngine(TenantId tenantId, AssetProfile assetProfile, TbMsgType msgType) {
         try {
-            AssetProfile assetProfile = assetProfileService.findAssetProfileById(tenantId, assetProfileId);
             String assetProfileAsString = JacksonUtil.toString(assetProfile);
-            pushEntityEventToRuleEngine(tenantId, assetProfileId, null, msgType, assetProfileAsString, new TbMsgMetaData());
+            pushEntityEventToRuleEngine(tenantId, assetProfile.getId(), null, msgType, assetProfileAsString, new TbMsgMetaData());
         } catch (Exception e) {
-            log.warn("[{}][{}] Failed to push asset profile action to rule engine: {}", tenantId, assetProfileId, msgType.name(), e);
+            log.warn("[{}][{}] Failed to push asset profile action to rule engine: {}", tenantId, assetProfile.getId(), msgType.name(), e);
         }
     }
 
