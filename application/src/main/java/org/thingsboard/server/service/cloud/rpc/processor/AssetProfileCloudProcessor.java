@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.StringUtils;
@@ -47,9 +48,11 @@ import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
@@ -98,6 +101,9 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
                             assetProfileService.deleteAssetProfile(tenantId, assetProfileByName.getId());
                             tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileByName.getId(), ComponentLifecycleEvent.DELETED);
                         }
+                        if (created) {
+                            pushAssetProfileCreatedEventToRuleEngine(tenantId, assetProfileId);
+                        }
                     } finally {
                         assetCreationLock.unlock();
                     }
@@ -107,6 +113,7 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
                     if (assetProfile != null) {
                         assetProfileService.deleteAssetProfile(tenantId, assetProfileId);
                         tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileId, ComponentLifecycleEvent.DELETED);
+                        pushAssetProfileDeletedEventToRuleEngine(tenantId, assetProfileId);
                     }
                     break;
                 case UNRECOGNIZED:
@@ -116,6 +123,24 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
             edgeSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
+    }
+
+    private void pushAssetProfileCreatedEventToRuleEngine(TenantId tenantId, AssetProfileId assetProfileId) {
+        pushAssetProfileEventToRuleEngine(tenantId, assetProfileId, TbMsgType.ENTITY_CREATED);
+    }
+
+    private void pushAssetProfileDeletedEventToRuleEngine(TenantId tenantId, AssetProfileId assetProfileId) {
+        pushAssetProfileEventToRuleEngine(tenantId, assetProfileId, TbMsgType.ENTITY_DELETED);
+    }
+
+    private void pushAssetProfileEventToRuleEngine(TenantId tenantId, AssetProfileId assetProfileId, TbMsgType msgType) {
+        try {
+            AssetProfile assetProfile = assetProfileService.findAssetProfileById(tenantId, assetProfileId);
+            String assetProfileAsString = JacksonUtil.toString(assetProfile);
+            pushEntityEventToRuleEngine(tenantId, assetProfileId, null, msgType, assetProfileAsString, new TbMsgMetaData());
+        } catch (Exception e) {
+            log.warn("[{}][{}] Failed to push asset profile action to rule engine: {}", tenantId, assetProfileId, msgType.name(), e);
+        }
     }
 
     private void renamePreviousAssetProfile(AssetProfile assetProfileByName) {

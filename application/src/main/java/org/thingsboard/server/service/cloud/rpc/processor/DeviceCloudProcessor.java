@@ -49,9 +49,11 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
@@ -94,6 +96,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                         Device deviceById = deviceService.findDeviceById(tenantId, deviceId);
                         if (deviceById != null) {
                             deviceService.deleteDevice(tenantId, deviceId);
+                            pushDeviceDeletedEventToRuleEngine(tenantId, deviceId);
                         }
                     }
                     return Futures.immediateFuture(null);
@@ -109,9 +112,31 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
     private void saveOrUpdateDevice(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg, Long queueStartTs) throws ThingsboardException {
         CustomerId customerId = safeGetCustomerId(deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB());
         Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, customerId);
+        Boolean created = resultPair.getFirst();
+        if (created) {
+            pushDeviceCreatedEventToRuleEngine(tenantId, deviceId);
+        }
         Boolean deviceNameUpdated = resultPair.getSecond();
         if (deviceNameUpdated) {
             cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.UPDATED, deviceId, null, null, queueStartTs);
+        }
+    }
+
+    private void pushDeviceCreatedEventToRuleEngine(TenantId tenantId, DeviceId deviceId) {
+        pushDeviceEventToRuleEngine(tenantId, deviceId, TbMsgType.ENTITY_CREATED);
+    }
+
+    private void pushDeviceDeletedEventToRuleEngine(TenantId tenantId, DeviceId deviceId) {
+        pushDeviceEventToRuleEngine(tenantId, deviceId, TbMsgType.ENTITY_DELETED);
+    }
+
+    private void pushDeviceEventToRuleEngine(TenantId tenantId, DeviceId deviceId, TbMsgType msgType) {
+        try {
+            Device device = deviceService.findDeviceById(tenantId, deviceId);
+            String deviceAsString = JacksonUtil.toString(device);
+            pushEntityEventToRuleEngine(tenantId, deviceId, device.getCustomerId(), msgType, deviceAsString, new TbMsgMetaData());
+        } catch (Exception e) {
+            log.warn("[{}][{}] Failed to push device action to rule engine: {}", tenantId, deviceId, msgType.name(), e);
         }
     }
 

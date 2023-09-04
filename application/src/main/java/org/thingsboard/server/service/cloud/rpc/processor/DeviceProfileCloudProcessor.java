@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceInfo;
@@ -48,9 +49,11 @@ import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
@@ -95,6 +98,9 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
                                 deviceProfileService.deleteDeviceProfile(tenantId, deviceProfileByName.getId());
                             }
                         }
+                        if (created) {
+                            pushDeviceProfileCreatedEventToRuleEngine(tenantId, deviceProfileId);
+                        }
                         notifyCluster(tenantId, deviceProfile, created);
                     } finally {
                         deviceCreationLock.unlock();
@@ -106,6 +112,7 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
                         deviceProfileService.deleteDeviceProfile(tenantId, deviceProfileId);
                         tbClusterService.onDeviceProfileDelete(deviceProfileToDelete, null);
                         tbClusterService.broadcastEntityStateChangeEvent(tenantId, deviceProfileId, ComponentLifecycleEvent.DELETED);
+                        pushDeviceProfileDeletedEventToRuleEngine(tenantId, deviceProfileId);
                     }
                     break;
                 case UNRECOGNIZED:
@@ -115,6 +122,24 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
             edgeSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
+    }
+
+    private void pushDeviceProfileCreatedEventToRuleEngine(TenantId tenantId, DeviceProfileId deviceProfileId) {
+        pushDeviceProfileEventToRuleEngine(tenantId, deviceProfileId, TbMsgType.ENTITY_CREATED);
+    }
+
+    private void pushDeviceProfileDeletedEventToRuleEngine(TenantId tenantId, DeviceProfileId deviceProfileId) {
+        pushDeviceProfileEventToRuleEngine(tenantId, deviceProfileId, TbMsgType.ENTITY_DELETED);
+    }
+
+    private void pushDeviceProfileEventToRuleEngine(TenantId tenantId, DeviceProfileId deviceProfileId, TbMsgType msgType) {
+        try {
+            DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
+            String deviceProfileAsString = JacksonUtil.toString(deviceProfile);
+            pushEntityEventToRuleEngine(tenantId, deviceProfileId, null, msgType, deviceProfileAsString, new TbMsgMetaData());
+        } catch (Exception e) {
+            log.warn("[{}][{}] Failed to push device action to rule engine: {}", tenantId, deviceProfileId, msgType.name(), e);
+        }
     }
 
     private void notifyCluster(TenantId tenantId, DeviceProfile deviceProfile, boolean created) {
