@@ -20,6 +20,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
@@ -30,7 +31,9 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
@@ -61,6 +64,7 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
                     if (entityViewById != null) {
                         entityViewService.deleteEntityView(tenantId, entityViewId);
                         tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityViewId, ComponentLifecycleEvent.DELETED);
+                        pushEntityViewDeletedEventToRuleEngine(tenantId, entityViewId);
                     }
                     return Futures.immediateFuture(null);
                 case UNRECOGNIZED:
@@ -78,9 +82,30 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
         Boolean created = resultPair.getFirst();
         tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityViewId,
                 created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
-        Boolean assetNameUpdated = resultPair.getSecond();
-        if (assetNameUpdated) {
+        if (created) {
+            pushEntityViewCreatedEventToRuleEngine(tenantId, entityViewId);
+        }
+        Boolean entityViewNameUpdated = resultPair.getSecond();
+        if (entityViewNameUpdated) {
             cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ENTITY_VIEW, EdgeEventActionType.UPDATED, entityViewId, null, queueStartTs);
+        }
+    }
+
+    private void pushEntityViewCreatedEventToRuleEngine(TenantId tenantId, EntityViewId entityViewId) {
+        pushEntityViewEventToRuleEngine(tenantId, entityViewId, TbMsgType.ENTITY_CREATED);
+    }
+
+    private void pushEntityViewDeletedEventToRuleEngine(TenantId tenantId, EntityViewId entityViewId) {
+        pushEntityViewEventToRuleEngine(tenantId, entityViewId, TbMsgType.ENTITY_DELETED);
+    }
+
+    private void pushEntityViewEventToRuleEngine(TenantId tenantId, EntityViewId entityViewId, TbMsgType msgType) {
+        try {
+            EntityView entityView = entityViewService.findEntityViewById(tenantId, entityViewId);
+            String entityViewAsString = JacksonUtil.toString(entityView);
+            pushEntityEventToRuleEngine(tenantId, entityViewId, entityView.getCustomerId(), msgType, entityViewAsString, new TbMsgMetaData());
+        } catch (Exception e) {
+            log.warn("[{}][{}] Failed to push entityView action to rule engine: {}", tenantId, entityViewId, msgType.name(), e);
         }
     }
 

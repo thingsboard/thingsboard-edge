@@ -20,6 +20,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
@@ -29,6 +30,8 @@ import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.asset.BaseAssetService;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
@@ -58,6 +61,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
                     Asset assetById = assetService.findAssetById(tenantId, assetId);
                     if (assetById != null) {
                         assetService.deleteAsset(tenantId, assetId);
+                        pushAssetDeletedEventToRuleEngine(tenantId, assetId);
                     }
                     return Futures.immediateFuture(null);
                 case UNRECOGNIZED:
@@ -72,9 +76,31 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
     private void saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, CustomerId edgeCustomerId, Long queueStartTs) {
         CustomerId customerId = safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId);
         Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, customerId);
+        Boolean created = resultPair.getFirst();
+        if (created) {
+            pushAssetCreatedEventToRuleEngine(tenantId, assetId);
+        }
         Boolean assetNameUpdated = resultPair.getSecond();
         if (assetNameUpdated) {
             cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ASSET, EdgeEventActionType.UPDATED, assetId, null, queueStartTs);
+        }
+    }
+
+    private void pushAssetCreatedEventToRuleEngine(TenantId tenantId, AssetId assetId) {
+        pushAssetEventToRuleEngine(tenantId, assetId, TbMsgType.ENTITY_CREATED);
+    }
+
+    private void pushAssetDeletedEventToRuleEngine(TenantId tenantId, AssetId assetId) {
+        pushAssetEventToRuleEngine(tenantId, assetId, TbMsgType.ENTITY_DELETED);
+    }
+
+    private void pushAssetEventToRuleEngine(TenantId tenantId, AssetId assetId, TbMsgType msgType) {
+        try {
+            Asset asset = assetService.findAssetById(tenantId, assetId);
+            String assetAsString = JacksonUtil.toString(asset);
+            pushEntityEventToRuleEngine(tenantId, assetId, asset.getCustomerId(), msgType, assetAsString, new TbMsgMetaData());
+        } catch (Exception e) {
+            log.warn("[{}][{}] Failed to push asset action to rule engine: {}", tenantId, assetId, msgType.name(), e);
         }
     }
 

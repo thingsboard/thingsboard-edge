@@ -20,6 +20,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EdgeUtils;
@@ -28,6 +29,8 @@ import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
@@ -54,13 +57,13 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
             switch (dashboardUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    CustomerId customerId = safeGetCustomerId(dashboardUpdateMsg.getCustomerIdMSB(), dashboardUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId);
-                    super.saveOrUpdateDashboard(tenantId, dashboardId, dashboardUpdateMsg, customerId);
+                    saveOrUpdateDashboard(tenantId, dashboardId, dashboardUpdateMsg, edgeCustomerId, queueStartTs);
                     return requestForAdditionalData(tenantId, dashboardId, queueStartTs);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     Dashboard dashboardById = dashboardService.findDashboardById(tenantId, dashboardId);
                     if (dashboardById != null) {
                         dashboardService.deleteDashboard(tenantId, dashboardId);
+                        pushDashboardDeletedEventToRuleEngine(tenantId, dashboardId);
                     }
                     return Futures.immediateFuture(null);
                 case UNRECOGNIZED:
@@ -69,6 +72,32 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
             }
         } finally {
             edgeSynchronizationManager.getSync().remove();
+        }
+    }
+
+    private void saveOrUpdateDashboard(TenantId tenantId, DashboardId dashboardId, DashboardUpdateMsg dashboardUpdateMsg, CustomerId edgeCustomerId, Long queueStartTs) {
+        CustomerId customerId = safeGetCustomerId(dashboardUpdateMsg.getCustomerIdMSB(), dashboardUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId);
+        boolean created = super.saveOrUpdateDashboard(tenantId, dashboardId, dashboardUpdateMsg, customerId);
+        if (created) {
+            pushDashboardCreatedEventToRuleEngine(tenantId, dashboardId);
+        }
+    }
+
+    private void pushDashboardCreatedEventToRuleEngine(TenantId tenantId, DashboardId dashboardId) {
+        pushDashboardEventToRuleEngine(tenantId, dashboardId, TbMsgType.ENTITY_CREATED);
+    }
+
+    private void pushDashboardDeletedEventToRuleEngine(TenantId tenantId, DashboardId dashboardId) {
+        pushDashboardEventToRuleEngine(tenantId, dashboardId, TbMsgType.ENTITY_DELETED);
+    }
+
+    private void pushDashboardEventToRuleEngine(TenantId tenantId, DashboardId dashboardId, TbMsgType msgType) {
+        try {
+            Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
+            String dashboardAsString = JacksonUtil.toString(dashboard);
+            pushEntityEventToRuleEngine(tenantId, dashboardId, null, msgType, dashboardAsString, new TbMsgMetaData());
+        } catch (Exception e) {
+            log.warn("[{}][{}] Failed to push dashboard action to rule engine: {}", tenantId, dashboardId, msgType.name(), e);
         }
     }
 
