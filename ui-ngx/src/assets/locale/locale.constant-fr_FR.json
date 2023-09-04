@@ -1524,7 +1524,6 @@
         "entity-name-filter-required": "Le filtre de nom d'entité est requis.",
         "entity-type": "Type d'entité",
         "entity-type-list": "Liste de types d'entités",
-        "entity-type-list-empty": "Aucun type d'entité sélectionné.",
         "entity-types": "Types d'entité",
         "integration-name-starts-with": "Intégrations dont le nom commence par '{{prefix}}'",
         "entity-view-name-starts-with": "Les vues d'entité dont le nom commence par '{{prefix}}'",
