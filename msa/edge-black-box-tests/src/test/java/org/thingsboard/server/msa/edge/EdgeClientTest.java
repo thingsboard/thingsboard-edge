@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 public class EdgeClientTest extends AbstractContainerTest {
 
     @Test
-    public void testEdge_assignToCustomer_unassignFromCustomer() throws Exception {
+    public void testEdge_assignToCustomer_unassignFromCustomer() {
         // assign edge to customer
         Customer customer = new Customer();
         customer.setTitle("Edge Test Customer");
@@ -39,8 +39,10 @@ public class EdgeClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> savedCustomer.getId().equals(edgeRestClient.getEdgeById(edge.getId()).get().getCustomerId()));
 
-        // sleep 10 to make sure that sync process is completed
-        Thread.sleep(TimeUnit.SECONDS.toMillis(10));
+        try {
+            // wait until sync process completed fully
+            TimeUnit.SECONDS.sleep(5);
+        } catch (Exception ignored) {}
 
         // unassign edge from customer
         cloudRestClient.unassignEdgeFromCustomer(edge.getId());
