@@ -941,7 +941,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
 
-        edgeImitator.expectMessageAmount(23);
+        edgeImitator.expectMessageAmount(25);
         edgeImitator.connect();
         assertThat(edgeImitator.waitForMessages()).as("await for messages on first connect").isTrue();
 
@@ -954,7 +954,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertTrue(popAssetMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Test Sync Edge Asset 1"));
         Assert.assertTrue(edgeImitator.getDownlinkMsgs().isEmpty());
 
-        edgeImitator.expectMessageAmount(18);
+        edgeImitator.expectMessageAmount(20);
         doPost("/api/edge/sync/" + edge.getId());
         assertThat(edgeImitator.waitForMessages()).as("await for messages after edge sync rest api call").isTrue();
 
@@ -982,6 +982,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertTrue(popAdminSettingsMsg(edgeImitator.getDownlinkMsgs(), "mail", false));
         Assert.assertTrue(popAdminSettingsMsg(edgeImitator.getDownlinkMsgs(), "mailTemplates", true));
         Assert.assertTrue(popAdminSettingsMsg(edgeImitator.getDownlinkMsgs(), "mailTemplates", false));
+        Assert.assertTrue(popDeviceProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "default"));
+        Assert.assertTrue(popAssetProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "default"));
         Assert.assertTrue(popDeviceProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "default"));
         Assert.assertTrue(popAssetProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "default"));
         Assert.assertTrue(popAssetProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "test"));
@@ -1264,7 +1266,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
 
-        edgeImitator.expectMessageAmount(27);
+        edgeImitator.expectMessageAmount(29);
         edgeImitator.connect();
         assertThat(edgeImitator.waitForMessages()).as("await for messages on first connect").isTrue();
 
@@ -1278,7 +1280,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "AssetGroup", "ASSET", "TENANT"));
         Assert.assertTrue(edgeImitator.getDownlinkMsgs().isEmpty());
 
-        edgeImitator.expectMessageAmount(21);
+        edgeImitator.expectMessageAmount(23);
         doPost("/api/edge/sync/" + edge.getId());
         assertThat(edgeImitator.waitForMessages()).as("await for messages after edge sync rest api call").isTrue();
 
@@ -1320,6 +1322,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertTrue(popRuleChainMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Edge Root Rule Chain"));
         Assert.assertTrue(popAdminSettingsMsg(edgeImitator.getDownlinkMsgs(), "general", true));
         Assert.assertTrue(popAdminSettingsMsg(edgeImitator.getDownlinkMsgs(), "mail", true));
+        Assert.assertTrue(popDeviceProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "default"));
+        Assert.assertTrue(popAssetProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "default"));
         Assert.assertTrue(popDeviceProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "default"));
         Assert.assertTrue(popAssetProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "default"));
         Assert.assertTrue(popAssetProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "test"));
@@ -1388,7 +1392,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
 
-        edgeImitator.expectMessageAmount(37);
+        edgeImitator.expectMessageAmount(39);
         edgeImitator.connect();
         assertThat(edgeImitator.waitForMessages()).as("await for messages on first connect").isTrue();
 
@@ -1406,7 +1410,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertTrue(popAssetProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "test"));
         Assert.assertTrue(edgeImitator.getDownlinkMsgs().isEmpty());
 
-        edgeImitator.expectMessageAmount(27);
+        edgeImitator.expectMessageAmount(29);
         doPost("/api/edge/sync/" + edge.getId());
         assertThat(edgeImitator.waitForMessages()).as("await for messages after edge sync rest api call").isTrue();
 
