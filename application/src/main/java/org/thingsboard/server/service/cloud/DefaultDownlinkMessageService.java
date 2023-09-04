@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.cloud.CloudEventService;
+import org.thingsboard.server.dao.customer.CustomerServiceImpl;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
@@ -293,7 +294,9 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                     sequenceDependencyLock.lock();
                     try {
                         result.add(customerProcessor.processCustomerMsgFromCloud(tenantId, customerUpdateMsg, queueStartTs));
-                        updateCustomerId(tenantId, customerUpdateMsg);
+                        if (!CustomerServiceImpl.PUBLIC_CUSTOMER_TITLE.equals(customerUpdateMsg.getTitle())) {
+                            updateCustomerId(tenantId, customerUpdateMsg);
+                        }
                     } finally {
                         sequenceDependencyLock.unlock();
                     }
@@ -354,12 +357,15 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             }
             if (downlinkMsg.hasSystemLoginWhiteLabelingParams()) {
                 result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getSystemLoginWhiteLabelingParams()));
+                updateEdgeLoginDomainWhiteLabelingSettings(tenantId);
             }
             if (downlinkMsg.hasTenantLoginWhiteLabelingParams()) {
                 result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getTenantLoginWhiteLabelingParams()));
+                updateEdgeLoginDomainWhiteLabelingSettings(tenantId);
             }
             if (downlinkMsg.hasCustomerLoginWhiteLabelingParams()) {
                 result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getCustomerLoginWhiteLabelingParams()));
+                updateEdgeLoginDomainWhiteLabelingSettings(tenantId);
             }
             if (downlinkMsg.getSchedulerEventUpdateMsgCount() > 0) {
                 for (SchedulerEventUpdateMsg schedulerEventUpdateMsg : downlinkMsg.getSchedulerEventUpdateMsgList()) {
@@ -438,14 +444,18 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
         switch (customerUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-                customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
+                this.customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                customerId = null;
+                this.customerId = null;
                 break;
         }
 
-        EntityId ownerId = customerId != null && !customerId.isNullUid() ? customerId : tenantId;
+        updateEdgeLoginDomainWhiteLabelingSettings(tenantId);
+    }
+
+    private void updateEdgeLoginDomainWhiteLabelingSettings(TenantId tenantId) {
+        EntityId ownerId = this.customerId != null && !this.customerId.isNullUid() ? this.customerId : tenantId;
         whiteLabelingService.saveOrUpdateEdgeLoginWhiteLabelSettings(tenantId, ownerId);
     }
 

@@ -37,7 +37,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -47,8 +46,8 @@ import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -63,10 +62,6 @@ import org.thingsboard.server.exception.DataValidationException;
 import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -225,6 +220,8 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     }
 
     private boolean validateDomain(String domainName) {
+        return true;
+        /* edge only: no validation by domain - fetch is done by hardcoded entity id as owner of edge
         try {
             LoginWhiteLabelingParams systemParams = getSystemLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID);
             if (systemParams != null) {
@@ -239,6 +236,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
             log.warn("Failed to validate domain.", e);
             return false;
         }
+         */
     }
 
     private boolean isBaseUrlMatchesDomain(String baseUrl, String domainName) {
@@ -537,15 +535,27 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     public void saveOrUpdateEdgeLoginWhiteLabelSettings(TenantId tenantId, EntityId currentEntityId) {
         edgeLoginWhiteLabelSettingsLock.lock();
         try {
-//            String loginWhiteLabelKey = constructLoginWhileLabelKey(EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME);
-//            AdminSettings adminSettingsByKey = adminSettingsService.findAdminSettingsByKey(tenantId, loginWhiteLabelKey);
-//            if (adminSettingsByKey != null) {
-//                adminSettingsService.deleteAdminSettingsByKey(tenantId, loginWhiteLabelKey);
-//            }
-//            return saveLoginWhiteLabelSettings(tenantId, currentEntityId, loginWhiteLabelKey);
+            checkAndRemoveIfDomainAlreadyUsedByOtherEntity(tenantId, currentEntityId);
+            WhiteLabeling whiteLabeling = findById(tenantId, currentEntityId, WhiteLabelingType.LOGIN);
+            if (whiteLabeling == null) {
+                whiteLabeling = new WhiteLabeling();
+            }
+            whiteLabeling.setEntityId(currentEntityId);
+            whiteLabeling.setType(WhiteLabelingType.LOGIN);
+            if (whiteLabeling.getSettings() == null) {
+                whiteLabeling.setSettings(JacksonUtil.valueToTree(new LoginWhiteLabelingParams()));
+            }
+            whiteLabeling.setDomain(EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME);
+            doSaveWhiteLabelingSettings(tenantId, whiteLabeling);
         } finally {
             edgeLoginWhiteLabelSettingsLock.unlock();
         }
     }
 
+    private void checkAndRemoveIfDomainAlreadyUsedByOtherEntity(TenantId tenantId, EntityId currentEntityId) {
+        WhiteLabeling whiteLabeling = whiteLabelingDao.findByDomain(tenantId, EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME);
+        if (whiteLabeling != null && whiteLabeling.getEntityId() != null && !whiteLabeling.getEntityId().equals(currentEntityId)) {
+            deleteDomainWhiteLabelingByEntityId(tenantId, whiteLabeling.getEntityId());
+        }
+    }
 }
