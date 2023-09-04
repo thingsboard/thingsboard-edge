@@ -249,8 +249,10 @@ export class WidgetService {
     ));
   }
 
-  public getWidgetTypes(pageLink: PageLink, tenantOnly = false, config?: RequestConfig): Observable<PageData<WidgetTypeInfo>> {
-    return this.http.get<PageData<WidgetTypeInfo>>(`/api/widgetTypes${pageLink.toQuery()}&tenantOnly=${tenantOnly}`,
+  public getWidgetTypes(pageLink: PageLink, tenantOnly = false,
+                        fullSearch = false, config?: RequestConfig): Observable<PageData<WidgetTypeInfo>> {
+    return this.http.get<PageData<WidgetTypeInfo>>(
+        `/api/widgetTypes${pageLink.toQuery()}&tenantOnly=${tenantOnly}&fullSearch=${fullSearch}`,
       defaultHttpOptionsFromConfig(config));
   }
 

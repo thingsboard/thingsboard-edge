@@ -46,6 +46,6 @@ public class SystemWidgetTypesEdgeEventFetcher extends BaseWidgetTypesEdgeEventF
 
     @Override
     protected PageData<WidgetTypeInfo> findWidgetTypes(TenantId tenantId, PageLink pageLink) {
-        return widgetTypeService.findSystemWidgetTypesByPageLink(tenantId, pageLink);
+        return widgetTypeService.findSystemWidgetTypesByPageLink(tenantId, false, pageLink);
     }
 }
