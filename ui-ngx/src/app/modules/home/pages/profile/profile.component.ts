@@ -31,7 +31,7 @@
 
 import { Component, OnInit } from '@angular/core';
 import { UserService } from '@core/http/user.service';
-import { AuthUser, User } from '@shared/models/user.model';
+import { User } from '@shared/models/user.model';
 import { Authority } from '@shared/models/authority.enum';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
@@ -45,7 +45,6 @@ import { ActionSettingsChangeLanguage } from '@core/settings/settings.actions';
 import { ActivatedRoute } from '@angular/router';
 import { isDefinedAndNotNull } from '@core/utils';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
-import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { AuthService } from '@core/auth/auth.service';
 
 @Component({
@@ -62,8 +61,6 @@ export class ProfileComponent extends PageComponent implements OnInit, HasConfir
 
   authState = getCurrentAuthState(this.store);
 
-  private readonly authUser: AuthUser;
-
   constructor(protected store: Store<AppState>,
               private route: ActivatedRoute,
               private userService: UserService,
@@ -71,7 +68,6 @@ export class ProfileComponent extends PageComponent implements OnInit, HasConfir
               private translate: TranslateService,
               public fb: UntypedFormBuilder) {
     super(store);
-    this.authUser = getCurrentAuthUser(this.store);
   }
 
   ngOnInit() {
