@@ -28,29 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.math;
+package org.thingsboard.server.config;
 
-import lombok.Data;
-import org.thingsboard.rule.engine.api.NodeConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import java.util.Arrays;
-import java.util.List;
+@Configuration
+public class CryptoConfig {
 
-@Data
-public class TbMathNodeConfiguration implements NodeConfiguration<TbMathNodeConfiguration> {
-
-    private TbRuleNodeMathFunctionType operation;
-    private List<TbMathArgument> arguments;
-    private String customFunction;
-    private TbMathResult result;
-
-    @Override
-    public TbMathNodeConfiguration defaultConfiguration() {
-        TbMathNodeConfiguration configuration = new TbMathNodeConfiguration();
-        configuration.setOperation(TbRuleNodeMathFunctionType.CUSTOM);
-        configuration.setCustomFunction("(x - 32) / 1.8");
-        configuration.setArguments(List.of(new TbMathArgument("x", TbMathArgumentType.MESSAGE_BODY, "temperature")));
-        configuration.setResult(new TbMathResult(TbMathArgumentType.MESSAGE_BODY, "temperatureCelsius", 2, false, false, null));
-        return configuration;
+    @Bean
+    protected BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
+
 }
