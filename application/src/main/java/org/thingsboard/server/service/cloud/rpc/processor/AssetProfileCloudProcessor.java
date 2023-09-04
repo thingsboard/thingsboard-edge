@@ -55,6 +55,7 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.asset.BaseAssetService;
 import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
@@ -164,7 +165,7 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
             case ADDED:
             case UPDATED:
                 AssetProfile assetProfile = assetProfileService.findAssetProfileById(cloudEvent.getTenantId(), assetProfileId);
-                if (assetProfile != null) {
+                if (assetProfile != null && !BaseAssetService.TB_SERVICE_QUEUE.equals(assetProfile.getName())) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
                     AssetProfileUpdateMsg assetProfileUpdateMsg =
                             assetProfileMsgConstructor.constructAssetProfileUpdatedMsg(msgType, assetProfile);
