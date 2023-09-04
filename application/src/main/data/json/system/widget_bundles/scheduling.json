@@ -8,7 +8,7 @@
     "name": "Scheduling"
   },
   "widgetTypeFqns": [
-    "scheduling.reports_schedule",
-    "scheduling.scheduler_events"
+    "scheduling.scheduler_events",
+    "scheduling.reports_schedule"
   ]
 }
