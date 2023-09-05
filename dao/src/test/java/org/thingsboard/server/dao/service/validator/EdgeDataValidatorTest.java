@@ -76,8 +76,8 @@ class EdgeDataValidatorTest {
         edge.setCloudEndpoint("https://localhost");
 
         validator.validateDataImpl(tenantId, edge);
-        verify(validator).validateName("Edge name", edge.getName());
-        verify(validator).validateName("Edge type", edge.getType());
+        verify(validator).validateString("Edge name", edge.getName());
+        verify(validator).validateString("Edge type", edge.getType());
     }
 
 }

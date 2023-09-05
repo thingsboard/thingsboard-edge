@@ -69,7 +69,7 @@ class BaseOtaPackageDataValidatorTest {
         otaPackageInfo.setTenantId(tenantId);
 
         validator.validateImpl(otaPackageInfo);
-        verify(validator).validateName("OtaPackage title", otaPackageInfo.getTitle());
+        verify(validator).validateString("OtaPackage title", otaPackageInfo.getTitle());
     }
 
 

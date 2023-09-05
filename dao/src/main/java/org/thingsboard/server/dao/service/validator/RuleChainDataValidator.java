@@ -79,7 +79,7 @@ public class RuleChainDataValidator extends DataValidator<RuleChain> {
 
     @Override
     protected void validateDataImpl(TenantId tenantId, RuleChain ruleChain) {
-        validateName("Rule chain name", ruleChain.getName());
+        validateString("Rule chain name", ruleChain.getName());
         if (ruleChain.getType() == null) {
             ruleChain.setType(RuleChainType.CORE);
         }

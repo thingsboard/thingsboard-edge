@@ -65,7 +65,7 @@ class TenantProfileDataValidatorTest {
         tenantProfile.setProfileData(tenantProfileData);
 
         validator.validateDataImpl(tenantId, tenantProfile);
-        verify(validator).validateName("Tenant profile name", tenantProfile.getName());
+        verify(validator).validateString("Tenant profile name", tenantProfile.getName());
     }
 
 }

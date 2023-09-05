@@ -68,7 +68,7 @@ class WidgetsBundleDataValidatorTest {
         widgetsBundle.setTenantId(tenantId);
 
         validator.validateDataImpl(tenantId, widgetsBundle);
-        verify(validator).validateName("Widgets bundle title", widgetsBundle.getTitle());
+        verify(validator).validateString("Widgets bundle title", widgetsBundle.getTitle());
     }
 
 }

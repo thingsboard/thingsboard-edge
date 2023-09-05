@@ -65,7 +65,7 @@ class DashboardDataValidatorTest {
         dashboard.setTenantId(tenantId);
 
         validator.validateDataImpl(tenantId, dashboard);
-        verify(validator).validateName("Dashboard title", dashboard.getTitle());
+        verify(validator).validateString("Dashboard title", dashboard.getTitle());
     }
 
 }

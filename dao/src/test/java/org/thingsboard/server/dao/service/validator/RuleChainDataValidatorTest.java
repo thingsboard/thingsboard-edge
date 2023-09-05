@@ -73,7 +73,7 @@ class RuleChainDataValidatorTest {
         ruleChain.setTenantId(tenantId);
 
         validator.validateDataImpl(tenantId, ruleChain);
-        verify(validator).validateName("Rule chain name", ruleChain.getName());
+        verify(validator).validateString("Rule chain name", ruleChain.getName());
     }
 
 }

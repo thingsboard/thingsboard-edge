@@ -80,7 +80,7 @@ class AssetProfileDataValidatorTest {
         assetProfile.setTenantId(tenantId);
 
         validator.validateDataImpl(tenantId, assetProfile);
-        verify(validator).validateName("Asset profile name", assetProfile.getName());
+        verify(validator).validateString("Asset profile name", assetProfile.getName());
     }
 
 }

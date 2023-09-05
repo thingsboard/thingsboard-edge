@@ -78,7 +78,7 @@ class ResourceDataValidatorTest {
         resource.setTenantId(tenantId);
 
         validator.validateDataImpl(tenantId, resource);
-        verify(validator).validateName("Resource title", resource.getTitle());
+        verify(validator).validateString("Resource title", resource.getTitle());
     }
 
 }
