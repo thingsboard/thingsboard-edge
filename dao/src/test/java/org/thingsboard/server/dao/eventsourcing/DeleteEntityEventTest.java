@@ -28,35 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.alarm;
+package org.thingsboard.server.dao.eventsourcing;
 
-import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.alarm.Alarm;
-import org.thingsboard.server.common.data.alarm.AlarmInfo;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.AlarmId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
+import org.junit.jupiter.api.Test;
 
-import java.util.List;
+import java.util.concurrent.TimeUnit;
 
-public interface TbAlarmService {
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.BDDAssertions.byLessThan;
 
-    Alarm save(Alarm entity, User user) throws ThingsboardException;
+class DeleteEntityEventTest {
 
-    AlarmInfo ack(Alarm alarm, User user) throws ThingsboardException;
+    @Test
+    void testBuilderDefaultTs() {
+        assertThat(DeleteEntityEvent.builder().build().getTs())
+                .isCloseTo(System.currentTimeMillis(), byLessThan(TimeUnit.MINUTES.toMillis(1)));
 
-    AlarmInfo ack(Alarm alarm, long ackTs, User user) throws ThingsboardException;
+        assertThat(DeleteEntityEvent.builder().ts(Long.MIN_VALUE).build().getTs())
+                .isEqualTo(Long.MIN_VALUE);
+        assertThat(DeleteEntityEvent.builder().ts(Long.MAX_VALUE).build().getTs())
+                .isEqualTo(Long.MAX_VALUE);
+        assertThat(DeleteEntityEvent.builder().ts(-1L).build().getTs())
+                .isEqualTo(-1L);
+        assertThat(DeleteEntityEvent.builder().ts(0L).build().getTs())
+                .isEqualTo(0L);
 
-    AlarmInfo clear(Alarm alarm, User user) throws ThingsboardException;
+        assertThat(DeleteEntityEvent.builder().ts(1692175215000L).build().getTs())
+                .isEqualTo(1692175215000L);
+    }
 
-    AlarmInfo clear(Alarm alarm, long clearTs, User user) throws ThingsboardException;
-
-    AlarmInfo assign(Alarm alarm, UserId assigneeId, long assignTs, User user) throws ThingsboardException;
-
-    AlarmInfo unassign(Alarm alarm, long unassignTs, User user) throws ThingsboardException;
-
-    List<AlarmId> unassignDeletedUserAlarms(TenantId tenantId, User user, long unassignTs);
-
-    Boolean delete(Alarm alarm, User user);
 }
