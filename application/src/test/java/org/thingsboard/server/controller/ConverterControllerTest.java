@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.collect.Streams;
+import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -62,6 +63,7 @@ import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.exception.DataValidationException;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -75,6 +77,20 @@ import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_CHIR
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_TTN_UPLINK_CONVERTER_MESSAGE;
+import static org.thingsboard.server.controller.TestDataConst.AWS_IOT_JSON_DECODED;
+import static org.thingsboard.server.controller.TestDataConst.AWS_IOT_PAYLOAD_EXAMPLE;
+import static org.thingsboard.server.controller.TestDataConst.AZURE_JSON_DECODED;
+import static org.thingsboard.server.controller.TestDataConst.AZURE_PAYLOAD_EXAMPLE;
+import static org.thingsboard.server.controller.TestDataConst.CHIRDSTACK_JSON_PAYLOAD_EXAMPLE;
+import static org.thingsboard.server.controller.TestDataConst.CHIRPSTACK_JSON_DECODED;
+import static org.thingsboard.server.controller.TestDataConst.LORIOT_JSON_DECODED;
+import static org.thingsboard.server.controller.TestDataConst.LORIOT_PAYLOAD_EXAMPLE;
+import static org.thingsboard.server.controller.TestDataConst.SIGFOX_JSON_DECODED;
+import static org.thingsboard.server.controller.TestDataConst.SIGFOX_PAYLOAD_EXAMPLE;
+import static org.thingsboard.server.controller.TestDataConst.TTI_JSON_DECODED;
+import static org.thingsboard.server.controller.TestDataConst.TTI_JSON_PAYLOAD_EXAMPLE;
+import static org.thingsboard.server.controller.TestDataConst.TTN_JSON_DECODED;
+import static org.thingsboard.server.controller.TestDataConst.TTN_JSON_PAYLOAD_EXAMPLE;
 
 @TestPropertySource(properties = {
         "js.evaluator=local",
@@ -82,7 +98,6 @@ import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_TTN_
 })
 @DaoSqlTest
 public class ConverterControllerTest extends AbstractControllerTest {
-
     private IdComparator<Converter> idComparator = new IdComparator<>();
 
     private Tenant savedTenant;
@@ -502,6 +517,55 @@ public class ConverterControllerTest extends AbstractControllerTest {
             loginSysAdmin();
             doPost("/api/tenantProfile", defaultTenantProfile, TenantProfile.class);
         }
+    }
+
+    @Test
+    public void testTTIDefaultDecoder() throws IOException {
+        testDecoder("tbel-tti-decoder.raw", TTI_JSON_PAYLOAD_EXAMPLE, TTI_JSON_DECODED);
+    }
+
+    @Test
+    public void testTTNDefaultDecoder() throws IOException {
+        testDecoder("tbel-ttn-decoder.raw", TTN_JSON_PAYLOAD_EXAMPLE, TTN_JSON_DECODED);
+    }
+
+    @Test
+    public void testChirpstackDefaultDecoder() throws IOException {
+        testDecoder("tbel-chirpstack-decoder.raw", CHIRDSTACK_JSON_PAYLOAD_EXAMPLE, CHIRPSTACK_JSON_DECODED);
+    }
+
+    @Test
+    public void testLoriotDefaultDecoder() throws IOException {
+        testDecoder("tbel-loriot-decoder.raw", LORIOT_PAYLOAD_EXAMPLE, LORIOT_JSON_DECODED);
+    }
+
+    @Test
+    public void testAwsIotDefaultDecoder() throws IOException {
+        testDecoder("tbel-aws-iot-decoder.raw", AWS_IOT_PAYLOAD_EXAMPLE, AWS_IOT_JSON_DECODED);
+    }
+
+    @Test
+    public void testAzureDefaultDecoder() throws IOException {
+        testDecoder("tbel-azure-decoder.raw", AZURE_PAYLOAD_EXAMPLE, AZURE_JSON_DECODED);
+    }
+
+    @Test
+    public void testSigfoxDefaultConverters() throws IOException {
+        testDecoder("tbel-sigfox-decoder.raw", SIGFOX_PAYLOAD_EXAMPLE, SIGFOX_JSON_DECODED);
+    }
+
+    public void testDecoder(String decoderFileName, String payloadExample, String expectedResult) throws IOException {
+        byte[] bytes = IOUtils.toByteArray(ConverterControllerTest.class.getClassLoader().getResourceAsStream("converters/" + decoderFileName));
+        String base64Payload = Base64Utils.encodeToString(payloadExample.getBytes(StandardCharsets.UTF_8));
+
+        ObjectNode inputParams = JacksonUtil.newObjectNode();
+        inputParams.set("decoder",  new TextNode(new String(bytes)));
+        inputParams.set("payload", new TextNode(base64Payload));
+        inputParams.set("metadata", JacksonUtil.newObjectNode());
+
+        JsonNode response = doPost("/api/converter/testUpLink?scriptLang=TBEL", inputParams, JsonNode.class);
+        String output = response.get("output").asText();
+        assertThat(output).isEqualTo(expectedResult);
     }
 
     private Converter createConverter(String name, boolean edgeTemplate) {
