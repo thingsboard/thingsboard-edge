@@ -46,7 +46,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -161,8 +160,6 @@ public class GroupPermissionController extends BaseController {
             notificationEntityService.logEntityAction(getTenantId(), savedGroupPermission.getId(), savedGroupPermission,
                     groupPermission.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser());
 
-            sendEntityNotificationMsg(getTenantId(), savedGroupPermission.getId(),
-                    groupPermission.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
             return savedGroupPermission;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.GROUP_PERMISSION), groupPermission,
@@ -200,8 +197,6 @@ public class GroupPermissionController extends BaseController {
 
             notificationEntityService.logEntityAction(getTenantId(), groupPermissionId, groupPermission,
                     ActionType.DELETED, getCurrentUser(), strGroupPermissionId);
-
-            sendEntityNotificationMsg(getTenantId(), groupPermissionId, EdgeEventActionType.DELETED);
         } catch (Exception e) {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.GROUP_PERMISSION),
                     ActionType.DELETED, getCurrentUser(), e, strGroupPermissionId);

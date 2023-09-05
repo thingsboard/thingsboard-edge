@@ -104,6 +104,19 @@
           "timeout": 10000,
           "enableTls": false
         }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 454,
+          "layoutY": 450
+        },
+        "type": "org.thingsboard.rule.engine.flow.TbAckNode",
+        "name": "ACK generate report",
+        "debugMode": false,
+        "configuration": {
+          "version": 0
+        }
       }
     ],
     "connections": [
@@ -111,6 +124,11 @@
         "fromIndex": 0,
         "toIndex": 1,
         "type": "Success"
+      },
+      {
+        "fromIndex": 0,
+        "toIndex": 5,
+        "type": "Failure"
       },
       {
         "fromIndex": 1,

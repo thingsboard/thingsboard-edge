@@ -34,7 +34,6 @@ import { HelpLinks } from '@shared/models/constants';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 @Component({
-  // eslint-disable-next-line @angular-eslint/component-selector
   selector: '[tb-help]',
   templateUrl: './help.component.html'
 })
@@ -43,7 +42,6 @@ export class HelpComponent {
   constructor(public wl: WhiteLabelingService) {
   }
 
-  // eslint-disable-next-line @angular-eslint/no-input-rename
   @Input('tb-help') helpLinkId: string;
 
   gotoHelpPage(): void {

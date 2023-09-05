@@ -44,8 +44,10 @@ import org.springframework.data.util.Pair;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.util.Base64Utils;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.converter.Converter;
@@ -57,6 +59,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.nio.charset.StandardCharsets;
@@ -177,7 +180,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(statusReason(containsString(msgErrorNoFound("Converter", converterIdStr))));
 
-        testNotifyEntityBroadcastEntityStateChangeEventOneTimeMsgToEdgeServiceNever(savedConverter, savedConverter.getId(), savedConverter.getId(),
+        testNotifyEntityBroadcastEntityStateChangeEventOneTime(savedConverter, savedConverter.getId(), savedConverter.getId(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.DELETED, converterIdStr);
 
@@ -347,9 +350,9 @@ public class ConverterControllerTest extends AbstractControllerTest {
                     .andExpect(status().isOk());
         }
 
-        testNotifyManyEntityManyTimeMsgToEdgeServiceNeverAdditionalInfoAny(new Converter(), new Converter(),
+        testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAnyAdditionalInfoAny(new Converter(), new Converter(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.DELETED, cntEntity, 1);
+                ActionType.DELETED, ActionType.DELETED, cntEntity, cntEntity, 1);
 
         pageLink = new PageLink(4, 0, title1);
         pageData = doGetTypedWithPageLink("/api/converters?",
@@ -461,6 +464,53 @@ public class ConverterControllerTest extends AbstractControllerTest {
             int[] actualCharCodes = convertForPayload(base64Payload).getSecond();
             assertThat(actualCharCodes).containsExactly(bytes);
         });
+    }
+
+    @Test
+    public void testSaveConverter_checkLimitWithoutCountingEdgeTemplateConverters() throws Exception {
+        loginSysAdmin();
+        long limit = 5;
+        EntityInfo defaultTenantProfileInfo = doGet("/api/tenantProfileInfo/default", EntityInfo.class);
+        TenantProfile defaultTenantProfile = doGet("/api/tenantProfile/" + defaultTenantProfileInfo.getId().getId().toString(), TenantProfile.class);
+        defaultTenantProfile.getProfileData().setConfiguration(DefaultTenantProfileConfiguration.builder().maxConverters(limit).build());
+        doPost("/api/tenantProfile", defaultTenantProfile, TenantProfile.class);
+
+        loginTenantAdmin();
+
+        // creation of edge template converters will not impact creation of core converters
+        for (int i = 0; i < limit; i++) {
+            Converter edgeConverter = createConverter("My edge converter before" + i, true);
+            doPost("/api/converter", edgeConverter, Converter.class);
+        }
+
+        for (int i = 0; i < limit; i++) {
+            Converter converter = createConverter("My converter" + i, false);
+            doPost("/api/converter", converter, Converter.class);
+        }
+
+        // creation of edge template converters allowed in case core converters limit reached
+        for (int i = 0; i < limit; i++) {
+            Converter edgeConverter = createConverter("My edge converter after" + i, true);
+            doPost("/api/converter", edgeConverter, Converter.class);
+        }
+
+        try {
+            Converter converter = createConverter("Converter Out Of Limit", false);
+            doPost("/api/converter", converter).andExpect(status().is4xxClientError());
+        } finally {
+            defaultTenantProfile.getProfileData().setConfiguration(DefaultTenantProfileConfiguration.builder().maxConverters(0).build());
+            loginSysAdmin();
+            doPost("/api/tenantProfile", defaultTenantProfile, TenantProfile.class);
+        }
+    }
+
+    private Converter createConverter(String name, boolean edgeTemplate) {
+        Converter converter = new Converter();
+        converter.setName(name);
+        converter.setType(ConverterType.UPLINK);
+        converter.setEdgeTemplate(edgeTemplate);
+        converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+        return converter;
     }
 
     private Pair<String, int[]> convertForPayload(String base64Payload) {

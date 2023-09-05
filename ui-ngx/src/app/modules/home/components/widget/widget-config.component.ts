@@ -36,10 +36,8 @@ import {
   ComponentRef,
   forwardRef,
   Input,
-  OnChanges,
   OnDestroy,
   OnInit,
-  SimpleChanges,
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
@@ -126,7 +124,7 @@ const defaultSettingsForm = [
     }
   ]
 })
-export class WidgetConfigComponent extends PageComponent implements OnInit, OnDestroy, ControlValueAccessor, Validator, OnChanges {
+export class WidgetConfigComponent extends PageComponent implements OnInit, OnDestroy, ControlValueAccessor, Validator {
 
   @ViewChild('basicModeContainer', {read: ViewContainerRef, static: false}) basicModeContainer: ViewContainerRef;
 
@@ -165,7 +163,6 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
 
   @Input() disabled: boolean;
 
-  @Input()
   widgetConfigMode = WidgetConfigMode.advanced;
 
   widgetType: widgetType;
@@ -273,19 +270,6 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
     });
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    for (const propName of Object.keys(changes)) {
-      const change = changes[propName];
-      if (!change.firstChange && change.currentValue !== change.previousValue) {
-        if (propName === 'widgetConfigMode') {
-          if (this.hasBasicModeDirective) {
-            this.setupConfig();
-          }
-        }
-      }
-    }
-  }
-
   ngOnDestroy(): void {
     this.destroyBasicModeComponent();
     this.removeChangeSubscriptions();
@@ -388,7 +372,8 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
       this.dataSettings.addControl('timewindowConfig', this.fb.control({
         useDashboardTimewindow: true,
         displayTimewindow: true,
-        timewindow: null
+        timewindow: null,
+        timewindowStyle: null
       }));
       if (this.widgetType === widgetType.alarm) {
         this.dataSettings.addControl('alarmFilterConfig', this.fb.control(null));
@@ -425,7 +410,20 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
   writeValue(value: WidgetConfigComponentData): void {
     this.modelValue = value;
     this.widgetType = this.modelValue?.widgetType;
+    this.widgetConfigMode = this.modelValue?.hasBasicMode ?
+      (this.modelValue?.config?.configMode || WidgetConfigMode.advanced) : WidgetConfigMode.advanced;
     this.setupConfig(this.isAdd);
+  }
+
+  setWidgetConfigMode(widgetConfigMode: WidgetConfigMode) {
+    if (this.modelValue?.hasBasicMode && this.widgetConfigMode !== widgetConfigMode) {
+      this.widgetConfigMode = widgetConfigMode;
+      this.modelValue.config.configMode = widgetConfigMode;
+      if (this.hasBasicModeDirective) {
+        this.setupConfig();
+      }
+      this.propagateChange(this.modelValue);
+    }
   }
 
   private setupConfig(isAdd = false) {
@@ -537,7 +535,8 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
           useDashboardTimewindow,
           displayTimewindow: isDefined(config.displayTimewindow) ?
             config.displayTimewindow : true,
-          timewindow: config.timewindow
+          timewindow: config.timewindow,
+          timewindowStyle: config.timewindowStyle
         }, {emitEvent: false});
       }
       if (this.modelValue.isDataEnabled) {

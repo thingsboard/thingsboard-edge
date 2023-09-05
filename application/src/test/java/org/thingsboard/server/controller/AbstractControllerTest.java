@@ -130,14 +130,12 @@ public abstract class AbstractControllerTest extends AbstractNotifyEntityTest {
         return wsClient;
     }
 
-    protected void resetSysAdminWhiteLabelingSettings(String tenantEmail, String tenantPassword) throws Exception {
+    protected void resetSysAdminWhiteLabelingSettings() throws Exception {
         loginSysAdmin();
 
         doPost("/api/whiteLabel/loginWhiteLabelParams", new LoginWhiteLabelingParams(), LoginWhiteLabelingParams.class);
         doPost("/api/whiteLabel/whiteLabelParams", new WhiteLabelingParams(), WhiteLabelingParams.class);
         doPost("/api/customTranslation/customTranslation", new CustomTranslation(), CustomTranslation.class);
-
-        loginUser(tenantEmail, tenantPassword);
     }
 
     protected EntityGroupInfo createSharedPublicEntityGroup(String name, EntityType entityType, EntityId ownerId) throws Exception {

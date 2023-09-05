@@ -55,7 +55,6 @@ export class SideMenuComponent implements OnInit {
   trackByMenuSection(index: number, section: MenuSection){
     return section.id;
   }
-
   ngOnInit() {
   }
 

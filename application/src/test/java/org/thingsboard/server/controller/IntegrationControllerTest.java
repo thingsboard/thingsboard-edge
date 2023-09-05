@@ -41,12 +41,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
@@ -54,10 +57,10 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.service.integration.IntegrationManagerService;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -239,8 +242,8 @@ public class IntegrationControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        Collections.sort(integrationList, idComparator);
-        Collections.sort(loadedIntegrations, idComparator);
+        integrationList.sort(idComparator);
+        loadedIntegrations.sort(idComparator);
 
         Assert.assertEquals(integrationList, loadedIntegrations);
     }
@@ -287,8 +290,8 @@ public class IntegrationControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        Collections.sort(integrationList, infosIdComparator);
-        Collections.sort(loadedIntegrations, infosIdComparator);
+        integrationList.sort(infosIdComparator);
+        loadedIntegrations.sort(infosIdComparator);
 
         Assert.assertEquals(integrationList, loadedIntegrations);
     }
@@ -337,8 +340,8 @@ public class IntegrationControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        Collections.sort(integrations1, idComparator);
-        Collections.sort(loadedIntegrations1, idComparator);
+        integrations1.sort(idComparator);
+        loadedIntegrations1.sort(idComparator);
 
         Assert.assertEquals(integrations1, loadedIntegrations1);
 
@@ -354,8 +357,8 @@ public class IntegrationControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        Collections.sort(integrations2, idComparator);
-        Collections.sort(loadedIntegrations2, idComparator);
+        integrations2.sort(idComparator);
+        loadedIntegrations2.sort(idComparator);
 
         Assert.assertEquals(integrations2, loadedIntegrations2);
 
@@ -528,8 +531,8 @@ public class IntegrationControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        Collections.sort(edgeIntegrations, idComparator);
-        Collections.sort(loadedEdgeIntegrations, idComparator);
+        edgeIntegrations.sort(idComparator);
+        loadedEdgeIntegrations.sort(idComparator);
 
         Assert.assertEquals(edgeIntegrations, loadedEdgeIntegrations);
 
@@ -619,6 +622,66 @@ public class IntegrationControllerTest extends AbstractControllerTest {
         Assert.assertTrue(missingAttributesForEdge1.contains("Edge integration #2"));
         Assert.assertTrue(missingAttributesForEdge1.contains("HTTPS_URL"));
         Assert.assertFalse(missingAttributesForEdge1.contains("HTTP_URL"));
+    }
+
+    @Test
+    public void testSaveIntegrations_checkLimitWithoutCountingEdgeTemplateIntegrations() throws Exception {
+        loginSysAdmin();
+        long limit = 5;
+        EntityInfo defaultTenantProfileInfo = doGet("/api/tenantProfileInfo/default", EntityInfo.class);
+        TenantProfile defaultTenantProfile = doGet("/api/tenantProfile/" + defaultTenantProfileInfo.getId().getId().toString(), TenantProfile.class);
+        defaultTenantProfile.getProfileData().setConfiguration(DefaultTenantProfileConfiguration.builder().maxIntegrations(limit).build());
+        doPost("/api/tenantProfile", defaultTenantProfile, TenantProfile.class);
+
+        loginTenantAdmin();
+
+        // creation of edge template integrations will not impact creation of core integrations
+        Converter edgeConverter = doPost("/api/converter", createConverter("My edge converter", true), Converter.class);
+        for (int i = 0; i < limit; i++) {
+            Integration integration = createIntegration("My edge integration before" + i, true, edgeConverter.getId());
+            doPost("/api/integration", integration, Integration.class);
+        }
+
+        Converter converter = doPost("/api/converter", createConverter("My converter", false), Converter.class);
+        for (int i = 0; i < limit; i++) {
+            Integration integration = createIntegration("My integration" + i, false, converter.getId());
+            doPost("/api/integration", integration, Integration.class);
+        }
+
+        // creation of edge template integrations allowed in case core integrations limit reached
+        for (int i = 0; i < limit; i++) {
+            Integration integration = createIntegration("My edge integration after" + i, true, edgeConverter.getId());
+            doPost("/api/integration", integration, Integration.class);
+        }
+
+        try {
+            Integration integration = createIntegration("Integration Out Of Limit", false, converter.getId());
+            doPost("/api/integration", integration).andExpect(status().is4xxClientError());
+        } finally {
+            defaultTenantProfile.getProfileData().setConfiguration(DefaultTenantProfileConfiguration.builder().maxIntegrations(0).build());
+            loginSysAdmin();
+            doPost("/api/tenantProfile", defaultTenantProfile, TenantProfile.class);
+        }
+    }
+
+    private Converter createConverter(String name, boolean edgeTemplate) {
+        Converter converter = new Converter();
+        converter.setName(name);
+        converter.setType(ConverterType.UPLINK);
+        converter.setEdgeTemplate(edgeTemplate);
+        converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+        return converter;
+    }
+
+    private Integration createIntegration(String name, boolean edgeTemplate, ConverterId converterId) {
+        Integration integration = new Integration();
+        integration.setName(name);
+        integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
+        integration.setType(IntegrationType.HTTP);
+        integration.setEdgeTemplate(edgeTemplate);
+        integration.setConfiguration(INTEGRATION_CONFIGURATION);
+        integration.setDefaultConverterId(converterId);
+        return integration;
     }
 
     private IntegrationInfo toInfo(Integration integration) {

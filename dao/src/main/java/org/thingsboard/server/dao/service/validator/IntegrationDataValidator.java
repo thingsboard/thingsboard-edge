@@ -57,7 +57,9 @@ public class IntegrationDataValidator extends DataValidator<Integration> {
 
     @Override
     protected void validateCreate(TenantId tenantId, Integration integration) {
-        validateNumberOfEntitiesPerTenant(tenantId, EntityType.INTEGRATION);
+        if (!integration.isEdgeTemplate()) {
+            validateNumberOfEntitiesPerTenant(tenantId, EntityType.INTEGRATION);
+        }
         integrationDao.findByRoutingKey(tenantId.getId(), integration.getRoutingKey()).ifPresent(
                 d -> {
                     throw new DataValidationException("Integration with such routing key already exists!");

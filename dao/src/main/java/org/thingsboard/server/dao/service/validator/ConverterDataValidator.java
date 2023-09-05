@@ -53,7 +53,9 @@ public class ConverterDataValidator extends DataValidator<Converter> {
 
     @Override
     protected void validateCreate(TenantId tenantId, Converter converter) {
-        validateNumberOfEntitiesPerTenant(tenantId, EntityType.CONVERTER);
+        if (!converter.isEdgeTemplate()) {
+            validateNumberOfEntitiesPerTenant(tenantId, EntityType.CONVERTER);
+        }
         converterDao.findConverterByTenantIdAndNameAndType(converter.getTenantId().getId(), converter.getName(), converter.getType()).ifPresent(
                 d -> {
                     throw new DataValidationException("Converter with such name already exists!");

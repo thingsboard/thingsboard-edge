@@ -707,6 +707,25 @@ mat-label {
     margin: 0;
   }
 
+  .tb-table-widget {
+    .mat-mdc-table {
+      .mat-mdc-row {
+        font-size: 13px;
+      }
+
+      .mat-mdc-cell {
+        background: inherit;
+        color: inherit;
+        font-size: inherit;
+        font-family: inherit;
+        font-weight: inherit;
+        line-height: inherit;
+        letter-spacing: inherit;
+        text-transform: inherit;
+      }
+    }
+  }
+
   .mat-mdc-footer-row::after, .mat-mdc-header-row::after, .mat-mdc-row::after {
     content: none;
   }
@@ -869,6 +888,9 @@ mat-label {
   .mat-icon {
     svg {
       vertical-align: inherit;
+    }
+    &.tb-mat-12 {
+      @include tb-mat-icon-size(12);
     }
     &.tb-mat-16 {
       @include tb-mat-icon-size(16);
@@ -1219,4 +1241,7 @@ mat-label {
     color: inherit;
   }
 
+  .cursor-pointer {
+    cursor: pointer;
+  }
 }

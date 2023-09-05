@@ -86,7 +86,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                                 .build();
                     } else {
                         WhiteLabelingParams tenantWhiteLabelingParams =
-                                whiteLabelingService.getTenantWhiteLabelingParams(edgeEvent.getTenantId()).get();
+                                whiteLabelingService.getTenantWhiteLabelingParams(edgeEvent.getTenantId());
                         if (isDefaultWhiteLabeling(tenantWhiteLabelingParams)) {
                             return null;
                         }
@@ -101,7 +101,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                 case CUSTOMER:
                     CustomerId customerId = new CustomerId(entityId.getId());
                     WhiteLabelingParams customerWhiteLabelingParams =
-                            whiteLabelingService.getCustomerWhiteLabelingParams(edgeEvent.getTenantId(), customerId).get();
+                            whiteLabelingService.getCustomerWhiteLabelingParams(edgeEvent.getTenantId(), customerId);
                     if (isDefaultWhiteLabeling(customerWhiteLabelingParams)) {
                         return null;
                     }

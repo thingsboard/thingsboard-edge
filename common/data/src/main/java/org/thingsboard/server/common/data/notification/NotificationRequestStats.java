@@ -69,7 +69,6 @@ public class NotificationRequestStats {
 
     public void reportSent(NotificationDeliveryMethod deliveryMethod, NotificationRecipient recipient) {
         sent.computeIfAbsent(deliveryMethod, k -> new AtomicInteger()).incrementAndGet();
-        processedRecipients.computeIfAbsent(deliveryMethod, k -> ConcurrentHashMap.newKeySet()).add(recipient.getId());
     }
 
     public void reportError(NotificationDeliveryMethod deliveryMethod, Throwable error, NotificationRecipient recipient) {
@@ -81,6 +80,10 @@ public class NotificationRequestStats {
             errorMessage = error.getClass().getSimpleName();
         }
         errors.computeIfAbsent(deliveryMethod, k -> new ConcurrentHashMap<>()).put(recipient.getTitle(), errorMessage);
+    }
+
+    public void reportProcessed(NotificationDeliveryMethod deliveryMethod, Object recipientId) {
+        processedRecipients.computeIfAbsent(deliveryMethod, k -> ConcurrentHashMap.newKeySet()).add(recipientId);
     }
 
     public boolean contains(NotificationDeliveryMethod deliveryMethod, Object recipientId) {

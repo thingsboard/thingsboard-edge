@@ -32,6 +32,7 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 
 import com.google.protobuf.ByteString;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
@@ -40,12 +41,13 @@ import org.thingsboard.server.gen.edge.v1.WidgetsBundleUpdateMsg;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @Component
 @TbCoreComponent
 public class WidgetsBundleMsgConstructor {
 
-    public WidgetsBundleUpdateMsg constructWidgetsBundleUpdateMsg(UpdateMsgType msgType, WidgetsBundle widgetsBundle) {
+    public WidgetsBundleUpdateMsg constructWidgetsBundleUpdateMsg(UpdateMsgType msgType, WidgetsBundle widgetsBundle, List<String> widgets) {
         WidgetsBundleUpdateMsg.Builder builder = WidgetsBundleUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(widgetsBundle.getId().getId().getMostSignificantBits())
@@ -61,6 +63,7 @@ public class WidgetsBundleMsgConstructor {
         if (widgetsBundle.getTenantId().equals(TenantId.SYS_TENANT_ID)) {
             builder.setIsSystem(true);
         }
+        builder.setWidgets(JacksonUtil.toString(widgets));
         return builder.build();
     }
 

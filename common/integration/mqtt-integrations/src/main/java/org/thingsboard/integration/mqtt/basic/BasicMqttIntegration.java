@@ -31,10 +31,14 @@
 package org.thingsboard.integration.mqtt.basic;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.common.util.TbStopWatch;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.DownlinkData;
@@ -53,11 +57,13 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Created by ashvayka on 25.12.17.
@@ -69,10 +75,20 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
 
     private static final String DEFAULT_DOWNLINK_TOPIC_PATTERN = "${topic}";
 
+    private volatile WeakReference<ListenableFuture<?>> subscribeFuture = new WeakReference<>(Futures.immediateVoidFuture());
+
+    String getOwnerId(Integration configuration) {
+        return "Tenant[" + configuration.getTenantId().getId() + "]Integration[" + configuration.getId().getId() + "]";
+    }
+
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        mqttClient = initClient(mqttClientConfiguration, (topic, data) -> process(new BasicMqttIntegrationMsg(topic, data)));
+        if (!this.configuration.isEnabled()) {
+            return;
+        }
+        log.debug("[{}][{}] MQTT Integration initializing MQTT client", configuration.getId(), configuration.getName());
+        mqttClient = initClient(getOwnerId(this.configuration), mqttClientConfiguration, (topic, data) -> processAsync(new BasicMqttIntegrationMsg(topic, data)));
         subscribeToTopics();
         this.downlinkTopicPattern = getDownlinkTopicPattern();
         this.mqttClient.setCallback(new MqttClientCallback() {
@@ -84,11 +100,15 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
             @Override
             public void onSuccessfulReconnect() {
                 log.info("[{}][{}] MQTT Integration successfully reconnected to the target broker", configuration.getId(), configuration.getName());
-                try {
-                    subscribeToTopics();
-                } catch (IOException e) {
-                    log.info("[{}][{}] MQTT Integration failed to subscribe to topics", configuration.getId(), configuration.getName());
-                }
+                Optional.ofNullable(subscribeFuture.get()).ifPresent(f -> f.cancel(true));
+                var future = mqttClient.getHandlerExecutor().submit(() -> {
+                    try {
+                        subscribeToTopics();
+                    } catch (IOException e) {
+                        log.info("[{}][{}] MQTT Integration failed to subscribe to topics", configuration.getId(), configuration.getName());
+                    }
+                });
+                subscribeFuture = new WeakReference<>(future);
             }
         });
     }
@@ -99,7 +119,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
         this.configuration = integration;
         try {
             mqttClientConfiguration = getClientConfiguration(configuration, MqttClientConfiguration.class);
-            mqttClient = initClient(mqttClientConfiguration, (topic, data) -> process(new BasicMqttIntegrationMsg(topic, data)));
+            mqttClient = initClient(getOwnerId(integration), mqttClientConfiguration, (topic, data) -> processAsync(new BasicMqttIntegrationMsg(topic, data)));
         } catch (RuntimeException e) {
             throw new ThingsboardException(e.getMessage(), ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         } catch (Exception e) {
@@ -115,7 +135,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
 
         for (MqttTopicFilter topicFilter : topics) {
             mqttClient.on(topicFilter.getFilter(), (topic, data) ->
-                    process(new BasicMqttIntegrationMsg(topic, data)), MqttQoS.valueOf(topicFilter.getQos()));
+                    processAsync(new BasicMqttIntegrationMsg(topic, data)), MqttQoS.valueOf(topicFilter.getQos()));
         }
     }
 
@@ -131,16 +151,31 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
     }
 
     @Override
-    protected void doProcess(IntegrationContext context, BasicMqttIntegrationMsg msg) throws Exception {
+    protected List<UplinkData> convertToUplinkDataList(IntegrationContext context, byte[] data, UplinkMetaData md) throws Exception {
+        throw new RuntimeException("MQTT integrations does not support blocking call on convertToUplinkDataList, use convertToUplinkDataListAsync instead");
+    }
+
+    @Override
+    protected ListenableFuture<Void> doProcess(IntegrationContext context, BasicMqttIntegrationMsg msg) {
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
         mdMap.put("topic", msg.getTopic());
-        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(msg.getContentType(), mdMap));
-        if (uplinkDataList != null) {
-            for (UplinkData data : uplinkDataList) {
-                processUplinkData(context, data);
-                log.trace("[{}] Processing uplink data: {}", configuration.getId(), data);
+
+        var stopWatch = TbStopWatch.create();
+        ListenableFuture<List<UplinkData>> uplinkDataListFuture = convertToUplinkDataListAsync(context, msg.getPayload(), new UplinkMetaData(msg.getContentType(), mdMap));
+        ListenableFuture<Void> future = Futures.transform(uplinkDataListFuture, (uplinkDataList) -> {
+            if (log.isDebugEnabled()) {
+                log.debug("convertToUplinkDataList took {}ms for integration {}", stopWatch.stopAndGetTotalTimeMillis(), configuration.getName());
             }
-        }
+
+            if (uplinkDataList != null) {
+                for (UplinkData data : uplinkDataList) {
+                    processUplinkData(context, data);
+                    log.trace("[{}] Processing uplink data: {}", configuration.getId(), data);
+                }
+            }
+            return null;
+        }, MoreExecutors.directExecutor());
+        return future;
     }
 
     @Override

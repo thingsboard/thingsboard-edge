@@ -35,6 +35,8 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.gen.transport.TransportProtos.ServiceInfo;
 
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 public interface TbServiceInfoProvider {
 
@@ -49,5 +51,7 @@ public interface TbServiceInfoProvider {
     ServiceInfo generateNewServiceInfoWithCurrentSystemInfo();
 
     List<IntegrationType> getSupportedIntegrationTypes();
+
+    Set<UUID> getAssignedTenantProfiles();
 
 }

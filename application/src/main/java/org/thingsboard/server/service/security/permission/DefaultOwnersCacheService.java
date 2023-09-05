@@ -32,7 +32,9 @@ package org.thingsboard.server.service.security.permission;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.Customer;
@@ -43,6 +45,7 @@ import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -70,6 +73,7 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.owner.OwnerService;
 import org.thingsboard.server.dao.user.UserService;
@@ -118,6 +122,9 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     @Autowired
     protected UserPermissionsService userPermissionsService;
@@ -367,12 +374,15 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
         if (entity.getOwnerId().equals(targetOwnerId)) {
             throw new ThingsboardException("Entity already belongs to this owner!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
-
         deleteFromGroupsAndAddToGroupAll(tenantId, entityId, targetOwnerId);
 
+        EntityId previousOwnerId = entity.getOwnerId();
         entity.setOwnerId(targetOwnerId);
         saveFunction.accept(entity);
         clearOwners(entityId);
+
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(entityId)
+                .body(JacksonUtil.toString(previousOwnerId)).actionType(ActionType.CHANGE_OWNER).build());
     }
 
     private void deleteFromGroupsAndAddToGroupAll(TenantId tenantId, EntityId entityId, EntityId targetOwnerId) throws ThingsboardException {

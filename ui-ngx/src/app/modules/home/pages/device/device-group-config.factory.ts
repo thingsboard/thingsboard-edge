@@ -41,7 +41,7 @@ import {
 import { Inject, Injectable } from '@angular/core';
 import { EntityType } from '@shared/models/entity-type.models';
 import { DeviceComponent } from '@home/pages/device/device.component';
-import { mergeMap, take, tap } from 'rxjs/operators';
+import { map, mergeMap, take, tap } from 'rxjs/operators';
 import { DeviceService } from '@core/http/device.service';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { EntityAction } from '@home/models/entity/entity-component.models';
@@ -164,16 +164,19 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
         entityGroup: config.entityGroup
       }
     }).afterClosed().pipe(
-      tap(device => {
+      map(device => {
         if (device) {
           this.store.pipe(select(selectUserSettingsProperty( 'notDisplayConnectivityAfterAddDevice'))).pipe(
             take(1)
           ).subscribe((settings: boolean) => {
             if(!settings) {
-              this.checkConnectivity(null, device.id, true);
+              this.checkConnectivity(null, device.id, true, config);
+            } else {
+              config.updateData();
             }
           });
         }
+        return null;
       })
     );
   }
@@ -243,7 +246,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     );
   }
 
-  checkConnectivity($event: Event, deviceId: EntityId, afterAdd = false) {
+  checkConnectivity($event: Event, deviceId: EntityId, afterAdd = false, config?: GroupEntityTableConfig<DeviceInfo>) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -257,7 +260,11 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
       }
     })
       .afterClosed()
-      .subscribe(() => {});
+      .subscribe(() => {
+      if (afterAdd ) {
+        config.updateData();
+      }
+    });
   }
 
   onDeviceAction(action: EntityAction<DeviceInfo>, config: GroupEntityTableConfig<DeviceInfo>, params: EntityGroupParams): boolean {

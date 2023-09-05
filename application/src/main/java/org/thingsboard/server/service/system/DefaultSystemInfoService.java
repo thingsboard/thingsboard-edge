@@ -54,6 +54,7 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.stats.TbApiUsageStateClient;
 import org.thingsboard.server.dao.oauth2.OAuth2Service;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.transport.TransportProtos.ServiceInfo;
 import org.thingsboard.server.queue.discovery.DiscoveryService;
 import org.thingsboard.server.queue.discovery.PartitionService;
@@ -103,6 +104,7 @@ public class DefaultSystemInfoService extends TbApplicationEventListener<Partiti
     private final TelemetrySubscriptionService telemetryService;
     private final TbApiUsageStateClient apiUsageStateClient;
     private final AdminSettingsService adminSettingsService;
+    private final WhiteLabelingService whiteLabelingService;
     private final OAuth2Service oAuth2Service;
     private final MailService mailService;
     private final SmsService smsService;
@@ -142,7 +144,7 @@ public class DefaultSystemInfoService extends TbApplicationEventListener<Partiti
     @Override
     public FeaturesInfo getFeaturesInfo() {
         FeaturesInfo featuresInfo = new FeaturesInfo();
-        featuresInfo.setWhiteLabelingEnabled(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "whiteLabelParams") != null);
+        featuresInfo.setWhiteLabelingEnabled(whiteLabelingService.isWhiteLabelingConfigured(TenantId.SYS_TENANT_ID));
         featuresInfo.setEmailEnabled(isEmailEnabled());
         featuresInfo.setSmsEnabled(smsService.isConfigured(TenantId.SYS_TENANT_ID));
         featuresInfo.setOauthEnabled(oAuth2Service.findOAuth2Info().isEnabled());
