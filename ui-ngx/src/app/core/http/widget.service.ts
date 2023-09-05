@@ -233,7 +233,7 @@ export class WidgetService {
 
   public saveWidgetType(widgetTypeDetails: WidgetTypeDetails,
                         config?: RequestConfig): Observable<WidgetTypeDetails> {
-    return this.http.post<WidgetTypeDetails>(`/api/widgetType`,
+    return this.http.post<WidgetTypeDetails>(`/api/widgetType`, widgetTypeDetails,
       defaultHttpOptionsFromConfig(config));
   }
 

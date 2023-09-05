@@ -40,6 +40,7 @@ import org.thingsboard.server.service.edge.rpc.fetch.AdminSettingsEdgeEventFetch
 import org.thingsboard.server.service.edge.rpc.fetch.AssetProfilesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.CustomerEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.CustomerRolesEdgeEventFetcher;
+import org.thingsboard.server.service.edge.rpc.fetch.DefaultProfilesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.DeviceProfilesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.EdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.EntityGroupEdgeEventFetcher;
@@ -91,12 +92,13 @@ public class EdgeSyncCursor {
             fetchers.add(new SystemWidgetsBundlesEdgeEventFetcher(ctx.getWidgetsBundleService()));
             fetchers.add(new TenantWidgetsBundlesEdgeEventFetcher(ctx.getWidgetsBundleService()));
         }
+        fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.DASHBOARD));
+        fetchers.add(new DefaultProfilesEdgeEventFetcher(ctx.getDeviceProfileService(), ctx.getAssetProfileService()));
         fetchers.add(new DeviceProfilesEdgeEventFetcher(ctx.getDeviceProfileService()));
         fetchers.add(new AssetProfilesEdgeEventFetcher(ctx.getAssetProfileService()));
         fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.DEVICE));
         fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.ASSET));
         fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.ENTITY_VIEW));
-        fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.DASHBOARD));
         fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.USER));
         fetchers.add(new SchedulerEventsEdgeEventFetcher(ctx.getSchedulerEventService()));
         if (fullSync) {

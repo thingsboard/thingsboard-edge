@@ -149,6 +149,8 @@ public interface AlarmService extends EntityDaoService {
 
     Set<EntityId> getPropagationEntityIds(Alarm alarm, List<EntityType> types);
 
+    PageData<AlarmId> findAlarmIdsByAssigneeId(TenantId tenantId, UserId userId, PageLink pageLink);
+
     void deleteEntityAlarmRelations(TenantId tenantId, EntityId entityId);
 
     long countAlarmsByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions mergedUserPermissions, AlarmCountQuery query);
