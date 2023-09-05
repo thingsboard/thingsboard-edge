@@ -28,37 +28,50 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.processor.telemetry;
+package org.thingsboard.server.service.edge.rpc.fetch;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.asset.AssetProfile;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
-import org.thingsboard.server.gen.edge.v1.EntityDataProto;
-import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.asset.AssetProfileService;
+import org.thingsboard.server.dao.device.DeviceProfileService;
 
-@Component
+import java.util.ArrayList;
+import java.util.List;
+
+@AllArgsConstructor
 @Slf4j
-@TbCoreComponent
-public class TelemetryEdgeProcessor extends BaseTelemetryProcessor {
+public class DefaultProfilesEdgeEventFetcher implements EdgeEventFetcher {
+
+    private final DeviceProfileService deviceProfileService;
+    private final AssetProfileService assetProfileService;
 
     @Override
-    protected String getMsgSourceKey() {
-        return DataConstants.EDGE_MSG_SOURCE;
+    public PageLink getPageLink(int pageSize) {
+        return null;
     }
 
-    public DownlinkMsg convertTelemetryEventToDownlink(EdgeEvent edgeEvent) throws JsonProcessingException {
-        EntityType entityType = EntityType.valueOf(edgeEvent.getType().name());
-        EntityDataProto entityDataProto = convertTelemetryEventToEntityDataProto(
-                edgeEvent.getTenantId(), entityType, edgeEvent.getEntityId(),
-                edgeEvent.getAction(), edgeEvent.getBody());
-        return DownlinkMsg.newBuilder()
-                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                .addEntityData(entityDataProto)
-                .build();
+    @Override
+    public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) {
+        List<EdgeEvent> result = new ArrayList<>();
+
+        DeviceProfile deviceProfile = deviceProfileService.findDefaultDeviceProfile(tenantId);
+        result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.DEVICE_PROFILE,
+                EdgeEventActionType.ADDED, deviceProfile.getId(), null));
+
+        AssetProfile assetProfile = assetProfileService.findDefaultAssetProfile(tenantId);
+        result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ASSET_PROFILE,
+                EdgeEventActionType.ADDED, assetProfile.getId(), null));
+
+        return new PageData<>(result, 1, result.size(), false);
     }
 }

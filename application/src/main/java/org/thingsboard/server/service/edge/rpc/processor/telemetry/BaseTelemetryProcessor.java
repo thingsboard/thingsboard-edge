@@ -147,7 +147,7 @@ public abstract class BaseTelemetryProcessor extends BaseEdgeProcessor {
                 result.add(processAttributeDeleteMsg(tenantId, entityId, entityData.getAttributeDeleteMsg(), entityData.getEntityType()));
             }
         } else {
-            log.warn("Skipping telemetry update msg because entity doesn't exists on edge, {}", entityData);
+            log.warn("[{}] Skipping telemetry update msg because entity doesn't exists on edge, {}", tenantId, entityData);
         }
         return result;
     }
@@ -196,7 +196,7 @@ public abstract class BaseTelemetryProcessor extends BaseEdgeProcessor {
                 }
                 break;
             default:
-                log.debug("Using empty metadata for entityId [{}]", entityId);
+                log.debug("[{}] Using empty metadata for entityId [{}]", tenantId, entityId);
                 break;
         }
         return new ImmutablePair<>(metaData, customerId != null ? customerId : new CustomerId(ModelConstants.NULL_UUID));
@@ -217,7 +217,7 @@ public abstract class BaseTelemetryProcessor extends BaseEdgeProcessor {
 
                 @Override
                 public void onFailure(Throwable t) {
-                    log.error("Can't process post telemetry [{}]", msg, t);
+                    log.error("[{}] Can't process post telemetry [{}]", tenantId, msg, t);
                     futureToSet.setException(t);
                 }
             });
@@ -231,7 +231,7 @@ public abstract class BaseTelemetryProcessor extends BaseEdgeProcessor {
         if (EntityType.DEVICE.equals(entityId.getEntityType())) {
             DeviceProfile deviceProfile = deviceProfileCache.get(tenantId, new DeviceId(entityId.getId()));
             if (deviceProfile == null) {
-                log.warn("[{}] Device profile is null!", entityId);
+                log.warn("[{}][{}] Device profile is null!", tenantId, entityId);
             } else {
                 ruleChainId = deviceProfile.getDefaultRuleChainId();
                 queueName = deviceProfile.getDefaultQueueName();
@@ -239,7 +239,7 @@ public abstract class BaseTelemetryProcessor extends BaseEdgeProcessor {
         } else if (EntityType.ASSET.equals(entityId.getEntityType())) {
             AssetProfile assetProfile = assetProfileCache.get(tenantId, new AssetId(entityId.getId()));
             if (assetProfile == null) {
-                log.warn("[{}] Asset profile is null!", entityId);
+                log.warn("[{}][{}] Asset profile is null!", tenantId, entityId);
             } else {
                 ruleChainId = assetProfile.getDefaultRuleChainId();
                 queueName = assetProfile.getDefaultQueueName();
@@ -261,7 +261,7 @@ public abstract class BaseTelemetryProcessor extends BaseEdgeProcessor {
 
             @Override
             public void onFailure(Throwable t) {
-                log.error("Can't process post attributes [{}]", msg, t);
+                log.error("[{}] Can't process post attributes [{}]", tenantId, msg, t);
                 futureToSet.setException(t);
             }
         });
@@ -291,7 +291,7 @@ public abstract class BaseTelemetryProcessor extends BaseEdgeProcessor {
 
                     @Override
                     public void onFailure(Throwable t) {
-                        log.error("Can't process attributes update [{}]", msg, t);
+                        log.error("[{}] Can't process attributes update [{}]", tenantId, msg, t);
                         futureToSet.setException(t);
                     }
                 });
@@ -299,7 +299,7 @@ public abstract class BaseTelemetryProcessor extends BaseEdgeProcessor {
 
             @Override
             public void onFailure(Throwable t) {
-                log.error("Can't process attributes update [{}]", msg, t);
+                log.error("[{}] Can't process attributes update [{}]", tenantId, msg, t);
                 futureToSet.setException(t);
             }
         });
@@ -324,7 +324,7 @@ public abstract class BaseTelemetryProcessor extends BaseEdgeProcessor {
 
                     @Override
                     public void onFailure(Throwable t) {
-                        log.error("Can't process attribute delete msg [{}]", attributeDeleteMsg, t);
+                        log.error("[{}] Can't process attribute delete msg [{}]", tenantId, attributeDeleteMsg, t);
                         futureToSet.setException(t);
                     }
                 });
@@ -335,7 +335,8 @@ public abstract class BaseTelemetryProcessor extends BaseEdgeProcessor {
         }, dbCallbackExecutorService);
     }
 
-    public EntityDataProto convertTelemetryEventToEntityDataProto(EntityType entityType,
+    public EntityDataProto convertTelemetryEventToEntityDataProto(TenantId tenantId,
+                                                                  EntityType entityType,
                                                                   UUID entityUUID,
                                                                   EdgeEventActionType actionType,
                                                                   JsonNode body) throws JsonProcessingException {
@@ -369,11 +370,11 @@ public abstract class BaseTelemetryProcessor extends BaseEdgeProcessor {
                 entityId = new EntityGroupId(entityUUID);
                 break;
             default:
-                log.warn("Unsupported edge event type [{}]", entityType);
+                log.warn("[{}] Unsupported edge event type [{}]", tenantId, entityType);
                 return null;
         }
         JsonElement entityData = JsonParser.parseString(JacksonUtil.OBJECT_MAPPER.writeValueAsString(body));
-        return entityDataMsgConstructor.constructEntityDataMsg(entityId, actionType, entityData);
+        return entityDataMsgConstructor.constructEntityDataMsg(tenantId, entityId, actionType, entityData);
     }
 
 }

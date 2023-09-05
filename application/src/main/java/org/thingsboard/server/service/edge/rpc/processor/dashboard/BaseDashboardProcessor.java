@@ -59,6 +59,7 @@ public abstract class BaseDashboardProcessor extends BaseEdgeProcessor {
             changeOwnerIfRequired(tenantId, null, dashboardId);
         }
         dashboard.setTitle(dashboardUpdateMsg.getTitle());
+        dashboard.setImage(dashboardUpdateMsg.hasImage() ? dashboardUpdateMsg.getImage() : null);
         dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
         dashboard.setCustomerId(customerId);
         dashboardValidator.validate(dashboard, Dashboard::getTenantId);
