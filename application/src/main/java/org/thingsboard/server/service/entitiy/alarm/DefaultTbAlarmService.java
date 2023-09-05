@@ -252,7 +252,7 @@ public class DefaultTbAlarmService extends AbstractTbEntityService implements Tb
         AlarmComment alarmComment = AlarmComment.builder()
                 .alarmId(alarm.getId())
                 .type(AlarmCommentType.SYSTEM)
-                .comment(JacksonUtil.newObjectNode())
+                .comment(commentNode)
                 .build();
         try {
             alarmCommentService.saveAlarmComment(alarm, alarmComment, user);
