@@ -57,9 +57,6 @@ public class WidgetTypeDataValidator extends DataValidator<WidgetTypeDetails> {
         if (StringUtils.isEmpty(widgetTypeDetails.getName())) {
             throw new DataValidationException("Widgets type name should be specified!");
         }
-        if (StringUtils.isEmpty(widgetTypeDetails.getBundleAlias())) {
-            throw new DataValidationException("Widgets type bundle alias should be specified!");
-        }
         if (widgetTypeDetails.getDescriptor() == null || widgetTypeDetails.getDescriptor().size() == 0) {
             throw new DataValidationException("Widgets type descriptor can't be empty!");
         }
@@ -75,10 +72,6 @@ public class WidgetTypeDataValidator extends DataValidator<WidgetTypeDetails> {
 
     @Override
     protected void validateCreate(TenantId tenantId, WidgetTypeDetails widgetTypeDetails) {
-        WidgetsBundle widgetsBundle = widgetsBundleDao.findWidgetsBundleByTenantIdAndAlias(widgetTypeDetails.getTenantId().getId(), widgetTypeDetails.getBundleAlias());
-        if (widgetsBundle == null) {
-            throw new DataValidationException("Widget type is referencing to non-existent widgets bundle!");
-        }
         String fqn = widgetTypeDetails.getFqn();
         if (fqn == null || fqn.trim().isEmpty()) {
             fqn = widgetTypeDetails.getName().toLowerCase().replaceAll("\\W+", "_");
@@ -100,12 +93,6 @@ public class WidgetTypeDataValidator extends DataValidator<WidgetTypeDetails> {
         WidgetTypeDetails storedWidgetType = widgetTypeDao.findById(tenantId, widgetTypeDetails.getId().getId());
         if (!storedWidgetType.getTenantId().getId().equals(widgetTypeDetails.getTenantId().getId())) {
             throw new DataValidationException("Can't move existing widget type to different tenant!");
-        }
-        if (!storedWidgetType.getBundleAlias().equals(widgetTypeDetails.getBundleAlias())) {
-            WidgetsBundle widgetsBundle = widgetsBundleDao.findWidgetsBundleByTenantIdAndAlias(widgetTypeDetails.getTenantId().getId(), widgetTypeDetails.getBundleAlias());
-            if (widgetsBundle == null) {
-                throw new DataValidationException("Widget type is referencing to non-existent widgets bundle!");
-            }
         }
         if (!storedWidgetType.getFqn().equals(widgetTypeDetails.getFqn())) {
             throw new DataValidationException("Update of widget type fqn is prohibited!");

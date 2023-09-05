@@ -50,6 +50,7 @@ import org.thingsboard.server.common.data.notification.targets.NotificationTarge
 import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 
 import java.lang.annotation.ElementType;
@@ -71,6 +72,7 @@ import java.lang.annotation.Target;
         @Type(name = "CUSTOMER", value = Customer.class),
         @Type(name = "ENTITY_VIEW", value = EntityView.class),
         @Type(name = "WIDGETS_BUNDLE", value = WidgetsBundle.class),
+        @Type(name = "WIDGET_TYPE", value = WidgetTypeDetails.class),
         @Type(name = "ENTITY_GROUP", value = EntityGroup.class),
         @Type(name = "CONVERTER", value = Converter.class),
         @Type(name = "INTEGRATION", value = Integration.class),

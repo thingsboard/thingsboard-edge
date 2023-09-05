@@ -40,7 +40,6 @@ import {
   ViewChild,
   ViewEncapsulation
 } from '@angular/core';
-import { WidgetsBundle } from '@shared/models/widgets-bundle.model';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { WidgetService } from '@core/http/widget.service';
@@ -74,11 +73,6 @@ import { widgetEditorCompleter } from '@home/pages/widget/widget-editor.models';
 import { Observable } from 'rxjs/internal/Observable';
 import { map, tap } from 'rxjs/operators';
 import { beautifyCss, beautifyHtml, beautifyJs } from '@shared/models/beautify.models';
-import {
-  MoveWidgetTypeDialogComponent,
-  MoveWidgetTypeDialogData,
-  MoveWidgetTypeDialogResult
-} from '@home/pages/widget/move-widget-type-dialog.component';
 import Timeout = NodeJS.Timeout;
 
 // @dynamic
@@ -139,7 +133,6 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
 
   isReadOnly: boolean;
 
-  widgetsBundle: WidgetsBundle;
   widgetTypeDetails: WidgetTypeDetails;
   widget: WidgetInfo;
   origWidget: WidgetInfo;
@@ -170,7 +163,6 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
   iframeWidgetEditModeInited = false;
   saveWidgetPending = false;
   saveWidgetAsPending = false;
-  moveWidgetPending = false;
 
   gotError = false;
   errorMarkers: number[] = [];
@@ -206,14 +198,13 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
   }
 
   private init(data: any) {
-    this.widgetsBundle = data.widgetsBundle;
+    this.widgetTypeDetails = data.widgetEditorData.widgetTypeDetails;
+    this.widget = data.widgetEditorData.widget;
     if (this.authUser.authority === Authority.TENANT_ADMIN) {
-      this.isReadOnly = !this.widgetsBundle || this.widgetsBundle.tenantId.id === NULL_UUID;
+      this.isReadOnly = this.widgetTypeDetails && this.widgetTypeDetails.tenantId.id === NULL_UUID;
     } else {
       this.isReadOnly = this.authUser.authority !== Authority.SYS_ADMIN;
     }
-    this.widgetTypeDetails = data.widgetEditorData.widgetTypeDetails;
-    this.widget = data.widgetEditorData.widget;
     if (this.widgetTypeDetails) {
       const config = JSON.parse(this.widget.defaultConfig);
       this.widget.defaultConfig = JSON.stringify(config);
@@ -273,16 +264,6 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
           return false;
         }, ['INPUT', 'SELECT', 'TEXTAREA'],
         this.translate.instant('widget.saveAs'))
-    );
-    this.hotKeys.push(
-      new Hotkey('shift+ctrl+m', (event: KeyboardEvent) => {
-          if (!getCurrentIsLoading(this.store) && !this.moveDisabled()) {
-            event.preventDefault();
-            this.moveWidget();
-          }
-          return false;
-        }, ['INPUT', 'SELECT', 'TEXTAREA'],
-        this.translate.instant('widget.move'))
     );
     this.hotKeys.push(
       new Hotkey('shift+ctrl+f', (event: KeyboardEvent) => {
@@ -577,7 +558,7 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
   private commitSaveWidget() {
     const id = (this.widgetTypeDetails && this.widgetTypeDetails.id) ? this.widgetTypeDetails.id : undefined;
     const createdTime = (this.widgetTypeDetails && this.widgetTypeDetails.createdTime) ? this.widgetTypeDetails.createdTime : undefined;
-    this.widgetService.saveWidgetTypeDetails(this.widget, id, this.widgetsBundle.alias, createdTime).subscribe({
+    this.widgetService.saveWidgetTypeDetails(this.widget, id, createdTime).subscribe({
       next: (widgetTypeDetails) => {
         this.saveWidgetPending = false;
         if (!this.widgetTypeDetails?.id) {
@@ -609,11 +590,11 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
           config.title = this.widget.widgetName;
           this.widget.defaultConfig = JSON.stringify(config);
           this.isDirty = false;
-          this.widgetService.saveWidgetTypeDetails(this.widget, undefined, saveWidgetAsData.bundleAlias, undefined).subscribe(
+          this.widgetService.saveWidgetTypeDetails(this.widget, undefined, undefined).subscribe(
             {
               next: (widgetTypeDetails) => {
                 this.saveWidgetAsPending = false;
-                this.router.navigateByUrl(`/widgets-bundles/${saveWidgetAsData.bundleId}/widgetTypes/${widgetTypeDetails.id.id}`);
+                this.router.navigate(['..', widgetTypeDetails.id.id], {relativeTo: this.route});
               },
               error: () => {
                 this.saveWidgetAsPending = false;
@@ -670,34 +651,6 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
     this.applyWidgetScript();
   }
 
-  moveWidget() {
-    this.moveWidgetPending = true;
-    this.dialog.open<MoveWidgetTypeDialogComponent, MoveWidgetTypeDialogData,
-      MoveWidgetTypeDialogResult>(MoveWidgetTypeDialogComponent, {
-      disableClose: true,
-      data: {
-        currentBundleId: this.widgetsBundle.id.id
-      },
-      panelClass: ['tb-dialog', 'tb-fullscreen-dialog']
-    }).afterClosed().subscribe(
-      (moveWidgetTypeData) => {
-        if (moveWidgetTypeData) {
-          this.widgetService.moveWidgetType(this.widgetTypeDetails.id.id, moveWidgetTypeData.bundleAlias).subscribe({
-            next: (widgetTypeDetails) => {
-              this.moveWidgetPending = false;
-              this.router.navigateByUrl(`/widgets-bundles/${moveWidgetTypeData.bundleId}/widgetTypes/${widgetTypeDetails.id.id}`);
-            },
-            error: () => {
-              this.moveWidgetPending = false;
-            }
-          });
-        } else {
-          this.moveWidgetPending = false;
-        }
-      }
-    );
-  }
-
   undoDisabled(): boolean {
     return !this.isDirty
     || !this.iframeWidgetEditModeInited
@@ -717,15 +670,6 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
     return !this.iframeWidgetEditModeInited
       || this.saveWidgetPending
       || this.saveWidgetAsPending;
-  }
-
-  moveDisabled(): boolean {
-    return this.isReadOnly
-      || !this.widgetTypeDetails?.id
-      || !this.iframeWidgetEditModeInited
-      || this.saveWidgetPending
-      || this.saveWidgetAsPending
-      || this.moveWidgetPending;
   }
 
   beautifyCss(): void {

@@ -136,6 +136,9 @@ export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableCon
     this.config.deleteEntity = id => this.widgetsService.deleteWidgetsBundle(id.id);
     this.config.onEntityAction = action => this.onWidgetsBundleAction(action);
 
+    this.config.entityAdded = widgetsBundle => {
+      this.openWidgetsBundle(null, widgetsBundle);
+    };
   }
 
   resolve(): EntityTableConfig<WidgetsBundle> {

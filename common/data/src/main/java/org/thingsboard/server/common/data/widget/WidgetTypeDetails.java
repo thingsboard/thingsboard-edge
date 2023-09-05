@@ -33,13 +33,18 @@ package org.thingsboard.server.common.data.widget;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import org.thingsboard.server.common.data.ExportableEntity;
+import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 @Data
-@JsonPropertyOrder({ "alias", "name", "image", "description", "descriptor" })
-public class WidgetTypeDetails extends WidgetType {
+@JsonPropertyOrder({ "fqn", "name", "deprecated", "image", "description", "descriptor", "externalId" })
+public class WidgetTypeDetails extends WidgetType implements HasName, HasTenantId, ExportableEntity<WidgetTypeId> {
 
     @Length(fieldName = "image", max = 1000000)
     @ApiModelProperty(position = 9, value = "Base64 encoded thumbnail", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
@@ -48,6 +53,10 @@ public class WidgetTypeDetails extends WidgetType {
     @Length(fieldName = "description")
     @ApiModelProperty(position = 10, value = "Description of the widget", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private String description;
+
+    @Getter
+    @Setter
+    private WidgetTypeId externalId;
 
     public WidgetTypeDetails() {
         super();
@@ -65,5 +74,6 @@ public class WidgetTypeDetails extends WidgetType {
         super(widgetTypeDetails);
         this.image = widgetTypeDetails.getImage();
         this.description = widgetTypeDetails.getDescription();
+        this.externalId = widgetTypeDetails.getExternalId();
     }
 }
