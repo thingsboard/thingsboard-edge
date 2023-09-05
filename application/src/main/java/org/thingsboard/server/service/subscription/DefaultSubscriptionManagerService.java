@@ -287,7 +287,8 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
                         edgeId,
                         body,
                         EdgeEventType.EDGE,
-                        EdgeEventActionType.ATTRIBUTES_UPDATED);
+                        EdgeEventActionType.ATTRIBUTES_UPDATED,
+                        null);
             } catch (Exception e) {
                 log.warn("[{}][{}] Can't send edge attributes updated event [{}]", tenantId, entityId.getId(), attributes, e);
             }
