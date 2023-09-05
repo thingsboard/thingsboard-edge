@@ -220,6 +220,7 @@ public class AssetClientTest extends AbstractContainerTest {
 
         cloudRestClient.deleteAsset(savedAssetOnEdge.getId());
         cloudRestClient.deleteAsset(savedAssetOnCloud.getId());
+
         cloudRestClient.deleteEntityGroup(savedAssetEntityGroup.getId());
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
@@ -228,7 +229,8 @@ public class AssetClientTest extends AbstractContainerTest {
                                 edgeRestClient.getAssetById(savedAssetOnCloud.getId()).isEmpty() &&
                         edgeRestClient.getEntityGroupById(savedAssetEntityGroup.getId()).isEmpty());
 
-        // delete "building" asset profile
+
+        // delete "Building" asset profile
         cloudRestClient.deleteAssetProfile(savedAssetOnCloud.getAssetProfileId());
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)

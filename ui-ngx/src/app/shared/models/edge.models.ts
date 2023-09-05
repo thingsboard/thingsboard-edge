@@ -29,19 +29,17 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BaseData, GroupEntityInfo } from '@shared/models/base-data';
-import { TenantId } from '@shared/models/id/tenant-id';
-import { EntityId } from '@shared/models/id/entity-id';
-import { HasUUID } from '@shared/models/id/has-uuid';
-import { EntityGroupId } from '@shared/models/id/entity-group-id';
-import { CustomerId } from '@shared/models/id/customer-id';
-import { EdgeId } from '@shared/models/id/edge-id';
-import { EntitySearchQuery } from '@shared/models/relation.models';
-import { RuleChainId } from '@shared/models/id/rule-chain-id';
-import { BaseEventBody } from '@shared/models/event.models';
-import { EventId } from '@shared/models/id/event-id';
-import { EntityType } from '@shared/models/entity-type.models';
-import { EntityInfoData } from '@shared/models/entity.models';
+import {BaseData, GroupEntityInfo} from '@shared/models/base-data';
+import {TenantId} from '@shared/models/id/tenant-id';
+import {EntityId} from '@shared/models/id/entity-id';
+import {HasUUID} from '@shared/models/id/has-uuid';
+import {EntityGroupId} from '@shared/models/id/entity-group-id';
+import {CustomerId} from '@shared/models/id/customer-id';
+import {EdgeId} from '@shared/models/id/edge-id';
+import {EntitySearchQuery} from '@shared/models/relation.models';
+import {RuleChainId} from '@shared/models/id/rule-chain-id';
+import {EventId} from '@shared/models/id/event-id';
+import {EntityType} from '@shared/models/entity-type.models';
 
 export interface EdgeSettings {
   edgeId: string;
@@ -158,7 +156,7 @@ export enum CloudEventActionType {
   RULE_CHAIN_METADATA_REQUEST = 'RULE_CHAIN_METADATA_REQUEST',
   RELATION_REQUEST = 'RELATION_REQUEST',
   CREDENTIALS_REQUEST = 'CREDENTIALS_REQUEST',
-  WIDGET_BUNDLE_TYPES_REQUEST = 'WIDGET_BUNDLE_TYPES_REQUEST',
+  WIDGET_BUNDLE_TYPES_REQUEST = 'WIDGET_BUNDLE_TYPES_REQUEST', // deprecated
   ENTITY_VIEW_REQUEST = 'ENTITY_VIEW_REQUEST',
   GROUP_ENTITIES_REQUEST = 'GROUP_ENTITIES_REQUEST',
   GROUP_PERMISSIONS_REQUEST = 'GROUP_PERMISSIONS_REQUEST',
