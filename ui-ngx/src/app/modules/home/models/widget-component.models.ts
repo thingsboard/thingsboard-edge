@@ -534,7 +534,6 @@ export interface IDynamicWidgetComponent {
 
 export interface WidgetInfo extends WidgetTypeDescriptor, WidgetControllerDescriptor {
   widgetName: string;
-  bundleAlias: string;
   fullFqn: string;
   deprecated: boolean;
   typeSettingsSchema?: string | any;
@@ -567,7 +566,6 @@ export interface WidgetConfigComponentData {
 export const MissingWidgetType: WidgetInfo = {
   type: widgetType.latest,
   widgetName: 'Widget type not found',
-  bundleAlias: 'undefined',
   fullFqn: 'undefined',
   deprecated: false,
   sizeX: 8,
@@ -593,7 +591,6 @@ export const MissingWidgetType: WidgetInfo = {
 export const ErrorWidgetType: WidgetInfo = {
   type: widgetType.latest,
   widgetName: 'Error loading widget',
-  bundleAlias: 'error',
   fullFqn: 'error',
   deprecated: false,
   sizeX: 8,
@@ -636,7 +633,6 @@ export interface WidgetTypeInstance {
 
 export const toWidgetInfo = (widgetTypeEntity: WidgetType): WidgetInfo => ({
   widgetName: widgetTypeEntity.name,
-  bundleAlias: widgetTypeEntity.bundleAlias,
   fullFqn: fullWidgetTypeFqn(widgetTypeEntity),
   deprecated: widgetTypeEntity.deprecated,
   type: widgetTypeEntity.descriptor.type,
@@ -665,7 +661,7 @@ export const detailsToWidgetInfo = (widgetTypeDetailsEntity: WidgetTypeDetails):
 };
 
 export const toWidgetType = (widgetInfo: WidgetInfo, id: WidgetTypeId, tenantId: TenantId,
-                             bundleAlias: string, createdTime: number): WidgetType => {
+                             createdTime: number): WidgetType => {
   const descriptor: WidgetTypeDescriptor = {
     type: widgetInfo.type,
     sizeX: widgetInfo.sizeX,
@@ -688,7 +684,6 @@ export const toWidgetType = (widgetInfo: WidgetInfo, id: WidgetTypeId, tenantId:
     id,
     tenantId,
     createdTime,
-    bundleAlias,
     fqn: widgetTypeFqn(widgetInfo.fullFqn),
     name: widgetInfo.widgetName,
     deprecated: widgetInfo.deprecated,
@@ -697,8 +692,8 @@ export const toWidgetType = (widgetInfo: WidgetInfo, id: WidgetTypeId, tenantId:
 };
 
 export const toWidgetTypeDetails = (widgetInfo: WidgetInfo, id: WidgetTypeId, tenantId: TenantId,
-                                    bundleAlias: string, createdTime: number): WidgetTypeDetails => {
-  const widgetTypeEntity = toWidgetType(widgetInfo, id, tenantId, bundleAlias, createdTime);
+                                    createdTime: number): WidgetTypeDetails => {
+  const widgetTypeEntity = toWidgetType(widgetInfo, id, tenantId, createdTime);
   return {
     ...widgetTypeEntity,
     description: widgetInfo.description,

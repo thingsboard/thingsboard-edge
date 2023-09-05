@@ -38,16 +38,14 @@ import com.google.api.client.auth.oauth2.TokenResponse;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.Nullable;
+import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -56,6 +54,7 @@ import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.mail.MailOauth2Provider;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 
+import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.time.Duration;
 import java.time.Instant;
@@ -74,10 +73,11 @@ public class TbMailSender extends JavaMailSenderImpl {
     private static final String MAIL_PROP = "mail.";
     private final TbMailContextComponent ctx;
     private final Lock lock;
+
     private final Boolean oauth2Enabled;
     private volatile String accessToken;
     private volatile long tokenExpires;
-    private TenantId tenantId;
+    private final TenantId tenantId;
 
     public TbMailSender(TbMailContextComponent ctx, TenantId tenantId, JsonNode jsonConfig) {
         super();
@@ -96,14 +96,39 @@ public class TbMailSender extends JavaMailSenderImpl {
         setJavaMailProperties(createJavaMailProperties(jsonConfig));
     }
 
-    @SneakyThrows
+    public Boolean getOauth2Enabled() {
+        return oauth2Enabled;
+    }
+
+    public long getTokenExpires() {
+        return tokenExpires;
+    }
+
     @Override
-    public void doSend(MimeMessage[] mimeMessages, @Nullable Object[] originalMessages) {
-        if (oauth2Enabled && (System.currentTimeMillis() > tokenExpires)){
+    protected void doSend(MimeMessage[] mimeMessages, @Nullable Object[] originalMessages) throws MailException {
+        updateOauth2PasswordIfExpired();
+        doSendSuper(mimeMessages, originalMessages);
+    }
+
+    public void doSendSuper(MimeMessage[] mimeMessages, Object[] originalMessages) {
+        super.doSend(mimeMessages, originalMessages);
+    }
+
+    @Override
+    public void testConnection() throws MessagingException {
+        updateOauth2PasswordIfExpired();
+        testConnectionSuper();
+    }
+
+    public void testConnectionSuper() throws MessagingException {
+        super.testConnection();
+    }
+
+    public void updateOauth2PasswordIfExpired()  {
+        if (getOauth2Enabled() && (System.currentTimeMillis() > getTokenExpires())){
             refreshAccessToken(tenantId);
             setPassword(accessToken);
         }
-        super.doSend(mimeMessages, originalMessages);
     }
 
     private Properties createJavaMailProperties(JsonNode jsonConfig) {
@@ -151,10 +176,10 @@ public class TbMailSender extends JavaMailSenderImpl {
         return javaMailProperties;
     }
 
-    public void refreshAccessToken(TenantId tenantId) throws Exception {
+    public void refreshAccessToken(TenantId tenantId) {
         lock.lock();
         try {
-            if (System.currentTimeMillis() > tokenExpires) {
+            if (System.currentTimeMillis() > getTokenExpires()) {
                 AdminSettings settings;
                 if (TenantId.SYS_TENANT_ID.equals(tenantId)) {
                     settings = ctx.getAdminSettingsService().findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mail");
@@ -185,10 +210,9 @@ public class TbMailSender extends JavaMailSenderImpl {
                 tokenExpires = System.currentTimeMillis() + (tokenResponse.getExpiresInSeconds().intValue() * 1000);
             }
         } catch (Exception e) {
-            log.warn("Unable to retrieve access token: {}", e.getMessage());
-            throw new ThingsboardException("Error while retrieving access token: " + e.getMessage(), ThingsboardErrorCode.GENERAL);
-        }
-        finally {
+            log.error("Unable to retrieve access token: {}", e.getMessage());
+            throw new RuntimeException("Error while retrieving access token: " + e.getMessage());
+        } finally {
             lock.unlock();
         }
     }

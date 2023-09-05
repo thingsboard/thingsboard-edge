@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BaseData } from '@shared/models/base-data';
+import { BaseData, ExportableEntity } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { WidgetTypeId } from '@shared/models/id/widget-type-id';
 import { AggregationType, ComparisonDuration, Timewindow } from '@shared/models/time/time.models';
@@ -207,7 +207,6 @@ export interface WidgetControllerDescriptor {
 
 export interface BaseWidgetType extends BaseData<WidgetTypeId> {
   tenantId: TenantId;
-  bundleAlias: string;
   fqn: string;
   name: string;
   deprecated: boolean;
@@ -250,7 +249,7 @@ export interface WidgetTypeInfo extends BaseWidgetType {
   widgetType: widgetType;
 }
 
-export interface WidgetTypeDetails extends WidgetType {
+export interface WidgetTypeDetails extends WidgetType, ExportableEntity<WidgetTypeId> {
   image: string;
   description: string;
 }

@@ -230,6 +230,9 @@ import {
 import { WidgetConfigComponentsModule } from '@home/components/widget/config/widget-config-components.module';
 import { BasicWidgetConfigModule } from '@home/components/widget/config/basic/basic-widget-config.module';
 import { DeleteTimeseriesPanelComponent } from '@home/components/attribute/delete-timeseries-panel.component';
+import {
+  ExportWidgetsBundleDialogComponent
+} from '@home/components/import-export/export-widgets-bundle-dialog.component';
 
 @NgModule({
   declarations:
@@ -280,6 +283,7 @@ import { DeleteTimeseriesPanelComponent } from '@home/components/attribute/delet
       CustomDialogContainerComponent,
       ImportDialogComponent,
       ImportDialogCsvComponent,
+      ExportWidgetsBundleDialogComponent,
       SelectTargetLayoutDialogComponent,
       SelectTargetStateDialogComponent,
       AddWidgetToDashboardDialogComponent,
@@ -458,6 +462,7 @@ import { DeleteTimeseriesPanelComponent } from '@home/components/attribute/delet
     CustomDialogContainerComponent,
     ImportDialogComponent,
     ImportDialogCsvComponent,
+    ExportWidgetsBundleDialogComponent,
     TableColumnsAssignmentComponent,
     SelectTargetLayoutDialogComponent,
     SelectTargetStateDialogComponent,

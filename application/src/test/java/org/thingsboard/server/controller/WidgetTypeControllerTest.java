@@ -48,6 +48,7 @@ import org.thingsboard.server.dao.service.DaoSqlTest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -58,7 +59,6 @@ public class WidgetTypeControllerTest extends AbstractControllerTest {
     private IdComparator<WidgetType> idComparator = new IdComparator<>();
 
     private Tenant savedTenant;
-    private WidgetsBundle savedWidgetsBundle;
     private User tenantAdmin;
 
     @Before
@@ -78,10 +78,6 @@ public class WidgetTypeControllerTest extends AbstractControllerTest {
         tenantAdmin.setLastName("Downs");
 
         tenantAdmin = createUserAndLogin(tenantAdmin, "testPassword1");
-
-        WidgetsBundle widgetsBundle = new WidgetsBundle();
-        widgetsBundle.setTitle("My widgets bundle");
-        savedWidgetsBundle = doPost("/api/widgetsBundle", widgetsBundle, WidgetsBundle.class);
     }
 
     @After
@@ -95,7 +91,6 @@ public class WidgetTypeControllerTest extends AbstractControllerTest {
     @Test
     public void testSaveWidgetType() throws Exception {
         WidgetTypeDetails widgetType = new WidgetTypeDetails();
-        widgetType.setBundleAlias(savedWidgetsBundle.getAlias());
         widgetType.setName("Widget Type");
         widgetType.setDescriptor(JacksonUtil.fromString("{ \"someKey\": \"someValue\" }", JsonNode.class));
         WidgetTypeDetails savedWidgetType = doPost("/api/widgetType", widgetType, WidgetTypeDetails.class);
@@ -107,7 +102,6 @@ public class WidgetTypeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(savedTenant.getId(), savedWidgetType.getTenantId());
         Assert.assertEquals(widgetType.getName(), savedWidgetType.getName());
         Assert.assertEquals(widgetType.getDescriptor(), savedWidgetType.getDescriptor());
-        Assert.assertEquals(savedWidgetsBundle.getAlias(), savedWidgetType.getBundleAlias());
 
         savedWidgetType.setName("New Widget Type");
 
@@ -120,7 +114,6 @@ public class WidgetTypeControllerTest extends AbstractControllerTest {
     @Test
     public void testUpdateWidgetTypeFromDifferentTenant() throws Exception {
         WidgetTypeDetails widgetType = new WidgetTypeDetails();
-        widgetType.setBundleAlias(savedWidgetsBundle.getAlias());
         widgetType.setName("Widget Type");
         widgetType.setDescriptor(JacksonUtil.fromString("{ \"someKey\": \"someValue\" }", JsonNode.class));
         WidgetTypeDetails savedWidgetType = doPost("/api/widgetType", widgetType, WidgetTypeDetails.class);
@@ -133,7 +126,6 @@ public class WidgetTypeControllerTest extends AbstractControllerTest {
     @Test
     public void testFindWidgetTypeById() throws Exception {
         WidgetTypeDetails widgetType = new WidgetTypeDetails();
-        widgetType.setBundleAlias(savedWidgetsBundle.getAlias());
         widgetType.setName("Widget Type");
         widgetType.setDescriptor(JacksonUtil.fromString("{ \"someKey\": \"someValue\" }", JsonNode.class));
         WidgetTypeDetails savedWidgetType = doPost("/api/widgetType", widgetType, WidgetTypeDetails.class);
@@ -145,7 +137,6 @@ public class WidgetTypeControllerTest extends AbstractControllerTest {
     @Test
     public void testDeleteWidgetType() throws Exception {
         WidgetTypeDetails widgetType = new WidgetTypeDetails();
-        widgetType.setBundleAlias(savedWidgetsBundle.getAlias());
         widgetType.setName("Widget Type");
         widgetType.setDescriptor(JacksonUtil.fromString("{ \"someKey\": \"someValue\" }", JsonNode.class));
         WidgetTypeDetails savedWidgetType = doPost("/api/widgetType", widgetType, WidgetTypeDetails.class);
@@ -160,7 +151,6 @@ public class WidgetTypeControllerTest extends AbstractControllerTest {
     @Test
     public void testSaveWidgetTypeWithEmptyName() throws Exception {
         WidgetTypeDetails widgetType = new WidgetTypeDetails();
-        widgetType.setBundleAlias(savedWidgetsBundle.getAlias());
         widgetType.setDescriptor(JacksonUtil.fromString("{ \"someKey\": \"someValue\" }", JsonNode.class));
         doPost("/api/widgetType", widgetType)
                 .andExpect(status().isBadRequest())
@@ -168,19 +158,8 @@ public class WidgetTypeControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    public void testSaveWidgetTypeWithEmptyBundleAlias() throws Exception {
-        WidgetTypeDetails widgetType = new WidgetTypeDetails();
-        widgetType.setName("Widget Type");
-        widgetType.setDescriptor(JacksonUtil.fromString("{ \"someKey\": \"someValue\" }", JsonNode.class));
-        doPost("/api/widgetType", widgetType)
-                .andExpect(status().isBadRequest())
-                .andExpect(statusReason(containsString("Widgets type bundle alias should be specified")));
-    }
-
-    @Test
     public void testSaveWidgetTypeWithEmptyDescriptor() throws Exception {
         WidgetTypeDetails widgetType = new WidgetTypeDetails();
-        widgetType.setBundleAlias(savedWidgetsBundle.getAlias());
         widgetType.setName("Widget Type");
         widgetType.setDescriptor(JacksonUtil.fromString("{}", JsonNode.class));
         doPost("/api/widgetType", widgetType)
@@ -189,54 +168,8 @@ public class WidgetTypeControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    public void testSaveWidgetTypeWithInvalidBundleAlias() throws Exception {
-        WidgetTypeDetails widgetType = new WidgetTypeDetails();
-        widgetType.setBundleAlias("some_alias");
-        widgetType.setName("Widget Type");
-        widgetType.setDescriptor(JacksonUtil.fromString("{ \"someKey\": \"someValue\" }", JsonNode.class));
-        doPost("/api/widgetType", widgetType)
-                .andExpect(status().isBadRequest())
-                .andExpect(statusReason(containsString("Widget type is referencing to non-existent widgets bundle")));
-    }
-
-    @Test
-    public void testUpdateWidgetTypeBundleAlias() throws Exception {
-        WidgetTypeDetails widgetType = new WidgetTypeDetails();
-        widgetType.setBundleAlias(savedWidgetsBundle.getAlias());
-        widgetType.setName("Widget Type");
-        widgetType.setDescriptor(JacksonUtil.fromString("{ \"someKey\": \"someValue\" }", JsonNode.class));
-        WidgetTypeDetails savedWidgetType = doPost("/api/widgetType", widgetType, WidgetTypeDetails.class);
-
-        WidgetsBundle widgetsBundle2 = new WidgetsBundle();
-        widgetsBundle2.setTitle("My widgets bundle 2");
-        WidgetsBundle savedWidgetsBundle2 = doPost("/api/widgetsBundle", widgetsBundle2, WidgetsBundle.class);
-        savedWidgetType.setBundleAlias(savedWidgetsBundle2.getAlias());
-
-        doPost("/api/widgetType", savedWidgetType);
-
-        WidgetTypeDetails foundWidgetType = doGet("/api/widgetType/" + savedWidgetType.getId().getId().toString(), WidgetTypeDetails.class);
-        Assert.assertEquals(savedWidgetsBundle2.getAlias(), foundWidgetType.getBundleAlias());
-
-    }
-
-    @Test
-    public void testUpdateWidgetTypeBundleAliasToNonExistent() throws Exception {
-        WidgetTypeDetails widgetType = new WidgetTypeDetails();
-        widgetType.setBundleAlias(savedWidgetsBundle.getAlias());
-        widgetType.setName("Widget Type");
-        widgetType.setDescriptor(JacksonUtil.fromString("{ \"someKey\": \"someValue\" }", JsonNode.class));
-        WidgetTypeDetails savedWidgetType = doPost("/api/widgetType", widgetType, WidgetTypeDetails.class);
-        savedWidgetType.setBundleAlias("some_alias");
-        doPost("/api/widgetType", savedWidgetType)
-                .andExpect(status().isBadRequest())
-                .andExpect(statusReason(containsString("Widget type is referencing to non-existent widgets bundle")));
-
-    }
-
-    @Test
     public void testUpdateWidgetTypeFqn() throws Exception {
         WidgetTypeDetails widgetType = new WidgetTypeDetails();
-        widgetType.setBundleAlias(savedWidgetsBundle.getAlias());
         widgetType.setName("Widget Type");
         widgetType.setDescriptor(JacksonUtil.fromString("{ \"someKey\": \"someValue\" }", JsonNode.class));
         WidgetTypeDetails savedWidgetType = doPost("/api/widgetType", widgetType, WidgetTypeDetails.class);
@@ -248,63 +181,24 @@ public class WidgetTypeControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    public void testDeprecateWidgetType() throws Exception {
-        WidgetTypeDetails widgetType = new WidgetTypeDetails();
-        widgetType.setBundleAlias(savedWidgetsBundle.getAlias());
-        widgetType.setName("Widget Type");
-        widgetType.setDescriptor(JacksonUtil.fromString("{ \"someKey\": \"someValue\" }", JsonNode.class));
-        WidgetTypeDetails savedWidgetType = doPost("/api/widgetType", widgetType, WidgetTypeDetails.class);
-        doPost("/api/widgetType/"+savedWidgetType.getId().getId().toString() + "/deprecate/true")
-                .andExpect(status().isOk());
-        WidgetTypeDetails foundWidgetType = doGet("/api/widgetType/" + savedWidgetType.getId().getId().toString(), WidgetTypeDetails.class);
-        Assert.assertTrue(foundWidgetType.isDeprecated());
-        doPost("/api/widgetType/"+savedWidgetType.getId().getId().toString() + "/deprecate/false")
-                .andExpect(status().isOk());
-        foundWidgetType = doGet("/api/widgetType/" + savedWidgetType.getId().getId().toString(), WidgetTypeDetails.class);
-        Assert.assertFalse(foundWidgetType.isDeprecated());
-    }
-
-    @Test
-    public void testMoveWidgetType() throws Exception {
-        WidgetTypeDetails widgetType = new WidgetTypeDetails();
-        widgetType.setBundleAlias(savedWidgetsBundle.getAlias());
-        widgetType.setName("Widget Type");
-        widgetType.setDescriptor(JacksonUtil.fromString("{ \"someKey\": \"someValue\" }", JsonNode.class));
-        WidgetTypeDetails savedWidgetType = doPost("/api/widgetType", widgetType, WidgetTypeDetails.class);
-        WidgetsBundle widgetsBundle2 = new WidgetsBundle();
-        widgetsBundle2.setTitle("My widgets bundle 2");
-        WidgetsBundle savedWidgetsBundle2 = doPost("/api/widgetsBundle", widgetsBundle2, WidgetsBundle.class);
-        doPost("/api/widgetType/"+savedWidgetType.getId().getId().toString() + "/move?targetBundleAlias=" + savedWidgetsBundle2.getAlias())
-                .andExpect(status().isOk());
-        WidgetTypeDetails foundWidgetType = doGet("/api/widgetType/" + savedWidgetType.getId().getId().toString(), WidgetTypeDetails.class);
-        Assert.assertEquals(savedWidgetsBundle2.getAlias(), foundWidgetType.getBundleAlias());
-    }
-
-    @Test
-    public void testMoveWidgetTypeToNonExistentBundle() throws Exception {
-        WidgetTypeDetails widgetType = new WidgetTypeDetails();
-        widgetType.setBundleAlias(savedWidgetsBundle.getAlias());
-        widgetType.setName("Widget Type");
-        widgetType.setDescriptor(JacksonUtil.fromString("{ \"someKey\": \"someValue\" }", JsonNode.class));
-        WidgetTypeDetails savedWidgetType = doPost("/api/widgetType", widgetType, WidgetTypeDetails.class);
-        doPost("/api/widgetType/"+savedWidgetType.getId().getId().toString() + "/move?targetBundleAlias=some_alias")
-                .andExpect(status().isBadRequest())
-                .andExpect(statusReason(containsString("Widget type is referencing to non-existent widgets bundle")));
-    }
-
-    @Test
     public void testGetBundleWidgetTypes() throws Exception {
+        WidgetsBundle widgetsBundle = new WidgetsBundle();
+        widgetsBundle.setTitle("My widgets bundle");
+        widgetsBundle = doPost("/api/widgetsBundle", widgetsBundle, WidgetsBundle.class);
+
         List<WidgetType> widgetTypes = new ArrayList<>();
         for (int i=0;i<89;i++) {
             WidgetTypeDetails widgetType = new WidgetTypeDetails();
-            widgetType.setBundleAlias(savedWidgetsBundle.getAlias());
             widgetType.setName("Widget Type " + i);
             widgetType.setDescriptor(JacksonUtil.fromString("{ \"someKey\": \"someValue\" }", JsonNode.class));
             widgetTypes.add(new WidgetType(doPost("/api/widgetType", widgetType, WidgetTypeDetails.class)));
         }
 
-        List<WidgetType> loadedWidgetTypes = doGetTyped("/api/widgetTypes?isSystem={isSystem}&bundleAlias={bundleAlias}",
-                new TypeReference<>(){}, false, savedWidgetsBundle.getAlias());
+        List<String> widgetTypeIds = widgetTypes.stream().map(type -> type.getId().getId().toString()).collect(Collectors.toList());
+        doPost("/api/widgetsBundle/" + widgetsBundle.getId().getId().toString() + "/widgetTypes", widgetTypeIds);
+
+        List<WidgetType> loadedWidgetTypes = doGetTyped("/api/widgetTypes?widgetsBundleId={widgetsBundleId}",
+                new TypeReference<>(){}, widgetsBundle.getId().getId().toString());
 
         Collections.sort(widgetTypes, idComparator);
         Collections.sort(loadedWidgetTypes, idComparator);
@@ -315,7 +209,6 @@ public class WidgetTypeControllerTest extends AbstractControllerTest {
     @Test
     public void testGetWidgetType() throws Exception {
         WidgetTypeDetails widgetType = new WidgetTypeDetails();
-        widgetType.setBundleAlias(savedWidgetsBundle.getAlias());
         widgetType.setName("Widget Type");
         widgetType.setDescriptor(JacksonUtil.fromString("{ \"someKey\": \"someValue\" }", JsonNode.class));
         WidgetTypeDetails savedWidgetType = doPost("/api/widgetType", widgetType, WidgetTypeDetails.class);

@@ -183,8 +183,24 @@ export class MenuService {
             id: 'widget_library',
             name: 'widget.widget-library',
             type: 'link',
-            path: '/resources/widgets-bundles',
-            icon: 'now_widgets'
+            path: '/resources/widgets-library',
+            icon: 'now_widgets',
+            pages: [
+              {
+                id: 'widget_types',
+                name: 'widget.widgets',
+                type: 'link',
+                path: '/resources/widgets-library/widget-types',
+                icon: 'now_widgets'
+              },
+              {
+                id: 'widgets_bundles',
+                name: 'widgets-bundle.widgets-bundles',
+                type: 'link',
+                path: '/resources/widgets-library/widgets-bundles',
+                icon: 'now_widgets'
+              }
+            ]
           },
           {
             id: 'resources_library',
@@ -406,7 +422,7 @@ export class MenuService {
           {
             name: 'widget.widget-library',
             icon: 'now_widgets',
-            path: '/widgets-bundles',
+            path: '/resources/widgets-library',
             disabled: disabledItems.indexOf('widget_library') > -1
           }
         ]
@@ -1123,17 +1139,42 @@ export class MenuService {
       );
     }
     const resourcesPages: Array<MenuSection> = [];
+    const widgetLibraryPages: Array<MenuSection> = [];
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.WIDGET_TYPE)) {
+      widgetLibraryPages.push(
+        {
+          id: 'widget_types',
+          name: 'widget.widgets',
+          type: 'link',
+          path: '/resources/widgets-library/widget-types',
+          icon: 'now_widgets'
+        }
+      );
+    }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.WIDGETS_BUNDLE)) {
+      widgetLibraryPages.push(
+        {
+          id: 'widgets_bundles',
+          name: 'widgets-bundle.widgets-bundles',
+          type: 'link',
+          path: '/resources/widgets-library/widgets-bundles',
+          icon: 'now_widgets'
+        }
+      );
+    }
+    if (widgetLibraryPages.length) {
       resourcesPages.push(
         {
           id: 'widget_library',
           name: 'widget.widget-library',
           type: 'link',
-          path: '/resources/widgets-bundles',
-          icon: 'now_widgets'
+          path: '/resources/widgets-library',
+          icon: 'now_widgets',
+          pages: widgetLibraryPages
         }
       );
     }
+
     if (this.userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)) {
       resourcesPages.push({
         id: 'resources_library',
@@ -1690,7 +1731,7 @@ export class MenuService {
           {
             name: 'dashboard.dashboards',
             icon: 'dashboard',
-            path: '/dashboardGroups',
+            path: '/dashboards',
             disabled: disabledItems.indexOf('dashboard_groups') > -1
           }
         );
@@ -2539,7 +2580,7 @@ export class MenuService {
           {
             name: 'dashboard.dashboards',
             icon: 'dashboard',
-            path: '/dashboardGroups',
+            path: '/dashboards',
             disabled: disabledItems.indexOf('dashboard_groups') > -1
           }
         ]
