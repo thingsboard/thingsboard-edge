@@ -35,9 +35,9 @@ public interface WidgetTypeService extends EntityDaoService {
 
     WidgetTypeDetails saveWidgetType(WidgetTypeDetails widgetType, boolean doValidate);
 
-    boolean widgetTypeExistsByTenantIdAndWidgetTypeId(TenantId tenantId, WidgetTypeId widgetTypeId);
-
     WidgetTypeDetails saveWidgetType(WidgetTypeDetails widgetType);
+
+    boolean widgetTypeExistsByTenantIdAndWidgetTypeId(TenantId tenantId, WidgetTypeId widgetTypeId);
 
     void deleteWidgetType(TenantId tenantId, WidgetTypeId widgetTypeId);
 
