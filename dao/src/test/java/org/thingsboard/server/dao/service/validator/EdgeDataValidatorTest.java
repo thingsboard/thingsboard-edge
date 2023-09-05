@@ -57,6 +57,8 @@ class EdgeDataValidatorTest {
         edge.setSecret("secret");
         edge.setRoutingKey("53c56104-d302-4d6e-97f5-a7a99c7effdc");
         edge.setTenantId(tenantId);
+        edge.setEdgeLicenseKey("abcd");
+        edge.setCloudEndpoint("https://localhost");
 
         validator.validateDataImpl(tenantId, edge);
         verify(validator).validateName("Edge name", edge.getName());
