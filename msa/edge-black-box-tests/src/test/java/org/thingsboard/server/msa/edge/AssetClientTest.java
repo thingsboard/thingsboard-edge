@@ -171,6 +171,11 @@ public class AssetClientTest extends AbstractContainerTest {
     public void testSendAssetToCloudWithNameThatAlreadyExistsOnCloud() {
         // create asset on cloud and edge with the same name
         Asset savedAssetOnCloud = saveAssetOnCloud("Edge Asset 3", "Building");
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getAssetProfileById(savedAssetOnCloud.getAssetProfileId()).isPresent());
+
         Asset savedAssetOnEdge = saveAssetOnEdge("Edge Asset 3", "Building");
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
@@ -193,6 +198,13 @@ public class AssetClientTest extends AbstractContainerTest {
 
         cloudRestClient.deleteAsset(savedAssetOnEdge.getId());
         cloudRestClient.deleteAsset(savedAssetOnCloud.getId());
+
+        // delete "Building" asset profile
+        cloudRestClient.deleteAssetProfile(savedAssetOnCloud.getAssetProfileId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getAssetProfileById(savedAssetOnCloud.getAssetProfileId()).isEmpty());
     }
 
 }
