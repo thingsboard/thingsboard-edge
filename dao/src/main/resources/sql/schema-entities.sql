@@ -80,12 +80,6 @@ CREATE TABLE IF NOT EXISTS alarm (
     cleared boolean
 );
 
-CREATE TABLE IF NOT EXISTS alarm_types (
-    tenant_id uuid NOT NULL,
-    type varchar(255) NOT NULL,
-    CONSTRAINT tenant_id_type_unq_key UNIQUE (tenant_id, type)
-);
-
 CREATE TABLE IF NOT EXISTS alarm_comment (
     id uuid NOT NULL,
     created_time bigint NOT NULL,
@@ -1059,3 +1053,10 @@ CREATE TABLE IF NOT EXISTS white_labeling (
     settings VARCHAR(10000000),
     domain_name VARCHAR(255) UNIQUE,
     CONSTRAINT white_labeling_pkey PRIMARY KEY (entity_type, entity_id, type));
+
+CREATE TABLE IF NOT EXISTS alarm_types (
+    tenant_id uuid NOT NULL,
+    type varchar(255) NOT NULL,
+    CONSTRAINT tenant_id_type_unq_key UNIQUE (tenant_id, type),
+    CONSTRAINT fk_entity_tenant_id FOREIGN KEY (tenant_id) REFERENCES tenant(id) ON DELETE CASCADE
+);
