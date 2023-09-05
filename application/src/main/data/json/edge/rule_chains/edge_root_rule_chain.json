@@ -101,7 +101,7 @@
           "scope": "CLIENT_SCOPE",
           "notifyDevice": "false",
           "sendAttributesUpdatedNotification": "false",
-          "updateAttributesOnValueChange": "true"
+          "updateAttributesOnlyOnValueChange": "true"
         },
         "externalId": null
       },

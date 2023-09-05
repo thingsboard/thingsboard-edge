@@ -32,15 +32,13 @@ package org.thingsboard.rule.engine.telemetry;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
-import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.TbVersionedNode;
@@ -76,14 +74,14 @@ import static org.thingsboard.server.common.data.msg.TbMsgType.POST_ATTRIBUTES_R
                       "If upsert(update/insert) operation is completed successfully rule node will send the incoming message via <b>Success</b> chain, otherwise, <b>Failure</b> chain is used. " +
                       "Additionally if checkbox <b>Send attributes updated notification</b> is set to true, rule node will put the \"Attributes Updated\" " +
                       "event for <b>SHARED_SCOPE</b> and <b>SERVER_SCOPE</b> attributes updates to the corresponding rule engine queue." +
-                      "Performance checkbox 'Update Attributes On Value Change' will skip attributes overwrites for values with no changes (avoid concurrent writes because this check is not transactional; will not update 'Last updated time' for skipped attributes).",
+                      "Performance checkbox 'Save attributes only if the value changes' will skip attributes overwrites for values with no changes (avoid concurrent writes because this check is not transactional; will not update 'Last updated time' for skipped attributes).",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeAttributesConfig",
         icon = "file_upload"
 )
-public class TbMsgAttributesNode implements TbNode, TbVersionedNode {
+public class TbMsgAttributesNode implements TbVersionedNode {
 
-    static final String UPDATE_ATTRIBUTES_ON_VALUE_CHANGE_KEY = "updateAttributesOnValueChange";
+    static final String UPDATE_ATTRIBUTES_ONLY_ON_VALUE_CHANGE_KEY = "updateAttributesOnlyOnValueChange";
     private TbMsgAttributesNodeConfiguration config;
 
     @Override
@@ -109,7 +107,7 @@ public class TbMsgAttributesNode implements TbNode, TbVersionedNode {
         String scope = getScope(msg.getMetaData().getValue(SCOPE));
         boolean sendAttributesUpdateNotification = checkSendNotification(scope);
 
-        if (!config.isUpdateAttributesOnValueChange()) {
+        if (!config.isUpdateAttributesOnlyOnValueChange()) {
             saveAttr(newAttributes, ctx, msg, scope, sendAttributesUpdateNotification);
             return;
         }
@@ -117,18 +115,13 @@ public class TbMsgAttributesNode implements TbNode, TbVersionedNode {
         List<String> keys = newAttributes.stream().map(KvEntry::getKey).collect(Collectors.toList());
         ListenableFuture<List<AttributeKvEntry>> findFuture = ctx.getAttributesService().find(ctx.getTenantId(), msg.getOriginator(), scope, keys);
 
-        Futures.addCallback(findFuture, new FutureCallback<>() {
-            @Override
-            public void onSuccess(List<AttributeKvEntry> currentAttributes) {
-                List<AttributeKvEntry> attributesChanged = filterChangedAttr(currentAttributes, newAttributes);
-                saveAttr(attributesChanged, ctx, msg, scope, sendAttributesUpdateNotification);
-            }
-
-            @Override
-            public void onFailure(Throwable throwable) {
-                ctx.tellFailure(msg, throwable);
-            }
-        }, MoreExecutors.directExecutor());
+        DonAsynchron.withCallback(findFuture,
+                currentAttributes -> {
+                    List<AttributeKvEntry> attributesChanged = filterChangedAttr(currentAttributes, newAttributes);
+                    saveAttr(attributesChanged, ctx, msg, scope, sendAttributesUpdateNotification);
+                },
+                throwable -> ctx.tellFailure(msg, throwable),
+                MoreExecutors.directExecutor());
     }
 
     void saveAttr(List<AttributeKvEntry> attributes, TbContext ctx, TbMsg msg, String scope, boolean sendAttributesUpdateNotification) {
@@ -186,12 +179,13 @@ public class TbMsgAttributesNode implements TbNode, TbVersionedNode {
         boolean hasChanges = false;
         switch (fromVersion) {
             case 0:
-                if (!oldConfiguration.has(UPDATE_ATTRIBUTES_ON_VALUE_CHANGE_KEY)) {
+                if (!oldConfiguration.has(UPDATE_ATTRIBUTES_ONLY_ON_VALUE_CHANGE_KEY)) {
                     hasChanges = true;
-                    ((ObjectNode) oldConfiguration).put(UPDATE_ATTRIBUTES_ON_VALUE_CHANGE_KEY, false);
+                    ((ObjectNode) oldConfiguration).put(UPDATE_ATTRIBUTES_ONLY_ON_VALUE_CHANGE_KEY, false);
                 }
                 break;
             default:
+                break;
         }
         return new TbPair<>(hasChanges, oldConfiguration);
     }
