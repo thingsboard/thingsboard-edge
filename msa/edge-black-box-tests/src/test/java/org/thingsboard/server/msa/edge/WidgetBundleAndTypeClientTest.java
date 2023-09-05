@@ -79,7 +79,6 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
         // create widget type
         WidgetTypeDetails widgetType = new WidgetTypeDetails();
         widgetType.setName("Test Widget Type");
-        widgetType.setBundleAlias(savedWidgetsBundle.getAlias());
         ObjectNode descriptor = JacksonUtil.OBJECT_MAPPER.createObjectNode();
         descriptor.put("key", "value");
         widgetType.setDescriptor(descriptor);

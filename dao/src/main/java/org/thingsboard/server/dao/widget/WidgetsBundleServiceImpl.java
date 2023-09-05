@@ -78,7 +78,9 @@ public class WidgetsBundleServiceImpl implements WidgetsBundleService {
                     .entityId(result.getId()).added(widgetsBundle.getId() == null).build());
             return result;
         } catch (Exception e) {
-            AbstractCachedEntityService.checkConstraintViolation(e, "widgets_bundle_external_id_unq_key", "Widget Bundle with such external id already exists!");
+            AbstractCachedEntityService.checkConstraintViolation(e,
+                    "uq_widgets_bundle_alias", "Widgets Bundle with such alias already exists!");
+            AbstractCachedEntityService.checkConstraintViolation(e, "widgets_bundle_external_id_unq_key", "Widgets Bundle with such external id already exists!");
             throw e;
         }
     }
@@ -96,7 +98,6 @@ public class WidgetsBundleServiceImpl implements WidgetsBundleService {
         if (widgetsBundle == null) {
             throw new IncorrectParameterException("Unable to delete non-existent widgets bundle.");
         }
-        widgetTypeService.deleteWidgetTypesByTenantIdAndBundleAlias(widgetsBundle.getTenantId(), widgetsBundle.getAlias());
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(widgetsBundleId).build());
         widgetsBundleDao.removeById(tenantId, widgetsBundleId.getId());
     }
