@@ -35,7 +35,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -79,9 +78,7 @@ public class AssetDataValidator extends DataValidator<Asset> {
 
     @Override
     protected void validateDataImpl(TenantId tenantId, Asset asset) {
-        if (StringUtils.isEmpty(asset.getName())) {
-            throw new DataValidationException("Asset name should be specified!");
-        }
+        validateName("Asset name", asset.getName());
         if (asset.getTenantId() == null) {
             throw new DataValidationException("Asset should be assigned to tenant!");
         } else {
