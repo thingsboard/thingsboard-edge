@@ -30,27 +30,29 @@
  */
 package org.thingsboard.server.dao.service.validator;
 
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.StringUtils;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
-import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.exception.DataValidationException;
+import org.thingsboard.server.common.data.plugin.ComponentScope;
+import org.thingsboard.server.common.data.plugin.ComponentType;
 
-@Component
-public class ComponentDescriptorDataValidator extends DataValidator<ComponentDescriptor> {
+import static org.mockito.Mockito.verify;
 
-    @Override
-    protected void validateDataImpl(TenantId tenantId, ComponentDescriptor plugin) {
-        validateString("Component name", plugin.getName());
-        if (plugin.getType() == null) {
-            throw new DataValidationException("Component type should be specified!");
-        }
-        if (plugin.getScope() == null) {
-            throw new DataValidationException("Component scope should be specified!");
-        }
-        if (StringUtils.isEmpty(plugin.getClazz())) {
-            throw new DataValidationException("Component clazz should be specified!");
-        }
+@SpringBootTest(classes = ComponentDescriptorDataValidator.class)
+class ComponentDescriptorDataValidatorTest {
+    @SpyBean
+    ComponentDescriptorDataValidator validator;
+
+    @Test
+    void testValidateNameInvocation() {
+        ComponentDescriptor plugin = new ComponentDescriptor();
+        plugin.setType(ComponentType.ENRICHMENT);
+        plugin.setScope(ComponentScope.SYSTEM);
+        plugin.setName("originator attributes");
+        plugin.setClazz("org.thingsboard.rule.engine.metadata.TbGetAttributesNode");
+        validator.validateDataImpl(TenantId.SYS_TENANT_ID, plugin);
+        verify(validator).validateString("Component name", plugin.getName());
     }
 }

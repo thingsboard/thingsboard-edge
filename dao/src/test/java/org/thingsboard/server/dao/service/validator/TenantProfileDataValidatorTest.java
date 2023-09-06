@@ -30,27 +30,42 @@
  */
 package org.thingsboard.server.dao.service.validator;
 
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.StringUtils;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
-import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.exception.DataValidationException;
+import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+import org.thingsboard.server.common.data.tenant.profile.TenantProfileData;
+import org.thingsboard.server.dao.tenant.TenantProfileDao;
+import org.thingsboard.server.dao.tenant.TenantProfileService;
 
-@Component
-public class ComponentDescriptorDataValidator extends DataValidator<ComponentDescriptor> {
+import java.util.UUID;
 
-    @Override
-    protected void validateDataImpl(TenantId tenantId, ComponentDescriptor plugin) {
-        validateString("Component name", plugin.getName());
-        if (plugin.getType() == null) {
-            throw new DataValidationException("Component type should be specified!");
-        }
-        if (plugin.getScope() == null) {
-            throw new DataValidationException("Component scope should be specified!");
-        }
-        if (StringUtils.isEmpty(plugin.getClazz())) {
-            throw new DataValidationException("Component clazz should be specified!");
-        }
+import static org.mockito.Mockito.verify;
+
+@SpringBootTest(classes = TenantProfileDataValidator.class)
+class TenantProfileDataValidatorTest {
+
+    @MockBean
+    TenantProfileDao tenantProfileDao;
+    @MockBean
+    TenantProfileService tenantProfileService;
+    @SpyBean
+    TenantProfileDataValidator validator;
+    TenantId tenantId = TenantId.fromUUID(UUID.fromString("9ef79cdf-37a8-4119-b682-2e7ed4e018da"));
+
+    @Test
+    void testValidateNameInvocation() {
+        TenantProfile tenantProfile = new TenantProfile();
+        tenantProfile.setName("Sandbox");
+        TenantProfileData tenantProfileData = new TenantProfileData();
+        tenantProfileData.setConfiguration(new DefaultTenantProfileConfiguration());
+        tenantProfile.setProfileData(tenantProfileData);
+
+        validator.validateDataImpl(tenantId, tenantProfile);
+        verify(validator).validateString("Tenant profile name", tenantProfile.getName());
     }
+
 }

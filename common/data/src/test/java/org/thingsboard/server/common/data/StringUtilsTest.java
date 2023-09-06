@@ -28,29 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.service.validator;
+package org.thingsboard.server.common.data;
 
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
-import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.exception.DataValidationException;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-@Component
-public class ComponentDescriptorDataValidator extends DataValidator<ComponentDescriptor> {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    @Override
-    protected void validateDataImpl(TenantId tenantId, ComponentDescriptor plugin) {
-        validateString("Component name", plugin.getName());
-        if (plugin.getType() == null) {
-            throw new DataValidationException("Component type should be specified!");
-        }
-        if (plugin.getScope() == null) {
-            throw new DataValidationException("Component scope should be specified!");
-        }
-        if (StringUtils.isEmpty(plugin.getClazz())) {
-            throw new DataValidationException("Component clazz should be specified!");
-        }
+class StringUtilsTest {
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "\000", "\u0000", " \000", " \000 ", "\000 ", "\000\000", "\000 \000",
+            "世\000界", "F0929906\000\000\000\000\000\000\000\000\000",
+    })
+    void testContains0x00_thenTrue(String sample) {
+        assertThat(StringUtils.contains0x00(sample)).isTrue();
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "  ", "abc", "世界", "\001", "\uD83D\uDC0C"})
+    void testContains0x00_thenFalse(String sample) {
+        assertThat(StringUtils.contains0x00(sample)).isFalse();
+    }
+
 }

@@ -30,38 +30,57 @@
  */
 package org.thingsboard.server.dao.service.validator;
 
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.alarm.Alarm;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.service.DataValidator;
+import org.thingsboard.server.dao.asset.AssetProfileDao;
+import org.thingsboard.server.dao.asset.AssetProfileService;
+import org.thingsboard.server.dao.dashboard.DashboardService;
+import org.thingsboard.server.dao.queue.QueueService;
+import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
-import org.thingsboard.server.exception.DataValidationException;
 
-@Component
-@AllArgsConstructor
-public class AlarmDataValidator extends DataValidator<Alarm> {
+import java.util.UUID;
 
-    private final TenantService tenantService;
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.Mockito.verify;
 
-    @Override
-    protected void validateDataImpl(TenantId tenantId, Alarm alarm) {
-        validateString("Alarm type", alarm.getType());
-        if (alarm.getOriginator() == null) {
-            throw new DataValidationException("Alarm originator should be specified!");
-        }
-        if (alarm.getSeverity() == null) {
-            throw new DataValidationException("Alarm severity should be specified!");
-        }
-        if (alarm.getStatus() == null) {
-            throw new DataValidationException("Alarm status should be specified!");
-        }
-        if (alarm.getTenantId() == null) {
-            throw new DataValidationException("Alarm should be assigned to tenant!");
-        } else {
-            if (!tenantService.tenantExists(alarm.getTenantId())) {
-                throw new DataValidationException("Alarm is referencing to non-existent tenant!");
-            }
-        }
+@SpringBootTest(classes = AssetProfileDataValidator.class)
+class AssetProfileDataValidatorTest {
+
+    @MockBean
+    AssetProfileDao assetProfileDao;
+    @MockBean
+    AssetProfileService assetProfileService;
+    @MockBean
+    TenantService tenantService;
+    @MockBean
+    QueueService queueService;
+    @MockBean
+    RuleChainService ruleChainService;
+    @MockBean
+    DashboardService dashboardService;
+    @SpyBean
+    AssetProfileDataValidator validator;
+    TenantId tenantId = TenantId.fromUUID(UUID.fromString("9ef79cdf-37a8-4119-b682-2e7ed4e018da"));
+
+    @BeforeEach
+    void setUp() {
+        willReturn(true).given(tenantService).tenantExists(tenantId);
     }
+
+    @Test
+    void testValidateNameInvocation() {
+        AssetProfile assetProfile = new AssetProfile();
+        assetProfile.setName("prod");
+        assetProfile.setTenantId(tenantId);
+
+        validator.validateDataImpl(tenantId, assetProfile);
+        verify(validator).validateString("Asset profile name", assetProfile.getName());
+    }
+
 }

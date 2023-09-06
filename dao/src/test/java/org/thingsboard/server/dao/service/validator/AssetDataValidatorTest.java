@@ -28,26 +28,45 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.service;
+package org.thingsboard.server.dao.service.validator;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.asset.AssetDao;
+import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.exception.DataValidationException;
+import org.thingsboard.server.dao.tenant.TenantService;
+
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
+import static org.mockito.BDDMockito.willReturn;
 
+@SpringBootTest(classes = AssetDataValidator.class)
 @Slf4j
-public class DataValidatorTest {
+class AssetDataValidatorTest {
 
-    DataValidator<?> dataValidator;
+    @MockBean
+    AssetDao assetDao;
+    @MockBean
+    TenantService tenantService;
+    @MockBean
+    CustomerDao customerDao;
+    @Autowired
+    AssetDataValidator validator;
+    TenantId tenantId = TenantId.fromUUID(UUID.fromString("9ef79cdf-37a8-4119-b682-2e7ed4e018da"));
 
     @BeforeEach
     void setUp() {
-        dataValidator = spy(DataValidator.class);
+        willReturn(true).given(tenantService).tenantExists(tenantId);
     }
 
     @ParameterizedTest
@@ -55,13 +74,11 @@ public class DataValidatorTest {
             "coffee", "1", "big box", "世界", "!", "--", "~!@#$%^&*()_+=-/|\\[]{};:'`\"?<>,.", "\uD83D\uDC0C", "\041",
             "Gdy Pomorze nie pomoże, to pomoże może morze, a gdy morze nie pomoże, to pomoże może Gdańsk",
     })
-    void validateName_thenOK(final String name) {
-        dataValidator.validateString("Device name", name);
-        dataValidator.validateString("Asset name", name);
-        dataValidator.validateString("Asset profile name", name);
-        dataValidator.validateString("Alarm type", name);
-        dataValidator.validateString("Customer name", name);
-        dataValidator.validateString("Tenant name", name);
+    void testAssetName_thenOK(final String name) {
+        Asset asset = new Asset();
+        asset.setTenantId(tenantId);
+        asset.setName(name);
+        validator.validateDataImpl(tenantId, asset);
     }
 
     @ParameterizedTest
@@ -70,53 +87,14 @@ public class DataValidatorTest {
             "F0929906\000\000\000\000\000\000\000\000\000", "\000\000\000F0929906",
             "\u0000F0929906", "F092\u00009906", "F0929906\u0000"
     })
-    void validateName_thenDataValidationException(final String name) {
-        DataValidationException exception;
-        exception = Assertions.assertThrows(DataValidationException.class, () -> dataValidator.validateString("Asset name", name));
-        log.warn("Exception message Asset name: {}", exception.getMessage());
+    void testAssetName_thenDataValidationException(final String name) {
+        Asset asset = new Asset();
+        asset.setTenantId(tenantId);
+        asset.setName(name);
+
+        DataValidationException exception = Assertions.assertThrows(DataValidationException.class, () -> validator.validateDataImpl(tenantId, asset));
+        log.warn("Exception message: {}", exception.getMessage());
         assertThat(exception.getMessage()).as("message Asset name").containsPattern("Asset name .*");
-
-        exception = Assertions.assertThrows(DataValidationException.class, () -> dataValidator.validateString("Device name", name));
-        log.warn("Exception message Device name: {}", exception.getMessage());
-        assertThat(exception.getMessage()).as("message Device name").containsPattern("Device name .*");
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {
-            "aZ1_!#$%&'*+/=?`{|}~^.-@mail.io", "support@thingsboard.io",
-    })
-    public void validateEmail(String email) {
-        DataValidator.validateEmail(email);
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {
-            "test:1@mail.io", "test()1@mail.io", "test[]1@mail.io",
-            "test\\1@mail.io", "test\"1@mail.io", "test<>1@mail.io",
-    })
-    public void validateEmailInvalid(String email) {
-        Assertions.assertThrows(DataValidationException.class, () -> DataValidator.validateEmail(email));
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {
-            "azAZ09_.-", "topic",
-    })
-    public void validateQueueNameOrTopic(String value) {
-        DataValidator.validateQueueNameOrTopic(value, "name");
-        DataValidator.validateQueueNameOrTopic(value, "topic");
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {
-            "", " ", "  ", "\n", "\r\n", "\t", "\000", "\000\000", "\001", "\002", "\040", "\u0000", "\u0000\u0000",
-            "topic@home", "!", ",", "Łódź",
-            "\uD83D\uDC0C", "\041",
-            "F0929906\000\000\000\000\000\000\000\000\000",
-    })
-    public void validateQueueNameOrTopicInvalid(String value) {
-        Assertions.assertThrows(DataValidationException.class, () -> DataValidator.validateQueueNameOrTopic(value, "name"));
-        Assertions.assertThrows(DataValidationException.class, () -> DataValidator.validateQueueNameOrTopic(value, "topic"));
     }
 
 }
