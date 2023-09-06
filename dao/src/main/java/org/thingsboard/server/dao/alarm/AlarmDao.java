@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.alarm;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmApiCallResult;
@@ -122,4 +123,7 @@ public interface AlarmDao extends Dao<Alarm> {
 
     long countAlarmsByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions mergedUserPermissions, AlarmCountQuery query);
 
+    PageData<EntitySubtype> findTenantAlarmTypes(UUID tenantId, PageLink pageLink);
+
+    boolean removeAlarmTypesIfNoAlarmsPresent(UUID tenantId, Set<String> types);
 }

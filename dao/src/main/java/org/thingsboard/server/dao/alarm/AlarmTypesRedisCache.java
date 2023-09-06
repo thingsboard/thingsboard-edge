@@ -28,39 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-  display: flex;
-  max-width: 100%;
-  .mdc-button {
-    max-width: 100%;
-  }
-}
+package org.thingsboard.server.dao.alarm;
 
-:host ::ng-deep {
-  .mdc-button {
-    .mat-icon {
-      min-width: 24px;
-    }
-    .mdc-button__label {
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-  }
-}
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.CacheSpecsMap;
+import org.thingsboard.server.cache.RedisTbTransactionalCache;
+import org.thingsboard.server.cache.TBRedisCacheConfiguration;
+import org.thingsboard.server.cache.TbFSTRedisSerializer;
+import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
 
-::ng-deep {
-  .tb-alarm-filter-config-component {
-    flex: 1;
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "redis")
+@Service("AlarmTypesCache")
+public class AlarmTypesRedisCache extends RedisTbTransactionalCache<TenantId, PageData<EntitySubtype>> {
 
-    tb-entity-subtype-list {
-      flex: 1;
-      width: 180px;
+    public AlarmTypesRedisCache(TBRedisCacheConfiguration configuration, CacheSpecsMap cacheSpecsMap, RedisConnectionFactory connectionFactory) {
+        super(CacheConstants.ALARM_TYPES_CACHE, cacheSpecsMap, connectionFactory, configuration, new TbFSTRedisSerializer<>());
     }
-
-    .mat-mdc-chip {
-      .mdc-evolution-chip__cell, .mat-mdc-chip-action, .mat-mdc-chip-action-label {
-        overflow: hidden;
-      }
-    }
-  }
 }
