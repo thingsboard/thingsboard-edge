@@ -1251,9 +1251,6 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
         let newWidget: Widget = {
           typeFullFqn: widgetTypeInfo.fullFqn,
           type: widgetTypeInfo.type,
-          title: 'New widget',
-          image: null,
-          description: null,
           sizeX: widgetTypeInfo.sizeX,
           sizeY: widgetTypeInfo.sizeY,
           config,

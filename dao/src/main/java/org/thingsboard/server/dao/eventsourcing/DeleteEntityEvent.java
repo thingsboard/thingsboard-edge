@@ -43,4 +43,7 @@ public class DeleteEntityEvent<T> {
     private final EntityId entityId;
     private final EdgeId edgeId;
     private final T entity;
+
+    @Builder.Default
+    private final long ts = System.currentTimeMillis();
 }

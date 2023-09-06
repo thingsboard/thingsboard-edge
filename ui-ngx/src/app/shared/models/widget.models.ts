@@ -721,7 +721,13 @@ export interface WidgetConfig {
   [key: string]: any;
 }
 
-export interface Widget extends WidgetInfo{
+export interface BaseWidgetInfo {
+  id?: string;
+  typeFullFqn: string;
+  type: widgetType;
+}
+
+export interface Widget extends BaseWidgetInfo {
   typeId?: WidgetTypeId;
   sizeX: number;
   sizeY: number;
@@ -730,10 +736,7 @@ export interface Widget extends WidgetInfo{
   config: WidgetConfig;
 }
 
-export interface WidgetInfo {
-  id?: string;
-  typeFullFqn: string;
-  type: widgetType;
+export interface WidgetInfo extends BaseWidgetInfo {
   title: string;
   image?: string;
   description?: string;
