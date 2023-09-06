@@ -197,7 +197,7 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
     }
 
     private void removeCreatedUser(User user) {
-        userService.deleteUser(tenantId, user.getId());
+        userService.deleteUser(tenantId, user);
         var found = userService.findUserByEmail(tenantId, TEST_EMAIL);
         Assert.assertNull("Expected that created user is deleted but one found!", found);
     }

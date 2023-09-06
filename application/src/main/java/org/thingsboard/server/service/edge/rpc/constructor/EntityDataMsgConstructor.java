@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.AttributeDeleteMsg;
 import org.thingsboard.server.gen.edge.v1.EntityDataProto;
 import org.thingsboard.server.gen.transport.TransportProtos;
@@ -55,7 +56,7 @@ import java.util.List;
 @TbCoreComponent
 public class EntityDataMsgConstructor {
 
-    public EntityDataProto constructEntityDataMsg(EntityId entityId, EdgeEventActionType actionType, JsonElement entityData) {
+    public EntityDataProto constructEntityDataMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType actionType, JsonElement entityData) {
         EntityDataProto.Builder builder = EntityDataProto.newBuilder()
                 .setEntityIdMSB(entityId.getId().getMostSignificantBits())
                 .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
@@ -72,7 +73,7 @@ public class EntityDataMsgConstructor {
                     }
                     builder.setPostTelemetryMsg(JsonConverter.convertToTelemetryProto(data.getAsJsonObject("data"), ts));
                 } catch (Exception e) {
-                    log.warn("[{}] Can't convert to telemetry proto, entityData [{}]", entityId, entityData, e);
+                    log.warn("[{}][{}] Can't convert to telemetry proto, entityData [{}]", tenantId, entityId, entityData, e);
                 }
                 break;
             case ATTRIBUTES_UPDATED:
@@ -82,7 +83,7 @@ public class EntityDataMsgConstructor {
                     builder.setAttributesUpdatedMsg(attributesUpdatedMsg);
                     builder.setPostAttributeScope(getScopeOfDefault(data));
                 } catch (Exception e) {
-                    log.warn("[{}] Can't convert to AttributesUpdatedMsg proto, entityData [{}]", entityId, entityData, e);
+                    log.warn("[{}][{}] Can't convert to AttributesUpdatedMsg proto, entityData [{}]", tenantId, entityId, entityData, e);
                 }
                 break;
             case POST_ATTRIBUTES:
@@ -92,7 +93,7 @@ public class EntityDataMsgConstructor {
                     builder.setPostAttributesMsg(postAttributesMsg);
                     builder.setPostAttributeScope(getScopeOfDefault(data));
                 } catch (Exception e) {
-                    log.warn("[{}] Can't convert to PostAttributesMsg, entityData [{}]", entityId, entityData, e);
+                    log.warn("[{}][{}] Can't convert to PostAttributesMsg, entityData [{}]", tenantId, entityId, entityData, e);
                 }
                 break;
             case ATTRIBUTES_DELETED:
@@ -105,7 +106,7 @@ public class EntityDataMsgConstructor {
                     attributeDeleteMsg.build();
                     builder.setAttributeDeleteMsg(attributeDeleteMsg);
                 } catch (Exception e) {
-                    log.warn("[{}] Can't convert to AttributeDeleteMsg proto, entityData [{}]", entityId, entityData, e);
+                    log.warn("[{}][{}] Can't convert to AttributeDeleteMsg proto, entityData [{}]", tenantId, entityId, entityData, e);
                 }
                 break;
         }

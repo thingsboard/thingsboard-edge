@@ -49,7 +49,8 @@ public class DashboardMsgConstructor {
                 .setIdMSB(dashboard.getId().getId().getMostSignificantBits())
                 .setIdLSB(dashboard.getId().getId().getLeastSignificantBits())
                 .setTitle(dashboard.getTitle())
-                .setConfiguration(JacksonUtil.toString(dashboard.getConfiguration()));
+                .setConfiguration(JacksonUtil.toString(dashboard.getConfiguration()))
+                .setMobileHide(dashboard.isMobileHide());
         if (entityGroupId != null) {
             builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
                     .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
@@ -57,6 +58,12 @@ public class DashboardMsgConstructor {
         if (dashboard.getCustomerId() != null) {
             builder.setCustomerIdMSB(dashboard.getCustomerId().getId().getMostSignificantBits())
                     .setCustomerIdLSB(dashboard.getCustomerId().getId().getLeastSignificantBits());
+        }
+        if (dashboard.getImage() != null) {
+            builder.setImage(dashboard.getImage());
+        }
+        if (dashboard.getMobileOrder() != null) {
+            builder.setMobileOrder(dashboard.getMobileOrder());
         }
         return builder.build();
     }

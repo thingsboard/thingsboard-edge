@@ -32,6 +32,7 @@
 
 :host {
   min-width: 355px;
+  display: block;
 
   @media #{$mat-xs} {
     min-width: 0;

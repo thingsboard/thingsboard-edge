@@ -50,6 +50,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.query.AlarmCountQuery;
 import org.thingsboard.server.common.data.query.AlarmData;
@@ -142,6 +143,8 @@ public interface AlarmService extends EntityDaoService {
     Set<EntityId> getPropagationEntityIds(Alarm alarm);
 
     Set<EntityId> getPropagationEntityIds(Alarm alarm, List<EntityType> types);
+
+    PageData<AlarmId> findAlarmIdsByAssigneeId(TenantId tenantId, UserId userId, PageLink pageLink);
 
     void deleteEntityAlarmRelations(TenantId tenantId, EntityId entityId);
 

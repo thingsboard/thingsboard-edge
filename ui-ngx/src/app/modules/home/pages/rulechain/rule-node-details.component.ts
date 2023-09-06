@@ -37,11 +37,11 @@ import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms
 import { FcRuleNode, RuleNodeType } from '@shared/models/rule-node.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { Subscription } from 'rxjs';
-import { RuleChainService } from '@core/http/rule-chain.service';
 import { RuleNodeConfigComponent } from './rule-node-config.component';
 import { Router } from '@angular/router';
 import { RuleChainType } from '@app/shared/models/rule-chain.models';
 import { ComponentClusteringMode } from '@shared/models/component-descriptor.models';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-rule-node',
@@ -62,12 +62,11 @@ export class RuleNodeDetailsComponent extends PageComponent implements OnInit, O
   ruleChainType: RuleChainType;
 
   @Input()
-  isEdit: boolean;
+  @coerceBoolean()
+  disabled = false;
 
   @Input()
-  isReadOnly: boolean;
-
-  @Input()
+  @coerceBoolean()
   isAdd = false;
 
   @Output()
@@ -85,7 +84,6 @@ export class RuleNodeDetailsComponent extends PageComponent implements OnInit, O
 
   constructor(protected store: Store<AppState>,
               private fb: UntypedFormBuilder,
-              private ruleChainService: RuleChainService,
               private router: Router) {
     super(store);
     this.ruleNodeFormGroup = this.fb.group({});
@@ -114,6 +112,9 @@ export class RuleNodeDetailsComponent extends PageComponent implements OnInit, O
     } else {
       this.ruleNodeFormGroup = this.fb.group({});
     }
+    if (this.disabled) {
+      this.ruleNodeFormGroup.disable({emitEvent: false});
+    }
   }
 
   private updateRuleNode() {
@@ -123,6 +124,9 @@ export class RuleNodeDetailsComponent extends PageComponent implements OnInit, O
   }
 
   ngOnInit(): void {
+    if (this.disabled) {
+      this.ruleNodeFormGroup.disable({emitEvent: false});
+    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
