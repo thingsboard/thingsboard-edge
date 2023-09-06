@@ -44,7 +44,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "useDashboardTimewindow": false,
           "showLegend": false,
@@ -155,7 +155,10 @@
             "severityList": [],
             "typeList": [],
             "searchPropagatedAlarms": false
-          }
+          },
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
         "id": "783e83b2-bb20-460b-b4a4-7fbbc08aa27c",
         "typeFullFqn": "system.alarm_widgets.alarms_table"
@@ -418,7 +421,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "useDashboardTimewindow": true,
           "showLegend": false,
@@ -463,7 +466,12 @@
             ]
           },
           "enableDataExport": true,
-          "displayTimewindow": true
+          "displayTimewindow": true,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
         "id": "17ad8f4c-da3c-6a50-99ae-357e27f0af40",
         "typeFullFqn": "system.maps_v2.image_map"
@@ -621,7 +629,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "mobileHeight": null,
           "enableDataExport": true,
@@ -635,7 +643,12 @@
           "units": "°C",
           "decimals": 1,
           "useDashboardTimewindow": true,
-          "actions": {}
+          "actions": {},
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
         "id": "40d59849-9d6a-6de4-a023-76ea9fe29a5a",
         "typeFullFqn": "system.charts.basic_timeseries"
@@ -734,7 +747,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "useDashboardTimewindow": false,
           "showLegend": false,
@@ -790,7 +803,10 @@
           "showTitleIcon": false,
           "iconColor": "rgba(0, 0, 0, 0.87)",
           "iconSize": "24px",
-          "titleTooltip": ""
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
         "id": "27efeadc-842a-b232-fe8e-1a41bec1e630",
         "typeFullFqn": "system.cards.entities_table"
@@ -834,7 +850,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "useDashboardTimewindow": false,
           "showLegend": false,
@@ -901,7 +917,12 @@
             "severityList": [],
             "typeList": [],
             "searchPropagatedAlarms": true
-          }
+          },
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
         "id": "2dcb5560-c55f-e238-022e-69baba7c2022",
         "typeFullFqn": "system.alarm_widgets.alarms_table"
@@ -992,7 +1013,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "mobileHeight": null,
           "widgetStyle": {
@@ -1003,7 +1024,12 @@
           "actions": {},
           "enableDataExport": true,
           "units": "kWh",
-          "decimals": 4
+          "decimals": 4,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
         "id": "f9fcbc13-1a44-5114-a294-c6831e3494ab",
         "typeFullFqn": "system.charts.timeseries_bars_flot"
@@ -1112,7 +1138,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "mobileHeight": null,
           "enableDataExport": true,
@@ -1123,7 +1149,12 @@
           "units": "V",
           "decimals": 2,
           "useDashboardTimewindow": false,
-          "actions": {}
+          "actions": {},
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
         "id": "762e5f79-91b0-5509-5b31-4e8cf685b974",
         "typeFullFqn": "system.charts.basic_timeseries"
@@ -1577,7 +1608,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "mobileHeight": null,
           "enableDataExport": true,
@@ -1588,7 +1619,12 @@
           "units": "A",
           "decimals": 4,
           "useDashboardTimewindow": false,
-          "actions": {}
+          "actions": {},
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
         "id": "bcce547e-b105-aea0-1d0c-81d67a3c4123",
         "typeFullFqn": "system.charts.basic_timeseries"
@@ -1669,7 +1705,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "mobileHeight": null,
           "enableDataExport": true,
@@ -1678,7 +1714,12 @@
             "borderRight": "solid 1px #aaa"
           },
           "useDashboardTimewindow": true,
-          "actions": {}
+          "actions": {},
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
         "id": "7a97e0a8-71c0-6d38-a3cd-4354cec69868",
         "typeFullFqn": "system.charts.basic_timeseries"
@@ -1975,7 +2016,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "mobileHeight": null,
           "enableDataExport": true,
@@ -1986,7 +2027,12 @@
           "units": "°C",
           "decimals": 1,
           "useDashboardTimewindow": false,
-          "actions": {}
+          "actions": {},
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
         "id": "c369c3e7-8243-8f00-0a95-8b5b9cc79543",
         "typeFullFqn": "system.charts.basic_timeseries"
@@ -2097,7 +2143,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "mobileHeight": null,
           "enableDataExport": true,
@@ -2108,7 +2154,12 @@
           "units": "°C",
           "decimals": 1,
           "useDashboardTimewindow": false,
-          "actions": {}
+          "actions": {},
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
         "id": "fd83d356-1e9b-4515-660e-a182680b9cca",
         "typeFullFqn": "system.charts.basic_timeseries"
@@ -2198,7 +2249,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "mobileHeight": null,
           "widgetStyle": {
@@ -2209,7 +2260,12 @@
           "actions": {},
           "enableDataExport": true,
           "alarmSearchStatus": "ACTIVE",
-          "alarmsPollingInterval": 5
+          "alarmsPollingInterval": 5,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
         "id": "e3bba377-13d4-9cec-6a83-55c5f7223863",
         "typeFullFqn": "system.charts.state_chart"
@@ -2884,7 +2940,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "mobileHeight": null,
           "widgetStyle": {
@@ -2895,7 +2951,12 @@
           "actions": {},
           "enableDataExport": true,
           "units": "gal",
-          "decimals": 4
+          "decimals": 4,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
         "id": "b39719de-1487-eb54-f1e8-cf347f79e6f3",
         "typeFullFqn": "system.charts.timeseries_bars_flot"
@@ -2985,7 +3046,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "mobileHeight": null,
           "widgetStyle": {
@@ -2994,7 +3055,12 @@
           },
           "useDashboardTimewindow": false,
           "actions": {},
-          "enableDataExport": true
+          "enableDataExport": true,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
         "id": "243602be-600b-f4f2-bf9e-2687d953fd2d",
         "typeFullFqn": "system.charts.state_chart"
@@ -3080,7 +3146,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "mobileHeight": null,
           "widgetStyle": {
@@ -3091,7 +3157,12 @@
           "actions": {},
           "enableDataExport": true,
           "units": "°C",
-          "decimals": 1
+          "decimals": 1,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
         "id": "6c2775cc-ad54-202e-28a2-746a5c0e9da5",
         "typeFullFqn": "system.charts.state_chart"
@@ -3180,7 +3251,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "mobileHeight": null,
           "enableDataExport": true,
@@ -3193,7 +3264,12 @@
           "useDashboardTimewindow": false,
           "alarmSearchStatus": "ACTIVE",
           "alarmsPollingInterval": 5,
-          "actions": {}
+          "actions": {},
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
         "id": "e69c1626-73c5-3152-f396-bb453ede4c5c",
         "typeFullFqn": "system.charts.basic_timeseries"
