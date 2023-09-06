@@ -30,24 +30,33 @@
  */
 package org.thingsboard.server.common.data.rpc;
 
-import lombok.Getter;
+import org.junit.jupiter.api.Test;
 
-public enum RpcStatus {
+import java.util.List;
 
-    QUEUED(true),
-    SENT(true),
-    DELIVERED(true),
-    SUCCESSFUL(false),
-    TIMEOUT(false),
-    EXPIRED(false),
-    FAILED(false),
-    DELETED(false);
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.thingsboard.server.common.data.rpc.RpcStatus.DELIVERED;
+import static org.thingsboard.server.common.data.rpc.RpcStatus.QUEUED;
+import static org.thingsboard.server.common.data.rpc.RpcStatus.SENT;
 
-    @Getter
-    private final boolean pushDeleteNotificationToCore;
+class RpcStatusTest {
 
-    RpcStatus(boolean pushDeleteNotificationToCore) {
-        this.pushDeleteNotificationToCore = pushDeleteNotificationToCore;
+    private static final List<RpcStatus> pushDeleteNotificationToCoreStatuses = List.of(
+            QUEUED,
+            SENT,
+            DELIVERED
+    );
+
+    @Test
+    void isPushDeleteNotificationToCoreStatusTest() {
+        var rpcStatuses = RpcStatus.values();
+        for (var status : rpcStatuses) {
+            if (pushDeleteNotificationToCoreStatuses.contains(status)) {
+                assertThat(status.isPushDeleteNotificationToCore()).isTrue();
+            } else {
+                assertThat(status.isPushDeleteNotificationToCore()).isFalse();
+            }
+        }
     }
 
 }
