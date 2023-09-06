@@ -121,7 +121,7 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                     } else {
                         User userToDelete = userService.findUserById(tenantId, userId);
                         if (userToDelete != null) {
-                            userService.deleteUser(tenantId, userToDelete.getId());
+                            userService.deleteUser(tenantId, userToDelete);
                         }
                     }
                     return Futures.immediateFuture(null);
