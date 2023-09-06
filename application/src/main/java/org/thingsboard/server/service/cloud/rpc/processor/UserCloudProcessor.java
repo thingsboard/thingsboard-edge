@@ -41,8 +41,6 @@ import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static org.thingsboard.server.common.data.StringUtils.generateSafeToken;
-
 @Component
 @Slf4j
 public class UserCloudProcessor extends BaseEdgeProcessor {
@@ -94,7 +92,7 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                 case ENTITY_DELETED_RPC_MESSAGE:
                     User userToDelete = userService.findUserById(tenantId, userId);
                     if (userToDelete != null) {
-                        userService.deleteUser(tenantId, userToDelete.getId());
+                        userService.deleteUser(tenantId, userToDelete);
                     }
                     return Futures.immediateFuture(null);
                 case UNRECOGNIZED:
