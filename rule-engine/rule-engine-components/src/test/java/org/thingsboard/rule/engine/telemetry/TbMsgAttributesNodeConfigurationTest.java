@@ -30,27 +30,15 @@
  */
 package org.thingsboard.rule.engine.telemetry;
 
-import lombok.Data;
-import org.thingsboard.rule.engine.api.NodeConfiguration;
-import org.thingsboard.server.common.data.DataConstants;
+import org.junit.jupiter.api.Test;
 
-@Data
-public class TbMsgAttributesNodeConfiguration implements NodeConfiguration<TbMsgAttributesNodeConfiguration> {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    private String scope;
+class TbMsgAttributesNodeConfigurationTest {
 
-    private Boolean notifyDevice;
-    private boolean sendAttributesUpdatedNotification;
-    private boolean updateAttributesOnlyOnValueChange;
-
-    @Override
-    public TbMsgAttributesNodeConfiguration defaultConfiguration() {
-        TbMsgAttributesNodeConfiguration configuration = new TbMsgAttributesNodeConfiguration();
-        configuration.setScope(DataConstants.SERVER_SCOPE);
-        configuration.setNotifyDevice(false);
-        configuration.setSendAttributesUpdatedNotification(false);
-        //Since version 1. For an existing rule nodes for version 0. See the TbVersionedNode implementation
-        configuration.setUpdateAttributesOnlyOnValueChange(true);
-        return configuration;
+    @Test
+    void testDefaultConfig_givenupdateAttributesOnlyOnValueChange_thenTrue_sinceVersion1() {
+        assertThat(new TbMsgAttributesNodeConfiguration().defaultConfiguration().isUpdateAttributesOnlyOnValueChange()).isTrue();
     }
+
 }
