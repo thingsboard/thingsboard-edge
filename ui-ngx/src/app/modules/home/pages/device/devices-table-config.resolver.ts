@@ -350,12 +350,13 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     }).afterClosed().subscribe(
       (res) => {
         if (res) {
-          config.updateData();
           this.store.pipe(select(selectUserSettingsProperty( 'notDisplayConnectivityAfterAddDevice'))).pipe(
             take(1)
           ).subscribe((settings: boolean) => {
             if(!settings) {
-              this.checkConnectivity(null, res.id, true);
+              this.checkConnectivity(null, res.id, true, config);
+            } else {
+              config.updateData();
             }
           });
         }
@@ -393,7 +394,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     );
   }
 
-  checkConnectivity($event: Event, deviceId: EntityId, afterAdd = false) {
+  checkConnectivity($event: Event, deviceId: EntityId, afterAdd = false, config?: EntityTableConfig<DeviceInfo>) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -407,7 +408,11 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
       }
     })
       .afterClosed()
-      .subscribe(() => {});
+      .subscribe(() => {
+        if (afterAdd ) {
+          config.updateData();
+        }
+      });
   }
 
   onDeviceAction(action: EntityAction<DeviceInfo>, config: EntityTableConfig<DeviceInfo>): boolean {

@@ -7,13 +7,7 @@
     "description": "",
     "widgets": {
       "a4855683-5408-a263-eaac-67a08f7e3776": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 7.5,
         "sizeY": 6.5,
         "config": {
@@ -417,16 +411,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "a4855683-5408-a263-eaac-67a08f7e3776"
+        "id": "a4855683-5408-a263-eaac-67a08f7e3776",
+        "typeFullFqn": "system.cards.entities_table"
       },
       "bd47533e-1ef8-bea5-e982-728322a17536": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
         "type": "alarm",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 10.5,
         "sizeY": 6.5,
         "config": {
@@ -621,16 +610,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "bd47533e-1ef8-bea5-e982-728322a17536"
+        "id": "bd47533e-1ef8-bea5-e982-728322a17536",
+        "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
       "09402650-e84b-171f-cd11-e608d8f89bfb": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -765,7 +749,7 @@
             "useMarkdownTextFunction": true,
             "markdownTextFunction": "\nlet enabledFiltersString = '';\n\nif (data[0].noAlarms) {\n    enabledFiltersString += 'No alarms  ';\n}\n\nif (data[0].lowRemaningLevel) {\n    enabledFiltersString += 'Low remaining level  ';\n}\n\nif (data[0].highTemperature) {\n    enabledFiltersString += 'High temperature  ';\n}\n\nif (data[0].lowTemperature) {\n    enabledFiltersString += 'Low temperature  ';\n}\n\nif (data[0].lowBattery) {\n    enabledFiltersString += 'Low battery  ';\n}\n\nif (data[0].offline) {\n    enabledFiltersString += 'Offline  ';\n}\n\nif (enabledFiltersString.length > 0) {\n    enabledFiltersString = enabledFiltersString.replace(/  /g, ', ');\n    enabledFiltersString = enabledFiltersString.slice(0, -2) + '.';\n}\n\nctx.enabledFiltersString = enabledFiltersString;\n\nif (!ctx.markdownInited) {\n    ctx.markdownInited = true;\n    return '<div class=\"tank-layout\" style=\"width: 100%; height: 100%; padding: 0;\" fxLayout=\"column\">' +\n            '<tb-dashboard-state fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"tanks-location\"></tb-dashboard-state>' +\n            '<mat-expansion-panel hideToggle=\"true\" id=\"arrow_rotate\" [expanded]=\"true\">' + \n                '<mat-expansion-panel-header>' + \n                    '<mat-panel-title style=\"min-width: 95px; max-width: 95px; align-items: center;\">' +\n                      '<label class=\"tb-panel-title\" style=\"height: min-content;\">Filter alarms</label>' +\n                    '</mat-panel-title>' +\n                    '<mat-panel-description class=\"panel-icon\">' + \n                      '<mat-icon class=\"tb-panel-description\" id=\"tb-rotation-arrow\">keyboard_arrow_down</mat-icon>' + \n                    '</mat-panel-description>' + \n                    '<mat-panel-description class=\"panel-text\" style=\"min-width: 190px;\">' + \n                        '<label style=\"display: none;\" class=\"panel-text-label\">' +\n                          enabledFiltersString + \n                        '</label>' +\n                        '<div class=\"panel-buttons\" (click)=\"$event.stopPropagation()\">' + \n                            '<tb-dashboard-state fxFlex [ctx]=\"ctx\" style=\"height: 50px;\" stateId=\"device-alarm-filter-buttons\"></tb-dashboard-state>' + \n                        '</div>' +\n                    '</mat-panel-description>' +\n                '</mat-expansion-panel-header>' +\n                '<tb-dashboard-state class=\"tank-filter-toggles\" fxFlex [ctx]=\"ctx\" stateId=\"device-alarm-filter\"></tb-dashboard-state>' +\n            '</mat-expansion-panel>' +\n        '</div>';\n}",
             "applyDefaultMarkdownStyle": true,
-            "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n\n.tb-markdown-view div, .tb-markdown-view p {\n    line-height: normal;\n}\n\n.tank-layout .mat-expansion-panel-body {\n    padding: 0;\n}\n\n.tank-layout .mat-expansion-panel-header {\n    padding: 0 8px;\n}\n\n.tank-layout .mat-expansion-panel-header-title, .mat-expansion-panel-header-description {\n    margin: 0;\n    /*justify-content: flex-end;*/\n}\n\n.tank-layout .mat-expansion-panel-header-title {\n    justify-content: flex-start;\n}\n\n.tank-layout .panel-text {\n    justify-content: flex-end;\n    align-items: center;\n}\n\n.tank-layout .panel-icon {\n    justify-content: flex-start;\n    align-items: center;\n    max-width: 90px;\n}\n\n.tank-layout .panel-text-label {\n    height: min-content;\n    font-weight: 400;\n    letter-spacing: 0.2px;\n}\n\n.tank-layout .mat-expansion-panel-header-description label {\n    width: 80%;\n    padding: 0;\n    text-align: right;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n.tank-layout .mat-expansion-panel-header {\n  justify-content: flex-start;\n}\n\n#tb-rotation-arrow {\n  transition: transform 0.5s ease;\n}\n\n#tb-rotation-arrow::after {\n  content: '';\n  display: block;\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  z-index: -1;\n}\n\n#tb-rotation-arrow.clicked {\n  transform: rotate(-180deg);\n}\n\n#tb-rotation-arrow.clicked::after {\n  transform: rotate(180deg);\n}\n\n.mat-content .mat-content-hide-toggle {\n    height: 100%;\n    margin: 0;\n}\n\n.panel-buttons {\n    width: 100%;\n    max-width: 190px;\n}\n\n.tb-panel-title {\n    font-size: 16px;\n    line-height: 24px;\n    letter-spacing: 0.25px;\n}\n\n.tank-layout .tank-filter-toggles {\n    height: 175px;\n}"
+            "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n\n.tb-markdown-view div, .tb-markdown-view p {\n    line-height: normal;\n}\n\n.tank-layout .mat-expansion-panel-body {\n    padding: 0;\n}\n\n.tank-layout .mat-expansion-panel-header {\n    padding: 0 8px;\n}\n\n.tank-layout .mat-expansion-panel-header-title, .mat-expansion-panel-header-description {\n    margin: 0;\n    /*justify-content: flex-end;*/\n}\n\n.tank-layout .mat-expansion-panel-header-title {\n    justify-content: flex-start;\n}\n\n.tank-layout .panel-text {\n    justify-content: flex-end;\n    align-items: center;\n}\n\n.tank-layout .panel-icon {\n    justify-content: flex-start;\n    align-items: center;\n    max-width: 90px;\n}\n\n.tank-layout .panel-text-label {\n    height: min-content;\n    font-weight: 400;\n    letter-spacing: 0.2px;\n}\n\n.tank-layout .mat-expansion-panel-header-description label {\n    width: 80%;\n    padding: 0;\n    text-align: right;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n.tank-layout .mat-expansion-panel-header {\n  justify-content: flex-start;\n}\n\n#tb-rotation-arrow {\n  transition: transform 0.5s ease;\n}\n\n#tb-rotation-arrow::after {\n  content: '';\n  display: block;\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  z-index: -1;\n}\n\n#tb-rotation-arrow.clicked {\n  transform: rotate(-180deg);\n}\n\n#tb-rotation-arrow.clicked::after {\n  transform: rotate(180deg);\n}\n\n.mat-content .mat-content-hide-toggle {\n    height: 100%;\n    margin: 0;\n}\n\n.panel-buttons {\n    width: 100%;\n    max-width: 190px;\n}\n\n.tb-panel-title {\n    font-size: 16px;\n    line-height: 24px;\n    letter-spacing: 0.25px;\n}\n\n.tank-layout .tank-filter-toggles {\n    height: 185px;\n}"
           },
           "title": "New Markdown/HTML Card",
           "showTitleIcon": false,
@@ -803,16 +787,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "09402650-e84b-171f-cd11-e608d8f89bfb"
+        "id": "09402650-e84b-171f-cd11-e608d8f89bfb",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "ad8020a2-53fd-8334-c94e-2a7af3774780": {
-        "isSystemType": true,
-        "bundleAlias": "maps_v2",
-        "typeAlias": "openstreetmap",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8.5,
         "sizeY": 6,
         "config": {
@@ -1140,16 +1119,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "ad8020a2-53fd-8334-c94e-2a7af3774780"
+        "id": "ad8020a2-53fd-8334-c94e-2a7af3774780",
+        "typeFullFqn": "system.maps_v2.openstreetmap"
       },
       "50496c24-028d-33f9-2a34-60b9b5b467ce": {
-        "isSystemType": true,
-        "bundleAlias": "input_widgets",
-        "typeAlias": "update_multiple_attributes",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 7.5,
         "sizeY": 3,
         "config": {
@@ -1304,16 +1278,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "50496c24-028d-33f9-2a34-60b9b5b467ce"
+        "id": "50496c24-028d-33f9-2a34-60b9b5b467ce",
+        "typeFullFqn": "system.input_widgets.update_multiple_attributes"
       },
       "374e55b3-38a3-0a7c-7a1f-701959ed0ca9": {
-        "isSystemType": true,
-        "bundleAlias": "input_widgets",
-        "typeAlias": "update_multiple_attributes",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 7.5,
         "sizeY": 3,
         "config": {
@@ -1468,16 +1437,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "374e55b3-38a3-0a7c-7a1f-701959ed0ca9"
+        "id": "374e55b3-38a3-0a7c-7a1f-701959ed0ca9",
+        "typeFullFqn": "system.input_widgets.update_multiple_attributes"
       },
       "b89177ac-8f67-3ae5-dfc8-945d995ced41": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -1716,16 +1680,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "b89177ac-8f67-3ae5-dfc8-945d995ced41"
+        "id": "b89177ac-8f67-3ae5-dfc8-945d995ced41",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "03d839be-999a-b952-07f5-d157d6da78aa": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
         "type": "alarm",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 10.5,
         "sizeY": 6.5,
         "config": {
@@ -1903,16 +1862,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "03d839be-999a-b952-07f5-d157d6da78aa"
+        "id": "03d839be-999a-b952-07f5-d157d6da78aa",
+        "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
       "758b7a23-7296-5310-ee42-923302022cf9": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "timeseries_table",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 6.5,
         "config": {
@@ -2081,16 +2035,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "758b7a23-7296-5310-ee42-923302022cf9"
+        "id": "758b7a23-7296-5310-ee42-923302022cf9",
+        "typeFullFqn": "system.cards.timeseries_table"
       },
       "79b3975f-b3ed-f839-8209-b17d2e7a2601": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -2184,16 +2133,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "79b3975f-b3ed-f839-8209-b17d2e7a2601"
+        "id": "79b3975f-b3ed-f839-8209-b17d2e7a2601",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "b52a62ff-7409-332f-6e41-3ed879a77892": {
-        "isSystemType": true,
-        "bundleAlias": "maps_v2",
-        "typeAlias": "openstreetmap",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8.5,
         "sizeY": 6,
         "config": {
@@ -2525,16 +2469,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "b52a62ff-7409-332f-6e41-3ed879a77892"
+        "id": "b52a62ff-7409-332f-6e41-3ed879a77892",
+        "typeFullFqn": "system.maps_v2.openstreetmap"
       },
       "02cc3bba-799b-1372-295f-8d2148a3c91a": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "state_chart",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -2656,7 +2595,16 @@
               "showLabels": true
             },
             "customLegendEnabled": false,
-            "dataKeysListForLabels": []
+            "dataKeysListForLabels": [],
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              ",position": "bottom",
+              "showMin": false,
+              "showMax": false,
+              "showAvg": false,
+              "showTotal": false
+            }
           },
           "title": "Remaining Chart",
           "dropShadow": false,
@@ -2670,16 +2618,7 @@
           },
           "widgetStyle": {},
           "useDashboardTimewindow": true,
-          "showLegend": false,
           "actions": {},
-          "legendConfig": {
-            "direction": "column",
-            ",position": "bottom",
-            "showMin": false,
-            "showMax": false,
-            "showAvg": false,
-            "showTotal": false
-          },
           "showTitleIcon": false,
           "titleTooltip": "",
           "enableDataExport": true,
@@ -2689,16 +2628,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "02cc3bba-799b-1372-295f-8d2148a3c91a"
+        "id": "02cc3bba-799b-1372-295f-8d2148a3c91a",
+        "typeFullFqn": "system.charts.state_chart"
       },
       "290ae79a-ff7a-9c39-6c78-21fbc85335cb": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -2803,7 +2737,8 @@
         },
         "row": 0,
         "col": 0,
-        "id": "290ae79a-ff7a-9c39-6c78-21fbc85335cb"
+        "id": "290ae79a-ff7a-9c39-6c78-21fbc85335cb",
+        "typeFullFqn": "system.cards.markdown_card"
       }
     },
     "states": {
@@ -3241,7 +3176,7 @@
       "hideToolbar": false,
       "showFilters": false,
       "showUpdateDashboardImage": false,
-      "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 8px;\n    box-shadow: 0px 2px 8px rgba(222, 223, 224, 0.25);\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget {\n    color: #4B535B !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-markdown-view {\n    overflow: hidden !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-header-cell {\n    color: rgba(0, 0, 0, 0.38) !important;\n    font-weight: 500;\n    font-size: 12px;\n    line-height: 16px;\n    letter-spacing: 0.25px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-cell {\n    color: #4B535B;\n    border-bottom-color: transparent;\n    font-size: 14px;\n    line-height: 20px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .no-data-found {\n    font-weight: 500;\n    font-size: 14px;\n    letter-spacing: 0.25px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-row:hover:not(.tb-current-entity),\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-row:hover:not(.tb-current-entity) .mat-cell.mat-table-sticky {\n    background-color: #F9F9FB !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-header-cell .mat-sort-header-arrow {\n    color: rgba(0, 0, 0, 0.38) !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::placeholder,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::-moz-placeholder,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::-webkit-input-placeholder,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element:-ms-input-placeholder {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-cell .mat-checkbox-frame,.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-header-cell .mat-checkbox-frame {\n    border-color : #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-cell button.mat-mdc-icon-button mat-icon,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-widget-actions mat-icon {\n    color: #00000061 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator button.mat-icon-button,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator .mat-select-value {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-in,\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-out {\n    color: #4B535B;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-in {\n    border-radius: 6px 6px 0 0;\n    border-bottom: 1px solid transparent; \n}\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-out {\n    border-radius: 0 0 6px 6px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control,\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-buttons-control-button{\n    border: none;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-popup a.tb-custom-action {\n    font-family: 'Roboto';\n    font-weight: 500;\n    font-size: 14px;\n    line-height: 20px;\n    letter-spacing: 0.25px;\n    border-bottom: none;\n    color: #9699FF;\n}\n\nmat-cell {\n    border: none !important;\n}\n\n@media (max-width: 1130px) {\n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch {\n       width: 32px;\n    }\n    \n    .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__track {\n        height: 20px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__handle {\n        width: 16px;\n        height: 16px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__handle-track {\n        width: calc(100% - 24px);\n        left: 6px;\n    }\n    \n    .tank-layout .mat-mdc-slide-toggle .label-wrapper {\n       font-size: 12px !important;\n       width: 100px;\n    }\n    \n    .tank-layout .tb-multiple-input-container {\n        padding: 0 3px !important;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle {\n        margin: 8px 0;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .mat-expansion-panel-body .tank-filter-toggles {\n       height: 133px;\n    }\n}\n\n@media (max-width: 959px) {\n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch {\n       width: 42px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__track {\n        height: 24px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__handle {\n        width: 20px;\n        height: 20px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__handle-track {\n        width: calc(100% - 24px);\n        left: 2px;\n    }\n    \n    .tank-layout .mat-mdc-slide-toggle .label-wrapper {\n       font-size: 14px !important;\n       width: 100%;\n    }\n    \n    .tank-layout .tb-multiple-input-container {\n        padding: 0 8px !important;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .mat-expansion-panel-body .tank-filter-toggles {\n       height: 265px;\n    }\n}"
+      "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 8px;\n    box-shadow: 0px 2px 8px rgba(222, 223, 224, 0.25);\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget {\n    color: #4B535B !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-markdown-view {\n    overflow: hidden !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-header-cell {\n    color: rgba(0, 0, 0, 0.38) !important;\n    font-weight: 500;\n    font-size: 12px;\n    line-height: 16px;\n    letter-spacing: 0.25px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-cell {\n    color: #4B535B;\n    border-bottom-color: transparent;\n    font-size: 14px;\n    line-height: 20px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .no-data-found {\n    font-weight: 500;\n    font-size: 14px;\n    letter-spacing: 0.25px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-row:hover:not(.tb-current-entity),\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-row:hover:not(.tb-current-entity) .mat-cell.mat-table-sticky {\n    background-color: #F9F9FB !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-header-cell .mat-sort-header-arrow {\n    color: rgba(0, 0, 0, 0.38) !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::placeholder,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::-moz-placeholder,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::-webkit-input-placeholder,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element:-ms-input-placeholder {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-cell .mat-checkbox-frame,.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-header-cell .mat-checkbox-frame {\n    border-color : #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-cell button.mat-mdc-icon-button .mat-icon,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-widget-actions .mat-icon {\n    color: #00000061 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator button.mat-icon-button,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator .mat-select-value {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-in,\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-out {\n    color: #4B535B;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-in {\n    border-radius: 6px 6px 0 0;\n    border-bottom: 1px solid transparent; \n}\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-out {\n    border-radius: 0 0 6px 6px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control,\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-buttons-control-button{\n    border: none;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-popup a.tb-custom-action {\n    font-family: 'Roboto';\n    font-weight: 500;\n    font-size: 14px;\n    line-height: 20px;\n    letter-spacing: 0.25px;\n    border-bottom: none;\n    color: #9699FF;\n}\n\nmat-cell {\n    border: none !important;\n}\n\n@media (max-width: 1130px) {\n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch {\n       width: 32px;\n    }\n    \n    .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__track {\n        height: 20px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__handle {\n        width: 16px;\n        height: 16px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__handle-track {\n        width: calc(100% - 24px);\n        left: 6px;\n    }\n    \n    .tank-layout .mat-mdc-slide-toggle .label-wrapper {\n       font-size: 12px !important;\n       width: 100px;\n    }\n    \n    .tank-layout .tb-multiple-input-container {\n        padding: 0 3px !important;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle {\n        margin: 8px 0;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .mat-expansion-panel-body .tank-filter-toggles {\n       height: 133px;\n    }\n}\n\n@media (max-width: 959px) {\n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch {\n       width: 42px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__track {\n        height: 24px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__handle {\n        width: 20px;\n        height: 20px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__handle-track {\n        width: calc(100% - 24px);\n        left: 2px;\n    }\n    \n    .tank-layout .mat-mdc-slide-toggle .label-wrapper {\n       font-size: 14px !important;\n       width: 100%;\n    }\n    \n    .tank-layout .tb-multiple-input-container {\n        padding: 0 8px !important;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .mat-expansion-panel-body .tank-filter-toggles {\n       height: 265px;\n    }\n}"
     }
   },
   "externalId": null,

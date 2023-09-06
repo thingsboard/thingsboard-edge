@@ -70,7 +70,7 @@ public interface UserService extends EntityDaoService {
 
 	UserCredentials findUserCredentialsByActivateToken(TenantId tenantId, String activateToken);
 
-	UserCredentials findUserCredentialsByResetToken(TenantId tenantId, String resetToken);
+    UserCredentials findUserCredentialsByResetToken(TenantId tenantId, String resetToken);
 
 	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials);
 
@@ -83,6 +83,8 @@ public interface UserService extends EntityDaoService {
     UserCredentials replaceUserCredentials(TenantId tenantId, UserCredentials userCredentials);
 
     void deleteUser(TenantId tenantId, UserId userId);
+
+    void deleteUser(TenantId tenantId, User user);
 
 	PageData<User> findTenantAdmins(TenantId tenantId, PageLink pageLink);
 

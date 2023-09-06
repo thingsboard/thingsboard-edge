@@ -32,9 +32,14 @@
 @import "../../../../../scss/constants";
 
 :host {
-  min-width: 400px;
+  min-width: 100%;
+  width: 750px;
   .dialog-actions-row {
     padding: 8px;
+  }
+
+  .no-padding {
+    padding: 0 !important;
   }
 }
 
@@ -54,13 +59,11 @@
     max-height: 100%;
   }
 }
-
 :host ::ng-deep {
   .mat-mdc-dialog-content {
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding: 0 !important;
 
     .mat-padding {
       padding: 0;

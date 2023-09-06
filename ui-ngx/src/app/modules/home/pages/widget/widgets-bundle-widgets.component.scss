@@ -1,0 +1,199 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+@import "../../../../../scss/constants";
+
+:host {
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+}
+
+:host ::ng-deep {
+  .tb-bundle-widgets-card {
+    .mat-mdc-card-header-text {
+      flex: 1;
+    }
+  }
+}
+
+.tb-bundle-widgets-card {
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  @media #{$mat-md} {
+    width: 80%;
+  }
+
+  @media #{$mat-gt-md} {
+    width: 60%;
+  }
+
+  .title-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    .mat-headline-5 {
+      margin: 0;
+    }
+  }
+
+  .mat-mdc-card-content {
+    flex: 1;
+    padding: 16px;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .tb-add-widget-button {
+    min-height: 56px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: #FFFFFF;
+    padding: 8px;
+    border: 2px dashed rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+  }
+
+  .tb-add-widget-button-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    .tb-add-widget-button-with-text {
+      cursor: pointer;
+      display: flex;
+      padding: 24px 40px 24px 24px;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      border: 2px dashed rgba(0, 0, 0, 0.12);
+      border-radius: 10px;
+      .tb-add-widget-button-text {
+        font-size: 16px;
+        font-style: normal;
+        font-weight: 500;
+        line-height: 24px;
+        letter-spacing: 0.25px;
+        color: var(--tb-primary-500);
+      }
+    }
+  }
+
+  .tb-add-bundle-widget-form {
+    display: flex;
+    padding: 16px;
+    flex-direction: column;
+    gap: 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 5px 16px 0 rgba(0, 0, 0, 0.04);
+  }
+
+  .tb-add-bundle-widget-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .mat-mdc-card-actions {
+    justify-content: end;
+    gap: 8px;
+  }
+}
+
+.tb-bundle-widgets-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  overflow: auto;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.tb-bundle-widget-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 6px 12px 6px 6px;
+  background: #fff;
+  gap: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 5px 16px 0 rgba(0, 0, 0, 0.04);
+  .tb-bundle-widget-row-details {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    .tb-bundle-widget-image-preview {
+      width: 64px;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 6px;
+    }
+    .tb-bundle-widget-details {
+      padding: 18px 0;
+      flex: 1;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      .tb-bundle-widget-title {
+        font-size: 14px;
+        font-weight: 400;
+        letter-spacing: 0.2px;
+        color: rgba(0, 0, 0, 0.76);
+      }
+      .tb-bundle-widget-deprecated {
+        font-size: 13px;
+        font-weight: 400;
+        color: rgba(0, 0, 0, 0.54);
+      }
+    }
+  }
+  .mat-icon {
+    color: rgba(0, 0, 0, 0.54);
+  }
+}

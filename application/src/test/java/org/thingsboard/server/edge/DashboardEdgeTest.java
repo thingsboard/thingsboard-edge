@@ -59,6 +59,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DaoSqlTest
 public class DashboardEdgeTest extends AbstractEdgeTest {
 
+    private static final int MOBILE_ORDER = 5;
+    private static final String IMAGE = "data:image/png;base64,iVBORw0KGgoA";
+
     @Test
     public void testDashboards() throws Exception {
         // create dashboard entity group and assign to edge
@@ -68,6 +71,7 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
         edgeImitator.expectMessageAmount(1);
         Dashboard savedDashboard = saveDashboard("Edge Dashboard 1", dashboardEntityGroup1.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
+
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof DashboardUpdateMsg);
         DashboardUpdateMsg dashboardUpdateMsg = (DashboardUpdateMsg) latestMessage;
@@ -83,6 +87,13 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
                 dashboardEntityGroup1.getUuidId().getLeastSignificantBits(),
                 savedDashboard.getId());
 
+        edgeImitator.expectMessageAmount(1);
+        savedDashboard.setMobileHide(true);
+        savedDashboard.setImage(IMAGE);
+        savedDashboard.setMobileOrder(MOBILE_ORDER);
+        savedDashboard = doPost("/api/dashboard", savedDashboard, Dashboard.class);
+        Assert.assertTrue(edgeImitator.waitForMessages());
+
         // add dashboard to entity group 2
         EntityGroup dashboardEntityGroup2 = createEntityGroupAndAssignToEdge(EntityType.DASHBOARD, "DashboardGroup2", tenantId);
         edgeImitator.expectMessageAmount(1);
@@ -94,6 +105,10 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, dashboardUpdateMsg.getMsgType());
         Assert.assertEquals(dashboardEntityGroup2.getUuidId().getMostSignificantBits(), dashboardUpdateMsg.getEntityGroupIdMSB());
         Assert.assertEquals(dashboardEntityGroup2.getUuidId().getLeastSignificantBits(), dashboardUpdateMsg.getEntityGroupIdLSB());
+        Assert.assertEquals(savedDashboard.getTitle(), dashboardUpdateMsg.getTitle());
+        Assert.assertTrue(dashboardUpdateMsg.getMobileHide());
+        Assert.assertEquals(IMAGE, dashboardUpdateMsg.getImage());
+        Assert.assertEquals(MOBILE_ORDER, dashboardUpdateMsg.getMobileOrder());
 
         // update dashboard
         edgeImitator.expectMessageAmount(1);

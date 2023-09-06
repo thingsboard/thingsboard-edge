@@ -1,13 +1,12 @@
 {
   "title": "Smart office",
+  "image": null,
+  "mobileHide": false,
+  "mobileOrder": null,
   "configuration": {
     "widgets": {
       "783e83b2-bb20-460b-b4a4-7fbbc08aa27c": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
         "type": "alarm",
-        "title": "New widget",
         "sizeX": 26,
         "sizeY": 12,
         "config": {
@@ -45,7 +44,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "useDashboardTimewindow": false,
           "showLegend": false,
@@ -122,7 +121,6 @@
               }
             ]
           },
-          "alarmSearchStatus": "ACTIVE",
           "alarmsPollingInterval": 5,
           "datasources": [],
           "enableDataExport": true,
@@ -149,22 +147,24 @@
           "iconSize": "24px",
           "titleTooltip": "",
           "displayTimewindow": true,
-          "alarmStatusList": [
-            "ACTIVE",
-            "CLEARED"
-          ],
-          "alarmSeverityList": [],
-          "alarmTypeList": [],
-          "searchPropagatedAlarms": false
+          "alarmFilterConfig": {
+            "statusList": [
+              "ACTIVE",
+              "CLEARED"
+            ],
+            "severityList": [],
+            "typeList": [],
+            "searchPropagatedAlarms": false
+          },
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
-        "id": "783e83b2-bb20-460b-b4a4-7fbbc08aa27c"
+        "id": "783e83b2-bb20-460b-b4a4-7fbbc08aa27c",
+        "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
       "17ad8f4c-da3c-6a50-99ae-357e27f0af40": {
-        "isSystemType": true,
-        "bundleAlias": "maps_v2",
-        "typeAlias": "image_map",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 22,
         "sizeY": 12,
         "config": {
@@ -350,8 +350,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1693821090727,
+                "endTimeMs": 1693907490727
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": true,
@@ -402,7 +421,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "useDashboardTimewindow": true,
           "showLegend": false,
@@ -447,16 +466,18 @@
             ]
           },
           "enableDataExport": true,
-          "displayTimewindow": true
+          "displayTimewindow": true,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
-        "id": "17ad8f4c-da3c-6a50-99ae-357e27f0af40"
+        "id": "17ad8f4c-da3c-6a50-99ae-357e27f0af40",
+        "typeFullFqn": "system.maps_v2.image_map"
       },
       "e6421a08-76a7-5fbb-c9be-42d00154a468": {
-        "isSystemType": true,
-        "bundleAlias": "control_widgets",
-        "typeAlias": "switch_control",
         "type": "rpc",
-        "title": "New widget",
         "sizeX": 7,
         "sizeY": 3,
         "config": {
@@ -498,14 +519,11 @@
             "e1d6944f-e5b9-224b-9496-a0d48d46f4ce"
           ]
         },
-        "id": "e6421a08-76a7-5fbb-c9be-42d00154a468"
+        "id": "e6421a08-76a7-5fbb-c9be-42d00154a468",
+        "typeFullFqn": "system.control_widgets.switch_control"
       },
       "40d59849-9d6a-6de4-a023-76ea9fe29a5a": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
         "sizeX": 22,
         "sizeY": 11,
         "config": {
@@ -594,7 +612,15 @@
             },
             "stack": false,
             "tooltipIndividual": false,
-            "smoothLines": true
+            "smoothLines": true,
+            "showLegend": true,
+            "legendConfig": {
+              "position": "bottom",
+              "showMin": true,
+              "showMax": true,
+              "showAvg": true,
+              "showTotal": false
+            }
           },
           "title": "Temperature and Power History",
           "dropShadow": false,
@@ -603,7 +629,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "mobileHeight": null,
           "enableDataExport": true,
@@ -617,24 +643,18 @@
           "units": "°C",
           "decimals": 1,
           "useDashboardTimewindow": true,
-          "showLegend": true,
-          "legendConfig": {
-            "position": "bottom",
-            "showMin": true,
-            "showMax": true,
-            "showAvg": true,
-            "showTotal": false
-          },
-          "actions": {}
+          "actions": {},
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
-        "id": "40d59849-9d6a-6de4-a023-76ea9fe29a5a"
+        "id": "40d59849-9d6a-6de4-a023-76ea9fe29a5a",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "5c002504-7d9d-856e-bdf6-64c7c84ef790": {
-        "isSystemType": true,
-        "bundleAlias": "control_widgets",
-        "typeAlias": "knob_control",
         "type": "rpc",
-        "title": "New widget",
         "sizeX": 7,
         "sizeY": 8,
         "config": {
@@ -673,21 +693,32 @@
             "e1d6944f-e5b9-224b-9496-a0d48d46f4ce"
           ]
         },
-        "id": "5c002504-7d9d-856e-bdf6-64c7c84ef790"
+        "id": "5c002504-7d9d-856e-bdf6-64c7c84ef790",
+        "typeFullFqn": "system.control_widgets.knob_control"
       },
       "27efeadc-842a-b232-fe8e-1a41bec1e630": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 19,
         "sizeY": 11,
         "config": {
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
+              "realtimeType": 1,
               "interval": 300000,
-              "timewindowMs": 86400000
+              "timewindowMs": 86400000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1693821090727,
+                "endTimeMs": 1693907490727
+              },
+              "quickInterval": "CURRENT_DAY"
             },
             "aggregation": {
               "type": "NONE",
@@ -716,7 +747,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "useDashboardTimewindow": false,
           "showLegend": false,
@@ -772,16 +803,16 @@
           "showTitleIcon": false,
           "iconColor": "rgba(0, 0, 0, 0.87)",
           "iconSize": "24px",
-          "titleTooltip": ""
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
-        "id": "27efeadc-842a-b232-fe8e-1a41bec1e630"
+        "id": "27efeadc-842a-b232-fe8e-1a41bec1e630",
+        "typeFullFqn": "system.cards.entities_table"
       },
       "2dcb5560-c55f-e238-022e-69baba7c2022": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
         "type": "alarm",
-        "title": "New widget",
         "sizeX": 18,
         "sizeY": 12,
         "config": {
@@ -819,7 +850,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "useDashboardTimewindow": false,
           "showLegend": false,
@@ -869,7 +900,6 @@
               }
             ]
           },
-          "alarmSearchStatus": "ACTIVE",
           "alarmsPollingInterval": 5,
           "datasources": [],
           "enableDataExport": true,
@@ -879,22 +909,26 @@
           },
           "actions": {},
           "displayTimewindow": true,
-          "alarmStatusList": [
-            "ACTIVE",
-            "CLEARED"
-          ],
-          "alarmSeverityList": [],
-          "alarmTypeList": [],
-          "searchPropagatedAlarms": true
+          "alarmFilterConfig": {
+            "statusList": [
+              "ACTIVE",
+              "CLEARED"
+            ],
+            "severityList": [],
+            "typeList": [],
+            "searchPropagatedAlarms": true
+          },
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
-        "id": "2dcb5560-c55f-e238-022e-69baba7c2022"
+        "id": "2dcb5560-c55f-e238-022e-69baba7c2022",
+        "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
       "f9fcbc13-1a44-5114-a294-c6831e3494ab": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "timeseries_bars_flot",
         "type": "timeseries",
-        "title": "New widget",
         "sizeX": 17,
         "sizeY": 12,
         "config": {
@@ -962,7 +996,15 @@
             },
             "stack": true,
             "tooltipIndividual": false,
-            "defaultBarWidth": 600
+            "defaultBarWidth": 600,
+            "showLegend": true,
+            "legendConfig": {
+              "position": "bottom",
+              "showMin": true,
+              "showMax": true,
+              "showAvg": true,
+              "showTotal": true
+            }
           },
           "title": "Energy consumption",
           "dropShadow": false,
@@ -971,7 +1013,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "mobileHeight": null,
           "widgetStyle": {
@@ -979,27 +1021,21 @@
             "borderRight": "solid 1px #aaa"
           },
           "useDashboardTimewindow": false,
-          "showLegend": true,
           "actions": {},
           "enableDataExport": true,
           "units": "kWh",
           "decimals": 4,
-          "legendConfig": {
-            "position": "bottom",
-            "showMin": true,
-            "showMax": true,
-            "showAvg": true,
-            "showTotal": true
-          }
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
-        "id": "f9fcbc13-1a44-5114-a294-c6831e3494ab"
+        "id": "f9fcbc13-1a44-5114-a294-c6831e3494ab",
+        "typeFullFqn": "system.charts.timeseries_bars_flot"
       },
       "762e5f79-91b0-5509-5b31-4e8cf685b974": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
         "sizeX": 14,
         "sizeY": 11,
         "config": {
@@ -1085,7 +1121,15 @@
             },
             "stack": false,
             "tooltipIndividual": false,
-            "smoothLines": true
+            "smoothLines": true,
+            "showLegend": true,
+            "legendConfig": {
+              "position": "bottom",
+              "showMin": true,
+              "showMax": true,
+              "showAvg": true,
+              "showTotal": false
+            }
           },
           "title": "Voltage and Frequency",
           "dropShadow": false,
@@ -1094,7 +1138,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "mobileHeight": null,
           "enableDataExport": true,
@@ -1105,24 +1149,18 @@
           "units": "V",
           "decimals": 2,
           "useDashboardTimewindow": false,
-          "showLegend": true,
-          "legendConfig": {
-            "position": "bottom",
-            "showMin": true,
-            "showMax": true,
-            "showAvg": true,
-            "showTotal": false
-          },
-          "actions": {}
+          "actions": {},
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
-        "id": "762e5f79-91b0-5509-5b31-4e8cf685b974"
+        "id": "762e5f79-91b0-5509-5b31-4e8cf685b974",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "2687115f-98f5-ff39-d0e7-54288d8f38b2": {
-        "isSystemType": true,
-        "bundleAlias": "digital_gauges",
-        "typeAlias": "vertical_bar_justgage",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 3,
         "sizeY": 11,
         "config": {
@@ -1143,8 +1181,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1693821090727,
+                "endTimeMs": 1693907490727
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -1215,14 +1272,11 @@
           "showLegend": false,
           "actions": {}
         },
-        "id": "2687115f-98f5-ff39-d0e7-54288d8f38b2"
+        "id": "2687115f-98f5-ff39-d0e7-54288d8f38b2",
+        "typeFullFqn": "system.digital_gauges.vertical_bar_justgage"
       },
       "4284c162-8811-321a-d2e5-7fd90f35dfb8": {
-        "isSystemType": true,
-        "bundleAlias": "digital_gauges",
-        "typeAlias": "vertical_bar_justgage",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 3,
         "sizeY": 11,
         "config": {
@@ -1243,8 +1297,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1693821090727,
+                "endTimeMs": 1693907490727
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -1313,14 +1386,11 @@
           "showLegend": false,
           "actions": {}
         },
-        "id": "4284c162-8811-321a-d2e5-7fd90f35dfb8"
+        "id": "4284c162-8811-321a-d2e5-7fd90f35dfb8",
+        "typeFullFqn": "system.digital_gauges.vertical_bar_justgage"
       },
       "bd5975b3-6965-5f0a-0dd7-4a590136a0bd": {
-        "isSystemType": true,
-        "bundleAlias": "digital_gauges",
-        "typeAlias": "simple_neon_gauge_justgage",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 6,
         "sizeY": 6,
         "config": {
@@ -1341,8 +1411,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1693821090727,
+                "endTimeMs": 1693907490727
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -1410,14 +1499,11 @@
           "units": "W",
           "decimals": 0
         },
-        "id": "bd5975b3-6965-5f0a-0dd7-4a590136a0bd"
+        "id": "bd5975b3-6965-5f0a-0dd7-4a590136a0bd",
+        "typeFullFqn": "system.digital_gauges.simple_neon_gauge_justgage"
       },
       "bcce547e-b105-aea0-1d0c-81d67a3c4123": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
         "sizeX": 14,
         "sizeY": 12,
         "config": {
@@ -1505,7 +1591,15 @@
             },
             "stack": false,
             "tooltipIndividual": false,
-            "smoothLines": true
+            "smoothLines": true,
+            "showLegend": true,
+            "legendConfig": {
+              "position": "bottom",
+              "showMin": true,
+              "showMax": true,
+              "showAvg": true,
+              "showTotal": false
+            }
           },
           "title": "Current (Amperage) and Power",
           "dropShadow": false,
@@ -1514,7 +1608,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "mobileHeight": null,
           "enableDataExport": true,
@@ -1525,24 +1619,18 @@
           "units": "A",
           "decimals": 4,
           "useDashboardTimewindow": false,
-          "showLegend": true,
-          "legendConfig": {
-            "position": "bottom",
-            "showMin": true,
-            "showMax": true,
-            "showAvg": true,
-            "showTotal": false
-          },
-          "actions": {}
+          "actions": {},
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
-        "id": "bcce547e-b105-aea0-1d0c-81d67a3c4123"
+        "id": "bcce547e-b105-aea0-1d0c-81d67a3c4123",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "7a97e0a8-71c0-6d38-a3cd-4354cec69868": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
         "sizeX": 24,
         "sizeY": 12,
         "config": {
@@ -1600,7 +1688,15 @@
             },
             "stack": false,
             "tooltipIndividual": false,
-            "smoothLines": true
+            "smoothLines": true,
+            "showLegend": true,
+            "legendConfig": {
+              "position": "bottom",
+              "showMin": true,
+              "showMax": true,
+              "showAvg": true,
+              "showTotal": false
+            }
           },
           "title": "Air Flow History",
           "dropShadow": false,
@@ -1609,7 +1705,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "mobileHeight": null,
           "enableDataExport": true,
@@ -1618,24 +1714,18 @@
             "borderRight": "solid 1px #aaa"
           },
           "useDashboardTimewindow": true,
-          "showLegend": true,
-          "legendConfig": {
-            "position": "bottom",
-            "showMin": true,
-            "showMax": true,
-            "showAvg": true,
-            "showTotal": false
-          },
-          "actions": {}
+          "actions": {},
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
-        "id": "7a97e0a8-71c0-6d38-a3cd-4354cec69868"
+        "id": "7a97e0a8-71c0-6d38-a3cd-4354cec69868",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "4995d457-dd23-fb27-f0b9-3428e6afd8f4": {
-        "isSystemType": true,
-        "bundleAlias": "control_widgets",
-        "typeAlias": "switch_control",
         "type": "rpc",
-        "title": "New widget",
         "sizeX": 7,
         "sizeY": 3,
         "config": {
@@ -1677,14 +1767,11 @@
             "a0faf37a-3c5d-e721-f445-de7914947895"
           ]
         },
-        "id": "4995d457-dd23-fb27-f0b9-3428e6afd8f4"
+        "id": "4995d457-dd23-fb27-f0b9-3428e6afd8f4",
+        "typeFullFqn": "system.control_widgets.switch_control"
       },
       "d8c48695-965c-2416-ec8c-2f90d2b8fdd5": {
-        "isSystemType": true,
-        "bundleAlias": "control_widgets",
-        "typeAlias": "knob_control",
         "type": "rpc",
-        "title": "New widget",
         "sizeX": 7,
         "sizeY": 8,
         "config": {
@@ -1723,14 +1810,11 @@
             "a0faf37a-3c5d-e721-f445-de7914947895"
           ]
         },
-        "id": "d8c48695-965c-2416-ec8c-2f90d2b8fdd5"
+        "id": "d8c48695-965c-2416-ec8c-2f90d2b8fdd5",
+        "typeFullFqn": "system.control_widgets.knob_control"
       },
       "b03b4768-2c48-b70d-e09c-a7a119626094": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_value_card",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 8,
         "sizeY": 11,
         "config": {
@@ -1777,8 +1861,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1693821090727,
+                "endTimeMs": 1693907490727
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -1805,14 +1908,11 @@
           "actions": {},
           "enableDataExport": false
         },
-        "id": "b03b4768-2c48-b70d-e09c-a7a119626094"
+        "id": "b03b4768-2c48-b70d-e09c-a7a119626094",
+        "typeFullFqn": "system.cards.html_value_card"
       },
       "c369c3e7-8243-8f00-0a95-8b5b9cc79543": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
         "sizeX": 18,
         "sizeY": 12,
         "config": {
@@ -1899,7 +1999,15 @@
             },
             "stack": false,
             "tooltipIndividual": false,
-            "smoothLines": true
+            "smoothLines": true,
+            "showLegend": true,
+            "legendConfig": {
+              "position": "bottom",
+              "showMin": true,
+              "showMax": true,
+              "showAvg": true,
+              "showTotal": false
+            }
           },
           "title": "Temperature and Humidity",
           "dropShadow": false,
@@ -1908,7 +2016,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "mobileHeight": null,
           "enableDataExport": true,
@@ -1919,24 +2027,18 @@
           "units": "°C",
           "decimals": 1,
           "useDashboardTimewindow": false,
-          "showLegend": true,
-          "legendConfig": {
-            "position": "bottom",
-            "showMin": true,
-            "showMax": true,
-            "showAvg": true,
-            "showTotal": false
-          },
-          "actions": {}
+          "actions": {},
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
-        "id": "c369c3e7-8243-8f00-0a95-8b5b9cc79543"
+        "id": "c369c3e7-8243-8f00-0a95-8b5b9cc79543",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "fd83d356-1e9b-4515-660e-a182680b9cca": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
         "sizeX": 18,
         "sizeY": 12,
         "config": {
@@ -2024,7 +2126,15 @@
             },
             "stack": false,
             "tooltipIndividual": false,
-            "smoothLines": true
+            "smoothLines": true,
+            "showLegend": true,
+            "legendConfig": {
+              "position": "bottom",
+              "showMin": true,
+              "showMax": true,
+              "showAvg": true,
+              "showTotal": false
+            }
           },
           "title": "Air Quality",
           "dropShadow": false,
@@ -2033,7 +2143,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "mobileHeight": null,
           "enableDataExport": true,
@@ -2044,24 +2154,18 @@
           "units": "°C",
           "decimals": 1,
           "useDashboardTimewindow": false,
-          "showLegend": true,
-          "legendConfig": {
-            "position": "bottom",
-            "showMin": true,
-            "showMax": true,
-            "showAvg": true,
-            "showTotal": false
-          },
-          "actions": {}
+          "actions": {},
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
-        "id": "fd83d356-1e9b-4515-660e-a182680b9cca"
+        "id": "fd83d356-1e9b-4515-660e-a182680b9cca",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "e3bba377-13d4-9cec-6a83-55c5f7223863": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "state_chart",
         "type": "timeseries",
-        "title": "New widget",
         "sizeX": 24,
         "sizeY": 12,
         "config": {
@@ -2128,7 +2232,15 @@
             "stack": false,
             "tooltipIndividual": false,
             "tooltipValueFormatter": "if (value > 0 && value <= 1) {\n    return 'Occupied';\n} else if (value === 0) {\n    return 'Free';\n} else {\n    return '';\n}",
-            "smoothLines": false
+            "smoothLines": false,
+            "showLegend": true,
+            "legendConfig": {
+              "position": "bottom",
+              "showMin": false,
+              "showMax": false,
+              "showAvg": false,
+              "showTotal": false
+            }
           },
           "title": "Occupancy History",
           "dropShadow": false,
@@ -2137,7 +2249,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "mobileHeight": null,
           "widgetStyle": {
@@ -2145,27 +2257,21 @@
             "borderRight": "solid 1px #aaa"
           },
           "useDashboardTimewindow": false,
-          "showLegend": true,
           "actions": {},
-          "legendConfig": {
-            "position": "bottom",
-            "showMin": false,
-            "showMax": false,
-            "showAvg": false,
-            "showTotal": false
-          },
           "enableDataExport": true,
           "alarmSearchStatus": "ACTIVE",
-          "alarmsPollingInterval": 5
+          "alarmsPollingInterval": 5,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
-        "id": "e3bba377-13d4-9cec-6a83-55c5f7223863"
+        "id": "e3bba377-13d4-9cec-6a83-55c5f7223863",
+        "typeFullFqn": "system.charts.state_chart"
       },
       "bbd9b83c-086f-4c17-80ce-2ccfeba7f671": {
-        "isSystemType": true,
-        "bundleAlias": "digital_gauges",
-        "typeAlias": "simple_neon_gauge_justgage",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 6,
         "sizeY": 6,
         "config": {
@@ -2186,8 +2292,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1693821090727,
+                "endTimeMs": 1693907490727
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -2260,14 +2385,11 @@
           "units": "°C",
           "decimals": 1
         },
-        "id": "bbd9b83c-086f-4c17-80ce-2ccfeba7f671"
+        "id": "bbd9b83c-086f-4c17-80ce-2ccfeba7f671",
+        "typeFullFqn": "system.digital_gauges.simple_neon_gauge_justgage"
       },
       "c0148b33-1c64-70e4-8040-94ae5623af48": {
-        "isSystemType": true,
-        "bundleAlias": "digital_gauges",
-        "typeAlias": "simple_neon_gauge_justgage",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 6,
         "sizeY": 6,
         "config": {
@@ -2288,8 +2410,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1693821090727,
+                "endTimeMs": 1693907490727
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -2362,14 +2503,11 @@
           "units": "%",
           "decimals": 1
         },
-        "id": "c0148b33-1c64-70e4-8040-94ae5623af48"
+        "id": "c0148b33-1c64-70e4-8040-94ae5623af48",
+        "typeFullFqn": "system.digital_gauges.simple_neon_gauge_justgage"
       },
       "0340e45d-0401-ffbc-d201-ce22ba326cec": {
-        "isSystemType": true,
-        "bundleAlias": "digital_gauges",
-        "typeAlias": "simple_neon_gauge_justgage",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 6,
         "sizeY": 6,
         "config": {
@@ -2390,8 +2528,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1693821090727,
+                "endTimeMs": 1693907490727
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -2464,14 +2621,11 @@
           "units": "ppm",
           "decimals": 0
         },
-        "id": "0340e45d-0401-ffbc-d201-ce22ba326cec"
+        "id": "0340e45d-0401-ffbc-d201-ce22ba326cec",
+        "typeFullFqn": "system.digital_gauges.simple_neon_gauge_justgage"
       },
       "4e80ab3a-cbca-0d14-c829-20ebf1f84c60": {
-        "isSystemType": true,
-        "bundleAlias": "digital_gauges",
-        "typeAlias": "simple_neon_gauge_justgage",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 6,
         "sizeY": 6,
         "config": {
@@ -2492,8 +2646,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1693821090727,
+                "endTimeMs": 1693907490727
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -2566,14 +2739,11 @@
           "units": "ppm",
           "decimals": 3
         },
-        "id": "4e80ab3a-cbca-0d14-c829-20ebf1f84c60"
+        "id": "4e80ab3a-cbca-0d14-c829-20ebf1f84c60",
+        "typeFullFqn": "system.digital_gauges.simple_neon_gauge_justgage"
       },
       "90c90206-7111-b511-5f8b-bbcf609c9a51": {
-        "isSystemType": true,
-        "bundleAlias": "digital_gauges",
-        "typeAlias": "simple_neon_gauge_justgage",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 6,
         "sizeY": 6,
         "config": {
@@ -2594,8 +2764,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1693821090727,
+                "endTimeMs": 1693907490727
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -2665,14 +2854,11 @@
           "alarmSearchStatus": "UNACK",
           "alarmsPollingInterval": 5
         },
-        "id": "90c90206-7111-b511-5f8b-bbcf609c9a51"
+        "id": "90c90206-7111-b511-5f8b-bbcf609c9a51",
+        "typeFullFqn": "system.digital_gauges.simple_neon_gauge_justgage"
       },
       "b39719de-1487-eb54-f1e8-cf347f79e6f3": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "timeseries_bars_flot",
         "type": "timeseries",
-        "title": "New widget",
         "sizeX": 37,
         "sizeY": 12,
         "config": {
@@ -2737,7 +2923,15 @@
             },
             "stack": true,
             "tooltipIndividual": false,
-            "defaultBarWidth": 600
+            "defaultBarWidth": 600,
+            "showLegend": true,
+            "legendConfig": {
+              "position": "bottom",
+              "showMin": true,
+              "showMax": true,
+              "showAvg": true,
+              "showTotal": true
+            }
           },
           "title": "Water consumption",
           "dropShadow": false,
@@ -2746,7 +2940,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "mobileHeight": null,
           "widgetStyle": {
@@ -2754,27 +2948,21 @@
             "borderRight": "solid 1px #aaa"
           },
           "useDashboardTimewindow": false,
-          "showLegend": true,
           "actions": {},
           "enableDataExport": true,
           "units": "gal",
           "decimals": 4,
-          "legendConfig": {
-            "position": "bottom",
-            "showMin": true,
-            "showMax": true,
-            "showAvg": true,
-            "showTotal": true
-          }
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
-        "id": "b39719de-1487-eb54-f1e8-cf347f79e6f3"
+        "id": "b39719de-1487-eb54-f1e8-cf347f79e6f3",
+        "typeFullFqn": "system.charts.timeseries_bars_flot"
       },
       "243602be-600b-f4f2-bf9e-2687d953fd2d": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "state_chart",
         "type": "timeseries",
-        "title": "New widget",
         "sizeX": 17,
         "sizeY": 11,
         "config": {
@@ -2841,7 +3029,15 @@
             "stack": false,
             "tooltipIndividual": false,
             "tooltipValueFormatter": "if (value > 0 && value <= 1) {\n    return 'On';\n} else if (value === 0) {\n    return 'Off';\n} else {\n    return '';\n}",
-            "smoothLines": false
+            "smoothLines": false,
+            "showLegend": true,
+            "legendConfig": {
+              "position": "bottom",
+              "showMin": false,
+              "showMax": false,
+              "showAvg": false,
+              "showTotal": false
+            }
           },
           "title": "State History",
           "dropShadow": false,
@@ -2850,7 +3046,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "mobileHeight": null,
           "widgetStyle": {
@@ -2858,25 +3054,19 @@
             "borderRight": "solid 1px #aaa"
           },
           "useDashboardTimewindow": false,
-          "showLegend": true,
           "actions": {},
-          "legendConfig": {
-            "position": "bottom",
-            "showMin": false,
-            "showMax": false,
-            "showAvg": false,
-            "showTotal": false
-          },
-          "enableDataExport": true
+          "enableDataExport": true,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
-        "id": "243602be-600b-f4f2-bf9e-2687d953fd2d"
+        "id": "243602be-600b-f4f2-bf9e-2687d953fd2d",
+        "typeFullFqn": "system.charts.state_chart"
       },
       "6c2775cc-ad54-202e-28a2-746a5c0e9da5": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "state_chart",
         "type": "timeseries",
-        "title": "New widget",
         "sizeX": 16,
         "sizeY": 11,
         "config": {
@@ -2939,7 +3129,15 @@
             },
             "stack": false,
             "tooltipIndividual": false,
-            "smoothLines": false
+            "smoothLines": false,
+            "showLegend": true,
+            "legendConfig": {
+              "position": "bottom",
+              "showMin": true,
+              "showMax": true,
+              "showAvg": true,
+              "showTotal": false
+            }
           },
           "title": "Target Temperature History",
           "dropShadow": false,
@@ -2948,7 +3146,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "mobileHeight": null,
           "widgetStyle": {
@@ -2956,27 +3154,21 @@
             "borderRight": "solid 1px #aaa"
           },
           "useDashboardTimewindow": false,
-          "showLegend": true,
           "actions": {},
-          "legendConfig": {
-            "position": "bottom",
-            "showMin": true,
-            "showMax": true,
-            "showAvg": true,
-            "showTotal": false
-          },
           "enableDataExport": true,
           "units": "°C",
-          "decimals": 1
+          "decimals": 1,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
-        "id": "6c2775cc-ad54-202e-28a2-746a5c0e9da5"
+        "id": "6c2775cc-ad54-202e-28a2-746a5c0e9da5",
+        "typeFullFqn": "system.charts.state_chart"
       },
       "e69c1626-73c5-3152-f396-bb453ede4c5c": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
         "sizeX": 23,
         "sizeY": 12,
         "config": {
@@ -3039,7 +3231,18 @@
             },
             "stack": false,
             "tooltipIndividual": false,
-            "smoothLines": true
+            "smoothLines": true,
+            "showLegend": true,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "Battery Discharge",
           "dropShadow": false,
@@ -3048,7 +3251,7 @@
             "fontSize": "20px",
             "fontWeight": "bold",
             "opacity": "0.67",
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "mobileHeight": null,
           "enableDataExport": true,
@@ -3061,17 +3264,18 @@
           "useDashboardTimewindow": false,
           "alarmSearchStatus": "ACTIVE",
           "alarmsPollingInterval": 5,
-          "showLegend": true,
-          "actions": {}
+          "actions": {},
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
-        "id": "e69c1626-73c5-3152-f396-bb453ede4c5c"
+        "id": "e69c1626-73c5-3152-f396-bb453ede4c5c",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "aed80ec8-81d4-c6f7-e71f-5ab04f5ded06": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_value_card",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 11,
         "sizeY": 12,
         "config": {
@@ -3094,8 +3298,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1693821090727,
+                "endTimeMs": 1693907490727
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -3125,14 +3348,11 @@
           "enableDataExport": false,
           "decimals": 5
         },
-        "id": "aed80ec8-81d4-c6f7-e71f-5ab04f5ded06"
+        "id": "aed80ec8-81d4-c6f7-e71f-5ab04f5ded06",
+        "typeFullFqn": "system.cards.html_value_card"
       },
       "3e6a95ab-ecf3-f65a-5432-8f8636373a30": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_value_card",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 11,
         "sizeY": 12,
         "config": {
@@ -3155,8 +3375,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1693821090727,
+                "endTimeMs": 1693907490727
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -3185,14 +3424,11 @@
           },
           "enableDataExport": false
         },
-        "id": "3e6a95ab-ecf3-f65a-5432-8f8636373a30"
+        "id": "3e6a95ab-ecf3-f65a-5432-8f8636373a30",
+        "typeFullFqn": "system.cards.html_value_card"
       },
       "76429f16-a535-6643-3f22-8ab61808be46": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_value_card",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 7,
         "sizeY": 12,
         "config": {
@@ -3236,8 +3472,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1693821090727,
+                "endTimeMs": 1693907490727
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": true,
@@ -3266,7 +3521,8 @@
           "actions": {},
           "enableDataExport": false
         },
-        "id": "76429f16-a535-6643-3f22-8ab61808be46"
+        "id": "76429f16-a535-6643-3f22-8ab61808be46",
+        "typeFullFqn": "system.cards.html_value_card"
       }
     },
     "states": {
@@ -3348,7 +3604,8 @@
               "autoFillHeight": true,
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
-              "margin": 5
+              "margin": 5,
+              "outerMargin": true
             }
           }
         }
@@ -3419,7 +3676,8 @@
               "autoFillHeight": true,
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
-              "margin": 5
+              "margin": 5,
+              "outerMargin": true
             }
           }
         }
@@ -3496,7 +3754,8 @@
               "autoFillHeight": true,
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
-              "margin": 5
+              "margin": 5,
+              "outerMargin": true
             }
           }
         }
@@ -3548,7 +3807,8 @@
               "autoFillHeight": true,
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
-              "margin": 5
+              "margin": 5,
+              "outerMargin": true
             }
           }
         }
@@ -3605,7 +3865,8 @@
               "autoFillHeight": true,
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
-              "margin": 5
+              "margin": 5,
+              "outerMargin": true
             }
           }
         }
@@ -3753,5 +4014,6 @@
     },
     "filters": {}
   },
+  "externalId": null,
   "name": "Smart office"
 }
