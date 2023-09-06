@@ -219,7 +219,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                     tenantId, downlinkMsg.getDownlinkMsgId());
             log.trace("DownlinkMsg Body {}", downlinkMsg);
             if (downlinkMsg.hasSyncCompletedMsg()) {
-                result.add(updateSyncRequiredState(tenantId, edgeCustomerId, currentEdgeSettings, queueStartTs));
+                result.add(updateSyncRequiredState(tenantId, this.customerId, currentEdgeSettings, queueStartTs));
             }
             if (downlinkMsg.hasEdgeConfiguration()) {
                 result.add(edgeCloudProcessor.processEdgeConfigurationMsgFromCloud(tenantId, downlinkMsg.getEdgeConfiguration()));
@@ -430,9 +430,9 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
         if (currentEdgeSettings != null) {
             currentEdgeSettings.setFullSyncRequired(false);
             try {
-                cloudEventService.saveCloudEvent(tenantId, CloudEventType.TENANT, EdgeEventActionType.ATTRIBUTES_REQUEST, tenantId, null, queueStartTs);
+                cloudEventService.saveCloudEvent(tenantId, CloudEventType.TENANT, EdgeEventActionType.ATTRIBUTES_REQUEST, tenantId, null, null, queueStartTs);
                 if (customerId != null && !EntityId.NULL_UUID.equals(customerId.getId())) {
-                    cloudEventService.saveCloudEvent(tenantId, CloudEventType.CUSTOMER, EdgeEventActionType.ATTRIBUTES_REQUEST, customerId, null, queueStartTs);
+                    cloudEventService.saveCloudEvent(tenantId, CloudEventType.CUSTOMER, EdgeEventActionType.ATTRIBUTES_REQUEST, customerId, null, null, queueStartTs);
                 }
             } catch (Exception e) {
                 log.error("Failed to request attributes for tenant and customer entities", e);
