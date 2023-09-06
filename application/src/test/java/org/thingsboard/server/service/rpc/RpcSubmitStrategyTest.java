@@ -28,26 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.rpc;
+package org.thingsboard.server.service.rpc;
 
-import lombok.Getter;
+import org.junit.jupiter.api.Test;
+import org.thingsboard.server.common.data.StringUtils;
 
-public enum RpcStatus {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    QUEUED(true),
-    SENT(true),
-    DELIVERED(true),
-    SUCCESSFUL(false),
-    TIMEOUT(false),
-    EXPIRED(false),
-    FAILED(false),
-    DELETED(false);
+class RpcSubmitStrategyTest {
 
-    @Getter
-    private final boolean pushDeleteNotificationToCore;
+    @Test
+    void givenRandomString_whenParse_thenReturnBurstStrategy() {
+        String randomString = StringUtils.randomAlphanumeric(10);
+        RpcSubmitStrategy parsed = RpcSubmitStrategy.parse(randomString);
+        assertThat(parsed).isEqualTo(RpcSubmitStrategy.BURST);
+    }
 
-    RpcStatus(boolean pushDeleteNotificationToCore) {
-        this.pushDeleteNotificationToCore = pushDeleteNotificationToCore;
+    @Test
+    void givenNull_whenParse_thenReturnBurstStrategy() {
+        RpcSubmitStrategy parsed = RpcSubmitStrategy.parse(null);
+        assertThat(parsed).isEqualTo(RpcSubmitStrategy.BURST);
     }
 
 }

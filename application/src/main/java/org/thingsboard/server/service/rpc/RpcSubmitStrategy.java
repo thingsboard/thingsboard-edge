@@ -28,26 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.rpc;
+package org.thingsboard.server.service.rpc;
 
-import lombok.Getter;
+import java.util.Arrays;
 
-public enum RpcStatus {
+public enum RpcSubmitStrategy {
 
-    QUEUED(true),
-    SENT(true),
-    DELIVERED(true),
-    SUCCESSFUL(false),
-    TIMEOUT(false),
-    EXPIRED(false),
-    FAILED(false),
-    DELETED(false);
+    BURST, SEQUENTIAL_ON_ACK_FROM_DEVICE, SEQUENTIAL_ON_RESPONSE_FROM_DEVICE;
 
-    @Getter
-    private final boolean pushDeleteNotificationToCore;
-
-    RpcStatus(boolean pushDeleteNotificationToCore) {
-        this.pushDeleteNotificationToCore = pushDeleteNotificationToCore;
+    public static RpcSubmitStrategy parse(String strategyStr) {
+        return Arrays.stream(RpcSubmitStrategy.values())
+                .filter(strategy -> strategy.name().equalsIgnoreCase(strategyStr))
+                .findFirst()
+                .orElse(BURST);
     }
-
 }
