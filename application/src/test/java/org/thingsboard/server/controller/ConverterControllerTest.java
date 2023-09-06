@@ -73,24 +73,13 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_AWS_IOT_UPLINK_CONVERTER_MESSAGE;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_SIGFOX_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_TTN_UPLINK_CONVERTER_MESSAGE;
-import static org.thingsboard.server.controller.TestDataConst.AWS_IOT_JSON_DECODED;
-import static org.thingsboard.server.controller.TestDataConst.AWS_IOT_PAYLOAD_EXAMPLE;
-import static org.thingsboard.server.controller.TestDataConst.AZURE_JSON_DECODED;
-import static org.thingsboard.server.controller.TestDataConst.AZURE_PAYLOAD_EXAMPLE;
-import static org.thingsboard.server.controller.TestDataConst.CHIRDSTACK_JSON_PAYLOAD_EXAMPLE;
-import static org.thingsboard.server.controller.TestDataConst.CHIRPSTACK_JSON_DECODED;
-import static org.thingsboard.server.controller.TestDataConst.LORIOT_JSON_DECODED;
-import static org.thingsboard.server.controller.TestDataConst.LORIOT_PAYLOAD_EXAMPLE;
-import static org.thingsboard.server.controller.TestDataConst.SIGFOX_JSON_DECODED;
-import static org.thingsboard.server.controller.TestDataConst.SIGFOX_PAYLOAD_EXAMPLE;
-import static org.thingsboard.server.controller.TestDataConst.TTI_JSON_DECODED;
-import static org.thingsboard.server.controller.TestDataConst.TTI_JSON_PAYLOAD_EXAMPLE;
-import static org.thingsboard.server.controller.TestDataConst.TTN_JSON_DECODED;
-import static org.thingsboard.server.controller.TestDataConst.TTN_JSON_PAYLOAD_EXAMPLE;
 
 @TestPropertySource(properties = {
         "js.evaluator=local",
@@ -521,37 +510,90 @@ public class ConverterControllerTest extends AbstractControllerTest {
 
     @Test
     public void testTTIDefaultDecoder() throws IOException {
-        testDecoder("tbel-tti-decoder.raw", TTI_JSON_PAYLOAD_EXAMPLE, TTI_JSON_DECODED);
+        String expectedDecodedMessage = "{\"deviceName\":\"eui-1000000000000001\",\"deviceType\":\"application-tti-name\"," +
+                "\"groupName\":\"IAQ devices\",\"attributes\":{\"devEui\":\"1000000000000001\",\"fPort\":85," +
+                "\"correlation_ids\":[\"as:up:01H0PZDGB1NW6NAPD815NGHPF6\",\"gs:conn:01H0FJRSXSYT7VKNYXJ89F95XT\",\"gs:up:host:01H0FJRSY3MZMGPPFBQ4FZV4T8\"," +
+                "\"gs:uplink:01H0PZDG4HHGFRTXRTXD4PFTH7\",\"ns:uplink:01H0PZDG4JZ3BM0K6J89EQK1J7\",\"rpc:/ttn.lorawan.v3.GsNs/HandleUplink:01H0PZDG4J02F85RYFPCNSNXCR\"," +
+                "\"rpc:/ttn.lorawan.v3.NsAs/HandleUplink:01H0PZDGB081PMP806BJHNHX1A\"],\"bandwidth\":125000," +
+                "\"spreading_factor\":7,\"coding_rate\":\"4/5\",\"frequency\":\"868500000\",\"net_id\":\"000013\"," +
+                "\"tenant_id\":\"tenant\",\"cluster_id\":\"eu1\",\"cluster_address\":\"eu1.cloud.thethings.industries\"," +
+                "\"tenant_address\":\"tenant.eu1.cloud.thethings.industries\",\"device_id\":\"eui-1000000000000001\"," +
+                "\"application_id\":\"application-tti-name\",\"join_eui\":\"2000000000000001\",\"dev_addr\":\"20000001\"}," +
+                "\"telemetry\":{\"ts\":1684398325906,\"values\":{\"HEX_bytes\":\"01755E030001040001\"," +
+                "\"session_key_id\":\"AYfg8rhha5n+FWx0ZaAprA==\",\"f_cnt\":5017,\"frm_payload\":\"AXVeAwABBAAB\"," +
+                "\"eui\":\"6A7E111A10000000\",\"rssi\":-24,\"channel_rssi\":-24,\"snr\":12,\"frequency_offset\":\"671\"," +
+                "\"channel_index\":2,\"message_id\":\"01H0PZDG4MF9AYSMNY44MAVTDH\",\"forwarder_net_id\":\"000013\"," +
+                "\"forwarder_tenant_id\":\"ttn\",\"forwarder_cluster_id\":\"eu1.cloud.thethings.network\",\"forwarder_gateway_eui\":\"6A7E111A10000000\"," +
+                "\"forwarder_gateway_id\":\"eui-6a7e111a10000000\",\"home_network_net_id\":\"000013\"," +
+                "\"home_network_tenant_id\":\"tenant\",\"home_network_cluster_id\":\"eu1.cloud.thethings.industries\",\"consumed_airtime\":\"0.097536s\"}}}";
+        testDecoder("tbel-tti-decoder.raw", DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE, expectedDecodedMessage);
     }
 
     @Test
     public void testTTNDefaultDecoder() throws IOException {
-        testDecoder("tbel-ttn-decoder.raw", TTN_JSON_PAYLOAD_EXAMPLE, TTN_JSON_DECODED);
+        String expectedDecodedMessage = "{\"deviceName\":\"eui-1000000000000001\",\"deviceType\":\"application-tts-name\"," +
+                "\"groupName\":\"IAQ devices\",\"attributes\":{\"devEui\":\"1000000000000001\",\"fPort\":85," +
+                "\"correlation_ids\":[\"as:up:01H0S7ZJQ9MQPMVY49FT3SE07M\",\"gs:conn:01H03BQZ9342X3Y86DJ2P704E5\"," +
+                "\"gs:up:host:01H03BQZ99EGAM52KK1300GFKN\",\"gs:uplink:01H0S7ZJGS6D9TJSKJN8XNTMAV\",\"ns:uplink:01H0S7ZJGS9KKD4HTTPKFEMWCV\"," +
+                "\"rpc:/ttn.lorawan.v3.GsNs/HandleUplink:01H0S7ZJGSF3M38ZRZVTM38DEC\",\"rpc:/ttn.lorawan.v3.NsAs/HandleUplink:01H0S7ZJQ8R2EH5AA269AKM8DX\"]," +
+                "\"bandwidth\":125000,\"spreading_factor\":7,\"coding_rate\":\"4/5\",\"frequency\":\"867100000\"," +
+                "\"net_id\":\"000013\",\"tenant_id\":\"ttn\",\"cluster_id\":\"eu1\",\"cluster_address\":\"eu1.cloud.thethings.network\"," +
+                "\"device_id\":\"eui-1000000000000001\",\"application_id\":\"application-tts-name\",\"join_eui\":\"2000000000000001\"," +
+                "\"dev_addr\":\"20000001\"},\"telemetry\":{\"ts\":1684474415641,\"values\":{\"HEX_bytes\":\"01755E030001040001\"," +
+                "\"session_key_id\":\"AYfqmb0pc/1uRZv9xUydgQ==\",\"f_cnt\":10335,\"frm_payload\":\"AXVeAwABBAAB\",\"eui\":\"6A7E111A10000000\"," +
+                "\"rssi\":-35,\"channel_rssi\":-35,\"snr\":13.2,\"frequency_offset\":\"69\",\"channel_index\":3,\"consumed_airtime\":\"0.056576s\"}}}";
+        testDecoder("tbel-ttn-decoder.raw", DEFAULT_TTN_UPLINK_CONVERTER_MESSAGE, expectedDecodedMessage);
     }
 
     @Test
     public void testChirpstackDefaultDecoder() throws IOException {
-        testDecoder("tbel-chirpstack-decoder.raw", CHIRDSTACK_JSON_PAYLOAD_EXAMPLE, CHIRPSTACK_JSON_DECODED);
+        String expectedDecodedMessage = "{\"deviceName\":\"Device name\",\"deviceType\":\"Chirpstack default device profile\"," +
+                "\"groupName\":\"IAQ devices\",\"attributes\":{\"deduplicationId\":\"57433366-50a6-4dc2-8145-2df1bbc70d9e\"," +
+                "\"tenantId\":\"52f14cd4-c6f1-4fbd-8f87-4025e1d49242\",\"tenantName\":\"ChirpStack\",\"applicationId\":\"ca739e26-7b67-4f14-b69e-d568c22a5a75\"," +
+                "\"applicationName\":\"Chirpstack application\",\"deviceProfileId\":\"605d08d4-65f5-4d2c-8a5a-3d2457662f79\"," +
+                "\"deviceProfileName\":\"Chirpstack default device profile\",\"devEui\":\"1000000000000001\",\"devAddr\":\"20000001\",\"fPort\":85," +
+                "\"frequency\":868500000,\"bandwidth\":125000,\"spreadingFactor\":7,\"codeRate\":\"CR_4_5\"},\"telemetry\":{\"ts\":1684741625404," +
+                "\"values\":{\"HEX_bytes\":\"01755D030001040000\",\"dr\":5,\"fCnt\":4,\"confirmed\":false,\"gatewayId\":\"6a7e111a10000000\"," +
+                "\"uplinkId\":24022,\"rssi\":-35,\"snr\":11.5,\"channel\":2,\"rfChain\":1,\"context\":\"EFwMtA==\",\"crcStatus\":\"CRC_OK\"}}}";
+        testDecoder("tbel-chirpstack-decoder.raw", DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE, expectedDecodedMessage);
     }
 
     @Test
     public void testLoriotDefaultDecoder() throws IOException {
-        testDecoder("tbel-loriot-decoder.raw", LORIOT_PAYLOAD_EXAMPLE, LORIOT_JSON_DECODED);
+        String expectedDecodedMessage = "[{\"deviceName\":\"1000000000000001\",\"deviceType\":\"LoraDevices\"," +
+                "\"groupName\":\"IAQ devices\",\"attributes\":{\"fPort\":85,\"dataRange\":\"SF9 BW125 4/5\",\"freq\":867500000,\"offline\":false}," +
+                "\"telemetry\":{\"ts\":1684478801936,\"values\":{\"HEX_bytes\":\"01755E030001040001\",\"seqno\":3040," +
+                "\"fcnt\":2,\"rssi\":-21,\"snr\":10,\"toa\":206,\"ack\":false,\"bat\":94}}}]";
+        testDecoder("tbel-loriot-decoder.raw", DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE, expectedDecodedMessage);
     }
 
     @Test
     public void testAwsIotDefaultDecoder() throws IOException {
-        testDecoder("tbel-aws-iot-decoder.raw", AWS_IOT_PAYLOAD_EXAMPLE, AWS_IOT_JSON_DECODED);
+        String expectedDecodedMessage = "{\"deviceName\":\"Production 1 - 3G7H1j-9zF\",\"deviceType\":\"default\"," +
+                "\"groupName\":\"Production\",\"attributes\":{\"deviceId\":\"3G7H1j-9zF\"},\"telemetry\":{\"ts\":1686398400000,\"values\":" +
+                "{\"temperature\":25.3,\"humidity\":62.8,\"pressure\":1012.5,\"latitude\":37.7749,\"longitude\":-122.4194," +
+                "\"status\":\"active\",\"power_status\":\"on\",\"x\":0.02,\"y\":0.03,\"z\":0.01,\"fault_codes.0\":100,\"fault_codes.1\":204," +
+                "\"fault_codes.2\":301,\"battery_level\":78.5}}}";
+        testDecoder("tbel-aws-iot-decoder.raw", DEFAULT_AWS_IOT_UPLINK_CONVERTER_MESSAGE, expectedDecodedMessage);
     }
 
     @Test
     public void testAzureDefaultDecoder() throws IOException {
-        testDecoder("tbel-azure-decoder.raw", AZURE_PAYLOAD_EXAMPLE, AZURE_JSON_DECODED);
+        String expectedDecodedMessage = "{\"deviceName\":\"8F4A2C6D\",\"deviceType\":\"Packing machine\",\"groupName\":\"Control room\"," +
+                "\"attributes\":{\"version\":1,\"manufacturer\":\"Example corporation\"},\"telemetry\":{\"ts\":1686306600000," +
+                "\"values\":{\"receivedAlarms\":[{\"type\":\"temperature\",\"severity\":\"high\",\"message\":\"Temperature exceeds threshold.\"}," +
+                "{\"type\":\"vibration\",\"severity\":\"critical\",\"message\":\"Excessive vibration detected.\"}],\"temperature\":25.5," +
+                "\"pressure\":1013.25,\"x\":0.02,\"y\":0.03,\"z\":0.015,\"status\":\"ALARM\",\"batteryLevel\":100,\"batteryStatus\":\"Charging\"}}}";
+        testDecoder("tbel-azure-decoder.raw", DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE, expectedDecodedMessage);
     }
 
     @Test
     public void testSigfoxDefaultConverters() throws IOException {
-        testDecoder("tbel-sigfox-decoder.raw", SIGFOX_PAYLOAD_EXAMPLE, SIGFOX_JSON_DECODED);
+        String expectedDecodedMessage = "{\"deviceName\":\"Sigfox-2203961\",\"deviceType\":\"Sigfox device\",\"groupName\":\"Control room devices\"," +
+                "\"attributes\":{\"sigfoxId\":\"2203961\",\"deviceTypeId\":\"630ceaea10d051194ec0246e\",\"autoCalibration\":\"on\"," +
+                "\"zeroPointAdjusted\":false,\"transmitPower\":\"full\",\"powerControl\":\"off\",\"fwVersion\":2},\"telemetry\":{\"ts\":\"1686298419000\"," +
+                "\"values\":{\"temperature\":28.7,\"humidity\":33,\"co2\":582,\"co2Baseline\":420,\"customData1\":\"37\",\"customData2\":\"2\"}}}";
+        testDecoder("tbel-sigfox-decoder.raw", DEFAULT_SIGFOX_UPLINK_CONVERTER_MESSAGE, expectedDecodedMessage);
     }
 
     public void testDecoder(String decoderFileName, String payloadExample, String expectedResult) throws IOException {
