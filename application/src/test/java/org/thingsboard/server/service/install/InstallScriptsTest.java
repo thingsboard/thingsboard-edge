@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.install;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -63,6 +64,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.willReturn;
 
+@Slf4j
 @SpringBootTest(classes = {InstallScripts.class, RuleChainDataValidator.class})
 class InstallScriptsTest {
 
@@ -101,9 +103,9 @@ class InstallScriptsTest {
 
     @Test
     void testDefaultRuleChainsTemplates() throws IOException {
-        Path tenantRuleChainsDir = installScripts.getTenantRuleChainsDir();
-        List<Path> ruleChainsFromPath = installScripts.findRuleChainsFromPath(tenantRuleChainsDir);
-        ruleChainsFromPath.forEach(this::validateRuleChainTemplate);
+        Path dir = installScripts.getTenantRuleChainsDir();
+        installScripts.findRuleChainsFromPath(dir)
+                .forEach(this::validateRuleChainTemplate);
     }
 
     @Test
@@ -113,9 +115,9 @@ class InstallScriptsTest {
 
     @Test
     void testDefaultEdgeRuleChainsTemplates() throws IOException {
-        Path edgeChainsDir = installScripts.getEdgeRuleChainsDir();
-        List<Path> ruleChainsFromPath = installScripts.findRuleChainsFromPath(edgeChainsDir);
-        ruleChainsFromPath.forEach(this::validateRuleChainTemplate);
+        Path dir = installScripts.getEdgeRuleChainsDir();
+        installScripts.findRuleChainsFromPath(dir)
+                .forEach(this::validateRuleChainTemplate);
     }
 
     @Test
@@ -124,6 +126,7 @@ class InstallScriptsTest {
     }
 
     private void validateRuleChainTemplate(Path templateFilePath) {
+        log.warn("validateRuleChainTemplate {}", templateFilePath);
         JsonNode ruleChainJson = JacksonUtil.toJsonNode(templateFilePath.toFile());
 
         RuleChain ruleChain = JacksonUtil.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
