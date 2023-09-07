@@ -90,7 +90,11 @@ public class ChirpStackIntegration extends BasicHttpIntegration<JsonHttpIntegrat
         if (json.get("clientConfiguration").has("applicationServerAPIToken")) {
             applicationServerUrl = json.get("clientConfiguration").get("applicationServerUrl").asText();
             applicationServerAPIToken = json.get("clientConfiguration").get("applicationServerAPIToken").asText();
-            useAPI4Plus = json.get("clientConfiguration").get("useAPI4Plus").asBoolean();
+            if (json.get("clientConfiguration").has("useAPI4Plus")) {
+                useAPI4Plus = json.get("clientConfiguration").get("useAPI4Plus").asBoolean();
+            } else {
+                useAPI4Plus = true;
+            }
         }
         devicesUrl = applicationServerUrl + DEVICES_ENDPOINT;
     }
