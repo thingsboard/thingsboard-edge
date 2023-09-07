@@ -216,6 +216,8 @@ export class JsonContentComponent implements OnInit, ControlValueAccessor, Valid
         padding: '0 9px',
         width: '100%',
         border: 'none',
+        textWrap: 'nowrap',
+        whiteSpace: 'pre',
         overflow: 'hidden',
         resize: 'none',
         fontSize: '15px'
