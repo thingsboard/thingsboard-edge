@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.edge.rpc.processor;
 
 import org.junit.jupiter.params.provider.Arguments;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.Lazy;
@@ -50,6 +51,7 @@ import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
@@ -59,44 +61,62 @@ import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.edge.EdgeSynchronizationManager;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
+import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
+import org.thingsboard.server.service.edge.rpc.CustomersHierarchyEdgeService;
 import org.thingsboard.server.service.edge.rpc.constructor.AdminSettingsMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.AlarmMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.AssetMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.AssetProfileMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.ConverterProtoConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.CustomTranslationProtoConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.CustomerMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.DashboardMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.DeviceMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.DeviceProfileMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.EdgeMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.EntityDataMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.EntityGroupMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.EntityViewMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.GroupPermissionProtoConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.IntegrationProtoConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.OtaPackageMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.QueueMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.RelationMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.RoleProtoConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.RuleChainMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.SchedulerEventMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.TenantMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.TenantProfileMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.UserMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.WhiteLabelingParamsProtoConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.WidgetTypeMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.WidgetsBundleMsgConstructor;
 import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
+import org.thingsboard.server.service.security.permission.OwnersCacheService;
+import org.thingsboard.server.service.security.permission.UserPermissionsService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
@@ -280,6 +300,63 @@ public abstract class BaseEdgeProcessorTest {
     @MockBean
     protected DataDecodingEncodingService dataDecodingEncodingService;
 
+    @MockBean
+    protected WhiteLabelingService whiteLabelingService;
+
+    @MockBean
+    protected CustomTranslationService customTranslationService;
+
+    @MockBean
+    protected EntityGroupService entityGroupService;
+
+    @MockBean
+    protected RoleService roleService;
+
+    @MockBean
+    protected GroupPermissionService groupPermissionService;
+
+    @MockBean
+    protected UserPermissionsService userPermissionsService;
+
+    @MockBean
+    protected SchedulerEventService schedulerEventService;
+
+    @MockBean
+    protected IntegrationService integrationService;
+
+    @MockBean
+    protected ConverterService converterService;
+
+    @MockBean
+    protected WhiteLabelingParamsProtoConstructor whiteLabelingParamsProtoConstructor;
+
+    @MockBean
+    protected CustomTranslationProtoConstructor customTranslationProtoConstructor;
+
+    @MockBean
+    protected RoleProtoConstructor roleProtoConstructor;
+
+    @MockBean
+    protected GroupPermissionProtoConstructor groupPermissionProtoConstructor;
+
+    @MockBean
+    protected SchedulerEventMsgConstructor schedulerEventMsgConstructor;
+
+    @MockBean
+    protected EntityGroupMsgConstructor entityGroupMsgConstructor;
+
+    @MockBean
+    protected ConverterProtoConstructor converterProtoConstructor;
+
+    @MockBean
+    protected IntegrationProtoConstructor integrationProtoConstructor;
+
+    @MockBean
+    protected CustomersHierarchyEdgeService customersHierarchyEdgeService;
+
+    @MockBean
+    protected OwnersCacheService ownersCacheService;
+    
     protected EdgeId edgeId;
     protected TenantId tenantId;
     protected EdgeEvent edgeEvent;
