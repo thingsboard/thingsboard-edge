@@ -39,7 +39,7 @@
     <tb-entity-details-panel
       #entityGroupDetailsPanel
       [entitiesTableConfig]="entityGroupDetailsConfig"
-      [entityId]="entityGroup?.id"
+      [entityId]="isGroupDetailsOpen ? entityGroup?.id : null"
       (closeEntityDetails)="isGroupDetailsOpen = false"
       (entityUpdated)="onEntityGroupUpdated($event)"
       (entityAction)="onEntityGroupAction($event)"

@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.pulsar.client.api.PulsarClientException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -67,17 +68,25 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
+
+import static org.thingsboard.integration.tuya.TuyaIntegrationTask.CHECK_CONNECTION;
+import static org.thingsboard.integration.tuya.TuyaIntegrationTask.CONNECT;
+import static org.thingsboard.integration.tuya.TuyaIntegrationTask.DISCONNECT;
+import static org.thingsboard.integration.tuya.TuyaIntegrationTask.RECONNECT;
 
 @Slf4j
 public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
@@ -88,13 +97,16 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
     private final static String GET_REFRESH_TOKEN_URL_PATH = "/v1.0/token/%s";
     private final static String POST_COMMANDS_URL_PATH = "/v1.0/iot-03/devices/%s/commands";
 
-    private final static Set<Integer> unauthorizedErrorCodes = new HashSet<>(Arrays.asList(1010, 1011, 1012));
+    private final static int DEFAULT_DELAY = 60;
 
     private final RestTemplate httpClient = new RestTemplate();
     private TuyaToken accessToken;
     private ExecutorService executor;
     private TuyaIntegrationConfiguration tuyaIntegrationConfiguration;
     private MqConsumer mqConsumer;
+    private volatile ScheduledFuture<?> nextPollFuture;
+    private final BlockingQueue<TuyaIntegrationTask> taskQueue = new LinkedBlockingQueue<>();
+    private final Lock taskLock = new ReentrantLock();
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
@@ -103,29 +115,121 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
         executor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(getClass().getSimpleName() + "-loop"));
         tuyaIntegrationConfiguration = getClientConfiguration(configuration, TuyaIntegrationConfiguration.class);
         mqConsumer = createMqConsumer(tuyaIntegrationConfiguration.getAccessId(), tuyaIntegrationConfiguration.getAccessKey());
-        mqConsumer.connect(false);
-        this.executor.submit(() -> {
-            try {
-                mqConsumer.start();
-            } catch (Exception e) {
-                log.warn("[{}] During processing Tuya integration error caught!", configuration.getId(), e);
+        submit(CONNECT);
+    }
+
+    private void submitPoll() {
+        context.getExecutorService().execute(this::pollTask);
+    }
+
+    private void pollTask() {
+        taskLock.lock();
+        try {
+            TuyaIntegrationTask task = taskQueue.poll();
+            if (task != null) {
+                deduplicate(task);
+                log.debug("[{}] Going to process task: {}", getConfigurationId(), task);
+                processTask(task);
             }
-        });
+        } catch (Exception e) {
+            log.warn("[{}] Unhandled error during task processing: ", getConfigurationId(), e);
+        } finally {
+            taskLock.unlock();
+        }
+    }
+
+    private void processTask(TuyaIntegrationTask task) {
+        switch (task) {
+            case CONNECT:
+                doConnect();
+                break;
+            case DISCONNECT:
+                doDisconnect();
+                break;
+            case RECONNECT:
+                doReconnect();
+                break;
+            case CHECK_CONNECTION:
+                doCheckConnectionToService();
+                break;
+        }
+    }
+
+    private void doConnect() {
+        try {
+            mqConsumer.connect();
+            submit(CHECK_CONNECTION, DEFAULT_DELAY);
+            resultHandler("CONNECT", "", null);
+        } catch (Exception e) {
+            resultHandler("CONNECT", e.getMessage(), e);
+            submit(RECONNECT, DEFAULT_DELAY);
+        }
+    }
+
+    private void doDisconnect() {
+        try {
+            mqConsumer.stopClient();
+        } catch (PulsarClientException e) {
+            log.error("[{}] Cannot disconnect client correctly!", getConfigurationId(), e);
+        }
+    }
+
+    private void doReconnect() {
+        submit(DISCONNECT);
+        submit(CONNECT, DEFAULT_DELAY);
+    }
+
+    private void doCheckConnectionToService() {
+        if (mqConsumer.checkConnection()) {
+            submit(CHECK_CONNECTION, DEFAULT_DELAY);
+            return;
+        }
+        submit(DISCONNECT);
+        submit(CONNECT);
+    }
+
+    private void submit(TuyaIntegrationTask task) {
+        submit(task, 0);
+    }
+
+    private void submit(TuyaIntegrationTask task, int delayInSec) {
+        if (delayInSec > 0) {
+            log.debug("[{}] Adding task to queue: {} with delay {}", getConfigurationId(), task, delayInSec);
+        } else {
+            log.debug("[{}] Adding task to queue: {}", getConfigurationId(), task);
+        }
+        if (nextPollFuture != null) {
+            nextPollFuture.cancel(true);
+        }
+        if (DISCONNECT.equals(task)) {
+            taskQueue.removeIf(Objects::nonNull);
+        }
+        taskQueue.add(task);
+        log.debug("[{}] queue size: {}", getConfigurationId(), taskQueue.size());
+        if (delayInSec > 0) {
+            nextPollFuture = context.getScheduledExecutorService().schedule(this::submitPoll, delayInSec, TimeUnit.SECONDS);
+        } else {
+            submitPoll();
+        }
+    }
+
+    private void deduplicate(TuyaIntegrationTask task) {
+        while (true) {
+            TuyaIntegrationTask next = taskQueue.peek();
+            if (task.equals(next) || (RECONNECT.equals(task) && (DISCONNECT.equals(next) || (CONNECT.equals(next))))) {
+                log.debug("[{}] Remove duplicated task from queue: {}", getConfigurationId(), next);
+                taskQueue.poll();
+            } else {
+                break;
+            }
+        }
     }
 
     @Override
     public void destroy() {
-        if (mqConsumer != null) {
-            try {
-                mqConsumer.stop();
-            } catch (Exception e) {
-                log.error("[{}] Cannot stop message queue consumer!", configuration.getId(), e);
-            }
-        }
-        if (executor != null) {
-            List<Runnable> runnables = executor.shutdownNow();
-            log.debug("Stopped executor service, list of returned runnables: {}", runnables);
-        }
+        List<Runnable> runnables = executor.shutdownNow();
+        log.debug("Stopped executor service, list of returned runnables: {}", runnables);
+        submit(DISCONNECT);
     }
 
     @Override
@@ -136,14 +240,14 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
                 doProcess(msg);
                 integrationStatistics.incMessagesProcessed();
             } catch (Exception e) {
-                log.debug("[{}] Failed to apply data converter function: {}", configuration.getId(), e.getMessage(), e);
+                log.debug("[{}] Failed to apply data converter function: {}", getConfigurationId(), e.getMessage(), e);
                 exception = e;
                 integrationStatistics.incErrorsOccurred();
             }
             try {
                 persistDebug(this.context, "Uplink", UplinkContentType.JSON, msg.toString(), exception == null ? "OK" : "ERROR", exception);
             } catch (Exception e) {
-                log.warn("[{}] Failed to persist debug message!", configuration.getId(), e);
+                log.warn("[{}] Failed to persist debug message!", getConfigurationId(), e);
             }
         }
     }
@@ -184,19 +288,6 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
 
     private void resultHandler(String type, String msg, Exception exception) {
         String status = exception == null ? "SUCCESS" : "FAILURE";
-        if ("CONNECT".equals(type) && exception != null) {
-            try {
-                mqConsumer.stop();
-            } catch (Exception ignored) {
-            }
-            this.executor.submit(() -> {
-                try {
-                    mqConsumer.start();
-                } catch (Exception e) {
-                    log.debug("[{}] During processing Tuya integration error caught!", configuration.getId(), e);
-                }
-            });
-        }
         persistDebug(context, type, UplinkContentType.JSON, msg, status, exception);
 
     }
@@ -306,7 +397,7 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
 
     private String createServiceRPCPathWithParameter(String path, JsonNode data) {
         if (!data.has("parameter")) {
-            throw new RuntimeException(String.format("[%s] Required \"parameter\" field not found!", configuration.getId()));
+            throw new RuntimeException(String.format("[%s] Required \"parameter\" field not found!", getConfigurationId()));
         }
         return String.format(path, data.get("parameter").asText());
     }
@@ -341,7 +432,7 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
         RequestEntity<Object> requestEntity = createPostRequest(path, commandsNode);
         ResponseEntity<ObjectNode> responseEntity = sendRequest(requestEntity);
         ObjectNode result = responseEntity.getBody();
-        log.debug("[{}] Received response: [{}]", configuration.getId(), result);
+        log.debug("[{}] Received response: [{}]", getConfigurationId(), result);
         return result;
     }
 
@@ -349,7 +440,7 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
         RequestEntity<Object> requestEntity = createGetRequest(path, false);
         ResponseEntity<ObjectNode> responseEntity = sendRequest(requestEntity);
         ObjectNode result = responseEntity.getBody();
-        log.debug("[{}] Received response: [{}]", configuration.getId(), result);
+        log.debug("[{}] Received response: [{}]", getConfigurationId(), result);
         return result;
     }
 
@@ -360,14 +451,14 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
                 ObjectNode.class);
         if (!validateResponse(responseEntity)) {
             throw new RuntimeException(String.format("[%s] No response for RPC request! Reason code from Tuya Cloud: %s",
-                    configuration.getId(),
+                    getConfigurationId(),
                     responseEntity.getStatusCode()));
         }
         if (Objects.requireNonNull(responseEntity.getBody()).get("success").asBoolean()) {
             return responseEntity;
         } else {
             throw new RuntimeException(String.format("[%s] Tuya integration response error code: [%s], msg: [%s]",
-                    configuration.getId(),
+                    getConfigurationId(),
                     responseEntity.getBody().get("code").asInt(),
                     responseEntity.getBody().get("msg").asText()));
         }
@@ -458,5 +549,9 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
         return responseEntity != null
                 && HttpStatus.OK.equals(responseEntity.getStatusCode())
                 && responseEntity.getBody() != null;
+    }
+
+    private String getConfigurationId() {
+        return this.configuration.getName();
     }
 }

@@ -61,6 +61,8 @@ import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.exception.DataValidationException;
@@ -149,11 +151,25 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
     }
 
     @Override
+    public Asset saveAsset(Asset asset, boolean doValidate) {
+        return doSaveAsset(asset, doValidate);
+    }
+
+    @Override
     public Asset saveAsset(Asset asset) {
+        return doSaveAsset(asset, true);
+    }
+
+    private Asset doSaveAsset(Asset asset, boolean doValidate) {
         log.trace("Executing saveAsset [{}]", asset);
-        Asset oldAsset = assetValidator.validate(asset, Asset::getTenantId);
-        Asset savedAsset;
+        Asset oldAsset = null;
+        if (doValidate) {
+            oldAsset = assetValidator.validate(asset, Asset::getTenantId);
+        } else if (asset.getId() != null) {
+            oldAsset = findAssetById(asset.getTenantId(), asset.getId());
+        }
         AssetCacheEvictEvent evictEvent = new AssetCacheEvictEvent(asset.getTenantId(), asset.getName(), oldAsset != null ? oldAsset.getName() : null);
+        Asset savedAsset;
         try {
             AssetProfile assetProfile;
             if (asset.getAssetProfileId() == null) {
@@ -175,6 +191,8 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
             asset.setType(assetProfile.getName());
             savedAsset = assetDao.saveAndFlush(asset.getTenantId(), asset);
             publishEvictEvent(evictEvent);
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedAsset.getTenantId())
+                    .entityId(savedAsset.getId()).added(asset.getId() == null).build());
             if (asset.getId() == null) {
                 countService.publishCountEntityEvictEvent(savedAsset.getTenantId(), EntityType.ASSET);
             }
@@ -206,6 +224,7 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
 
         publishEvictEvent(new AssetCacheEvictEvent(asset.getTenantId(), asset.getName(), null));
         countService.publishCountEntityEvictEvent(tenantId, EntityType.ASSET);
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(assetId).build());
 
         assetDao.removeById(tenantId, assetId.getId());
     }

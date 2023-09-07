@@ -62,6 +62,7 @@ import { AssetProfileService } from '@core/http/asset-profile.service';
 import { AssetProfileDialogComponent, AssetProfileDialogData } from './asset-profile-dialog.component';
 import { SubscriptSizing } from '@angular/material/form-field';
 import { Operation, Resource } from '@shared/models/security.models';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-asset-profile-autocomplete',
@@ -104,14 +105,9 @@ export class AssetProfileAutocompleteComponent implements ControlValueAccessor, 
   @Input()
   showDetailsPageLink = false;
 
-  private requiredValue: boolean;
-  get required(): boolean {
-    return this.requiredValue;
-  }
   @Input()
-  set required(value: boolean) {
-    this.requiredValue = coerceBooleanProperty(value);
-  }
+  @coerceBoolean()
+  required = false;
 
   @Input()
   disabled: boolean;

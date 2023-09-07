@@ -69,10 +69,8 @@
           <div formGroupName="favicon" fxLayout="column">
             <tb-image-input
               label="{{'white-labeling.favicon' | translate}}"
-              noImageText="{{'white-labeling.no-favicon-image' | translate}}"
               accept="image/x-icon, image/gif, image/png, image/vnd.microsoft.icon"
               inputId="faviconSelect"
-              dropLabel="{{'white-labeling.drop-favicon-image-or' | translate}}"
               [maxImageSize]="maxFaviconSize"
               [allowedImageMimeTypes]="faviconTypes"
               (imageSizeOverflow)="onFaviconSizeError()"
@@ -86,10 +84,8 @@
           </div>
           <tb-image-input
             label="{{'white-labeling.logo' | translate}}"
-            noImageText="{{'white-labeling.no-logo-image' | translate}}"
             accept="image/*"
             inputId="logoSelect"
-            dropLabel="{{'white-labeling.drop-logo-image-or' | translate}}"
             [maxImageSize]="maxLogoSize"
             (imageSizeOverflow)="onLogoSizeError()"
             (imageTypeError)="onLogoTypeError()"

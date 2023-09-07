@@ -114,19 +114,22 @@ DECLARE
     p RECORD;
     partition_end_ts BIGINT;
 BEGIN
-    FOR p IN SELECT DISTINCT (created_time - created_time % partition_size_ms) AS partition_ts FROM old_edge_event
-             WHERE created_time >= start_time_ms AND created_time < end_time_ms
-        LOOP
-            partition_end_ts = p.partition_ts + partition_size_ms;
-            RAISE NOTICE '[edge_event] Partition to create : [%-%]', p.partition_ts, partition_end_ts;
-            EXECUTE format('CREATE TABLE IF NOT EXISTS edge_event_%s PARTITION OF edge_event ' ||
-                           'FOR VALUES FROM ( %s ) TO ( %s )', p.partition_ts, p.partition_ts, partition_end_ts);
-        END LOOP;
-
-    INSERT INTO edge_event (id, created_time, edge_id, edge_event_type, edge_event_uid, entity_id, edge_event_action, body, tenant_id, ts)
-    SELECT id, created_time, edge_id, edge_event_type, edge_event_uid, entity_id, edge_event_action, body, tenant_id, ts
-    FROM old_edge_event
-    WHERE created_time >= start_time_ms AND created_time < end_time_ms;
+    IF (SELECT exists(SELECT FROM pg_tables WHERE tablename = 'old_edge_event')) THEN
+        FOR p IN SELECT DISTINCT (created_time - created_time % partition_size_ms) AS partition_ts FROM old_edge_event
+                 WHERE created_time >= start_time_ms AND created_time < end_time_ms
+            LOOP
+                partition_end_ts = p.partition_ts + partition_size_ms;
+                RAISE NOTICE '[edge_event] Partition to create : [%-%]', p.partition_ts, partition_end_ts;
+                EXECUTE format('CREATE TABLE IF NOT EXISTS edge_event_%s PARTITION OF edge_event ' ||
+                               'FOR VALUES FROM ( %s ) TO ( %s )', p.partition_ts, p.partition_ts, partition_end_ts);
+            END LOOP;
+        INSERT INTO edge_event (id, created_time, edge_id, edge_event_type, edge_event_uid, entity_id, edge_event_action, body, tenant_id, ts)
+        SELECT id, created_time, edge_id, edge_event_type, edge_event_uid, entity_id, edge_event_action, body, tenant_id, ts
+        FROM old_edge_event
+        WHERE created_time >= start_time_ms AND created_time < end_time_ms;
+    ELSE
+       RAISE NOTICE 'Table old_edge_event does not exists, skipping migration';
+    END IF;
 END;
 $$;
 -- EDGE EVENTS MIGRATION END
@@ -137,3 +140,121 @@ ALTER TABLE resource
 UPDATE resource
     SET etag = encode(sha256(decode(resource.data, 'base64')),'hex') WHERE resource.data is not null;
 
+ALTER TABLE notification_request ALTER COLUMN info SET DATA TYPE varchar(1000000);
+
+CREATE TABLE IF NOT EXISTS alarm_types (
+    tenant_id uuid NOT NULL,
+    type varchar(255) NOT NULL,
+    CONSTRAINT tenant_id_type_unq_key UNIQUE (tenant_id, type),
+    CONSTRAINT fk_entity_tenant_id FOREIGN KEY (tenant_id) REFERENCES tenant(id) ON DELETE CASCADE
+);
+
+INSERT INTO alarm_types (tenant_id, type) SELECT DISTINCT tenant_id, type FROM alarm ON CONFLICT (tenant_id, type) DO NOTHING;
+
+ALTER TABLE widget_type
+    ADD COLUMN IF NOT EXISTS fqn varchar(512);
+ALTER TABLE widget_type
+    ADD COLUMN IF NOT EXISTS deprecated boolean NOT NULL DEFAULT false;
+DO
+$$
+    BEGIN
+        IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'uq_widget_type_fqn') THEN
+            UPDATE widget_type SET fqn = concat(widget_type.bundle_alias, '.', widget_type.alias);
+            ALTER TABLE widget_type ADD CONSTRAINT uq_widget_type_fqn UNIQUE (tenant_id, fqn);
+            ALTER TABLE widget_type DROP COLUMN IF EXISTS alias;
+        END IF;
+    END;
+$$;
+
+ALTER TABLE widget_type
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+DO
+$$
+    BEGIN
+        IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'widget_type_external_id_unq_key') THEN
+            ALTER TABLE widget_type ADD CONSTRAINT widget_type_external_id_unq_key UNIQUE (tenant_id, external_id);
+        END IF;
+    END;
+$$;
+
+DO
+$$
+    BEGIN
+        IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'uq_widgets_bundle_alias') THEN
+            ALTER TABLE widgets_bundle ADD CONSTRAINT uq_widgets_bundle_alias UNIQUE (tenant_id, alias);
+        END IF;
+    END;
+$$;
+
+CREATE TABLE IF NOT EXISTS widgets_bundle_widget (
+    widgets_bundle_id uuid NOT NULL,
+    widget_type_id uuid NOT NULL,
+    widget_type_order int NOT NULL DEFAULT 0,
+    CONSTRAINT widgets_bundle_widget_pkey PRIMARY KEY (widgets_bundle_id, widget_type_id),
+    CONSTRAINT fk_widgets_bundle FOREIGN KEY (widgets_bundle_id) REFERENCES widgets_bundle(id) ON DELETE CASCADE,
+    CONSTRAINT fk_widget_type FOREIGN KEY (widget_type_id) REFERENCES widget_type(id) ON DELETE CASCADE
+);
+
+DO
+$$
+    BEGIN
+        IF EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name = 'widget_type' and column_name='bundle_alias') THEN
+            INSERT INTO widgets_bundle_widget SELECT wb.id as widgets_bundle_id, wt.id as widget_type_id from widget_type wt left join widgets_bundle wb ON wt.bundle_alias = wb.alias ON CONFLICT (widgets_bundle_id, widget_type_id) DO NOTHING;
+            ALTER TABLE widget_type DROP COLUMN IF EXISTS bundle_alias;
+        END IF;
+    END;
+$$;
+
+-- WHITE LABELING ATTRIBUTES MIGRATION START
+
+CREATE TABLE IF NOT EXISTS white_labeling (
+    entity_type varchar(255),
+    entity_id uuid,
+    type VARCHAR(16),
+    settings VARCHAR(10000000),
+    domain_name VARCHAR(255) UNIQUE,
+    CONSTRAINT white_labeling_pkey PRIMARY KEY (entity_type, entity_id, type));
+
+-- move system settings
+INSERT INTO white_labeling(entity_type, entity_id, type, settings)
+    (SELECT 'TENANT', tenant_id, 'GENERAL', trim('"' FROM json_value::json ->> 'value') FROM admin_settings
+        WHERE key = 'whiteLabelParams');
+
+INSERT INTO white_labeling(entity_type, entity_id, type, settings)
+    (SELECT 'TENANT', tenant_id, 'LOGIN', trim('"' FROM json_value::json ->> 'value') FROM admin_settings
+       WHERE key = 'loginWhiteLabelParams');
+
+-- move loginWhiteLabelParams attributes
+INSERT INTO white_labeling(entity_type, entity_id, type, settings, domain_name)
+    (SELECT entity_type, entity_id, 'LOGIN', str_v, str_v::json ->> 'domainName' FROM attribute_kv
+            WHERE (entity_type, entity_id::text, attribute_type, attribute_key) in
+                (SELECT trim('"' FROM json_value::json ->> 'entityType'), trim('"' FROM json_value::json ->> 'entityId'), 'SERVER_SCOPE', 'loginWhiteLabelParams'
+            FROM admin_settings WHERE key LIKE 'loginWhiteLabelDomainNamePrefix_%'));
+
+-- move whiteLabelParams attributes
+INSERT INTO white_labeling(entity_type, entity_id, type, settings)
+    (SELECT entity_type, entity_id, 'GENERAL', str_v FROM attribute_kv
+     WHERE entity_type = 'TENANT' AND entity_id IN (SELECT id FROM TENANT) AND attribute_type = 'SERVER_SCOPE'
+       AND  attribute_key = 'whiteLabelParams');
+
+INSERT INTO white_labeling(entity_type, entity_id, type, settings)
+    (SELECT entity_type, entity_id, 'GENERAL', str_v FROM attribute_kv
+     WHERE entity_type = 'CUSTOMER' AND entity_id IN (SELECT id FROM CUSTOMER) AND attribute_type = 'SERVER_SCOPE'
+       AND  attribute_key = 'whiteLabelParams');
+
+-- delete attributes
+DELETE FROM attribute_kv WHERE entity_type = 'TENANT' AND entity_id IN (SELECT id FROM TENANT)
+                           AND attribute_type = 'SERVER_SCOPE' AND  attribute_key = 'whiteLabelParams';
+
+DELETE FROM attribute_kv WHERE entity_type = 'CUSTOMER' AND entity_id IN (SELECT id FROM CUSTOMER)
+                           AND attribute_type = 'SERVER_SCOPE' AND  attribute_key = 'whiteLabelParams';
+
+DELETE FROM attribute_kv WHERE entity_type = 'TENANT' AND entity_id IN (SELECT id FROM TENANT)
+                           AND attribute_type = 'SERVER_SCOPE' AND  attribute_key = 'loginWhiteLabelParams';
+
+DELETE FROM attribute_kv WHERE entity_type = 'CUSTOMER' AND entity_id IN (SELECT id FROM CUSTOMER)
+                           AND attribute_type = 'SERVER_SCOPE' AND  attribute_key = 'loginWhiteLabelParams';
+
+DELETE FROM admin_settings WHERE key LIKE ANY (array['loginWhiteLabel%', 'whiteLabelParams']);
+
+-- WHITE LABELING ATTRIBUTES MIGRATION END

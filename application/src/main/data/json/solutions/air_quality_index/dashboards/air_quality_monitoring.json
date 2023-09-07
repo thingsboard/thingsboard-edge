@@ -7,13 +7,7 @@
     "description": "",
     "widgets": {
       "c00ea406-a8a9-5ac2-2208-e33669f74992": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -121,7 +115,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "New Timeseries Line Chart",
           "dropShadow": false,
@@ -138,31 +143,15 @@
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
-          "showLegend": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          },
           "displayTimewindow": false
         },
         "row": 0,
         "col": 0,
-        "id": "c00ea406-a8a9-5ac2-2208-e33669f74992"
+        "id": "c00ea406-a8a9-5ac2-2208-e33669f74992",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "c1712dcd-ff4c-9933-6a92-248473692a5f": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -270,7 +259,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "New Timeseries Line Chart",
           "dropShadow": false,
@@ -287,31 +287,15 @@
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
-          "showLegend": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          },
           "displayTimewindow": false
         },
         "row": 0,
         "col": 0,
-        "id": "c1712dcd-ff4c-9933-6a92-248473692a5f"
+        "id": "c1712dcd-ff4c-9933-6a92-248473692a5f",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "6cdcfff2-5adc-0870-149e-f50390434ab9": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -419,7 +403,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "New Timeseries Line Chart",
           "dropShadow": false,
@@ -436,31 +431,15 @@
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
-          "showLegend": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          },
           "displayTimewindow": false
         },
         "row": 0,
         "col": 0,
-        "id": "6cdcfff2-5adc-0870-149e-f50390434ab9"
+        "id": "6cdcfff2-5adc-0870-149e-f50390434ab9",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "ec723461-2cbd-62fe-dbf6-a41f2a49d6c5": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -520,16 +499,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "ec723461-2cbd-62fe-dbf6-a41f2a49d6c5"
+        "id": "ec723461-2cbd-62fe-dbf6-a41f2a49d6c5",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "56c36b04-ebd8-2a8d-42b4-53156e4fb8d9": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -937,16 +911,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "56c36b04-ebd8-2a8d-42b4-53156e4fb8d9"
+        "id": "56c36b04-ebd8-2a8d-42b4-53156e4fb8d9",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "5c92a9ee-6601-9f8e-8b96-07d324a18b80": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -1013,16 +982,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "5c92a9ee-6601-9f8e-8b96-07d324a18b80"
+        "id": "5c92a9ee-6601-9f8e-8b96-07d324a18b80",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "288a08e7-9b8e-7a8d-6cf4-aab46fbec9a5": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -1129,16 +1093,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "288a08e7-9b8e-7a8d-6cf4-aab46fbec9a5"
+        "id": "288a08e7-9b8e-7a8d-6cf4-aab46fbec9a5",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "5b4c4a0f-3f54-a65d-b381-7fa6643e07f7": {
-        "isSystemType": true,
-        "bundleAlias": "maps_v2",
-        "typeAlias": "openstreetmap",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8.5,
         "sizeY": 6,
         "config": {
@@ -1356,16 +1315,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "5b4c4a0f-3f54-a65d-b381-7fa6643e07f7"
+        "id": "5b4c4a0f-3f54-a65d-b381-7fa6643e07f7",
+        "typeFullFqn": "system.maps_v2.openstreetmap"
       },
       "f4a4e04e-efab-f169-1fcc-4ec5cf9cf50f": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -1424,16 +1378,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "f4a4e04e-efab-f169-1fcc-4ec5cf9cf50f"
+        "id": "f4a4e04e-efab-f169-1fcc-4ec5cf9cf50f",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "60f4e16f-18a9-d8e8-a549-932c011a907e": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -1508,16 +1457,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "60f4e16f-18a9-d8e8-a549-932c011a907e"
+        "id": "60f4e16f-18a9-d8e8-a549-932c011a907e",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "1f308728-f19e-e1bd-eace-d54fe9833eee": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -1576,16 +1520,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "1f308728-f19e-e1bd-eace-d54fe9833eee"
+        "id": "1f308728-f19e-e1bd-eace-d54fe9833eee",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "1268f270-d1ed-61aa-3982-74be99ee8e2e": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -1644,16 +1583,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "1268f270-d1ed-61aa-3982-74be99ee8e2e"
+        "id": "1268f270-d1ed-61aa-3982-74be99ee8e2e",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "9be5e450-6dc6-8bb2-cc32-b302ff1d1fb5": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -1781,16 +1715,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "9be5e450-6dc6-8bb2-cc32-b302ff1d1fb5"
+        "id": "9be5e450-6dc6-8bb2-cc32-b302ff1d1fb5",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "78959782-7f0d-ad04-f7eb-c1cfa0e66f97": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -1924,16 +1853,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "78959782-7f0d-ad04-f7eb-c1cfa0e66f97"
+        "id": "78959782-7f0d-ad04-f7eb-c1cfa0e66f97",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "87099436-115c-812b-441b-78a679570dc6": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -2067,16 +1991,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "87099436-115c-812b-441b-78a679570dc6"
+        "id": "87099436-115c-812b-441b-78a679570dc6",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "af6983b5-90fb-386f-8341-236ef1aea420": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -2210,16 +2129,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "af6983b5-90fb-386f-8341-236ef1aea420"
+        "id": "af6983b5-90fb-386f-8341-236ef1aea420",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "ca432988-7583-e7da-8908-e0428514bcfd": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -2353,16 +2267,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "ca432988-7583-e7da-8908-e0428514bcfd"
+        "id": "ca432988-7583-e7da-8908-e0428514bcfd",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "2aa9b8d2-4faa-47b2-8fe5-2234f6883e3d": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -2496,16 +2405,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "2aa9b8d2-4faa-47b2-8fe5-2234f6883e3d"
+        "id": "2aa9b8d2-4faa-47b2-8fe5-2234f6883e3d",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "7678d70e-9f9b-1301-846d-b7ef15daadf7": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -2613,7 +2517,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "New Timeseries Line Chart",
           "dropShadow": false,
@@ -2630,31 +2545,15 @@
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
-          "showLegend": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          },
           "displayTimewindow": false
         },
         "row": 0,
         "col": 0,
-        "id": "7678d70e-9f9b-1301-846d-b7ef15daadf7"
+        "id": "7678d70e-9f9b-1301-846d-b7ef15daadf7",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "9b214b06-d47d-7d28-0a1b-346f3e8ca24c": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -2762,7 +2661,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "New Timeseries Line Chart",
           "dropShadow": false,
@@ -2779,31 +2689,15 @@
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
-          "showLegend": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          },
           "displayTimewindow": false
         },
         "row": 0,
         "col": 0,
-        "id": "9b214b06-d47d-7d28-0a1b-346f3e8ca24c"
+        "id": "9b214b06-d47d-7d28-0a1b-346f3e8ca24c",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "024bcf20-2ef4-728b-1a25-08c5535f3784": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -2911,7 +2805,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "New Timeseries Line Chart",
           "dropShadow": false,
@@ -2928,31 +2833,15 @@
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
-          "showLegend": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          },
           "displayTimewindow": false
         },
         "row": 0,
         "col": 0,
-        "id": "024bcf20-2ef4-728b-1a25-08c5535f3784"
+        "id": "024bcf20-2ef4-728b-1a25-08c5535f3784",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "3e470127-3af6-477c-f94d-ca63ea831192": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -3060,7 +2949,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "New Timeseries Line Chart",
           "dropShadow": false,
@@ -3077,31 +2977,15 @@
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
-          "showLegend": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          },
           "displayTimewindow": false
         },
         "row": 0,
         "col": 0,
-        "id": "3e470127-3af6-477c-f94d-ca63ea831192"
+        "id": "3e470127-3af6-477c-f94d-ca63ea831192",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "bf301e1f-90ba-8c8d-0ded-4277b9c5f024": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -3209,7 +3093,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "New Timeseries Line Chart",
           "dropShadow": false,
@@ -3226,31 +3121,15 @@
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
-          "showLegend": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          },
           "displayTimewindow": false
         },
         "row": 0,
         "col": 0,
-        "id": "bf301e1f-90ba-8c8d-0ded-4277b9c5f024"
+        "id": "bf301e1f-90ba-8c8d-0ded-4277b9c5f024",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "e855895c-0ca3-0560-ae4c-f3864b467abe": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -3358,7 +3237,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "New Timeseries Line Chart",
           "dropShadow": false,
@@ -3375,31 +3265,15 @@
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
-          "showLegend": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          },
           "displayTimewindow": false
         },
         "row": 0,
         "col": 0,
-        "id": "e855895c-0ca3-0560-ae4c-f3864b467abe"
+        "id": "e855895c-0ca3-0560-ae4c-f3864b467abe",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "c5264e73-8bf1-8c75-1283-5d0820156fb5": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -3507,7 +3381,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "New Timeseries Line Chart",
           "dropShadow": false,
@@ -3524,31 +3409,15 @@
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
-          "showLegend": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          },
           "displayTimewindow": false
         },
         "row": 0,
         "col": 0,
-        "id": "c5264e73-8bf1-8c75-1283-5d0820156fb5"
+        "id": "c5264e73-8bf1-8c75-1283-5d0820156fb5",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "19d9b571-dbec-9e1e-74c4-b3778c146b10": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -3656,7 +3525,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "New Timeseries Line Chart",
           "dropShadow": false,
@@ -3673,31 +3553,15 @@
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
-          "showLegend": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          },
           "displayTimewindow": false
         },
         "row": 0,
         "col": 0,
-        "id": "19d9b571-dbec-9e1e-74c4-b3778c146b10"
+        "id": "19d9b571-dbec-9e1e-74c4-b3778c146b10",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "aa5c4bc9-b205-700d-9e05-adc66f90de10": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -3805,7 +3669,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "New Timeseries Line Chart",
           "dropShadow": false,
@@ -3822,31 +3697,15 @@
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
-          "showLegend": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          },
           "displayTimewindow": false
         },
         "row": 0,
         "col": 0,
-        "id": "aa5c4bc9-b205-700d-9e05-adc66f90de10"
+        "id": "aa5c4bc9-b205-700d-9e05-adc66f90de10",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "798c6c3f-523c-923b-d4b9-8cbd63cc01ac": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -3954,7 +3813,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "New Timeseries Line Chart",
           "dropShadow": false,
@@ -3971,31 +3841,15 @@
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
-          "showLegend": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          },
           "displayTimewindow": false
         },
         "row": 0,
         "col": 0,
-        "id": "798c6c3f-523c-923b-d4b9-8cbd63cc01ac"
+        "id": "798c6c3f-523c-923b-d4b9-8cbd63cc01ac",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "041c4381-7931-1292-7bfe-a01f4952d335": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -4103,7 +3957,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "New Timeseries Line Chart",
           "dropShadow": false,
@@ -4120,31 +3985,15 @@
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
-          "showLegend": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          },
           "displayTimewindow": false
         },
         "row": 0,
         "col": 0,
-        "id": "041c4381-7931-1292-7bfe-a01f4952d335"
+        "id": "041c4381-7931-1292-7bfe-a01f4952d335",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "0d9d5cbd-6c93-dc4d-0e57-d865d67e8483": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -4252,7 +4101,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "New Timeseries Line Chart",
           "dropShadow": false,
@@ -4269,31 +4129,15 @@
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
-          "showLegend": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          },
           "displayTimewindow": false
         },
         "row": 0,
         "col": 0,
-        "id": "0d9d5cbd-6c93-dc4d-0e57-d865d67e8483"
+        "id": "0d9d5cbd-6c93-dc4d-0e57-d865d67e8483",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "80c6bd8b-96c3-919f-56b2-9b24cb808b9c": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -4401,7 +4245,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "New Timeseries Line Chart",
           "dropShadow": false,
@@ -4418,31 +4273,15 @@
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
-          "showLegend": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          },
           "displayTimewindow": false
         },
         "row": 0,
         "col": 0,
-        "id": "80c6bd8b-96c3-919f-56b2-9b24cb808b9c"
+        "id": "80c6bd8b-96c3-919f-56b2-9b24cb808b9c",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "b315a3cf-8d8c-dc59-0be8-d101ef49fc7b": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -4550,7 +4389,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "New Timeseries Line Chart",
           "dropShadow": false,
@@ -4567,31 +4417,15 @@
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
-          "showLegend": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          },
           "displayTimewindow": false
         },
         "row": 0,
         "col": 0,
-        "id": "b315a3cf-8d8c-dc59-0be8-d101ef49fc7b"
+        "id": "b315a3cf-8d8c-dc59-0be8-d101ef49fc7b",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "a0803d66-b070-361f-020b-ea575946e98e": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -4699,7 +4533,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "New Timeseries Line Chart",
           "dropShadow": false,
@@ -4716,31 +4561,15 @@
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
-          "showLegend": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          },
           "displayTimewindow": false
         },
         "row": 0,
         "col": 0,
-        "id": "a0803d66-b070-361f-020b-ea575946e98e"
+        "id": "a0803d66-b070-361f-020b-ea575946e98e",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "8b861861-8c06-c988-5fa5-23349c423571": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -4848,7 +4677,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "New Timeseries Line Chart",
           "dropShadow": false,
@@ -4865,31 +4705,15 @@
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
-          "showLegend": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          },
           "displayTimewindow": false
         },
         "row": 0,
         "col": 0,
-        "id": "8b861861-8c06-c988-5fa5-23349c423571"
+        "id": "8b861861-8c06-c988-5fa5-23349c423571",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "6f919fd2-3e4e-dded-b1ba-f43581a54712": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -4997,7 +4821,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "New Timeseries Line Chart",
           "dropShadow": false,
@@ -5014,31 +4849,15 @@
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
-          "showLegend": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          },
           "displayTimewindow": false
         },
         "row": 0,
         "col": 0,
-        "id": "6f919fd2-3e4e-dded-b1ba-f43581a54712"
+        "id": "6f919fd2-3e4e-dded-b1ba-f43581a54712",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "00ae5144-842a-68a5-1f8f-5e6269e1b7f7": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -5146,7 +4965,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "New Timeseries Line Chart",
           "dropShadow": false,
@@ -5163,22 +4993,12 @@
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
-          "showLegend": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          },
           "displayTimewindow": false
         },
         "row": 0,
         "col": 0,
-        "id": "00ae5144-842a-68a5-1f8f-5e6269e1b7f7"
+        "id": "00ae5144-842a-68a5-1f8f-5e6269e1b7f7",
+        "typeFullFqn": "system.charts.basic_timeseries"
       }
     },
     "states": {
@@ -5203,7 +5023,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5229,7 +5050,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5255,7 +5077,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5281,7 +5104,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5307,7 +5131,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5339,7 +5164,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5365,7 +5191,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5391,7 +5218,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5417,7 +5245,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5443,7 +5272,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5469,7 +5299,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5495,7 +5326,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5521,7 +5353,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5547,7 +5380,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5573,7 +5407,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5599,7 +5434,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5625,7 +5461,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5651,7 +5488,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5677,7 +5515,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5703,7 +5542,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5729,7 +5569,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5755,7 +5596,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5781,7 +5623,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5807,7 +5650,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5833,7 +5677,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5859,7 +5704,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5885,7 +5731,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5911,7 +5758,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5937,7 +5785,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5963,7 +5812,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5989,7 +5839,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -6015,7 +5866,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -6041,7 +5893,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -6067,7 +5920,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -6093,7 +5947,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }

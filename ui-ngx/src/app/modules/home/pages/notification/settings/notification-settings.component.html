@@ -1,0 +1,99 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div>
+  <mat-card appearance="outlined" class="settings-card tb-absolute-fill">
+    <mat-card-header>
+      <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.xs="8px"
+           fxLayoutAlign="space-between start" fxLayoutAlign.xs="start start">
+        <div fxFlex fxLayout="column">
+          <span class="mat-headline-5" translate>notification.settings.notification-settings</span>
+        </div>
+        <div fxLayout="column" *ngIf="resource.PROFILE | hasGenericPermission: operation.WRITE">
+          <button mat-button color="primary"
+                  [disabled]="(isLoading$ | async)"
+                  (click)="resetSettings()">{{ 'notification.settings.reset-all' | translate }}</button>
+        </div>
+      </div>
+    </mat-card-header>
+    <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">
+    </mat-progress-bar>
+    <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
+    <mat-card-content style="padding-top: 16px; overflow: hidden;">
+      <form [formGroup]="notificationSettings" class="notification-form">
+        <section class="notification-section">
+          <div  class="notification-section-block">
+            <div fxLayout="row" fxLayoutAlign="start center" style="height: 44px;">
+              <div fxFlex="50">
+                <mat-checkbox color="warn"
+                              (click)="$event.stopPropagation()"
+                              [indeterminate]="getIndeterminate()"
+                              (change)="changeInstanceTypeCheckBox($event.checked)"
+                              [checked]="getChecked()">
+                  <mat-label translate>notification.settings.type</mat-label>
+                </mat-checkbox>
+              </div>
+              <div fxFlex *ngFor="let deliveryMethods of notificationDeliveryMethods">
+                <div fxFlex fxLayoutAlign="start center">
+                  <mat-checkbox color="warn"
+                                [disabled]="!allowNotificationDeliveryMethods?.includes(deliveryMethods) || !getSomeChecked()"
+                                [checked]="getChecked(deliveryMethods)"
+                                (change)="changeInstanceTypeCheckBox($event.checked, deliveryMethods)"
+                                [indeterminate]="getIndeterminate(deliveryMethods)"
+                                (click)="$event.stopPropagation()">
+                    <mat-label>{{ notificationDeliveryMethodTranslateMap.get(deliveryMethods) | translate }}</mat-label>
+                  </mat-checkbox>
+                </div>
+              </div>
+            </div>
+            <mat-divider></mat-divider>
+            <div *ngFor="let settingsControl of notificationSettingsFormArray.controls; let i = index; let $last = last;">
+              <tb-notification-setting-form [formControl]="settingsControl"
+                                            [deliveryMethods]="notificationDeliveryMethods"
+                                            [allowDeliveryMethods]="allowNotificationDeliveryMethods">
+              </tb-notification-setting-form>
+              <mat-divider *ngIf="!$last"></mat-divider>
+            </div>
+          </div>
+        </section>
+      </form>
+    </mat-card-content>
+    <div fxLayout="row" fxLayoutAlign="end start" style="padding: 16px;" *ngIf="resource.PROFILE | hasGenericPermission: operation.WRITE">
+      <button mat-button mat-raised-button color="primary"
+              type="button"
+              (click)="save()"
+              [disabled]="(isLoading$ | async) || notificationSettings.invalid || !notificationSettings.dirty">
+        {{ 'action.save' | translate }}
+      </button>
+    </div>
+  </mat-card>
+</div>

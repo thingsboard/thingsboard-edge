@@ -29,24 +29,10 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
-  display: block;
-  overflow: scroll;
+  display: flex;
   max-width: 100%;
   .mdc-button {
     max-width: 100%;
-  }
-
-  .filters-row-mobile {
-    flex-direction: column;
-    align-items: start;
-    border: none;
-    padding: 0;
-  }
-  .filters-title-mobile {
-    font-size: 14px;
-  }
-  .filters-fields-width-mobile {
-    width: 100%;
   }
 }
 
@@ -60,9 +46,21 @@
       text-overflow: ellipsis;
     }
   }
-  .mat-mdc-chip {
-    .mdc-evolution-chip__cell, .mat-mdc-chip-action, .mat-mdc-chip-action-label {
-      overflow: hidden;
+}
+
+::ng-deep {
+  .tb-alarm-filter-config-component {
+    flex: 1;
+
+    tb-entity-subtype-list {
+      flex: 1;
+      width: 180px;
+    }
+
+    .mat-mdc-chip {
+      .mdc-evolution-chip__cell, .mat-mdc-chip-action, .mat-mdc-chip-action-label {
+        overflow: hidden;
+      }
     }
   }
 }

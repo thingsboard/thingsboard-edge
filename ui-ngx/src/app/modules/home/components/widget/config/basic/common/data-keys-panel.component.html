@@ -33,7 +33,7 @@
 <div class="tb-form-panel">
   <div class="tb-form-panel-title">{{ panelTitle }}</div>
   <div class="tb-form-table">
-    <div class="tb-form-table-header">
+    <div class="tb-form-table-header no-padding-right">
       <div *ngIf="hasAdditionalLatestDataKeys" class="tb-form-table-header-cell tb-source-header" translate>datakey.source</div>
       <div class="tb-form-table-header-cell tb-key-header" translate>datakey.key</div>
       <div class="tb-form-table-header-cell tb-label-header" translate>datakey.label</div>
@@ -47,7 +47,7 @@
          [cdkDropListDisabled]="!dragEnabled"
          (cdkDropListDropped)="keyDrop($event)">
       <div cdkDrag [cdkDragDisabled]="!dragEnabled"
-           class="tb-form-table-row tb-draggable"
+           class="tb-draggable-form-table-row"
            *ngFor="let keyControl of keysFormArray().controls; trackBy: trackByKey; let $index = index;">
         <tb-data-key-row fxFlex
                          [formControl]="keyControl"
@@ -57,7 +57,8 @@
                          (keyRemoved)="removeKey($index)">
         </tb-data-key-row>
         <div class="tb-form-table-row-cell-buttons">
-          <button mat-icon-button
+          <button fxHide.lt-lg
+                  mat-icon-button
                   type="button"
                   cdkDragHandle
                   [ngClass]="{'tb-hidden': !dragEnabled}"

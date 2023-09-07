@@ -29,24 +29,27 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, Inject, Input, Optional } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, Input, OnDestroy, OnInit, Optional } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../entity/entity.component';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import {
   Converter,
   ConverterDebugInput,
   ConverterType,
-  converterTypeTranslationMap
+  converterTypeTranslationMap,
+  DefaultUpdateOnlyKeys,
+  DefaultUpdateOnlyKeysValue,
+  IntegrationTbelDefaultConvertersUrl,
+  jsDefaultConvertorsUrl,
+  LatestConverterParameters,
+  tbelDefaultConvertorsUrl
 } from '@shared/models/converter.models';
 
-import jsDecoderTemplate from '!raw-loader!./js-decoder.raw';
-import tbelDecoderTemplate from '!raw-loader!./tbel-decoder.raw';
-import jsEncoderTemplate from '!raw-loader!./js-encoder.raw';
-import tbelEncoderTemplate from '!raw-loader!./tbel-encoder.raw';
+import { ResourcesService } from '@core/services/resources.service';
 import { ConverterService } from '@core/http/converter.service';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { MatDialog } from '@angular/material/dialog';
@@ -56,16 +59,46 @@ import {
 } from '@home/components/converter/converter-test-dialog.component';
 import { ScriptLanguage } from '@shared/models/rule-node.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
+import { IntegrationType } from '@shared/models/integration.models';
+import { isDefinedAndNotNull, isNotEmptyStr } from '@core/utils';
+import { NULL_UUID } from '@shared/models/id/has-uuid';
+import { takeUntil } from 'rxjs/operators';
+import { Observable, Subject } from 'rxjs';
 
 @Component({
   selector: 'tb-converter',
   templateUrl: './converter.component.html',
   styleUrls: []
 })
-export class ConverterComponent extends EntityComponent<Converter> {
+export class ConverterComponent extends EntityComponent<Converter> implements OnInit, OnDestroy {
+
+  private _integrationType: IntegrationType;
 
   @Input()
   hideType = false;
+
+  @Input()
+  set integrationType(value: IntegrationType) {
+    this._integrationType = value;
+    if (isDefinedAndNotNull(value)) {
+      this.updatedOnlyKeysValue();
+      this.setupDefaultScriptBody(this.entityForm.get('type').value);
+    }
+  }
+
+  get integrationType() {
+    return this._integrationType;
+  }
+
+  @Input()
+  set convertorName(value: string) {
+    if (isDefinedAndNotNull(value) && this.entityForm.get('name').pristine) {
+      this.entityForm.get('name').patchValue(value, {emitEvent: false});
+    }
+  }
+
+  @Input()
+  integrationName: string;
 
   converterType = ConverterType;
 
@@ -77,19 +110,41 @@ export class ConverterComponent extends EntityComponent<Converter> {
 
   scriptLanguage = ScriptLanguage;
 
+  private defaultUpdateOnlyKeysByIntegrationType: DefaultUpdateOnlyKeys = {};
+  private destroy$ = new Subject<void>();
+
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
               private converterService: ConverterService,
               private dialog: MatDialog,
+              private resourcesService: ResourcesService,
               @Optional() @Inject('entity') protected entityValue: Converter,
               @Optional() @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<Converter>,
-              protected fb: UntypedFormBuilder,
+              protected fb: FormBuilder,
               protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
+    this.resourcesService.loadJsonResource<DefaultUpdateOnlyKeys>('/assets/converters/default-update-only-keys.json')
+        .subscribe(value => this.defaultUpdateOnlyKeysByIntegrationType = value);
   }
 
   ngOnInit() {
-    super.ngOnInit();
+    this.entityForm.get('type').valueChanges.pipe(
+        takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.converterTypeChanged();
+    });
+    this.entityForm.get('configuration.scriptLang').valueChanges.pipe(
+        takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.setupDefaultScriptBody(this.entityForm.get('type').value);
+    });
+    this.checkIsNewConverter(this.entity, this.entityForm);
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   hideDelete() {
@@ -100,20 +155,21 @@ export class ConverterComponent extends EntityComponent<Converter> {
     }
   }
 
-  buildForm(entity: Converter): UntypedFormGroup {
+  buildForm(entity: Converter): FormGroup {
     this.tbelEnabled = getCurrentAuthState(this.store).tbelEnabled;
     const form = this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
-        type: [entity ? entity.type : null, [Validators.required]],
-        debugMode: [entity ? entity.debugMode : null],
+        type: [entity?.type ? entity.type : ConverterType.UPLINK, [Validators.required]],
+        debugMode: [entity?.debugMode ? entity.debugMode : true],
         configuration: this.fb.group(
           {
-            scriptLang: [entity && entity.configuration ? entity.configuration.scriptLang : ScriptLanguage.JS],
-            decoder: [entity && entity.configuration ? entity.configuration.decoder : null],
-            tbelDecoder: [entity && entity.configuration ? entity.configuration.tbelDecoder : null],
-            encoder: [entity && entity.configuration ? entity.configuration.encoder : null],
-            tbelEncoder: [entity && entity.configuration ? entity.configuration.tbelEncoder : null],
+            scriptLang: [entity?.configuration ? entity.configuration.scriptLang : ScriptLanguage.JS],
+            decoder: [entity?.configuration ? entity.configuration.decoder : null],
+            tbelDecoder: [entity?.configuration ? entity.configuration.tbelDecoder : null],
+            encoder: [entity?.configuration ? entity.configuration.encoder : null],
+            tbelEncoder: [entity?.configuration ? entity.configuration.tbelEncoder : null],
+            updateOnlyKeys: [entity?.configuration ? entity.configuration.updateOnlyKeys : []],
           }
         ),
         additionalInfo: this.fb.group(
@@ -123,83 +179,93 @@ export class ConverterComponent extends EntityComponent<Converter> {
         )
       }
     );
-    form.get('type').valueChanges.subscribe(() => {
-      this.converterTypeChanged(form);
-    });
-    form.get('configuration').get('scriptLang').valueChanges.subscribe(() => {
-      this.converterScriptLangChanged(form);
-    });
-    this.checkIsNewConverter(entity, form);
     return form;
   }
 
-  private checkIsNewConverter(entity: Converter, form: UntypedFormGroup) {
+  private checkIsNewConverter(entity: Converter, form: FormGroup) {
     if (entity && !entity.id) {
       form.get('type').patchValue(entity.type || ConverterType.UPLINK, {emitEvent: true});
-      form.get('configuration').get('scriptLang').patchValue(
-        this.tbelEnabled ? ScriptLanguage.TBEL : ScriptLanguage.JS, {emitEvent: false});
-      form.get('type').patchValue(entity.type || ConverterType.UPLINK, {emitEvent: true});
+      form.get('configuration.scriptLang').patchValue(
+        this.tbelEnabled ? ScriptLanguage.TBEL : ScriptLanguage.JS, {emitEvent: true});
     } else {
       form.get('type').disable({emitEvent: false});
-      let scriptLang: ScriptLanguage = form.get('configuration').get('scriptLang').value;
+      let scriptLang: ScriptLanguage = form.get('configuration.scriptLang').value;
       if (scriptLang === ScriptLanguage.TBEL && !this.tbelEnabled) {
         scriptLang = ScriptLanguage.JS;
-        form.get('configuration').get('scriptLang').patchValue(scriptLang, {emitEvent: true});
+        form.get('configuration.scriptLang').patchValue(scriptLang, {emitEvent: true});
       }
     }
   }
 
-  private converterTypeChanged(form: UntypedFormGroup) {
-    const converterType: ConverterType = form.get('type').value;
+  private updatedOnlyKeysValue() {
+    let updateOnlyKeys = DefaultUpdateOnlyKeysValue;
+    if (this.defaultUpdateOnlyKeysByIntegrationType.hasOwnProperty(this.integrationType)) {
+      updateOnlyKeys = this.defaultUpdateOnlyKeysByIntegrationType[this.integrationType];
+    }
+    this.entityForm.get('configuration').patchValue({updateOnlyKeys}, {emitEvent: false});
+  }
+
+  private converterTypeChanged() {
+    const converterType: ConverterType = this.entityForm.get('type').value;
     if (converterType) {
       if (converterType === ConverterType.UPLINK) {
-        form.get('configuration').get('encoder').patchValue(null, {emitEvent: false});
-        form.get('configuration').get('tbelEncoder').patchValue(null, {emitEvent: false});
+        this.entityForm.get('configuration').patchValue({
+          decoder: null,
+          tbelDecoder: null
+        }, {emitEvent: false});
+        this.updatedOnlyKeysValue();
       } else {
-        form.get('configuration').get('decoder').patchValue(null, {emitEvent: false});
-        form.get('configuration').get('tbelDecoder').patchValue(null, {emitEvent: false});
+        this.entityForm.get('configuration').patchValue({
+          encoder: null,
+          tbelEncoder: null,
+        }, {emitEvent: false});
       }
-      this.setupDefaultScriptBody(form, converterType);
+      this.setupDefaultScriptBody(converterType);
     }
   }
 
-  private converterScriptLangChanged(form: UntypedFormGroup) {
-    const converterType: ConverterType = form.get('type').value;
-    this.setupDefaultScriptBody(form, converterType);
-  }
-
-  private setupDefaultScriptBody(form: UntypedFormGroup, converterType: ConverterType) {
-    const scriptLang: ScriptLanguage = form.get('configuration').get('scriptLang').value;
+  private setupDefaultScriptBody(converterType: ConverterType) {
+    const scriptLang: ScriptLanguage = this.entityForm.get('configuration.scriptLang').value;
     let targetField: string;
-    let targetTemplate: string;
+    let targetTemplateUrl: string;
     if (scriptLang === ScriptLanguage.JS) {
       targetField = converterType === ConverterType.UPLINK ? 'decoder' : 'encoder';
-      targetTemplate = converterType === ConverterType.UPLINK ? jsDecoderTemplate : jsEncoderTemplate;
+      targetTemplateUrl = jsDefaultConvertorsUrl.get(converterType);
     } else {
       targetField = converterType === ConverterType.UPLINK ? 'tbelDecoder' : 'tbelEncoder';
-      targetTemplate = converterType === ConverterType.UPLINK ? tbelDecoderTemplate : tbelEncoderTemplate;
+      if(converterType === ConverterType.UPLINK && IntegrationTbelDefaultConvertersUrl.has(this.integrationType)) {
+        targetTemplateUrl = IntegrationTbelDefaultConvertersUrl.get(this.integrationType);
+      } else {
+        targetTemplateUrl = tbelDefaultConvertorsUrl.get(converterType);
+      }
     }
-    const scriptBody: string = form.get('configuration').get(targetField).value;
-    if (!scriptBody || !scriptBody.length) {
-      form.get('configuration').get(targetField).patchValue(targetTemplate, {emitEvent: false});
+
+    const scriptBody: string = this.entityForm.get('configuration').get(targetField).value;
+    if (!isNotEmptyStr(scriptBody) || isDefinedAndNotNull(this.integrationType)) {
+      this.resourcesService.loadJsonResource<string>(targetTemplateUrl).subscribe((template) => {
+        this.entityForm.get('configuration').get(targetField).patchValue(template, {emitEvent: false});
+      });
     }
   }
 
   updateForm(entity: Converter) {
     const scriptLang = entity.configuration && entity.configuration.scriptLang ? entity.configuration.scriptLang : ScriptLanguage.JS;
-    this.entityForm.patchValue({name: entity.name});
-    this.entityForm.patchValue({type: entity.type}, {emitEvent: false});
-    this.entityForm.patchValue({debugMode: entity.debugMode});
-    this.entityForm.patchValue({configuration:
-        {
-          scriptLang,
-          decoder: entity.configuration ? entity.configuration.decoder : null,
-          tbelDecoder: entity.configuration ? entity.configuration.tbelDecoder : null,
-          encoder: entity.configuration ? entity.configuration.encoder : null,
-          tbelEncoder: entity.configuration ? entity.configuration.tbelEncoder : null
-        }
-    });
-    this.entityForm.patchValue({additionalInfo: {description: entity.additionalInfo ? entity.additionalInfo.description : ''}});
+    this.entityForm.patchValue({
+      type: entity.type,
+      name: entity?.name ? entity.name : '',
+      debugMode: entity?.debugMode ? entity.debugMode : true,
+      configuration: {
+        scriptLang,
+        decoder: entity.configuration ? entity.configuration.decoder : null,
+        tbelDecoder: entity.configuration ? entity.configuration.tbelDecoder : null,
+        encoder: entity.configuration ? entity.configuration.encoder : null,
+        tbelEncoder: entity.configuration ? entity.configuration.tbelEncoder : null,
+        updateOnlyKeys: entity.configuration ? entity.configuration.updateOnlyKeys : []
+      },
+      additionalInfo: {
+        description: entity.additionalInfo ? entity.additionalInfo.description : ''
+      }
+    }, {emitEvent: false});
     this.checkIsNewConverter(entity, this.entityForm);
   }
 
@@ -215,21 +281,32 @@ export class ConverterComponent extends EntityComponent<Converter> {
   }
 
   openConverterTestDialog() {
+    let request: Observable<ConverterDebugInput>;
     if (this.entity.id) {
-      this.converterService.getLatestConverterDebugInput(this.entity.id.id).subscribe(
-        (debugIn) => {
-          this.showConverterTestDialog(debugIn);
-        }
-      );
+      request = this.converterService.getLatestConverterDebugInput(this.entity.id.id);
     } else {
-      this.showConverterTestDialog(null);
+      const parameters: LatestConverterParameters = {
+        converterType: this.entityForm.get('type').value
+      };
+
+      if (this.integrationName && this.integrationType) {
+        parameters.integrationName = this.integrationName;
+        parameters.integrationType = this.integrationType;
+      }
+
+      request = this.converterService.getLatestConverterDebugInput(NULL_UUID, parameters);
     }
+    request.subscribe(
+      (debugIn) => {
+        this.showConverterTestDialog(debugIn);
+      }
+    );
   }
 
   showConverterTestDialog(debugIn: ConverterDebugInput, setFirstTab = false) {
-    const isDecoder = this.entityForm.get('type').value === ConverterType.UPLINK
+    const isDecoder = this.entityForm.get('type').value === ConverterType.UPLINK;
     const scriptLang: ScriptLanguage = this.entityForm.get('configuration').get('scriptLang').value;
-    let targetField;
+    let targetField: string;
     if (scriptLang === ScriptLanguage.JS) {
       targetField = isDecoder ? 'decoder' : 'encoder';
     } else {
@@ -247,7 +324,9 @@ export class ConverterComponent extends EntityComponent<Converter> {
           scriptLang
         }
       })
-      .afterClosed().subscribe((result) => {
+      .afterClosed().pipe(
+        takeUntil(this.destroy$)
+    ).subscribe((result) => {
         if (result !== null) {
           if (setFirstTab) {
             if (this.isDetailsPage) {

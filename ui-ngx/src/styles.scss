@@ -640,8 +640,35 @@ mat-label {
         color: white;
       }
     } */
-    .mat-mdc-select-value, .mat-mdc-select-arrow {
+    .mat-mdc-select-value, .mat-mdc-select-arrow, .mat-mdc-select-arrow:after {
       color: inherit;
+    }
+    .mat-mdc-text-field-wrapper {
+      &.mdc-text-field--outlined {
+        &:not(.mdc-text-field--focused):not(.mdc-text-field--disabled):not(.mdc-text-field--invalid) {
+          &:not(:hover) {
+            .mdc-notched-outline {
+              .mdc-notched-outline__leading, .mdc-notched-outline__trailing {
+                border-color: white;
+              }
+            }
+          }
+          &:hover {
+            .mdc-notched-outline {
+              .mdc-notched-outline__leading, .mdc-notched-outline__trailing {
+                border-color: rgba(255, 255, 255, 0.87);
+              }
+            }
+          }
+        }
+        &:not(.mdc-text-field--disabled).mdc-text-field--focused {
+          .mdc-notched-outline {
+            .mdc-notched-outline__leading, .mdc-notched-outline__trailing {
+              border-color: rgba(255, 255, 255, 0.67);
+            }
+          }
+        }
+      }
     }
   }
 
@@ -678,6 +705,25 @@ mat-label {
     table-layout: auto;
     border-collapse: separate;
     margin: 0;
+  }
+
+  .tb-table-widget {
+    .mat-mdc-table {
+      .mat-mdc-row {
+        font-size: 13px;
+      }
+
+      .mat-mdc-cell {
+        background: inherit;
+        color: inherit;
+        font-size: inherit;
+        font-family: inherit;
+        font-weight: inherit;
+        line-height: inherit;
+        letter-spacing: inherit;
+        text-transform: inherit;
+      }
+    }
   }
 
   .mat-mdc-footer-row::after, .mat-mdc-header-row::after, .mat-mdc-row::after {
@@ -842,6 +888,9 @@ mat-label {
   .mat-icon {
     svg {
       vertical-align: inherit;
+    }
+    &.tb-mat-12 {
+      @include tb-mat-icon-size(12);
     }
     &.tb-mat-16 {
       @include tb-mat-icon-size(16);
@@ -1192,4 +1241,7 @@ mat-label {
     color: inherit;
   }
 
+  .cursor-pointer {
+    cursor: pointer;
+  }
 }

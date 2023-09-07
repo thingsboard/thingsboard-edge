@@ -31,7 +31,7 @@
 
 import { Component, forwardRef, Input, OnInit, Renderer2, ViewContainerRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { ColorSettings, ColorType, ComponentStyle } from '@home/components/widget/config/widget-settings.models';
+import { ColorSettings, ColorType, ComponentStyle } from '@shared/models/widget-settings.models';
 import { MatButton } from '@angular/material/button';
 import { TbPopoverService } from '@shared/components/popover.service';
 import {
@@ -114,7 +114,7 @@ export class ColorSettingsComponent implements OnInit, ControlValueAccessor {
   }
 
   private updateColorStyle() {
-    if (!this.disabled) {
+    if (!this.disabled && this.modelValue) {
       let colors: string[] = [this.modelValue.color];
       if (this.modelValue.type === ColorType.range && this.modelValue.rangeList?.length) {
         const rangeColors = this.modelValue.rangeList.slice(0, Math.min(2, this.modelValue.rangeList.length)).map(r => r.color);

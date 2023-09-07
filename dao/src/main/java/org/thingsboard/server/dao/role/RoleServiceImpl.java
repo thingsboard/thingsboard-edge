@@ -50,6 +50,8 @@ import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
@@ -95,6 +97,8 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
         try {
             Role savedRole = roleDao.save(tenantId, role);
             publishEvictEvent(new RoleEvictEvent(savedRole.getId()));
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entityId(savedRole.getId())
+                    .added(role.getId() == null).build());
             return savedRole;
         } catch (Exception t) {
             checkConstraintViolation(t,
@@ -166,6 +170,7 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
         deleteEntityRelations(tenantId, roleId);
         roleDao.removeById(tenantId, roleId.getId());
         publishEvictEvent(new RoleEvictEvent(roleId));
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(roleId).build());
     }
 
     @Override

@@ -44,16 +44,13 @@ import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
-import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 
-import java.util.concurrent.ExecutionException;
-
 import static org.thingsboard.common.util.DonAsynchron.withCallback;
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @Slf4j
 @RuleNode(
@@ -84,14 +81,14 @@ public class TbTwilioVoiceNode implements TbNode {
     public void onMsg(TbContext ctx, TbMsg msg) {
         var tbMsg = ackIfNeeded(ctx, msg);
         withCallback(ctx.getExternalCallExecutor().executeAsync(() -> {
-                    sendVoiceMessage(ctx, tbMsg);
+                    sendVoiceMessage(tbMsg);
                     return null;
                 }),
                 ok -> {
                     if (forceAck) {
-                        ctx.enqueueForTellNext(tbMsg.copyWithNewCtx(), TbRelationTypes.SUCCESS);
+                        ctx.enqueueForTellNext(tbMsg.copyWithNewCtx(), TbNodeConnectionType.SUCCESS);
                     } else {
-                        ctx.tellNext(tbMsg, SUCCESS);
+                        ctx.tellSuccess(tbMsg);
                     }
                 },
                 fail -> {
@@ -112,7 +109,7 @@ public class TbTwilioVoiceNode implements TbNode {
         }
     }
 
-    private void sendVoiceMessage(TbContext ctx, TbMsg msg) throws Exception {
+    private void sendVoiceMessage(TbMsg msg) throws Exception {
         String numberFrom = TbNodeUtils.processPattern(this.config.getNumberFrom(), msg);
         String numbersTo = TbNodeUtils.processPattern(this.config.getNumbersTo(), msg);
 

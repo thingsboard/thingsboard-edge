@@ -566,5 +566,4 @@ export class UtilsService {
     }
     return getComputedStyle(this.window.document.documentElement).getPropertyValue(variable);
   }
-
 }

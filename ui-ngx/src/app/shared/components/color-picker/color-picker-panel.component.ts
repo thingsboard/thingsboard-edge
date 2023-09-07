@@ -55,6 +55,10 @@ export class ColorPickerPanelComponent extends PageComponent implements OnInit {
 
   @Input()
   @coerceBoolean()
+  colorClearButton = false;
+
+  @Input()
+  @coerceBoolean()
   useThemePalette: boolean;
 
   @Input()
@@ -148,7 +152,7 @@ export class ColorPickerPanelComponent extends PageComponent implements OnInit {
     this.colorSelected.emit(color);
   }
 
-  private getColor() {
+  getColor() {
     switch (this.colorMode) {
       case 'color':
         return this.plainColor;
@@ -157,5 +161,9 @@ export class ColorPickerPanelComponent extends PageComponent implements OnInit {
       case 'accent':
         return this.accentColor;
     }
+  }
+
+  clearColor() {
+    this.colorSelected.emit(null);
   }
 }
