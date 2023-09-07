@@ -59,7 +59,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by zbeacon on 06.09.20.
@@ -75,7 +74,7 @@ public class ChirpStackIntegration extends BasicHttpIntegration<JsonHttpIntegrat
     private static final String DEVICE_DOWNLINK_QUEUE_PARAMETER = "deviceQueueItem";
     private static final String DOWNLINK_QUEUE_PARAMETER = "queueItem";
 
-    private boolean useNewAPI;
+    private boolean useAPI4Plus;
 
     private String applicationServerUrl = "";
     private String applicationServerAPIToken = "";
@@ -91,7 +90,7 @@ public class ChirpStackIntegration extends BasicHttpIntegration<JsonHttpIntegrat
         if (json.get("clientConfiguration").has("applicationServerAPIToken")) {
             applicationServerUrl = json.get("clientConfiguration").get("applicationServerUrl").asText();
             applicationServerAPIToken = json.get("clientConfiguration").get("applicationServerAPIToken").asText();
-            useNewAPI = json.get("clientConfiguration").get("useNewAPI").asBoolean();
+            useAPI4Plus = json.get("clientConfiguration").get("useAPI4Plus").asBoolean();
         }
         devicesUrl = applicationServerUrl + DEVICES_ENDPOINT;
     }
@@ -176,7 +175,7 @@ public class ChirpStackIntegration extends BasicHttpIntegration<JsonHttpIntegrat
     }
 
     private ObjectNode createBodyForParameter(Map<String, String> metadata, String payload) {
-        String downlinkQueueParameter = useNewAPI ? DOWNLINK_QUEUE_PARAMETER : DEVICE_DOWNLINK_QUEUE_PARAMETER;
+        String downlinkQueueParameter = useAPI4Plus ? DOWNLINK_QUEUE_PARAMETER : DEVICE_DOWNLINK_QUEUE_PARAMETER;
         ObjectNode body = JacksonUtil.newObjectNode();
         ObjectNode queue = body.putObject(downlinkQueueParameter);
         if (metadata.containsKey(CONFIRMED)) {
