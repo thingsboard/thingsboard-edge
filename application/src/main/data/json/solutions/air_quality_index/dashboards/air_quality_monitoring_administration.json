@@ -7,13 +7,7 @@
     "description": "",
     "widgets": {
       "0fccdd88-4852-2806-aa5b-d7853adc4088": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 7.5,
         "sizeY": 6.5,
         "config": {
@@ -65,7 +59,7 @@
           "titleStyle": {
             "fontSize": "14px",
             "fontWeight": 500,
-            "padding": "5px 10px 5px 10px",
+            "padding": "5px 10px 5px 5px",
             "color": "#29313C"
           },
           "useDashboardTimewindow": false,
@@ -268,16 +262,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "0fccdd88-4852-2806-aa5b-d7853adc4088"
+        "id": "0fccdd88-4852-2806-aa5b-d7853adc4088",
+        "typeFullFqn": "system.cards.entities_table"
       },
       "8036e24e-24c8-cff5-3bb8-540e7c2ffafc": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
         "type": "alarm",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 10.5,
         "sizeY": 6.5,
         "config": {
@@ -325,7 +314,7 @@
           "titleStyle": {
             "fontSize": "14px",
             "fontWeight": 500,
-            "padding": "5px 10px 5px 10px",
+            "padding": "5px 10px 5px 2px",
             "color": "#29313C"
           },
           "useDashboardTimewindow": false,
@@ -378,7 +367,6 @@
               }
             ]
           },
-          "alarmSearchStatus": "ANY",
           "alarmsPollingInterval": 5,
           "showTitleIcon": false,
           "titleIcon": "more_horiz",
@@ -405,28 +393,25 @@
               }
             ]
           },
-          "alarmStatusList": [],
-          "alarmSeverityList": [],
-          "alarmTypeList": [],
-          "searchPropagatedAlarms": true,
           "datasources": [],
           "enableDataExport": true,
           "widgetCss": "",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "alarmFilterConfig": {
+            "statusList": [],
+            "severityList": [],
+            "typeList": [],
+            "searchPropagatedAlarms": true
+          }
         },
         "row": 0,
         "col": 0,
-        "id": "8036e24e-24c8-cff5-3bb8-540e7c2ffafc"
+        "id": "8036e24e-24c8-cff5-3bb8-540e7c2ffafc",
+        "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
       "7adac828-1986-b488-ad2e-cbc07f5f800c": {
-        "isSystemType": true,
-        "bundleAlias": "maps_v2",
-        "typeAlias": "openstreetmap",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8.5,
         "sizeY": 6,
         "config": {
@@ -654,16 +639,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "7adac828-1986-b488-ad2e-cbc07f5f800c"
+        "id": "7adac828-1986-b488-ad2e-cbc07f5f800c",
+        "typeFullFqn": "system.maps_v2.openstreetmap"
       },
       "e98b4083-21bb-df07-c889-047db0c7b0d0": {
-        "isSystemType": true,
-        "bundleAlias": "input_widgets",
-        "typeAlias": "markers_placement_openstreetmap",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8.5,
         "sizeY": 6.5,
         "config": {
@@ -873,16 +853,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "e98b4083-21bb-df07-c889-047db0c7b0d0"
+        "id": "e98b4083-21bb-df07-c889-047db0c7b0d0",
+        "typeFullFqn": "system.input_widgets.markers_placement_openstreetmap"
       },
       "5e0db7e2-78da-079f-47d2-960355026472": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
         "type": "alarm",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 10.5,
         "sizeY": 6.5,
         "config": {
@@ -930,7 +905,7 @@
           "titleStyle": {
             "fontSize": "14px",
             "fontWeight": 500,
-            "padding": "5px 10px 5px 10px",
+            "padding": "5px 10px 5px 2px",
             "color": "#29313C"
           },
           "useDashboardTimewindow": false,
@@ -969,7 +944,6 @@
               }
             ]
           },
-          "alarmSearchStatus": "ANY",
           "alarmsPollingInterval": 5,
           "showTitleIcon": false,
           "titleIcon": "more_horiz",
@@ -979,28 +953,25 @@
           "widgetStyle": {},
           "displayTimewindow": true,
           "actions": {},
-          "alarmStatusList": [],
-          "alarmSeverityList": [],
-          "alarmTypeList": [],
-          "searchPropagatedAlarms": true,
           "datasources": [],
           "enableDataExport": true,
           "widgetCss": "",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "alarmFilterConfig": {
+            "statusList": [],
+            "severityList": [],
+            "typeList": [],
+            "searchPropagatedAlarms": true
+          }
         },
         "row": 0,
         "col": 0,
-        "id": "5e0db7e2-78da-079f-47d2-960355026472"
+        "id": "5e0db7e2-78da-079f-47d2-960355026472",
+        "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
       "b89177ac-8f67-3ae5-dfc8-945d995ced41": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -1134,16 +1105,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "b89177ac-8f67-3ae5-dfc8-945d995ced41"
+        "id": "b89177ac-8f67-3ae5-dfc8-945d995ced41",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "f6c53e71-6c41-71c4-842b-9f071a4dd168": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -1341,16 +1307,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "f6c53e71-6c41-71c4-842b-9f071a4dd168"
+        "id": "f6c53e71-6c41-71c4-842b-9f071a4dd168",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "b2fcb4c5-983f-982b-bc76-7d30c7ac64ef": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -1444,7 +1405,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "Battery level",
           "dropShadow": false,
@@ -1452,7 +1424,7 @@
           "titleStyle": {
             "fontSize": "14px",
             "fontWeight": 500,
-            "padding": "5px 10px 5px 10px",
+            "padding": "5px 10px 5px 0px",
             "color": "#29313C"
           },
           "showTitleIcon": false,
@@ -1462,31 +1434,15 @@
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
-          "showLegend": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          },
           "useDashboardTimewindow": true
         },
         "row": 0,
         "col": 0,
-        "id": "b2fcb4c5-983f-982b-bc76-7d30c7ac64ef"
+        "id": "b2fcb4c5-983f-982b-bc76-7d30c7ac64ef",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "39bbfa4f-50c4-c888-8a4e-670c9da231d4": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "state_chart",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -1583,7 +1539,16 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              ",position": "bottom",
+              "showMin": false,
+              "showMax": false,
+              "showAvg": false,
+              "showTotal": false
+            }
           },
           "title": "Connection",
           "dropShadow": false,
@@ -1596,16 +1561,7 @@
           },
           "widgetStyle": {},
           "useDashboardTimewindow": true,
-          "showLegend": false,
           "actions": {},
-          "legendConfig": {
-            "direction": "column",
-            ",position": "bottom",
-            "showMin": false,
-            "showMax": false,
-            "showAvg": false,
-            "showTotal": false
-          },
           "showTitleIcon": false,
           "titleTooltip": "",
           "enableDataExport": true,
@@ -1615,7 +1571,8 @@
         },
         "row": 0,
         "col": 0,
-        "id": "39bbfa4f-50c4-c888-8a4e-670c9da231d4"
+        "id": "39bbfa4f-50c4-c888-8a4e-670c9da231d4",
+        "typeFullFqn": "system.charts.state_chart"
       }
     },
     "states": {
@@ -1652,7 +1609,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -1708,7 +1666,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
