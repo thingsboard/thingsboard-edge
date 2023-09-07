@@ -75,7 +75,7 @@ public class ChirpStackIntegration extends BasicHttpIntegration<JsonHttpIntegrat
     private static final String DEVICE_DOWNLINK_QUEUE_PARAMETER = "deviceQueueItem";
     private static final String DOWNLINK_QUEUE_PARAMETER = "queueItem";
 
-    private final AtomicBoolean useNewAPI = new AtomicBoolean(false);
+    private boolean useNewAPI;
 
     private String applicationServerUrl = "";
     private String applicationServerAPIToken = "";
@@ -91,6 +91,7 @@ public class ChirpStackIntegration extends BasicHttpIntegration<JsonHttpIntegrat
         if (json.get("clientConfiguration").has("applicationServerAPIToken")) {
             applicationServerUrl = json.get("clientConfiguration").get("applicationServerUrl").asText();
             applicationServerAPIToken = json.get("clientConfiguration").get("applicationServerAPIToken").asText();
+            useNewAPI = json.get("clientConfiguration").get("useNewAPI").asBoolean();
         }
         devicesUrl = applicationServerUrl + DEVICES_ENDPOINT;
     }
@@ -161,7 +162,6 @@ public class ChirpStackIntegration extends BasicHttpIntegration<JsonHttpIntegrat
                     try {
                         httpClient.postForEntity(devicesUrl + "/" + metadata.get(DEV_EUI) + "/queue", createRequest(body), String.class);
                     } catch (HttpClientErrorException.BadRequest e) {
-                        this.useNewAPI.set(true);
                         log.debug("Failed to send downlink message with deviceQueueItem parameter, sending with queueItem...");
                         body = createBodyForParameter(metadata, payload);
                         httpClient.postForEntity(devicesUrl + "/" + metadata.get(DEV_EUI) + "/queue", createRequest(body), String.class);
@@ -176,7 +176,7 @@ public class ChirpStackIntegration extends BasicHttpIntegration<JsonHttpIntegrat
     }
 
     private ObjectNode createBodyForParameter(Map<String, String> metadata, String payload) {
-        String downlinkQueueParameter = useNewAPI.get() ? DOWNLINK_QUEUE_PARAMETER : DEVICE_DOWNLINK_QUEUE_PARAMETER;
+        String downlinkQueueParameter = useNewAPI ? DOWNLINK_QUEUE_PARAMETER : DEVICE_DOWNLINK_QUEUE_PARAMETER;
         ObjectNode body = JacksonUtil.newObjectNode();
         ObjectNode queue = body.putObject(downlinkQueueParameter);
         if (metadata.containsKey(CONFIRMED)) {
