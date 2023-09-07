@@ -39,7 +39,10 @@ import {
   dataKeySelectOptionValidator
 } from '@home/components/widget/lib/settings/input/datakey-select-option.component';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
-import { MultipleInputWidgetDataKeyValueType } from '@home/components/widget/lib/multiple-input-widget.component';
+import {
+  MultipleInputWidgetDataKeyEditableType,
+  MultipleInputWidgetDataKeyValueType
+} from '@home/components/widget/lib/multiple-input-widget.component';
 
 @Component({
   selector: 'tb-update-multiple-attributes-key-settings',
@@ -67,6 +70,8 @@ export class UpdateMultipleAttributesKeySettingsComponent extends WidgetSettings
       required: false,
       isEditable: 'editable',
       disabledOnDataKey: '',
+      appearance: 'outline',
+      subscriptSizing: 'fixed',
 
       slideToggleLabelPosition: 'after',
       selectOptions: [],
@@ -107,6 +112,8 @@ export class UpdateMultipleAttributesKeySettingsComponent extends WidgetSettings
       required: [settings.required, []],
       isEditable: [settings.isEditable, []],
       disabledOnDataKey: [settings.disabledOnDataKey, []],
+      appearance: [settings.appearance, []],
+      subscriptSizing: [settings.subscriptSizing, []],
 
       // Slide toggle settings
 
@@ -161,7 +168,7 @@ export class UpdateMultipleAttributesKeySettingsComponent extends WidgetSettings
     const dataKeyValueType: MultipleInputWidgetDataKeyValueType =
       this.updateMultipleAttributesKeySettingsForm.get('dataKeyValueType').value;
     const required: boolean = this.updateMultipleAttributesKeySettingsForm.get('required').value;
-    const isEditable: string = this.updateMultipleAttributesKeySettingsForm.get('isEditable').value;
+    const isEditable: MultipleInputWidgetDataKeyEditableType = this.updateMultipleAttributesKeySettingsForm.get('isEditable').value;
     const useCustomIcon: boolean = this.updateMultipleAttributesKeySettingsForm.get('useCustomIcon').value;
     const useGetValueFunction: boolean = this.updateMultipleAttributesKeySettingsForm.get('useGetValueFunction').value;
     const useSetValueFunction: boolean = this.updateMultipleAttributesKeySettingsForm.get('useSetValueFunction').value;
@@ -178,8 +185,13 @@ export class UpdateMultipleAttributesKeySettingsComponent extends WidgetSettings
       this.updateMultipleAttributesKeySettingsForm.get('useGetValueFunction').enable({emitEvent: false});
       this.updateMultipleAttributesKeySettingsForm.get('useSetValueFunction').enable({emitEvent: false});
 
-      if (isEditable !== 'disabled') {
+      if (isEditable === 'editable') {
         this.updateMultipleAttributesKeySettingsForm.get('disabledOnDataKey').enable({emitEvent: false});
+      }
+
+      if (!['booleanSwitch', 'booleanCheckbox'].includes(dataKeyValueType)) {
+        this.updateMultipleAttributesKeySettingsForm.get('appearance').enable({emitEvent: false});
+        this.updateMultipleAttributesKeySettingsForm.get('subscriptSizing').enable({emitEvent: false});
       }
 
       if (dataKeyValueType === 'booleanSwitch') {
