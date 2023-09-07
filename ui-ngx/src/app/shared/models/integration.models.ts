@@ -694,6 +694,7 @@ export interface ChipStackIntegration {
     httpEndpoint: string,
     applicationServerUrl: string;
     applicationServerAPIToken: string;
+    useAPI4Plus: boolean;
   };
 }
 

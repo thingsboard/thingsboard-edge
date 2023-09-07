@@ -3420,6 +3420,7 @@
         "application-server-url-required": "Application server URL is required.",
         "application-server-api-token": "Application server API Token",
         "application-server-api-token-required": "Application server API Token is required.",
+        "use-api-for-plus": "Use API for ChirpStack 4+",
         "bootstrap-servers": "Bootstrap servers",
         "bootstrap-servers-required": "Bootstrap servers is required.",
         "poll-interval": "Poll interval",

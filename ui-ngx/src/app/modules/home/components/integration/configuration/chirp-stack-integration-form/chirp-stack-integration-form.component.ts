@@ -92,7 +92,8 @@ export class ChirpStackIntegrationFormComponent extends IntegrationForm implemen
       baseUrl: [baseUrl(), baseURLValidators],
       httpEndpoint: [{value: this.endPointUrl(baseUrl()), disabled: true}],
       applicationServerUrl: [null, Validators.required],
-      applicationServerAPIToken: [null, Validators.required]
+      applicationServerAPIToken: [null, Validators.required],
+      useAPI4Plus: [true]
     });
     this.chirpStackIntegrationConfigForm.get('baseUrl').valueChanges.pipe(
       takeUntil(this.destroy$)

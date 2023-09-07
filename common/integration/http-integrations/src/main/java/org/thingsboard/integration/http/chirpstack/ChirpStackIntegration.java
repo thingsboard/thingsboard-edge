@@ -38,9 +38,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.StringUtils;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.controller.JsonHttpIntegrationMsg;
@@ -49,6 +49,7 @@ import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.http.basic.BasicHttpIntegration;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -70,7 +71,10 @@ public class ChirpStackIntegration extends BasicHttpIntegration<JsonHttpIntegrat
     private static final String F_PORT = "fPort";
     private static final String DATA = "data";
     private static final String CONFIRMED = "confirmed";
-    private static final String DEVICE_DOWNLINK_QUEUE = "deviceQueueItem";
+    private static final String DEVICE_DOWNLINK_QUEUE_PARAMETER = "deviceQueueItem";
+    private static final String DOWNLINK_QUEUE_PARAMETER = "queueItem";
+
+    private boolean useAPI4Plus;
 
     private String applicationServerUrl = "";
     private String applicationServerAPIToken = "";
@@ -86,6 +90,11 @@ public class ChirpStackIntegration extends BasicHttpIntegration<JsonHttpIntegrat
         if (json.get("clientConfiguration").has("applicationServerAPIToken")) {
             applicationServerUrl = json.get("clientConfiguration").get("applicationServerUrl").asText();
             applicationServerAPIToken = json.get("clientConfiguration").get("applicationServerAPIToken").asText();
+            if (json.get("clientConfiguration").has("useAPI4Plus")) {
+                useAPI4Plus = json.get("clientConfiguration").get("useAPI4Plus").asBoolean();
+            } else {
+                useAPI4Plus = true;
+            }
         }
         devicesUrl = applicationServerUrl + DEVICES_ENDPOINT;
     }
@@ -152,13 +161,14 @@ public class ChirpStackIntegration extends BasicHttpIntegration<JsonHttpIntegrat
                         throw new ThingsboardException("FPort is missing in the downlink metadata!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
                     }
                     String payload = new String(downlink.getData(), StandardCharsets.UTF_8);
-                    ObjectNode body = JacksonUtil.newObjectNode();
-                    if (metadata.containsKey(CONFIRMED)) {
-                        body.with(DEVICE_DOWNLINK_QUEUE).put(CONFIRMED, metadata.get(CONFIRMED));
+                    ObjectNode body = createBodyForParameter(metadata, payload);
+                    try {
+                        httpClient.postForEntity(devicesUrl + "/" + metadata.get(DEV_EUI) + "/queue", createRequest(body), String.class);
+                    } catch (HttpClientErrorException.BadRequest e) {
+                        log.debug("Failed to send downlink message with deviceQueueItem parameter, sending with queueItem...");
+                        body = createBodyForParameter(metadata, payload);
+                        httpClient.postForEntity(devicesUrl + "/" + metadata.get(DEV_EUI) + "/queue", createRequest(body), String.class);
                     }
-                    body.with(DEVICE_DOWNLINK_QUEUE).put(DATA, payload);
-                    body.with(DEVICE_DOWNLINK_QUEUE).put(F_PORT, metadata.get(F_PORT));
-                    httpClient.postForEntity(devicesUrl + "/" + metadata.get(DEV_EUI) + "/queue", createRequest(body), String.class);
                     reportDownlinkOk(context, downlink);
                 }
             }
@@ -166,6 +176,18 @@ public class ChirpStackIntegration extends BasicHttpIntegration<JsonHttpIntegrat
             log.warn("Failed to process downLink message", e);
             reportDownlinkError(context, msg, "ERROR", e);
         }
+    }
+
+    private ObjectNode createBodyForParameter(Map<String, String> metadata, String payload) {
+        String downlinkQueueParameter = useAPI4Plus ? DOWNLINK_QUEUE_PARAMETER : DEVICE_DOWNLINK_QUEUE_PARAMETER;
+        ObjectNode body = JacksonUtil.newObjectNode();
+        ObjectNode queue = body.putObject(downlinkQueueParameter);
+        if (metadata.containsKey(CONFIRMED)) {
+            queue.put(CONFIRMED, metadata.get(CONFIRMED));
+        }
+        queue.put(DATA, payload);
+        queue.put(F_PORT, metadata.get(F_PORT));
+        return body;
     }
 
 }
