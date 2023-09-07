@@ -627,15 +627,26 @@
                   "label": "High temperature threshold, °C",
                   "color": "#f44336",
                   "settings": {
+                    "dataKeyHidden": false,
                     "dataKeyType": "server",
                     "dataKeyValueType": "double",
                     "required": false,
                     "isEditable": "editable",
-                    "dataKeyHidden": false,
+                    "disabledOnDataKey": "temperatureAlarmFlag",
+                    "appearance": "outline",
+                    "subscriptSizing": "dynamic",
                     "step": 1,
-                    "disabledOnDataKey": "temperatureAlarmFlag"
+                    "useCustomIcon": false,
+                    "useGetValueFunction": false,
+                    "useSetValueFunction": false
                   },
-                  "_hash": 0.7316078472857874
+                  "_hash": 0.7316078472857874,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
                 },
                 {
                   "name": "humidityAlarmFlag",
@@ -658,15 +669,26 @@
                   "label": "Low humidity threshold, %",
                   "color": "#607d8b",
                   "settings": {
+                    "dataKeyHidden": false,
                     "dataKeyType": "server",
                     "dataKeyValueType": "double",
                     "required": false,
                     "isEditable": "editable",
-                    "dataKeyHidden": false,
+                    "disabledOnDataKey": "humidityAlarmFlag",
+                    "appearance": "outline",
+                    "subscriptSizing": "dynamic",
                     "step": 1,
-                    "disabledOnDataKey": "humidityAlarmFlag"
+                    "useCustomIcon": false,
+                    "useGetValueFunction": false,
+                    "useSetValueFunction": false
                   },
-                  "_hash": 0.2687091190358901
+                  "_hash": 0.2687091190358901,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
                 },
                 {
                   "name": "latitude",
@@ -674,21 +696,25 @@
                   "label": "Latitude",
                   "color": "#607d8b",
                   "settings": {
+                    "dataKeyHidden": false,
                     "dataKeyType": "server",
                     "dataKeyValueType": "double",
-                    "step": 0.1,
                     "required": false,
-                    "requiredErrorMessage": "",
-                    "invalidDateErrorMessage": "",
                     "isEditable": "editable",
-                    "dataKeyHidden": false
+                    "appearance": "outline",
+                    "subscriptSizing": "dynamic",
+                    "step": 0.1,
+                    "useCustomIcon": false,
+                    "useGetValueFunction": false,
+                    "useSetValueFunction": false
                   },
                   "_hash": 0.6611936029604872,
                   "units": null,
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": null,
-                  "postFuncBody": null
+                  "postFuncBody": null,
+                  "aggregationType": null
                 },
                 {
                   "name": "longitude",
@@ -696,23 +722,32 @@
                   "label": "Longitude",
                   "color": "#9c27b0",
                   "settings": {
+                    "dataKeyHidden": false,
                     "dataKeyType": "server",
                     "dataKeyValueType": "double",
                     "required": false,
-                    "requiredErrorMessage": "",
-                    "invalidDateErrorMessage": "",
                     "isEditable": "editable",
-                    "dataKeyHidden": false,
-                    "step": 0.1
+                    "appearance": "outline",
+                    "subscriptSizing": "dynamic",
+                    "step": 0.1,
+                    "useCustomIcon": false,
+                    "useGetValueFunction": false,
+                    "useSetValueFunction": false
                   },
                   "_hash": 0.15440529767536004,
                   "units": null,
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": null,
-                  "postFuncBody": null
+                  "postFuncBody": null,
+                  "aggregationType": null
                 }
-              ]
+              ],
+              "alarmFilterConfig": {
+                "statusList": [
+                  "ACTIVE"
+                ]
+              }
             }
           ],
           "timewindow": {
@@ -744,12 +779,16 @@
           "color": "rgba(0, 0, 0, 0.87)",
           "padding": "8px",
           "settings": {
-            "showActionButtons": true,
+            "widgetTitle": "Sensor settings",
             "showResultMessage": true,
+            "showActionButtons": true,
+            "updateAllValues": false,
+            "showGroupTitle": false,
             "fieldsAlignment": "column",
-            "fieldsInRow": 2,
+            "rowGap": 16,
             "groupTitle": "${entityName}",
-            "widgetTitle": "Sensor settings"
+            "fieldsInRow": 2,
+            "columnGap": 10
           },
           "title": "New Update Multiple Attributes",
           "dropShadow": true,
