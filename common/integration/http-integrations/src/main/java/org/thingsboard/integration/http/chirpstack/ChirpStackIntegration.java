@@ -87,14 +87,11 @@ public class ChirpStackIntegration extends BasicHttpIntegration<JsonHttpIntegrat
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
         JsonNode json = configuration.getConfiguration();
-        if (json.get("clientConfiguration").has("applicationServerAPIToken")) {
-            applicationServerUrl = json.get("clientConfiguration").get("applicationServerUrl").asText();
-            applicationServerAPIToken = json.get("clientConfiguration").get("applicationServerAPIToken").asText();
-            if (json.get("clientConfiguration").has("useAPI4Plus")) {
-                useAPI4Plus = json.get("clientConfiguration").get("useAPI4Plus").asBoolean();
-            } else {
-                useAPI4Plus = true;
-            }
+        JsonNode clientConfiguration = json.get("clientConfiguration");
+        if (clientConfiguration.has("applicationServerAPIToken")) {
+            applicationServerUrl = clientConfiguration.get("applicationServerUrl").asText();
+            applicationServerAPIToken = clientConfiguration.get("applicationServerAPIToken").asText();
+            useAPI4Plus = clientConfiguration.has("useAPI4Plus") && clientConfiguration.get("useAPI4Plus").asBoolean();
         }
         devicesUrl = applicationServerUrl + DEVICES_ENDPOINT;
     }
@@ -165,9 +162,8 @@ public class ChirpStackIntegration extends BasicHttpIntegration<JsonHttpIntegrat
                     try {
                         httpClient.postForEntity(devicesUrl + "/" + metadata.get(DEV_EUI) + "/queue", createRequest(body), String.class);
                     } catch (HttpClientErrorException.BadRequest e) {
-                        log.debug("Failed to send downlink message with deviceQueueItem parameter, sending with queueItem...");
-                        body = createBodyForParameter(metadata, payload);
-                        httpClient.postForEntity(devicesUrl + "/" + metadata.get(DEV_EUI) + "/queue", createRequest(body), String.class);
+                        log.debug("Failed to send downlink message with deviceQueueItem parameter, sending with queueItem...", e);
+                        throw new ThingsboardException("Possible ChirpStack API version mismatch!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
                     }
                     reportDownlinkOk(context, downlink);
                 }
