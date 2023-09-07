@@ -32,6 +32,7 @@ package org.thingsboard.server.service.edge.rpc.processor;
 
 import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.Lazy;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Dashboard;
@@ -222,10 +223,10 @@ public abstract class BaseEdgeProcessorTest {
     @MockBean
     protected AlarmMsgConstructor alarmMsgConstructor;
 
-    @MockBean
+    @SpyBean
     protected DeviceMsgConstructor deviceMsgConstructor;
 
-    @MockBean
+    @SpyBean
     protected AssetMsgConstructor assetMsgConstructor;
 
     @MockBean
@@ -243,10 +244,10 @@ public abstract class BaseEdgeProcessorTest {
     @MockBean
     protected CustomerMsgConstructor customerMsgConstructor;
 
-    @MockBean
+    @SpyBean
     protected DeviceProfileMsgConstructor deviceProfileMsgConstructor;
 
-    @MockBean
+    @SpyBean
     protected AssetProfileMsgConstructor assetProfileMsgConstructor;
 
     @MockBean
