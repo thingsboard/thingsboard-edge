@@ -69,8 +69,8 @@
     </mat-error>
   </mat-form-field>
   <mat-slide-toggle class="mat-slide" style="padding-bottom: 16px;"
-                    formControlName="useAPI4Plus" translate>
-    widget-config.display-icon
+                    formControlName="useAPI4Plus">
+    {{ 'integration.use-api-for-plus' | translate }}
   </mat-slide-toggle>
 
   <ng-container [ngTemplateOutlet]="executeRemotelyTemplate">
