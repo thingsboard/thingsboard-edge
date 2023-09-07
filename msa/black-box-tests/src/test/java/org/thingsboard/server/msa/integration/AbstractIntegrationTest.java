@@ -39,6 +39,7 @@ import org.testng.annotations.BeforeMethod;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EventInfo;
+import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
@@ -160,6 +161,30 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
                     return eventInfos.size() == finalCount;
                 });
     }
+
+    protected void waitForConverterDebugEvent(Converter converter, String eventType, int count) {
+        if (containerTestSuite.isActive()) {
+            count = count * 2;
+        }
+        int finalCount = count;
+        Awaitility
+                .await()
+                .alias("Get converter events")
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> {
+                    PageData<EventInfo> events = testRestClient.getEvents(converter.getId(), EventType.DEBUG_CONVERTER, converter.getTenantId(), new TimePageLink(finalCount));
+                    if (events.getData().isEmpty()) {
+                        return false;
+                    }
+
+                    List<EventInfo> eventInfos = events.getData().stream().filter(eventInfo ->
+                                    eventType.equalsIgnoreCase(eventInfo.getBody().get("type").asText()))
+                            .collect(Collectors.toList());
+
+                    return eventInfos.size() == finalCount;
+                });
+    }
+
     protected RuleChainId getDefaultRuleChainId() {
         PageData<RuleChain> ruleChains = testRestClient.getRuleChains(new PageLink(40, 0));
         Optional<RuleChain> defaultRuleChain = ruleChains.getData()

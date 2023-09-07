@@ -34,8 +34,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.buffer.ByteBuf;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.util.ConvertUtil;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * Created by ashvayka on 04.12.17.
@@ -57,5 +61,20 @@ public class BasicMqttIntegrationMsg implements MqttIntegrationMsg {
         ObjectNode json = JacksonUtil.newObjectNode().put("topic", topic);
         ConvertUtil.putJson(json, payload);
         return json;
+    }
+
+    @Override
+    public UplinkContentType getContentType() {
+        try {
+            JsonNode node = JacksonUtil.fromBytes(payload);
+            if (node != null) {
+                return UplinkContentType.JSON;
+            }
+        } catch (Exception ignored) {
+        }
+        if (StringUtils.isAsciiPrintable(new String(payload, StandardCharsets.UTF_8))) {
+            return UplinkContentType.TEXT;
+        }
+        return UplinkContentType.BINARY;
     }
 }
