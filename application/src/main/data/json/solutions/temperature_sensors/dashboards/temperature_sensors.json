@@ -56,7 +56,7 @@
           "titleStyle": {
             "fontSize": "16px",
             "fontWeight": 400,
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "useDashboardTimewindow": false,
           "showLegend": false,
@@ -226,7 +226,10 @@
               }
             ]
           },
-          "enableDataExport": true
+          "enableDataExport": true,
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
         "id": "f33c746c-0dfc-c212-395b-b448c8a17209",
         "typeFullFqn": "system.cards.entities_table"
@@ -269,7 +272,7 @@
           "titleStyle": {
             "fontSize": "16px",
             "fontWeight": 400,
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "useDashboardTimewindow": false,
           "showLegend": false,
@@ -338,7 +341,11 @@
             "severityList": [],
             "typeList": [],
             "searchPropagatedAlarms": true
-          }
+          },
+          "enableDataExport": true,
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
         "id": "7943196b-eedb-d422-f9c3-b32d379ad172",
         "typeFullFqn": "system.alarm_widgets.alarms_table"

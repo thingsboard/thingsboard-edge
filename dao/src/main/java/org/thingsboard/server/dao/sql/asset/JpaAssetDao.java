@@ -51,14 +51,13 @@ import org.thingsboard.server.dao.model.sql.AssetEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.thingsboard.server.dao.DaoUtil.convertTenantEntityTypesToDto;
 import static org.thingsboard.server.dao.asset.BaseAssetService.TB_SERVICE_QUEUE;
 
 /**
@@ -186,7 +185,7 @@ public class JpaAssetDao extends JpaAbstractDao<AssetEntity, Asset> implements A
 
     @Override
     public ListenableFuture<List<EntitySubtype>> findTenantAssetTypesAsync(UUID tenantId) {
-        return service.submit(() -> convertTenantAssetTypesToDto(tenantId, assetRepository.findTenantAssetTypes(tenantId)));
+        return service.submit(() -> convertTenantEntityTypesToDto(tenantId, EntityType.ASSET, assetRepository.findTenantAssetTypes(tenantId)));
     }
 
     @Override
@@ -202,17 +201,6 @@ public class JpaAssetDao extends JpaAbstractDao<AssetEntity, Asset> implements A
                         profileId,
                         Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink)));
-    }
-
-    private List<EntitySubtype> convertTenantAssetTypesToDto(UUID tenantId, List<String> types) {
-        List<EntitySubtype> list = Collections.emptyList();
-        if (types != null && !types.isEmpty()) {
-            list = new ArrayList<>();
-            for (String type : types) {
-                list.add(new EntitySubtype(TenantId.fromUUID(tenantId), EntityType.ASSET, type));
-            }
-        }
-        return list;
     }
 
     @Override

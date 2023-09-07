@@ -36,7 +36,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Dashboard, DashboardLayoutId } from '@shared/models/dashboard.models';
-import { deepClone, isDefined, isNumber, isObject, isString, isUndefined } from '@core/utils';
+import { deepClone, guid, isDefined, isNumber, isObject, isString, isUndefined } from '@core/utils';
 import { WINDOW } from '@core/services/window.service';
 import { DOCUMENT } from '@angular/common';
 import {
@@ -212,6 +212,7 @@ export class ImportExportService {
         } else {
           let widget = widgetItem.widget;
           widget = this.dashboardUtils.validateAndUpdateWidget(widget);
+          widget.id = guid();
           const aliasesInfo = this.prepareAliasesInfo(widgetItem.aliasesInfo);
           const filtersInfo: FiltersInfo = widgetItem.filtersInfo || {
             datasourceFilters: {}

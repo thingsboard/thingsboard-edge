@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.PulsarClient;
+import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.RegexSubscriptionMode;
 import org.apache.pulsar.client.api.SubscriptionType;
 
@@ -56,65 +57,48 @@ public class MqConsumer {
     private volatile boolean stopped;
     private volatile boolean connected;
 
-    public void start() throws Exception {
-        stopped = false;
-        while (!stopped) {
-            try {
-                if (!connected) {
-                    connect(true);
-                }
-                processMessages();
-            } catch (Exception ignored) {
-                Thread.sleep(5 * 1000);
-            }
-        }
+    public void initClient() throws PulsarClientException {
+        stopClient();
+        client = PulsarClient.builder()
+                .serviceUrl(serviceUrl)
+                .allowTlsInsecureConnection(true)
+                .authentication(new MqAuthentication(accessId, accessKey))
+                .build();
     }
 
-    public void connect(boolean sleep) throws Exception {
-        if (stopped) return;
-        try {
-            if (client == null || client.isClosed()) {
-                client = PulsarClient.builder()
-                        .serviceUrl(serviceUrl)
-                        .allowTlsInsecureConnection(true)
-                        .authentication(new MqAuthentication(accessId, accessKey))
-                        .build();
+    public void connect() throws PulsarClientException {
+        String topic = String.format("%s/out/%s", accessId, (env != null ? env : MqEnv.PROD).getValue());
+        if (client == null) {
+            initClient();
+        }
+        if (consumer == null) {
+            try {
                 consumer = client.newConsumer()
-                        .topic(String.format("%s/out/%s", accessId, (env != null ? env : MqEnv.PROD).getValue()))
+                        .topic(topic)
                         .subscriptionName(String.format("%s-sub", accessId))
                         .subscriptionType(SubscriptionType.Failover)
-//                        .subscriptionType(SubscriptionType.Exclusive)
                         .subscriptionTopicsMode(RegexSubscriptionMode.AllTopics)
                         .autoUpdatePartitions(Boolean.FALSE)
+                        .messageListener(((consumer1, msg) -> {
+                            try {
+                                messageListener.onMessageArrived(msg);
+                                consumer1.acknowledge(msg);
+                            } catch (Exception e) {
+                                resultHandler.onResult("Uplink", "", e);
+                            }
+                        }))
                         .subscribe();
-                if (!checkConnection()) {
-                    throw new RuntimeException("Cannot connect to message producer.");
+            } catch (PulsarClientException wrappedException) {
+                if (wrappedException.getCause() == null || wrappedException.getCause().getCause() == null) {
+                    throw wrappedException;
                 }
-            }
-            connected = true;
-            resultHandler.onResult("CONNECT", "", null);
-        } catch (Exception e) {
-            connected = false;
-            client.shutdown();
-            resultHandler.onResult("CONNECT", "", e);
-            if(sleep) {
-                Thread.sleep(60 * 1000);
+                throw (PulsarClientException) wrappedException.getCause().getCause();
             }
         }
-    }
-
-    private void processMessages() throws Exception {
-        try {
-            Message<?> message = consumer.receive();
-            messageListener.onMessageArrived(message);
-            consumer.acknowledge(message);
-        } catch (Exception e) {
-            connected = false;
-            if (!client.isClosed()) {
-                client.close();
-            }
-            resultHandler.onResult("CONNECT", "", e);
+        if (!checkConnection()) {
+            throw new RuntimeException("Cannot connect to message producer.");
         }
+        connected = true;
     }
 
     public interface IMessageListener {
@@ -125,18 +109,23 @@ public class MqConsumer {
         void onResult(String type, String msg, Exception exception);
     }
 
-    public void stop() throws Exception {
+    public void stopClient() throws PulsarClientException {
         stopped = true;
         if (consumer != null) {
-            consumer.unsubscribe();
+            consumer.close();
+            consumer = null;
         }
-        if (!client.isClosed()) {
+        if (client != null) {
             client.close();
+            client = null;
         }
     }
 
-    private boolean checkConnection() {
-        long connectionTimeoutTs = System.currentTimeMillis() + 60_000;
+    public boolean checkConnection() {
+        if (client == null || client.isClosed() || consumer == null) {
+            return false;
+        }
+        long connectionTimeoutTs = System.currentTimeMillis() + 10_000;
         while (System.currentTimeMillis() < connectionTimeoutTs) {
             if (consumer.isConnected()) {
                 return true;
