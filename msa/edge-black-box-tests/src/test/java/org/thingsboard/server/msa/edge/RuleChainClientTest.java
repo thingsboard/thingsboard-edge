@@ -23,7 +23,9 @@ import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
 import java.util.Collections;
@@ -60,5 +62,46 @@ public class RuleChainClientTest extends AbstractContainerTest {
 
         unAssignFromEdgeAndDeleteRuleChain(savedRuleChainId);
     }
-}
 
+    @Test
+    public void testSendRuleChainToCloud() {
+        // create rule chain on edge
+        RuleChain savedRuleChain = saveRuleChain("Edge Rule Chain");
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getRuleChainById(savedRuleChain.getId()).isPresent());
+
+        // update rule chain
+        savedRuleChain.setName("Edge Rule Chain Updated");
+        edgeRestClient.saveRuleChain(savedRuleChain);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> "Edge Rule Chain Updated".equals(cloudRestClient.getRuleChainById(savedRuleChain.getId()).get().getName()));
+
+        // delete rule chain
+        edgeRestClient.deleteRuleChain(savedRuleChain.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    PageData<RuleChain> edgeRuleChains = cloudRestClient.getEdgeRuleChains(edge.getId(), new TimePageLink(1000));
+                    long count = edgeRuleChains.getData().stream().filter(d -> savedRuleChain.getId().equals(d.getId())).count();
+                    return count == 0;
+                });
+
+        cloudRestClient.deleteRuleChain(savedRuleChain.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getRuleChainById(savedRuleChain.getId()).isEmpty());
+
+    }
+
+    private RuleChain saveRuleChain(String name) {
+        RuleChain ruleChain = new RuleChain();
+        ruleChain.setName(name);
+        return edgeRestClient.saveRuleChain(ruleChain);
+    }
+}

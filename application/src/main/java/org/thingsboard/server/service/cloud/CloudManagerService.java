@@ -458,6 +458,8 @@ public class CloudManagerService {
                 return entityViewProcessor.convertEntityViewEventToUplink(cloudEvent);
             case RELATION:
                 return relationProcessor.convertRelationEventToUplink(cloudEvent);
+            case RULE_CHAIN:
+                return ruleChainProcessor.convertRuleChainEventToUplink(cloudEvent);
             default:
                 log.warn("Unsupported cloud event type [{}]", cloudEvent);
                 return null;
