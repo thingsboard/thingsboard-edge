@@ -122,9 +122,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
     }
 
     // @voba - edge read-only
-    this.config.detailsReadonly = () => true;
     this.config.deleteEnabled = () => false;
-    this.config.addEnabled = false;
     this.config.entitiesDeleteEnabled = false;
 
     return this.config;

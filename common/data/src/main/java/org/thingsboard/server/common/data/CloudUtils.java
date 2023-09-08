@@ -48,6 +48,8 @@ public final class CloudUtils {
                 return CloudEventType.CUSTOMER;
             case EDGE:
                 return CloudEventType.EDGE;
+            case RULE_CHAIN:
+                return CloudEventType.RULE_CHAIN;
             default:
                 log.warn("Unsupported entity type: [{}]", entityType);
                 return null;
