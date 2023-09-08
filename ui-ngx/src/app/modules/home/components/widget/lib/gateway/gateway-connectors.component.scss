@@ -28,19 +28,102 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.device;
+:host {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow-x: auto;
+  padding: 0;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.springframework.core.io.Resource;
-import org.thingsboard.server.common.data.Device;
+  .connector-container {
+    width: 100%;
 
-import java.net.URISyntaxException;
+    & > mat-card, & > div {
+      min-width: calc(50% - 15px);
+    }
 
-public interface DeviceConnectivityService {
+    mat-card {
+      margin: 10px;
+      padding: 10px;
+      max-width: 100%;
+    }
+  }
 
-    JsonNode findDevicePublishTelemetryCommands(String baseUrl, Device device) throws URISyntaxException;
+  .tb-entity-table {
+    .tb-entity-table-content {
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      overflow: hidden;
+    }
+  }
 
-    JsonNode findGatewayLaunchCommands(String baseUrl, Device device) throws URISyntaxException;
+  .mat-toolbar {
+    background: transparent;
+    color: rgba(0, 0, 0, .87) !important;
+  }
 
-    Resource getPemCertFile(String protocol);
+  .mat-mdc-form-field {
+    flex-grow: 1;
+  }
+
+  mat-card {
+    padding-left: 10px;
+    background: transparent;
+  }
+
+  .mat-card-selected {
+    background-color: rgba(48, 86, 128, 0.1);
+  }
+
+  .mat-mdc-slide-toggle {
+    margin: 15px;
+  }
+
+  .status-block {
+    text-align: center;
+    border-radius: 16px;
+    font-weight: 500;
+    width: fit-content;
+    padding: 5px 15px;
+  }
+
+  .status-sync {
+    background: rgba(25, 128, 56, .06);
+    color: rgb(25, 128, 56);
+  }
+
+  .status-unsync {
+    background: rgba(203, 37, 48, .06);
+    color: rgb(203, 37, 48);
+  }
+
+  .action-btns {
+    margin: 10px 10px 0;
+  }
+
+  mat-row {
+    cursor: pointer;
+  }
+
+  .dot {
+    height: 12px;
+    width: 12px;
+    background-color: #bbb;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .hasErrors {
+    background-color: rgb(203, 37, 48);
+  }
+
+  .noErrors {
+    background-color: rgb(25, 128, 56);
+  }
 }
+
+:host ::ng-deep tb-json-object-edit > div {
+  flex-grow: 1;
+}
+

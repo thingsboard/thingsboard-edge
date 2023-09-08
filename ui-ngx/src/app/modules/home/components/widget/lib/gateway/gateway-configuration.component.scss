@@ -1,0 +1,158 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+:host {
+  width: 100%;
+  height: 100%;
+  display: block;
+
+  .mat-icon {
+    color: rgba(0, 0, 0, .12);
+  }
+
+  .tb-form-panel {
+    margin-bottom: 20px;
+  }
+
+  .mat-toolbar {
+    background: transparent;
+    color: rgba(0, 0, 0, .87) !important;
+  }
+
+  .mat-content {
+    .expansion-panel-header {
+      font-weight: 600;
+      color: rgba(0, 0, 0, .87) !important;
+    }
+
+    mat-slide-toggle {
+      margin-bottom: 16px;
+    }
+
+    mat-form-field {
+      margin-right: 15px;
+    }
+
+    .slider-icon {
+      position: absolute;
+      transform: translateY(-3px);
+    }
+
+    .block-title {
+      font-size: 20px;
+      font-weight: 400;
+      padding-top: 16px;
+    }
+
+    .hover-cursor {
+      cursor: pointer;
+    }
+  }
+
+  .security-toggle-group {
+    margin-bottom: 15px;
+    margin-right: auto;
+  }
+
+  .logs-label {
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
+
+  .statistics-block {
+    margin-bottom: 15px;
+    padding-left: 15px;
+    padding-top: 15px;
+  }
+
+  .first-capital {
+    text-transform: capitalize;
+  }
+
+  mat-panel-title {
+    display: block;
+    padding-top: 20px;
+  }
+
+  mat-panel-title span {
+    display: block;
+    padding-left: 0;
+    padding-top: 5px;
+  }
+
+  .tb-hint {
+    font-size: 13px;
+    color: rgba(0, 0, 0, .54);
+    width: fit-content;
+    cursor: pointer;
+    text-transform: none !important;
+  }
+
+  .line-break {
+    width: 100%;
+  }
+
+  textarea {
+    resize: none;
+  }
+}
+
+:host ::ng-deep {
+  .mat-tab-label-active {
+    color: white;
+    opacity: 1;
+  }
+
+  .mat-tab-label, .mat-tab-label-active{
+    min-width: 50px !important;
+    padding: 3px !important;
+    margin: 3px !important;
+    flex-grow: 1;
+  }
+
+  .mat-ink-bar {
+    height: 100%;
+    z-index: -10;
+    border-radius: 5px;
+  }
+
+  .pointer-event {
+    pointer-events: all;
+  }
+
+  .mat-mdc-form-field-icon-suffix {
+    z-index: 100;
+  }
+
+  .security-toggle-group span {
+    padding: 0 25px;
+  }
+}
+
