@@ -28,21 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.transport.snmp;
+package org.thingsboard.server.common.data.transport.snmp.config;
 
-public enum SnmpMethod {
-    GET(-96),
-    SET(-93),
-    TRAP(-89);
+import org.thingsboard.server.common.data.transport.snmp.SnmpCommunicationSpec;
 
-    // codes taken from org.snmp4j.PDU class
-    private final int code;
+public class ToServerRpcRequestSnmpCommunicationConfig extends MultipleMappingsSnmpCommunicationConfig {
 
-    SnmpMethod(int code) {
-        this.code = code;
+    private static final long serialVersionUID = 4851028734093214L;
+
+    @Override
+    public SnmpCommunicationSpec getSpec() {
+        return SnmpCommunicationSpec.TO_SERVER_RPC_REQUEST;
     }
 
-    public int getCode() {
-        return code;
-    }
 }

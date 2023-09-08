@@ -28,43 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.utils;
+package org.thingsboard.server.service.edge.rpc.processor.asset;
 
-import org.apache.commons.lang3.math.NumberUtils;
-import org.thingsboard.server.common.data.kv.DataType;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 
-import java.math.BigDecimal;
-import java.util.Map;
+@SpringBootTest(classes = {AssetProfileEdgeProcessor.class})
+class AssetProfileEdgeProcessorTest extends AbstractAssetProcessorTest{
+    @SpyBean
+    AssetProfileEdgeProcessor assetProfileEdgeProcessor;
 
-public class TypeCastUtil {
+    @ParameterizedTest
+    @MethodSource("provideParameters")
+    public void testAssetProfileDefaultFields_notSendToEdgeOlder3_6_0IfNotAssigned(EdgeVersion edgeVersion, long expectedDashboardIdMSB, long expectedDashboardIdLSB,
+                                                                                   long expectedRuleChainIdMSB, long expectedRuleChainIdLSB) {
 
-    private TypeCastUtil() {}
+        updateAssetProfileDefaultFields(expectedDashboardIdMSB, expectedDashboardIdLSB, expectedRuleChainIdMSB, expectedRuleChainIdLSB);
 
-    public static Map.Entry<DataType, Object> castValue(String value) {
-        if (isNumber(value)) {
-            String formattedValue = value.replace(',', '.');
-            try {
-                BigDecimal bd = new BigDecimal(formattedValue);
-                if (bd.stripTrailingZeros().scale() > 0 || isSimpleDouble(formattedValue)) {
-                    if (bd.scale() <= 16) {
-                        return Map.entry(DataType.DOUBLE, bd.doubleValue());
-                    }
-                } else {
-                    return Map.entry(DataType.LONG, bd.longValueExact());
-                }
-            } catch (RuntimeException ignored) {}
-        } else if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
-            return Map.entry(DataType.BOOLEAN, Boolean.parseBoolean(value));
-        }
-        return Map.entry(DataType.STRING, value);
+        edgeEvent.setEntityId(assetProfileId.getId());
+
+        DownlinkMsg downlinkMsg = assetProfileEdgeProcessor.convertAssetProfileEventToDownlink(edgeEvent, edgeId, edgeVersion);
+
+        verify(downlinkMsg, expectedDashboardIdMSB, expectedDashboardIdLSB, expectedRuleChainIdMSB, expectedRuleChainIdLSB);
     }
-
-    private static boolean isNumber(String value) {
-        return NumberUtils.isNumber(value.replace(',', '.'));
-    }
-
-    private static boolean isSimpleDouble(String valueAsString) {
-        return valueAsString.contains(".") && !valueAsString.contains("E") && !valueAsString.contains("e");
-    }
-
 }

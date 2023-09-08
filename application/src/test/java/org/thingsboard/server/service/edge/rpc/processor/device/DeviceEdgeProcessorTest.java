@@ -28,21 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.transport.snmp;
+package org.thingsboard.server.service.edge.rpc.processor.device;
 
-public enum SnmpMethod {
-    GET(-96),
-    SET(-93),
-    TRAP(-89);
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 
-    // codes taken from org.snmp4j.PDU class
-    private final int code;
+@SpringBootTest(classes = {DeviceEdgeProcessor.class})
+class DeviceEdgeProcessorTest extends AbstractDeviceProcessorTest {
 
-    SnmpMethod(int code) {
-        this.code = code;
+    @SpyBean
+    DeviceEdgeProcessor deviceEdgeProcessor;
+
+    @ParameterizedTest
+    @MethodSource("provideParameters")
+    public void testDeviceProfileDefaultFields_notSendToEdgeOlder3_6_0IfNotAssigned(EdgeVersion edgeVersion, long expectedDashboardIdMSB, long expectedDashboardIdLSB,
+                                                                                    long expectedRuleChainIdMSB, long expectedRuleChainIdLSB) {
+        updateDeviceProfileDefaultFields(expectedDashboardIdMSB, expectedDashboardIdLSB, expectedRuleChainIdMSB, expectedRuleChainIdLSB);
+        edgeEvent.setEntityId(deviceId.getId());
+
+        DownlinkMsg downlinkMsg = deviceEdgeProcessor.convertDeviceEventToDownlink(edgeEvent, edgeId, edgeVersion);
+
+        verify(downlinkMsg, expectedDashboardIdMSB, expectedDashboardIdLSB, expectedRuleChainIdMSB, expectedRuleChainIdLSB);
     }
 
-    public int getCode() {
-        return code;
-    }
 }
