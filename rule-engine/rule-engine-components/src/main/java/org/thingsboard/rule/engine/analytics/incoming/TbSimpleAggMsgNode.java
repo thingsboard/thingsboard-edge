@@ -45,9 +45,9 @@ import org.thingsboard.rule.engine.analytics.incoming.state.TbIntervalState;
 import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesQuery;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
-import org.thingsboard.rule.engine.api.TbVersionedNode;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -86,7 +86,7 @@ import java.util.function.Consumer;
         configDirective = "tbAnalyticsNodeAggregateIncomingConfig",
         icon = "functions"
 )
-public class TbSimpleAggMsgNode implements TbVersionedNode {
+public class TbSimpleAggMsgNode implements TbNode {
 
     private final Gson gson = new Gson();
 
