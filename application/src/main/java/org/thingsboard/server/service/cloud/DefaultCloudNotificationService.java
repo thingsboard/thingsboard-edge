@@ -80,6 +80,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
                 case ENTITY_VIEW:
                 case DASHBOARD:
                 case RULE_CHAIN:
+                case TB_RESOURCE:
                     processEntity(tenantId, cloudNotificationMsg);
                     break;
                 case ALARM:

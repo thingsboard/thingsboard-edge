@@ -176,6 +176,8 @@ public class EntityIdFactory {
                 return new WidgetsBundleId(uuid);
             case WIDGET_TYPE:
                 return new WidgetTypeId(uuid);
+            case TB_RESOURCE:
+                return new TbResourceId(uuid);
         }
         throw new IllegalArgumentException("CloudEventType " + cloudEventType + " is not supported!");
     }

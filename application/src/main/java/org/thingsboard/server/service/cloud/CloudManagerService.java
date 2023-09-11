@@ -68,6 +68,7 @@ import org.thingsboard.server.service.cloud.rpc.processor.EdgeCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityViewCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RelationCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.ResourceCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RuleChainCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.TelemetryCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.TenantCloudProcessor;
@@ -181,6 +182,9 @@ public class CloudManagerService {
 
     @Autowired
     private CustomerCloudProcessor customerProcessor;
+
+    @Autowired
+    private ResourceCloudProcessor resourceCloudProcessor;
 
     @Autowired
     private CloudEventService cloudEventService;
@@ -458,6 +462,8 @@ public class CloudManagerService {
                 return entityViewProcessor.convertEntityViewEventToUplink(cloudEvent);
             case RELATION:
                 return relationProcessor.convertRelationEventToUplink(cloudEvent);
+            case TB_RESOURCE:
+                return resourceCloudProcessor.convertResourceEventToUplink(cloudEvent);
             default:
                 log.warn("Unsupported cloud event type [{}]", cloudEvent);
                 return null;

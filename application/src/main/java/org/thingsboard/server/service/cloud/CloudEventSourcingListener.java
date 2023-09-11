@@ -67,7 +67,8 @@ public class CloudEventSourcingListener {
             EntityType.ENTITY_VIEW,
             EntityType.ASSET,
             EntityType.ASSET_PROFILE,
-            EntityType.DASHBOARD);
+            EntityType.DASHBOARD,
+            EntityType.TB_RESOURCE);
 
     @PostConstruct
     public void init() {
