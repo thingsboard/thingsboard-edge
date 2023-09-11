@@ -227,7 +227,7 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
         latestEventInfo = eventsData.get(eventsData.size() - 1);
         Assert.assertEquals(latestEventInfo.getBody().get("in").asText(), textPayload);
 
-        byte[] binaryPayload = {0x64, 0x65, 0x66};
+        byte[] binaryPayload = {0x01, 0x02, 0x03};
         sendMessageToBroker(connOpts, binaryPayload);
         waitForConverterDebugEvent(uplinkConverter, "Uplink", 1);
         events = testRestClient.getEvents(uplinkConverter.getId(), EventType.DEBUG_CONVERTER, uplinkConverter.getTenantId(), new TimePageLink(1024));
