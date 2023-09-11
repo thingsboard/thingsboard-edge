@@ -31,6 +31,7 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
@@ -77,6 +78,7 @@ import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
@@ -86,6 +88,7 @@ import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.TbQueueCallback;
@@ -107,6 +110,7 @@ import org.thingsboard.server.service.edge.rpc.constructor.OtaPackageMsgConstruc
 import org.thingsboard.server.service.edge.rpc.constructor.QueueMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.RelationMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.RuleChainMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.ResourceMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.TenantMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.TenantProfileMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.UserMsgConstructor;
@@ -242,6 +246,9 @@ public abstract class BaseEdgeProcessor {
     protected OtaPackageStateService otaPackageStateService;
 
     @Autowired
+    protected ResourceService resourceService;
+
+    @Autowired
     @Lazy
     protected TbQueueProducerProvider producerProvider;
 
@@ -262,6 +269,9 @@ public abstract class BaseEdgeProcessor {
 
     @Autowired
     protected DataValidator<EntityView> entityViewValidator;
+
+    @Autowired
+    protected DataValidator<TbResource> resourceValidator;
 
     @Autowired
     protected EdgeMsgConstructor edgeMsgConstructor;
@@ -322,6 +332,9 @@ public abstract class BaseEdgeProcessor {
 
     @Autowired
     protected QueueMsgConstructor queueMsgConstructor;
+
+    @Autowired
+    protected ResourceMsgConstructor resourceMsgConstructor;
 
     @Autowired
     protected EdgeSynchronizationManager edgeSynchronizationManager;
@@ -659,5 +672,58 @@ public abstract class BaseEdgeProcessor {
                 log.warn("[{}] Failed to send ENTITY_CREATED EVENT to rule engine [{}]", tenantId, msgData, t);
             }
         });
+    }
+
+    protected AssetProfile checkIfAssetProfileDefaultFieldsAssignedToEdge(TenantId tenantId, EdgeId edgeId, AssetProfile assetProfile, EdgeVersion edgeVersion) {
+        switch (edgeVersion) {
+            case V_3_3_3:
+            case V_3_3_0:
+            case V_3_4_0:
+                if (assetProfile.getDefaultDashboardId() != null
+                        && isEntityNotAssignedToEdge(tenantId, assetProfile.getDefaultDashboardId(), edgeId)) {
+                    assetProfile.setDefaultDashboardId(null);
+                }
+                if (assetProfile.getDefaultEdgeRuleChainId() != null
+                        && isEntityNotAssignedToEdge(tenantId, assetProfile.getDefaultEdgeRuleChainId(), edgeId)) {
+                    assetProfile.setDefaultEdgeRuleChainId(null);
+                }
+                break;
+        }
+        return assetProfile;
+    }
+
+    protected DeviceProfile checkIfDeviceProfileDefaultFieldsAssignedToEdge(TenantId tenantId, EdgeId edgeId, DeviceProfile deviceProfile, EdgeVersion edgeVersion) {
+        switch (edgeVersion) {
+            case V_3_3_3:
+            case V_3_3_0:
+            case V_3_4_0:
+                if (deviceProfile.getDefaultDashboardId() != null
+                        && isEntityNotAssignedToEdge(tenantId, deviceProfile.getDefaultDashboardId(), edgeId)) {
+                    deviceProfile.setDefaultDashboardId(null);
+                }
+                if (deviceProfile.getDefaultEdgeRuleChainId() != null
+                        && isEntityNotAssignedToEdge(tenantId, deviceProfile.getDefaultEdgeRuleChainId(), edgeId)) {
+                    deviceProfile.setDefaultEdgeRuleChainId(null);
+                }
+                break;
+        }
+        return deviceProfile;
+    }
+
+    private boolean isEntityNotAssignedToEdge(TenantId tenantId, EntityId entityId, EdgeId edgeId) {
+        PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
+        PageData<EdgeId> pageData;
+        do {
+            pageData = edgeService.findRelatedEdgeIdsByEntityId(tenantId, entityId, pageLink);
+            if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
+                if (pageData.getData().contains(edgeId)) {
+                    return false;
+                }
+                if (pageData.hasNext()) {
+                    pageLink = pageLink.nextPageLink();
+                }
+            }
+        } while (pageData != null && pageData.hasNext());
+        return true;
     }
 }

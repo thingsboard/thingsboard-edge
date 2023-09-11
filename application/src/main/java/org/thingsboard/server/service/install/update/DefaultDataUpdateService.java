@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.rule.engine.api.TbVersionedNode;
+import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.flow.TbRuleChainInputNode;
 import org.thingsboard.rule.engine.flow.TbRuleChainInputNodeConfiguration;
 import org.thingsboard.rule.engine.profile.TbDeviceProfileNode;
@@ -258,35 +258,35 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Override
     public void upgradeRuleNodes() {
         try {
-            log.info("Lookup rule nodes to upgrade ...");
+            log.info("Starting rule nodes upgrade ...");
             var nodeClassToVersionMap = componentDiscoveryService.getVersionedNodes();
-            log.info("Found {} versioned nodes to check for upgrade!", nodeClassToVersionMap.size());
+            log.debug("Found {} versioned nodes to check for upgrade!", nodeClassToVersionMap.size());
             nodeClassToVersionMap.forEach(clazz -> {
                 var ruleNodeType = clazz.getClassName();
                 var ruleNodeTypeForLogs = clazz.getSimpleName();
                 var toVersion = clazz.getCurrentVersion();
-                log.info("Going to check for nodes with type: {} to upgrade to version: {}.", ruleNodeTypeForLogs, toVersion);
+                log.debug("Going to check for nodes with type: {} to upgrade to version: {}.", ruleNodeTypeForLogs, toVersion);
                 var ruleNodesToUpdate = new PageDataIterable<>(
                         pageLink -> ruleChainService.findAllRuleNodesByTypeAndVersionLessThan(ruleNodeType, toVersion, pageLink), 1024
                 );
                 if (Iterables.isEmpty(ruleNodesToUpdate)) {
-                    log.info("There are no active nodes with type: {}, or all nodes with this type already set to latest version!", ruleNodeTypeForLogs);
+                    log.debug("There are no active nodes with type: {}, or all nodes with this type already set to latest version!", ruleNodeTypeForLogs);
                 } else {
                     for (var ruleNode : ruleNodesToUpdate) {
                         var ruleNodeId = ruleNode.getId();
                         var oldConfiguration = ruleNode.getConfiguration();
                         int fromVersion = ruleNode.getConfigurationVersion();
-                        log.info("Going to upgrade rule node with id: {} type: {} fromVersion: {} toVersion: {}",
+                        log.debug("Going to upgrade rule node with id: {} type: {} fromVersion: {} toVersion: {}",
                                 ruleNodeId, ruleNodeTypeForLogs, fromVersion, toVersion);
                         try {
-                            var tbVersionedNode = (TbVersionedNode) clazz.getClazz().getDeclaredConstructor().newInstance();
+                            var tbVersionedNode = (TbNode) clazz.getClazz().getDeclaredConstructor().newInstance();
                             TbPair<Boolean, JsonNode> upgradeRuleNodeConfigurationResult = tbVersionedNode.upgrade(fromVersion, oldConfiguration);
                             if (upgradeRuleNodeConfigurationResult.getFirst()) {
                                 ruleNode.setConfiguration(upgradeRuleNodeConfigurationResult.getSecond());
                             }
                             ruleNode.setConfigurationVersion(toVersion);
                             ruleChainService.saveRuleNode(TenantId.SYS_TENANT_ID, ruleNode);
-                            log.info("Successfully upgrade rule node with id: {} type: {} fromVersion: {} toVersion: {}",
+                            log.debug("Successfully upgrade rule node with id: {} type: {} fromVersion: {} toVersion: {}",
                                     ruleNodeId, ruleNodeTypeForLogs, fromVersion, toVersion);
                         } catch (Exception e) {
                             log.warn("Failed to upgrade rule node with id: {} type: {} fromVersion: {} toVersion: {} due to: ",
