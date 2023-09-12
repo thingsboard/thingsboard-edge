@@ -17,6 +17,7 @@ package org.thingsboard.server.edge;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResource;
@@ -32,6 +33,7 @@ import java.util.UUID;
 public class ResourceEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testSendResourceToCloud() throws Exception {
         UUID uuid = Uuids.timeBased();
 

@@ -196,7 +196,7 @@ public class RestClient implements Closeable {
     private String password;
     private String mainToken;
     private String refreshToken;
-    private long mainTokenExpTs;
+    private volatile long mainTokenExpTs;
     private long refreshTokenExpTs;
     private long clientServerTimeDiff;
 
@@ -3409,6 +3409,19 @@ public class RestClient implements Closeable {
         ).getBody();
     }
 
+    public Optional<TbResource> getResourceById(TbResourceId tbResourceId) {
+        try {
+            ResponseEntity<TbResource> tbResourceOpt = restTemplate.getForEntity(baseURL + "/api/resource/{resourceId}", TbResource.class, tbResourceId.getId());
+            return Optional.ofNullable(tbResourceOpt.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
     public TbResource saveResource(TbResource resource) {
         return restTemplate.postForEntity(
                 baseURL + "/api/resource",
@@ -3431,7 +3444,7 @@ public class RestClient implements Closeable {
     }
 
     public void deleteResource(TbResourceId resourceId) {
-        restTemplate.delete("/api/resource/{resourceId}", resourceId.getId().toString());
+        restTemplate.delete(baseURL + "/api/resource/{resourceId}", resourceId.getId().toString());
     }
 
     public ResponseEntity<Resource> downloadOtaPackage(OtaPackageId otaPackageId) {
