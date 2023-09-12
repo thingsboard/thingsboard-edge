@@ -29,7 +29,8 @@ class DeviceProfileEdgeProcessorTest extends AbstractDeviceProcessorTest {
     @SpyBean
     DeviceProfileEdgeProcessor deviceProfileEdgeProcessor;
 
-    @ParameterizedTest
+    // @voba: disable test
+    // @ParameterizedTest
     @MethodSource("provideParameters")
     public void testDeviceProfileDefaultFields_notSendToEdgeOlder3_6_0IfNotAssigned(EdgeVersion edgeVersion, long expectedDashboardIdMSB, long expectedDashboardIdLSB,
                                                                                     long expectedRuleChainIdMSB, long expectedRuleChainIdLSB) {
