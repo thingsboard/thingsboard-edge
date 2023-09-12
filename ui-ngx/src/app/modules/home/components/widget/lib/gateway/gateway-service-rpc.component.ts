@@ -46,6 +46,7 @@ import {
   JsonObjectEditDialogComponent,
   JsonObjectEditDialogData
 } from '@shared/components/dialog/json-object-edit-dialog.component';
+import { jsonRequired } from '@shared/components/json-object-edit.component';
 
 
 @Component({
@@ -92,7 +93,7 @@ export class GatewayServiceRPCComponent extends PageComponent implements AfterVi
     this.commandForm = this.fb.group({
       command: [null,[Validators.required]],
       time: [60, [Validators.required, Validators.min(1)]],
-      params: ["{}", [Validators.required]],
+      params: [{}, [jsonRequired]],
       result: [null]
     })
 
@@ -129,7 +130,8 @@ export class GatewayServiceRPCComponent extends PageComponent implements AfterVi
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
-        jsonValue: JSON.parse(this.commandForm.get('params').value)
+        jsonValue: JSON.parse(this.commandForm.get('params').value),
+        required: true
       }
     }).afterClosed().subscribe(
       (res) => {

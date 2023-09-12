@@ -36,6 +36,7 @@ import { AppState } from '@app/core/core.state';
 import { SchedulerEventConfiguration } from '@shared/models/scheduler-event.models';
 import { MessageType } from '@shared/models/rule-node.models';
 import { EntityType } from '@shared/models/entity-type.models';
+import { jsonRequired } from '@shared/components/json-object-edit.component';
 
 @Component({
   selector: 'tb-send-rpc-request-event-config',
@@ -67,7 +68,7 @@ export class SendRpcRequestComponent implements ControlValueAccessor, OnInit, Af
       msgBody: this.fb.group(
         {
           method: [null, [Validators.required, Validators.pattern(/^\S+$/)]],
-          params: [null, [Validators.required]]
+          params: [null, [jsonRequired]]
         }
       )
     });
