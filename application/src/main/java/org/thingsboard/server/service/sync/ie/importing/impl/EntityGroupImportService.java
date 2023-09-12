@@ -56,6 +56,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.regex.Pattern;
 
 @Service
 @TbCoreComponent
@@ -63,6 +64,7 @@ import java.util.List;
 public class EntityGroupImportService extends BaseEntityImportService<EntityGroupId, EntityGroup, EntityGroupExportData> {
 
     private static final LinkedHashSet<EntityType> HINTS = new LinkedHashSet<>(Arrays.asList(EntityType.DASHBOARD, EntityType.DEVICE, EntityType.ASSET));
+    public static final Pattern CONFIG_PROCESSED_FIELDS_PATTERN = Pattern.compile(".*Id.*");
 
     private final EntityGroupService entityGroupService;
     private final GroupPermissionService groupPermissionService;
@@ -100,7 +102,7 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
             throw new IllegalArgumentException("Import of new groups with type All is not allowed. " +
                     "Consider enabling import option to find existing entities by name");
         }
-        replaceIdsRecursively(ctx, idProvider, JacksonUtil.getSafely(entity.getConfiguration(), "actions"), Collections.singleton("id"), null, HINTS);
+        replaceIdsRecursively(ctx, idProvider, JacksonUtil.getSafely(entity.getConfiguration(), "actions"), Collections.emptySet(), CONFIG_PROCESSED_FIELDS_PATTERN, HINTS);
         return entity;
     }
 
