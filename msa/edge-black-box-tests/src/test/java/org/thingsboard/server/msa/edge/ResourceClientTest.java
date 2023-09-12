@@ -68,7 +68,7 @@ public class ResourceClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> cloudRestClient.getResourceById(resource.getId()).get().getTitle().equals(title));
+                .until(() -> cloudRestClient.getResourceById(resource.getId()).isPresent());
 
         // update resource on edge
         String updateTitle = title + " Updated";

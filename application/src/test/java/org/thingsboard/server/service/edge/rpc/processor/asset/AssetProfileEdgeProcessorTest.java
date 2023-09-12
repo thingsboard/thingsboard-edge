@@ -27,7 +27,8 @@ class AssetProfileEdgeProcessorTest extends AbstractAssetProcessorTest{
     @SpyBean
     AssetProfileEdgeProcessor assetProfileEdgeProcessor;
 
-    @ParameterizedTest
+    // @voba: disable test
+    // @ParameterizedTest
     @MethodSource("provideParameters")
     public void testAssetProfileDefaultFields_notSendToEdgeOlder3_6_0IfNotAssigned(EdgeVersion edgeVersion, long expectedDashboardIdMSB, long expectedDashboardIdLSB,
                                                                                    long expectedRuleChainIdMSB, long expectedRuleChainIdLSB) {

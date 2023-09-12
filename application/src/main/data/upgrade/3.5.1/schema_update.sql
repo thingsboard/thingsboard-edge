@@ -129,6 +129,8 @@ ALTER TABLE notification_request ALTER COLUMN info SET DATA TYPE varchar(1000000
 
 ALTER TABLE IF EXISTS cloud_event ALTER COLUMN seq_id SET CYCLE;
 
+DELETE FROM alarm WHERE tenant_id NOT IN (SELECT id FROM tenant);
+
 CREATE TABLE IF NOT EXISTS alarm_types (
     tenant_id uuid NOT NULL,
     type varchar(255) NOT NULL,

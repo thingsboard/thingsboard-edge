@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.jboss.aerogear.security.otp.Totp;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -113,6 +114,7 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore // @voba - two factor disabled on edge
     public void testTwoFa_totp() throws Exception {
         TotpTwoFaAccountConfig totpTwoFaAccountConfig = configureTotpTwoFa();
 
@@ -133,6 +135,7 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore // @voba - two factor disabled on edge
     public void testTwoFa_sms() throws Exception {
         configureSmsTwoFa();
 
@@ -155,6 +158,7 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore // @voba - two factor disabled on edge
     public void testTwoFaPreVerificationTokenLifetime() throws Exception {
         configureTotpTwoFa(twoFaSettings -> {
             twoFaSettings.setTotalAllowedTimeForVerification(65);
@@ -172,6 +176,7 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore // @voba - two factor disabled on edge
     public void testCheckVerificationCode_userBlocked() throws Exception {
         configureTotpTwoFa(twoFaSettings -> {
             twoFaSettings.setMaxVerificationFailuresBeforeUserLockout(10);
@@ -201,6 +206,7 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore // @voba - two factor disabled on edge
     public void testSendVerificationCode_rateLimit() throws Exception {
         configureTotpTwoFa(twoFaSettings -> {
             twoFaSettings.setMinVerificationCodeSendPeriod(10);
@@ -225,6 +231,7 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore // @voba - two factor disabled on edge
     public void testCheckVerificationCode_rateLimit() throws Exception {
         TotpTwoFaAccountConfig totpTwoFaAccountConfig = configureTotpTwoFa(twoFaSettings -> {
             twoFaSettings.setVerificationCodeCheckRateLimit("3:10");
@@ -256,6 +263,7 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore // @voba - two factor disabled on edge
     public void testCheckVerificationCode_invalidVerificationCode() throws Exception {
         configureTotpTwoFa();
         logInWithPreVerificationToken(username, password);
@@ -268,6 +276,7 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore // @voba - two factor disabled on edge
     public void testCheckVerificationCode_codeExpiration() throws Exception {
         configureSmsTwoFa(smsTwoFaProviderConfig -> {
             smsTwoFaProviderConfig.setVerificationCodeLifetime(10);
@@ -293,6 +302,7 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore // @voba - two factor disabled on edge
     public void testTwoFa_logLoginAction() throws Exception {
         TotpTwoFaAccountConfig totpTwoFaAccountConfig = configureTotpTwoFa();
 
@@ -332,6 +342,7 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore // @voba - two factor disabled on edge
     public void testAuthWithoutTwoFaAccountConfig() throws ThingsboardException {
         configureTotpTwoFa();
         twoFaConfigManager.deleteTwoFaAccountConfig(tenantId, user.getId(), TwoFaProviderType.TOTP);
@@ -342,6 +353,7 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore // @voba - two factor disabled on edge
     public void testTwoFa_multipleProviders() throws Exception {
         PlatformTwoFaSettings platformTwoFaSettings = new PlatformTwoFaSettings();
 
