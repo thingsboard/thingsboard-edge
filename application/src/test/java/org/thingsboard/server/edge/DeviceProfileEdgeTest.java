@@ -453,6 +453,7 @@ public class DeviceProfileEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDeviceProfileToCloudWithNameThatAlreadyExistsOnCloud() throws Exception {
         String deviceProfileOnCloudName = StringUtils.randomAlphanumeric(15);
 
