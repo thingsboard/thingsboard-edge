@@ -31,6 +31,7 @@
 package org.thingsboard.server.msa.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.netty.buffer.Unpooled;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +50,8 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.integration.api.data.UplinkContentType;
+import org.thingsboard.integration.mqtt.BasicMqttIntegrationMsg;
 import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
@@ -57,13 +60,12 @@ import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.msa.TestProperties;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
@@ -74,6 +76,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.thingsboard.server.common.data.DataConstants.DEVICE;
 import static org.thingsboard.server.common.data.DataConstants.SHARED_SCOPE;
 import static org.thingsboard.server.common.data.integration.IntegrationType.MQTT;
@@ -212,7 +215,9 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
         connOpts.setCleanSession(true);
 
         JsonNode payloadForUplink = createPayloadForUplink();
-        sendMessageToBroker(connOpts, payloadForUplink.toString().getBytes());
+        byte[] uplinkPayload = payloadForUplink.toString().getBytes();
+        assertEquals(UplinkContentType.JSON, new BasicMqttIntegrationMsg(TOPIC, Unpooled.wrappedBuffer(uplinkPayload)).getContentType());
+        sendMessageToBroker(connOpts, uplinkPayload);
         waitForConverterDebugEvent(uplinkConverter, "Uplink", 1);
         PageData<EventInfo> events = testRestClient.getEvents(uplinkConverter.getId(), EventType.DEBUG_CONVERTER, uplinkConverter.getTenantId(), new TimePageLink(1024));
         List<EventInfo> eventsData = events.getData();
@@ -220,14 +225,17 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(latestEventInfo.getBody().get("in").asText(), payloadForUplink.toString());
 
         String textPayload = "textPayload";
-        sendMessageToBroker(connOpts, textPayload.getBytes());
+        uplinkPayload = textPayload.getBytes(StandardCharsets.UTF_8);
+        assertEquals(UplinkContentType.TEXT, new BasicMqttIntegrationMsg(TOPIC, Unpooled.wrappedBuffer(uplinkPayload)).getContentType());
+        sendMessageToBroker(connOpts, uplinkPayload);
         waitForConverterDebugEvent(uplinkConverter, "Uplink", 1);
         events = testRestClient.getEvents(uplinkConverter.getId(), EventType.DEBUG_CONVERTER, uplinkConverter.getTenantId(), new TimePageLink(1024));
         eventsData = events.getData();
         latestEventInfo = eventsData.get(eventsData.size() - 1);
         Assert.assertEquals(latestEventInfo.getBody().get("in").asText(), textPayload);
 
-        byte[] binaryPayload = {0x64, 0x65, 0x66};
+        byte[] binaryPayload = {0x01, 0x02, 0x03};
+        assertEquals(UplinkContentType.BINARY, new BasicMqttIntegrationMsg(TOPIC, Unpooled.wrappedBuffer(binaryPayload)).getContentType());
         sendMessageToBroker(connOpts, binaryPayload);
         waitForConverterDebugEvent(uplinkConverter, "Uplink", 1);
         events = testRestClient.getEvents(uplinkConverter.getId(), EventType.DEBUG_CONVERTER, uplinkConverter.getTenantId(), new TimePageLink(1024));

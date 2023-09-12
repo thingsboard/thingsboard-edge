@@ -163,9 +163,6 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
     }
 
     protected void waitForConverterDebugEvent(Converter converter, String eventType, int count) {
-        if (containerTestSuite.isActive()) {
-            count = count * 2;
-        }
         int finalCount = count;
         Awaitility
                 .await()
