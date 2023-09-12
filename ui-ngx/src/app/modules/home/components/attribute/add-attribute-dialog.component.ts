@@ -60,7 +60,7 @@ export class AddAttributeDialogComponent extends DialogComponent<AddAttributeDia
 
   submitted = false;
 
-  title = '';
+  isTelemetry = false;
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
@@ -77,8 +77,7 @@ export class AddAttributeDialogComponent extends DialogComponent<AddAttributeDia
       key: ['', [Validators.required, Validators.maxLength(255)]],
       value: [null, [Validators.required]]
     });
-    this.title = this.data.attributeScope === LatestTelemetry.LATEST_TELEMETRY ?
-      'attribute.add-telemetry' : 'attribute.add'
+    this.isTelemetry = this.data.attributeScope === LatestTelemetry.LATEST_TELEMETRY;
   }
 
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
