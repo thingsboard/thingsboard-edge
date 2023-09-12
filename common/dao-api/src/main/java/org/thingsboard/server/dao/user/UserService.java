@@ -116,7 +116,13 @@ public interface UserService extends EntityDaoService {
 
     PageData<User> findUsersByTenantIdAndRoles(TenantId tenantId, List<RoleId> roles, PageLink pageLink);
 
-	void setUserCredentialsEnabled(TenantId tenantId, UserId userId, boolean enabled);
+    PageData<User> findUsersByTenantsIdsAndRoleId(List<TenantId> tenantsIds, RoleId roleId, PageLink pageLink);
+
+    PageData<User> findUsersByTenantProfilesIdsAndRoleId(List<TenantProfileId> tenantProfilesIds, RoleId roleId, PageLink pageLink);
+
+    PageData<User> findAllUsersByRoleId(RoleId roleId, PageLink pageLink);
+
+    void setUserCredentialsEnabled(TenantId tenantId, UserId userId, boolean enabled);
 
     void resetFailedLoginAttempts(TenantId tenantId, UserId userId);
 
