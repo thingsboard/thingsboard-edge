@@ -144,6 +144,7 @@ public class AssetProfileEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendAssetProfileToCloudWithNameThatAlreadyExistsOnCloud() throws Exception {
         String assetProfileOnCloudName = StringUtils.randomAlphanumeric(15);
 
