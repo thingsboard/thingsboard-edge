@@ -197,7 +197,7 @@ public class JpaEdgeDao extends JpaAbstractDao<EdgeEntity, Edge> implements Edge
     }
 
     @Override
-    public PageData<EdgeId> findEdgeIdsByTenantIdAndEntityGroupId(UUID tenantId, List<UUID> entityGroupIds, EntityType groupType, PageLink pageLink) {
+    public PageData<EdgeId> findEdgeIdsByTenantIdAndEntityGroupIds(UUID tenantId, List<UUID> entityGroupIds, EntityType groupType, PageLink pageLink) {
         log.debug("Try to find edge ids by tenantId [{}], entityGroupIds [{}]", tenantId, entityGroupIds);
         String relationType = BaseEntityGroupService.EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name();
         return DaoUtil.pageToPageData(
@@ -205,6 +205,19 @@ public class JpaEdgeDao extends JpaAbstractDao<EdgeEntity, Edge> implements Edge
                         tenantId,
                         entityGroupIds,
                         EntityType.ENTITY_GROUP.name(),
+                        relationType,
+                        DaoUtil.toPageable(pageLink))).mapData(EdgeId::fromUUID);
+    }
+
+    @Override
+    public PageData<EdgeId> findEdgeIdsByTenantIdAndGroupEntityId(UUID tenantId, UUID entityId, EntityType groupType, PageLink pageLink) {
+        log.debug("Try to find edge ids by tenantId [{}], group entityId [{}]", tenantId, entityId);
+        String relationType = BaseEntityGroupService.EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name();
+        return DaoUtil.pageToPageData(
+                edgeRepository.findEdgeIdsByTenantIdAndGroupEntityId(
+                        tenantId,
+                        entityId,
+                        groupType.name(),
                         relationType,
                         DaoUtil.toPageable(pageLink))).mapData(EdgeId::fromUUID);
     }

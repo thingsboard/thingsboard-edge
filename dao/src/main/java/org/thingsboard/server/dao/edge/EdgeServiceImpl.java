@@ -45,7 +45,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
-import org.springframework.util.CollectionUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EdgeUtils;
@@ -427,7 +426,15 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         Validator.validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
         validatePageLink(pageLink);
         List<UUID> entityGroupUuids = entityGroupIds.stream().map(UUIDBased::getId).collect(Collectors.toList());
-        return edgeDao.findEdgeIdsByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupUuids, groupType, pageLink);
+        return edgeDao.findEdgeIdsByTenantIdAndEntityGroupIds(tenantId.getId(), entityGroupUuids, groupType, pageLink);
+    }
+
+    @Override
+    public PageData<EdgeId> findEdgeIdsByTenantIdAndGroupEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink) {
+        log.trace("Executing findEdgeIdsByTenantIdAndGroupEntityId, tenantId [{}], entityId [{}]", tenantId, entityId);
+        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
+        validatePageLink(pageLink);
+        return edgeDao.findEdgeIdsByTenantIdAndGroupEntityId(tenantId.getId(), entityId.getId(), entityId.getEntityType(), pageLink);
     }
 
     public PageData<Edge> findEdgesByTenantProfileId(TenantProfileId tenantProfileId, PageLink pageLink) {
@@ -505,16 +512,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
             case ASSET:
             case ENTITY_VIEW:
             case DASHBOARD:
-                List<EntityGroupId> entityGroupsForEntity = null;
-                try {
-                    entityGroupsForEntity = entityGroupService.findEntityGroupsForEntityAsync(tenantId, entityId).get();
-                } catch (Exception e) {
-                    log.error("[{}] Can't find entity group for entity {}", tenantId, entityId, e);
-                }
-                if (CollectionUtils.isEmpty(entityGroupsForEntity)) {
-                    return createEmptyEdgeIdPageData();
-                }
-                return findEdgeIdsByTenantIdAndEntityGroupIds(tenantId, entityGroupsForEntity, entityId.getEntityType(), pageLink);
+                return findEdgeIdsByTenantIdAndGroupEntityId(tenantId, entityId, pageLink);
             case ENTITY_GROUP:
                 EntityGroupId entityGroupId = new EntityGroupId(entityId.getId());
                 if (groupType == null) {

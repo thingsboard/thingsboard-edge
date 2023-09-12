@@ -168,14 +168,24 @@ public interface EdgeDao extends Dao<Edge> {
     PageData<EdgeId> findEdgeIdsByTenantIdAndEntityIds(UUID tenantId, List<UUID> entityIds, EntityType entityType, PageLink pageLink);
 
     /**
-     * Find edge ids by tenantId, entityGroupId and groupType.
+     * Find edge ids by tenantId, entityGroupIds and groupType.
      *
      * @param tenantId the tenantId
-     * @param entityGroupId the entityGroupId
+     * @param entityGroupIds the entityGroupIds
      * @param groupType the groupType
      * @return the list of rule chain objects
      */
-    PageData<EdgeId> findEdgeIdsByTenantIdAndEntityGroupId(UUID tenantId, List<UUID> entityGroupId, EntityType groupType, PageLink pageLink);
+    PageData<EdgeId> findEdgeIdsByTenantIdAndEntityGroupIds(UUID tenantId, List<UUID> entityGroupIds, EntityType groupType, PageLink pageLink);
+
+    /**
+     * Find edge ids by tenantId, group entityId and groupType.
+     *
+     * @param tenantId the tenantId
+     * @param entityId the entityId
+     * @param groupType the groupType
+     * @return the list of rule chain objects
+     */
+    PageData<EdgeId> findEdgeIdsByTenantIdAndGroupEntityId(UUID tenantId, UUID entityId, EntityType groupType, PageLink pageLink);
 
      /**
      * Find edges by tenantProfileId.
