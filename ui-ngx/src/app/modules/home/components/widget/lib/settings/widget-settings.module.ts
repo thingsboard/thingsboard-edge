@@ -273,6 +273,12 @@ import {
   TripAnimationPointSettingsComponent
 } from '@home/components/widget/lib/settings/map/trip-animation-point-settings.component';
 import {
+  GatewayLogsSettingsComponent
+} from '@home/components/widget/lib/settings/gateway/gateway-logs-settings.component';
+import {
+  GatewayServiceRPCSettingsComponent
+} from '@home/components/widget/lib/settings/gateway/gateway-service-rpc-settings.component';
+import {
   DocLinksWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/home-page/doc-links-widget-settings.component';
 import {
@@ -393,6 +399,8 @@ import {
     TripAnimationPointSettingsComponent,
     MapWidgetSettingsComponent,
     RouteMapWidgetSettingsComponent,
+    GatewayLogsSettingsComponent,
+    GatewayServiceRPCSettingsComponent,
     TripAnimationWidgetSettingsComponent,
     DocLinksWidgetSettingsComponent,
     QuickLinksWidgetSettingsComponent,
@@ -503,6 +511,8 @@ import {
     TripAnimationPointSettingsComponent,
     MapWidgetSettingsComponent,
     RouteMapWidgetSettingsComponent,
+    GatewayLogsSettingsComponent,
+    GatewayServiceRPCSettingsComponent,
     TripAnimationWidgetSettingsComponent,
     DocLinksWidgetSettingsComponent,
     QuickLinksWidgetSettingsComponent,
@@ -579,6 +589,8 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-map-widget-settings': MapWidgetSettingsComponent,
   'tb-route-map-widget-settings': RouteMapWidgetSettingsComponent,
   'tb-trip-animation-widget-settings': TripAnimationWidgetSettingsComponent,
+  'tb-gateway-logs-settings': GatewayLogsSettingsComponent,
+  'tb-gateway-service-rpc-settings':GatewayServiceRPCSettingsComponent,
   'tb-doc-links-widget-settings': DocLinksWidgetSettingsComponent,
   'tb-quick-links-widget-settings': QuickLinksWidgetSettingsComponent,
   'tb-value-card-widget-settings': ValueCardWidgetSettingsComponent,

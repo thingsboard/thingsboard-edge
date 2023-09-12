@@ -34,15 +34,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.common.data.EntitySubtype;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -64,7 +60,6 @@ import org.thingsboard.server.dao.sql.tenant.TenantRepository;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.queue.settings.TbRuleEngineQueueConfiguration;
-import org.thingsboard.server.service.install.sql.SqlDbHelper;
 import org.thingsboard.server.service.install.update.DefaultDataUpdateService;
 
 import java.nio.charset.Charset;
@@ -734,8 +729,8 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                 break;
             case "3.5.1":
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-                    log.info("Updating schema ...");
                     if (isOldSchema(conn, 3005001)) {
+                        log.info("Updating schema ...");
                         Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.5.1", SCHEMA_UPDATE_SQL);
                         loadSql(schemaUpdateFile, conn);
 
@@ -761,13 +756,22 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                         } catch (Exception e) {
                         }
                         try {
+                            conn.createStatement().execute("UPDATE rule_node SET " +
+                                    "configuration = (configuration::jsonb || '{\"updateAttributesOnlyOnValueChange\": \"false\"}'::jsonb)::varchar, " +
+                                    "configuration_version = 1 " +
+                                    "WHERE type = 'org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode' AND configuration_version < 1;");
+                        } catch (Exception e) {
+                        }
+                        try {
                             conn.createStatement().execute("CREATE INDEX IF NOT EXISTS idx_notification_recipient_id_unread ON notification(recipient_id) WHERE status <> 'READ';");
                         } catch (Exception e) {
                         }
 
                         conn.createStatement().execute("UPDATE tb_schema_settings SET schema_version = 3005002;");
+                        log.info("Schema updated to version 3.5.2.");
+                    } else {
+                        log.info("Skip schema re-update to version 3.5.2. Use env flag 'SKIP_SCHEMA_VERSION_CHECK' to force the re-update.");
                     }
-                    log.info("Schema updated.");
                 } catch (Exception e) {
                     log.error("Failed updating schema!!!", e);
                 }

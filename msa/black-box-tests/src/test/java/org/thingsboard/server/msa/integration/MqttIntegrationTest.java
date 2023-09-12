@@ -31,6 +31,7 @@
 package org.thingsboard.server.msa.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.netty.buffer.Unpooled;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -49,16 +50,24 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.integration.api.data.UplinkContentType;
+import org.thingsboard.integration.mqtt.BasicMqttIntegrationMsg;
+import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.msa.TestProperties;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -67,6 +76,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.thingsboard.server.common.data.DataConstants.DEVICE;
 import static org.thingsboard.server.common.data.DataConstants.SHARED_SCOPE;
 import static org.thingsboard.server.common.data.integration.IntegrationType.MQTT;
@@ -151,6 +161,7 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
                 .name("mqtt" + RandomStringUtils.randomAlphanumeric(7))
                 .configuration(defaultConfig(SERVICE_NAME, SERVICE_PORT, TOPIC))
                 .defaultConverterId(uplinkConverter.getId())
+                .downlinkConverterId(downlinkConverter.getId())
                 .routingKey(ROUTING_KEY)
                 .secret(SECRET_KEY)
                 .isRemote(false)
@@ -179,12 +190,69 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(TELEMETRY_VALUE, latestTimeseries.get(0).getValue().toString());
     }
     @Test
+    public void differentPayloadTypesInEventsForConverterWithLocalIntegration() throws Exception {
+        integration = Integration.builder()
+                .type(MQTT)
+                .name("mqtt" + RandomStringUtils.randomAlphanumeric(7))
+                .configuration(defaultConfig(SERVICE_NAME, SERVICE_PORT, TOPIC))
+                .defaultConverterId(uplinkConverter.getId())
+                .downlinkConverterId(downlinkConverter.getId())
+                .routingKey(ROUTING_KEY)
+                .secret(SECRET_KEY)
+                .isRemote(false)
+                .enabled(true)
+                .debugMode(true)
+                .allowCreateDevicesOrAssets(true)
+                .build();
+
+        long startTs = System.currentTimeMillis();
+
+        integration = testRestClient.postIntegration(integration);
+        waitUntilIntegrationStarted(integration.getId(), integration.getTenantId());
+
+        MqttConnectOptions connOpts = new MqttConnectOptions();
+        connOpts.setKeepAliveInterval(30);
+        connOpts.setCleanSession(true);
+
+        JsonNode payloadForUplink = createPayloadForUplink();
+        byte[] uplinkPayload = payloadForUplink.toString().getBytes();
+        assertEquals(UplinkContentType.JSON, new BasicMqttIntegrationMsg(TOPIC, Unpooled.wrappedBuffer(uplinkPayload)).getContentType());
+        sendMessageToBroker(connOpts, uplinkPayload);
+        waitForConverterDebugEvent(uplinkConverter, "Uplink", 1);
+        PageData<EventInfo> events = testRestClient.getEvents(uplinkConverter.getId(), EventType.DEBUG_CONVERTER, uplinkConverter.getTenantId(), new TimePageLink(1024));
+        List<EventInfo> eventsData = events.getData();
+        EventInfo latestEventInfo = eventsData.get(eventsData.size() - 1);
+        Assert.assertEquals(latestEventInfo.getBody().get("in").asText(), payloadForUplink.toString());
+
+        String textPayload = "textPayload";
+        uplinkPayload = textPayload.getBytes(StandardCharsets.UTF_8);
+        assertEquals(UplinkContentType.TEXT, new BasicMqttIntegrationMsg(TOPIC, Unpooled.wrappedBuffer(uplinkPayload)).getContentType());
+        sendMessageToBroker(connOpts, uplinkPayload);
+        waitForConverterDebugEvent(uplinkConverter, "Uplink", 1);
+        events = testRestClient.getEvents(uplinkConverter.getId(), EventType.DEBUG_CONVERTER, uplinkConverter.getTenantId(), new TimePageLink(1024));
+        eventsData = events.getData();
+        latestEventInfo = eventsData.get(eventsData.size() - 1);
+        Assert.assertEquals(latestEventInfo.getBody().get("in").asText(), textPayload);
+
+        byte[] binaryPayload = {0x01, 0x02, 0x03};
+        assertEquals(UplinkContentType.BINARY, new BasicMqttIntegrationMsg(TOPIC, Unpooled.wrappedBuffer(binaryPayload)).getContentType());
+        sendMessageToBroker(connOpts, binaryPayload);
+        waitForConverterDebugEvent(uplinkConverter, "Uplink", 1);
+        events = testRestClient.getEvents(uplinkConverter.getId(), EventType.DEBUG_CONVERTER, uplinkConverter.getTenantId(), new TimePageLink(1024));
+        eventsData = events.getData();
+        latestEventInfo = eventsData.get(eventsData.size() - 1);
+        byte[] bytesInEvent = Base64.getDecoder().decode(latestEventInfo.getBody().get("in").asText());
+        Assert.assertEquals(bytesInEvent, binaryPayload);
+    }
+
+    @Test
     public void telemetryUploadWithBasicCreds() throws Exception {
         integration = Integration.builder()
                 .type(MQTT)
                 .name("mqtt" + RandomStringUtils.randomAlphanumeric(7))
                 .configuration(configWithBasicCreds(SERVICE_NAME, SERVICE_PORT, TOPIC))
                 .defaultConverterId(uplinkConverter.getId())
+                .downlinkConverterId(downlinkConverter.getId())
                 .routingKey(ROUTING_KEY)
                 .secret(SECRET_KEY)
                 .isRemote(false)
@@ -226,6 +294,7 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
                 .name("mqtt" + RandomStringUtils.randomAlphanumeric(7))
                 .configuration(defaultConfig(SERVICE_NAME, SERVICE_PORT, TOPIC))
                 .defaultConverterId(uplinkConverter.getId())
+                .downlinkConverterId(downlinkConverter.getId())
                 .routingKey(ROUTING_KEY)
                 .secret(SECRET_KEY)
                 .isRemote(false)
@@ -323,8 +392,13 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
 
         sendMessageToBroker(connOpts);
     }
+
     void sendMessageToBroker(MqttConnectOptions connOpts) throws MqttException, InterruptedException {
         String content = createPayloadForUplink().toString();
+        sendMessageToBroker(connOpts, content.getBytes());
+    }
+
+    void sendMessageToBroker(MqttConnectOptions connOpts, byte[] payload) throws MqttException, InterruptedException {
         int qos = 0;
 
         String subClientId = StringUtils.randomAlphanumeric(10);
@@ -342,7 +416,7 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
 
             @Override
             public void messageArrived(String s, MqttMessage mqttMessage) {
-                check.set(mqttMessage.toString().equals(content));
+                check.set(Arrays.equals(mqttMessage.getPayload(), payload));
                 log.trace("s = {}, message = {}", s, mqttMessage);
             }
 
@@ -361,9 +435,8 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
             sampleClient.connect(options);
-            MqttMessage message = new MqttMessage(content.getBytes());
+            MqttMessage message = new MqttMessage(payload);
             message.setQos(qos);
-            message.setRetained(true);
             sampleClient.publish(TOPIC, message);
             sampleClient.disconnect();
             sampleClient.close();

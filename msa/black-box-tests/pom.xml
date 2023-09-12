@@ -230,6 +230,11 @@
         </dependency>
         <!--<dependency>
         <dependency>
+            <groupId>org.thingsboard.common.integration</groupId>
+            <artifactId>mqtt-integrations</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
             <scope>test</scope>

@@ -1,0 +1,90 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div mat-dialog-content tb-toast fxLayout="column" toastTarget="dockerCommandDialogContent" style="padding-top: 5px">
+  <div fxLayout="row" fxLayoutAlign="space-between center">
+    <span class="tb-no-data-text">{{ 'gateway.docker-label' | translate }}</span>
+    <div fxFlexAlign="end" class="tb-help" [tb-help]="helpLink"></div>
+  </div>
+  <div fxFlex fxLayout="row" style="justify-content: space-between; flex-grow: 0; align-items: center">
+  </div>
+  <mat-tab-group [(selectedIndex)]="tabIndex">
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tabs-icon" svgIcon="windows"></mat-icon>
+        Windows
+      </ng-template>
+      <ng-template matTabContent>
+        <div class="tb-form-panel no-padding no-border tb-tab-body">
+          <tb-markdown usePlainMarkdown containerClass="start-code" data="
+                    ```bash
+                    {{windowsCode}}
+                    {:copy-code}
+                    ```
+                "></tb-markdown>
+        </div>
+      </ng-template>
+    </mat-tab>
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tabs-icon" svgIcon="linux"></mat-icon>
+        Linux
+      </ng-template>
+      <ng-template matTabContent>
+        <div class="tb-form-panel no-padding no-border tb-tab-body">
+          <tb-markdown usePlainMarkdown containerClass="start-code" data="
+                    ```bash
+                    {{linuxCode}}
+                    {:copy-code}
+                    ```
+                "></tb-markdown>
+        </div>
+      </ng-template>
+    </mat-tab>
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tabs-icon" svgIcon="macos"></mat-icon>
+        MacOS
+      </ng-template>
+      <ng-template matTabContent>
+        <div class="tb-form-panel no-padding no-border tb-tab-body">
+          <tb-markdown usePlainMarkdown containerClass="start-code" data="
+                    ```bash
+                    {{linuxCode}}
+                    {:copy-code}
+                    ```
+                "></tb-markdown>
+        </div>
+      </ng-template>
+    </mat-tab>
+  </mat-tab-group>
+</div>

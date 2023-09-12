@@ -40,5 +40,7 @@ public interface DeviceConnectivityService {
 
     JsonNode findDevicePublishTelemetryCommands(String baseUrl, Device device) throws URISyntaxException;
 
+    JsonNode findGatewayLaunchCommands(String baseUrl, Device device) throws URISyntaxException;
+
     Resource getPemCertFile(String protocol);
 }

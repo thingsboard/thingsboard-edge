@@ -7,13 +7,7 @@
     "description": "",
     "widgets": {
       "777ded27-e3b8-d901-ca42-3079a23f7a12": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 7.5,
         "sizeY": 6.5,
         "config": {
@@ -160,7 +154,7 @@
                 "setEntityId": true,
                 "stateEntityParamName": null,
                 "openNewBrowserTab": false,
-                "targetDashboardId": "1b6e5810-7ea6-11ec-b4a3-1952bf8c6601",
+                "targetDashboardId": "b2600c20-4d9c-11ee-b950-63d0eb92a83d",
                 "openInSeparateDialog": false,
                 "openInPopover": false,
                 "id": "347536c1-e013-249a-c93e-acc1706de1bb"
@@ -217,16 +211,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "777ded27-e3b8-d901-ca42-3079a23f7a12"
+        "id": "777ded27-e3b8-d901-ca42-3079a23f7a12",
+        "typeFullFqn": "system.cards.entities_table"
       },
       "c2559a58-e82d-3250-7e35-f520ced0d916": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -283,16 +272,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "c2559a58-e82d-3250-7e35-f520ced0d916"
+        "id": "c2559a58-e82d-3250-7e35-f520ced0d916",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "28303a0b-d427-6d9e-0ee1-ae2c3f344769": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -373,16 +357,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "28303a0b-d427-6d9e-0ee1-ae2c3f344769"
+        "id": "28303a0b-d427-6d9e-0ee1-ae2c3f344769",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "4a524a3c-2b87-903c-6256-47a5df398ba5": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 7.5,
         "sizeY": 6.5,
         "config": {
@@ -543,16 +522,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "4a524a3c-2b87-903c-6256-47a5df398ba5"
+        "id": "4a524a3c-2b87-903c-6256-47a5df398ba5",
+        "typeFullFqn": "system.cards.entities_table"
       },
       "ab845ee8-ff10-b684-3652-cb49e2d9acbe": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -659,16 +633,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "ab845ee8-ff10-b684-3652-cb49e2d9acbe"
+        "id": "ab845ee8-ff10-b684-3652-cb49e2d9acbe",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "980bd0c3-44e9-a1f9-c8f9-3dc533011fde": {
-        "isSystemType": true,
-        "bundleAlias": "input_widgets",
-        "typeAlias": "update_server_string_attribute",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 7.5,
         "sizeY": 3,
         "config": {
@@ -744,16 +713,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "980bd0c3-44e9-a1f9-c8f9-3dc533011fde"
+        "id": "980bd0c3-44e9-a1f9-c8f9-3dc533011fde",
+        "typeFullFqn": "system.input_widgets.update_server_string_attribute"
       },
       "00041a85-d8fe-09f2-4aab-1c86d8a7444d": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -834,16 +798,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "00041a85-d8fe-09f2-4aab-1c86d8a7444d"
+        "id": "00041a85-d8fe-09f2-4aab-1c86d8a7444d",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "1d0b53f4-7805-fbfd-1cc6-e91d0df3d4bf": {
-        "isSystemType": true,
-        "bundleAlias": "maps_v2",
-        "typeAlias": "openstreetmap",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8.5,
         "sizeY": 6,
         "config": {
@@ -1023,16 +982,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "1d0b53f4-7805-fbfd-1cc6-e91d0df3d4bf"
+        "id": "1d0b53f4-7805-fbfd-1cc6-e91d0df3d4bf",
+        "typeFullFqn": "system.maps_v2.openstreetmap"
       },
       "59df0b6f-17dd-3c4c-a484-69c0836246da": {
-        "isSystemType": true,
-        "bundleAlias": "input_widgets",
-        "typeAlias": "update_server_image_attribute",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 7.5,
         "sizeY": 3.5,
         "config": {
@@ -1109,16 +1063,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "59df0b6f-17dd-3c4c-a484-69c0836246da"
+        "id": "59df0b6f-17dd-3c4c-a484-69c0836246da",
+        "typeFullFqn": "system.input_widgets.update_server_image_attribute"
       },
       "8a7abdae-72fd-610d-7977-4e211fa999f4": {
-        "isSystemType": true,
-        "bundleAlias": "maps_v2",
-        "typeAlias": "openstreetmap",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8.5,
         "sizeY": 6,
         "config": {
@@ -1308,16 +1257,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "8a7abdae-72fd-610d-7977-4e211fa999f4"
+        "id": "8a7abdae-72fd-610d-7977-4e211fa999f4",
+        "typeFullFqn": "system.maps_v2.openstreetmap"
       },
       "7a671e82-7171-d1e2-75cc-565f67598090": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -1393,16 +1337,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "7a671e82-7171-d1e2-75cc-565f67598090"
+        "id": "7a671e82-7171-d1e2-75cc-565f67598090",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "eac6e38e-62f2-1f91-754b-299d11e87c19": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 7.5,
         "sizeY": 6.5,
         "config": {
@@ -1628,16 +1567,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "eac6e38e-62f2-1f91-754b-299d11e87c19"
+        "id": "eac6e38e-62f2-1f91-754b-299d11e87c19",
+        "typeFullFqn": "system.cards.entities_table"
       },
       "0c48ee70-d617-faa5-2418-d9766c6ff378": {
-        "isSystemType": true,
-        "bundleAlias": "maps_v2",
-        "typeAlias": "image_map",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8.5,
         "sizeY": 6.5,
         "config": {
@@ -1841,16 +1775,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "0c48ee70-d617-faa5-2418-d9766c6ff378"
+        "id": "0c48ee70-d617-faa5-2418-d9766c6ff378",
+        "typeFullFqn": "system.maps_v2.image_map"
       },
       "a5093c25-bca6-94a6-0f44-e1bb752b755e": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -1926,7 +1855,8 @@
         },
         "row": 0,
         "col": 0,
-        "id": "a5093c25-bca6-94a6-0f44-e1bb752b755e"
+        "id": "a5093c25-bca6-94a6-0f44-e1bb752b755e",
+        "typeFullFqn": "system.cards.markdown_card"
       }
     },
     "states": {

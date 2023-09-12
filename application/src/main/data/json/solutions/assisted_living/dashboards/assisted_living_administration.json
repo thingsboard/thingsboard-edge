@@ -7,13 +7,7 @@
     "description": "",
     "widgets": {
       "400088f1-b348-e8dc-b40d-e94f4b6fb993": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -113,16 +107,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "400088f1-b348-e8dc-b40d-e94f4b6fb993"
+        "id": "400088f1-b348-e8dc-b40d-e94f4b6fb993",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "bc6a1c8a-93ee-5dd0-5832-a1fafd2d324a": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -223,16 +212,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "bc6a1c8a-93ee-5dd0-5832-a1fafd2d324a"
+        "id": "bc6a1c8a-93ee-5dd0-5832-a1fafd2d324a",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "7aaf5836-e41e-c694-aef8-b6d974d494b8": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -320,16 +304,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "7aaf5836-e41e-c694-aef8-b6d974d494b8"
+        "id": "7aaf5836-e41e-c694-aef8-b6d974d494b8",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "fa89e879-d310-436f-4463-a13fb66352b0": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 7.5,
         "sizeY": 6.5,
         "config": {
@@ -454,16 +433,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "fa89e879-d310-436f-4463-a13fb66352b0"
+        "id": "fa89e879-d310-436f-4463-a13fb66352b0",
+        "typeFullFqn": "system.cards.entities_table"
       },
       "9b625416-cb98-b8af-065f-72d8ad1e369d": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -550,16 +524,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "9b625416-cb98-b8af-065f-72d8ad1e369d"
+        "id": "9b625416-cb98-b8af-065f-72d8ad1e369d",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "2c1da725-ee6b-3ae3-25a5-11245c616b6a": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 7.5,
         "sizeY": 6.5,
         "config": {
@@ -776,16 +745,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "2c1da725-ee6b-3ae3-25a5-11245c616b6a"
+        "id": "2c1da725-ee6b-3ae3-25a5-11245c616b6a",
+        "typeFullFqn": "system.cards.entities_table"
       },
       "7cf94881-9a72-ba3a-5bc5-53b58727f1b0": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
         "type": "alarm",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 10.5,
         "sizeY": 6.5,
         "config": {
@@ -825,7 +789,7 @@
           "titleStyle": {
             "fontSize": "16px",
             "fontWeight": 400,
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 2px"
           },
           "useDashboardTimewindow": false,
           "showLegend": false,
@@ -990,7 +954,6 @@
               }
             ]
           },
-          "alarmSearchStatus": "ANY",
           "alarmsPollingInterval": 5,
           "showTitleIcon": false,
           "titleIcon": "more_horiz",
@@ -1030,30 +993,27 @@
               }
             ]
           },
-          "alarmStatusList": [
-            "UNACK"
-          ],
-          "alarmSeverityList": [],
-          "alarmTypeList": [],
-          "searchPropagatedAlarms": true,
           "datasources": [],
           "enableDataExport": false,
           "widgetCss": ".mat-mdc-table .mat-mdc-header-cell .mat-sort-header-container {\n    font-weight: 500;\n    font-size: 12px;\n    line-height: 16px;\n    color: #868D9C;\n}\n\n.mat-mdc-table .mat-mdc-cell .al-cell {\n    font-size: 14px;\n    font-weight: 400;\n    color: #4B535B;\n}\n\n.mat-mdc-table .mat-mdc-cell .mat-mdc-button.al-cell-button {\n    font-size: 14px;\n    font-weight: 400;\n    color: #4B535B;\n    padding: 0 6px;\n    line-height: normal;\n    letter-spacing: normal;\n    justify-content: start;\n}\n\n.mat-mdc-table .mat-mdc-cell .mat-mdc-button.al-cell-button.al-emergency {\n    color: #C42F37;\n    background: rgba(196, 47, 55, 0.06);\n    border-radius: 6px;\n    font-weight: 500;\n    padding: 8px 12px;\n    line-height: 16px;\n}\n\n.mat-mdc-table .mat-mdc-cell .mat-mdc-icon-button.al-phone {\n    color: #868D9C;\n    background: linear-gradient(0deg, rgba(52, 64, 130, 0.04), rgba(52, 64, 130, 0.04)), #FFFFFF;\n    border-radius: 6px;\n    padding: 7px;\n    line-height: 16px;\n    width: 32px;\n    height: 32px\n}\n\n.mat-mdc-table .mat-mdc-cell .mat-mdc-icon-button.al-phone .mat-mdc-button-persistent-ripple {\n    border-radius: 6px;\n}\n\n.mat-mdc-table .mat-mdc-cell .mat-mdc-icon-button.al-phone .mat-icon {\n    line-height: 18px;\n    height: 18px;\n    width: 18px;\n    font-size: 18px;\n}\n\n.mat-mdc-table .mat-mdc-row:hover:not(.tb-current-entity) {\n    background-color: transparent !important;\n}\n\n.mat-mdc-table .mat-mdc-row.tb-current-entity {\n    background-color: transparent !important;\n}\n\n.mat-mdc-table .mat-mdc-row {\n    position: relative;\n}\n\n.mat-mdc-table .mat-mdc-row .mat-mdc-cell {\n    border-bottom: none;\n}",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "alarmFilterConfig": {
+            "statusList": [
+              "UNACK"
+            ],
+            "severityList": [],
+            "typeList": [],
+            "searchPropagatedAlarms": true
+          }
         },
         "row": 0,
         "col": 0,
-        "id": "7cf94881-9a72-ba3a-5bc5-53b58727f1b0"
+        "id": "7cf94881-9a72-ba3a-5bc5-53b58727f1b0",
+        "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
       "c897d3c3-01f6-f1ed-4d4e-8a36b3ed063d": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
         "type": "alarm",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 10.5,
         "sizeY": 6.5,
         "config": {
@@ -1093,7 +1053,7 @@
           "titleStyle": {
             "fontSize": "16px",
             "fontWeight": 400,
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 2px"
           },
           "useDashboardTimewindow": false,
           "showLegend": false,
@@ -1237,7 +1197,6 @@
               }
             ]
           },
-          "alarmSearchStatus": "ANY",
           "alarmsPollingInterval": 5,
           "showTitleIcon": false,
           "titleIcon": "more_horiz",
@@ -1277,31 +1236,28 @@
               }
             ]
           },
-          "alarmStatusList": [
-            "ACTIVE",
-            "UNACK"
-          ],
-          "alarmSeverityList": [],
-          "alarmTypeList": [],
-          "searchPropagatedAlarms": true,
           "datasources": [],
           "enableDataExport": false,
           "widgetCss": ".mat-mdc-table .mat-mdc-header-cell .mat-sort-header-container {\n    font-weight: 500;\n    font-size: 12px;\n    line-height: 16px;\n    color: #868D9C;\n}\n\n.mat-mdc-table .mat-mdc-cell .al-cell {\n    font-size: 14px;\n    font-weight: 400;\n    color: #4B535B;\n}\n\n.mat-mdc-table .mat-mdc-cell .mat-mdc-button.al-cell-button {\n    font-size: 14px;\n    font-weight: 400;\n    color: #4B535B;\n    padding: 0 6px;\n    line-height: normal;\n    letter-spacing: normal;\n    justify-content: start;\n}\n\n.mat-mdc-table .mat-mdc-cell .mat-mdc-button.al-cell-button.al-emergency {\n    color: #C42F37;\n    background: rgba(196, 47, 55, 0.06);\n    border-radius: 6px;\n    font-weight: 500;\n    padding: 8px 12px;\n    line-height: 16px;\n}\n\n.mat-mdc-table .mat-mdc-cell .mat-mdc-icon-button.al-phone {\n    color: #868D9C;\n    background: linear-gradient(0deg, rgba(52, 64, 130, 0.04), rgba(52, 64, 130, 0.04)), #FFFFFF;\n    border-radius: 6px;\n    padding: 7px;\n    line-height: 16px;\n    width: 32px;\n    height: 32px\n}\n\n.mat-mdc-table .mat-mdc-cell .mat-mdc-icon-button.al-phone .mat-mdc-button-persistent-ripple {\n    border-radius: 6px;\n}\n\n.mat-mdc-table .mat-mdc-cell .mat-mdc-icon-button.al-phone .mat-icon {\n    line-height: 18px;\n    height: 18px;\n    width: 18px;\n    font-size: 18px;\n}\n\n.mat-mdc-table .mat-mdc-row:hover:not(.tb-current-entity) {\n    background-color: transparent !important;\n}\n\n.mat-mdc-table .mat-mdc-row.tb-current-entity {\n    background-color: transparent !important;\n}\n\n.mat-mdc-table .mat-mdc-row {\n    position: relative;\n}\n\n.mat-mdc-table .mat-mdc-row .mat-mdc-cell {\n    border-bottom: none;\n}",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "alarmFilterConfig": {
+            "statusList": [
+              "ACTIVE",
+              "UNACK"
+            ],
+            "severityList": [],
+            "typeList": [],
+            "searchPropagatedAlarms": true
+          }
         },
         "row": 0,
         "col": 0,
-        "id": "c897d3c3-01f6-f1ed-4d4e-8a36b3ed063d"
+        "id": "c897d3c3-01f6-f1ed-4d4e-8a36b3ed063d",
+        "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
       "2e9991bc-9003-eade-9f18-c7b3f8356181": {
-        "isSystemType": true,
-        "bundleAlias": "maps_v2",
-        "typeAlias": "image_map",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8.5,
         "sizeY": 6.5,
         "config": {
@@ -1619,16 +1575,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "2e9991bc-9003-eade-9f18-c7b3f8356181"
+        "id": "2e9991bc-9003-eade-9f18-c7b3f8356181",
+        "typeFullFqn": "system.maps_v2.image_map"
       },
       "48bd1049-ca2a-1aa4-c178-7042564cd18b": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -1710,16 +1661,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "48bd1049-ca2a-1aa4-c178-7042564cd18b"
+        "id": "48bd1049-ca2a-1aa4-c178-7042564cd18b",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "d2bed964-789d-49e6-cb69-2782841d7652": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 7.5,
         "sizeY": 6.5,
         "config": {
@@ -1773,7 +1719,7 @@
           "titleStyle": {
             "fontSize": "16px",
             "fontWeight": 400,
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 5px"
           },
           "useDashboardTimewindow": false,
           "showLegend": false,
@@ -1855,16 +1801,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "d2bed964-789d-49e6-cb69-2782841d7652"
+        "id": "d2bed964-789d-49e6-cb69-2782841d7652",
+        "typeFullFqn": "system.cards.entities_table"
       },
       "b3001ef3-44a7-dcc4-26b4-c5dd6091f994": {
-        "isSystemType": true,
-        "bundleAlias": "maps_v2",
-        "typeAlias": "image_map",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8.5,
         "sizeY": 6.5,
         "config": {
@@ -2151,16 +2092,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "b3001ef3-44a7-dcc4-26b4-c5dd6091f994"
+        "id": "b3001ef3-44a7-dcc4-26b4-c5dd6091f994",
+        "typeFullFqn": "system.maps_v2.image_map"
       },
       "24676f40-683d-0609-d44e-60e6e96dc433": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 7.5,
         "sizeY": 6.5,
         "config": {
@@ -2213,7 +2149,7 @@
           "titleStyle": {
             "fontSize": "16px",
             "fontWeight": 400,
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 5px"
           },
           "useDashboardTimewindow": false,
           "showLegend": false,
@@ -2365,16 +2301,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "24676f40-683d-0609-d44e-60e6e96dc433"
+        "id": "24676f40-683d-0609-d44e-60e6e96dc433",
+        "typeFullFqn": "system.cards.entities_table"
       },
       "eee58ff0-5cd4-c8a1-3dcd-157fd65bc68f": {
-        "isSystemType": true,
-        "bundleAlias": "maps_v2",
-        "typeAlias": "image_map",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8.5,
         "sizeY": 6.5,
         "config": {
@@ -2554,16 +2485,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "eee58ff0-5cd4-c8a1-3dcd-157fd65bc68f"
+        "id": "eee58ff0-5cd4-c8a1-3dcd-157fd65bc68f",
+        "typeFullFqn": "system.maps_v2.image_map"
       },
       "2b68d98f-def7-ceaa-10ea-972f66dcdfaf": {
-        "isSystemType": true,
-        "bundleAlias": "maps_v2",
-        "typeAlias": "image_map",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8.5,
         "sizeY": 6.5,
         "config": {
@@ -2764,16 +2690,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "2b68d98f-def7-ceaa-10ea-972f66dcdfaf"
+        "id": "2b68d98f-def7-ceaa-10ea-972f66dcdfaf",
+        "typeFullFqn": "system.maps_v2.image_map"
       },
       "58f0105c-972e-866c-825e-c977d5f5df1d": {
-        "isSystemType": true,
-        "bundleAlias": "maps_v2",
-        "typeAlias": "image_map",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8.5,
         "sizeY": 6.5,
         "config": {
@@ -2945,16 +2866,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "58f0105c-972e-866c-825e-c977d5f5df1d"
+        "id": "58f0105c-972e-866c-825e-c977d5f5df1d",
+        "typeFullFqn": "system.maps_v2.image_map"
       },
       "6c3aac61-f222-00b7-6bcc-be9f5b1174ef": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -3057,16 +2973,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "6c3aac61-f222-00b7-6bcc-be9f5b1174ef"
+        "id": "6c3aac61-f222-00b7-6bcc-be9f5b1174ef",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "9fcf8867-1068-57e6-6451-1657695fd16e": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -3111,9 +3022,7 @@
           "titleTooltip": "",
           "dropShadow": false,
           "enableFullscreen": false,
-          "widgetStyle": {
-            "border-radius": "0px"
-          },
+          "widgetStyle": null,
           "titleStyle": {
             "fontSize": "16px",
             "fontWeight": 400
@@ -3122,20 +3031,16 @@
           "enableDataExport": false,
           "widgetCss": "",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "borderRadius": "0px"
         },
         "row": 0,
         "col": 0,
-        "id": "9fcf8867-1068-57e6-6451-1657695fd16e"
+        "id": "9fcf8867-1068-57e6-6451-1657695fd16e",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "3b72632f-43fd-3a4a-5325-bb66a424811a": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -3256,9 +3161,7 @@
           "titleTooltip": "",
           "dropShadow": false,
           "enableFullscreen": false,
-          "widgetStyle": {
-            "border-radius": "0px"
-          },
+          "widgetStyle": null,
           "titleStyle": {
             "fontSize": "16px",
             "fontWeight": 400
@@ -3286,20 +3189,16 @@
                 "id": "e0444fa6-210f-f27a-5eba-6f3a2c516304"
               }
             ]
-          }
+          },
+          "borderRadius": "0px"
         },
         "row": 0,
         "col": 0,
-        "id": "3b72632f-43fd-3a4a-5325-bb66a424811a"
+        "id": "3b72632f-43fd-3a4a-5325-bb66a424811a",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "58fe33c2-9487-1cf7-6f93-29867a2cdfa9": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "timeseries_bars_flot",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -3405,7 +3304,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "Heart rate chart",
           "dropShadow": false,
@@ -3418,7 +3328,6 @@
             "border": "2px solid rgba(69, 75, 116, 0.08)"
           },
           "useDashboardTimewindow": false,
-          "showLegend": false,
           "actions": {
             "headerButton": [
               {
@@ -3440,30 +3349,15 @@
           "enableDataExport": false,
           "widgetCss": "",
           "pageSize": 1024,
-          "noDataDisplayMessage": "",
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          }
+          "noDataDisplayMessage": ""
         },
         "row": 0,
         "col": 0,
-        "id": "58fe33c2-9487-1cf7-6f93-29867a2cdfa9"
+        "id": "58fe33c2-9487-1cf7-6f93-29867a2cdfa9",
+        "typeFullFqn": "system.charts.timeseries_bars_flot"
       },
       "12ce3085-7ec2-16c6-2160-6162f9f09af8": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "timeseries_bars_flot",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -3571,7 +3465,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "Temperature chart",
           "dropShadow": false,
@@ -3584,7 +3489,6 @@
             "border": "2px solid rgba(69, 75, 116, 0.08)"
           },
           "useDashboardTimewindow": false,
-          "showLegend": false,
           "actions": {
             "headerButton": [
               {
@@ -3606,30 +3510,15 @@
           "enableDataExport": false,
           "widgetCss": "",
           "pageSize": 1024,
-          "noDataDisplayMessage": "",
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          }
+          "noDataDisplayMessage": ""
         },
         "row": 0,
         "col": 0,
-        "id": "12ce3085-7ec2-16c6-2160-6162f9f09af8"
+        "id": "12ce3085-7ec2-16c6-2160-6162f9f09af8",
+        "typeFullFqn": "system.charts.timeseries_bars_flot"
       },
       "5902989a-02f7-eba7-5379-5543781bf1ae": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "state_chart",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -3740,7 +3629,16 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              ",position": "bottom",
+              "showMin": false,
+              "showMax": false,
+              "showAvg": false,
+              "showTotal": false
+            }
           },
           "title": "Panic button state history",
           "dropShadow": false,
@@ -3753,7 +3651,6 @@
             "border": "2px solid rgba(69, 75, 116, 0.08)"
           },
           "useDashboardTimewindow": false,
-          "showLegend": false,
           "actions": {
             "headerButton": [
               {
@@ -3769,14 +3666,6 @@
               }
             ]
           },
-          "legendConfig": {
-            "direction": "column",
-            ",position": "bottom",
-            "showMin": false,
-            "showMax": false,
-            "showAvg": false,
-            "showTotal": false
-          },
           "displayTimewindow": true,
           "showTitleIcon": false,
           "titleTooltip": "",
@@ -3787,16 +3676,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "5902989a-02f7-eba7-5379-5543781bf1ae"
+        "id": "5902989a-02f7-eba7-5379-5543781bf1ae",
+        "typeFullFqn": "system.charts.state_chart"
       },
       "a89779be-b609-1b3f-1530-3b419bfe652b": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -3920,9 +3804,7 @@
           "titleTooltip": "",
           "dropShadow": false,
           "enableFullscreen": false,
-          "widgetStyle": {
-            "border-radius": "0px"
-          },
+          "widgetStyle": null,
           "titleStyle": {
             "fontSize": "16px",
             "fontWeight": 400
@@ -3935,20 +3817,16 @@
           "useDashboardTimewindow": true,
           "actions": {
             "elementClick": []
-          }
+          },
+          "borderRadius": "0px"
         },
         "row": 0,
         "col": 0,
-        "id": "a89779be-b609-1b3f-1530-3b419bfe652b"
+        "id": "a89779be-b609-1b3f-1530-3b419bfe652b",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "730468fe-5216-377b-ae88-cf630e4c583c": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -4093,9 +3971,7 @@
           "titleTooltip": "",
           "dropShadow": false,
           "enableFullscreen": false,
-          "widgetStyle": {
-            "border-radius": "0px"
-          },
+          "widgetStyle": null,
           "titleStyle": {
             "fontSize": "16px",
             "fontWeight": 400
@@ -4123,20 +3999,16 @@
                 "id": "e0444fa6-210f-f27a-5eba-6f3a2c516304"
               }
             ]
-          }
+          },
+          "borderRadius": "0px"
         },
         "row": 0,
         "col": 0,
-        "id": "730468fe-5216-377b-ae88-cf630e4c583c"
+        "id": "730468fe-5216-377b-ae88-cf630e4c583c",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "a2fad41c-4f00-e028-6bce-e97c5fa01604": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -4279,7 +4151,8 @@
         },
         "row": 0,
         "col": 0,
-        "id": "a2fad41c-4f00-e028-6bce-e97c5fa01604"
+        "id": "a2fad41c-4f00-e028-6bce-e97c5fa01604",
+        "typeFullFqn": "system.cards.markdown_card"
       }
     },
     "states": {
@@ -4304,7 +4177,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -4342,7 +4216,8 @@
               "autoFillHeight": false,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -4368,7 +4243,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -4394,7 +4270,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -4420,7 +4297,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -4446,7 +4324,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -4472,7 +4351,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -4498,7 +4378,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -4536,7 +4417,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -4562,7 +4444,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -4588,7 +4471,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -4614,7 +4498,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -4640,7 +4525,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -4666,7 +4552,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -4692,7 +4579,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -4718,7 +4606,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -4744,7 +4633,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -4770,7 +4660,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -4796,7 +4687,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -4822,7 +4714,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -4848,7 +4741,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -5084,7 +4978,7 @@
       "hideToolbar": true,
       "showFilters": true,
       "showUpdateDashboardImage": true,
-      "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 12px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-widget-title .title  {\n    color: #000000 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget {\n    color: #868D9C !important;\n}\n"
+      "dashboardCss": ".tb-dashboard-page .mat-drawer-container {\n\tbackground: #ffffff;\n}\n\n.tb-widget-container > .tb-widget {\n    border-radius: 12px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-widget-title .title  {\n    color: #000000 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget {\n    color: #868D9C !important;\n}\n"
     }
   },
   "externalId": null,

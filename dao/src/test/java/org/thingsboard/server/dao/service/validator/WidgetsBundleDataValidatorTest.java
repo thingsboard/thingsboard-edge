@@ -28,23 +28,47 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.server.dao.service.validator;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.thingsboard.server.common.data.util.TbPair;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.widget.WidgetsBundle;
+import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.dao.widget.WidgetsBundleDao;
 
-public interface TbVersionedNode extends TbNode {
+import java.util.UUID;
 
-    /**
-     * Upgrades the configuration from a specific version to the current version specified in the
-     * {@link RuleNode} annotation for the instance of {@link TbVersionedNode}.
-     *
-     * @param fromVersion        The version from which the configuration needs to be upgraded.
-     * @param oldConfiguration   The old configuration to be upgraded.
-     * @return                   A pair consisting of a Boolean flag indicating the success of the upgrade
-     *                           and a JsonNode representing the upgraded configuration.
-     * @throws TbNodeException   If an error occurs during the upgrade process.
-     */
-    TbPair<Boolean, JsonNode> upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException;
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.Mockito.verify;
+
+@SpringBootTest(classes = WidgetsBundleDataValidator.class)
+class WidgetsBundleDataValidatorTest {
+
+    @MockBean
+    WidgetsBundleDao widgetsBundleDao;
+    @MockBean
+    TenantService tenantService;
+    @SpyBean
+    WidgetsBundleDataValidator validator;
+    TenantId tenantId = TenantId.fromUUID(UUID.fromString("9ef79cdf-37a8-4119-b682-2e7ed4e018da"));
+
+    @BeforeEach
+    void setUp() {
+        willReturn(true).given(tenantService).tenantExists(tenantId);
+    }
+
+    @Test
+    void testValidateNameInvocation() {
+        WidgetsBundle widgetsBundle = new WidgetsBundle();
+        widgetsBundle.setTitle("my fancy WB");
+        widgetsBundle.setTenantId(tenantId);
+
+        validator.validateDataImpl(tenantId, widgetsBundle);
+        verify(validator).validateString("Widgets bundle title", widgetsBundle.getTitle());
+    }
 
 }

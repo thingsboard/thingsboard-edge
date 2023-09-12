@@ -244,7 +244,7 @@ public class AlarmCommentControllerTest extends AbstractControllerTest {
         Assert.assertEquals("true", updatedAlarmComment.getComment().get("edited").asText());
         Assert.assertNotNull(updatedAlarmComment.getComment().get("editedOn"));
 
-        testLogEntityActionEntityEqClass(alarm, alarm.getId(), tenantId, customerId, tenantAdminUserId, TENANT_ADMIN_EMAIL, ActionType.UPDATED_COMMENT, 1, savedComment);
+        testLogEntityActionEntityEqClass(alarm, alarm.getId(), tenantId, customerId, tenantAdminUserId, TENANT_ADMIN_EMAIL, ActionType.UPDATED_COMMENT, 1, updatedAlarmComment);
     }
 
     @Test
@@ -302,8 +302,8 @@ public class AlarmCommentControllerTest extends AbstractControllerTest {
         AlarmComment expectedAlarmComment = AlarmComment.builder()
                 .alarmId(alarm.getId())
                 .type(AlarmCommentType.SYSTEM)
-                .comment(JacksonUtil.newObjectNode().put("text", String.format("User %s deleted his comment",
-                        CUSTOMER_USER_EMAIL)))
+                .comment(JacksonUtil.newObjectNode().put("text", String.format("User %s %s deleted his comment",
+                        savedCustomerAdministrator.getFirstName(), savedCustomerAdministrator.getLastName())))
                 .build();
         testLogEntityActionEntityEqClass(alarm, alarm.getId(), tenantId, customerId, customerAdminUserId, CUSTOMER_ADMIN_EMAIL, ActionType.DELETED_COMMENT, 1, expectedAlarmComment);
     }

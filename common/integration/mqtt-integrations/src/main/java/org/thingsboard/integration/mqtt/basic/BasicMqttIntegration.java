@@ -43,13 +43,12 @@ import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
-import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.integration.mqtt.AbstractMqttIntegration;
-import org.thingsboard.integration.mqtt.BasicMqttIntegrationMsg;
 import org.thingsboard.integration.mqtt.MqttClientConfiguration;
 import org.thingsboard.integration.mqtt.MqttTopicFilter;
+import org.thingsboard.integration.mqtt.BasicMqttIntegrationMsg;
 import org.thingsboard.mqtt.MqttClientCallback;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -162,7 +161,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
         mdMap.put("topic", msg.getTopic());
 
         var stopWatch = TbStopWatch.create();
-        ListenableFuture<List<UplinkData>> uplinkDataListFuture = convertToUplinkDataListAsync(context, msg.getPayload(), new UplinkMetaData(UplinkContentType.BINARY, mdMap));
+        ListenableFuture<List<UplinkData>> uplinkDataListFuture = convertToUplinkDataListAsync(context, msg.getPayload(), new UplinkMetaData(msg.getContentType(), mdMap));
         ListenableFuture<Void> future = Futures.transform(uplinkDataListFuture, (uplinkDataList) -> {
             if (log.isDebugEnabled()) {
                 log.debug("convertToUplinkDataList took {}ms for integration {}", stopWatch.stopAndGetTotalTimeMillis(), configuration.getName());
