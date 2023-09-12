@@ -51,6 +51,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.service.sync.ie.importing.impl.EntityGroupImportService.CONFIG_PROCESSED_FIELDS_PATTERN;
+
 @Service
 @TbCoreComponent
 @RequiredArgsConstructor
@@ -78,7 +80,7 @@ public class EntityGroupExportService extends BaseEntityExportService<EntityGrou
                     .collect(Collectors.toList());
             exportData.setPermissions(permissions);
         }
-        replaceUuidsRecursively(ctx, JacksonUtil.getSafely(exportData.getEntity().getConfiguration(), "actions"), Collections.singleton("id"), null);
+        replaceUuidsRecursively(ctx, JacksonUtil.getSafely(exportData.getEntity().getConfiguration(), "actions"),  Collections.emptySet(), CONFIG_PROCESSED_FIELDS_PATTERN);
     }
 
     @Override
