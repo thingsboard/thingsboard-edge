@@ -50,7 +50,6 @@ import org.thingsboard.rule.engine.profile.TbDeviceProfileNodeConfiguration;
 import org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNode;
 import org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNodeConfiguration;
 import org.thingsboard.server.common.data.AdminSettings;
-import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
@@ -75,7 +74,6 @@ import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.integration.AbstractIntegration;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -128,6 +126,7 @@ import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.dao.sql.JpaExecutorService;
 import org.thingsboard.server.dao.sql.device.DeviceProfileRepository;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -158,8 +157,8 @@ import static org.thingsboard.server.common.data.StringUtils.isBlank;
 @Slf4j
 public class DefaultDataUpdateService implements DataUpdateService {
 
-    private static final String LOGO_IMAGE = "logoImage";
-    private static final String LOGO_IMAGE_CHECKSUM = "logoImageChecksum";
+    private static final int MAX_PENDING_SAVE_RULE_NODE_FUTURES = 100;
+
     private static final String MAIL_TEMPLATES = "mailTemplates";
     private static final int DEFAULT_LIMIT = 100;
     public static final String USE_SYSTEM_MAIL_SETTINGS = "useSystemMailSettings";
@@ -250,6 +249,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     @Autowired
     private IntegrationRateLimitsUpdater integrationRateLimitsUpdater;
+
+    @Autowired
+    JpaExecutorService jpaExecutorService;
 
     @Override
     public void updateData(String fromVersion) throws Exception {
@@ -348,13 +350,15 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Override
     public void upgradeRuleNodes() {
         try {
+            var futures = new ArrayList<ListenableFuture<?>>(100);
+            int totalRuleNodesUpgraded = 0;
             log.info("Starting rule nodes upgrade ...");
             var nodeClassToVersionMap = componentDiscoveryService.getVersionedNodes();
             log.debug("Found {} versioned nodes to check for upgrade!", nodeClassToVersionMap.size());
-            nodeClassToVersionMap.forEach(clazz -> {
-                var ruleNodeType = clazz.getClassName();
-                var ruleNodeTypeForLogs = clazz.getSimpleName();
-                var toVersion = clazz.getCurrentVersion();
+            for (var ruleNodeClassInfo : nodeClassToVersionMap) {
+                var ruleNodeType = ruleNodeClassInfo.getClassName();
+                var ruleNodeTypeForLogs = ruleNodeClassInfo.getSimpleName();
+                var toVersion = ruleNodeClassInfo.getCurrentVersion();
                 log.debug("Going to check for nodes with type: {} to upgrade to version: {}.", ruleNodeTypeForLogs, toVersion);
                 var ruleNodesToUpdate = new PageDataIterable<>(
                         pageLink -> ruleChainService.findAllRuleNodesByTypeAndVersionLessThan(ruleNodeType, toVersion, pageLink), 1024
@@ -369,25 +373,41 @@ public class DefaultDataUpdateService implements DataUpdateService {
                         log.debug("Going to upgrade rule node with id: {} type: {} fromVersion: {} toVersion: {}",
                                 ruleNodeId, ruleNodeTypeForLogs, fromVersion, toVersion);
                         try {
-                            var tbVersionedNode = (TbNode) clazz.getClazz().getDeclaredConstructor().newInstance();
+                            var tbVersionedNode = (TbNode) ruleNodeClassInfo.getClazz().getDeclaredConstructor().newInstance();
                             TbPair<Boolean, JsonNode> upgradeRuleNodeConfigurationResult = tbVersionedNode.upgrade(fromVersion, oldConfiguration);
                             if (upgradeRuleNodeConfigurationResult.getFirst()) {
                                 ruleNode.setConfiguration(upgradeRuleNodeConfigurationResult.getSecond());
                             }
                             ruleNode.setConfigurationVersion(toVersion);
-                            ruleChainService.saveRuleNode(TenantId.SYS_TENANT_ID, ruleNode);
-                            log.debug("Successfully upgrade rule node with id: {} type: {} fromVersion: {} toVersion: {}",
-                                    ruleNodeId, ruleNodeTypeForLogs, fromVersion, toVersion);
+                            futures.add(jpaExecutorService.submit(() -> {
+                                ruleChainService.saveRuleNode(TenantId.SYS_TENANT_ID, ruleNode);
+                                log.debug("Successfully upgrade rule node with id: {} type: {} fromVersion: {} toVersion: {}",
+                                        ruleNodeId, ruleNodeTypeForLogs, fromVersion, toVersion);
+                            }));
+                            if (futures.size() >= MAX_PENDING_SAVE_RULE_NODE_FUTURES) {
+                                log.info("{} upgraded rule nodes so far ...",
+                                        totalRuleNodesUpgraded += awaitFuturesToCompleteAndGetCount(futures));
+                                futures.clear();
+                            }
                         } catch (Exception e) {
                             log.warn("Failed to upgrade rule node with id: {} type: {} fromVersion: {} toVersion: {} due to: ",
                                     ruleNodeId, ruleNodeTypeForLogs, fromVersion, toVersion, e);
                         }
                     }
                 }
-            });
-            log.info("Finished rule nodes upgrade!");
+            }
+            log.info("Finished rule nodes upgrade. Upgraded rule nodes count: {}",
+                    totalRuleNodesUpgraded + awaitFuturesToCompleteAndGetCount(futures));
         } catch (Exception e) {
             log.error("Unexpected error during rule nodes upgrade: ", e);
+        }
+    }
+
+    private int awaitFuturesToCompleteAndGetCount(List<ListenableFuture<?>> futures) {
+        try {
+            return Futures.allAsList(futures).get().size();
+        } catch (ExecutionException | InterruptedException e) {
+            throw new RuntimeException("Failed to process save rule nodes requests due to: ", e);
         }
     }
 
