@@ -101,6 +101,7 @@ CREATE TABLE IF NOT EXISTS edge_event (
     edge_event_action varchar(255),
     body varchar(10000000),
     tenant_id uuid,
+    entity_group_id uuid,
     ts bigint NOT NULL
 ) PARTITION BY RANGE (created_time);
 CREATE INDEX IF NOT EXISTS idx_edge_event_tenant_id_and_created_time ON edge_event(tenant_id, created_time DESC);
@@ -123,8 +124,8 @@ BEGIN
                 EXECUTE format('CREATE TABLE IF NOT EXISTS edge_event_%s PARTITION OF edge_event ' ||
                                'FOR VALUES FROM ( %s ) TO ( %s )', p.partition_ts, p.partition_ts, partition_end_ts);
             END LOOP;
-        INSERT INTO edge_event (id, created_time, edge_id, edge_event_type, edge_event_uid, entity_id, edge_event_action, body, tenant_id, ts)
-        SELECT id, created_time, edge_id, edge_event_type, edge_event_uid, entity_id, edge_event_action, body, tenant_id, ts
+        INSERT INTO edge_event (id, created_time, edge_id, edge_event_type, edge_event_uid, entity_id, edge_event_action, body, tenant_id, entity_group_id, ts)
+        SELECT id, created_time, edge_id, edge_event_type, edge_event_uid, entity_id, edge_event_action, body, tenant_id, entity_group_id, ts
         FROM old_edge_event
         WHERE created_time >= start_time_ms AND created_time < end_time_ms;
     ELSE

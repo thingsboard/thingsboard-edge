@@ -471,12 +471,12 @@ public abstract class BaseEdgeProcessor {
             do {
                 tenantsIds = tenantService.findTenantsIds(pageLink);
                 for (TenantId tenantId1 : tenantsIds.getData()) {
-                    futures.addAll(processActionForAllEdgesByTenantId(tenantId1, type, actionType, entityId, null));
+                    futures.addAll(processActionForAllEdgesByTenantId(tenantId1, type, actionType, entityId, null, null));
                 }
                 pageLink = pageLink.nextPageLink();
             } while (tenantsIds.hasNext());
         } else {
-            futures = processActionForAllEdgesByTenantId(tenantId, type, actionType, entityId, null);
+            futures = processActionForAllEdgesByTenantId(tenantId, type, actionType, entityId, null, null);
         }
         return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
     }
@@ -485,7 +485,8 @@ public abstract class BaseEdgeProcessor {
                                                                               EdgeEventType type,
                                                                               EdgeEventActionType actionType,
                                                                               EntityId entityId,
-                                                                              JsonNode body) {
+                                                                              JsonNode body,
+                                                                              EntityGroupId entityGroupId) {
         PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
         PageData<Edge> pageData;
         List<ListenableFuture<Void>> futures = new ArrayList<>();
@@ -493,7 +494,7 @@ public abstract class BaseEdgeProcessor {
             pageData = edgeService.findEdgesByTenantId(tenantId, pageLink);
             if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
                 for (Edge edge : pageData.getData()) {
-                    futures.add(saveEdgeEvent(tenantId, edge.getId(), type, actionType, entityId, body));
+                    futures.add(saveEdgeEvent(tenantId, edge.getId(), type, actionType, entityId, body, entityGroupId));
                 }
                 if (pageData.hasNext()) {
                     pageLink = pageLink.nextPageLink();
@@ -548,18 +549,17 @@ public abstract class BaseEdgeProcessor {
                 case UPDATED:
                 case CREDENTIALS_UPDATED:
                 case ADDED_TO_ENTITY_GROUP:
-                case REMOVED_FROM_ENTITY_GROUP:
                     if (edgeId != null) {
                         return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, body, entityGroupId);
                     } else {
                         return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, entityGroupId);
                     }
                 case DELETED:
-                    EdgeEventActionType deleted = EdgeEventActionType.DELETED;
+                case REMOVED_FROM_ENTITY_GROUP:
                     if (edgeId != null) {
-                        return saveEdgeEvent(tenantId, edgeId, type, deleted, entityId, body, entityGroupId);
+                        return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, body, entityGroupId);
                     } else {
-                        return Futures.transform(Futures.allAsList(processActionForAllEdgesByTenantId(tenantId, type, deleted, entityId, body)),
+                        return Futures.transform(Futures.allAsList(processActionForAllEdgesByTenantId(tenantId, type, actionType, entityId, body, entityGroupId)),
                                 voids -> null, dbCallbackExecutorService);
                     }
                 case ASSIGNED_TO_EDGE:
@@ -578,7 +578,7 @@ public abstract class BaseEdgeProcessor {
                     } else {
                         // TODO: @voba - provide logic for customer
                         return Futures.transform(Futures.allAsList(processActionForAllEdgesByTenantId(
-                                tenantId, type, actionType, entityId, body)), voids -> null, dbCallbackExecutorService);
+                                tenantId, type, actionType, entityId, body, null)), voids -> null, dbCallbackExecutorService);
                     }
                 default:
                     return Futures.immediateFuture(null);
