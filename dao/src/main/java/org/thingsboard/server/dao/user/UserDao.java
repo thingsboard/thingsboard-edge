@@ -134,6 +134,12 @@ public interface UserDao extends Dao<User>, TenantEntityDao {
 
     PageData<User> findUsersByTenantIdAndRolesIds(TenantId tenantId, List<RoleId> rolesIds, PageLink pageLink);
 
+    PageData<User> findUsersByTenantsIdsAndRoleId(List<TenantId> tenantsIds, RoleId roleId, PageLink pageLink);
+
+    PageData<User> findUsersByTenantProfilesIdsAndRoleId(List<TenantProfileId> tenantProfilesIds, RoleId roleId, PageLink pageLink);
+
+    PageData<User> findAllUsersByRoleId(RoleId roleId, PageLink pageLink);
+
     PageData<User> findAll(PageLink pageLink);
 
     PageData<User> findAllByAuthority(Authority authority, PageLink pageLink);

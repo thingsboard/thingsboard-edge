@@ -164,6 +164,21 @@ public class JpaUserDao extends JpaAbstractDao<UserEntity, User> implements User
     }
 
     @Override
+    public PageData<User> findUsersByTenantsIdsAndRoleId(List<TenantId> tenantsIds, RoleId roleId, PageLink pageLink) {
+        return DaoUtil.toPageData(userRepository.findByTenantsIdsAndRoleId(DaoUtil.toUUIDs(tenantsIds), roleId.getId(), DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public PageData<User> findUsersByTenantProfilesIdsAndRoleId(List<TenantProfileId> tenantProfilesIds, RoleId roleId, PageLink pageLink) {
+        return DaoUtil.toPageData(userRepository.findByTenantProfilesIdsAndRoleId(DaoUtil.toUUIDs(tenantProfilesIds), roleId.getId(), DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public PageData<User> findAllUsersByRoleId(RoleId roleId, PageLink pageLink) {
+        return DaoUtil.toPageData(userRepository.findByRoleId(roleId.getId(), DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
     public PageData<User> findUsersByCustomerIds(UUID tenantId, List<CustomerId> customerIds, PageLink pageLink) {
         return DaoUtil.toPageData(
                 userRepository

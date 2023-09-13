@@ -430,6 +430,21 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     }
 
     @Override
+    public PageData<User> findUsersByTenantsIdsAndRoleId(List<TenantId> tenantsIds, RoleId roleId, PageLink pageLink) {
+        return userDao.findUsersByTenantsIdsAndRoleId(tenantsIds, roleId, pageLink);
+    }
+
+    @Override
+    public PageData<User> findUsersByTenantProfilesIdsAndRoleId(List<TenantProfileId> tenantProfilesIds, RoleId roleId, PageLink pageLink) {
+        return userDao.findUsersByTenantProfilesIdsAndRoleId(tenantProfilesIds, roleId, pageLink);
+    }
+
+    @Override
+    public PageData<User> findAllUsersByRoleId(RoleId roleId, PageLink pageLink) {
+        return userDao.findAllUsersByRoleId(roleId, pageLink);
+    }
+
+    @Override
     public void setUserCredentialsEnabled(TenantId tenantId, UserId userId, boolean enabled) {
         log.trace("Executing setUserCredentialsEnabled [{}], [{}]", userId, enabled);
         validateId(userId, INCORRECT_USER_ID + userId);
