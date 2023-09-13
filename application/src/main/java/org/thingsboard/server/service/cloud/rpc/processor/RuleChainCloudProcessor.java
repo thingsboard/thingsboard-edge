@@ -213,6 +213,8 @@ public class RuleChainCloudProcessor extends BaseEdgeProcessor {
             ruleNode.setDebugMode(proto.getDebugMode());
             ruleNode.setConfiguration(JacksonUtil.OBJECT_MAPPER.readTree(proto.getConfiguration()));
             ruleNode.setAdditionalInfo(JacksonUtil.OBJECT_MAPPER.readTree(proto.getAdditionalInfo()));
+            ruleNode.setSingletonMode(proto.getSingletonMode());
+            ruleNode.setConfigurationVersion(proto.getConfigurationVersion());
             result.add(ruleNode);
         }
         return result;
