@@ -42,7 +42,8 @@ import {
   DeviceCredentials,
   DeviceInfo,
   DeviceInfoQuery,
-  DeviceSearchQuery, PublishLaunchCommand,
+  DeviceSearchQuery,
+  PublishLaunchCommand,
   PublishTelemetryCommand
 } from '@app/shared/models/device.models';
 import { EntitySubtype } from '@app/shared/models/entity-type.models';
