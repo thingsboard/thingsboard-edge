@@ -15,10 +15,15 @@
  */
 package org.thingsboard.server.service.cloud;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
@@ -51,17 +56,17 @@ public class DefaultCloudNotificationService implements CloudNotificationService
     @Autowired
     private CloudEventService cloudEventService;
 
-    private ExecutorService tsCallBackExecutor;
+    private ExecutorService dbCallBackExecutor;
 
     @PostConstruct
     public void initExecutor() {
-        tsCallBackExecutor = Executors.newSingleThreadExecutor();
+        dbCallBackExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("cloud-notifications"));
     }
 
     @PreDestroy
     public void shutdownExecutor() {
-        if (tsCallBackExecutor != null) {
-            tsCallBackExecutor.shutdownNow();
+        if (dbCallBackExecutor != null) {
+            dbCallBackExecutor.shutdownNow();
         }
     }
 
@@ -70,6 +75,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
         try {
             TenantId tenantId = new TenantId(new UUID(cloudNotificationMsg.getTenantIdMSB(), cloudNotificationMsg.getTenantIdLSB()));
             CloudEventType cloudEventType = CloudEventType.valueOf(cloudNotificationMsg.getCloudEventType());
+            ListenableFuture<Void> future;
             switch (cloudEventType) {
                 // TODO: voba - handle cloud updates
                 case EDGE:
@@ -80,26 +86,41 @@ public class DefaultCloudNotificationService implements CloudNotificationService
                 case ENTITY_VIEW:
                 case DASHBOARD:
                 case RULE_CHAIN:
-                    processEntity(tenantId, cloudNotificationMsg);
+                    future = processEntity(tenantId, cloudNotificationMsg);
                     break;
                 case ALARM:
-                    processAlarm(tenantId, cloudNotificationMsg);
+                    future = processAlarm(tenantId, cloudNotificationMsg);
                     break;
                 case RELATION:
-                    processRelation(tenantId, cloudNotificationMsg);
+                    future = processRelation(tenantId, cloudNotificationMsg);
                     break;
                 default:
-                    log.debug("Cloud event type [{}] is not designed to be pushed to cloud", cloudEventType);
+                    log.warn("Cloud event type [{}] is not designed to be pushed to cloud", cloudEventType);
+                    future = Futures.immediateFuture(null);
             }
+            Futures.addCallback(future, new FutureCallback<>() {
+                @Override
+                public void onSuccess(@Nullable Void unused) {
+                    callback.onSuccess();
+                }
+
+                @Override
+                public void onFailure(Throwable throwable) {
+                    callBackFailure(cloudNotificationMsg, callback, throwable);
+                }
+            }, dbCallBackExecutor);
         } catch (Exception e) {
-            log.error("Can't push to cloud updates, cloudNotificationMsg [{}]", cloudNotificationMsg, e);
-            callback.onFailure(e);
-        } finally {
-            callback.onSuccess();
+            callBackFailure(cloudNotificationMsg, callback, e);
         }
     }
 
-    private void processEntity(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) throws Exception {
+    private void callBackFailure(TransportProtos.CloudNotificationMsgProto cloudNotificationMsg, TbCallback callback, Throwable throwable) {
+        log.error("Can't push to cloud updates, cloudNotificationMsg [{}]", cloudNotificationMsg, throwable);
+        callback.onFailure(throwable);
+    }
+
+
+    private ListenableFuture<Void> processEntity(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) throws Exception {
         EdgeEventActionType cloudEventActionType = EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction());
         CloudEventType cloudEventType = CloudEventType.valueOf(cloudNotificationMsg.getCloudEventType());
         EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEventType, new UUID(cloudNotificationMsg.getEntityIdMSB(), cloudNotificationMsg.getEntityIdLSB()));
@@ -110,49 +131,47 @@ public class DefaultCloudNotificationService implements CloudNotificationService
             case ASSIGNED_TO_CUSTOMER:
             case UNASSIGNED_FROM_CUSTOMER:
             case DELETED:
-                try {
-                    cloudEventService.saveCloudEvent(tenantId, cloudEventType, cloudEventActionType, entityId, null, 0L);
-                } catch (Exception e) {
-                    log.error("[{}] Failed to push event to cloud [{}], cloudEventType [{}], cloudEventActionType [{}], entityId [{}]",
-                            tenantId, cloudEventType, cloudEventActionType, entityId, e);
-                }
-                break;
+                return cloudEventService.saveCloudEventAsync(tenantId, cloudEventType, cloudEventActionType, entityId, null, 0L);
+            default:
+                return Futures.immediateFuture(null);
         }
     }
 
-    private void processAlarm(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) throws Exception {
+    private ListenableFuture<Void> processAlarm(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) throws Exception {
         EdgeEventActionType actionType = EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction());
         AlarmId alarmId = new AlarmId(new UUID(cloudNotificationMsg.getEntityIdMSB(), cloudNotificationMsg.getEntityIdLSB()));
         switch (actionType) {
             case DELETED:
                 Alarm deletedAlarm = JacksonUtil.OBJECT_MAPPER.readValue(cloudNotificationMsg.getEntityBody(), Alarm.class);
-                cloudEventService.saveCloudEvent(tenantId,
+                return cloudEventService.saveCloudEventAsync(tenantId,
                         CloudEventType.ALARM,
                         actionType,
                         alarmId,
                         JacksonUtil.OBJECT_MAPPER.valueToTree(deletedAlarm),
                         0L);
-                break;
             default:
-                // TODO: @voba - improve performance by using async method properly
-                Alarm alarm = alarmService.findAlarmByIdAsync(tenantId, alarmId).get();
-                if (alarm != null) {
-                    CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(alarm.getOriginator().getEntityType());
-                    if (cloudEventType != null) {
-                        cloudEventService.saveCloudEvent(tenantId,
-                                CloudEventType.ALARM,
-                                EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction()),
-                                alarmId,
-                                null,
-                                0L);
+                ListenableFuture<Alarm> future = alarmService.findAlarmByIdAsync(tenantId, alarmId);
+                return Futures.transformAsync(future, alarm -> {
+                    if (alarm != null) {
+                        CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(alarm.getOriginator().getEntityType());
+                        if (cloudEventType != null) {
+                            return cloudEventService.saveCloudEventAsync(tenantId,
+                                    CloudEventType.ALARM,
+                                    EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction()),
+                                    alarmId,
+                                    null,
+                                    0L);
+                        }
                     }
-                }
+                    return Futures.immediateFuture(null);
+                }, dbCallBackExecutor);
+
         }
     }
 
-    private void processRelation(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) throws Exception {
+    private ListenableFuture<Void> processRelation(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) throws Exception {
         EntityRelation relation = JacksonUtil.OBJECT_MAPPER.readValue(cloudNotificationMsg.getEntityBody(), EntityRelation.class);
-        cloudEventService.saveCloudEvent(tenantId,
+        return cloudEventService.saveCloudEventAsync(tenantId,
                 CloudEventType.RELATION,
                 EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction()),
                 null,
