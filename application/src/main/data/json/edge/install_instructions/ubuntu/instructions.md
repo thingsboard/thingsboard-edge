@@ -76,7 +76,7 @@ CREATE DATABASE tb_edge;
 Download installation package.
 
 ```bash
-wget https://github.com/thingsboard/thingsboard-edge/releases/download/v${TB_EDGE_VERSION}/tb-edge-${TB_EDGE_VERSION}.deb
+wget https://dist.thingsboard.io/tb-edge-${TB_EDGE_VERSION}.deb
 {:copy-code}
 ```
 
@@ -100,6 +100,8 @@ export CLOUD_RPC_SSL_ENABLED=${CLOUD_RPC_SSL_ENABLED}
 EOL'
 {:copy-code}
 ```
+
+###### NOTE: thingsboard.cloud employs the SSL protocol for edge communication. Value of **CLOUD_RPC_SSL_ENABLED** should be true in this case.
 
 ##### [Optional] Database Configuration
 In case you changed default PostgreSQL datasource settings please update the configuration file with your actual values (**/etc/tb-edge/conf/tb-edge.conf**).
@@ -132,11 +134,12 @@ export HTTP_BIND_PORT=18080
 export MQTT_BIND_PORT=11883
 export COAP_BIND_PORT=15683
 export LWM2M_ENABLED=false
+export INTEGRATIONS_RPC_PORT=19090
 EOL'
 {:copy-code}
 ```
 
-Make sure that ports above (18080, 11883, 15683-15688) are not used by any other application.
+Make sure that ports above (18080, 11883, 15683) are not used by any other application.
 
 #### Run installation script
 
