@@ -725,18 +725,20 @@ public class EdgeController extends BaseController {
     @ApiOperation(value = "Get Edge Docker Install Instructions (getEdgeDockerInstallInstructions)",
             notes = "Get a docker install instructions for provided edge id." + EDGE_SECURITY_CHECK + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/edge/instructions/{edgeId}", method = RequestMethod.GET)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/edge/instructions/{edgeId}/{method}", method = RequestMethod.GET)
     @ResponseBody
     public EdgeInstallInstructions getEdgeDockerInstallInstructions(
             @ApiParam(value = EDGE_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable("edgeId") String strEdgeId,
+            @ApiParam(value = "Installation method ('docker', 'ubuntu' or 'centos')")
+            @PathVariable("method") String installationMethod,
             HttpServletRequest request) throws ThingsboardException {
         if (isEdgesEnabled() && edgeInstallServiceOpt.isPresent()) {
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
             edgeId = checkNotNull(edgeId);
             Edge edge = checkEdgeId(edgeId, Operation.READ);
-            return checkNotNull(edgeInstallServiceOpt.get().getDockerInstallInstructions(getTenantId(), edge, request));
+            return checkNotNull(edgeInstallServiceOpt.get().getInstallInstructions(getTenantId(), edge, installationMethod, request));
         } else {
             throw new ThingsboardException("Edges support disabled", ThingsboardErrorCode.GENERAL);
         }
