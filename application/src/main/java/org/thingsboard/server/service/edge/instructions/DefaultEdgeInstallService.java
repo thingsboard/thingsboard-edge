@@ -107,6 +107,7 @@ public class DefaultEdgeInstallService implements EdgeInstallService {
         ubuntuInstallInstructions = replacePlaceholders(ubuntuInstallInstructions, edge);
         ubuntuInstallInstructions = ubuntuInstallInstructions.replace("${BASE_URL}", request.getServerName());
         String edgeVersion = appVersion.replace("-SNAPSHOT", "");
+        edgeVersion = edgeVersion.replace("PE", "pe");
         ubuntuInstallInstructions = ubuntuInstallInstructions.replace("${TB_EDGE_VERSION}", edgeVersion);
         return new EdgeInstallInstructions(ubuntuInstallInstructions);
     }
@@ -117,6 +118,7 @@ public class DefaultEdgeInstallService implements EdgeInstallService {
         centosInstallInstructions = replacePlaceholders(centosInstallInstructions, edge);
         centosInstallInstructions = centosInstallInstructions.replace("${BASE_URL}", request.getServerName());
         String edgeVersion = appVersion.replace("-SNAPSHOT", "");
+        edgeVersion = edgeVersion.replace("PE", "pe");
         centosInstallInstructions = centosInstallInstructions.replace("${TB_EDGE_VERSION}", edgeVersion);
         return new EdgeInstallInstructions(centosInstallInstructions);
     }
