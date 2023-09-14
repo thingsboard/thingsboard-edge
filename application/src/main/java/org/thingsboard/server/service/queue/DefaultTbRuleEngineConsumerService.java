@@ -202,7 +202,6 @@ public class DefaultTbRuleEngineConsumerService extends AbstractConsumerService<
                 log.info("[{}] Subscribing to partitions: {}", serviceQueue, partitions);
                 Queue configuration = consumerConfigurations.get(queueKey);
                 if (configuration == null) {
-                    log.warn("Received invalid partition change event for {} that is not managed by this service", queueKey);
                     return;
                 }
                 if (!configuration.isConsumerPerPartition()) {
@@ -507,7 +506,6 @@ public class DefaultTbRuleEngineConsumerService extends AbstractConsumerService<
                 }
             }
         }
-        partitionService.recalculatePartitions(serviceInfoProvider.getServiceInfo(), new ArrayList<>(partitionService.getOtherServices(ServiceType.TB_RULE_ENGINE)));
     }
 
     private void forwardToRuleEngineActor(String queueName, TenantId tenantId, ToRuleEngineMsg toRuleEngineMsg, TbMsgCallback callback) {
