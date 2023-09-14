@@ -175,18 +175,27 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<UserI
   configureColumns(authUser: AuthUser, config: EntityTableConfig<UserInfo>): Array<EntityColumn<UserInfo>> {
     const columns: Array<EntityColumn<UserInfo>> = [
       new DateEntityTableColumn<UserInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<UserInfo>('firstName', 'user.first-name', '15%'),
-      new EntityTableColumn<UserInfo>('lastName', 'user.last-name', '15%'),
-      new EntityTableColumn<UserInfo>('email', 'user.email', '25%')
+      new EntityTableColumn<UserInfo>('firstName', 'user.first-name', '33%'),
+      new EntityTableColumn<UserInfo>('lastName', 'user.last-name', '33%'),
+      new EntityTableColumn<UserInfo>('email', 'user.email', '33%')
     ];
     if (authUser.authority !== Authority.SYS_ADMIN) {
+      let groupsColumnSize = '35%';
       if (config.componentsData.includeCustomers) {
+        columns[0].width = '15%';
+        columns[1].width = '15%';
+        columns[2].width = '25%';
         const title = (authUser.authority === Authority.CUSTOMER_USER || config.customerId)
           ? 'entity.sub-customer-name' : 'entity.customer-name';
         columns.push(new EntityTableColumn<UserInfo>('ownerName', title, '20%'));
+        groupsColumnSize = '25%';
+      } else {
+        columns[0].width = '15%';
+        columns[1].width = '15%';
+        columns[2].width = '35%';
       }
       columns.push(
-        new GroupChipsEntityTableColumn<UserInfo>('groups', 'entity.groups', '25%')
+        new GroupChipsEntityTableColumn<UserInfo>('groups', 'entity.groups', groupsColumnSize)
       );
     }
     return columns;
