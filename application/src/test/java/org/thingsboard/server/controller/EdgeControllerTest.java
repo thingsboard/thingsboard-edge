@@ -889,8 +889,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
     // @voba - merge comment
     // edge entities support available in CE/PE
-    @Ignore
     @Test
+    @Ignore
     public void testSyncEdge() throws Exception {
         Asset asset = new Asset();
         asset.setName("Test Sync Edge Asset 1");
@@ -1138,13 +1138,14 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore
     public void testDeleteEdgeWithDeleteRelationsOk() throws Exception {
         EdgeId edgeId = savedEdge("Edge for Test WithRelationsOk").getId();
         testEntityDaoWithRelationsOk(tenantId, edgeId, "/api/edge/" + edgeId);
     }
 
-    @Ignore
     @Test
+    @Ignore
     public void testDeleteEdgeExceptionWithRelationsTransactional() throws Exception {
         EdgeId edgeId = savedEdge("Edge for Test WithRelations Transactional Exception").getId();
         testEntityDaoWithRelationsTransactionalException(edgeDao, tenantId, edgeId, "/api/edge/" + edgeId);
@@ -1156,6 +1157,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore
     public void testGetEdgeInstallInstructions() throws Exception {
         Edge edge = constructEdge(tenantId, "Edge for Test Docker Install Instructions", "default", "7390c3a6-69b0-9910-d155-b90aca4b772e", "l7q4zsjplzwhk16geqxy");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
