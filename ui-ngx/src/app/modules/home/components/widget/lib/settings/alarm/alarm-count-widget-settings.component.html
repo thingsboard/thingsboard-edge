@@ -30,28 +30,9 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div *ngIf="!asBoxInput; else boxInput"  fxLayout="row" [formGroup]="materialIconFormGroup">
-  <tb-icon class="icon-value" [ngStyle]="color ? { color: color } : {}" (click)="openIconDialog()">{{materialIconFormGroup.get('icon').value}}</tb-icon>
-  <mat-form-field fxFlex>
-    <mat-label>{{ label }}</mat-label>
-    <input [required]="required" matInput formControlName="icon" (mousedown)="openIconDialog()">
-    <button *ngIf="iconClearButton"
-            type="button"
-            matSuffix mat-icon-button aria-label="Clear"
-            (click)="clear()">
-      <tb-icon>close</tb-icon>
-    </button>
-  </mat-form-field>
-</div>
-<ng-template #boxInput>
-  <button type="button"
-          mat-stroked-button
-          class="tb-box-button"
-          [style.color]="color && !disabled ? color : ''"
-          [style.background-color]="backgroundColor && !disabled ? backgroundColor : ''"
-          [disabled]="disabled"
-          #matButton
-          (click)="openIconPopup($event, matButton)">
-    <tb-icon matButtonIcon>{{materialIconFormGroup.get('icon').value}}</tb-icon>
-  </button>
-</ng-template>
+<ng-container [formGroup]="alarmCountWidgetSettingsForm">
+  <div class="tb-form-panel">
+    <div class="tb-form-panel-title" translate>widgets.alarm-count.alarm-count-card-style</div>
+    <tb-count-widget-settings alarmElseEntity="true" formControlName="alarmCountSettings"></tb-count-widget-settings>
+  </div>
+</ng-container>

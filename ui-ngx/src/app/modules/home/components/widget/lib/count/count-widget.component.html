@@ -30,28 +30,23 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div *ngIf="!asBoxInput; else boxInput"  fxLayout="row" [formGroup]="materialIconFormGroup">
-  <tb-icon class="icon-value" [ngStyle]="color ? { color: color } : {}" (click)="openIconDialog()">{{materialIconFormGroup.get('icon').value}}</tb-icon>
-  <mat-form-field fxFlex>
-    <mat-label>{{ label }}</mat-label>
-    <input [required]="required" matInput formControlName="icon" (mousedown)="openIconDialog()">
-    <button *ngIf="iconClearButton"
-            type="button"
-            matSuffix mat-icon-button aria-label="Clear"
-            (click)="clear()">
-      <tb-icon>close</tb-icon>
-    </button>
-  </mat-form-field>
+<div class="tb-count-panel" [class.tb-count-pointer]="showChevron" (click)="cardClick($event)">
+  <div class="tb-count-panel-column">
+    <ng-container *ngTemplateOutlet="widgetTitlePanel"></ng-container>
+    <div class="tb-count-panel-row">
+      <div class="tb-count-icon-panel" *ngIf="showIconBackground || showIcon"
+           [style]="{minWidth: iconBackgroundSize, minHeight: iconBackgroundSize}">
+        <div *ngIf="showIconBackground" class="tb-count-icon-background-panel">
+          <div [style]="iconBackgroundStyle" [style.background-color]="iconBackgroundColor.color"></div>
+        </div>
+        <tb-icon *ngIf="showIcon" [style]="iconStyle" [style.color]="iconColor.color">{{ icon }}</tb-icon>
+      </div>
+      <div class="tb-count-label-value-panel" [class.tb-count-layout-row]="layout === countCardLayout.row">
+        <div *ngIf="showLabel" [style]="labelStyle" [style.color]="labelColor.color">{{ label }}</div>
+        <div *ngIf="layout === countCardLayout.row" style="flex: 1;"></div>
+        <div [style]="valueStyle" [style.color]="valueColor.color">{{ valueText }}</div>
+      </div>
+    </div>
+  </div>
+  <tb-icon *ngIf="showChevron" [style]="chevronStyle">chevron_right</tb-icon>
 </div>
-<ng-template #boxInput>
-  <button type="button"
-          mat-stroked-button
-          class="tb-box-button"
-          [style.color]="color && !disabled ? color : ''"
-          [style.background-color]="backgroundColor && !disabled ? backgroundColor : ''"
-          [disabled]="disabled"
-          #matButton
-          (click)="openIconPopup($event, matButton)">
-    <tb-icon matButtonIcon>{{materialIconFormGroup.get('icon').value}}</tb-icon>
-  </button>
-</ng-template>

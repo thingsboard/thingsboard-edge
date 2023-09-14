@@ -110,6 +110,18 @@ export class DatasourcesComponent implements ControlValueAccessor, OnInit, Valid
 
   @Input()
   @coerceBoolean()
+  hideDatasourcesMode = false;
+
+  @Input()
+  @coerceBoolean()
+  hideDatasourceLabel = false;
+
+  @Input()
+  @coerceBoolean()
+  displayDatasourceFilterForBasicMode = false;
+
+  @Input()
+  @coerceBoolean()
   hideDataKeyLabel = false;
 
   @Input()
@@ -300,7 +312,8 @@ export class DatasourcesComponent implements ControlValueAccessor, OnInit, Valid
     if (datasources && datasources.length) {
       datasourcesMode = datasources[0].type;
     }
-    if (datasourcesMode !== DatasourceType.device && datasourcesMode !== DatasourceType.entity) {
+    if (!this.hideDatasourcesMode
+      && datasourcesMode !== DatasourceType.device && datasourcesMode !== DatasourceType.entity) {
       datasourcesMode = DatasourceType.device;
     }
     return datasourcesMode;
