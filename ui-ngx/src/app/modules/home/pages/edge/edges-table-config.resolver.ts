@@ -45,11 +45,11 @@ import {
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
-import { EntityAction } from '@home/models/entity/entity-component.models';
+import { AddEntityDialogData, EntityAction } from '@home/models/entity/entity-component.models';
 import { Observable, of } from 'rxjs';
-import { Store } from '@ngrx/store';
-import { getCurrentAuthUser } from '@core/auth/auth.selectors';
-import { map, mergeMap, tap } from 'rxjs/operators';
+import { select, Store } from '@ngrx/store';
+import { getCurrentAuthUser, selectUserSettingsProperty } from '@core/auth/auth.selectors';
+import { map, mergeMap, take, tap } from 'rxjs/operators';
 import { AppState } from '@core/core.state';
 import { Authority } from '@app/shared/models/authority.enum';
 import { CustomerService } from '@core/http/customer.service';
@@ -58,13 +58,14 @@ import { BroadcastService } from '@core/services/broadcast.service';
 import { MatDialog } from '@angular/material/dialog';
 import { DialogService } from '@core/services/dialog.service';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
-import { EdgeInfo, EdgeInstallInstructions } from '@shared/models/edge.models';
+import { EdgeInfo } from '@shared/models/edge.models';
 import { EdgeService } from '@core/http/edge.service';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import {
-  EdgeInstructionsData,
-  EdgeInstructionsDialogComponent
+  EdgeInstructionsDialogComponent,
+  EdgeInstructionsDialogData
 } from '@home/pages/edge/edge-instructions-dialog.component';
+import { AddEntityDialogComponent } from '@home/components/entity/add-entity-dialog.component';
 import { AllEntitiesTableConfigService } from '@home/components/entity/all-entities-table-config.service';
 import { resolveGroupParams } from '@shared/models/entity-group.models';
 import { GroupEntityTabsComponent } from '@home/components/group/group-entity-tabs.component';
@@ -75,7 +76,6 @@ import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { UtilsService } from '@core/services/utils.service';
-import { EntityViewInfo } from '@shared/models/entity-view.models';
 
 @Injectable()
 export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeInfo>> {
@@ -123,6 +123,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
         config.cellActionDescriptors = this.configureCellActions(authUser, config);
         config.groupActionDescriptors = this.configureGroupActions(config);
         config.addActionDescriptors = this.configureAddActions(config);
+        config.addEntity = () => { this.addEdge(config); return of(null); };
         return this.allEntitiesTableConfigService.prepareConfiguration(config);
       })
     );
@@ -404,19 +405,48 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
     );
   }
 
-  openInstructions($event, edge: EdgeInfo) {
+  addEdge(config) {
+    this.dialog.open<AddEntityDialogComponent, AddEntityDialogData<EdgeInfo>,
+      EdgeInfo>(AddEntityDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        entitiesTableConfig: config
+      }
+    }).afterClosed().subscribe(
+      (entity) => {
+        if (entity) {
+          this.store.pipe(select(selectUserSettingsProperty('notDisplayInstructionsAfterAddEdge'))).pipe(
+            take(1)
+          ).subscribe((settings: boolean) => {
+            if (!settings) {
+              this.openInstructions(null, entity, true, config);
+            } else {
+              config.updateData();
+              config.entityAdded(entity);
+            }
+          });
+        }
+      }
+    );
+  }
+
+  openInstructions($event, edge: EdgeInfo, afterAdd = false, config) {
     if ($event) {
       $event.stopPropagation();
     }
-    this.edgeService.getEdgeDockerInstallInstructions(edge.id.id).subscribe(
-      (edgeInstructionsTemplate: EdgeInstallInstructions) => {
-        this.dialog.open<EdgeInstructionsDialogComponent, EdgeInstructionsData>(EdgeInstructionsDialogComponent, {
-          disableClose: false,
-          panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
-          data: {
-            instructions: edgeInstructionsTemplate.dockerInstallInstructions
-          }
-        });
+    this.dialog.open<EdgeInstructionsDialogComponent, EdgeInstructionsDialogData>
+    (EdgeInstructionsDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        edge,
+        afterAdd
+      }
+    }).afterClosed().subscribe(() => {
+        if (afterAdd) {
+          config.updateData();
+        }
       }
     );
   }
@@ -464,7 +494,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
         this.syncEdge(action.event, action.entity);
         return true;
       case 'openInstructions':
-        this.openInstructions(action.event, action.entity);
+        this.openInstructions(action.event, action.entity, null, config);
         return true;
       case 'manageOwnerAndGroups':
         this.manageOwnerAndGroups(action.event, action.entity, config);
