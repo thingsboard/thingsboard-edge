@@ -182,17 +182,17 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<UserI
     if (authUser.authority !== Authority.SYS_ADMIN) {
       let groupsColumnSize = '35%';
       if (config.componentsData.includeCustomers) {
-        columns[0].width = '15%';
         columns[1].width = '15%';
-        columns[2].width = '25%';
+        columns[2].width = '15%';
+        columns[3].width = '25%';
         const title = (authUser.authority === Authority.CUSTOMER_USER || config.customerId)
           ? 'entity.sub-customer-name' : 'entity.customer-name';
         columns.push(new EntityTableColumn<UserInfo>('ownerName', title, '20%'));
         groupsColumnSize = '25%';
       } else {
-        columns[0].width = '15%';
         columns[1].width = '15%';
-        columns[2].width = '35%';
+        columns[2].width = '15%';
+        columns[3].width = '35%';
       }
       columns.push(
         new GroupChipsEntityTableColumn<UserInfo>('groups', 'entity.groups', groupsColumnSize)
