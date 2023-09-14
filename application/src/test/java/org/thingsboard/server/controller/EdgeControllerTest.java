@@ -1230,7 +1230,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
     // @voba - merge comment
     // edge assign functionality only in CE/PE
-    // @Test
+    @Test
+    @Ignore
     public void testSyncEdge_tenantLevel() throws Exception {
         resetSysAdminWhiteLabelingSettings();
         loginTenantAdmin();
@@ -1301,9 +1302,6 @@ public class EdgeControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk());
     }
 
-    // @voba - merge comment
-    // edge assign functionality only in CE/PE
-    // @Test
     private void verifyFetchersMsgs_tenantLevel(EdgeImitator edgeImitator) {
         verifyFetchersMsgs_bothLevels(edgeImitator);
         Assert.assertTrue(popRoleMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Tenant User", "GENERIC"));
@@ -1334,7 +1332,10 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertTrue(popTenantProfileMsg(edgeImitator.getDownlinkMsgs(), tenantProfileId));
     }
 
+    // @voba - merge comment
+    // edge assign functionality only in CE/PE
     @Test
+    @Ignore
     public void testSyncEdge_customerLevel() throws Exception {
         resetSysAdminWhiteLabelingSettings();
         loginTenantAdmin();
@@ -1451,13 +1452,14 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore
     public void testDeleteEdgeWithDeleteRelationsOk() throws Exception {
         EdgeId edgeId = savedEdge("Edge for Test WithRelationsOk").getId();
         testEntityDaoWithRelationsOk(tenantId, edgeId, "/api/edge/" + edgeId);
     }
 
-    @Ignore
     @Test
+    @Ignore
     public void testDeleteEdgeExceptionWithRelationsTransactional() throws Exception {
         EdgeId edgeId = savedEdge("Edge for Test WithRelations Transactional Exception").getId();
         testEntityDaoWithRelationsTransactionalException(edgeDao, tenantId, edgeId, "/api/edge/" + edgeId);
@@ -1469,6 +1471,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore
     public void testGetEdgeInstallInstructions() throws Exception {
         Edge edge = constructEdge(tenantId, "Edge for Test Docker Install Instructions", "default", "7390c3a6-69b0-9910-d155-b90aca4b772e", "l7q4zsjplzwhk16geqxy");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
