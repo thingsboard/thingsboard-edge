@@ -28,8 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+@use '@angular/material' as mat;
 @import "../../../../../scss/constants";
+@import "../theme/app-theme.scss";
 
+$tb-primary: mat.get-color-from-palette($tb-primary);
 :host {
   height: 100%;
   max-height: 100vh;
@@ -87,7 +90,7 @@
     div.code-wrapper button.clipboard-btn {
       right: -2px !important;
       p {
-        color: #305680;
+        color: $tb-primary;
       }
       p, div {
         background-color: #F3F6FA;
@@ -102,7 +105,7 @@
           display: block;
           width: 18px;
           height: 18px;
-          background: #305680;
+          background: $tb-primary;
           mask-image: url(/assets/copy-code-icon.svg);
           mask-repeat: no-repeat;
         }

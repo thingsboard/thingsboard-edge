@@ -101,8 +101,6 @@ EOL'
 {:copy-code}
 ```
 
-###### NOTE: thingsboard.cloud employs the SSL protocol for edge communication. Value of **CLOUD_RPC_SSL_ENABLED** should be true in this case.
-
 ##### [Optional] Database Configuration
 In case you changed default PostgreSQL datasource settings (**postgres**/**postgres**) please update the configuration file (**/etc/tb-edge/conf/tb-edge.conf**) with your actual values:
 
