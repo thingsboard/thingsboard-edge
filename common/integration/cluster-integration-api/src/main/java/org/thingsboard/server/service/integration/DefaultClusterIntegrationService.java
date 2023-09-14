@@ -131,10 +131,12 @@ public class DefaultClusterIntegrationService extends TbApplicationEventListener
 
     @Override
     protected void onTbApplicationEvent(PartitionChangeEvent event) {
-        IntegrationType type = IntegrationType.valueOf(event.getQueueKey().getQueueName());
-        subscribeEventsMap.computeIfAbsent(type, t -> new ConcurrentLinkedQueue<>()).add(event.getPartitions());
-        queueExecutor.submit(() -> refreshIntegrationsByType(type));
-        consumers.get(type).subscribe(event.getPartitions());
+        event.getPartitionsMap().forEach(((queueKey, partitions) -> {
+            IntegrationType type = IntegrationType.valueOf(queueKey.getQueueName());
+            subscribeEventsMap.computeIfAbsent(type, t -> new ConcurrentLinkedQueue<>()).add(partitions);
+            queueExecutor.submit(() -> refreshIntegrationsByType(type));
+            consumers.get(type).subscribe(partitions);
+        }));
     }
 
     @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
