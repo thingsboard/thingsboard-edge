@@ -110,7 +110,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
             dockerCompose.withCommand("exec -T postgres psql -U postgres -d thingsboard -f /custom-sql/thingsboard.sql");
             dockerCompose.invokeCompose();
 
-            dockerCompose.withCommand("exec -T postgres psql -U postgres -d tb_edge f /custom-sql/tb_edge.sql");
+            dockerCompose.withCommand("exec -T postgres psql -U postgres -d tb_edge -f /custom-sql/tb_edge.sql");
             dockerCompose.invokeCompose();
 
         } finally {
