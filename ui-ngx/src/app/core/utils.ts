@@ -890,3 +890,8 @@ export const getOS = (): string => {
 
   return os;
 };
+
+
+export const camelCase = (str: string): string => {
+  return _.camelCase(str);
+};

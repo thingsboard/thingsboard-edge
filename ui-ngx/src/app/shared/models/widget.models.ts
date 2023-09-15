@@ -194,6 +194,7 @@ export interface WidgetTypeParameters {
   previewWidth?: string;
   previewHeight?: string;
   embedTitlePanel?: boolean;
+  hideDataSettings?: boolean;
 }
 
 export interface WidgetControllerDescriptor {

@@ -741,7 +741,7 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
   }
 
   public get displayAppearanceDataSettings(): boolean {
-    return this.displayUnitsConfig || this.displayNoDataDisplayMessageConfig;
+    return !this.modelValue?.typeParameters?.hideDataSettings && (this.displayUnitsConfig || this.displayNoDataDisplayMessageConfig);
   }
 
   public get displayUnitsConfig(): boolean {

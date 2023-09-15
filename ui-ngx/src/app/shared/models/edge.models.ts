@@ -336,7 +336,13 @@ export interface EdgeEvent extends BaseData<EventId> {
 }
 
 export interface EdgeInstallInstructions {
-  dockerInstallInstructions: string;
+  installInstructions: string;
+}
+
+export enum EdgeInstructionsMethod {
+  ubuntu,
+  centos,
+  docker
 }
 
 export const edgeEntityGroupTypes: EntityType[] = [

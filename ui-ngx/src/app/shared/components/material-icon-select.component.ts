@@ -67,6 +67,9 @@ export class MaterialIconSelectComponent extends PageComponent implements OnInit
   color: string;
 
   @Input()
+  backgroundColor: string;
+
+  @Input()
   disabled: boolean;
 
   @Input()

@@ -57,16 +57,16 @@ import {
 } from '@home/components/widget/lib/settings/cards/dashboard-state-widget-settings.component';
 import {
   EntitiesHierarchyWidgetSettingsComponent
-} from '@home/components/widget/lib/settings/cards/entities-hierarchy-widget-settings.component';
+} from '@home/components/widget/lib/settings/entity/entities-hierarchy-widget-settings.component';
 import {
   HtmlCardWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/cards/html-card-widget-settings.component';
 import {
   EntitiesTableWidgetSettingsComponent
-} from '@home/components/widget/lib/settings/cards/entities-table-widget-settings.component';
+} from '@home/components/widget/lib/settings/entity/entities-table-widget-settings.component';
 import {
   EntitiesTableKeySettingsComponent
-} from '@home/components/widget/lib/settings/cards/entities-table-key-settings.component';
+} from '@home/components/widget/lib/settings/entity/entities-table-key-settings.component';
 import {
   AlarmsTableWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/alarm/alarms-table-widget-settings.component';
@@ -303,6 +303,12 @@ import {
 import {
   AggregatedValueCardWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/cards/aggregated-value-card-widget-settings.component';
+import {
+  AlarmCountWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/alarm/alarm-count-widget-settings.component';
+import {
+  EntityCountWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/entity/entity-count-widget-settings.component';
 
 @NgModule({
   declarations: [
@@ -407,6 +413,8 @@ import {
     ValueCardWidgetSettingsComponent,
     AggregatedValueCardKeySettingsComponent,
     AggregatedValueCardWidgetSettingsComponent,
+    AlarmCountWidgetSettingsComponent,
+    EntityCountWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -519,6 +527,8 @@ import {
     ValueCardWidgetSettingsComponent,
     AggregatedValueCardKeySettingsComponent,
     AggregatedValueCardWidgetSettingsComponent,
+    AlarmCountWidgetSettingsComponent,
+    EntityCountWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -596,6 +606,8 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-value-card-widget-settings': ValueCardWidgetSettingsComponent,
   'tb-aggregated-value-card-key-settings': AggregatedValueCardKeySettingsComponent,
   'tb-aggregated-value-card-widget-settings': AggregatedValueCardWidgetSettingsComponent,
+  'tb-alarm-count-widget-settings': AlarmCountWidgetSettingsComponent,
+  'tb-entity-count-widget-settings': EntityCountWidgetSettingsComponent,
   'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
   'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
 };

@@ -55,6 +55,9 @@ import { BackgroundSettingsComponent } from '@home/components/widget/lib/setting
 import {
   BackgroundSettingsPanelComponent
 } from '@home/components/widget/lib/settings/common/background-settings-panel.component';
+import {
+  CountWidgetSettingsComponent
+} from "@home/components/widget/lib/settings/common/count-widget-settings.component";
 
 @NgModule({
   declarations: [
@@ -71,7 +74,8 @@ import {
     BackgroundSettingsPanelComponent,
     ValueSourceComponent,
     LegendConfigComponent,
-    WidgetFontComponent
+    WidgetFontComponent,
+    CountWidgetSettingsComponent
   ],
   imports: [
     CommonModule,
@@ -92,7 +96,8 @@ import {
     BackgroundSettingsPanelComponent,
     ValueSourceComponent,
     LegendConfigComponent,
-    WidgetFontComponent
+    WidgetFontComponent,
+    CountWidgetSettingsComponent
   ]
 })
 export class WidgetSettingsCommonModule {
