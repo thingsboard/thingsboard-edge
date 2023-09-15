@@ -28,11 +28,9 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@use '@angular/material' as mat;
-@import "../../../../../scss/constants";
-@import "../theme/app-theme.scss";
 
-$tb-primary: mat.get-color-from-palette($tb-primary);
+@import "../../../../../scss/constants";
+
 :host {
   height: 100%;
   max-height: 100vh;
@@ -88,34 +86,30 @@ $tb-primary: mat.get-color-from-palette($tb-primary);
 :host ::ng-deep {
   .tb-markdown-view {
     padding: 16px 16px 32px 16px;
-    div.code-wrapper button.clipboard-btn {
-      right: -2px !important;
-      p {
-        color: $tb-primary !important;
-      }
-      p, div {
-        background-color: unset !important;
-      }
-      div {
-        img {
-          display: none;
+    div {
+      background-color: #F0F6F6;
+      &.code-wrapper button.clipboard-btn {
+        right: -2px !important;
+        p {
+          color: var(--tb-primary-500) !important;
         }
-        &:after {
-          content: "";
-          position: initial;
-          display: block;
-          width: 18px;
-          height: 18px;
-          background: $tb-primary;
-          mask-image: url(/assets/copy-code-icon.svg);
-          mask-repeat: no-repeat;
+        p, div {
+          background-color: unset !important;
         }
-      }
-      a {
-        color: $tb-primary;
-        &:hover {
-          color: $tb-primary;
-        }
+        div {
+          img {
+            display: none;
+          }
+          &:after {
+            content: "";
+            position: initial;
+            display: block;
+            width: 18px;
+            height: 18px;
+            background: var(--tb-primary-500);
+            mask-image: url(/assets/copy-code-icon.svg);
+            mask-repeat: no-repeat;
+          }
       }
       &.multiline {
         right: -2px !important;
@@ -126,10 +120,7 @@ $tb-primary: mat.get-color-from-palette($tb-primary);
       padding-left: unset !important;
     }
     pre[class*="language-"] {
-      border: 1px solid $tb-primary !important;
-    }
-    div {
-      background-color: #F0F6F6;
+      border: 1px solid var(--tb-primary-500) !important;
     }
   }
   .mdc-button__label > span {
