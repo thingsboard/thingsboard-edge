@@ -32,7 +32,6 @@
 @import "../../../../../scss/constants";
 @import "../theme/app-theme.scss";
 
-$tb-primary: mat.get-color-from-palette($tb-primary);
 :host {
   height: 100%;
   max-height: 100vh;
