@@ -80,7 +80,8 @@ $tb-primary: mat.get-color-from-palette($tb-primary);
 
   .mat-mdc-dialog-content {
     max-height: 80vh;
-    padding: 16px;
+    padding: 0 16px 16px 16px;
+    border-top: 16px solid #fff;
   }
 }
 
@@ -90,10 +91,10 @@ $tb-primary: mat.get-color-from-palette($tb-primary);
     div.code-wrapper button.clipboard-btn {
       right: -2px !important;
       p {
-        color: $tb-primary;
+        color: $tb-primary !important;
       }
       p, div {
-        background-color: #F3F6FA;
+        background-color: unset !important;
       }
       div {
         img {
@@ -110,6 +111,12 @@ $tb-primary: mat.get-color-from-palette($tb-primary);
           mask-repeat: no-repeat;
         }
       }
+      a {
+        color: $tb-primary;
+        &:hover {
+          color: $tb-primary;
+        }
+      }
       &.multiline {
         right: -2px !important;
       }
@@ -118,12 +125,25 @@ $tb-primary: mat.get-color-from-palette($tb-primary);
       padding-right: unset !important;
       padding-left: unset !important;
     }
+    pre[class*="language-"] {
+      border: 1px solid $tb-primary !important;
+    }
+    div {
+      background-color: #F0F6F6;
+    }
   }
   .mdc-button__label > span {
     .mat-icon {
       vertical-align: text-bottom;
       box-sizing: initial;
     }
+  }
+
+  .mat-mdc-tab-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: #fff;
   }
 
   .tabs-icon {
