@@ -124,7 +124,7 @@ public class JpaOtaPackageInfoDao extends JpaAbstractDao<OtaPackageInfoEntity, O
                 .findAllByTenantIdAndDeviceGroupAndTypeAndHasData(
                         deviceGroupId,
                         type,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 }
