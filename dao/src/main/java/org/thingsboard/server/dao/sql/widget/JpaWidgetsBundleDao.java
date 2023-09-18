@@ -84,7 +84,7 @@ public class JpaWidgetsBundleDao extends JpaAbstractDao<WidgetsBundleEntity, Wid
                 widgetsBundleRepository
                         .findSystemWidgetsBundles(
                                 NULL_UUID,
-                                Objects.toString(pageLink.getTextSearch(), ""),
+                                pageLink.getTextSearch(),
                                 DaoUtil.toPageable(pageLink)));
     }
 
@@ -94,7 +94,7 @@ public class JpaWidgetsBundleDao extends JpaAbstractDao<WidgetsBundleEntity, Wid
                 widgetsBundleRepository
                         .findTenantWidgetsBundlesByTenantId(
                                 tenantId,
-                                Objects.toString(pageLink.getTextSearch(), ""),
+                                pageLink.getTextSearch(),
                                 DaoUtil.toPageable(pageLink)));
     }
 
@@ -105,7 +105,7 @@ public class JpaWidgetsBundleDao extends JpaAbstractDao<WidgetsBundleEntity, Wid
                         .findAllTenantWidgetsBundlesByTenantId(
                                 tenantId,
                                 NULL_UUID,
-                                Objects.toString(pageLink.getTextSearch(), ""),
+                                pageLink.getTextSearch(),
                                 DaoUtil.toPageable(pageLink)));
     }
 

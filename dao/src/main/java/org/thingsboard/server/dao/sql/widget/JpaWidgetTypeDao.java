@@ -98,7 +98,7 @@ public class JpaWidgetTypeDao extends JpaAbstractDao<WidgetTypeDetailsEntity, Wi
                 widgetTypeRepository
                         .findSystemWidgetTypes(
                                 NULL_UUID,
-                                Objects.toString(pageLink.getTextSearch(), ""),
+                                pageLink.getTextSearch(),
                                 fullSearch,
                                 DaoUtil.toPageable(pageLink)));
     }
@@ -110,7 +110,7 @@ public class JpaWidgetTypeDao extends JpaAbstractDao<WidgetTypeDetailsEntity, Wi
                         .findAllTenantWidgetTypesByTenantId(
                                 tenantId,
                                 NULL_UUID,
-                                Objects.toString(pageLink.getTextSearch(), ""),
+                                pageLink.getTextSearch(),
                                 fullSearch,
                                 DaoUtil.toPageable(pageLink)));
     }
@@ -121,7 +121,7 @@ public class JpaWidgetTypeDao extends JpaAbstractDao<WidgetTypeDetailsEntity, Wi
                 widgetTypeRepository
                         .findTenantWidgetTypesByTenantId(
                                 tenantId,
-                                Objects.toString(pageLink.getTextSearch(), ""),
+                                pageLink.getTextSearch(),
                                 fullSearch,
                                 DaoUtil.toPageable(pageLink)));
     }
@@ -175,7 +175,7 @@ public class JpaWidgetTypeDao extends JpaAbstractDao<WidgetTypeDetailsEntity, Wi
                 widgetTypeRepository
                         .findTenantWidgetTypeDetailsByTenantId(
                                 tenantId,
-                                Objects.toString(pageLink.getTextSearch(), ""),
+                                pageLink.getTextSearch(),
                                 DaoUtil.toPageable(pageLink)));
     }
 
