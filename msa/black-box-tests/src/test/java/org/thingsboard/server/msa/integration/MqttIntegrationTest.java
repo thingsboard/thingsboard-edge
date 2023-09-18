@@ -154,6 +154,26 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
     public void tearDown()  {
         testRestClient.setRootRuleChain(defaultRuleChainId);
     }
+
+    @Test
+    public void checkConnection() {
+        integration = Integration.builder()
+                .type(MQTT)
+                .name("mqtt" + RandomStringUtils.randomAlphanumeric(7))
+                .configuration(defaultConfig(SERVICE_NAME, SERVICE_PORT, TOPIC))
+                .defaultConverterId(uplinkConverter.getId())
+                .downlinkConverterId(downlinkConverter.getId())
+                .routingKey(ROUTING_KEY)
+                .secret(SECRET_KEY)
+                .isRemote(false)
+                .enabled(true)
+                .debugMode(true)
+                .allowCreateDevicesOrAssets(true)
+                .build();
+
+        testRestClient.checkConnection(integration);
+    }
+
     @Test
     public void telemetryUploadWithLocalIntegration() throws Exception {
         integration = Integration.builder()
