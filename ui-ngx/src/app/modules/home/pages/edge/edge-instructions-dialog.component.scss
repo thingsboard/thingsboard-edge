@@ -28,11 +28,9 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@use '@angular/material' as mat;
-@import "../../../../../scss/constants";
-@import "../theme/app-theme.scss";
 
-$tb-primary: mat.get-color-from-palette($tb-primary);
+@import "../../../../../scss/constants";
+
 :host {
   height: 100%;
   max-height: 100vh;
@@ -80,61 +78,75 @@ $tb-primary: mat.get-color-from-palette($tb-primary);
 
   .mat-mdc-dialog-content {
     max-height: 80vh;
-    padding: 16px;
+    padding: 0 16px 16px 16px;
+    border-top: 16px solid #fff;
   }
 }
 
 :host ::ng-deep {
   .tb-markdown-view {
     padding: 16px 16px 32px 16px;
-    div.code-wrapper button.clipboard-btn {
-      right: -2px !important;
-      p {
-        color: $tb-primary;
-      }
-      p, div {
-        background-color: #F3F6FA;
-      }
-      div {
-        img {
-          display: none;
-        }
-        &:after {
-          content: "";
-          position: initial;
-          display: block;
-          width: 18px;
-          height: 18px;
-          background: $tb-primary;
-          mask-image: url(/assets/copy-code-icon.svg);
-          mask-repeat: no-repeat;
-        }
-      }
-      &.multiline {
+    div {
+      background-color: #F0F6F6;
+      &.code-wrapper button.clipboard-btn {
         right: -2px !important;
+        p {
+          color: var(--tb-primary-500) !important;
+        }
+        p, div {
+          background-color: unset !important;
+        }
+        div {
+          img {
+            display: none;
+          }
+          &:after {
+            content: "";
+            position: initial;
+            display: block;
+            width: 18px;
+            height: 18px;
+            background: var(--tb-primary-500);
+            mask-image: url(/assets/copy-code-icon.svg);
+            mask-repeat: no-repeat;
+          }
+        }
+        &.multiline {
+          right: -2px !important;
+        }
+      }
+      & > *:not(ul) {
+        padding-right: unset !important;
+        padding-left: unset !important;
+      }
+      pre[class*="language-"] {
+        border: 1px solid var(--tb-primary-500) !important;
       }
     }
-    & > *:not(ul) {
-      padding-right: unset !important;
-      padding-left: unset !important;
+    .mdc-button__label > span {
+      .mat-icon {
+        vertical-align: text-bottom;
+        box-sizing: initial;
+      }
     }
-  }
-  .mdc-button__label > span {
-    .mat-icon {
-      vertical-align: text-bottom;
-      box-sizing: initial;
+
+    .mat-mdc-tab-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background-color: #fff;
     }
-  }
 
-  .tabs-icon {
-    margin-right: 8px;
-  }
+    .tabs-icon {
+      margin-right: 8px;
+    }
 
-  .tb-form-panel.tb-tab-body {
-    padding: 16px 0 0;
-  }
+    .tb-form-panel.tb-tab-body {
+      padding: 16px 0 0;
+    }
 
-  .mat-mdc-tab-body {
-    padding: 16px 0;
+    .mat-mdc-tab-body {
+      padding: 16px 0;
+    }
   }
 }
