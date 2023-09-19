@@ -88,6 +88,7 @@
     padding: 16px 16px 32px 16px;
     div {
       background-color: #F0F6F6;
+
       &.code-wrapper button.clipboard-btn {
         right: -2px !important;
         p {
@@ -115,38 +116,38 @@
           right: -2px !important;
         }
       }
-      & > *:not(ul) {
-        padding-right: unset !important;
-        padding-left: unset !important;
-      }
-      pre[class*="language-"] {
-        border: 1px solid var(--tb-primary-500) !important;
-      }
     }
-    .mdc-button__label > span {
-      .mat-icon {
-        vertical-align: text-bottom;
-        box-sizing: initial;
-      }
+    & > *:not(ul) {
+      padding-right: unset !important;
+      padding-left: unset !important;
     }
+    pre[class*="language-"] {
+      border: 1px solid var(--tb-primary-500) !important;
+    }
+  }
+  .mdc-button__label > span {
+    .mat-icon {
+      vertical-align: text-bottom;
+      box-sizing: initial;
+    }
+  }
 
-    .mat-mdc-tab-header {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background-color: #fff;
-    }
+  .mat-mdc-tab-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: #fff;
+  }
 
-    .tabs-icon {
-      margin-right: 8px;
-    }
+  .tabs-icon {
+    margin-right: 8px;
+  }
 
-    .tb-form-panel.tb-tab-body {
-      padding: 16px 0 0;
-    }
+  .tb-form-panel.tb-tab-body {
+    padding: 16px 0 0;
+  }
 
-    .mat-mdc-tab-body {
-      padding: 16px 0;
-    }
+  .mat-mdc-tab-body {
+    padding: 16px 0;
   }
 }
