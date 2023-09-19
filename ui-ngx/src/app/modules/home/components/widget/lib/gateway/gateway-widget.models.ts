@@ -139,7 +139,7 @@ export const GatewayConnectorDefaultTypesTranslates = new Map<string, string>([
   ['ftp', 'FTP'],
   ['socket', 'SOCKET'],
   ['xmpp', 'XMPP'],
-  ['ocpp', 'OCCP'],
+  ['ocpp', 'OCPP'],
   ['custom', 'CUSTOM']
 ]);
 
