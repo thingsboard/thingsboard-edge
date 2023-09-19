@@ -34,10 +34,15 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import org.junit.Assert;
 import org.junit.Test;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeEntityType;
+import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 
@@ -51,7 +56,7 @@ public class EntityGroupEdgeTest extends AbstractEdgeTest {
     public void testAllEdgeEntityGroup_autoAssignedToEdgeAfterUnAssign() throws Exception {
         sendAssetCreateMsgToCloud("Asset From Edge");
 
-        EntityGroup edgeAllAssetGroup = findEdgeAllAssetGroup();
+        EntityGroup edgeAllAssetGroup = findEdgeAllGroup(EntityType.ASSET);
         doDelete("/api/edge/" + edge.getUuidId()
                 + "/entityGroup/" + edgeAllAssetGroup.getUuidId().toString() + "/" + edgeAllAssetGroup.getType().name(), EntityGroup.class);
 
@@ -60,6 +65,70 @@ public class EntityGroupEdgeTest extends AbstractEdgeTest {
         sendAssetCreateMsgToCloud("Asset From Edge 2");
 
         validateThatEntityGroupAssignedToEdge(edgeAllAssetGroup.getId(), EntityType.ASSET);
+    }
+
+    @Test
+    public void testEdgeRename_edgeAllGroupsRenamed() throws Exception {
+        UUID deviceUuid = Uuids.timeBased();
+        sendDeviceCreateMsgToCloud("Device From Edge", deviceUuid);
+        sendAssetCreateMsgToCloud("Asset From Edge");
+        sendEntityViewCreateMsgToCloud("Entity View From Edge", deviceUuid);
+        sendDashboardCreateMsgToCloud("Dashboard From Edge");
+
+        String currentEdgeName = edge.getName();
+
+        EntityGroup edgeAllDeviceGroup = findEdgeAllGroup(EntityType.DEVICE);
+        EntityGroup edgeAllAssetGroup = findEdgeAllGroup(EntityType.ASSET);
+        EntityGroup edgeAllEntityViewGroup = findEdgeAllGroup(EntityType.ENTITY_VIEW);
+        EntityGroup edgeAllDashboardGroup = findEdgeAllGroup(EntityType.DASHBOARD);
+
+        Assert.assertTrue(edgeAllDeviceGroup.getName().contains(currentEdgeName));
+        Assert.assertTrue(edgeAllAssetGroup.getName().contains(currentEdgeName));
+        Assert.assertTrue(edgeAllEntityViewGroup.getName().contains(currentEdgeName));
+        Assert.assertTrue(edgeAllDashboardGroup.getName().contains(currentEdgeName));
+
+        String newEdgeName = "New Edge Name for rename test";
+        edge.setName(newEdgeName);
+        edge = doPost("/api/edge", edge, Edge.class);
+
+        edgeAllDeviceGroup = findEdgeAllGroup(EntityType.DEVICE);
+        edgeAllAssetGroup = findEdgeAllGroup(EntityType.ASSET);
+        edgeAllEntityViewGroup = findEdgeAllGroup(EntityType.ENTITY_VIEW);
+        edgeAllDashboardGroup = findEdgeAllGroup(EntityType.DASHBOARD);
+
+        Assert.assertTrue(edgeAllDeviceGroup.getName().contains(newEdgeName));
+        Assert.assertTrue(edgeAllAssetGroup.getName().contains(newEdgeName));
+        Assert.assertTrue(edgeAllEntityViewGroup.getName().contains(newEdgeName));
+        Assert.assertTrue(edgeAllDashboardGroup.getName().contains(newEdgeName));
+
+        // rollback
+        edge.setName(currentEdgeName);
+        edge = doPost("/api/edge", edge, Edge.class);
+
+        edgeAllDeviceGroup = findEdgeAllGroup(EntityType.DEVICE);
+        edgeAllAssetGroup = findEdgeAllGroup(EntityType.ASSET);
+        edgeAllEntityViewGroup = findEdgeAllGroup(EntityType.ENTITY_VIEW);
+        edgeAllDashboardGroup = findEdgeAllGroup(EntityType.DASHBOARD);
+
+        Assert.assertTrue(edgeAllDeviceGroup.getName().contains(currentEdgeName));
+        Assert.assertTrue(edgeAllAssetGroup.getName().contains(currentEdgeName));
+        Assert.assertTrue(edgeAllEntityViewGroup.getName().contains(currentEdgeName));
+        Assert.assertTrue(edgeAllDashboardGroup.getName().contains(currentEdgeName));
+    }
+
+    private void sendDeviceCreateMsgToCloud(String deviceName, UUID uuid) throws Exception {
+        UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
+        DeviceUpdateMsg.Builder deviceUpdateMsgBuilder = DeviceUpdateMsg.newBuilder();
+        deviceUpdateMsgBuilder.setIdMSB(uuid.getMostSignificantBits());
+        deviceUpdateMsgBuilder.setIdLSB(uuid.getLeastSignificantBits());
+        deviceUpdateMsgBuilder.setName(deviceName);
+        deviceUpdateMsgBuilder.setType("default");
+        deviceUpdateMsgBuilder.setMsgType(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE);
+        uplinkMsgBuilder.addDeviceUpdateMsg(deviceUpdateMsgBuilder.build());
+
+        edgeImitator.expectResponsesAmount(1);
+        edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
+        Assert.assertTrue(edgeImitator.waitForResponses());
     }
 
     private void sendAssetCreateMsgToCloud(String assetName) throws Exception {
@@ -80,8 +149,45 @@ public class EntityGroupEdgeTest extends AbstractEdgeTest {
         Assert.assertTrue(edgeImitator.waitForResponses());
     }
 
-    private EntityGroup findEdgeAllAssetGroup() throws Exception {
-        List<EntityGroupInfo> groupsList = getEntityGroupsByOwnerAndType(tenantId, EntityType.ASSET);
+    private void sendEntityViewCreateMsgToCloud(String entityViewName, UUID entityUuid) throws Exception {
+        UUID uuid = Uuids.timeBased();
+
+        UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
+        EntityViewUpdateMsg.Builder entityViewUpdateMsgBuilder = EntityViewUpdateMsg.newBuilder();
+        entityViewUpdateMsgBuilder.setIdMSB(uuid.getMostSignificantBits());
+        entityViewUpdateMsgBuilder.setIdLSB(uuid.getLeastSignificantBits());
+        entityViewUpdateMsgBuilder.setName(entityViewName);
+        entityViewUpdateMsgBuilder.setType("default");
+        entityViewUpdateMsgBuilder.setEntityType(EdgeEntityType.DEVICE);
+        entityViewUpdateMsgBuilder.setEntityIdMSB(entityUuid.getMostSignificantBits());
+        entityViewUpdateMsgBuilder.setEntityIdLSB(entityUuid.getLeastSignificantBits());
+        entityViewUpdateMsgBuilder.setMsgType(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE);
+        uplinkMsgBuilder.addEntityViewUpdateMsg(entityViewUpdateMsgBuilder.build());
+
+        edgeImitator.expectResponsesAmount(1);
+        edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
+        Assert.assertTrue(edgeImitator.waitForResponses());
+    }
+
+    private void sendDashboardCreateMsgToCloud(String dashboardName) throws Exception {
+        UUID uuid = Uuids.timeBased();
+
+        UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
+        DashboardUpdateMsg.Builder dashboardUpdateMsgBuilder = DashboardUpdateMsg.newBuilder();
+        dashboardUpdateMsgBuilder.setIdMSB(uuid.getMostSignificantBits());
+        dashboardUpdateMsgBuilder.setIdLSB(uuid.getLeastSignificantBits());
+        dashboardUpdateMsgBuilder.setTitle(dashboardName);
+        dashboardUpdateMsgBuilder.setConfiguration("");
+        dashboardUpdateMsgBuilder.setMsgType(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE);
+        uplinkMsgBuilder.addDashboardUpdateMsg(dashboardUpdateMsgBuilder.build());
+
+        edgeImitator.expectResponsesAmount(1);
+        edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
+        Assert.assertTrue(edgeImitator.waitForResponses());
+    }
+
+    private EntityGroup findEdgeAllGroup(EntityType groupType) throws Exception {
+        List<EntityGroupInfo> groupsList = getEntityGroupsByOwnerAndType(tenantId, groupType);
         EntityGroup edgeAllAssetGroup = null;
         for (EntityGroupInfo tmp : groupsList) {
             if (tmp.isEdgeGroupAll()) {
