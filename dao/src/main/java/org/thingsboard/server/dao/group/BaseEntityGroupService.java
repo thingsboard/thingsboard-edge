@@ -1013,7 +1013,15 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 .findEntityGroupByTypeAndNameAsync(tenantId, edge.getOwnerId(), groupType, entityGroupName);
         return Futures.transformAsync(futureEntityGroup, optionalEntityGroup -> {
             if (optionalEntityGroup != null && optionalEntityGroup.isPresent()) {
-                return Futures.immediateFuture(optionalEntityGroup.get());
+                ListenableFuture<Boolean> groupAssignedToEdgeFuture =
+                        entityGroupService.checkEdgeEntityGroupByIdAsync(tenantId, edge.getId(), optionalEntityGroup.get().getId(), groupType);
+                return Futures.transformAsync(groupAssignedToEdgeFuture, groupAssignedToEdge -> {
+                    if (!groupAssignedToEdge) {
+                        entityGroupService.assignEntityGroupToEdge(tenantId, optionalEntityGroup.get().getId(),
+                                edge.getId(), groupType);
+                    }
+                    return Futures.immediateFuture(optionalEntityGroup.get());
+                }, MoreExecutors.directExecutor());
             } else {
                 try {
                     ListenableFuture<Optional<EntityGroup>> currentEntityGroupFuture = entityGroupService
