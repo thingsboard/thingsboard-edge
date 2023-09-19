@@ -1075,7 +1075,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
         layout.show = true;
         const layoutInfo: DashboardLayoutInfo = layoutsData[l];
         this.updateLayout(layout, layoutInfo);
-        widgetsCount += layoutInfo.widgetIds ? layoutInfo.widgetIds.length : 0;
+        widgetsCount += layoutInfo.widgetLayouts ? Object.values(layoutInfo.widgetLayouts).filter(item => !item.desktopHide).length : 0;
       } else {
         layout.show = false;
         this.updateLayout(layout, {widgetIds: [], widgetLayouts: {}, gridSettings: null});
