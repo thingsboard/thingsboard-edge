@@ -321,7 +321,7 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
         waitForIntegrationEvent(integration, "UPDATED", 1);
 
         String temperatureValue = "12";
-        remoteHttpClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, temperatureValue));
+        remoteHttpClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, temperatureValue), securityHeaders);
 
         Awaitility
                 .await()
