@@ -320,6 +320,14 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
         integration = testRestClient.postIntegration(integration);
         waitForIntegrationEvent(integration, "UPDATED", 1);
 
+        String temperatureValue = "12";
+        remoteHttpClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, temperatureValue));
+
+        Awaitility
+                .await()
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> wsClient.getMessage().getDataValuesByKey(TELEMETRY_KEY).get(1).equals(temperatureValue));
+
         //update integration with new security header
         JsonNode config2 = defaultConfigWithSecurityHeader2(HTTPS_URL);
         integration.setConfiguration(config2);
