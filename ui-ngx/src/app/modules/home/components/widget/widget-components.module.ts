@@ -72,6 +72,7 @@ import {
   AggregatedValueCardWidgetComponent
 } from '@home/components/widget/lib/cards/aggregated-value-card-widget.component';
 import { CountWidgetComponent } from '@home/components/widget/lib/count/count-widget.component';
+import { BatteryLevelWidgetComponent } from '@home/components/widget/lib/indicator/battery-level-widget.component';
 
 @NgModule({
   declarations:
@@ -105,7 +106,8 @@ import { CountWidgetComponent } from '@home/components/widget/lib/count/count-wi
       GatewayRemoteConfigurationDialogComponent,
       ValueCardWidgetComponent,
       AggregatedValueCardWidgetComponent,
-      CountWidgetComponent
+      CountWidgetComponent,
+      BatteryLevelWidgetComponent
     ],
   imports: [
     CommonModule,
@@ -144,7 +146,8 @@ import { CountWidgetComponent } from '@home/components/widget/lib/count/count-wi
         GatewayRemoteConfigurationDialogComponent,
         ValueCardWidgetComponent,
         AggregatedValueCardWidgetComponent,
-        CountWidgetComponent
+        CountWidgetComponent,
+        BatteryLevelWidgetComponent
     ],
   providers: [
     {provide: WIDGET_COMPONENTS_MODULE_TOKEN, useValue: WidgetComponentsModule }
