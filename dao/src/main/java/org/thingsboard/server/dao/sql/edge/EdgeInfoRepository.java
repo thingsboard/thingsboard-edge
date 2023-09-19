@@ -100,13 +100,13 @@ public interface EdgeInfoRepository extends JpaRepository<EdgeInfoEntity, UUID> 
             "c.title as owner_name from edge_info_view e " +
             "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +
-            "AND (:searchText IS NULL OR ilike(e.name, CONCAT('%', :searchText, '%')) = true " +
-            "OR ilike(e.owner_name, CONCAT('%', :searchText, '%')) = true)",
+            "AND (:searchText IS NULL OR e.name ILIKE CONCAT('%', :searchText, '%') " +
+            "OR e.owner_name ILIKE CONCAT('%', :searchText, '%'))",
             countQuery = "SELECT count(e.id) FROM edge e " +
                     "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId " +
                     "WHERE" + SUB_CUSTOMERS_QUERY +
-                    "AND (:searchText IS NULL OR ilike(e.name, CONCAT('%', :searchText, '%')) = true " +
-                    "OR ilike(c.title, CONCAT('%', :searchText, '%')) = true)",
+                    "AND (:searchText IS NULL OR e.name ILIKE CONCAT('%', :searchText, '%') " +
+                    "OR c.title ILIKE CONCAT('%', :searchText, '%'))",
             nativeQuery = true)
     Page<EdgeInfoEntity> findByTenantIdAndCustomerIdIncludingSubCustomers(@Param("tenantId") UUID tenantId,
                                                                           @Param("customerId") UUID customerId,

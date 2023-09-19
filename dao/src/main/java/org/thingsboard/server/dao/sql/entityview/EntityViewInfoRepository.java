@@ -99,13 +99,13 @@ public interface EntityViewInfoRepository extends JpaRepository<EntityViewInfoEn
             "c.title as owner_name from entity_view_info_view ev " +
             "LEFT JOIN customer c on c.id = ev.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +
-            "AND (:searchText IS NULL OR ilike(e.name, CONCAT('%', :searchText, '%')) = true" +
-            "OR ilike(e.owner_name, CONCAT('%', :searchText, '%')) = true)",
+            "AND (:searchText IS NULL OR e.name ILIKE CONCAT('%', :searchText, '%') " +
+            "OR e.owner_name ILIKE CONCAT('%', :searchText, '%'))",
             countQuery = "SELECT count(e.id) FROM entity_view e " +
                     "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId " +
                     "WHERE" + SUB_CUSTOMERS_QUERY +
-                    "AND (:searchText IS NULL OR ilike(e.name, CONCAT('%', :searchText, '%')) = true " +
-                    "OR ilike(c.title, CONCAT('%', :searchText, '%')) = true)",
+                    "AND (:searchText IS NULL OR e.name ILIKE CONCAT('%', :searchText, '%') " +
+                    "OR c.title ILIKE CONCAT('%', :searchText, '%'))",
             nativeQuery = true)
     Page<EntityViewInfoEntity> findByTenantIdAndCustomerIdIncludingSubCustomers(@Param("tenantId") UUID tenantId,
                                                                                 @Param("customerId") UUID customerId,
@@ -119,14 +119,14 @@ public interface EntityViewInfoRepository extends JpaRepository<EntityViewInfoEn
             "LEFT JOIN customer c on c.id = ev.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +
             "AND e.type = :type " +
-            "AND (:searchText IS NULL OR ilike(e.name, CONCAT('%', :searchText, '%')) = true" +
-            "OR ilike(e.owner_name, CONCAT('%', :searchText, '%')) = true)",
+            "AND (:searchText IS NULL OR e.name ILIKE CONCAT('%', :searchText, '%') " +
+            "OR e.owner_name ILIKE CONCAT('%', :searchText, '%'))",
             countQuery = "SELECT count(e.id) FROM entity_view e " +
                     "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId " +
                     "WHERE" + SUB_CUSTOMERS_QUERY +
                     "AND e.type = :type " +
-                    "AND (:searchText IS NULL OR ilike(e.name, CONCAT('%', :searchText, '%')) = true " +
-                    "OR ilike(c.title, CONCAT('%', :searchText, '%')) = true)",
+                    "AND (:searchText IS NULL OR e.name ILIKE CONCAT('%', :searchText, '%') " +
+                    "OR c.title ILIKE CONCAT('%', :searchText, '%'))",
             nativeQuery = true)
     Page<EntityViewInfoEntity> findByTenantIdAndCustomerIdAndTypeIncludingSubCustomers(@Param("tenantId") UUID tenantId,
                                                                                        @Param("customerId") UUID customerId,

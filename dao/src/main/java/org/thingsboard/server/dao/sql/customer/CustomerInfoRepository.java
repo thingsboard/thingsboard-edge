@@ -72,13 +72,13 @@ public interface CustomerInfoRepository extends JpaRepository<CustomerInfoEntity
             "c.title as owner_name from customer_info_view ce " +
             "LEFT JOIN customer c on c.id = ce.parent_customer_id AND c.id != :customerId) e " +
             "WHERE" + CUSTOMERS_SUB_CUSTOMERS_QUERY +
-            "AND (:searchText IS NULL OR ilike(e.title, CONCAT('%', :searchText, '%')) = true " +
-            "OR ilike(e.owner_name, CONCAT('%', :searchText, '%')) = true)",
+            "AND (:searchText IS NULL OR e.title ILIKE CONCAT('%', :searchText, '%') " +
+            "OR e.owner_name ILIKE CONCAT('%', :searchText, '%'))",
             countQuery = "SELECT count(e.id) FROM customer e " +
                     "LEFT JOIN customer c on c.id = e.parent_customer_id AND c.id != :customerId " +
                     "WHERE" + CUSTOMERS_SUB_CUSTOMERS_QUERY +
-                    "AND (:searchText IS NULL OR ilike(e.title, CONCAT('%', :searchText, '%')) = true " +
-                    "OR ilike(c.title, CONCAT('%', :searchText, '%')) = true)",
+                    "AND (:searchText IS NULL OR e.title ILIKE CONCAT('%', :searchText, '%') " +
+                    "OR c.title ILIKE CONCAT('%', :searchText, '%'))",
             nativeQuery = true)
     Page<CustomerInfoEntity> findByTenantIdAndCustomerIdIncludingSubCustomers(@Param("tenantId") UUID tenantId,
                                                                               @Param("customerId") UUID customerId,

@@ -73,19 +73,19 @@ public interface DeviceInfoRepository extends JpaRepository<DeviceInfoEntity, UU
             "WHERE" + SUB_CUSTOMERS_QUERY +
             "AND (:deviceProfileId IS NULL OR e.device_profile_id = uuid(:deviceProfileId)) " +
             "AND ((:filterByActive) IS FALSE OR e.active = :deviceActive) " +
-            "AND (:textSearch IS NULL OR ilike(e.name, CONCAT('%', :textSearch, '%'))  = true " +
-            "OR ilike(e.label, CONCAT('%', :textSearch, '%')) = true " +
-            "OR ilike(e.type, CONCAT('%', :textSearch, '%')) = true " +
-            "OR ilike(e.owner_name, CONCAT('%', :textSearch, '%')) = true )",
+            "AND (:textSearch IS NULL OR e.name ILIKE CONCAT('%', :textSearch, '%') " +
+            "OR e.label ILIKE CONCAT('%', :textSearch, '%') " +
+            "OR e.type ILIKE CONCAT('%', :textSearch, '%') " +
+            "OR e.owner_name ILIKE CONCAT('%', :textSearch, '%'))",
             countQuery = "SELECT count(e.id) FROM device_info_view e " +
                     "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId " +
                     "WHERE" + SUB_CUSTOMERS_QUERY +
                     "AND (:deviceProfileId IS NULL OR e.device_profile_id = uuid(:deviceProfileId)) " +
                     "AND ((:filterByActive) IS FALSE OR e.active = :deviceActive) " +
-                    "AND (:textSearch IS NULL OR ilike(e.name, CONCAT('%', :textSearch, '%'))  = true " +
-                    "OR ilike(e.label, CONCAT('%', :textSearch, '%')) = true " +
-                    "OR ilike(e.type, CONCAT('%', :textSearch, '%')) = true " +
-                    "OR ilike(e.owner_name, CONCAT('%', :textSearch, '%')) = true )",
+                    "AND (:textSearch IS NULL OR e.name ILIKE CONCAT('%', :textSearch, '%') " +
+                    "OR e.label ILIKE CONCAT('%', :textSearch, '%') " +
+                    "OR e.type ILIKE CONCAT('%', :textSearch, '%') " +
+                    "OR e.owner_name ILIKE CONCAT('%', :textSearch, '%'))",
             nativeQuery = true)
     Page<DeviceInfoEntity> findDeviceInfosByFilterIncludingSubCustomers(@Param("tenantId") UUID tenantId,
                                                         @Param("customerId") UUID customerId,

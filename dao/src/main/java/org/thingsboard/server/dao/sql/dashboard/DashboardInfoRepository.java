@@ -89,13 +89,13 @@ public interface DashboardInfoRepository extends JpaRepository<DashboardInfoEnti
             "c.title as owner_name FROM dashboard_info_view d " +
             "LEFT JOIN customer c on c.id = d.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +
-            "AND (:searchText IS NULL OR ilike(e.title, CONCAT('%', :searchText, '%')) = true " +
-            "OR ilike(e.owner_name, CONCAT('%', :searchText, '%')) = true)",
+            "AND (:searchText IS NULL OR e.title ILIKE CONCAT('%', :searchText, '%') " +
+            "OR e.owner_name ILIKE CONCAT('%', :searchText, '%'))",
             countQuery = "SELECT count(e.id) FROM dashboard e " +
                     "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId " +
                     "WHERE" + SUB_CUSTOMERS_QUERY +
-                    "AND (:searchText IS NULL OR ilike(e.title, CONCAT('%', :searchText, '%')) = true " +
-                    "OR ilike(c.title, CONCAT('%', :searchText, '%')) = true)",
+                    "AND (:searchText IS NULL OR e.title ILIKE CONCAT('%', :searchText, '%') " +
+                    "OR c.title ILIKE CONCAT('%', :searchText, '%'))",
             nativeQuery = true)
     Page<DashboardInfoEntity> findByTenantIdAndCustomerIdIncludingSubCustomers(@Param("tenantId") UUID tenantId,
                                                                                @Param("customerId") UUID customerId,
