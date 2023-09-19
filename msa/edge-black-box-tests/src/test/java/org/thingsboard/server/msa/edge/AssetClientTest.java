@@ -102,6 +102,26 @@ public class AssetClientTest extends AbstractContainerTest {
                     return asset2Groups.contains(savedAssetEntityGroup2.getId());
                 });
 
+        // add asset #2 to group #1
+        cloudRestClient.addEntitiesToEntityGroup(savedAssetEntityGroup1.getId(), Collections.singletonList(savedAsset2.getId()));
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<EntityGroupId> asset2Groups = edgeRestClient.getEntityGroupsForEntity(savedAsset2.getId());
+                    return asset2Groups.contains(savedAssetEntityGroup1.getId());
+                });
+
+        // remove asset #2 from group #1
+        cloudRestClient.removeEntitiesFromEntityGroup(savedAssetEntityGroup1.getId(), Collections.singletonList(savedAsset2.getId()));
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<EntityGroupId> asset2Groups = edgeRestClient.getEntityGroupsForEntity(savedAsset2.getId());
+                    return !asset2Groups.contains(savedAssetEntityGroup1.getId()) && asset2Groups.contains(savedAssetEntityGroup2.getId());
+                });
+
         // remove asset #2 from group #2
         cloudRestClient.removeEntitiesFromEntityGroup(savedAssetEntityGroup2.getId(), Collections.singletonList(savedAsset2.getId()));
         Awaitility.await()

@@ -114,6 +114,26 @@ public class EntityViewClientTest extends AbstractContainerTest {
                     return entityView2Groups.contains(savedEntityViewEntityGroup2.getId());
                 });
 
+        // add entity view #2 to group #1
+        cloudRestClient.addEntitiesToEntityGroup(savedEntityViewEntityGroup1.getId(), Collections.singletonList(savedEntityView2.getId()));
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<EntityGroupId> entityView2Groups = edgeRestClient.getEntityGroupsForEntity(savedEntityView2.getId());
+                    return entityView2Groups.contains(savedEntityViewEntityGroup1.getId());
+                });
+
+        // remove entity view #2 from group #1
+        cloudRestClient.removeEntitiesFromEntityGroup(savedEntityViewEntityGroup1.getId(), Collections.singletonList(savedEntityView2.getId()));
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<EntityGroupId> entityView2Groups = edgeRestClient.getEntityGroupsForEntity(savedEntityView2.getId());
+                    return !entityView2Groups.contains(savedEntityViewEntityGroup1.getId()) && entityView2Groups.contains(savedEntityViewEntityGroup2.getId());
+                });
+
         // remove entity view #2 from group #2
         cloudRestClient.removeEntitiesFromEntityGroup(savedEntityViewEntityGroup2.getId(), Collections.singletonList(savedEntityView2.getId()));
         Awaitility.await()

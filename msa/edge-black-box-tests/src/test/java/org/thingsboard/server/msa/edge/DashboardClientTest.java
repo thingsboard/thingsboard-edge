@@ -103,6 +103,26 @@ public class DashboardClientTest extends AbstractContainerTest {
                     return dashboard2Groups.contains(savedDashboardEntityGroup2.getId());
                 });
 
+        // add dashboard #2 to group #1
+        cloudRestClient.addEntitiesToEntityGroup(savedDashboardEntityGroup1.getId(), Collections.singletonList(savedDashboard2.getId()));
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<EntityGroupId> dashboard2Groups = edgeRestClient.getEntityGroupsForEntity(savedDashboard2.getId());
+                    return dashboard2Groups.contains(savedDashboardEntityGroup1.getId());
+                });
+
+        // remove dashboard #2 from group #1
+        cloudRestClient.removeEntitiesFromEntityGroup(savedDashboardEntityGroup1.getId(), Collections.singletonList(savedDashboard2.getId()));
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<EntityGroupId> dashboard2Groups = edgeRestClient.getEntityGroupsForEntity(savedDashboard2.getId());
+                    return !dashboard2Groups.contains(savedDashboardEntityGroup1.getId()) && dashboard2Groups.contains(savedDashboardEntityGroup2.getId());
+                });
+
         // remove dashboard #2 from group #2
         cloudRestClient.removeEntitiesFromEntityGroup(savedDashboardEntityGroup2.getId(), Collections.singletonList(savedDashboard2.getId()));
         Awaitility.await()

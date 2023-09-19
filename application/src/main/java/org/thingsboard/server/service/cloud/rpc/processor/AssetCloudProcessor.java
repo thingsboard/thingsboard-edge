@@ -74,10 +74,18 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
                     saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, queueStartTs);
                     return requestForAdditionalData(tenantId, assetId, queueStartTs);
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    Asset assetById = assetService.findAssetById(tenantId, assetId);
-                    if (assetById != null) {
-                        assetService.deleteAsset(tenantId, assetId);
-                        pushAssetDeletedEventToRuleEngine(tenantId, assetById);
+                    if (assetUpdateMsg.hasEntityGroupIdMSB() && assetUpdateMsg.hasEntityGroupIdLSB()) {
+                        UUID entityGroupUUID = safeGetUUID(assetUpdateMsg.getEntityGroupIdMSB(),
+                                assetUpdateMsg.getEntityGroupIdLSB());
+                        EntityGroupId entityGroupId =
+                                new EntityGroupId(entityGroupUUID);
+                        entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, assetId);
+                    } else {
+                        Asset assetById = assetService.findAssetById(tenantId, assetId);
+                        if (assetById != null) {
+                            assetService.deleteAsset(tenantId, assetId);
+                            pushAssetDeletedEventToRuleEngine(tenantId, assetById);
+                        }
                     }
                     return Futures.immediateFuture(null);
                 case UNRECOGNIZED:
