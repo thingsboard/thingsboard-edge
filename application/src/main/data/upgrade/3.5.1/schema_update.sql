@@ -164,7 +164,7 @@ DO
 $$
     BEGIN
         IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'uq_widget_type_fqn') THEN
-            UPDATE widget_type SET fqn = concat(widget_type.bundle_alias, '.', widget_type.alias);
+            UPDATE widget_type SET fqn = concat(widget_type.bundle_alias, '.', widget_type.alias, widget_type.name);
             ALTER TABLE widget_type ADD CONSTRAINT uq_widget_type_fqn UNIQUE (tenant_id, fqn);
             ALTER TABLE widget_type DROP COLUMN IF EXISTS alias;
         END IF;
@@ -204,7 +204,8 @@ DO
 $$
     BEGIN
         IF EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name = 'widget_type' and column_name='bundle_alias') THEN
-            INSERT INTO widgets_bundle_widget SELECT wb.id as widgets_bundle_id, wt.id as widget_type_id from widget_type wt left join widgets_bundle wb ON wt.bundle_alias = wb.alias ON CONFLICT (widgets_bundle_id, widget_type_id) DO NOTHING;
+            -- @voba: not required for edge as during update some of widget types have null bundle_alias
+            -- INSERT INTO widgets_bundle_widget SELECT wb.id as widgets_bundle_id, wt.id as widget_type_id from widget_type wt left join widgets_bundle wb ON wt.bundle_alias = wb.alias ON CONFLICT (widgets_bundle_id, widget_type_id) DO NOTHING;
             ALTER TABLE widget_type DROP COLUMN IF EXISTS bundle_alias;
         END IF;
     END;
