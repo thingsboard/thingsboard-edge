@@ -28,32 +28,39 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.sync.ie;
+package org.thingsboard.server.service.sync.ie.exporting.impl;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.widget.WidgetsBundle;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.WidgetTypeId;
+import org.thingsboard.server.common.data.sync.ie.WidgetTypeExportData;
+import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.sync.vc.data.EntitiesExportCtx;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class WidgetsBundleExportData extends EntityExportData<WidgetsBundle> {
+@Service
+@TbCoreComponent
+@RequiredArgsConstructor
+public class WidgetTypeExportService extends BaseEntityExportService<WidgetTypeId, WidgetTypeDetails, WidgetTypeExportData> {
 
-    @JsonProperty(index = 3)
-    private List<ObjectNode> widgets;
-
-    @JsonProperty(index = 4)
-    private List<String> fqns;
-
-    public void addFqn(String fqn) {
-        if (fqns == null) {
-            fqns = new ArrayList<>();
+    @Override
+    protected void setRelatedEntities(EntitiesExportCtx<?> ctx, WidgetTypeDetails widgetsBundle, WidgetTypeExportData exportData) {
+        if (widgetsBundle.getTenantId() == null || widgetsBundle.getTenantId().isNullUid()) {
+            throw new IllegalArgumentException("Export of system Widget Type is not allowed");
         }
-        fqns.add(fqn);
+    }
+
+    @Override
+    protected WidgetTypeExportData newExportData() {
+        return new WidgetTypeExportData();
+    }
+
+    @Override
+    public Set<EntityType> getSupportedEntityTypes() {
+        return Set.of(EntityType.WIDGET_TYPE);
     }
 
 }
