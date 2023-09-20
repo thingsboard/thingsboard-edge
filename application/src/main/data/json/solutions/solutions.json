@@ -86,7 +86,7 @@
     "id": "smart_irrigation",
     "title": "Smart Irrigation",
     "level": "PROTOTYPE",
-    "installTimeoutMs": 10000,
+    "installTimeoutMs": 20000,
     "previewImageUrl": "https://img.thingsboard.io/solutions/smart_irrigation/smart-irrigation-preview.png",
     "videoPreviewImageUrl": "https://img.thingsboard.io/usecases/smart-irrigation/video/smart-irrigation.png",
     "previewMp4Url": "https://video.thingsboard.io/usecases/smart-irrigation.mp4",
