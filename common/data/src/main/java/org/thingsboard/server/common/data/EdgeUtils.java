@@ -146,4 +146,8 @@ public final class EdgeUtils {
         }
         return groupName.startsWith(EntityGroup.GROUP_EDGE_ALL_STARTS_WITH) && groupName.endsWith(EntityGroup.GROUP_EDGE_ALL_ENDS_WITH);
     }
+
+    public static String getEdgeGroupAllName(String edgeName) {
+        return String.format(EntityGroup.GROUP_EDGE_ALL_NAME_PATTERN, edgeName);
+    }
 }
