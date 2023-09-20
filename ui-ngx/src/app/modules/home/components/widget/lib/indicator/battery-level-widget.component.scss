@@ -1,0 +1,173 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+:host {
+  .tb-battery-level-panel {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px 24px 24px 24px;
+    &.tb-battery-level-pointer {
+      cursor: pointer;
+    }
+    > div:not(.tb-battery-level-overlay) {
+      z-index: 1;
+    }
+    .tb-battery-level-overlay {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      bottom: 12px;
+      right: 12px;
+    }
+    .tb-battery-level-content {
+      min-height: 0;
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      &.vertical {
+        flex-direction: row;
+        gap: 16px;
+        .tb-battery-level-value-box {
+          align-items: center;
+          .tb-battery-level-value {
+            padding: 8px 12px;
+          }
+        }
+      }
+      &.horizontal {
+        flex-direction: column-reverse;
+        gap: 8px;
+        align-items: center;
+        .tb-battery-level-value-box {
+          .tb-battery-level-value {
+            padding: 4px 6px;
+          }
+        }
+      }
+      .tb-battery-level-box {
+        display: flex;
+        align-items: center;
+        .tb-battery-level-rectangle {
+          width: 100%;
+          height: 100%;
+          position: relative;
+          .tb-battery-level-shape {
+            position: absolute;
+            inset: 0;
+            mask-repeat: no-repeat;
+            mask-size: cover;
+            mask-position: center;
+          }
+          .tb-battery-level-container {
+            position: absolute;
+            display: flex;
+            gap: 3%;
+          }
+          .tb-battery-level-indicator-box {
+            width: 100%;
+            height: 100%;
+            &.solid {
+              background-repeat: no-repeat;
+              transition: background 0.2s ease-out;
+            }
+            &.divided {
+              transition: opacity 0.2s ease-out;
+            }
+          }
+          &.vertical {
+            .tb-battery-level-shape {
+              mask-image: url(/assets/widget/battery-level/battery-shape-vertical.svg);
+            }
+            .tb-battery-level-container {
+              flex-direction: column-reverse;
+            }
+            &.solid {
+              .tb-battery-level-container {
+                inset: 8.85% 6.25% 3.54% 6.25%;
+              }
+            }
+            &.divided {
+              .tb-battery-level-container {
+                inset: 9.73% 7.81% 4.42% 7.81%;
+              }
+            }
+            .tb-battery-level-indicator-box {
+              &.solid {
+                border-radius: 10.7% / 6%;
+                background-position: 0 101%;
+              }
+              &.divided {
+                border-radius: 7.14% / 17.8%;
+              }
+            }
+          }
+          &.horizontal {
+            .tb-battery-level-shape {
+              mask-image: url(/assets/widget/battery-level/battery-shape-horizontal.svg);
+            }
+            .tb-battery-level-container {
+              inset: 6.25% 8.85% 6.25% 3.54%;
+              flex-direction: row;
+            }
+            &.solid {
+              .tb-battery-level-container {
+                inset: 6.25% 8.85% 6.25% 3.54%;
+              }
+            }
+            &.divided {
+              .tb-battery-level-container {
+                inset: 7.81% 9.73% 7.81% 4.42%;
+              }
+            }
+            .tb-battery-level-indicator-box {
+              &.solid {
+                border-radius: 6% / 10.7%;
+                background-position: -1% 0%;
+              }
+              &.divided {
+                border-radius: 17.8% / 7.14%;
+              }
+            }
+          }
+        }
+      }
+      .tb-battery-level-value-box {
+        display: flex;
+        .tb-battery-level-value {
+          white-space: nowrap;
+        }
+      }
+    }
+  }
+}

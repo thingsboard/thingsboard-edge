@@ -92,6 +92,8 @@ export class CountWidgetComponent implements OnInit {
   showChevron = false;
   chevronStyle: ComponentStyle = {};
 
+  hasCardClickAction = false;
+
   constructor(private widgetComponent: WidgetComponent,
               private cd: ChangeDetectorRef) {
   }
@@ -131,6 +133,8 @@ export class CountWidgetComponent implements OnInit {
     this.showChevron = this.settings.showChevron;
     this.chevronStyle = iconStyle(this.settings.chevronSize, this.settings.chevronSizeUnit);
     this.chevronStyle.color = this.settings.chevronColor;
+
+    this.hasCardClickAction = this.ctx.actionsApi.getActionDescriptors('cardClick').length > 0;
   }
 
   public onInit() {
@@ -153,11 +157,6 @@ export class CountWidgetComponent implements OnInit {
   }
 
   public cardClick($event: Event) {
-    const descriptors = this.ctx.actionsApi.getActionDescriptors('cardClick');
-    if (descriptors.length) {
-      $event.stopPropagation();
-      const descriptor = descriptors[0];
-      this.ctx.actionsApi.handleWidgetAction($event, descriptor);
-    }
+    this.ctx.actionsApi.cardClick($event);
   }
 }

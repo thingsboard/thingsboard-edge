@@ -89,7 +89,9 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
     public void afterIntegrationTest() {
         if (device != null){
             testRestClient.deleteDevice(device.getId());
-            testRestClient.deleteIntegration(integration.getId());
+            if (integration.getId() != null) {
+                testRestClient.deleteIntegration(integration.getId());
+            }
             testRestClient.deleteConverter(integration.getDefaultConverterId());
             if (integration.getDownlinkConverterId() != null) {
                 testRestClient.deleteConverter(integration.getDownlinkConverterId());

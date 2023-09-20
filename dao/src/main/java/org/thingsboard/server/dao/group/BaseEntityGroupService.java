@@ -41,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
@@ -1026,12 +1027,21 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
     @Override
     public ListenableFuture<EntityGroup> findOrCreateEdgeAllGroupAsync(TenantId tenantId, Edge edge, String edgeName, EntityType groupType) {
-        String entityGroupName = String.format(EntityGroup.GROUP_EDGE_ALL_NAME_PATTERN, edgeName);
+        log.trace("Executing findOrCreateEdgeAllGroupAsync, tenantId [{}], edge [{}], edgeName [{}], groupType [{}]", tenantId, edge, edgeName, groupType);
+        String entityGroupName = EdgeUtils.getEdgeGroupAllName(edgeName);
         ListenableFuture<Optional<EntityGroup>> futureEntityGroup = entityGroupService
                 .findEntityGroupByTypeAndNameAsync(tenantId, edge.getOwnerId(), groupType, entityGroupName);
         return Futures.transformAsync(futureEntityGroup, optionalEntityGroup -> {
             if (optionalEntityGroup != null && optionalEntityGroup.isPresent()) {
-                return Futures.immediateFuture(optionalEntityGroup.get());
+                ListenableFuture<Boolean> groupAssignedToEdgeFuture =
+                        entityGroupService.checkEdgeEntityGroupByIdAsync(tenantId, edge.getId(), optionalEntityGroup.get().getId(), groupType);
+                return Futures.transformAsync(groupAssignedToEdgeFuture, groupAssignedToEdge -> {
+                    if (!groupAssignedToEdge) {
+                        entityGroupService.assignEntityGroupToEdge(tenantId, optionalEntityGroup.get().getId(),
+                                edge.getId(), groupType);
+                    }
+                    return Futures.immediateFuture(optionalEntityGroup.get());
+                }, MoreExecutors.directExecutor());
             } else {
                 try {
                     ListenableFuture<Optional<EntityGroup>> currentEntityGroupFuture = entityGroupService

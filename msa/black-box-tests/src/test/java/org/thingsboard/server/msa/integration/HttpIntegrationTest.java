@@ -315,11 +315,24 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
         WsTelemetryResponse actualLatestTelemetry = wsClient.getLastMessage();
         assertThat(actualLatestTelemetry.getDataValuesByKey(TELEMETRY_KEY).get(1)).isEqualTo(TELEMETRY_VALUE);
 
+        //update integration with created config
+        integration.setName("New name");
+        integration = testRestClient.postIntegration(integration);
+        waitForIntegrationEvent(integration, "UPDATED", 1);
+
+        String temperatureValue = "12";
+        remoteHttpClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, temperatureValue), securityHeaders);
+
+        Awaitility
+                .await()
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> wsClient.getMessage().getDataValuesByKey(TELEMETRY_KEY).get(1).equals(temperatureValue));
+
         //update integration with new security header
         JsonNode config2 = defaultConfigWithSecurityHeader2(HTTPS_URL);
         integration.setConfiguration(config2);
         integration = testRestClient.postIntegration(integration);
-        waitForIntegrationEvent(integration, "UPDATED", 1);
+        waitForIntegrationEvent(integration, "UPDATED", 2);
 
         String temperatureValue2 = "58";
         Map<String, Object> securityHeaders2 = JacksonUtil.fromString(config2.get("headersFilter").toString(), new TypeReference<Map<String, Object>>() {});
@@ -333,7 +346,7 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
         //update integration with new security disabled
         integration.setConfiguration(defaultConfig(HTTPS_URL));
         integration = testRestClient.postIntegration(integration);
-        waitForIntegrationEvent(integration, "UPDATED", 2);
+        waitForIntegrationEvent(integration, "UPDATED", 3);
 
         String temperatureValue3 = "35";
         remoteHttpClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, temperatureValue3));

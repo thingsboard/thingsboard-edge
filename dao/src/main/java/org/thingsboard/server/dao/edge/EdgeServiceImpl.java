@@ -354,24 +354,30 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     }
 
     @Override
-    public void renameDeviceEdgeAllGroup(TenantId tenantId, Edge edge, String oldEdgeName) {
+    public void renameEdgeAllGroups(TenantId tenantId, Edge edge, String oldEdgeName) {
         log.trace("Executing renameDeviceEdgeAllGroup tenantId [{}], edge [{}], previousEdgeName [{}]", tenantId, edge, oldEdgeName);
-        ListenableFuture<EntityGroup> deviceEdgeAllGroupFuture = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, oldEdgeName, EntityType.DEVICE);
-        Futures.addCallback(deviceEdgeAllGroupFuture, new FutureCallback<EntityGroup>() {
-            @Override
-            public void onSuccess(@Nullable EntityGroup deviceEdgeAllGroup) {
-                if (deviceEdgeAllGroup != null) {
-                    String newEntityGroupName = String.format(EntityGroup.GROUP_EDGE_ALL_NAME_PATTERN, edge.getName());
-                    deviceEdgeAllGroup.setName(newEntityGroupName);
-                    entityGroupService.saveEntityGroup(tenantId, deviceEdgeAllGroup.getOwnerId(), deviceEdgeAllGroup);
+        String oldEntityGroupName = EdgeUtils.getEdgeGroupAllName(oldEdgeName);
+        String newEntityGroupName = EdgeUtils.getEdgeGroupAllName(edge.getName());
+        List<EntityType> groupTypesToRename = List.of(EntityType.DEVICE, EntityType.ASSET, EntityType.ENTITY_VIEW, EntityType.DASHBOARD);
+        for (EntityType groupType : groupTypesToRename) {
+            ListenableFuture<Optional<EntityGroup>> future =
+                    entityGroupService.findEntityGroupByTypeAndNameAsync(tenantId, edge.getOwnerId(), groupType, oldEntityGroupName);
+            Futures.addCallback(future, new FutureCallback<>() {
+                @Override
+                public void onSuccess(Optional<EntityGroup> edgeAllGroupOpt) {
+                    if (edgeAllGroupOpt.isPresent()) {
+                        EntityGroup edgeAllGroup = edgeAllGroupOpt.get();
+                        edgeAllGroup.setName(newEntityGroupName);
+                        entityGroupService.saveEntityGroup(tenantId, edgeAllGroup.getOwnerId(), edgeAllGroup);
+                    }
                 }
-            }
 
-            @Override
-            public void onFailure(Throwable t) {
-                log.error("[{}] Failed to find edge all group [{}]", tenantId, edge, t);
-            }
-        }, MoreExecutors.directExecutor());
+                @Override
+                public void onFailure(Throwable t) {
+                    log.error("[{}] Failed to find edge 'All' group [{}]", tenantId, edge, t);
+                }
+            }, MoreExecutors.directExecutor());
+        }
     }
 
     @Override

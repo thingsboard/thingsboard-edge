@@ -36,7 +36,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 public class LoginWhiteLabelingParams extends WhiteLabelingParams {
 
     @ApiModelProperty(position = 16, value = "Login page background color", example = "#d90f0f")

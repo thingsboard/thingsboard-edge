@@ -164,9 +164,9 @@ public class JacksonUtil {
                     + value + " cannot be transformed to a String", e);
         }
     }
-    public static String toString(Object value, JsonNode defaultValue) {
+    public static String writeValueAsString(Object value) {
         try {
-            return value != null ? OBJECT_MAPPER.writeValueAsString(value) : treeToValue(defaultValue, String.class);
+            return OBJECT_MAPPER.writeValueAsString(value);
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("The given Json object value: "
                     + value + " cannot be transformed to a String", e);
