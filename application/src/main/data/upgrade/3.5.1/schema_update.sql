@@ -151,7 +151,8 @@ DO
 $$
     BEGIN
         IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'uq_widget_type_fqn') THEN
-            UPDATE widget_type SET fqn = concat(widget_type.bundle_alias, '.', widget_type.alias, widget_type.name);
+            -- @voba: make sure that fqn is unique by adding widget_type.id
+            UPDATE widget_type SET fqn = concat(widget_type.bundle_alias, '.', widget_type.alias, '.', widget_type.id);
             ALTER TABLE widget_type ADD CONSTRAINT uq_widget_type_fqn UNIQUE (tenant_id, fqn);
             ALTER TABLE widget_type DROP COLUMN IF EXISTS alias;
         END IF;
