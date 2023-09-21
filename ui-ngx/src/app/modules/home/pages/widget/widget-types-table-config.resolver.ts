@@ -175,6 +175,13 @@ export class WidgetTypesTableConfigResolver implements Resolve<EntityTableConfig
       this.userPermissionsService.hasGenericPermission(Resource.WIDGET_TYPE, Operation.DELETE);
     this.config.detailsReadonly = (widgetType) => !this.isWidgetTypeEditable(widgetType, authUser.authority);
     this.config.entitiesFetchFunction = pageLink => this.widgetsService.getWidgetTypes(pageLink);
+
+    // @voba - edge read-only
+    this.config.detailsReadonly = () => true;
+    this.config.deleteEnabled = () => false;
+    this.config.addEnabled = false;
+    this.config.entitiesDeleteEnabled = false;
+
     return this.config;
   }
 

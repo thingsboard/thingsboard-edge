@@ -667,9 +667,11 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
   }
 
   saveAsDisabled(): boolean {
-    return !this.iframeWidgetEditModeInited
-      || this.saveWidgetPending
-      || this.saveWidgetAsPending;
+    // @voba - edge read-only
+    return true;
+//  return !this.iframeWidgetEditModeInited
+//    || this.saveWidgetPending
+//    || this.saveWidgetAsPending;
   }
 
   beautifyCss(): void {
