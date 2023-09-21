@@ -65,7 +65,7 @@ public interface UserInfoRepository extends JpaRepository<UserInfoEntity, UUID> 
                                                       @Param("searchText") String searchText,
                                                       Pageable pageable);
 
-    @Query(value = "SELECT e.*, e.owner_name as ownername, e.created_time as createdtime " +
+    @Query(value = "SELECT e.*, e.owner_name as ownername, e.created_time as createdtime , e.first_name as firstname, e.last_name as lastname " +
             "FROM (select u.id, u.created_time, u.additional_info, u.authority, u.customer_id, u.email, " +
             "u.first_name, u.last_name, u.phone, u.tenant_id, u.groups, " +
             "c.title as owner_name from user_info_view u " +
