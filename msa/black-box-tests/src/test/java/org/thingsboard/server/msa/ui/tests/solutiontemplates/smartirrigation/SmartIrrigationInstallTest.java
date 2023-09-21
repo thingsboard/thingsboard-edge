@@ -289,7 +289,7 @@ public class SmartIrrigationInstallTest extends AbstractSolutionTemplateTest {
         testRestClient.postSmartIrrigation();
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartIrrigationInstructionBtn().click();
-        solutionTemplatesInstalledView.goToMainDashboardPageBtn().click();
+        solutionTemplatesInstalledView.goToMainDashboard();
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, SMART_IRRIGATION_DASHBOARD_GROUP, IRRIGATION_MANAGEMENT_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SMART_IRRIGATION_DASHBOARD_GROUP).getUuidId().toString();
 

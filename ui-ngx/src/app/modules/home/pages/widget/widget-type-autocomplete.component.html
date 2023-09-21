@@ -1,0 +1,74 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<mat-form-field [formGroup]="selectWidgetTypeFormGroup" class="mat-block" [floatLabel]="floatLabel"
+                [appearance]="appearance" [subscriptSizing]="subscriptSizing">
+  <mat-label *ngIf="label">{{ label }}</mat-label>
+  <input matInput type="text"
+         #widgetTypeInput
+         placeholder="{{ placeholder }}"
+         formControlName="widgetType"
+         (focusin)="onFocus()"
+         [required]="required"
+         [matAutocomplete]="widgetTypeAutocomplete">
+  <button *ngIf="selectWidgetTypeFormGroup.get('widgetType').value && !disabled"
+          type="button"
+          matSuffix mat-icon-button aria-label="Clear"
+          (click)="clear()">
+    <mat-icon class="material-icons">close</mat-icon>
+  </button>
+  <mat-autocomplete
+    class="tb-autocomplete tb-widget-type-autocomplete"
+    #widgetTypeAutocomplete
+    [displayWith]="displayWidgetTypeFn">
+    <mat-option *ngFor="let widgetType of filteredWidgetTypes | async" [value]="widgetType">
+      <div class="tb-widget-type-option-container">
+        <img class="tb-widget-type-option-image-preview" [src]="getPreviewImage(widgetType.image)" alt="{{ widgetType.name }}">
+        <div class="tb-widget-type-option-details">
+          <div class="tb-widget-type-option-text" [innerHTML]="widgetType.name | highlight:searchText:true"></div>
+          <div *ngIf="widgetType.deprecated" class="tb-widget-type-option-deprecated">{{ 'widget.deprecated' | translate }}</div>
+        </div>
+      </div>
+    </mat-option>
+    <mat-option *ngIf="!(filteredWidgetTypes | async)?.length" [value]="null">
+      <span>
+          {{ translate.get('widget.no-widgets-matching', {entity: searchText}) | async }}
+      </span>
+    </mat-option>
+  </mat-autocomplete>
+  <mat-error>
+    <ng-content select="[tb-error]"></ng-content>
+  </mat-error>
+  <mat-hint>
+    <ng-content select="[tb-hint]"></ng-content>
+  </mat-hint>
+</mat-form-field>

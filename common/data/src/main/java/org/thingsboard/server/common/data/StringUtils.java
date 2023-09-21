@@ -39,6 +39,9 @@ import java.util.Base64;
 import static org.apache.commons.lang3.StringUtils.repeat;
 
 public class StringUtils {
+
+    private static final int DEFAULT_TOKEN_LENGTH = 8;
+
     public static final SecureRandom RANDOM = new SecureRandom();
 
     public static final String EMPTY = "";
@@ -179,6 +182,15 @@ public class StringUtils {
         return false;
     }
 
+    public static boolean equalsAnyIgnoreCase(String string, String... otherStrings) {
+        for (String otherString : otherStrings) {
+            if (equalsIgnoreCase(string, otherString)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static String substringAfterLast(String str, String sep) {
         return org.apache.commons.lang3.StringUtils.substringAfterLast(str, sep);
     }
@@ -199,6 +211,13 @@ public class StringUtils {
 
     public static boolean contains(final CharSequence seq, final CharSequence searchSeq) {
         return org.apache.commons.lang3.StringUtils.contains(seq, searchSeq);
+    }
+
+    /**
+     * Use this to prevent org.postgresql.util.PSQLException: ERROR: invalid byte sequence for encoding "UTF8": 0x00
+     **/
+    public static boolean contains0x00(final String s) {
+        return s != null && s.contains("\u0000");
     }
 
     public static String randomNumeric(int length) {
@@ -226,6 +245,10 @@ public class StringUtils {
         RANDOM.nextBytes(bytes);
         Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
         return encoder.encodeToString(bytes);
+    }
+
+    public static String generateSafeToken() {
+        return generateSafeToken(DEFAULT_TOKEN_LENGTH);
     }
 
 }

@@ -44,7 +44,7 @@ import org.thingsboard.server.queue.discovery.TenantRoutingInfoService;
 @ConditionalOnExpression("'${service.type:null}'=='tb-transport'")
 public class TransportTenantRoutingInfoService implements TenantRoutingInfoService {
 
-    private TransportTenantProfileCache tenantProfileCache;
+    private final TransportTenantProfileCache tenantProfileCache;
 
     public TransportTenantRoutingInfoService(TransportTenantProfileCache tenantProfileCache) {
         this.tenantProfileCache = tenantProfileCache;
@@ -53,7 +53,7 @@ public class TransportTenantRoutingInfoService implements TenantRoutingInfoServi
     @Override
     public TenantRoutingInfo getRoutingInfo(TenantId tenantId) {
         TenantProfile profile = tenantProfileCache.get(tenantId);
-        return new TenantRoutingInfo(tenantId, profile.isIsolatedTbRuleEngine());
+        return new TenantRoutingInfo(tenantId, profile.getId(), profile.isIsolatedTbRuleEngine());
     }
 
 }

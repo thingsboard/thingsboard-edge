@@ -45,7 +45,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @Slf4j
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class TbResourceInfo extends SearchTextBased<TbResourceId> implements HasName, TenantEntity {
+public class TbResourceInfo extends BaseData<TbResourceId> implements HasName, TenantEntity {
 
     private static final long serialVersionUID = 7282664529021651736L;
 
@@ -63,6 +63,8 @@ public class TbResourceInfo extends SearchTextBased<TbResourceId> implements Has
     private String resourceKey;
     @ApiModelProperty(position = 7, value = "Resource search text.", example = "19_1.0:binaryappdatacontainer", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private String searchText;
+    @ApiModelProperty(position = 8, value = "Resource etag.", example = "33a64df551425fcc55e4d42a148795d9f25f89d4", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    private String etag;
 
     public TbResourceInfo() {
         super();
@@ -79,6 +81,7 @@ public class TbResourceInfo extends SearchTextBased<TbResourceId> implements Has
         this.resourceType = resourceInfo.getResourceType();
         this.resourceKey = resourceInfo.getResourceKey();
         this.searchText = resourceInfo.getSearchText();
+        this.etag = resourceInfo.getEtag();
     }
 
     @ApiModelProperty(position = 1, value = "JSON object with the Resource Id. " +
@@ -102,7 +105,7 @@ public class TbResourceInfo extends SearchTextBased<TbResourceId> implements Has
         return title;
     }
 
-    @Override
+    @JsonIgnore
     public String getSearchText() {
         return searchText != null ? searchText : title;
     }
@@ -122,6 +125,8 @@ public class TbResourceInfo extends SearchTextBased<TbResourceId> implements Has
         builder.append(resourceType);
         builder.append(", resourceKey=");
         builder.append(resourceKey);
+        builder.append(", hashCode=");
+        builder.append(etag);
         builder.append("]");
         return builder.toString();
     }

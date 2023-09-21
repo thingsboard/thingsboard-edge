@@ -39,13 +39,13 @@ import org.thingsboard.server.dao.util.mapping.JsonStringType;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
-import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_TABLE_NAME;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
-@Table(name = BLOB_ENTITY_COLUMN_FAMILY_NAME)
+@Table(name = BLOB_ENTITY_TABLE_NAME)
 public final class BlobEntityInfoEntity extends AbstractBlobEntityInfoEntity<BlobEntityInfo> {
 
     public BlobEntityInfoEntity() {

@@ -160,6 +160,11 @@ export interface AlarmAssignee {
   email: string;
 }
 
+export enum AlarmAssigneeOption {
+  noAssignee = 'noAssignee',
+  currentUser = 'currentUser'
+}
+
 export interface AlarmDataInfo extends AlarmInfo {
   actionCellButtons?: TableCellButtonActionDescriptor[];
   hasActions?: boolean;

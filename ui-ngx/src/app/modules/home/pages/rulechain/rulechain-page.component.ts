@@ -30,9 +30,10 @@
 ///
 
 import {
+  AfterViewChecked,
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
-  ElementRef,
   EventEmitter,
   HostBinding,
   Inject,
@@ -50,6 +51,7 @@ import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import {
+  FormBuilder,
   FormGroupDirective,
   NgForm,
   UntypedFormBuilder,
@@ -90,21 +92,22 @@ import {
 } from '@shared/models/rule-node.models';
 import { FcRuleNodeModel, FcRuleNodeTypeModel, RuleChainMenuContextInfo } from './rulechain-page.models';
 import { RuleChainService } from '@core/http/rule-chain.service';
-import { fromEvent, NEVER, Observable, of, ReplaySubject, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, mergeMap, tap } from 'rxjs/operators';
+import { NEVER, Observable, of, ReplaySubject, skip, startWith, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, mergeMap, takeUntil, tap } from 'rxjs/operators';
 import { ISearchableComponent } from '../../models/searchable-component.models';
-import { deepClone } from '@core/utils';
+import { deepClone, isDefinedAndNotNull } from '@core/utils';
 import { RuleNodeDetailsComponent } from '@home/pages/rulechain/rule-node-details.component';
 import { RuleNodeLinkComponent } from './rule-node-link.component';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { ItemBufferService, RuleNodeConnection } from '@core/services/item-buffer.service';
 import { Hotkey } from 'angular2-hotkeys';
-import { DebugEventType, EventType } from '@shared/models/event.models';
+import { DebugEventType, DebugRuleNodeEventBody, EventType } from '@shared/models/event.models';
 import { MatMiniFabButton } from '@angular/material/button';
 import { TbPopoverService } from '@shared/components/popover.service';
 import { VersionControlComponent } from '@home/components/vc/version-control.component';
 import { ComponentClusteringMode } from '@shared/models/component-descriptor.models';
+import { MatDrawer } from '@angular/material/sidenav';
 import Timeout = NodeJS.Timeout;
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
@@ -116,7 +119,7 @@ import { Operation, Resource } from '@shared/models/security.models';
   encapsulation: ViewEncapsulation.None
 })
 export class RuleChainPageComponent extends PageComponent
-  implements AfterViewInit, OnInit, OnDestroy, HasDirtyFlag, ISearchableComponent {
+  implements AfterViewInit, OnInit, OnDestroy, HasDirtyFlag, ISearchableComponent, AfterViewChecked {
 
   get isDirty(): boolean {
     return this.isDirtyValue || this.isImport;
@@ -129,14 +132,14 @@ export class RuleChainPageComponent extends PageComponent
   @HostBinding('style.width') width = '100%';
   @HostBinding('style.height') height = '100%';
 
-  @ViewChild('ruleNodeSearchInput') ruleNodeSearchInputField: ElementRef;
-
   @ViewChild('ruleChainCanvas', {static: true}) ruleChainCanvas: NgxFlowchartComponent;
 
   @ViewChildren('ruleNodeTypeExpansionPanels',
     {read: MatExpansionPanel}) expansionPanels: QueryList<MatExpansionPanel>;
 
   @ViewChild('ruleChainMenuTrigger', {static: true}) ruleChainMenuTrigger: MatMenuTrigger;
+
+  @ViewChild('drawer') drawer: MatDrawer;
 
   readonly = !this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.WRITE);
 
@@ -167,6 +170,7 @@ export class RuleChainPageComponent extends PageComponent
   editingRuleNodeAllowCustomLabels = false;
   editingRuleNodeLinkLabels: {[label: string]: LinkLabel};
   editingRuleNodeSourceRuleChainId: string;
+  ruleNodeTestButtonLabel: string;
 
   @ViewChild('tbRuleNode') ruleNodeComponent: RuleNodeDetailsComponent;
   @ViewChild('tbRuleNodeLink') ruleNodeLinkComponent: RuleNodeLinkComponent;
@@ -178,10 +182,9 @@ export class RuleChainPageComponent extends PageComponent
   hotKeys: Hotkey[] = [];
 
   enableHotKeys = true;
-  isLibraryOpen = true;
 
   ruleNodeSearch = '';
-  ruleNodeTypeSearch = '';
+  ruleNodeTypeSearch = this.fb.control('', {nonNullable: true});
 
   ruleChain: RuleChain;
   ruleChainMetaData: RuleChainMetaData;
@@ -271,7 +274,7 @@ export class RuleChainPageComponent extends PageComponent
 
   updateBreadcrumbs = new EventEmitter();
 
-  private rxSubscription: Subscription;
+  private destroy$ = new Subject<void>();
 
   private tooltipTimeout: Timeout;
 
@@ -286,11 +289,14 @@ export class RuleChainPageComponent extends PageComponent
               private popoverService: TbPopoverService,
               private renderer: Renderer2,
               private viewContainerRef: ViewContainerRef,
+              private changeDetector: ChangeDetectorRef,
               public dialog: MatDialog,
               public dialogService: DialogService,
-              public fb: UntypedFormBuilder) {
+              public fb: FormBuilder) {
     super(store);
-    this.rxSubscription = this.route.data.subscribe(
+    this.route.data.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(
       () => {
         this.reset();
         this.init();
@@ -299,20 +305,23 @@ export class RuleChainPageComponent extends PageComponent
   }
 
   ngOnInit() {
+    if (!this.readonly) {
+      this.ruleNodeTypeSearch.valueChanges.pipe(
+        debounceTime(150),
+        startWith(''),
+        distinctUntilChanged((a: string, b: string) => a.trim() === b.trim()),
+        skip(1),
+        takeUntil(this.destroy$)
+      ).subscribe(() => this.updateRuleChainLibrary());
+    }
+  }
+
+  ngAfterViewChecked(){
+    this.changeDetector.detectChanges();
   }
 
   ngAfterViewInit() {
-    if (!this.readonly) {
-      fromEvent(this.ruleNodeSearchInputField.nativeElement, 'keyup')
-        .pipe(
-          debounceTime(150),
-          distinctUntilChanged(),
-          tap(() => {
-            this.updateRuleChainLibrary();
-          })
-        )
-        .subscribe();
-    } else {
+    if (this.readonly) {
       this.ruleChainCanvas.modelService.isEditable = () => false;
       this.ruleChainCanvas.modelService.edges.handleEdgeMouseClick = (edge) => {
         this.openLinkDetails(edge);
@@ -326,7 +335,16 @@ export class RuleChainPageComponent extends PageComponent
 
   ngOnDestroy() {
     super.ngOnDestroy();
-    this.rxSubscription.unsubscribe();
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  currentRuleChainIdChanged(ruleChainId: string) {
+    if (this.ruleChainType === RuleChainType.CORE) {
+      this.router.navigateByUrl(`ruleChains/${ruleChainId}`);
+    } else {
+      this.router.navigateByUrl(`edgeManagement/ruleChains/${ruleChainId}`);
+    }
   }
 
   onSearchTextUpdated(searchText: string) {
@@ -473,7 +491,7 @@ export class RuleChainPageComponent extends PageComponent
   }
 
   updateRuleChainLibrary() {
-    const search = this.ruleNodeTypeSearch.toUpperCase();
+    const search = this.ruleNodeTypeSearch.value.trim().toUpperCase();
     const res = this.ruleNodeComponents.filter(
       (ruleNodeComponent) => ruleNodeComponent.name.toUpperCase().includes(search));
     this.loadRuleChainLibrary(res);
@@ -585,6 +603,7 @@ export class RuleChainPageComponent extends PageComponent
         ruleNodeId: ruleNode.id,
         additionalInfo: ruleNode.additionalInfo,
         configuration: ruleNode.configuration,
+        configurationVersion: isDefinedAndNotNull(ruleNode.configurationVersion) ? ruleNode.configurationVersion : 0,
         debugMode: ruleNode.debugMode,
         singletonMode: ruleNode.singletonMode,
         x: Math.round(ruleNode.additionalInfo.layoutX),
@@ -1292,6 +1311,27 @@ export class RuleChainPageComponent extends PageComponent
     this.editingRuleNodeLink = deepClone(edge);
   }
 
+  onDebugEventSelected(debugEventBody: DebugRuleNodeEventBody) {
+    const ruleNodeConfigComponent = this.ruleNodeComponent.ruleNodeConfigComponent;
+    const ruleNodeConfigDefinedComponent = ruleNodeConfigComponent.definedConfigComponent;
+    if (ruleNodeConfigComponent.useDefinedDirective() && ruleNodeConfigDefinedComponent.hasScript && ruleNodeConfigDefinedComponent.testScript) {
+      ruleNodeConfigDefinedComponent.testScript(debugEventBody);
+    }
+  }
+
+  onRuleNodeInit() {
+    const ruleNodeConfigDefinedComponent = this.ruleNodeComponent.ruleNodeConfigComponent.definedConfigComponent;
+    if (this.ruleNodeComponent.ruleNodeConfigComponent.useDefinedDirective() && ruleNodeConfigDefinedComponent.hasScript) {
+      this.ruleNodeTestButtonLabel = ruleNodeConfigDefinedComponent.testScriptLabel;
+    } else {
+      this.ruleNodeTestButtonLabel = '';
+    }
+  }
+
+  switchToFirstTab() {
+    this.selectedRuleNodeTabIndex = 0;
+  }
+
   saveRuleNode() {
     this.ruleNodeComponent.validate();
     if (this.ruleNodeComponent.ruleNodeFormGroup.valid) {
@@ -1457,6 +1497,7 @@ export class RuleChainPageComponent extends PageComponent
             id: node.ruleNodeId,
             type: node.component.clazz,
             name: node.name,
+            configurationVersion: isDefinedAndNotNull(node.configurationVersion) ? node.configurationVersion : node.component.configurationVersion,
             configuration: node.configuration,
             additionalInfo: node.additionalInfo ? node.additionalInfo : {},
             debugMode: node.debugMode,

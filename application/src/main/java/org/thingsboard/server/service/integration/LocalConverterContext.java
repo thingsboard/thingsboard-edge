@@ -33,10 +33,13 @@ package org.thingsboard.server.service.integration;
 import lombok.Data;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.integration.api.IntegrationCallback;
+import org.thingsboard.integration.api.IntegrationRateLimitService;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.server.common.data.event.Event;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
+
+import java.util.Optional;
 
 @Data
 public class LocalConverterContext implements ConverterContext {
@@ -53,5 +56,10 @@ public class LocalConverterContext implements ConverterContext {
     @Override
     public void saveEvent(Event event, IntegrationCallback<Void> callback) {
         DonAsynchron.withCallback(ctx.getEventService().saveAsync(event), res -> callback.onSuccess(null), callback::onError);
+    }
+
+    @Override
+    public Optional<IntegrationRateLimitService> getRateLimitService() {
+        return Optional.of(ctx.getRateLimitService());
     }
 }

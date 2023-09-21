@@ -6,11 +6,7 @@
   "configuration": {
     "widgets": {
       "2cbc9189-b947-2d31-e748-c928f036ff96": {
-        "isSystemType": true,
-        "bundleAlias": "maps_v2",
-        "typeAlias": "openstreetmap",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 24,
         "sizeY": 9,
         "config": {
@@ -232,14 +228,11 @@
           "enableDataExport": false,
           "displayTimewindow": true
         },
-        "id": "2cbc9189-b947-2d31-e748-c928f036ff96"
+        "id": "2cbc9189-b947-2d31-e748-c928f036ff96",
+        "typeFullFqn": "system.maps_v2.openstreetmap"
       },
       "80ac9372-6c45-28e7-6c88-baf76fe78318": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
         "type": "alarm",
-        "title": "New widget",
         "sizeX": 8,
         "sizeY": 14,
         "config": {
@@ -316,7 +309,6 @@
               }
             ]
           },
-          "alarmSearchStatus": "ACTIVE",
           "alarmsPollingInterval": 5,
           "datasources": [],
           "showTitleIcon": false,
@@ -343,28 +335,27 @@
           },
           "alarmsMaxCountLoad": 0,
           "alarmsFetchSize": 100,
-          "alarmStatusList": [
-            "ACTIVE"
-          ],
-          "alarmSeverityList": [],
-          "alarmTypeList": [
-            "Daily Consumption Threshold Exceeded",
-            "Weekly Consumption Threshold Exceeded",
-            "Low Battery",
-            "Low Temperature",
-            "Device Inactive",
-            "Leakage Detected"
-          ],
-          "searchPropagatedAlarms": false
+          "alarmFilterConfig": {
+            "statusList": [
+              "ACTIVE"
+            ],
+            "severityList": [],
+            "typeList": [
+              "Daily Consumption Threshold Exceeded",
+              "Weekly Consumption Threshold Exceeded",
+              "Low Battery",
+              "Low Temperature",
+              "Device Inactive",
+              "Leakage Detected"
+            ],
+            "searchPropagatedAlarms": false
+          }
         },
-        "id": "80ac9372-6c45-28e7-6c88-baf76fe78318"
+        "id": "80ac9372-6c45-28e7-6c88-baf76fe78318",
+        "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
       "b790fdaa-727a-2572-b2a2-c72a55444cbc": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 12,
         "sizeY": 4,
         "config": {
@@ -519,14 +510,11 @@
             ]
           }
         },
-        "id": "b790fdaa-727a-2572-b2a2-c72a55444cbc"
+        "id": "b790fdaa-727a-2572-b2a2-c72a55444cbc",
+        "typeFullFqn": "system.cards.entities_table"
       },
       "94d73536-d206-eb83-651a-36691a0abc2e": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "timeseries_bars_flot",
         "type": "timeseries",
-        "title": "New widget",
         "sizeX": 12,
         "sizeY": 4,
         "config": {
@@ -617,7 +605,17 @@
               "axisPosition": "top",
               "showLabels": true
             },
-            "barAlignment": "left"
+            "barAlignment": "left",
+            "showLegend": true,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": false,
+              "showTotal": true
+            }
           },
           "title": "Water Consumption",
           "dropShadow": false,
@@ -632,7 +630,6 @@
             "border": "1px solid #E0E0E0"
           },
           "useDashboardTimewindow": true,
-          "showLegend": true,
           "actions": {},
           "showTitleIcon": false,
           "titleIcon": null,
@@ -642,25 +639,13 @@
           "enableDataExport": false,
           "units": "m³",
           "decimals": 2,
-          "displayTimewindow": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": false,
-            "showTotal": true
-          }
+          "displayTimewindow": false
         },
-        "id": "94d73536-d206-eb83-651a-36691a0abc2e"
+        "id": "94d73536-d206-eb83-651a-36691a0abc2e",
+        "typeFullFqn": "system.charts.timeseries_bars_flot"
       },
       "0f9314f3-6f25-3e97-e2a4-8e2a16feda2b": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_value_card",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 8,
         "sizeY": 3,
         "config": {
@@ -745,14 +730,11 @@
           "enableDataExport": false,
           "displayTimewindow": true
         },
-        "id": "0f9314f3-6f25-3e97-e2a4-8e2a16feda2b"
+        "id": "0f9314f3-6f25-3e97-e2a4-8e2a16feda2b",
+        "typeFullFqn": "system.cards.html_value_card"
       },
       "17543c57-af4a-2c1e-bf12-53a7b46791e6": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_value_card",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 8,
         "sizeY": 3,
         "config": {
@@ -843,14 +825,11 @@
           "enableDataExport": false,
           "displayTimewindow": true
         },
-        "id": "17543c57-af4a-2c1e-bf12-53a7b46791e6"
+        "id": "17543c57-af4a-2c1e-bf12-53a7b46791e6",
+        "typeFullFqn": "system.cards.html_value_card"
       },
       "a3c7811c-0a83-865b-af64-bed805a685f2": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_value_card",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 8,
         "sizeY": 3,
         "config": {
@@ -941,14 +920,11 @@
           "enableDataExport": false,
           "displayTimewindow": true
         },
-        "id": "a3c7811c-0a83-865b-af64-bed805a685f2"
+        "id": "a3c7811c-0a83-865b-af64-bed805a685f2",
+        "typeFullFqn": "system.cards.html_value_card"
       },
       "457136f8-c871-1835-c9fc-276a3231ec86": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_value_card",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 8,
         "sizeY": 3,
         "config": {
@@ -1039,14 +1015,11 @@
           "enableDataExport": false,
           "displayTimewindow": true
         },
-        "id": "457136f8-c871-1835-c9fc-276a3231ec86"
+        "id": "457136f8-c871-1835-c9fc-276a3231ec86",
+        "typeFullFqn": "system.cards.html_value_card"
       },
       "ccc94584-ce53-cdfc-ea3b-ecd21fa19abf": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
         "sizeX": 24,
         "sizeY": 13,
         "config": {
@@ -1143,7 +1116,17 @@
             },
             "comparisonEnabled": true,
             "customLegendEnabled": false,
-            "dataKeysListForLabels": []
+            "dataKeysListForLabels": [],
+            "showLegend": true,
+            "legendConfig": {
+              "direction": "row",
+              "position": "bottom",
+              "sortDataKeys": null,
+              "showMin": false,
+              "showMax": true,
+              "showAvg": true,
+              "showTotal": true
+            }
           },
           "title": "Water Consumption",
           "dropShadow": false,
@@ -1165,27 +1148,17 @@
           },
           "useDashboardTimewindow": false,
           "displayTimewindow": true,
-          "showLegend": true,
-          "legendConfig": {
-            "direction": "row",
-            "position": "bottom",
-            "sortDataKeys": null,
-            "showMin": false,
-            "showMax": true,
-            "showAvg": true,
-            "showTotal": true
-          },
           "actions": {},
-          "decimals": 2
+          "decimals": 2,
+          "widgetCss": "div.tb-widget .tb-widget-title {\n    max-height: 100px;\n    padding-bottom: 20px;\n}",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
-        "id": "ccc94584-ce53-cdfc-ea3b-ecd21fa19abf"
+        "id": "ccc94584-ce53-cdfc-ea3b-ecd21fa19abf",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "251d21ce-9e8b-5ca7-2f73-037ede2cdb99": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -1224,14 +1197,11 @@
           "showLegend": false,
           "actions": {}
         },
-        "id": "251d21ce-9e8b-5ca7-2f73-037ede2cdb99"
+        "id": "251d21ce-9e8b-5ca7-2f73-037ede2cdb99",
+        "typeFullFqn": "system.cards.html_card"
       },
       "bc571516-ba90-ae54-66d0-ed9c2568ec34": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -1280,14 +1250,11 @@
             ]
           }
         },
-        "id": "bc571516-ba90-ae54-66d0-ed9c2568ec34"
+        "id": "bc571516-ba90-ae54-66d0-ed9c2568ec34",
+        "typeFullFqn": "system.cards.html_card"
       },
       "20e020b4-4030-4f44-b4fd-a755f80c7655": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -1337,14 +1304,11 @@
             ]
           }
         },
-        "id": "20e020b4-4030-4f44-b4fd-a755f80c7655"
+        "id": "20e020b4-4030-4f44-b4fd-a755f80c7655",
+        "typeFullFqn": "system.cards.html_card"
       },
       "2a550cd5-86ad-eae5-18e2-5969c6b9cb84": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -1396,14 +1360,11 @@
             ]
           }
         },
-        "id": "2a550cd5-86ad-eae5-18e2-5969c6b9cb84"
+        "id": "2a550cd5-86ad-eae5-18e2-5969c6b9cb84",
+        "typeFullFqn": "system.cards.html_card"
       },
       "3e16be85-537b-efc5-8a98-82f124103bcf": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -1453,14 +1414,11 @@
             ]
           }
         },
-        "id": "3e16be85-537b-efc5-8a98-82f124103bcf"
+        "id": "3e16be85-537b-efc5-8a98-82f124103bcf",
+        "typeFullFqn": "system.cards.html_card"
       },
       "265668f3-eeba-ab67-ffc2-014bdf20a6ae": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -1510,14 +1468,11 @@
             ]
           }
         },
-        "id": "265668f3-eeba-ab67-ffc2-014bdf20a6ae"
+        "id": "265668f3-eeba-ab67-ffc2-014bdf20a6ae",
+        "typeFullFqn": "system.cards.html_card"
       },
       "a864701f-57f3-e665-21bc-a3ad1f8438da": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -1568,14 +1523,11 @@
             "headerButton": []
           }
         },
-        "id": "a864701f-57f3-e665-21bc-a3ad1f8438da"
+        "id": "a864701f-57f3-e665-21bc-a3ad1f8438da",
+        "typeFullFqn": "system.cards.html_card"
       },
       "ee542aaf-7305-9baa-3022-34a9da7b45ed": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -1625,14 +1577,11 @@
             ]
           }
         },
-        "id": "ee542aaf-7305-9baa-3022-34a9da7b45ed"
+        "id": "ee542aaf-7305-9baa-3022-34a9da7b45ed",
+        "typeFullFqn": "system.cards.html_card"
       },
       "d3ea68cf-4dd0-a261-a04f-7008b3d2eed4": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -1682,14 +1631,11 @@
             ]
           }
         },
-        "id": "d3ea68cf-4dd0-a261-a04f-7008b3d2eed4"
+        "id": "d3ea68cf-4dd0-a261-a04f-7008b3d2eed4",
+        "typeFullFqn": "system.cards.html_card"
       },
       "117490c6-fa7f-34cf-1de9-dfbc6068bbdb": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -1739,14 +1685,11 @@
             ]
           }
         },
-        "id": "117490c6-fa7f-34cf-1de9-dfbc6068bbdb"
+        "id": "117490c6-fa7f-34cf-1de9-dfbc6068bbdb",
+        "typeFullFqn": "system.cards.html_card"
       },
       "66e7a232-0011-b462-e359-c5d99a2a9c56": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -1796,14 +1739,11 @@
             ]
           }
         },
-        "id": "66e7a232-0011-b462-e359-c5d99a2a9c56"
+        "id": "66e7a232-0011-b462-e359-c5d99a2a9c56",
+        "typeFullFqn": "system.cards.html_card"
       },
       "5b171713-09c1-5b9a-2572-8b8b731d180d": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -1853,14 +1793,11 @@
             ]
           }
         },
-        "id": "5b171713-09c1-5b9a-2572-8b8b731d180d"
+        "id": "5b171713-09c1-5b9a-2572-8b8b731d180d",
+        "typeFullFqn": "system.cards.html_card"
       },
       "7cfe3a55-4100-6f3c-7873-db3a2e175602": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -1910,14 +1847,11 @@
             ]
           }
         },
-        "id": "7cfe3a55-4100-6f3c-7873-db3a2e175602"
+        "id": "7cfe3a55-4100-6f3c-7873-db3a2e175602",
+        "typeFullFqn": "system.cards.html_card"
       },
       "b85b4e51-42dd-1ea6-84a6-14d701fd8875": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -1967,14 +1901,11 @@
             ]
           }
         },
-        "id": "b85b4e51-42dd-1ea6-84a6-14d701fd8875"
+        "id": "b85b4e51-42dd-1ea6-84a6-14d701fd8875",
+        "typeFullFqn": "system.cards.html_card"
       },
       "1b2ee163-50d8-ae49-46ba-9b616bc63631": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -2023,14 +1954,11 @@
             ]
           }
         },
-        "id": "1b2ee163-50d8-ae49-46ba-9b616bc63631"
+        "id": "1b2ee163-50d8-ae49-46ba-9b616bc63631",
+        "typeFullFqn": "system.cards.html_card"
       },
       "efc2c22c-ece5-bcfe-d5f1-1b15125b7f01": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -2079,14 +2007,11 @@
             ]
           }
         },
-        "id": "efc2c22c-ece5-bcfe-d5f1-1b15125b7f01"
+        "id": "efc2c22c-ece5-bcfe-d5f1-1b15125b7f01",
+        "typeFullFqn": "system.cards.html_card"
       },
       "6c91bf1f-bdf6-6af7-de49-079b89bee211": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -2135,14 +2060,11 @@
             ]
           }
         },
-        "id": "6c91bf1f-bdf6-6af7-de49-079b89bee211"
+        "id": "6c91bf1f-bdf6-6af7-de49-079b89bee211",
+        "typeFullFqn": "system.cards.html_card"
       },
       "7bf92548-b95f-2874-92c4-6675571878ad": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -2183,14 +2105,11 @@
             "elementClick": []
           }
         },
-        "id": "7bf92548-b95f-2874-92c4-6675571878ad"
+        "id": "7bf92548-b95f-2874-92c4-6675571878ad",
+        "typeFullFqn": "system.cards.html_card"
       },
       "5a352e8c-34bd-d93b-2fb3-c41905cf9e3a": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -2240,14 +2159,11 @@
             ]
           }
         },
-        "id": "5a352e8c-34bd-d93b-2fb3-c41905cf9e3a"
+        "id": "5a352e8c-34bd-d93b-2fb3-c41905cf9e3a",
+        "typeFullFqn": "system.cards.html_card"
       },
       "05cb8c19-3d4f-b147-a377-8ab72aa3057d": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -2297,14 +2213,11 @@
             ]
           }
         },
-        "id": "05cb8c19-3d4f-b147-a377-8ab72aa3057d"
+        "id": "05cb8c19-3d4f-b147-a377-8ab72aa3057d",
+        "typeFullFqn": "system.cards.html_card"
       },
       "e91e4167-68c3-5d5d-efc5-a19ec8fb999c": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -2354,14 +2267,11 @@
             ]
           }
         },
-        "id": "e91e4167-68c3-5d5d-efc5-a19ec8fb999c"
+        "id": "e91e4167-68c3-5d5d-efc5-a19ec8fb999c",
+        "typeFullFqn": "system.cards.html_card"
       },
       "6727afe1-7b86-7c58-5873-a9700a83edec": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -2402,14 +2312,11 @@
             "elementClick": []
           }
         },
-        "id": "6727afe1-7b86-7c58-5873-a9700a83edec"
+        "id": "6727afe1-7b86-7c58-5873-a9700a83edec",
+        "typeFullFqn": "system.cards.html_card"
       },
       "70b3ca21-cc98-46ea-1676-16d3edea2a65": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -2459,14 +2366,11 @@
             ]
           }
         },
-        "id": "70b3ca21-cc98-46ea-1676-16d3edea2a65"
+        "id": "70b3ca21-cc98-46ea-1676-16d3edea2a65",
+        "typeFullFqn": "system.cards.html_card"
       },
       "be3eb9bd-21f7-250c-ccf5-1d2dd67b73e2": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -2516,14 +2420,11 @@
             ]
           }
         },
-        "id": "be3eb9bd-21f7-250c-ccf5-1d2dd67b73e2"
+        "id": "be3eb9bd-21f7-250c-ccf5-1d2dd67b73e2",
+        "typeFullFqn": "system.cards.html_card"
       },
       "9ac96f6f-ed61-67b2-5695-3fe61064b7f8": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -2573,14 +2474,11 @@
             ]
           }
         },
-        "id": "9ac96f6f-ed61-67b2-5695-3fe61064b7f8"
+        "id": "9ac96f6f-ed61-67b2-5695-3fe61064b7f8",
+        "typeFullFqn": "system.cards.html_card"
       },
       "936cf52c-f762-628e-00e8-363b53e1af4f": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -2621,14 +2519,11 @@
             "elementClick": []
           }
         },
-        "id": "936cf52c-f762-628e-00e8-363b53e1af4f"
+        "id": "936cf52c-f762-628e-00e8-363b53e1af4f",
+        "typeFullFqn": "system.cards.html_card"
       },
       "291ab4b2-f371-9897-6856-385e5745f430": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 24,
         "sizeY": 16,
         "config": {
@@ -2849,14 +2744,11 @@
             ]
           }
         },
-        "id": "291ab4b2-f371-9897-6856-385e5745f430"
+        "id": "291ab4b2-f371-9897-6856-385e5745f430",
+        "typeFullFqn": "system.cards.entities_table"
       },
       "c33ce26b-a96e-4de0-ae3b-7ddf92cf6555": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
         "type": "alarm",
-        "title": "New widget",
         "sizeX": 8,
         "sizeY": 16,
         "config": {
@@ -2935,7 +2827,6 @@
               }
             ]
           },
-          "alarmSearchStatus": "ACTIVE",
           "alarmsPollingInterval": 5,
           "datasources": [],
           "showTitleIcon": false,
@@ -2962,28 +2853,27 @@
           },
           "alarmsMaxCountLoad": 0,
           "alarmsFetchSize": 100,
-          "alarmStatusList": [
-            "ACTIVE"
-          ],
-          "alarmSeverityList": [],
-          "alarmTypeList": [
-            "Daily Consumption Threshold Exceeded",
-            "Weekly Consumption Threshold Exceeded",
-            "Low Battery",
-            "Low Temperature",
-            "Device Inactive",
-            "Leakage Detected"
-          ],
-          "searchPropagatedAlarms": true
+          "alarmFilterConfig": {
+            "statusList": [
+              "ACTIVE"
+            ],
+            "severityList": [],
+            "typeList": [
+              "Daily Consumption Threshold Exceeded",
+              "Weekly Consumption Threshold Exceeded",
+              "Low Battery",
+              "Low Temperature",
+              "Device Inactive",
+              "Leakage Detected"
+            ],
+            "searchPropagatedAlarms": true
+          }
         },
-        "id": "c33ce26b-a96e-4de0-ae3b-7ddf92cf6555"
+        "id": "c33ce26b-a96e-4de0-ae3b-7ddf92cf6555",
+        "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
       "c2bdcb20-9d23-3ef4-34fd-950d8e322152": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 8,
         "sizeY": 16,
         "config": {
@@ -3096,14 +2986,11 @@
             "headerButton": []
           }
         },
-        "id": "c2bdcb20-9d23-3ef4-34fd-950d8e322152"
+        "id": "c2bdcb20-9d23-3ef4-34fd-950d8e322152",
+        "typeFullFqn": "system.cards.entities_table"
       },
       "db53f985-2418-e36d-6b5d-c51eb80c6264": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
         "type": "alarm",
-        "title": "New widget",
         "sizeX": 24,
         "sizeY": 16,
         "config": {
@@ -3192,7 +3079,6 @@
               }
             ]
           },
-          "alarmSearchStatus": "ANY",
           "alarmsPollingInterval": 5,
           "datasources": [],
           "showTitleIcon": false,
@@ -3208,26 +3094,25 @@
           "actions": {},
           "alarmsMaxCountLoad": 0,
           "alarmsFetchSize": 100,
-          "alarmStatusList": [],
-          "alarmSeverityList": [],
-          "alarmTypeList": [
-            "Daily Consumption Threshold Exceeded",
-            "Weekly Consumption Threshold Exceeded",
-            "Low Battery",
-            "Low Temperature",
-            "Device Inactive",
-            "Leakage Detected"
-          ],
-          "searchPropagatedAlarms": true
+          "alarmFilterConfig": {
+            "statusList": [],
+            "severityList": [],
+            "typeList": [
+              "Daily Consumption Threshold Exceeded",
+              "Weekly Consumption Threshold Exceeded",
+              "Low Battery",
+              "Low Temperature",
+              "Device Inactive",
+              "Leakage Detected"
+            ],
+            "searchPropagatedAlarms": true
+          }
         },
-        "id": "db53f985-2418-e36d-6b5d-c51eb80c6264"
+        "id": "db53f985-2418-e36d-6b5d-c51eb80c6264",
+        "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
       "2f9a86a1-b6ac-6fee-e67c-cbe72f2d41a7": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_value_card",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 8,
         "sizeY": 3,
         "config": {
@@ -3299,14 +3184,11 @@
           "enableDataExport": false,
           "displayTimewindow": true
         },
-        "id": "2f9a86a1-b6ac-6fee-e67c-cbe72f2d41a7"
+        "id": "2f9a86a1-b6ac-6fee-e67c-cbe72f2d41a7",
+        "typeFullFqn": "system.cards.html_value_card"
       },
       "6f23568a-5ed0-db6d-ce47-bf6ba1683e6c": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -3355,14 +3237,11 @@
             ]
           }
         },
-        "id": "6f23568a-5ed0-db6d-ce47-bf6ba1683e6c"
+        "id": "6f23568a-5ed0-db6d-ce47-bf6ba1683e6c",
+        "typeFullFqn": "system.cards.html_card"
       },
       "391e3afb-9cd1-6d1c-e6e6-ddc788d6bef2": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -3411,14 +3290,11 @@
             ]
           }
         },
-        "id": "391e3afb-9cd1-6d1c-e6e6-ddc788d6bef2"
+        "id": "391e3afb-9cd1-6d1c-e6e6-ddc788d6bef2",
+        "typeFullFqn": "system.cards.html_card"
       },
       "8838c3d4-e8d7-05b9-f97f-a79ff9a03d3b": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -3467,14 +3343,11 @@
             ]
           }
         },
-        "id": "8838c3d4-e8d7-05b9-f97f-a79ff9a03d3b"
+        "id": "8838c3d4-e8d7-05b9-f97f-a79ff9a03d3b",
+        "typeFullFqn": "system.cards.html_card"
       },
       "04a5ced4-7ce0-ec3a-fb79-a6a8e47e0d7e": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -3523,14 +3396,11 @@
             ]
           }
         },
-        "id": "04a5ced4-7ce0-ec3a-fb79-a6a8e47e0d7e"
+        "id": "04a5ced4-7ce0-ec3a-fb79-a6a8e47e0d7e",
+        "typeFullFqn": "system.cards.html_card"
       },
       "2dc142e5-6fa4-263c-0f42-1e67db568682": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -3579,14 +3449,11 @@
             ]
           }
         },
-        "id": "2dc142e5-6fa4-263c-0f42-1e67db568682"
+        "id": "2dc142e5-6fa4-263c-0f42-1e67db568682",
+        "typeFullFqn": "system.cards.html_card"
       },
       "1bfaeb7d-8b3c-d7cb-20bb-3cb9bcca4b7c": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
         "type": "alarm",
-        "title": "New widget",
         "sizeX": 8,
         "sizeY": 12,
         "config": {
@@ -3658,7 +3525,6 @@
               }
             ]
           },
-          "alarmSearchStatus": "ACTIVE",
           "alarmsPollingInterval": 5,
           "datasources": [],
           "showTitleIcon": false,
@@ -3685,23 +3551,27 @@
           },
           "alarmsMaxCountLoad": 0,
           "alarmsFetchSize": 100,
-          "alarmTypeList": [
-            "Daily Consumption Threshold Exceeded",
-            "Weekly Consumption Threshold Exceeded",
-            "Low Battery",
-            "Low Temperature",
-            "Device Inactive",
-            "Leakage Detected"
-          ]
+          "alarmFilterConfig": {
+            "statusList": [
+              "ACTIVE"
+            ],
+            "severityList": [],
+            "typeList": [
+              "Daily Consumption Threshold Exceeded",
+              "Weekly Consumption Threshold Exceeded",
+              "Low Battery",
+              "Low Temperature",
+              "Device Inactive",
+              "Leakage Detected"
+            ],
+            "searchPropagatedAlarms": true
+          }
         },
-        "id": "1bfaeb7d-8b3c-d7cb-20bb-3cb9bcca4b7c"
+        "id": "1bfaeb7d-8b3c-d7cb-20bb-3cb9bcca4b7c",
+        "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
       "6fb621cb-94da-2f0e-1561-83699315ee3e": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "timeseries_bars_flot",
         "type": "timeseries",
-        "title": "New widget",
         "sizeX": 24,
         "sizeY": 11,
         "config": {
@@ -3783,7 +3653,17 @@
               "axisPosition": "top",
               "showLabels": true
             },
-            "barAlignment": "center"
+            "barAlignment": "center",
+            "showLegend": true,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": false,
+              "showTotal": true
+            }
           },
           "title": "Water Consumption",
           "dropShadow": false,
@@ -3798,7 +3678,6 @@
             "border": "1px solid #E0E0E0"
           },
           "useDashboardTimewindow": true,
-          "showLegend": true,
           "actions": {},
           "showTitleIcon": false,
           "titleIcon": null,
@@ -3808,25 +3687,13 @@
           "enableDataExport": false,
           "units": "m³",
           "decimals": 2,
-          "displayTimewindow": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": false,
-            "showTotal": true
-          }
+          "displayTimewindow": false
         },
-        "id": "6fb621cb-94da-2f0e-1561-83699315ee3e"
+        "id": "6fb621cb-94da-2f0e-1561-83699315ee3e",
+        "typeFullFqn": "system.charts.timeseries_bars_flot"
       },
       "6f390f15-d267-3d9d-3afd-5b18247ddc2d": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_value_card",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 8,
         "sizeY": 3,
         "config": {
@@ -3904,14 +3771,11 @@
           "enableDataExport": false,
           "displayTimewindow": true
         },
-        "id": "6f390f15-d267-3d9d-3afd-5b18247ddc2d"
+        "id": "6f390f15-d267-3d9d-3afd-5b18247ddc2d",
+        "typeFullFqn": "system.cards.html_value_card"
       },
       "328e8d85-ed7c-ae06-d537-3edc002de94c": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_value_card",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 8,
         "sizeY": 3,
         "config": {
@@ -3989,14 +3853,11 @@
           "enableDataExport": false,
           "displayTimewindow": true
         },
-        "id": "328e8d85-ed7c-ae06-d537-3edc002de94c"
+        "id": "328e8d85-ed7c-ae06-d537-3edc002de94c",
+        "typeFullFqn": "system.cards.html_value_card"
       },
       "b96457f0-6b59-a580-4c3d-2eb919d56603": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_value_card",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 8,
         "sizeY": 3,
         "config": {
@@ -4076,14 +3937,11 @@
           "enableDataExport": false,
           "displayTimewindow": true
         },
-        "id": "b96457f0-6b59-a580-4c3d-2eb919d56603"
+        "id": "b96457f0-6b59-a580-4c3d-2eb919d56603",
+        "typeFullFqn": "system.cards.html_value_card"
       },
       "fd0cad3c-cb76-a2c5-446a-4bc280adfee1": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
         "type": "alarm",
-        "title": "New widget",
         "sizeX": 32,
         "sizeY": 14,
         "config": {
@@ -4181,15 +4039,6 @@
             "entityAliasId": "2754dd92-28a3-a689-d65c-ab9001a86f73",
             "name": "alarms"
           },
-          "alarmSearchStatus": "ANY",
-          "alarmTypeList": [
-            "Daily Consumption Threshold Exceeded",
-            "Weekly Consumption Threshold Exceeded",
-            "Low Battery",
-            "Low Temperature",
-            "Device Inactive",
-            "Leakage Detected"
-          ],
           "alarmsPollingInterval": 5,
           "datasources": [],
           "showTitleIcon": false,
@@ -4202,16 +4051,26 @@
             "border": "1px solid #E0E0E0"
           },
           "displayTimewindow": false,
-          "actions": {}
+          "actions": {},
+          "alarmFilterConfig": {
+            "statusList": [],
+            "severityList": [],
+            "typeList": [
+              "Daily Consumption Threshold Exceeded",
+              "Weekly Consumption Threshold Exceeded",
+              "Low Battery",
+              "Low Temperature",
+              "Device Inactive",
+              "Leakage Detected"
+            ],
+            "searchPropagatedAlarms": true
+          }
         },
-        "id": "fd0cad3c-cb76-a2c5-446a-4bc280adfee1"
+        "id": "fd0cad3c-cb76-a2c5-446a-4bc280adfee1",
+        "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
       "1e7b764e-6e7d-0bb3-7470-9e3b9154235c": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_value_card",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 8,
         "sizeY": 6,
         "config": {
@@ -4330,14 +4189,11 @@
           "enableDataExport": false,
           "displayTimewindow": true
         },
-        "id": "1e7b764e-6e7d-0bb3-7470-9e3b9154235c"
+        "id": "1e7b764e-6e7d-0bb3-7470-9e3b9154235c",
+        "typeFullFqn": "system.cards.html_value_card"
       },
       "78fcd7e3-ba11-72c5-ecfa-aa3db853922f": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_value_card",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 8,
         "sizeY": 6,
         "config": {
@@ -4462,14 +4318,11 @@
           "enableDataExport": false,
           "displayTimewindow": true
         },
-        "id": "78fcd7e3-ba11-72c5-ecfa-aa3db853922f"
+        "id": "78fcd7e3-ba11-72c5-ecfa-aa3db853922f",
+        "typeFullFqn": "system.cards.html_value_card"
       },
       "51f6f10f-c491-9e27-04d5-a235ca4fc16c": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_value_card",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 8,
         "sizeY": 6,
         "config": {
@@ -4576,14 +4429,11 @@
           "enableDataExport": false,
           "displayTimewindow": true
         },
-        "id": "51f6f10f-c491-9e27-04d5-a235ca4fc16c"
+        "id": "51f6f10f-c491-9e27-04d5-a235ca4fc16c",
+        "typeFullFqn": "system.cards.html_value_card"
       },
       "0924e14a-b8cc-2566-90e1-5c6f9819761e": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_value_card",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 8,
         "sizeY": 6,
         "config": {
@@ -4670,14 +4520,11 @@
           "enableDataExport": false,
           "displayTimewindow": true
         },
-        "id": "0924e14a-b8cc-2566-90e1-5c6f9819761e"
+        "id": "0924e14a-b8cc-2566-90e1-5c6f9819761e",
+        "typeFullFqn": "system.cards.html_value_card"
       },
       "258c6c06-4c02-f318-5bc7-6d9e264ac676": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -4727,14 +4574,11 @@
             ]
           }
         },
-        "id": "258c6c06-4c02-f318-5bc7-6d9e264ac676"
+        "id": "258c6c06-4c02-f318-5bc7-6d9e264ac676",
+        "typeFullFqn": "system.cards.html_card"
       },
       "51c01959-c7bb-df14-ff01-c8195c815448": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -4784,14 +4628,11 @@
             ]
           }
         },
-        "id": "51c01959-c7bb-df14-ff01-c8195c815448"
+        "id": "51c01959-c7bb-df14-ff01-c8195c815448",
+        "typeFullFqn": "system.cards.html_card"
       },
       "7bd9d3f3-1257-bf27-d86d-f7ab703ad473": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -4841,14 +4682,11 @@
             ]
           }
         },
-        "id": "7bd9d3f3-1257-bf27-d86d-f7ab703ad473"
+        "id": "7bd9d3f3-1257-bf27-d86d-f7ab703ad473",
+        "typeFullFqn": "system.cards.html_card"
       },
       "e36d6f8c-0b2c-b39d-5f3a-abbae0de9bc9": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -4889,14 +4727,11 @@
             "elementClick": []
           }
         },
-        "id": "e36d6f8c-0b2c-b39d-5f3a-abbae0de9bc9"
+        "id": "e36d6f8c-0b2c-b39d-5f3a-abbae0de9bc9",
+        "typeFullFqn": "system.cards.html_card"
       },
       "7a2cb228-d321-552c-dd6a-341801ff6cc1": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -4946,14 +4781,11 @@
             ]
           }
         },
-        "id": "7a2cb228-d321-552c-dd6a-341801ff6cc1"
+        "id": "7a2cb228-d321-552c-dd6a-341801ff6cc1",
+        "typeFullFqn": "system.cards.html_card"
       },
       "c73e9e2a-aa9b-301d-c8a3-9a54db46bd99": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -5003,14 +4835,11 @@
             ]
           }
         },
-        "id": "c73e9e2a-aa9b-301d-c8a3-9a54db46bd99"
+        "id": "c73e9e2a-aa9b-301d-c8a3-9a54db46bd99",
+        "typeFullFqn": "system.cards.html_card"
       },
       "23fbc25e-a9ea-c9a8-f6bb-9a1ef5a86a92": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 32,
         "sizeY": 16,
         "config": {
@@ -5155,11 +4984,15 @@
               {
                 "name": "Edit Customer Info",
                 "icon": "edit",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
                 "type": "customPretty",
-                "customHtml": "<form #editCustomerForm=\"ngForm\" [formGroup]=\"editCustomerFormFormGroup\" class=\"edit-customer-form\" (ngSubmit)=\"save()\">\n    <mat-toolbar class=\"add-customer-form-toolbar\" fxLayout=\"row\">\n        <h2>Edit Customer Details</h2>\n        <span fxFlex></span>\n        <button mat-icon-button (click)=\"cancel()\" type=\"button\">\n            <mat-icon class=\"material-icons\">close</mat-icon>\n        </button>\n    </mat-toolbar>\n    <mat-progress-bar color=\"warn\" mode=\"indeterminate\" *ngIf=\"isLoading$ | async\"></mat-progress-bar>\n    <div style=\"height: 4px;\" *ngIf=\"!(isLoading$ | async)\"></div>\n    <div mat-dialog-content fxLayout=\"column\">\n        <fieldset [disabled]=\"(isLoading$ | async) || loading\">\n            <mat-form-field fxFlex class=\"mat-block\">\n                <mat-label>Title</mat-label>\n                <input matInput formControlName=\"title\" required>\n                <mat-error *ngIf=\"editCustomerFormFormGroup.get('title').hasError('required')\">\n                    Title is required\n                </mat-error>\n            </mat-form-field>\n            <mat-form-field fxFlex class=\"mat-block\">\n                <mat-label>Email</mat-label>\n                <input matInput formControlName=\"email\" type=\"email\" required>\n                <mat-error *ngIf=\"editCustomerFormFormGroup.get('email').hasError('required')\">\n                    Email is required\n                </mat-error>\n                <mat-error *ngIf=\"editCustomerFormFormGroup.get('email').hasError('pattern')\">\n                    Invalid email format\n                </mat-error>\n            </mat-form-field>\n            <div fxLayout=\"row\" fxLayoutGap=\"8px\" fxLayout.xs=\"column\" fxLayoutGap.xs=\"0\">\n                <mat-form-field fxFlex class=\"mat-block\">\n                    <mat-label>First Name</mat-label>\n                    <input matInput formControlName=\"firstName\">\n                </mat-form-field>\n                <mat-form-field fxFlex class=\"mat-block\">\n                    <mat-label>Last Name</mat-label>\n                    <input matInput formControlName=\"lastName\" >\n                </mat-form-field>\n            </div>\n            <div fxLayout=\"row\" fxLayoutGap=\"8px\" fxLayout.xs=\"column\" fxLayoutGap.xs=\"0\">\n                <mat-form-field fxFlex class=\"mat-block\">\n                    <mat-label>Phone</mat-label>\n                    <input matInput formControlName=\"phone\">\n                    <mat-error *ngIf=\"editCustomerFormFormGroup.get('phone').hasError('pattern')\">\n                        Invalid format\n                    </mat-error>\n                </mat-form-field>\n                <mat-form-field fxFlex class=\"mat-block\">\n                    <mat-label>Address</mat-label>\n                    <input matInput formControlName=\"address\">\n                </mat-form-field>\n            </div>\n        </fieldset>\n    </div>\n    <div mat-dialog-actions fxLayout=\"row\" fxLayoutAlign=\"end center\" class=\"edit-customer-form-actions\">\n        <button mat-button color=\"primary\"\n                type=\"button\"\n                (click)=\"cancel()\" cdkFocusInitial>\n            Cancel\n        </button>\n        <button mat-button color=\"primary\"\n                type=\"submit\"\n                [disabled]=\"(isLoading$ | async) || loading || editCustomerFormFormGroup.invalid || !editCustomerFormFormGroup.dirty\">\n            Save\n        </button>\n    </div>\n</form>\n",
+                "customHtml": "<form #editCustomerForm=\"ngForm\" [formGroup]=\"editCustomerFormFormGroup\" class=\"edit-customer-form\" (ngSubmit)=\"save()\">\n    <mat-toolbar class=\"edit-customer-form-toolbar\" fxLayout=\"row\">\n        <h2>Edit Customer Details</h2>\n        <span fxFlex></span>\n        <button mat-icon-button (click)=\"cancel()\" type=\"button\">\n            <mat-icon class=\"material-icons\">close</mat-icon>\n        </button>\n    </mat-toolbar>\n    <mat-progress-bar color=\"warn\" mode=\"indeterminate\" *ngIf=\"isLoading$ | async\"></mat-progress-bar>\n    <div style=\"height: 4px;\" *ngIf=\"!(isLoading$ | async)\"></div>\n    <div mat-dialog-content fxLayout=\"column\">\n        <fieldset [disabled]=\"(isLoading$ | async) || loading\">\n            <mat-form-field fxFlex class=\"mat-block\">\n                <mat-label>Title</mat-label>\n                <input matInput formControlName=\"title\" required>\n                <mat-error *ngIf=\"editCustomerFormFormGroup.get('title').hasError('required')\">\n                    Title is required\n                </mat-error>\n            </mat-form-field>\n            <mat-form-field fxFlex class=\"mat-block\">\n                <mat-label>Email</mat-label>\n                <input matInput formControlName=\"email\" type=\"email\" required>\n                <mat-error *ngIf=\"editCustomerFormFormGroup.get('email').hasError('required')\">\n                    Email is required\n                </mat-error>\n                <mat-error *ngIf=\"editCustomerFormFormGroup.get('email').hasError('pattern')\">\n                    Invalid email format\n                </mat-error>\n            </mat-form-field>\n            <div fxLayout=\"row\" fxLayoutGap=\"8px\" fxLayout.xs=\"column\" fxLayoutGap.xs=\"0\">\n                <mat-form-field fxFlex class=\"mat-block\">\n                    <mat-label>First Name</mat-label>\n                    <input matInput formControlName=\"firstName\">\n                </mat-form-field>\n                <mat-form-field fxFlex class=\"mat-block\">\n                    <mat-label>Last Name</mat-label>\n                    <input matInput formControlName=\"lastName\" >\n                </mat-form-field>\n            </div>\n            <div fxLayout=\"row\" fxLayoutGap=\"8px\" fxLayout.xs=\"column\" fxLayoutGap.xs=\"0\">\n                <mat-form-field fxFlex class=\"mat-block\">\n                    <mat-label>Phone</mat-label>\n                    <input matInput formControlName=\"phone\">\n                    <mat-error *ngIf=\"editCustomerFormFormGroup.get('phone').hasError('pattern')\">\n                        Invalid format\n                    </mat-error>\n                </mat-form-field>\n                <mat-form-field fxFlex class=\"mat-block\">\n                    <mat-label>Address</mat-label>\n                    <input matInput formControlName=\"address\">\n                </mat-form-field>\n            </div>\n        </fieldset>\n    </div>\n    <div mat-dialog-actions fxLayout=\"row\" fxLayoutAlign=\"end center\" class=\"edit-customer-form-actions\">\n        <button mat-button color=\"primary\"\n                type=\"button\"\n                (click)=\"cancel()\" cdkFocusInitial>\n            Cancel\n        </button>\n        <button mat-button color=\"primary\"\n                type=\"submit\"\n                [disabled]=\"(isLoading$ | async) || loading || editCustomerFormFormGroup.invalid || !editCustomerFormFormGroup.dirty\">\n            Save\n        </button>\n    </div>\n</form>\n",
                 "customCss": ".edit-customer-form mat-toolbar.edit-customer-form-toolbar {\n    background-color: #ffffff;\n    color: #333333;\n}\n.edit-customer-form .edit-customer-form-actions button[mat-button][color=\"primary\"] {\n    border: 1px solid #E0E0E0;\n}\n",
-                "customFunction": "let $injector = widgetContext.$scope.$injector;\nlet customDialog = $injector.get(widgetContext.servicesMap.get('customDialog')),\n    customerService = $injector.get(widgetContext.servicesMap.get('customerService')),\n    userService = $injector.get(widgetContext.servicesMap.get('userService')),\n    attributeService = $injector.get(widgetContext.servicesMap.get('attributeService'));\n    \nopenEditCustomerDialog();\n\nfunction openEditCustomerDialog() {\n    customDialog.customDialog(htmlTemplate, EditCustomerDialogController).subscribe();\n}\n\nfunction EditCustomerDialogController(instance) {\n    let vm = instance;\n    \n    vm.attributes = {};\n    \n    vm.editCustomerFormFormGroup = vm.fb.group({\n        title: ['', [vm.validators.required]],\n        email: ['', [vm.validators.required, vm.validators.pattern(/^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\_\\-0-9]+\\.)+[a-zA-Z]{2,}))$/)]],\n        firstName: [''],\n        lastName: [''],\n        phone: ['', [vm.validators.pattern(/^[0-9-+\\s()]*$/)]],\n        address: ['']\n    });\n\n    getCustomerInfo();\n    \n    vm.cancel = () => {\n        vm.dialogRef.close(null);\n    };\n    \n    vm.save = () => {\n        vm.loading = true;\n        vm.editCustomerFormFormGroup.markAsPristine();\n        const formValues = vm.editCustomerFormFormGroup.value;\n        vm.customer.title = formValues.title;\n        vm.customer.email = formValues.email;\n        vm.customer.phone = formValues.phone;\n        vm.customer.address = formValues.address;\n        if (vm.user) {\n            vm.user.email = formValues.email;\n            vm.user.firstName = formValues.firstName;\n            vm.user.lastName = formValues.lastName;\n        }\n        vm.attributes.firstName = formValues.firstName;\n        vm.attributes.lastName = formValues.lastName;\n\n        customerService.saveCustomer(vm.customer).subscribe(\n            (customer) => {\n                if (vm.user) {\n                    userService.saveUser(vm.user).subscribe(\n                        () => {\n                            saveAttributes(vm.customer.id).subscribe(\n                                () => {\n                                    widgetContext.updateAliases();\n                                    vm.loading = false;\n                                    vm.dialogRef.close(null);\n                                }\n                            );\n                        },\n                        () => {\n                            customerService.saveCustomer(vm.oldCustomerInfo).subscribe(\n                                () => {\n                                    vm.loading = false;\n                                });\n                        });\n                } else {\n                    saveAttributes(vm.customer.id).subscribe(\n                        () => {\n                            widgetContext.updateAliases();\n                            vm.loading = false;\n                            vm.dialogRef.close(null);\n                        }\n                    );\n                }\n            },\n            () => {\n                vm.loading = false;\n            }\n        );\n    };\n    \n    function getCustomerInfo() {\n        vm.loading = true;\n        vm.attributes = {};\n        vm.customer = null;\n        vm.user = null;\n        customerService.getCustomer(entityId.id).subscribe(\n            (customer) => {\n                vm.customer = customer;\n                vm.oldCustomerInfo = Object.assign({}, customer);\n                \n                const customerUserPageLink = {\n                    toQuery: function() {\n                        return '?pageSize=1&page=0&textSearch='+encodeURIComponent(customer.title);\n                    }\n                }; \n\n\n                widgetContext.rxjs.forkJoin([\n                    attributeService.getEntityAttributes(entityId, 'SERVER_SCOPE', ['firstName', 'lastName']),\n                    userService.getCustomerUsers(customer.id.id, customerUserPageLink)]).subscribe(\n                    (response) => {\n                        let attributes = response[0];\n                        if (attributes.length) {\n                            getEntityAttributes(attributes);\n                        }\n                        if (response[1].data.length) {\n                            vm.user = response[1].data[0];\n                            vm.attributes.firstName = vm.user.firstName;\n                            vm.attributes.lastName = vm.user.lastName;\n                        }\n                        vm.editCustomerFormFormGroup.patchValue({\n                            title: vm.customer.title,\n                            email: vm.customer.email,\n                            firstName: vm.attributes.firstName,\n                            lastName: vm.attributes.lastName,\n                            phone: vm.customer.phone,\n                            address: vm.customer.address\n                        }, {emitEvent: false});\n                        vm.loading = false;\n                   } \n                );\n            }\n        );\n    }\n    \n    function getEntityAttributes(attributes) {\n        for (let i = 0; i < attributes.length; i++) {\n            vm.attributes[attributes[i].key] = attributes[i].value; \n        }\n    }\n    \n    function saveAttributes(entityId) {\n        let attributesArray = [];\n        for (let key in vm.attributes) {\n            if (vm.attributes[key] !== null) {\n                attributesArray.push({key: key, value: vm.attributes[key]});\n            }\n        }\n        if (attributesArray.length > 0) {\n            return attributeService.saveEntityAttributes(entityId, \"SERVER_SCOPE\", attributesArray);\n        } else {\n            return widgetContext.rxjs.of([]);\n        }\n    }\n    \n}",
+                "customFunction": "let $injector = widgetContext.$scope.$injector;\nlet customDialog = $injector.get(widgetContext.servicesMap.get('customDialog')),\n    customerService = $injector.get(widgetContext.servicesMap.get('customerService')),\n    userService = $injector.get(widgetContext.servicesMap.get('userService')),\n    attributeService = $injector.get(widgetContext.servicesMap.get('attributeService'));\n    \nopenEditCustomerDialog();\n\nfunction openEditCustomerDialog() {\n    customDialog.customDialog(htmlTemplate, EditCustomerDialogController).subscribe();\n}\n\nfunction EditCustomerDialogController(instance) {\n    let vm = instance;\n    \n    vm.attributes = {};\n    \n    vm.editCustomerFormFormGroup = vm.fb.group({\n        title: ['', [vm.validators.required]],\n        email: ['', [vm.validators.required, vm.validators.pattern(/^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\_\\-0-9]+\\.)+[a-zA-Z]{2,}))$/)]],\n        firstName: [''],\n        lastName: [''],\n        phone: ['', [vm.validators.pattern(/^[0-9-+\\s()]*$/)]],\n        address: ['']\n    });\n\n    getCustomerInfo();\n    \n    vm.cancel = () => {\n        vm.dialogRef.close(null);\n    };\n    \n    vm.save = () => {\n        vm.loading = true;\n        vm.editCustomerFormFormGroup.markAsPristine();\n        const formValues = vm.editCustomerFormFormGroup.value;\n        vm.customer.title = formValues.title;\n        vm.customer.email = formValues.email;\n        vm.customer.phone = formValues.phone;\n        vm.customer.address = formValues.address;\n        if (vm.user) {\n            vm.user.email = formValues.email;\n            vm.user.firstName = formValues.firstName;\n            vm.user.lastName = formValues.lastName;\n        }\n        vm.attributes.firstName = formValues.firstName;\n        vm.attributes.lastName = formValues.lastName;\n\n        customerService.saveCustomer(vm.customer).subscribe(\n            (customer) => {\n                if (vm.user) {\n                    userService.saveUser(vm.user).subscribe(\n                        () => {\n                            saveAttributes(vm.customer.id).subscribe(\n                                () => {\n                                    widgetContext.updateAliases();\n                                    vm.loading = false;\n                                    vm.dialogRef.close(null);\n                                }\n                            );\n                        },\n                        () => {\n                            customerService.saveCustomer(vm.oldCustomerInfo).subscribe(\n                                () => {\n                                    vm.loading = false;\n                                });\n                        });\n                } else {\n                    saveAttributes(vm.customer.id).subscribe(\n                        () => {\n                            widgetContext.updateAliases();\n                            vm.loading = false;\n                            vm.dialogRef.close(null);\n                        }\n                    );\n                }\n            },\n            () => {\n                vm.loading = false;\n            }\n        );\n    };\n    \n    function getCustomerInfo() {\n        vm.loading = true;\n        vm.attributes = {};\n        vm.customer = null;\n        vm.user = null;\n        customerService.getCustomer(entityId.id).subscribe(\n            (customer) => {\n                vm.customer = customer;\n                vm.oldCustomerInfo = Object.assign({}, customer);\n                \n                const customerUserPageLink = widgetContext.pageLink(1, 0, customer.title);\n\n                widgetContext.rxjs.forkJoin([\n                    attributeService.getEntityAttributes(entityId, 'SERVER_SCOPE', ['firstName', 'lastName']),\n                    userService.getCustomerUsers(customer.id.id, customerUserPageLink)]).subscribe(\n                    (response) => {\n                        let attributes = response[0];\n                        if (attributes.length) {\n                            getEntityAttributes(attributes);\n                        }\n                        if (response[1].data.length) {\n                            vm.user = response[1].data[0];\n                            vm.attributes.firstName = vm.user.firstName;\n                            vm.attributes.lastName = vm.user.lastName;\n                        }\n                        vm.editCustomerFormFormGroup.patchValue({\n                            title: vm.customer.title,\n                            email: vm.customer.email,\n                            firstName: vm.attributes.firstName,\n                            lastName: vm.attributes.lastName,\n                            phone: vm.customer.phone,\n                            address: vm.customer.address\n                        }, {emitEvent: false});\n                        vm.loading = false;\n                   } \n                );\n            }\n        );\n    }\n    \n    function getEntityAttributes(attributes) {\n        for (let i = 0; i < attributes.length; i++) {\n            vm.attributes[attributes[i].key] = attributes[i].value; \n        }\n    }\n    \n    function saveAttributes(entityId) {\n        let attributesArray = [];\n        for (let key in vm.attributes) {\n            if (vm.attributes[key] !== null) {\n                attributesArray.push({key: key, value: vm.attributes[key]});\n            }\n        }\n        if (attributesArray.length > 0) {\n            return attributeService.saveEntityAttributes(entityId, \"SERVER_SCOPE\", attributesArray);\n        } else {\n            return widgetContext.rxjs.of([]);\n        }\n    }\n    \n}",
                 "customResources": [],
+                "openInSeparateDialog": false,
+                "openInPopover": false,
                 "id": "adf1f62e-8e46-4c2b-18f9-6f0a50e0916a"
               }
             ],
@@ -5172,7 +5005,7 @@
                 "type": "customPretty",
                 "customHtml": "<form #addCustomerForm=\"ngForm\" [formGroup]=\"addCustomerFormFormGroup\" class=\"add-customer-form\" (ngSubmit)=\"save()\">\n    <mat-toolbar class=\"add-customer-form-toolbar\" fxLayout=\"row\">\n        <h2>Add Customer</h2>\n        <span fxFlex></span>\n        <button mat-icon-button (click)=\"cancel()\" type=\"button\">\n            <mat-icon class=\"material-icons\">close</mat-icon>\n        </button>\n    </mat-toolbar>\n    <mat-progress-bar color=\"warn\" mode=\"indeterminate\" *ngIf=\"isLoading$ | async\"></mat-progress-bar>\n    <div style=\"height: 4px;\" *ngIf=\"!(isLoading$ | async)\"></div>\n    <div mat-dialog-content fxLayout=\"column\">\n        <fieldset [disabled]=\"(isLoading$ | async) || loading\">\n            <mat-form-field fxFlex class=\"mat-block\">\n                <mat-label>Title</mat-label>\n                <input matInput formControlName=\"title\" required>\n                <mat-error *ngIf=\"addCustomerFormFormGroup.get('title').hasError('required')\">\n                    Title is required\n                </mat-error>\n            </mat-form-field>\n            <mat-form-field fxFlex class=\"mat-block\">\n                <mat-label>Email</mat-label>\n                <input matInput formControlName=\"email\" type=\"email\" required>\n                <mat-error *ngIf=\"addCustomerFormFormGroup.get('email').hasError('required')\">\n                    Email is required\n                </mat-error>\n                <mat-error *ngIf=\"addCustomerFormFormGroup.get('email').hasError('pattern')\">\n                    Invalid value format\n                </mat-error>\n            </mat-form-field>\n            <div fxLayout=\"row\" fxLayoutGap=\"8px\" fxLayout.xs=\"column\" fxLayoutGap.xs=\"0\">\n                <mat-form-field fxFlex class=\"mat-block\">\n                    <mat-label>First Name</mat-label>\n                    <input matInput formControlName=\"firstName\">\n                </mat-form-field>\n                <mat-form-field fxFlex class=\"mat-block\">\n                    <mat-label>Last Name</mat-label>\n                    <input matInput formControlName=\"lastName\" >\n                </mat-form-field>\n            </div>\n            <div fxLayout=\"row\" fxLayoutGap=\"8px\" fxLayout.xs=\"column\" fxLayoutGap.xs=\"0\">\n                <mat-form-field fxFlex class=\"mat-block\">\n                    <mat-label>Phone</mat-label>\n                    <input matInput formControlName=\"phone\">\n                    <mat-error *ngIf=\"addCustomerFormFormGroup.get('phone').hasError('pattern')\">\n                        Invalid format\n                    </mat-error>\n                </mat-form-field>\n                <mat-form-field fxFlex class=\"mat-block\">\n                    <mat-label>Address</mat-label>\n                    <input matInput formControlName=\"address\">\n                </mat-form-field>\n            </div>\n            <mat-form-field fxFlex class=\"mat-block\">\n                <mat-label>Activation method</mat-label>\n                <mat-select formControlName=\"userActivationMethod\">\n                    <mat-option *ngFor=\"let method of activationMethods\" [value]=\"method.value\">\n                        {{ method.name }}\n                    </mat-option>\n                </mat-select>\n            </mat-form-field>\n        </fieldset>\n    </div>\n    <div mat-dialog-actions fxLayout=\"row\" fxLayoutAlign=\"end center\" class=\"add-customer-form-actions\">\n        <button mat-button color=\"primary\"\n                type=\"button\"\n                (click)=\"cancel()\" cdkFocusInitial>\n            Cancel\n        </button>\n        <button mat-button color=\"primary\"\n                type=\"submit\"\n                [disabled]=\"(isLoading$ | async) || loading || addCustomerFormFormGroup.invalid || !addCustomerFormFormGroup.dirty\">\n            Create\n        </button>\n    </div>\n</form>\n",
                 "customCss": ".add-customer-form mat-toolbar.add-customer-form-toolbar {\n    background-color: #ffffff;\n    color: #333333;\n}\n.add-customer-form .add-customer-form-actions button[mat-button][color=\"primary\"] {\n    border: 1px solid #E0E0E0;\n}\n",
-                "customFunction": "let $injector = widgetContext.$scope.$injector;\nlet customDialog = $injector.get(widgetContext.servicesMap.get('customDialog')),\n    userService = $injector.get(widgetContext.servicesMap.get('userService')),\n    customerService = $injector.get(widgetContext.servicesMap.get('customerService')),\n    attributeService = $injector.get(widgetContext.servicesMap.get('attributeService')),\n    entityGroupService = $injector.get(widgetContext.servicesMap.get('entityGroupService')),\n    dashboardService = $injector.get(widgetContext.servicesMap.get('dashboardService')),\n    roleService = $injector.get(widgetContext.servicesMap.get('roleService')),\n    translate = $injector.get(widgetContext.servicesMap.get('translate'));\n\nopenAddCustomerDialog();\n\nfunction openAddCustomerDialog() {\n    customDialog.customDialog(htmlTemplate, AddCustomerDialogController).subscribe();\n}\n\nfunction getEntityGroupByName(groupName, groupType) {\n  var entityGroupsPageLink = widgetContext.pageLink(10, 0, groupName);\n  return entityGroupService.getEntityGroupsByPageLink(entityGroupsPageLink, groupType, {ignoreLoading: true}).pipe(\n      widgetContext.rxjs.map((data) => {\n        if (data.data.length) {\n            return data.data.find((group) => group.name === groupName);\n        } else {\n            return null;\n        }\n      })\n  );\n}\n\nfunction AddCustomerDialogController(instance) {\n    let vm = instance;\n\n    vm.activationMethods = [\n        {\n            value: 'displayActivationLink',\n            name: 'Display activation link'\n        },\n        {\n            value: 'sendActivationMail',\n            name: 'Send activation email'\n        }\n    ];\n    \n\n    vm.user = {};\n    vm.customer = {};\n    vm.attributes = {};\n\n    \n    vm.addCustomerFormFormGroup = vm.fb.group({\n        title: ['', [vm.validators.required]],\n        email: ['', [vm.validators.required, vm.validators.pattern(/^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\_\\-0-9]+\\.)+[a-zA-Z]{2,}))$/)]],\n        firstName: [''],\n        lastName: [''],\n        phone: ['', [vm.validators.pattern(/^[0-9-+\\s()]*$/)]],\n        address: [''],\n        userActivationMethod: ['displayActivationLink']\n    });\n\n    vm.cancel = () => {\n        vm.dialogRef.close(null);\n    };\n    \n    vm.save = () => {\n        vm.loading = true;\n        vm.addCustomerFormFormGroup.markAsPristine();\n        \n        const formValues = vm.addCustomerFormFormGroup.value;\n        vm.customer = {};\n        vm.customer.title = formValues.title;\n        vm.customer.email = formValues.email;\n        vm.customer.phone = formValues.phone;\n        vm.customer.address = formValues.address;\n        \n        vm.user = {};\n        vm.user.email = formValues.email;\n        vm.user.firstName = formValues.firstName;\n        vm.user.lastName = formValues.lastName;\n        \n        vm.attributes = {};\n        vm.attributes.firstName = formValues.firstName;\n        vm.attributes.lastName = formValues.lastName;\n        \n        getEntityGroupByName(\"Water Metering\", \"CUSTOMER\").subscribe(\n             function (entityGroup) {\n                customerService.saveCustomer(vm.customer, entityGroup.id.id).subscribe(\n                    (customer) => {\n                        vm.user.authority = 'CUSTOMER_USER';\n                        vm.user.customerId = customer.id;\n                        \n                        const sendActivationMail = (formValues.userActivationMethod === 'sendActivationMail');\n                        \n                        const dashboardsPageLink = {\n                            toQuery: function() {\n                                return '?pageSize=1&page=0&textSearch='+encodeURIComponent('Water Metering User Dashboard');\n                            }\n                        }; \n                        \n                        widgetContext.rxjs.forkJoin([\n                            entityGroupService.getEntityGroupsByOwnerId(customer.id.entityType, customer.id.id, 'USER', {ignoreLoading: true}), \n                            dashboardService.getTenantDashboards(dashboardsPageLink)]).subscribe(\n                                (response) => {\n                                let groups = response[0];\n                                let dashboard = response[1].data[0];\n                                let usersGroup = groups.filter((group) => {\n                                    return group.name === 'Customer Users';\n                                })[0];\n                                \n                                vm.user.additionalInfo = {\n                                    defaultDashboardFullscreen: true,\n                                    defaultDashboardId: dashboard.id.id\n                                };\n                                \n                                userService.saveUser(vm.user, sendActivationMail, usersGroup.id.id).subscribe(\n                                    (user) => {\n                                        saveAttributes(customer.id).subscribe(\n                                            () => {\n                                                setPermissions(customer, usersGroup,\n                                                    function () { // onSuccess\n                    \n                                                        vm.loading = false;\n                                                        widgetContext.updateAliases();\n                                                \n                                                        if (formValues.userActivationMethod === 'displayActivationLink') {\n                                                            userService.getActivationLink(user.id.id).subscribe(\n                                                                (activationLink) => {\n                                                                    displayActivationLink(activationLink).subscribe(\n                                                                        () => {\n                                                                            vm.dialogRef.close(null);\n                                                                        }\n                                                                    );\n                                                                }\n                                                            );\n                                                        } else {\n                                                            vm.dialogRef.close(null);\n                                                        } \n            \n                                                    },\n                                                    function () { // onFailure\n                                                        customerService.deleteCustomer(customer.id.id).subscribe(\n                                                        () => {\n                                                            vm.loading = false;\n                                                        });\n                                                    }\n                                                );    \n                                            }\n                                        );    \n                                    },\n                                    () => {\n                                        customerService.deleteCustomer(customer.id.id).subscribe(\n                                            () => {\n                                                vm.loading = false;\n                                            });\n                                    }\n                                );\n                            }\n                        );\n                        \n                    },\n                    () => {\n                        vm.loading = false;\n                    }\n                );\n             });\n    };\n    \n    function setPermissions(customer, usersGroup, onSuccess, onFailure) {\n        const tasks = [];\n        \n        const readOnlyUserRolePageLink = {\n            toQuery: function() {\n                        return '?pageSize=1&page=0&textSearch='+encodeURIComponent('Water Metering Read Only');\n            }\n        };\n        \n        \n        const waterMetersUserRolePageLink = {\n            toQuery: function() {\n                        return '?pageSize=1&page=0&textSearch='+encodeURIComponent('Water Metering User');\n            }\n        };\n\n        tasks.push(entityGroupService.getEntityGroups('DASHBOARD', {ignoreLoading: true}));\n        tasks.push(roleService.getRoles(readOnlyUserRolePageLink, null, {ignoreLoading: true}));\n        tasks.push(roleService.getRoles(waterMetersUserRolePageLink, null, {ignoreLoading: true}));\n        \n        widgetContext.rxjs.forkJoin(tasks).subscribe(\n            (response) => {\n                let dashboardGroups = response[0];\n                let dashboardGroup = dashboardGroups.filter((group) => {\n                     return group.name === 'Water Metering Shared';\n                })[0];\n                let readOnlyUserRole = response[1].data[0];\n                let waterMetersUserRole = response[2].data[0];\n                \n                let readOnlyUserGroupPermission = {\n                    entityGroupId: dashboardGroup.id,\n                    entityGroupType: dashboardGroup.type,\n                    role: {\n                        type: readOnlyUserRole.type, \n                        id: {id: readOnlyUserRole.id.id}\n                    },\n                    roleId: readOnlyUserRole.id,\n                    userGroupId: usersGroup.id,\n                    userGroupOwnerId: customer.id\n                };\n                \n                let waterMetersUserGroupPermission = {\n                    entityGroupId: null,\n                    entityGroupOwnerId: customer.ownerId,\n                    entityGroupType: null,\n                    role: {\n                        type: waterMetersUserRole.type, \n                        id: {id: waterMetersUserRole.id.id}\n                    },\n                    roleId: waterMetersUserRole.id,\n                    userGroupId: usersGroup.id\n                };\n                \n                const tasks2 = []; \n                tasks2.push(roleService.saveGroupPermission(readOnlyUserGroupPermission));\n                tasks2.push(roleService.saveGroupPermission(waterMetersUserGroupPermission));\n                widgetContext.rxjs.forkJoin(tasks2).subscribe(\n                    () => {\n                        onSuccess();\n                    },\n                    () => {\n                        onFailure();\n                    }\n                );\n                \n            },\n            () => {\n                onFailure();\n            }\n        );\n    }\n    \n    function saveAttributes(entityId) {\n        let attributesArray = [];\n        for (let key in vm.attributes) {\n            if (vm.attributes[key] !== null) {\n                attributesArray.push({key: key, value: vm.attributes[key]});\n            }\n        }\n        if (attributesArray.length > 0) {\n            return attributeService.saveEntityAttributes(entityId, \"SERVER_SCOPE\", attributesArray);\n        } else {\n            return widgetContext.rxjs.of([]);\n        }\n    }\n    \n    function displayActivationLink(activationLink) {\n        const template = '<form style=\"min-width: 400px;\">\\n' +\n            '  <mat-toolbar color=\"primary\">\\n' +\n            '    <h2 translate>user.activation-link</h2>\\n' +\n            '    <span fxFlex></span>\\n' +\n            '    <button mat-button mat-icon-button\\n' +\n            '            (click)=\"close()\"\\n' +\n            '            type=\"button\">\\n' +\n            '      <mat-icon class=\"material-icons\">close</mat-icon>\\n' +\n            '    </button>\\n' +\n            '  </mat-toolbar>\\n' +\n            '  <mat-progress-bar color=\"warn\" mode=\"indeterminate\" *ngIf=\"isLoading$ | async\">\\n' +\n            '  </mat-progress-bar>\\n' +\n            '  <div style=\"height: 4px;\" *ngIf=\"!(isLoading$ | async)\"></div>\\n' +\n            '  <div mat-dialog-content tb-toast toastTarget=\"activationLinkDialogContent\">\\n' +\n            '    <div class=\"mat-content\" fxLayout=\"column\">\\n' +\n            '      <span [innerHTML]=\"\\'user.activation-link-text\\' | translate: {activationLink: activationLink}\"></span>\\n' +\n            '      <div fxLayout=\"row\" fxLayoutAlign=\"start center\">\\n' +\n            '        <pre class=\"tb-highlight\" fxFlex><code>{{ activationLink }}</code></pre>\\n' +\n            '        <button mat-icon-button\\n' +\n            '                color=\"primary\"\\n' +\n            '                ngxClipboard\\n' +\n            '                cbContent=\"{{ activationLink }}\"\\n' +\n            '                (cbOnSuccess)=\"onActivationLinkCopied()\"\\n' +\n            '                matTooltip=\"{{ \\'user.copy-activation-link\\' | translate }}\"\\n' +\n            '                matTooltipPosition=\"above\">\\n' +\n            '          <mat-icon svgIcon=\"mdi:clipboard-arrow-left\"></mat-icon>\\n' +\n            '        </button>\\n' +\n            '      </div>\\n' +\n            '    </div>\\n' +\n            '  </div>\\n' +\n            '  <div mat-dialog-actions fxLayoutAlign=\"end center\">\\n' +\n            '    <button mat-button color=\"primary\"\\n' +\n            '            type=\"button\"\\n' +\n            '            cdkFocusInitial\\n' +\n            '            [disabled]=\"(isLoading$ | async)\"\\n' +\n            '            (click)=\"close()\">\\n' +\n            '      {{ \\'action.ok\\' | translate }}\\n' +\n            '    </button>\\n' +\n            '  </div>\\n' +\n            '</form>';\n        return customDialog.customDialog(template, ActivationLinkDialogController, {activationLink: activationLink});\n    }\n    \n    function ActivationLinkDialogController(instance) {\n        var vm = instance;\n\n        vm.activationLink = instance.data.activationLink;\n\n        vm.onActivationLinkCopied = onActivationLinkCopied;\n        vm.close = close;\n\n        function onActivationLinkCopied(){\n            widgetContext.showSuccessToast(translate.instant('user.activation-link-copied-message'), 1000, 'bottom', 'left', 'activationLinkDialogContent');\n        }\n\n        function close() {\n            vm.dialogRef.close(null);\n        }\n    }\n}",
+                "customFunction": "let $injector = widgetContext.$scope.$injector;\nlet customDialog = $injector.get(widgetContext.servicesMap.get('customDialog')),\n    userService = $injector.get(widgetContext.servicesMap.get('userService')),\n    customerService = $injector.get(widgetContext.servicesMap.get('customerService')),\n    attributeService = $injector.get(widgetContext.servicesMap.get('attributeService')),\n    entityGroupService = $injector.get(widgetContext.servicesMap.get('entityGroupService')),\n    dashboardService = $injector.get(widgetContext.servicesMap.get('dashboardService')),\n    roleService = $injector.get(widgetContext.servicesMap.get('roleService')),\n    translate = $injector.get(widgetContext.servicesMap.get('translate'));\n\nopenAddCustomerDialog();\n\nfunction openAddCustomerDialog() {\n    customDialog.customDialog(htmlTemplate, AddCustomerDialogController).subscribe();\n}\n\nfunction getEntityGroupByName(groupName, groupType) {\n  var entityGroupsPageLink = widgetContext.pageLink(10, 0, groupName);\n  return entityGroupService.getEntityGroupsByPageLink(entityGroupsPageLink, groupType, {ignoreLoading: true}).pipe(\n      widgetContext.rxjs.map((data) => {\n        if (data.data.length) {\n            return data.data.find((group) => group.name === groupName);\n        } else {\n            return null;\n        }\n      })\n  );\n}\n\nfunction AddCustomerDialogController(instance) {\n    let vm = instance;\n\n    vm.activationMethods = [\n        {\n            value: 'displayActivationLink',\n            name: 'Display activation link'\n        },\n        {\n            value: 'sendActivationMail',\n            name: 'Send activation email'\n        }\n    ];\n    \n\n    vm.user = {};\n    vm.customer = {};\n    vm.attributes = {};\n\n    \n    vm.addCustomerFormFormGroup = vm.fb.group({\n        title: ['', [vm.validators.required]],\n        email: ['', [vm.validators.required, vm.validators.pattern(/^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\_\\-0-9]+\\.)+[a-zA-Z]{2,}))$/)]],\n        firstName: [''],\n        lastName: [''],\n        phone: ['', [vm.validators.pattern(/^[0-9-+\\s()]*$/)]],\n        address: [''],\n        userActivationMethod: ['displayActivationLink']\n    });\n\n    vm.cancel = () => {\n        vm.dialogRef.close(null);\n    };\n    \n    vm.save = () => {\n        vm.loading = true;\n        vm.addCustomerFormFormGroup.markAsPristine();\n        \n        const formValues = vm.addCustomerFormFormGroup.value;\n        vm.customer = {};\n        vm.customer.title = formValues.title;\n        vm.customer.email = formValues.email;\n        vm.customer.phone = formValues.phone;\n        vm.customer.address = formValues.address;\n        \n        vm.user = {};\n        vm.user.email = formValues.email;\n        vm.user.firstName = formValues.firstName;\n        vm.user.lastName = formValues.lastName;\n        \n        vm.attributes = {};\n        vm.attributes.firstName = formValues.firstName;\n        vm.attributes.lastName = formValues.lastName;\n        \n        getEntityGroupByName(\"Water Metering\", \"CUSTOMER\").subscribe(\n             function (entityGroup) {\n                customerService.saveCustomer(vm.customer, entityGroup.id.id).subscribe(\n                    (customer) => {\n                        vm.user.authority = 'CUSTOMER_USER';\n                        vm.user.customerId = customer.id;\n                        \n                        const sendActivationMail = (formValues.userActivationMethod === 'sendActivationMail');\n                        const dashboardsPageLink = widgetContext.pageLink(1, 0, 'Water Metering User Dashboard');\n                        \n                        widgetContext.rxjs.forkJoin([\n                            entityGroupService.getEntityGroupsByOwnerId(customer.id.entityType, customer.id.id, 'USER', {ignoreLoading: true}), \n                            dashboardService.getTenantDashboards(dashboardsPageLink)]).subscribe(\n                                (response) => {\n                                let groups = response[0];\n                                let dashboard = response[1].data[0];\n                                let usersGroup = groups.filter((group) => {\n                                    return group.name === 'Customer Users';\n                                })[0];\n                                \n                                vm.user.additionalInfo = {\n                                    defaultDashboardFullscreen: true,\n                                    defaultDashboardId: dashboard.id.id\n                                };\n                                \n                                userService.saveUser(vm.user, sendActivationMail, usersGroup.id.id).subscribe(\n                                    (user) => {\n                                        saveAttributes(customer.id).subscribe(\n                                            () => {\n                                                setPermissions(customer, usersGroup,\n                                                    function () { // onSuccess\n                    \n                                                        vm.loading = false;\n                                                        widgetContext.updateAliases();\n                                                \n                                                        if (formValues.userActivationMethod === 'displayActivationLink') {\n                                                            userService.getActivationLink(user.id.id).subscribe(\n                                                                (activationLink) => {\n                                                                    displayActivationLink(activationLink).subscribe(\n                                                                        () => {\n                                                                            vm.dialogRef.close(null);\n                                                                        }\n                                                                    );\n                                                                }\n                                                            );\n                                                        } else {\n                                                            vm.dialogRef.close(null);\n                                                        } \n            \n                                                    },\n                                                    function () { // onFailure\n                                                        customerService.deleteCustomer(customer.id.id).subscribe(\n                                                        () => {\n                                                            vm.loading = false;\n                                                        });\n                                                    }\n                                                );    \n                                            }\n                                        );    \n                                    },\n                                    () => {\n                                        customerService.deleteCustomer(customer.id.id).subscribe(\n                                            () => {\n                                                vm.loading = false;\n                                            });\n                                    }\n                                );\n                            }\n                        );\n                        \n                    },\n                    () => {\n                        vm.loading = false;\n                    }\n                );\n             });\n    };\n    \n    function setPermissions(customer, usersGroup, onSuccess, onFailure) {\n        const tasks = [];\n        \n        const readOnlyUserRolePageLink = widgetContext.pageLink(1, 0, 'Water Metering Read Only');\n        const waterMetersUserRolePageLink = widgetContext.pageLink(1, 0, 'Water Metering User');\n        const dashboardGroupsPageLink = widgetContext.pageLink(1, 0, 'Water Metering Shared');\n\n        tasks.push(entityGroupService.getEntityGroups(dashboardGroupsPageLink, 'DASHBOARD', false, {ignoreLoading: true}));\n        tasks.push(roleService.getRoles(readOnlyUserRolePageLink, null, {ignoreLoading: true}));\n        tasks.push(roleService.getRoles(waterMetersUserRolePageLink, null, {ignoreLoading: true}));\n        \n        widgetContext.rxjs.forkJoin(tasks).subscribe(\n            (response) => {\n                let dashboardGroup = response[0].data[0];\n                let readOnlyUserRole = response[1].data[0];\n                let waterMetersUserRole = response[2].data[0];\n                \n                let readOnlyUserGroupPermission = {\n                    entityGroupId: dashboardGroup.id,\n                    entityGroupType: dashboardGroup.type,\n                    role: {\n                        type: readOnlyUserRole.type, \n                        id: {id: readOnlyUserRole.id.id}\n                    },\n                    roleId: readOnlyUserRole.id,\n                    userGroupId: usersGroup.id,\n                    userGroupOwnerId: customer.id\n                };\n                \n                let waterMetersUserGroupPermission = {\n                    entityGroupId: null,\n                    entityGroupOwnerId: customer.ownerId,\n                    entityGroupType: null,\n                    role: {\n                        type: waterMetersUserRole.type, \n                        id: {id: waterMetersUserRole.id.id}\n                    },\n                    roleId: waterMetersUserRole.id,\n                    userGroupId: usersGroup.id\n                };\n                \n                const tasks2 = []; \n                tasks2.push(roleService.saveGroupPermission(readOnlyUserGroupPermission));\n                tasks2.push(roleService.saveGroupPermission(waterMetersUserGroupPermission));\n                widgetContext.rxjs.forkJoin(tasks2).subscribe(\n                    () => {\n                        onSuccess();\n                    },\n                    () => {\n                        onFailure();\n                    }\n                );\n                \n            },\n            () => {\n                onFailure();\n            }\n        );\n    }\n    \n    function saveAttributes(entityId) {\n        let attributesArray = [];\n        for (let key in vm.attributes) {\n            if (vm.attributes[key] !== null) {\n                attributesArray.push({key: key, value: vm.attributes[key]});\n            }\n        }\n        if (attributesArray.length > 0) {\n            return attributeService.saveEntityAttributes(entityId, \"SERVER_SCOPE\", attributesArray);\n        } else {\n            return widgetContext.rxjs.of([]);\n        }\n    }\n    \n    function displayActivationLink(activationLink) {\n        const template = '<form style=\"min-width: 400px;\">\\n' +\n            '  <mat-toolbar color=\"primary\">\\n' +\n            '    <h2 translate>user.activation-link</h2>\\n' +\n            '    <span fxFlex></span>\\n' +\n            '    <button mat-icon-button\\n' +\n            '            (click)=\"close()\"\\n' +\n            '            type=\"button\">\\n' +\n            '      <mat-icon class=\"material-icons\">close</mat-icon>\\n' +\n            '    </button>\\n' +\n            '  </mat-toolbar>\\n' +\n            '  <mat-progress-bar color=\"warn\" mode=\"indeterminate\" *ngIf=\"isLoading$ | async\">\\n' +\n            '  </mat-progress-bar>\\n' +\n            '  <div style=\"height: 4px;\" *ngIf=\"!(isLoading$ | async)\"></div>\\n' +\n            '  <div mat-dialog-content tb-toast toastTarget=\"activationLinkDialogContent\">\\n' +\n            '    <div class=\"mat-content\" fxLayout=\"column\">\\n' +\n            '      <span [innerHTML]=\"\\'user.activation-link-text\\' | translate: {activationLink: activationLink}\"></span>\\n' +\n            '      <div fxLayout=\"row\" fxLayoutAlign=\"start center\">\\n' +\n            '        <pre class=\"tb-highlight\" fxFlex><code>{{ activationLink }}</code></pre>\\n' +\n            '        <button mat-icon-button\\n' +\n            '                color=\"primary\"\\n' +\n            '                ngxClipboard\\n' +\n            '                cbContent=\"{{ activationLink }}\"\\n' +\n            '                (cbOnSuccess)=\"onActivationLinkCopied()\"\\n' +\n            '                matTooltip=\"{{ \\'user.copy-activation-link\\' | translate }}\"\\n' +\n            '                matTooltipPosition=\"above\">\\n' +\n            '          <mat-icon svgIcon=\"mdi:clipboard-arrow-left\"></mat-icon>\\n' +\n            '        </button>\\n' +\n            '      </div>\\n' +\n            '    </div>\\n' +\n            '  </div>\\n' +\n            '  <div mat-dialog-actions fxLayoutAlign=\"end center\">\\n' +\n            '    <button mat-button color=\"primary\"\\n' +\n            '            type=\"button\"\\n' +\n            '            cdkFocusInitial\\n' +\n            '            [disabled]=\"(isLoading$ | async)\"\\n' +\n            '            (click)=\"close()\">\\n' +\n            '      {{ \\'action.ok\\' | translate }}\\n' +\n            '    </button>\\n' +\n            '  </div>\\n' +\n            '</form>';\n        return customDialog.customDialog(template, ActivationLinkDialogController, {activationLink: activationLink});\n    }\n    \n    function ActivationLinkDialogController(instance) {\n        var vm = instance;\n\n        vm.activationLink = instance.data.activationLink;\n\n        vm.onActivationLinkCopied = onActivationLinkCopied;\n        vm.close = close;\n\n        function onActivationLinkCopied(){\n            widgetContext.showSuccessToast(translate.instant('user.activation-link-copied-message'), 1000, 'bottom', 'left', 'activationLinkDialogContent');\n        }\n\n        function close() {\n            vm.dialogRef.close(null);\n        }\n    }\n}",
                 "customResources": [],
                 "openInSeparateDialog": false,
                 "openInPopover": false,
@@ -5191,14 +5024,11 @@
             ]
           }
         },
-        "id": "23fbc25e-a9ea-c9a8-f6bb-9a1ef5a86a92"
+        "id": "23fbc25e-a9ea-c9a8-f6bb-9a1ef5a86a92",
+        "typeFullFqn": "system.cards.entities_table"
       },
       "1b26a5b1-61be-945c-b7a7-85edc3e219cf": {
-        "isSystemType": true,
-        "bundleAlias": "input_widgets",
-        "typeAlias": "update_multiple_attributes",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 10,
         "sizeY": 16,
         "config": {
@@ -5235,20 +5065,25 @@
                   "label": "Low Battery Threshold",
                   "color": "#3f51b5",
                   "settings": {
+                    "dataKeyHidden": false,
                     "dataKeyType": "server",
                     "dataKeyValueType": "string",
                     "required": false,
                     "isEditable": "editable",
-                    "dataKeyHidden": false,
-                    "step": 1,
-                    "disabledOnDataKey": "lowBattAlarmEnabled"
+                    "disabledOnDataKey": "lowBattAlarmEnabled",
+                    "appearance": "outline",
+                    "subscriptSizing": "dynamic",
+                    "useCustomIcon": false,
+                    "useGetValueFunction": false,
+                    "useSetValueFunction": false
                   },
                   "_hash": 0.43810120489248616,
                   "units": null,
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": null,
-                  "postFuncBody": null
+                  "postFuncBody": null,
+                  "aggregationType": null
                 },
                 {
                   "name": "lowTempAlarmEnabled",
@@ -5271,15 +5106,25 @@
                   "label": "Low Temperature Threshold",
                   "color": "#e91e63",
                   "settings": {
+                    "dataKeyHidden": false,
                     "dataKeyType": "server",
                     "dataKeyValueType": "string",
                     "required": false,
                     "isEditable": "editable",
-                    "dataKeyHidden": false,
-                    "step": 1,
-                    "disabledOnDataKey": "lowTempAlarmEnabled"
+                    "disabledOnDataKey": "lowTempAlarmEnabled",
+                    "appearance": "outline",
+                    "subscriptSizing": "dynamic",
+                    "useCustomIcon": false,
+                    "useGetValueFunction": false,
+                    "useSetValueFunction": false
                   },
-                  "_hash": 0.9590971916933051
+                  "_hash": 0.9590971916933051,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
                 },
                 {
                   "name": "dailyConsumptionAlarmEnabled",
@@ -5302,15 +5147,26 @@
                   "label": "Daily Consumption Threshold",
                   "color": "#9c27b0",
                   "settings": {
+                    "dataKeyHidden": false,
                     "dataKeyType": "server",
                     "dataKeyValueType": "double",
                     "required": false,
                     "isEditable": "editable",
-                    "dataKeyHidden": false,
+                    "disabledOnDataKey": "dailyConsumptionAlarmEnabled",
+                    "appearance": "outline",
+                    "subscriptSizing": "dynamic",
                     "step": 1,
-                    "disabledOnDataKey": "dailyConsumptionAlarmEnabled"
+                    "useCustomIcon": false,
+                    "useGetValueFunction": false,
+                    "useSetValueFunction": false
                   },
-                  "_hash": 0.20555135495339383
+                  "_hash": 0.20555135495339383,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
                 },
                 {
                   "name": "weeklyConsumptionAlarmEnabled",
@@ -5333,15 +5189,26 @@
                   "label": "Weekly Consumption Threshold",
                   "color": "#8bc34a",
                   "settings": {
+                    "dataKeyHidden": false,
                     "dataKeyType": "server",
                     "dataKeyValueType": "double",
                     "required": false,
                     "isEditable": "editable",
-                    "dataKeyHidden": false,
+                    "disabledOnDataKey": "weeklyConsumptionAlarmEnabled",
+                    "appearance": "outline",
+                    "subscriptSizing": "dynamic",
                     "step": 1,
-                    "disabledOnDataKey": "weeklyConsumptionAlarmEnabled"
+                    "useCustomIcon": false,
+                    "useGetValueFunction": false,
+                    "useSetValueFunction": false
                   },
-                  "_hash": 0.9860115623092394
+                  "_hash": 0.9860115623092394,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
                 },
                 {
                   "name": "inactivityAlarmEnabled",
@@ -5358,7 +5225,12 @@
                   },
                   "_hash": 0.9480348252243465
                 }
-              ]
+              ],
+              "alarmFilterConfig": {
+                "statusList": [
+                  "ACTIVE"
+                ]
+              }
             }
           ],
           "timewindow": {
@@ -5390,13 +5262,15 @@
           "color": "rgba(0, 0, 0, 0.87)",
           "padding": "8px",
           "settings": {
-            "showActionButtons": false,
-            "showResultMessage": true,
-            "fieldsAlignment": "column",
-            "fieldsInRow": 2,
             "widgetTitle": "System Alarms",
+            "showResultMessage": true,
+            "showActionButtons": false,
+            "showGroupTitle": false,
+            "fieldsAlignment": "column",
+            "rowGap": 10,
             "groupTitle": "${entityName}",
-            "showGroupTitle": false
+            "fieldsInRow": 2,
+            "columnGap": 10
           },
           "title": "New Update Multiple Attributes",
           "dropShadow": false,
@@ -5426,14 +5300,11 @@
           "pageSize": 1024,
           "noDataDisplayMessage": ""
         },
-        "id": "1b26a5b1-61be-945c-b7a7-85edc3e219cf"
+        "id": "1b26a5b1-61be-945c-b7a7-85edc3e219cf",
+        "typeFullFqn": "system.input_widgets.update_multiple_attributes"
       },
       "e5602f65-3248-dc60-799c-0d8b413e3604": {
-        "isSystemType": true,
-        "bundleAlias": "input_widgets",
-        "typeAlias": "update_multiple_attributes",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 11,
         "sizeY": 16,
         "config": {
@@ -5634,7 +5505,9 @@
             "fieldsAlignment": "column",
             "fieldsInRow": 2,
             "widgetTitle": "SMS Notifications",
-            "groupTitle": "${entityName}"
+            "groupTitle": "${entityName}",
+            "columnGap": 10,
+            "rowGap": 5
           },
           "title": "SMS Notifications",
           "dropShadow": false,
@@ -5664,14 +5537,11 @@
           "pageSize": 1024,
           "noDataDisplayMessage": ""
         },
-        "id": "e5602f65-3248-dc60-799c-0d8b413e3604"
+        "id": "e5602f65-3248-dc60-799c-0d8b413e3604",
+        "typeFullFqn": "system.input_widgets.update_multiple_attributes"
       },
       "2b036a6f-052f-46fe-14c6-6dc59416704f": {
-        "isSystemType": true,
-        "bundleAlias": "input_widgets",
-        "typeAlias": "update_multiple_attributes",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 11,
         "sizeY": 16,
         "config": {
@@ -5872,7 +5742,9 @@
             "fieldsAlignment": "column",
             "fieldsInRow": 2,
             "widgetTitle": "Email Notifications",
-            "groupTitle": "${entityName}"
+            "groupTitle": "${entityName}",
+            "columnGap": 10,
+            "rowGap": 5
           },
           "title": "Email Notifications",
           "dropShadow": false,
@@ -5902,14 +5774,11 @@
           "pageSize": 1024,
           "noDataDisplayMessage": ""
         },
-        "id": "2b036a6f-052f-46fe-14c6-6dc59416704f"
+        "id": "2b036a6f-052f-46fe-14c6-6dc59416704f",
+        "typeFullFqn": "system.input_widgets.update_multiple_attributes"
       },
       "629dcd1a-9569-ba67-0ffd-638051f4ea97": {
-        "isSystemType": true,
-        "bundleAlias": "input_widgets",
-        "typeAlias": "markers_placement_openstreetmap",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 16,
         "sizeY": 12,
         "config": {
@@ -6092,14 +5961,11 @@
           "displayTimewindow": true,
           "enableDataExport": false
         },
-        "id": "629dcd1a-9569-ba67-0ffd-638051f4ea97"
+        "id": "629dcd1a-9569-ba67-0ffd-638051f4ea97",
+        "typeFullFqn": "system.input_widgets.markers_placement_openstreetmap"
       },
       "d25322de-82d0-d64c-9377-74ea62a446d2": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -6148,14 +6014,11 @@
             ]
           }
         },
-        "id": "d25322de-82d0-d64c-9377-74ea62a446d2"
+        "id": "d25322de-82d0-d64c-9377-74ea62a446d2",
+        "typeFullFqn": "system.cards.html_card"
       },
       "877c7f5d-0542-9a5e-544f-c1967bfce412": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -6204,14 +6067,11 @@
             ]
           }
         },
-        "id": "877c7f5d-0542-9a5e-544f-c1967bfce412"
+        "id": "877c7f5d-0542-9a5e-544f-c1967bfce412",
+        "typeFullFqn": "system.cards.html_card"
       },
       "6a2c4e10-972d-9197-8ce9-647848d18715": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -6260,14 +6120,11 @@
             ]
           }
         },
-        "id": "6a2c4e10-972d-9197-8ce9-647848d18715"
+        "id": "6a2c4e10-972d-9197-8ce9-647848d18715",
+        "typeFullFqn": "system.cards.html_card"
       },
       "7d36bc49-318c-074b-f788-045ce9a8f7e8": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -6316,14 +6173,11 @@
             ]
           }
         },
-        "id": "7d36bc49-318c-074b-f788-045ce9a8f7e8"
+        "id": "7d36bc49-318c-074b-f788-045ce9a8f7e8",
+        "typeFullFqn": "system.cards.html_card"
       },
       "c24b8225-17d9-daad-e52d-038983c8f803": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -6372,14 +6226,11 @@
             ]
           }
         },
-        "id": "c24b8225-17d9-daad-e52d-038983c8f803"
+        "id": "c24b8225-17d9-daad-e52d-038983c8f803",
+        "typeFullFqn": "system.cards.html_card"
       },
       "236a2885-a90d-2662-abf1-727e38af88b5": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 24,
         "sizeY": 16,
         "config": {
@@ -6583,14 +6434,11 @@
             ]
           }
         },
-        "id": "236a2885-a90d-2662-abf1-727e38af88b5"
+        "id": "236a2885-a90d-2662-abf1-727e38af88b5",
+        "typeFullFqn": "system.cards.entities_table"
       },
       "046968a1-fc76-2177-cf2b-d185b8e1ec84": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
         "type": "alarm",
-        "title": "New widget",
         "sizeX": 8,
         "sizeY": 16,
         "config": {
@@ -6668,16 +6516,7 @@
             "entityAliasId": "2754dd92-28a3-a689-d65c-ab9001a86f73",
             "name": "alarms"
           },
-          "alarmSearchStatus": "ACTIVE",
           "alarmsPollingInterval": 5,
-          "alarmTypeList": [
-            "Daily Consumption Threshold Exceeded",
-            "Weekly Consumption Threshold Exceeded",
-            "Low Battery",
-            "Low Temperature",
-            "Device Inactive",
-            "Leakage Detected"
-          ],
           "datasources": [],
           "showTitleIcon": false,
           "titleIcon": null,
@@ -6702,16 +6541,28 @@
             ]
           },
           "alarmsMaxCountLoad": 0,
-          "alarmsFetchSize": 100
+          "alarmsFetchSize": 100,
+          "alarmFilterConfig": {
+            "statusList": [
+              "ACTIVE"
+            ],
+            "severityList": [],
+            "typeList": [
+              "Daily Consumption Threshold Exceeded",
+              "Weekly Consumption Threshold Exceeded",
+              "Low Battery",
+              "Low Temperature",
+              "Device Inactive",
+              "Leakage Detected"
+            ],
+            "searchPropagatedAlarms": true
+          }
         },
-        "id": "046968a1-fc76-2177-cf2b-d185b8e1ec84"
+        "id": "046968a1-fc76-2177-cf2b-d185b8e1ec84",
+        "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
       "41f3bd64-9293-91b4-60aa-eeb4971f96bd": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_value_card",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 8,
         "sizeY": 3,
         "config": {
@@ -6783,14 +6634,11 @@
           "enableDataExport": false,
           "displayTimewindow": true
         },
-        "id": "41f3bd64-9293-91b4-60aa-eeb4971f96bd"
+        "id": "41f3bd64-9293-91b4-60aa-eeb4971f96bd",
+        "typeFullFqn": "system.cards.html_value_card"
       },
       "47beef8a-be00-49f9-fd8e-3b4c409e0a1a": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_value_card",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 8,
         "sizeY": 3,
         "config": {
@@ -6862,14 +6710,11 @@
           "enableDataExport": false,
           "displayTimewindow": true
         },
-        "id": "47beef8a-be00-49f9-fd8e-3b4c409e0a1a"
+        "id": "47beef8a-be00-49f9-fd8e-3b4c409e0a1a",
+        "typeFullFqn": "system.cards.html_value_card"
       },
       "db41ee56-d991-3354-6210-f66ea84e9623": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_value_card",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 8,
         "sizeY": 3,
         "config": {
@@ -6941,14 +6786,11 @@
           "enableDataExport": false,
           "displayTimewindow": true
         },
-        "id": "db41ee56-d991-3354-6210-f66ea84e9623"
+        "id": "db41ee56-d991-3354-6210-f66ea84e9623",
+        "typeFullFqn": "system.cards.html_value_card"
       },
       "d902d11f-3f82-c6c8-f868-7e795c4981d3": {
-        "isSystemType": true,
-        "bundleAlias": "input_widgets",
-        "typeAlias": "update_multiple_attributes",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 7.5,
         "sizeY": 3,
         "config": {
@@ -6965,25 +6807,32 @@
                   "label": "Address",
                   "color": "#2196f3",
                   "settings": {
+                    "dataKeyHidden": false,
                     "dataKeyType": "server",
                     "dataKeyValueType": "string",
-                    "step": 1,
                     "required": false,
-                    "requiredErrorMessage": "",
-                    "minValueErrorMessage": "",
-                    "maxValueErrorMessage": "",
-                    "invalidDateErrorMessage": "",
                     "isEditable": "editable",
-                    "dataKeyHidden": false
+                    "appearance": "outline",
+                    "subscriptSizing": "dynamic",
+                    "useCustomIcon": false,
+                    "icon": "place",
+                    "useGetValueFunction": false,
+                    "useSetValueFunction": false
                   },
                   "_hash": 0.48214674570930094,
                   "units": null,
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": null,
-                  "postFuncBody": null
+                  "postFuncBody": null,
+                  "aggregationType": null
                 }
-              ]
+              ],
+              "alarmFilterConfig": {
+                "statusList": [
+                  "ACTIVE"
+                ]
+              }
             }
           ],
           "timewindow": {
@@ -7019,7 +6868,9 @@
             "showResultMessage": true,
             "fieldsAlignment": "row",
             "fieldsInRow": 1,
-            "groupTitle": "${entityName}"
+            "groupTitle": "${entityName}",
+            "columnGap": 10,
+            "rowGap": 5
           },
           "title": "New Update Multiple Attributes",
           "dropShadow": true,
@@ -7036,18 +6887,16 @@
           "showTitleIcon": false,
           "iconColor": "rgba(0, 0, 0, 0.87)",
           "iconSize": "24px",
-          "titleTooltip": ""
+          "titleTooltip": "",
+          "displayTimewindow": true
         },
         "row": 0,
         "col": 0,
-        "id": "d902d11f-3f82-c6c8-f868-7e795c4981d3"
+        "id": "d902d11f-3f82-c6c8-f868-7e795c4981d3",
+        "typeFullFqn": "system.input_widgets.update_multiple_attributes"
       },
       "2b1da004-36c7-d066-085a-6f53108fa625": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -7099,14 +6948,11 @@
             ]
           }
         },
-        "id": "2b1da004-36c7-d066-085a-6f53108fa625"
+        "id": "2b1da004-36c7-d066-085a-6f53108fa625",
+        "typeFullFqn": "system.cards.html_card"
       },
       "f7a6aaee-6a61-a77d-3969-5abd1e559804": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -7158,14 +7004,11 @@
             ]
           }
         },
-        "id": "f7a6aaee-6a61-a77d-3969-5abd1e559804"
+        "id": "f7a6aaee-6a61-a77d-3969-5abd1e559804",
+        "typeFullFqn": "system.cards.html_card"
       },
       "bcb18461-90a5-e2a6-cf65-7ed681f0be58": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -7217,14 +7060,11 @@
             ]
           }
         },
-        "id": "bcb18461-90a5-e2a6-cf65-7ed681f0be58"
+        "id": "bcb18461-90a5-e2a6-cf65-7ed681f0be58",
+        "typeFullFqn": "system.cards.html_card"
       },
       "b15dcb37-aa2d-a53b-38bd-4bacf1b6884b": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -7276,14 +7116,11 @@
             ]
           }
         },
-        "id": "b15dcb37-aa2d-a53b-38bd-4bacf1b6884b"
+        "id": "b15dcb37-aa2d-a53b-38bd-4bacf1b6884b",
+        "typeFullFqn": "system.cards.html_card"
       },
       "52c52dab-0a43-b1c4-e041-7b7490bf036c": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 24,
         "sizeY": 16,
         "config": {
@@ -7481,14 +7318,11 @@
             ]
           }
         },
-        "id": "52c52dab-0a43-b1c4-e041-7b7490bf036c"
+        "id": "52c52dab-0a43-b1c4-e041-7b7490bf036c",
+        "typeFullFqn": "system.cards.entities_table"
       },
       "62842291-c8f3-f5fb-fd99-8d5755405c57": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -7538,14 +7372,11 @@
             ]
           }
         },
-        "id": "62842291-c8f3-f5fb-fd99-8d5755405c57"
+        "id": "62842291-c8f3-f5fb-fd99-8d5755405c57",
+        "typeFullFqn": "system.cards.html_card"
       },
       "43bdfba2-255b-3336-6436-f4fdb18c5031": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -7594,14 +7425,11 @@
             ]
           }
         },
-        "id": "43bdfba2-255b-3336-6436-f4fdb18c5031"
+        "id": "43bdfba2-255b-3336-6436-f4fdb18c5031",
+        "typeFullFqn": "system.cards.html_card"
       },
       "90699eb8-11d6-1064-c76e-eb4823c3e943": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -7642,14 +7470,11 @@
             "elementClick": []
           }
         },
-        "id": "90699eb8-11d6-1064-c76e-eb4823c3e943"
+        "id": "90699eb8-11d6-1064-c76e-eb4823c3e943",
+        "typeFullFqn": "system.cards.html_card"
       },
       "5238616d-3d9e-71d8-6d23-1b3438242fe5": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -7701,14 +7526,11 @@
             ]
           }
         },
-        "id": "5238616d-3d9e-71d8-6d23-1b3438242fe5"
+        "id": "5238616d-3d9e-71d8-6d23-1b3438242fe5",
+        "typeFullFqn": "system.cards.html_card"
       },
       "c424f0b7-e12e-9b48-e6d3-221aee944128": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -7758,14 +7580,11 @@
             ]
           }
         },
-        "id": "c424f0b7-e12e-9b48-e6d3-221aee944128"
+        "id": "c424f0b7-e12e-9b48-e6d3-221aee944128",
+        "typeFullFqn": "system.cards.html_card"
       },
       "f78dce47-3bca-e586-5d6f-b26db759e832": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -7815,14 +7634,11 @@
             ]
           }
         },
-        "id": "f78dce47-3bca-e586-5d6f-b26db759e832"
+        "id": "f78dce47-3bca-e586-5d6f-b26db759e832",
+        "typeFullFqn": "system.cards.html_card"
       },
       "d943b91b-4567-c2a1-222a-a3b45c09bb46": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
         "type": "alarm",
-        "title": "New widget",
         "sizeX": 8,
         "sizeY": 16,
         "config": {
@@ -7901,7 +7717,6 @@
               }
             ]
           },
-          "alarmSearchStatus": "ACTIVE",
           "alarmsPollingInterval": 5,
           "datasources": [],
           "showTitleIcon": false,
@@ -7928,28 +7743,27 @@
           },
           "alarmsMaxCountLoad": 0,
           "alarmsFetchSize": 100,
-          "alarmStatusList": [
-            "ACTIVE"
-          ],
-          "alarmSeverityList": [],
-          "alarmTypeList": [
-            "Daily Consumption Threshold Exceeded",
-            "Weekly Consumption Threshold Exceeded",
-            "Low Battery",
-            "Low Temperature",
-            "Device Inactive",
-            "Leakage Detected"
-          ],
-          "searchPropagatedAlarms": true
+          "alarmFilterConfig": {
+            "statusList": [
+              "ACTIVE"
+            ],
+            "severityList": [],
+            "typeList": [
+              "Daily Consumption Threshold Exceeded",
+              "Weekly Consumption Threshold Exceeded",
+              "Low Battery",
+              "Low Temperature",
+              "Device Inactive",
+              "Leakage Detected"
+            ],
+            "searchPropagatedAlarms": true
+          }
         },
-        "id": "d943b91b-4567-c2a1-222a-a3b45c09bb46"
+        "id": "d943b91b-4567-c2a1-222a-a3b45c09bb46",
+        "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
       "13b65109-e8bc-6916-e99e-e5a751541fe8": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 24,
         "sizeY": 16,
         "config": {
@@ -8147,14 +7961,11 @@
             ]
           }
         },
-        "id": "13b65109-e8bc-6916-e99e-e5a751541fe8"
+        "id": "13b65109-e8bc-6916-e99e-e5a751541fe8",
+        "typeFullFqn": "system.cards.entities_table"
       },
       "55d4a466-f942-6a80-65c0-2a12461d7c38": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
         "type": "alarm",
-        "title": "New widget",
         "sizeX": 8,
         "sizeY": 16,
         "config": {
@@ -8233,7 +8044,6 @@
               }
             ]
           },
-          "alarmSearchStatus": "ACTIVE",
           "alarmsPollingInterval": 5,
           "datasources": [],
           "showTitleIcon": false,
@@ -8260,28 +8070,27 @@
           },
           "alarmsMaxCountLoad": 0,
           "alarmsFetchSize": 100,
-          "alarmStatusList": [
-            "ACTIVE"
-          ],
-          "alarmSeverityList": [],
-          "alarmTypeList": [
-            "Daily Consumption Threshold Exceeded",
-            "Weekly Consumption Threshold Exceeded",
-            "Low Battery",
-            "Low Temperature",
-            "Device Inactive",
-            "Leakage Detected"
-          ],
-          "searchPropagatedAlarms": true
+          "alarmFilterConfig": {
+            "statusList": [
+              "ACTIVE"
+            ],
+            "severityList": [],
+            "typeList": [
+              "Daily Consumption Threshold Exceeded",
+              "Weekly Consumption Threshold Exceeded",
+              "Low Battery",
+              "Low Temperature",
+              "Device Inactive",
+              "Leakage Detected"
+            ],
+            "searchPropagatedAlarms": true
+          }
         },
-        "id": "55d4a466-f942-6a80-65c0-2a12461d7c38"
+        "id": "55d4a466-f942-6a80-65c0-2a12461d7c38",
+        "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
       "71458d45-9faf-3da6-1312-f1f416913dc1": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 24,
         "sizeY": 16,
         "config": {
@@ -8479,14 +8288,11 @@
             ]
           }
         },
-        "id": "71458d45-9faf-3da6-1312-f1f416913dc1"
+        "id": "71458d45-9faf-3da6-1312-f1f416913dc1",
+        "typeFullFqn": "system.cards.entities_table"
       },
       "9a8ff90e-c07e-3ae7-7119-fd08305da5cc": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
         "type": "alarm",
-        "title": "New widget",
         "sizeX": 8,
         "sizeY": 16,
         "config": {
@@ -8565,7 +8371,6 @@
               }
             ]
           },
-          "alarmSearchStatus": "ACTIVE",
           "alarmsPollingInterval": 5,
           "datasources": [],
           "showTitleIcon": false,
@@ -8592,28 +8397,27 @@
           },
           "alarmsMaxCountLoad": 0,
           "alarmsFetchSize": 100,
-          "alarmStatusList": [
-            "ACTIVE"
-          ],
-          "alarmSeverityList": [],
-          "alarmTypeList": [
-            "Daily Consumption Threshold Exceeded",
-            "Weekly Consumption Threshold Exceeded",
-            "Low Battery",
-            "Low Temperature",
-            "Device Inactive",
-            "Leakage Detected"
-          ],
-          "searchPropagatedAlarms": true
+          "alarmFilterConfig": {
+            "statusList": [
+              "ACTIVE"
+            ],
+            "severityList": [],
+            "typeList": [
+              "Daily Consumption Threshold Exceeded",
+              "Weekly Consumption Threshold Exceeded",
+              "Low Battery",
+              "Low Temperature",
+              "Device Inactive",
+              "Leakage Detected"
+            ],
+            "searchPropagatedAlarms": true
+          }
         },
-        "id": "9a8ff90e-c07e-3ae7-7119-fd08305da5cc"
+        "id": "9a8ff90e-c07e-3ae7-7119-fd08305da5cc",
+        "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
       "058daae7-781f-94a7-5ff3-8ae5cd2e12af": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -8665,14 +8469,11 @@
             ]
           }
         },
-        "id": "058daae7-781f-94a7-5ff3-8ae5cd2e12af"
+        "id": "058daae7-781f-94a7-5ff3-8ae5cd2e12af",
+        "typeFullFqn": "system.cards.html_card"
       },
       "1b661eb9-83f9-67de-3126-043155031cfb": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "html_card",
         "type": "static",
-        "title": "New widget",
         "sizeX": 4,
         "sizeY": 1,
         "config": {
@@ -8724,7 +8525,8 @@
             ]
           }
         },
-        "id": "1b661eb9-83f9-67de-3126-043155031cfb"
+        "id": "1b661eb9-83f9-67de-3126-043155031cfb",
+        "typeFullFqn": "system.cards.html_card"
       }
     },
     "states": {
@@ -8856,7 +8658,8 @@
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
               "margin": 8,
-              "backgroundImageUrl": null
+              "backgroundImageUrl": null,
+              "outerMargin": true
             }
           }
         }
@@ -8961,7 +8764,8 @@
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
               "margin": 8,
-              "backgroundImageUrl": null
+              "backgroundImageUrl": null,
+              "outerMargin": true
             }
           }
         }
@@ -9044,7 +8848,8 @@
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
               "margin": 8,
-              "backgroundImageUrl": null
+              "backgroundImageUrl": null,
+              "outerMargin": true
             }
           }
         }
@@ -9127,7 +8932,8 @@
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
               "margin": 8,
-              "backgroundImageUrl": null
+              "backgroundImageUrl": null,
+              "outerMargin": true
             }
           }
         }
@@ -9218,7 +9024,8 @@
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
               "margin": 8,
-              "backgroundImageUrl": null
+              "backgroundImageUrl": null,
+              "outerMargin": true
             }
           }
         }
@@ -9373,7 +9180,8 @@
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
               "margin": 8,
-              "backgroundImageUrl": null
+              "backgroundImageUrl": null,
+              "outerMargin": true
             }
           }
         }
@@ -9399,7 +9207,8 @@
               "autoFillHeight": true,
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
-              "margin": 8
+              "margin": 8,
+              "outerMargin": true
             }
           }
         }
@@ -9474,7 +9283,8 @@
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
               "margin": 8,
-              "backgroundImageUrl": null
+              "backgroundImageUrl": null,
+              "outerMargin": true
             }
           }
         }
@@ -9543,7 +9353,8 @@
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
               "margin": 8,
-              "backgroundImageUrl": null
+              "backgroundImageUrl": null,
+              "outerMargin": true
             }
           }
         }
@@ -9576,7 +9387,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -9645,7 +9457,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -9714,7 +9527,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -9783,7 +9597,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -9796,8 +9611,10 @@
         "filter": {
           "type": "deviceType",
           "resolveMultiple": true,
-          "deviceType": "Water Meter",
-          "deviceNameFilter": ""
+          "deviceNameFilter": "",
+          "deviceTypes": [
+            "Water Meter"
+          ]
         }
       },
       "9da9bd9c-a7cc-244f-16ac-3e2045cff5b1": {

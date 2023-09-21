@@ -601,6 +601,14 @@ export class EntityService {
         pageLink.sortOrder.property = 'name';
         entitiesObservable = this.notificationService.getNotificationTargets(pageLink, subType as NotificationType, config);
         break;
+      case EntityType.NOTIFICATION_TEMPLATE:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.notificationService.getNotificationTemplates(pageLink, subType as NotificationType, config);
+        break;
+      case EntityType.NOTIFICATION_RULE:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.notificationService.getNotificationRules(pageLink, config);
+        break;
     }
     return entitiesObservable;
   }
@@ -1092,7 +1100,8 @@ export class EntityService {
       );
   }
 
-  public getEntityKeysByEntityFilter(filter: EntityFilter, types: DataKeyType[], config?: RequestConfig): Observable<Array<DataKey>> {
+  public getEntityKeysByEntityFilter(filter: EntityFilter, types: DataKeyType[],
+                                     entityTypes?: EntityType[], config?: RequestConfig): Observable<Array<DataKey>> {
     if (!types.length) {
       return of([]);
     }
@@ -1108,7 +1117,7 @@ export class EntityService {
       entitiesKeysByQuery$ = of({
         attribute: [],
         timeseries: [],
-        entityTypes: [],
+        entityTypes: entityTypes || [],
       });
     }
     return entitiesKeysByQuery$.pipe(

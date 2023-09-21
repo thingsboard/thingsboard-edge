@@ -31,7 +31,6 @@
 package org.thingsboard.integration.remote;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
 import io.netty.channel.EventLoopGroup;
 import lombok.Data;
@@ -39,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
+import org.thingsboard.integration.api.IntegrationRateLimitService;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
@@ -56,6 +56,7 @@ import org.thingsboard.server.gen.integration.TbEventProto;
 import org.thingsboard.server.gen.integration.TbEventSource;
 import org.thingsboard.server.gen.integration.UplinkMsg;
 
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -64,7 +65,6 @@ import java.util.concurrent.ScheduledExecutorService;
 @RequiredArgsConstructor
 public class RemoteIntegrationContext implements IntegrationContext {
 
-    private static final ObjectMapper mapper = new ObjectMapper();
     private static final String REMOTE_INTEGRATION_CACHE = "remoteIntegration";
 
     protected final EventStorage eventStorage;
@@ -84,8 +84,8 @@ public class RemoteIntegrationContext implements IntegrationContext {
         this.configuration = configuration;
         this.clientId = clientId;
         this.port = port;
-        this.uplinkConverterContext = new RemoteConverterContext(eventStorage, true, mapper, clientId, port);
-        this.downlinkConverterContext = new RemoteConverterContext(eventStorage, false, mapper, clientId, port);
+        this.uplinkConverterContext = new RemoteConverterContext(eventStorage, true, clientId, port);
+        this.downlinkConverterContext = new RemoteConverterContext(eventStorage, false, clientId, port);
         this.scheduledExecutorService = scheduledExecutorService;
         this.generalExecutorService = generalExecutorService;
         this.callBackExecutorService = callBackExecutorService;
@@ -185,6 +185,11 @@ public class RemoteIntegrationContext implements IntegrationContext {
     @Override
     public void onDownlinkMessageProcessed(boolean success) {
         // Statistics for remote integrations is not supported
+    }
+
+    @Override
+    public Optional<IntegrationRateLimitService> getRateLimitService() {
+        return Optional.empty();
     }
 
     private void doSaveEvent(TbEventSource tbEventSource, Event event, String deviceName, IntegrationCallback<Void> callback) {

@@ -31,13 +31,13 @@
 package org.thingsboard.server.dao.role;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionalEventListener;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -50,6 +50,8 @@ import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
@@ -72,8 +74,6 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
     public static final String INCORRECT_ROLE_ID = "Incorrect roleId ";
     public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
     public static final String INCORRECT_ROLE_NAME = "Incorrect role name ";
-
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
     private RoleDao roleDao;
@@ -99,6 +99,8 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
         try {
             Role savedRole = roleDao.save(tenantId, role);
             publishEvictEvent(new RoleEvictEvent(savedRole.getId()));
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entityId(savedRole.getId())
+                    .added(role.getId() == null).build());
             return savedRole;
         } catch (Exception t) {
             checkConstraintViolation(t,
@@ -175,6 +177,7 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
         deleteEntityRelations(tenantId, roleId);
         roleDao.removeById(tenantId, roleId.getId());
         publishEvictEvent(new RoleEvictEvent(roleId));
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(roleId).build());
     }
 
     @Override
@@ -210,10 +213,10 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
             }
             role.setName(name);
             role.setType(type);
-            role.setPermissions(mapper.valueToTree(permissions));
+            role.setPermissions(JacksonUtil.valueToTree(permissions));
             JsonNode additionalInfo = role.getAdditionalInfo();
             if (additionalInfo == null) {
-                additionalInfo = mapper.createObjectNode();
+                additionalInfo = JacksonUtil.newObjectNode();
             }
             ((ObjectNode) additionalInfo).put("description", description);
             role.setAdditionalInfo(additionalInfo);
@@ -322,6 +325,11 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
     @Override
     public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
         return Optional.ofNullable(findRoleById(tenantId, new RoleId(entityId.getId())));
+    }
+
+    @Override
+    public void deleteEntity(TenantId tenantId, EntityId id) {
+        deleteRole(tenantId, (RoleId) id);
     }
 
     @Override

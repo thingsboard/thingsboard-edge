@@ -32,9 +32,7 @@ package org.thingsboard.server.dao.service;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.commons.lang3.NotImplementedException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -47,6 +45,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
+import org.testcontainers.shaded.org.apache.commons.lang3.NotImplementedException;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
@@ -81,11 +80,13 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.tenant.TenantService;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 import static org.junit.Assert.assertNotNull;
@@ -98,8 +99,6 @@ import static org.junit.Assert.assertNotNull;
 @ComponentScan("org.thingsboard.server")
 public abstract class AbstractServiceTest {
 
-    protected ObjectMapper mapper = new ObjectMapper();
-
     public static final TenantId SYSTEM_TENANT_ID = TenantId.SYS_TENANT_ID;
 
     @Autowired
@@ -109,7 +108,7 @@ public abstract class AbstractServiceTest {
 
     @Before
     public void beforeAbstractService() {
-        tenantId = createTenant();
+        tenantId = createTenant().getId();
     }
 
     @After
@@ -135,28 +134,11 @@ public abstract class AbstractServiceTest {
                 .data(JacksonUtil.toString(readFromResource("TestJsonData.json")))
                 .build();
     }
-//
-//    private ComponentDescriptor getOrCreateDescriptor(ComponentScope scope, ComponentType type, String clazz, String configurationDescriptorResource) throws IOException {
-//        return getOrCreateDescriptor(scope, type, clazz, configurationDescriptorResource, null);
-//    }
-//
-//    private ComponentDescriptor getOrCreateDescriptor(ComponentScope scope, ComponentType type, String clazz, String configurationDescriptorResource, String actions) throws IOException {
-//        ComponentDescriptor descriptor = componentDescriptorService.findByClazz(clazz);
-//        if (descriptor == null) {
-//            descriptor = new ComponentDescriptor();
-//            descriptor.setName("test");
-//            descriptor.setClazz(clazz);
-//            descriptor.setScope(scope);
-//            descriptor.setType(type);
-//            descriptor.setActions(actions);
-//            descriptor.setConfigurationDescriptor(readFromResource(configurationDescriptorResource));
-//            componentDescriptorService.saveComponent(descriptor);
-//        }
-//        return descriptor;
-//    }
 
     public JsonNode readFromResource(String resourceName) throws IOException {
-        return mapper.readTree(this.getClass().getClassLoader().getResourceAsStream(resourceName));
+        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream(resourceName)){
+            return JacksonUtil.fromBytes(Objects.requireNonNull(is).readAllBytes());
+        }
     }
 
     @Bean
@@ -198,12 +180,12 @@ public abstract class AbstractServiceTest {
         return assetProfile;
     }
 
-    public TenantId createTenant() {
+    public Tenant createTenant() {
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant " + UUID.randomUUID());
         Tenant savedTenant = tenantService.saveTenant(tenant);
         assertNotNull(savedTenant);
-        return savedTenant.getId();
+        return savedTenant;
     }
 
     protected Edge constructEdge(TenantId tenantId, String name, String type) {
@@ -254,8 +236,7 @@ public abstract class AbstractServiceTest {
                 new ColumnConfiguration(ColumnType.ENTITY_FIELD, EntityField.NAME.name().toLowerCase())
         ));
 
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode jsonConfiguration = mapper.valueToTree(entityGroupConfiguration);
+        ObjectNode jsonConfiguration = JacksonUtil.OBJECT_MAPPER.valueToTree(entityGroupConfiguration);
         jsonConfiguration.putObject("settings");
         jsonConfiguration.putObject("actions");
         testDevicesGroup.setConfiguration(jsonConfiguration);

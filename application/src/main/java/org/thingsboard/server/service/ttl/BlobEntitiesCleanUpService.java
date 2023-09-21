@@ -69,7 +69,7 @@ public class BlobEntitiesCleanUpService extends AbstractCleanUpService {
         if (isSystemTenantPartitionMine()) {
             blobEntityDao.cleanUpBlobEntities(blobEntitiesExpTime);
         } else {
-            partitioningRepository.cleanupPartitionsCache(ModelConstants.BLOB_ENTITY_COLUMN_FAMILY_NAME, blobEntitiesExpTime, TimeUnit.HOURS.toMillis(partitionSizeInHours));
+            partitioningRepository.cleanupPartitionsCache(ModelConstants.BLOB_ENTITY_TABLE_NAME, blobEntitiesExpTime, TimeUnit.HOURS.toMillis(partitionSizeInHours));
         }
     }
 

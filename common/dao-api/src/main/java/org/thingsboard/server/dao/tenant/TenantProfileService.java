@@ -49,6 +49,8 @@ public interface TenantProfileService extends EntityDaoService {
 
     TenantProfile saveTenantProfile(TenantId tenantId, TenantProfile tenantProfile);
 
+    TenantProfile saveTenantProfile(TenantId tenantId, TenantProfile tenantProfile, boolean doValidate);
+
     void deleteTenantProfile(TenantId tenantId, TenantProfileId tenantProfileId);
 
     PageData<TenantProfile> findTenantProfiles(TenantId tenantId, PageLink pageLink);

@@ -162,6 +162,18 @@ public class TestRestClient {
                 .as(Device.class);
     }
 
+    public PageData<Device> getDevices(PageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        addPageLinkToParam(params, pageLink);
+        return given().spec(requestSpec).queryParams(params)
+                .get("/api/tenant/devices")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(new TypeRef<PageData<Device>>() {
+                });
+    }
+
     public DeviceCredentials getDeviceCredentialsByDeviceId(DeviceId deviceId) {
         return given().spec(requestSpec).get("/api/device/{deviceId}/credentials", deviceId.getId())
                 .then()
@@ -197,6 +209,16 @@ public class TestRestClient {
                 .post("/api/plugins/telemetry/{entityType}/{entityId}/attributes/{scope}", entityType, deviceId.getId(), scope)
                 .then()
                 .statusCode(HTTP_OK);
+    }
+
+    public List<JsonNode> getEntityAttributeByScopeAndKey(EntityId entityId, String scope, String key) {
+        return given().spec(requestSpec)
+                .get("/api/plugins/telemetry/{entityType}/{entityId}/values/attributes/{scope}?keys={key}", entityId.getEntityType(), entityId.getId(), scope, key)
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(new TypeRef<List<JsonNode>>() {
+                });
     }
 
     public ValidatableResponse postAttribute(String accessToken, JsonNode attribute) {
@@ -463,6 +485,14 @@ public class TestRestClient {
                 .statusCode(HTTP_OK)
                 .extract()
                 .as(Integration.class);
+    }
+
+    public void checkConnection(Integration integration) {
+        given().spec(requestSpec)
+                .body(integration)
+                .post("/api/integration/check")
+                .then()
+                .statusCode(HTTP_OK);
     }
 
     public void saveEntityAttributes(String entityType, String entityId, String scope, JsonNode request) {
@@ -869,5 +899,12 @@ public class TestRestClient {
                 .extract()
                 .as(new TypeRef<PageData<DashboardInfo>>() {
                 }).getData();
+    }
+
+    public void setEntityGroupPublic(EntityGroupId entityGroupId) {
+        given().spec(requestSpec)
+                .post("/api/entityGroup/{entityGroupId}/makePublic", entityGroupId.getId())
+                .then()
+                .statusCode(HTTP_OK);
     }
 }

@@ -1,20 +1,33 @@
 {
   "title": "Temperature & Humidity",
+  "image": null,
+  "mobileHide": false,
+  "mobileOrder": null,
   "configuration": {
     "widgets": {
       "f33c746c-0dfc-c212-395b-b448c8a17209": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 11,
         "sizeY": 11,
         "config": {
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
+              "realtimeType": 1,
               "interval": 1000,
-              "timewindowMs": 86400000
+              "timewindowMs": 86400000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1693820900298,
+                "endTimeMs": 1693907300298
+              },
+              "quickInterval": "CURRENT_DAY"
             },
             "aggregation": {
               "type": "NONE",
@@ -43,7 +56,7 @@
           "titleStyle": {
             "fontSize": "16px",
             "fontWeight": 400,
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "useDashboardTimewindow": false,
           "showLegend": false,
@@ -213,16 +226,16 @@
               }
             ]
           },
-          "enableDataExport": true
+          "enableDataExport": true,
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
-        "id": "f33c746c-0dfc-c212-395b-b448c8a17209"
+        "id": "f33c746c-0dfc-c212-395b-b448c8a17209",
+        "typeFullFqn": "system.cards.entities_table"
       },
       "7943196b-eedb-d422-f9c3-b32d379ad172": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
         "type": "alarm",
-        "title": "New widget",
         "sizeX": 13,
         "sizeY": 5,
         "config": {
@@ -259,7 +272,7 @@
           "titleStyle": {
             "fontSize": "16px",
             "fontWeight": 400,
-            "padding": "5px 10px 5px 10px"
+            "padding": "5px 10px 5px 0px"
           },
           "useDashboardTimewindow": false,
           "showLegend": false,
@@ -311,7 +324,6 @@
               }
             ]
           },
-          "alarmSearchStatus": "ANY",
           "alarmsPollingInterval": 5,
           "showTitleIcon": false,
           "titleIcon": null,
@@ -323,16 +335,23 @@
           "actions": {},
           "datasources": [],
           "alarmsMaxCountLoad": 0,
-          "alarmsFetchSize": 100
+          "alarmsFetchSize": 100,
+          "alarmFilterConfig": {
+            "statusList": [],
+            "severityList": [],
+            "typeList": [],
+            "searchPropagatedAlarms": true
+          },
+          "enableDataExport": true,
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
-        "id": "7943196b-eedb-d422-f9c3-b32d379ad172"
+        "id": "7943196b-eedb-d422-f9c3-b32d379ad172",
+        "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
       "14a19183-f0b2-d6be-0f62-9863f0a51111": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
         "sizeX": 18,
         "sizeY": 6,
         "config": {
@@ -420,7 +439,16 @@
               "axisPosition": "top",
               "showLabels": true
             },
-            "smoothLines": true
+            "smoothLines": true,
+            "showLegend": true,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "showMin": true,
+              "showMax": true,
+              "showAvg": true,
+              "showTotal": false
+            }
           },
           "title": "Temperature",
           "dropShadow": true,
@@ -438,25 +466,13 @@
           "widgetStyle": {},
           "useDashboardTimewindow": false,
           "displayTimewindow": true,
-          "showLegend": true,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "showMin": true,
-            "showMax": true,
-            "showAvg": true,
-            "showTotal": false
-          },
           "actions": {}
         },
-        "id": "14a19183-f0b2-d6be-0f62-9863f0a51111"
+        "id": "14a19183-f0b2-d6be-0f62-9863f0a51111",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "07f49fd5-a73b-d74c-c220-362c20af81f4": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
         "sizeX": 18,
         "sizeY": 6,
         "config": {
@@ -546,7 +562,16 @@
               "axisPosition": "top",
               "showLabels": true
             },
-            "smoothLines": true
+            "smoothLines": true,
+            "showLegend": true,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "showMin": true,
+              "showMax": true,
+              "showAvg": true,
+              "showTotal": false
+            }
           },
           "title": "Humidity",
           "dropShadow": true,
@@ -564,25 +589,13 @@
           "widgetStyle": {},
           "useDashboardTimewindow": false,
           "displayTimewindow": true,
-          "showLegend": true,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "showMin": true,
-            "showMax": true,
-            "showAvg": true,
-            "showTotal": false
-          },
           "actions": {}
         },
-        "id": "07f49fd5-a73b-d74c-c220-362c20af81f4"
+        "id": "07f49fd5-a73b-d74c-c220-362c20af81f4",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "c4631f94-2db3-523b-4d09-2a1a0a75d93f": {
-        "isSystemType": true,
-        "bundleAlias": "input_widgets",
-        "typeAlias": "update_multiple_attributes",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 6,
         "sizeY": 6,
         "config": {
@@ -614,15 +627,26 @@
                   "label": "High temperature threshold, °C",
                   "color": "#f44336",
                   "settings": {
+                    "dataKeyHidden": false,
                     "dataKeyType": "server",
                     "dataKeyValueType": "double",
                     "required": false,
                     "isEditable": "editable",
-                    "dataKeyHidden": false,
+                    "disabledOnDataKey": "temperatureAlarmFlag",
+                    "appearance": "outline",
+                    "subscriptSizing": "dynamic",
                     "step": 1,
-                    "disabledOnDataKey": "temperatureAlarmFlag"
+                    "useCustomIcon": false,
+                    "useGetValueFunction": false,
+                    "useSetValueFunction": false
                   },
-                  "_hash": 0.7316078472857874
+                  "_hash": 0.7316078472857874,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
                 },
                 {
                   "name": "humidityAlarmFlag",
@@ -645,15 +669,26 @@
                   "label": "Low humidity threshold, %",
                   "color": "#607d8b",
                   "settings": {
+                    "dataKeyHidden": false,
                     "dataKeyType": "server",
                     "dataKeyValueType": "double",
                     "required": false,
                     "isEditable": "editable",
-                    "dataKeyHidden": false,
+                    "disabledOnDataKey": "humidityAlarmFlag",
+                    "appearance": "outline",
+                    "subscriptSizing": "dynamic",
                     "step": 1,
-                    "disabledOnDataKey": "humidityAlarmFlag"
+                    "useCustomIcon": false,
+                    "useGetValueFunction": false,
+                    "useSetValueFunction": false
                   },
-                  "_hash": 0.2687091190358901
+                  "_hash": 0.2687091190358901,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
                 },
                 {
                   "name": "latitude",
@@ -661,21 +696,25 @@
                   "label": "Latitude",
                   "color": "#607d8b",
                   "settings": {
+                    "dataKeyHidden": false,
                     "dataKeyType": "server",
                     "dataKeyValueType": "double",
-                    "step": 0.1,
                     "required": false,
-                    "requiredErrorMessage": "",
-                    "invalidDateErrorMessage": "",
                     "isEditable": "editable",
-                    "dataKeyHidden": false
+                    "appearance": "outline",
+                    "subscriptSizing": "dynamic",
+                    "step": 0.1,
+                    "useCustomIcon": false,
+                    "useGetValueFunction": false,
+                    "useSetValueFunction": false
                   },
                   "_hash": 0.6611936029604872,
                   "units": null,
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": null,
-                  "postFuncBody": null
+                  "postFuncBody": null,
+                  "aggregationType": null
                 },
                 {
                   "name": "longitude",
@@ -683,28 +722,56 @@
                   "label": "Longitude",
                   "color": "#9c27b0",
                   "settings": {
+                    "dataKeyHidden": false,
                     "dataKeyType": "server",
                     "dataKeyValueType": "double",
                     "required": false,
-                    "requiredErrorMessage": "",
-                    "invalidDateErrorMessage": "",
                     "isEditable": "editable",
-                    "dataKeyHidden": false,
-                    "step": 0.1
+                    "appearance": "outline",
+                    "subscriptSizing": "dynamic",
+                    "step": 0.1,
+                    "useCustomIcon": false,
+                    "useGetValueFunction": false,
+                    "useSetValueFunction": false
                   },
                   "_hash": 0.15440529767536004,
                   "units": null,
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": null,
-                  "postFuncBody": null
+                  "postFuncBody": null,
+                  "aggregationType": null
                 }
-              ]
+              ],
+              "alarmFilterConfig": {
+                "statusList": [
+                  "ACTIVE"
+                ]
+              }
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1693820900298,
+                "endTimeMs": 1693907300298
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": true,
@@ -712,12 +779,16 @@
           "color": "rgba(0, 0, 0, 0.87)",
           "padding": "8px",
           "settings": {
-            "showActionButtons": true,
+            "widgetTitle": "Sensor settings",
             "showResultMessage": true,
+            "showActionButtons": true,
+            "updateAllValues": false,
+            "showGroupTitle": false,
             "fieldsAlignment": "column",
-            "fieldsInRow": 2,
+            "rowGap": 16,
             "groupTitle": "${entityName}",
-            "widgetTitle": "Sensor settings"
+            "fieldsInRow": 2,
+            "columnGap": 10
           },
           "title": "New Update Multiple Attributes",
           "dropShadow": true,
@@ -738,14 +809,11 @@
           "titleTooltip": "",
           "displayTimewindow": true
         },
-        "id": "c4631f94-2db3-523b-4d09-2a1a0a75d93f"
+        "id": "c4631f94-2db3-523b-4d09-2a1a0a75d93f",
+        "typeFullFqn": "system.input_widgets.update_multiple_attributes"
       },
       "3da9a9a1-0b9a-2e1f-0dcb-0ff34a695abb": {
-        "isSystemType": true,
-        "bundleAlias": "maps_v2",
-        "typeAlias": "openstreetmap",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 13,
         "sizeY": 6,
         "config": {
@@ -802,8 +870,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1693820900298,
+                "endTimeMs": 1693907300298
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -879,14 +966,11 @@
           "displayTimewindow": true,
           "enableDataExport": false
         },
-        "id": "3da9a9a1-0b9a-2e1f-0dcb-0ff34a695abb"
+        "id": "3da9a9a1-0b9a-2e1f-0dcb-0ff34a695abb",
+        "typeFullFqn": "system.maps_v2.openstreetmap"
       },
       "00fb2742-ba1f-7e43-673f-d6c08b72ed06": {
-        "isSystemType": true,
-        "bundleAlias": "input_widgets",
-        "typeAlias": "markers_placement_openstreetmap",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 24,
         "sizeY": 12,
         "config": {
@@ -941,8 +1025,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1693820900298,
+                "endTimeMs": 1693907300298
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -1017,14 +1120,11 @@
           "displayTimewindow": true,
           "enableDataExport": false
         },
-        "id": "00fb2742-ba1f-7e43-673f-d6c08b72ed06"
+        "id": "00fb2742-ba1f-7e43-673f-d6c08b72ed06",
+        "typeFullFqn": "system.input_widgets.markers_placement_openstreetmap"
       },
       "0a430429-9078-9ae6-2b67-e4a15a2bf8bf": {
-        "isSystemType": true,
-        "bundleAlias": "input_widgets",
-        "typeAlias": "markers_placement_openstreetmap",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 6,
         "sizeY": 6,
         "config": {
@@ -1079,8 +1179,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1693820900298,
+                "endTimeMs": 1693907300298
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -1155,7 +1274,8 @@
           "displayTimewindow": true,
           "enableDataExport": false
         },
-        "id": "0a430429-9078-9ae6-2b67-e4a15a2bf8bf"
+        "id": "0a430429-9078-9ae6-2b67-e4a15a2bf8bf",
+        "typeFullFqn": "system.input_widgets.markers_placement_openstreetmap"
       }
     },
     "states": {
@@ -1192,7 +1312,8 @@
               "autoFillHeight": true,
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
-              "margin": 10
+              "margin": 10,
+              "outerMargin": true
             }
           }
         }
@@ -1218,7 +1339,8 @@
               "autoFillHeight": true,
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
-              "margin": 10
+              "margin": 10,
+              "outerMargin": true
             }
           }
         }
@@ -1264,7 +1386,8 @@
               "autoFillHeight": true,
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
-              "margin": 10
+              "margin": 10,
+              "outerMargin": true
             }
           }
         }
@@ -1277,8 +1400,10 @@
         "filter": {
           "type": "deviceType",
           "resolveMultiple": true,
-          "deviceType": "Temperature Sensor",
-          "deviceNameFilter": ""
+          "deviceNameFilter": "",
+          "deviceTypes": [
+            "Temperature Sensor"
+          ]
         }
       },
       "12ae98c7-1ea2-52cf-64d5-763e9d993547": {
@@ -1329,5 +1454,6 @@
     },
     "filters": {}
   },
+  "externalId": null,
   "name": "Temperature & Humidity"
 }

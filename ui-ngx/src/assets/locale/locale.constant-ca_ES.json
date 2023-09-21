@@ -632,6 +632,7 @@
         "attributes": "Atributs",
         "latest-telemetry": "Última telemetria",
         "attributes-scope": "Abast dels atributs del dispositiu",
+        "scope-telemetry": "Telemetria",
         "scope-latest-telemetry": "Última telemetria",
         "scope-client": "Atributs del Client",
         "scope-server": "Atributs del Servidor",
@@ -1376,13 +1377,7 @@
         "device-configuration": "Configuració del dispositiu",
         "transport-configuration": "Configuració del transport",
         "wizard": {
-            "device-wizard": "Assistent de dispositiu",
-            "device-details": "Detalls del dispositiu",
-            "new-device-profile": "Crear un nou perfil de dispositiu",
-            "existing-device-profile": "Seleccionar un perfil existent",
-            "specific-configuration": "Configuració específica",
-            "customer-to-assign-device": "Client al que assignar el dispositiu",
-            "add-credentials": "Afegir credencial"
+            "device-details": "Detalls del dispositiu"
         },
         "unassign-devices-from-edge-title": "Està segur de que desitja desassignar {count, plural, =1 {1 dispositivo} other {# dispositivos} }?",
         "unassign-devices-from-edge-text": "Després de la confirmació, tots els dispositius seleccionats quedaran sense assignar i la vora no podrà accedir a ells."
@@ -1404,8 +1399,6 @@
         "delete": "Esborrar perfil de dispositiu",
         "copyId": "Copiar ID de perfil",
         "name-max-length": "El nom ha de ser inferior a 256",
-        "new-device-profile-name": "Nom del perfil",
-        "new-device-profile-name-required": "Cal nom de perfil.",
         "name": "Nom",
         "name-required": "Cal nom.",
         "type": "Tipus de perfil",
@@ -1997,7 +1990,6 @@
         "help-text": "Utilitzeu '%' segons les necessitats: '%entity_name_contains%', '%entity_name_ends', 'entity_starts_with'.",
         "use-entity-name-filter": "Utilitza filtre",
         "entity-list-empty": "No hi ha entitats seleccionades.",
-        "entity-type-list-empty": "No hi ha tipus d'entitat seleccionats.",
         "entity-name-filter-required": "Cal filtre de nom d'entitat.",
         "entity-name-filter-no-entity-matched": "No hi ha entitats que comencen amb '{{entity}}' .",
         "all-subtypes": "Tots",
@@ -2810,7 +2802,6 @@
         "browse-files": "Navegar fitxers"
     },
     "image-input": {
-        "drop-image-or": "Arrossegar i deixar anar imatges o",
         "drop-images-or": "Arrossegar i deixar anar imatges o",
         "no-images": "No hi ha imatges seleccionades",
         "images": "imatges"
@@ -2965,8 +2956,6 @@
         "connect-timeout-range": "Temps d'espera de connexió ha d'estar en un rang entre 1 i 200.",
         "client-id": "ID del client",
         "client-id-required": "Cal Client ID.",
-        "client-id-range": "L'identificador de client ha de tenir entre 1 i 23 caràcters. [MQTT-3.1.3-5]",
-        "client-id-pattern": "L'identificador de client ha de constar de números, lletres majúscules i minúscules. [MQTT-3.1.3-5]",
         "client-id-hint": "Pista: opcional. Deixeu en blanc l'identificador de client generat automàticament. Aneu amb compte quan especifiqueu l'identificador de client. La majoria dels corredors de MQTT no permetran connexions múltiples amb el mateix identificador de client. Per connectar-se a aquests corredors, el vostre identificador de client mqtt ha de ser únic.",
         "max-bytes-in-message": "Màxim bytes al missatge",
         "max-bytes-in-message-range": "El màxim de bytes del missatge hauria d'estar en un interval d'1 a 256000000.",
@@ -3675,7 +3664,6 @@
         "name-required": "Cal el nom.",
         "name-max-length": "El nom ha de ser inferior a 256",
         "type": "Tipus",
-        "description": "Descripció",
         "delete": "Eliminar node de regles",
         "select-all-objects": "Seleccionar tots els nodes i conexions",
         "deselect-all-objects": "Desfer selecció de tots els nodes i conexions",
@@ -4489,7 +4477,7 @@
         "created": "{{created}} creades",
         "updated": "{{updated}} actualitzades",
         "deleted": "{{deleted}} esborrades",
-        "remove-other-entities-confirm-text": "Atenció! Aquesta acció <b>esborrarà</b> permanentment <b>todas</b> les entitats actuals<br/>no presents a la versió a restaurar.<br/><br/>Escriu <b>eliminar altres entitats</b> per confirmar.",
+        "remove-other-entities-confirm-text": "Atenció! Aquesta acció <b>esborrarà</b> permanentment <b>todas</b> les entitats actuals<br/>no presents a la versió a restaurar.<br/><br/>Escriu <b>\"remove other entities\"</b> per confirmar.",
         "auto-commit-to-branch": "autopublicar a la branca <b>{{ branch }}</b>",
         "default-create-entity-version-name": "{{entityName}} actualizació",
         "sync-strategy-merge-hint": "Crea o actualitza les entitats seleccionades al repositori. Les altres entitats <b>no seran modificades</b>.",
@@ -4785,7 +4773,6 @@
         "dark-foreground": "Primer pla fosc",
         "domain-name": "Nom del domini",
         "base-url": "Base URL",
-        "base-url-required": "Cal la base URL.",
         "prohibit-different-url": "Prohibir l'ús del nom d'amfitrió de les capçaleres de la sol·licitud del client",
         "prohibit-different-url-hint": "Aquesta configuració s'hauria d'habilitar per als entorns de producció. Pot causar problemes de seguretat quan està desactivat",
         "help-link-base-url": "URL base dels enllaços d'ajuda",

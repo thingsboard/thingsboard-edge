@@ -14,7 +14,7 @@ Also, for start test for MQTT integration, you need to have an **_eclipse-mosqui
 
 Also, for start test for OPC UA integration, you need to have an **_opc-plc_** image. For get this image, you need use:
 
-        docker pull mcr.microsoft.com/iotedge/opc-plc:latest
+        docker pull mcr.microsoft.com/iotedge/opc-plc:2.8.5
 
 As result, in REPOSITORY column, next images should be present:
 
@@ -37,6 +37,10 @@ As result, in REPOSITORY column, next images should be present:
 - Run the black box tests in the [msa/black-box-tests](../black-box-tests) directory with Redis cluster:
 
         mvn clean install -DblackBoxTests.skip=false -DblackBoxTests.redisCluster=true
+
+- Run the black box tests in the [msa/black-box-tests](../black-box-tests) directory with Redis sentinel:
+
+        mvn clean install -DblackBoxTests.skip=false -DblackBoxTests.redisSentinel=true
 
 - Run the black box tests in the [msa/black-box-tests](../black-box-tests) directory in Hybrid mode (postgres +
   cassandra):

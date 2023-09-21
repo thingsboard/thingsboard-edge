@@ -1,0 +1,310 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+package org.thingsboard.server.edge;
+
+import com.datastax.oss.driver.api.core.uuid.Uuids;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.protobuf.AbstractMessage;
+import org.junit.Assert;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.EntityViewInfo;
+import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.gen.edge.v1.EdgeEntityType;
+import org.thingsboard.server.gen.edge.v1.EntityGroupRequestMsg;
+import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@DaoSqlTest
+public class EntityViewEdgeTest extends AbstractEdgeTest {
+
+    @Test
+    @Ignore
+    public void testEntityViews() throws Exception {
+        Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
+
+        // create entity view entity group and assign to edge
+        EntityGroup entityViewEntityGroup1 = createEntityGroupAndAssignToEdge(EntityType.ENTITY_VIEW, "EntityViewGroupGroup1", tenantId);
+
+        // create entity view and add to entity group 1
+        edgeImitator.expectMessageAmount(1);
+        EntityView savedEntityView = saveEntityView("Edge Entity View 1", device.getId(), entityViewEntityGroup1.getId());
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof EntityViewUpdateMsg);
+        EntityViewUpdateMsg entityViewUpdateMsg = (EntityViewUpdateMsg) latestMessage;
+        Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, entityViewUpdateMsg.getMsgType());
+        Assert.assertEquals(savedEntityView.getType(), entityViewUpdateMsg.getType());
+        Assert.assertEquals(savedEntityView.getName(), entityViewUpdateMsg.getName());
+        Assert.assertEquals(savedEntityView.getUuidId().getMostSignificantBits(), entityViewUpdateMsg.getIdMSB());
+        Assert.assertEquals(savedEntityView.getUuidId().getLeastSignificantBits(), entityViewUpdateMsg.getIdLSB());
+        Assert.assertEquals(device.getUuidId().getMostSignificantBits(), entityViewUpdateMsg.getEntityIdMSB());
+        Assert.assertEquals(device.getUuidId().getLeastSignificantBits(), entityViewUpdateMsg.getEntityIdLSB());
+        Assert.assertEquals(device.getId().getEntityType().name(), entityViewUpdateMsg.getEntityType().name());
+        testAutoGeneratedCodeByProtobuf(entityViewUpdateMsg);
+
+        // request entity views by entity group id
+        testEntityViewEntityGroupRequestMsg(entityViewEntityGroup1.getUuidId().getMostSignificantBits(),
+                entityViewEntityGroup1.getUuidId().getLeastSignificantBits(),
+                savedEntityView.getId());
+
+        // add entity view to entity group 2
+        EntityGroup entityViewEntityGroup2 = createEntityGroupAndAssignToEdge(EntityType.ENTITY_VIEW, "EntityViewGroup2", tenantId);
+        edgeImitator.expectMessageAmount(1);
+        addEntitiesToEntityGroup(Collections.singletonList(savedEntityView.getId()), entityViewEntityGroup2.getId());
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof EntityViewUpdateMsg);
+        entityViewUpdateMsg = (EntityViewUpdateMsg) latestMessage;
+        Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, entityViewUpdateMsg.getMsgType());
+        Assert.assertEquals(entityViewEntityGroup2.getUuidId().getMostSignificantBits(), entityViewUpdateMsg.getEntityGroupIdMSB());
+        Assert.assertEquals(entityViewEntityGroup2.getUuidId().getLeastSignificantBits(), entityViewUpdateMsg.getEntityGroupIdLSB());
+
+        // update entity view
+        edgeImitator.expectMessageAmount(1);
+        savedEntityView.setName("Edge Entity View 1 Updated");
+        savedEntityView = doPost("/api/entityView", savedEntityView, EntityView.class);
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof EntityViewUpdateMsg);
+        entityViewUpdateMsg = (EntityViewUpdateMsg) latestMessage;
+        Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, entityViewUpdateMsg.getMsgType());
+        Assert.assertEquals("Edge Entity View 1 Updated", entityViewUpdateMsg.getName());
+
+        // remove entity view from entity group 2
+        edgeImitator.expectMessageAmount(1);
+        deleteEntitiesFromEntityGroup(Collections.singletonList(savedEntityView.getId()), entityViewEntityGroup2.getId());
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof EntityViewUpdateMsg);
+        entityViewUpdateMsg = (EntityViewUpdateMsg) latestMessage;
+        Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, entityViewUpdateMsg.getMsgType());
+        Assert.assertEquals(entityViewEntityGroup2.getUuidId().getMostSignificantBits(), entityViewUpdateMsg.getEntityGroupIdMSB());
+        Assert.assertEquals(entityViewEntityGroup2.getUuidId().getLeastSignificantBits(), entityViewUpdateMsg.getEntityGroupIdLSB());
+
+        unAssignEntityGroupFromEdge(entityViewEntityGroup2);
+
+        // delete entity view
+        edgeImitator.expectMessageAmount(1);
+        doDelete("/api/entityView/" + savedEntityView.getUuidId())
+                .andExpect(status().isOk());
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof EntityViewUpdateMsg);
+        entityViewUpdateMsg = (EntityViewUpdateMsg) latestMessage;
+        Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, entityViewUpdateMsg.getMsgType());
+        Assert.assertEquals(savedEntityView.getUuidId().getMostSignificantBits(), entityViewUpdateMsg.getIdMSB());
+        Assert.assertEquals(savedEntityView.getUuidId().getLeastSignificantBits(), entityViewUpdateMsg.getIdLSB());
+    }
+
+    @Test
+    @Ignore
+    public void testSendEntityViewToCloud() throws Exception {
+        Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
+
+        UUID uuid = Uuids.timeBased();
+
+        UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
+        EntityViewUpdateMsg.Builder entityViewUpdateMsgBuilder = EntityViewUpdateMsg.newBuilder();
+        entityViewUpdateMsgBuilder.setIdMSB(uuid.getMostSignificantBits());
+        entityViewUpdateMsgBuilder.setIdLSB(uuid.getLeastSignificantBits());
+        entityViewUpdateMsgBuilder.setName("Edge EntityView 2");
+        entityViewUpdateMsgBuilder.setType("test");
+        entityViewUpdateMsgBuilder.setEntityType(EdgeEntityType.DEVICE);
+        entityViewUpdateMsgBuilder.setEntityIdMSB(device.getUuidId().getMostSignificantBits());
+        entityViewUpdateMsgBuilder.setEntityIdLSB(device.getUuidId().getLeastSignificantBits());
+        entityViewUpdateMsgBuilder.setMsgType(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE);
+        testAutoGeneratedCodeByProtobuf(entityViewUpdateMsgBuilder);
+        uplinkMsgBuilder.addEntityViewUpdateMsg(entityViewUpdateMsgBuilder.build());
+
+        testAutoGeneratedCodeByProtobuf(uplinkMsgBuilder);
+
+        edgeImitator.expectResponsesAmount(1);
+        edgeImitator.expectMessageAmount(1);
+
+        edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
+
+        Assert.assertTrue(edgeImitator.waitForResponses());
+
+        UplinkResponseMsg latestResponseMsg = edgeImitator.getLatestResponseMsg();
+        Assert.assertTrue(latestResponseMsg.getSuccess());
+
+        EntityView entityView = doGet("/api/entityView/" + uuid, EntityView.class);
+        Assert.assertNotNull(entityView);
+        Assert.assertEquals("Edge EntityView 2", entityView.getName());
+    }
+
+    @Test
+    @Ignore
+    public void testSendEntityViewToCloudWithNameThatAlreadyExistsOnCloud() throws Exception {
+        Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
+
+        String entityViewOnCloudName = StringUtils.randomAlphanumeric(15);
+        EntityView entityViewOnCloud = saveEntityView(entityViewOnCloudName, device.getId(), null);
+
+        UUID uuid = Uuids.timeBased();
+
+        UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
+        EntityViewUpdateMsg.Builder entityViewUpdateMsgBuilder = EntityViewUpdateMsg.newBuilder();
+        entityViewUpdateMsgBuilder.setIdMSB(uuid.getMostSignificantBits());
+        entityViewUpdateMsgBuilder.setIdLSB(uuid.getLeastSignificantBits());
+        entityViewUpdateMsgBuilder.setName(entityViewOnCloudName);
+        entityViewUpdateMsgBuilder.setType("test");
+        entityViewUpdateMsgBuilder.setEntityType(EdgeEntityType.DEVICE);
+        entityViewUpdateMsgBuilder.setEntityIdMSB(device.getUuidId().getMostSignificantBits());
+        entityViewUpdateMsgBuilder.setEntityIdLSB(device.getUuidId().getLeastSignificantBits());
+        entityViewUpdateMsgBuilder.setMsgType(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE);
+        testAutoGeneratedCodeByProtobuf(entityViewUpdateMsgBuilder);
+        uplinkMsgBuilder.addEntityViewUpdateMsg(entityViewUpdateMsgBuilder.build());
+
+        testAutoGeneratedCodeByProtobuf(uplinkMsgBuilder);
+
+        edgeImitator.expectResponsesAmount(1);
+        edgeImitator.expectMessageAmount(1);
+
+        edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
+
+        Assert.assertTrue(edgeImitator.waitForResponses());
+        Assert.assertTrue(edgeImitator.waitForMessages());
+
+        Optional<EntityViewUpdateMsg> entityViewUpdateMsgOpt = edgeImitator.findMessageByType(EntityViewUpdateMsg.class);
+        Assert.assertTrue(entityViewUpdateMsgOpt.isPresent());
+        EntityViewUpdateMsg latestEntityViewUpdateMsg = entityViewUpdateMsgOpt.get();
+        Assert.assertNotEquals(entityViewOnCloudName, latestEntityViewUpdateMsg.getName());
+
+        UUID newEntityViewId = new UUID(latestEntityViewUpdateMsg.getIdMSB(), latestEntityViewUpdateMsg.getIdLSB());
+
+        Assert.assertNotEquals(entityViewOnCloud.getId().getId(), newEntityViewId);
+
+        EntityView entityView = doGet("/api/entityView/" + newEntityViewId, EntityView.class);
+        Assert.assertNotNull(entityView);
+        Assert.assertNotEquals(entityViewOnCloudName, entityView.getName());
+    }
+
+    @Test
+    @Ignore
+    public void testSendDeleteEntityViewOnEdgeToCloud() throws Exception {
+        Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
+
+        EntityGroup entityViewEntityGroup = createEntityGroupAndAssignToEdge(EntityType.ENTITY_VIEW, "EntityViewForDelete", tenantId);
+        EntityView entityViewOnCloud = saveEntityViewOnCloudAndVerifyDeliveryToEdge(device.getId(), entityViewEntityGroup.getId());
+
+        UplinkMsg.Builder upLinkMsgBuilder = UplinkMsg.newBuilder();
+        EntityViewUpdateMsg.Builder entityViewDeleteMsgBuilder = EntityViewUpdateMsg.newBuilder();
+        entityViewDeleteMsgBuilder.setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE);
+        entityViewDeleteMsgBuilder.setIdMSB(entityViewOnCloud.getUuidId().getMostSignificantBits());
+        entityViewDeleteMsgBuilder.setIdLSB(entityViewOnCloud.getUuidId().getLeastSignificantBits());
+        entityViewDeleteMsgBuilder.setEntityGroupIdMSB(entityViewEntityGroup.getUuidId().getMostSignificantBits());
+        entityViewDeleteMsgBuilder.setEntityGroupIdLSB(entityViewEntityGroup.getUuidId().getLeastSignificantBits());
+        testAutoGeneratedCodeByProtobuf(entityViewDeleteMsgBuilder);
+
+        upLinkMsgBuilder.addEntityViewUpdateMsg(entityViewDeleteMsgBuilder.build());
+
+        testAutoGeneratedCodeByProtobuf(upLinkMsgBuilder);
+
+        edgeImitator.expectResponsesAmount(1);
+        edgeImitator.sendUplinkMsg(upLinkMsgBuilder.build());
+        Assert.assertTrue(edgeImitator.waitForResponses());
+        EntityViewInfo entityViewInfo = doGet("/api/entityView/info/" + entityViewOnCloud.getUuidId(), EntityViewInfo.class);
+        Assert.assertNotNull(entityViewInfo);
+        List<EntityViewInfo> entityViewInfos = doGetTypedWithPageLink("/api/entityGroup/" + entityViewEntityGroup.getUuidId() + "/entityViews?",
+                new TypeReference<PageData<EntityViewInfo>>() {
+                }, new PageLink(100)).getData();
+        Assert.assertFalse(entityViewInfos.contains(entityViewInfo));
+    }
+
+    private void testEntityViewEntityGroupRequestMsg(long msbId, long lsbId, EntityViewId expectedEntityViewId) throws Exception {
+        EntityGroupRequestMsg.Builder entitiesGroupRequestMsgBuilder = EntityGroupRequestMsg.newBuilder()
+                .setEntityGroupIdMSB(msbId)
+                .setEntityGroupIdLSB(lsbId)
+                .setType(EntityType.ENTITY_VIEW.name());
+        testAutoGeneratedCodeByProtobuf(entitiesGroupRequestMsgBuilder);
+
+        UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder()
+                .addEntityGroupEntitiesRequestMsg(entitiesGroupRequestMsgBuilder.build());
+        testAutoGeneratedCodeByProtobuf(uplinkMsgBuilder);
+
+        edgeImitator.expectResponsesAmount(1);
+        edgeImitator.expectMessageAmount(1);
+        edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
+        Assert.assertTrue(edgeImitator.waitForResponses());
+        Assert.assertTrue(edgeImitator.waitForMessages());
+
+        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof EntityViewUpdateMsg);
+        EntityViewUpdateMsg entityViewUpdateMsg = (EntityViewUpdateMsg) latestMessage;
+        EntityViewId receivedEntityViewId =
+                new EntityViewId(new UUID(entityViewUpdateMsg.getIdMSB(), entityViewUpdateMsg.getIdLSB()));
+        Assert.assertEquals(expectedEntityViewId, receivedEntityViewId);
+    }
+
+    private EntityView saveEntityViewOnCloudAndVerifyDeliveryToEdge(DeviceId deviceId, EntityGroupId entityGroupId) throws Exception {
+        // create dashboard and assign to edge
+        EntityView entityView = new EntityView();
+        entityView.setName("Entity View to delete");
+        entityView.setType("test");
+        entityView.setEntityId(deviceId);
+        if (entityGroupId != null) {
+            entityView = doPost("/api/entityView?entityGroupId={entityGroupId}", entityView, EntityView.class, entityGroupId.getId().toString());
+        } else {
+            entityView = doPost("/api/entityView", entityView, EntityView.class);
+        }
+        edgeImitator.expectMessageAmount(1); // entityView message
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        Optional<EntityViewUpdateMsg> entityViewUpdateMsgOpt = edgeImitator.findMessageByType(EntityViewUpdateMsg.class);
+        Assert.assertTrue(entityViewUpdateMsgOpt.isPresent());
+        EntityViewUpdateMsg entityViewUpdateMsg = entityViewUpdateMsgOpt.get();
+        Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, entityViewUpdateMsg.getMsgType());
+        Assert.assertEquals(entityView.getUuidId().getMostSignificantBits(), entityViewUpdateMsg.getIdMSB());
+        Assert.assertEquals(entityView.getUuidId().getLeastSignificantBits(), entityViewUpdateMsg.getIdLSB());
+        return entityView;
+    }
+
+}

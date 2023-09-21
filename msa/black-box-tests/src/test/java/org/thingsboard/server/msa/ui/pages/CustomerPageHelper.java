@@ -143,6 +143,7 @@ public class CustomerPageHelper extends CustomerPageElements {
 
     public void createCustomersUser() {
         plusBtn().click();
+        addUserEmailField().click();
         addUserEmailField().sendKeys(getRandomNumber() + "@gmail.com");
         addBtnC().click();
         activateWindowOkBtn().click();
@@ -166,6 +167,14 @@ public class CustomerPageHelper extends CustomerPageElements {
         assignedField().click();
         setDashboard();
         listOfEntity().get(0).click();
+        assignedField().sendKeys(Keys.ESCAPE);
+        submitAssignedBtn().click();
+    }
+
+    public void assignedDashboard(String dashboardName) {
+        plusBtn().click();
+        assignedField().click();
+        entityFromList(dashboardName).click();
         assignedField().sendKeys(Keys.ESCAPE);
         submitAssignedBtn().click();
     }
@@ -202,5 +211,14 @@ public class CustomerPageHelper extends CustomerPageElements {
             customer(customerName).click();
         }
         customerDetailsAlarmsBtn().click();
+    }
+
+    public void disableHideHomeDashboardToolbar() {
+        hideHomeDashboardToolbarCheckbox().click();
+        waitUntilAttributeToBe("//mat-checkbox[@formcontrolname='homeDashboardHideToolbar']//input", "class", "mdc-checkbox__native-control");
+    }
+
+    public void waitUntilDashboardFieldToBeNotEmpty() {
+        waitUntilAttributeToBeNotEmpty(editMenuDashboardField(), "value");
     }
 }

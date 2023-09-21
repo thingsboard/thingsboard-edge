@@ -60,24 +60,24 @@ public interface UserService extends EntityDaoService {
 
     User findUserByEmail(TenantId tenantId, String email);
 
-	User saveUser(User user, boolean doValidate);
-
     User findUserByTenantIdAndEmail(TenantId tenantId, String email);
 
     User changeOwner(User user, EntityId targetOwnerId);
 
-	User saveUser(User user);
+    User saveUser(TenantId tenantId, User user, boolean doValidate);
+
+	User saveUser(TenantId tenantId, User user);
 
 	UserCredentials findUserCredentialsByUserId(TenantId tenantId, UserId userId);
 
 	UserCredentials findUserCredentialsByActivateToken(TenantId tenantId, String activateToken);
 
-	UserCredentials findUserCredentialsByResetToken(TenantId tenantId, String resetToken);
+    UserCredentials findUserCredentialsByResetToken(TenantId tenantId, String resetToken);
 
 	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials);
 
 	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials, boolean doValidate);
-	
+
 	UserCredentials activateUserCredentials(TenantId tenantId, String activateToken, String password);
 
 	UserCredentials requestPasswordReset(TenantId tenantId, String email);
@@ -87,6 +87,8 @@ public interface UserService extends EntityDaoService {
     UserCredentials replaceUserCredentials(TenantId tenantId, UserCredentials userCredentials);
 
     void deleteUser(TenantId tenantId, UserId userId);
+
+    void deleteUser(TenantId tenantId, User user);
 
 	PageData<User> findTenantAdmins(TenantId tenantId, PageLink pageLink);
 
@@ -118,7 +120,13 @@ public interface UserService extends EntityDaoService {
 
     PageData<User> findUsersByTenantIdAndRoles(TenantId tenantId, List<RoleId> roles, PageLink pageLink);
 
-	void setUserCredentialsEnabled(TenantId tenantId, UserId userId, boolean enabled);
+    PageData<User> findUsersByTenantsIdsAndRoleId(List<TenantId> tenantsIds, RoleId roleId, PageLink pageLink);
+
+    PageData<User> findUsersByTenantProfilesIdsAndRoleId(List<TenantProfileId> tenantProfilesIds, RoleId roleId, PageLink pageLink);
+
+    PageData<User> findAllUsersByRoleId(RoleId roleId, PageLink pageLink);
+
+    void setUserCredentialsEnabled(TenantId tenantId, UserId userId, boolean enabled);
 
     void resetFailedLoginAttempts(TenantId tenantId, UserId userId);
 

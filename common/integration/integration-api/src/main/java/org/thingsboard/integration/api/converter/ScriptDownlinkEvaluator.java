@@ -31,7 +31,6 @@
 package org.thingsboard.integration.api.converter;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
@@ -49,8 +48,6 @@ import java.util.concurrent.ExecutionException;
 
 @Slf4j
 public class ScriptDownlinkEvaluator extends AbstractScriptEvaluator {
-
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     public ScriptDownlinkEvaluator(TenantId tenantId, ScriptInvokeService scriptInvokeService, EntityId entityId, String script) {
         super(tenantId, scriptInvokeService, entityId, ScriptType.DOWNLINK_CONVERTER_SCRIPT, script);
@@ -86,9 +83,9 @@ public class ScriptDownlinkEvaluator extends AbstractScriptEvaluator {
                 } else {
                     args[0] = "";
                 }
-                args[1] = mapper.writeValueAsString(msg.getMetaData().getData());
+                args[1] = JacksonUtil.toString(msg.getMetaData().getData());
                 args[2] = msg.getType();
-                args[3] = mapper.writeValueAsString(metadata.getKvMap());
+                args[3] = JacksonUtil.toString(metadata.getKvMap());
                 return args;
             } catch (Throwable th) {
                 throw new IllegalArgumentException("Cannot bind js args", th);

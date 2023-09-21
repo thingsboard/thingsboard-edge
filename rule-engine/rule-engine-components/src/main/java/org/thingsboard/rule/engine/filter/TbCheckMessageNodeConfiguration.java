@@ -37,7 +37,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Data
-public class TbCheckMessageNodeConfiguration implements NodeConfiguration {
+public class TbCheckMessageNodeConfiguration implements NodeConfiguration<TbCheckMessageNodeConfiguration>  {
 
     private List<String> messageNames;
     private List<String> metadataNames;

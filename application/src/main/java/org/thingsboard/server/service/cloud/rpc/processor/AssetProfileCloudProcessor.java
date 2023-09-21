@@ -30,32 +30,42 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.DashboardInfo;
+import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.asset.AssetInfo;
 import org.thingsboard.server.common.data.asset.AssetProfile;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.asset.BaseAssetService;
 import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
-import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.service.edge.rpc.processor.asset.BaseAssetProfileProcessor;
 
-import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @Component
 @Slf4j
-public class AssetProfileCloudProcessor extends BaseEdgeProcessor {
+public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
 
     @Autowired
     private AssetProfileService assetProfileService;
@@ -63,91 +73,142 @@ public class AssetProfileCloudProcessor extends BaseEdgeProcessor {
     @Autowired
     private AssetService assetService;
 
-    public ListenableFuture<Void> processAssetProfileMsgFromCloud(TenantId tenantId, AssetProfileUpdateMsg assetProfileUpdateMsg) {
+    public ListenableFuture<Void> processAssetProfileMsgFromCloud(TenantId tenantId, AssetProfileUpdateMsg assetProfileUpdateMsg, Long queueStartTs) {
         AssetProfileId assetProfileId = new AssetProfileId(new UUID(assetProfileUpdateMsg.getIdMSB(), assetProfileUpdateMsg.getIdLSB()));
-        switch (assetProfileUpdateMsg.getMsgType()) {
-            case ENTITY_CREATED_RPC_MESSAGE:
-            case ENTITY_UPDATED_RPC_MESSAGE:
-                assetCreationLock.lock();
-                try {
-                    AssetProfile assetProfileByName = assetProfileService.findAssetProfileByName(tenantId, assetProfileUpdateMsg.getName());
-                    boolean removePreviousProfile = false;
-                    if (assetProfileByName != null && !assetProfileByName.getId().equals(assetProfileId)) {
-                        renamePreviousAssetProfileCreatedByUpdateScript(assetProfileByName);
-                        removePreviousProfile = true;
+        try {
+            edgeSynchronizationManager.getSync().set(true);
+
+            switch (assetProfileUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE:
+                case ENTITY_UPDATED_RPC_MESSAGE:
+                    assetCreationLock.lock();
+                    try {
+                        AssetProfile assetProfileByName = assetProfileService.findAssetProfileByName(tenantId, assetProfileUpdateMsg.getName());
+                        boolean removePreviousProfile = false;
+                        if (assetProfileByName != null && !assetProfileByName.getId().equals(assetProfileId)) {
+                            renamePreviousAssetProfile(assetProfileByName);
+                            removePreviousProfile = true;
+                        }
+                        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAssetProfile(tenantId, assetProfileId, assetProfileUpdateMsg);
+                        boolean created = resultPair.getFirst();
+                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileId,
+                                created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+                        AssetProfile assetProfile = assetProfileService.findAssetProfileById(tenantId, assetProfileId);
+                        if (!assetProfile.isDefault() && assetProfileUpdateMsg.getDefault()) {
+                            assetProfileService.setDefaultAssetProfile(tenantId, assetProfileId);
+                        }
+                        if (removePreviousProfile) {
+                            updateAssets(tenantId, assetProfileId, assetProfileByName.getId());
+                            assetProfileService.deleteAssetProfile(tenantId, assetProfileByName.getId());
+                            tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileByName.getId(), ComponentLifecycleEvent.DELETED);
+                        }
+                        if (created) {
+                            pushAssetProfileCreatedEventToRuleEngine(tenantId, assetProfileId);
+                        }
+                    } finally {
+                        assetCreationLock.unlock();
                     }
+                    break;
+                case ENTITY_DELETED_RPC_MESSAGE:
                     AssetProfile assetProfile = assetProfileService.findAssetProfileById(tenantId, assetProfileId);
-                    boolean created = false;
-                    if (assetProfile == null) {
-                        created = true;
-                        assetProfile = new AssetProfile();
-                        assetProfile.setId(assetProfileId);
-                        assetProfile.setCreatedTime(Uuids.unixTimestamp(assetProfileId.getId()));
-                        assetProfile.setTenantId(tenantId);
+                    if (assetProfile != null) {
+                        assetProfileService.deleteAssetProfile(tenantId, assetProfileId);
+                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileId, ComponentLifecycleEvent.DELETED);
+                        pushAssetProfileDeletedEventToRuleEngine(tenantId, assetProfile);
                     }
-                    assetProfile.setName(assetProfileUpdateMsg.getName());
-                    AssetProfile defaultAssetProfile = assetProfileService.findDefaultAssetProfile(tenantId);
-                    if (defaultAssetProfile != null && assetProfileId.equals(defaultAssetProfile.getId())) {
-                        assetProfile.setDefault(true);
-                    }
-                    assetProfile.setDefaultQueueName(assetProfileUpdateMsg.hasDefaultQueueName() ? assetProfileUpdateMsg.getDefaultQueueName() : null);
-                    assetProfile.setDescription(assetProfileUpdateMsg.hasDescription() ? assetProfileUpdateMsg.getDescription() : null);
-                    assetProfile.setImage(assetProfileUpdateMsg.hasImage()
-                            ? new String(assetProfileUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8) : null);
-
-                    UUID defaultRuleChainUUID = safeGetUUID(assetProfileUpdateMsg.getDefaultRuleChainIdMSB(), assetProfileUpdateMsg.getDefaultRuleChainIdLSB());
-                    assetProfile.setDefaultRuleChainId(defaultRuleChainUUID != null ? new RuleChainId(defaultRuleChainUUID) : null);
-
-                    UUID defaultDashboardUUID = safeGetUUID(assetProfileUpdateMsg.getDefaultDashboardIdMSB(), assetProfileUpdateMsg.getDefaultDashboardIdLSB());
-                    assetProfile.setDefaultDashboardId(defaultDashboardUUID != null ? new DashboardId(defaultDashboardUUID) : null);
-
-                    AssetProfile savedAssetProfile = assetProfileService.saveAssetProfile(assetProfile, false);
-                    tbClusterService.broadcastEntityStateChangeEvent(tenantId, savedAssetProfile.getId(),
-                            created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
-                    if (!assetProfile.isDefault() && assetProfileUpdateMsg.getDefault()) {
-                        assetProfileService.setDefaultAssetProfile(tenantId, savedAssetProfile.getId());
-                    }
-                    if (removePreviousProfile) {
-                        updateAssets(tenantId, savedAssetProfile.getId(), assetProfileByName.getId());
-                        assetProfileService.deleteAssetProfile(tenantId, assetProfileByName.getId());
-                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileByName.getId(), ComponentLifecycleEvent.DELETED);
-                    }
-                } finally {
-                    assetCreationLock.unlock();
-                }
-                break;
-            case ENTITY_DELETED_RPC_MESSAGE:
-                AssetProfile assetProfile = assetProfileService.findAssetProfileById(tenantId, assetProfileId);
-                if (assetProfile != null) {
-                    assetProfileService.deleteAssetProfile(tenantId, assetProfileId);
-                    tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileId, ComponentLifecycleEvent.DELETED);
-                }
-                break;
-            case UNRECOGNIZED:
-                return handleUnsupportedMsgType(assetProfileUpdateMsg.getMsgType());
+                    break;
+                case UNRECOGNIZED:
+                    return handleUnsupportedMsgType(assetProfileUpdateMsg.getMsgType());
+            }
+        } finally {
+            edgeSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
     }
 
-    private void renamePreviousAssetProfileCreatedByUpdateScript(AssetProfile assetProfileByName) {
-        assetProfileByName.setName(assetProfileByName.getName() + "_old");
+    private void pushAssetProfileCreatedEventToRuleEngine(TenantId tenantId, AssetProfileId assetProfileId) {
+        AssetProfile assetProfile = assetProfileService.findAssetProfileById(tenantId, assetProfileId);
+        pushAssetProfileEventToRuleEngine(tenantId, assetProfile, TbMsgType.ENTITY_CREATED);
+    }
+
+    private void pushAssetProfileDeletedEventToRuleEngine(TenantId tenantId, AssetProfile assetProfile) {
+        pushAssetProfileEventToRuleEngine(tenantId, assetProfile, TbMsgType.ENTITY_DELETED);
+    }
+
+    private void pushAssetProfileEventToRuleEngine(TenantId tenantId, AssetProfile assetProfile, TbMsgType msgType) {
+        try {
+            String assetProfileAsString = JacksonUtil.toString(assetProfile);
+            pushEntityEventToRuleEngine(tenantId, assetProfile.getId(), null, msgType, assetProfileAsString, new TbMsgMetaData());
+        } catch (Exception e) {
+            log.warn("[{}][{}] Failed to push asset profile action to rule engine: {}", tenantId, assetProfile.getId(), msgType.name(), e);
+        }
+    }
+
+    private void renamePreviousAssetProfile(AssetProfile assetProfileByName) {
+        assetProfileByName.setName(assetProfileByName.getName() + StringUtils.randomAlphanumeric(15));
         assetProfileService.saveAssetProfile(assetProfileByName);
     }
 
     private void updateAssets(TenantId tenantId, AssetProfileId newAssetProfileId, AssetProfileId previousAssetProfileId) {
-        PageLink pageLink = new PageLink(100);
-        PageData<Asset> pageData;
-        do {
-            pageData = assetService.findAssetsByTenantId(tenantId, pageLink);
-            pageData.getData().forEach(asset -> {
-                if (previousAssetProfileId.getId().equals(asset.getAssetProfileId().getId())) {
-                    asset.setAssetProfileId(newAssetProfileId);
-                    assetService.saveAsset(asset);
+        PageDataIterable<AssetInfo> assetInfosIterable = new PageDataIterable<>(
+                link -> assetService.findAssetInfosByTenantIdAndAssetProfileId(tenantId, previousAssetProfileId, link), 1024);
+        assetInfosIterable.forEach(assetInfo -> {
+            assetInfo.setAssetProfileId(newAssetProfileId);
+            assetService.saveAsset(new Asset(assetInfo));
+        });
+    }
+
+    public UplinkMsg convertAssetProfileEventToUplink(CloudEvent cloudEvent) {
+        AssetProfileId assetProfileId = new AssetProfileId(cloudEvent.getEntityId());
+        UplinkMsg msg = null;
+        switch (cloudEvent.getAction()) {
+            case ADDED:
+            case UPDATED:
+                AssetProfile assetProfile = assetProfileService.findAssetProfileById(cloudEvent.getTenantId(), assetProfileId);
+                if (assetProfile != null && !BaseAssetService.TB_SERVICE_QUEUE.equals(assetProfile.getName())) {
+                    UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
+                    AssetProfileUpdateMsg assetProfileUpdateMsg =
+                            assetProfileMsgConstructor.constructAssetProfileUpdatedMsg(msgType, assetProfile);
+                    msg = UplinkMsg.newBuilder()
+                            .setUplinkMsgId(EdgeUtils.nextPositiveInt())
+                            .addAssetProfileUpdateMsg(assetProfileUpdateMsg).build();
+                } else {
+                    log.info("Skipping event as asset profile was not found [{}]", cloudEvent);
                 }
-            });
-            if (pageData.hasNext()) {
-                pageLink = pageLink.nextPageLink();
-            }
-        } while (pageData.hasNext() && !pageData.getData().isEmpty());
+                break;
+            case DELETED:
+                AssetProfileUpdateMsg assetProfileUpdateMsg =
+                        assetProfileMsgConstructor.constructAssetProfileDeleteMsg(assetProfileId);
+                msg = UplinkMsg.newBuilder()
+                        .setUplinkMsgId(EdgeUtils.nextPositiveInt())
+                        .addAssetProfileUpdateMsg(assetProfileUpdateMsg).build();
+                break;
+        }
+        return msg;
+    }
+
+    @Override
+    protected void setDefaultRuleChainId(TenantId tenantId, AssetProfile assetProfile, AssetProfileUpdateMsg assetProfileUpdateMsg) {
+        UUID defaultRuleChainUUID = safeGetUUID(assetProfileUpdateMsg.getDefaultRuleChainIdMSB(), assetProfileUpdateMsg.getDefaultRuleChainIdLSB());
+        RuleChain ruleChain = null;
+        if (defaultRuleChainUUID != null) {
+            ruleChain = ruleChainService.findRuleChainById(tenantId, new RuleChainId(defaultRuleChainUUID));
+        }
+        assetProfile.setDefaultRuleChainId(ruleChain != null ? ruleChain.getId() : null);
+    }
+
+    @Override
+    protected void setDefaultEdgeRuleChainId(TenantId tenantId, AssetProfile assetProfile, AssetProfileUpdateMsg assetProfileUpdateMsg) {
+        // do nothing on edge
+    }
+
+    @Override
+    protected void setDefaultDashboardId(TenantId tenantId, AssetProfile assetProfile, AssetProfileUpdateMsg assetProfileUpdateMsg) {
+        UUID defaultDashboardUUID = safeGetUUID(assetProfileUpdateMsg.getDefaultDashboardIdMSB(), assetProfileUpdateMsg.getDefaultDashboardIdLSB());
+        DashboardInfo dashboard = null;
+        if (defaultDashboardUUID != null) {
+            dashboard = dashboardService.findDashboardInfoById(tenantId, new DashboardId(defaultDashboardUUID));
+        }
+        assetProfile.setDefaultDashboardId(dashboard != null ? dashboard.getId() : null);
     }
 }

@@ -66,7 +66,7 @@ import { QueuesTableConfigResolver } from '@home/pages/admin/queue/queues-table-
 import { RepositoryAdminSettingsComponent } from '@home/pages/admin/repository-admin-settings.component';
 import { AutoCommitAdminSettingsComponent } from '@home/pages/admin/auto-commit-admin-settings.component';
 import { TwoFactorAuthSettingsComponent } from '@home/pages/admin/two-factor-auth-settings.component';
-import { widgetsBundlesRoutes } from '@home/pages/widget/widget-library-routing.module';
+import { widgetsLibraryRoutes } from '@home/pages/widget/widget-library-routing.module';
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { auditLogsRoutes } from '@home/pages/audit-log/audit-log-routing.module';
 import { rolesRoutes } from '@home/pages/role/role-routing.module';
@@ -142,10 +142,10 @@ const routes: Routes = [
         children: [],
         data: {
           auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
-          redirectTo: '/resources/widgets-bundles'
+          redirectTo: '/resources/widgets-library'
         }
       },
-      ...widgetsBundlesRoutes,
+      ...widgetsLibraryRoutes,
       {
         path: 'resources-library',
         data: {
@@ -400,8 +400,7 @@ const routes: Routes = [
           title: 'admin.2fa.2fa',
           breadcrumb: {
             label: 'admin.2fa.2fa',
-            icon: 'mdi:two-factor-authentication',
-            isMdiIcon: true
+            icon: 'mdi:two-factor-authentication'
           }
         }
       },

@@ -30,97 +30,77 @@
  */
 package org.thingsboard.server.dao.wl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.AdminSettings;
+import org.springframework.transaction.event.TransactionalEventListener;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.id.AdminSettingsId;
+import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
-import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
-import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
-import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.entity.AbstractCachedService;
+import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
+import org.thingsboard.server.dao.model.sql.WhiteLabelingCompositeKey;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.exception.DataValidationException;
 
-import java.io.IOException;
 import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static org.thingsboard.server.dao.entity.AbstractEntityService.checkConstraintViolation;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class BaseWhiteLabelingService implements WhiteLabelingService {
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
-    private static final String LOGIN_WHITE_LABEL_PARAMS = "loginWhiteLabelParams";
-
-    private static final String LOGIN_WHITE_LABEL_DOMAIN_NAME_PREFIX = "loginWhiteLabelDomainNamePrefix";
-
-    private static final String WHITE_LABEL_PARAMS = "whiteLabelParams";
+public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelingCompositeKey, WhiteLabeling, WhiteLabelingEvictEvent>  implements WhiteLabelingService {
 
     private static final String ALLOW_WHITE_LABELING = "allowWhiteLabeling";
     private static final String ALLOW_CUSTOMER_WHITE_LABELING = "allowCustomerWhiteLabeling";
 
     private final AdminSettingsService adminSettingsService;
-    private final AttributesService attributesService;
+    private final WhiteLabelingDao whiteLabelingDao;
     private final TenantService tenantService;
     private final CustomerService customerService;
+    private final ApplicationEventPublisher eventPublisher;
+
 
     @Override
     public LoginWhiteLabelingParams getSystemLoginWhiteLabelingParams(TenantId tenantId) {
-        AdminSettings loginWhiteLabelParamsSettings = adminSettingsService.findAdminSettingsByKey(tenantId, LOGIN_WHITE_LABEL_PARAMS);
-        String json = null;
-        if (loginWhiteLabelParamsSettings != null) {
-            json = loginWhiteLabelParamsSettings.getJsonValue().get("value").asText();
-        }
-        return constructLoginWlParams(json);
+        WhiteLabeling whiteLabeling = findById(tenantId, TenantId.SYS_TENANT_ID, WhiteLabelingType.LOGIN);
+        return constructLoginWlParams(whiteLabeling != null ? whiteLabeling.getSettings() : null);
     }
 
     @Override
     public WhiteLabelingParams getSystemWhiteLabelingParams(TenantId tenantId) {
-        AdminSettings whiteLabelParamsSettings = adminSettingsService.findAdminSettingsByKey(tenantId, WHITE_LABEL_PARAMS);
-        String json = null;
-        if (whiteLabelParamsSettings != null) {
-            json = whiteLabelParamsSettings.getJsonValue().get("value").asText();
-        }
-        return constructWlParams(json, true);
+        WhiteLabeling whiteLabeling = findById(tenantId, TenantId.SYS_TENANT_ID, WhiteLabelingType.GENERAL);
+        return constructWlParams(whiteLabeling != null ? whiteLabeling.getSettings() : null, true);
     }
 
     @Override
-    public ListenableFuture<WhiteLabelingParams> getTenantWhiteLabelingParams(TenantId tenantId) {
+    public WhiteLabelingParams getTenantWhiteLabelingParams(TenantId tenantId) {
         return getEntityWhiteLabelParams(tenantId, tenantId);
     }
 
     @Override
-    public ListenableFuture<WhiteLabelingParams> getCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId) {
+    public WhiteLabelingParams getCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId) {
         return getEntityWhiteLabelParams(tenantId, customerId);
     }
 
@@ -132,25 +112,22 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     }
 
     @Override
-    public LoginWhiteLabelingParams getTenantLoginWhiteLabelingParams(TenantId tenantId) throws Exception {
-        return getEntityLoginWhiteLabelParams(tenantId, tenantId).get();
+    public LoginWhiteLabelingParams getTenantLoginWhiteLabelingParams(TenantId tenantId) {
+        return getEntityLoginWhiteLabelParams(tenantId, tenantId);
     }
 
     @Override
-    public LoginWhiteLabelingParams getCustomerLoginWhiteLabelingParams(TenantId tenantId, CustomerId customerId) throws Exception {
-        return getEntityLoginWhiteLabelParams(tenantId, customerId).get();
+    public LoginWhiteLabelingParams getCustomerLoginWhiteLabelingParams(TenantId tenantId, CustomerId customerId) {
+        return getEntityLoginWhiteLabelParams(tenantId, customerId);
     }
 
     @Override
     public LoginWhiteLabelingParams getMergedLoginWhiteLabelingParams(TenantId tenantId, String domainName, String logoImageChecksum, String faviconChecksum) throws Exception {
-        AdminSettings loginWhiteLabelSettings;
         LoginWhiteLabelingParams result;
-        if (validateDomain(domainName) &&
-                (loginWhiteLabelSettings = adminSettingsService.findAdminSettingsByKey(tenantId, constructLoginWhileLabelKey(domainName))) != null) {
-            String strEntityType = loginWhiteLabelSettings.getJsonValue().get("entityType").asText();
-            String strEntityId = loginWhiteLabelSettings.getJsonValue().get("entityId").asText();
-            EntityId entityId = EntityIdFactory.getByTypeAndId(strEntityType, strEntityId);
-            result = getEntityLoginWhiteLabelParams(tenantId, entityId).get();
+        WhiteLabeling existingLoginWLSettings;
+        if (validateDomain(domainName) && ((existingLoginWLSettings =  whiteLabelingDao.findByDomain(tenantId, domainName)) != null)) {
+            EntityId entityId = existingLoginWLSettings.getEntityId();
+            result = getEntityLoginWhiteLabelParams(tenantId, entityId);
             if (entityId.getEntityType().equals(EntityType.CUSTOMER)) {
                 Customer customer = customerService.findCustomerById(tenantId, (CustomerId) entityId);
                 if (customer.isSubCustomer()) {
@@ -168,7 +145,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     }
 
     private LoginWhiteLabelingParams getCustomerHierarchyLoginWhileLabelingParams(TenantId tenantId, CustomerId customerId, LoginWhiteLabelingParams childCustomerWLLParams) throws Exception {
-        LoginWhiteLabelingParams entityLoginWhiteLabelParams = getEntityLoginWhiteLabelParams(tenantId, customerId).get();
+        LoginWhiteLabelingParams entityLoginWhiteLabelParams = getEntityLoginWhiteLabelParams(tenantId, customerId);
         childCustomerWLLParams.merge(entityLoginWhiteLabelParams);
         Customer customer = customerService.findCustomerById(tenantId, customerId);
         if (customer.isSubCustomer()) {
@@ -180,7 +157,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
 
     @Override
     public WhiteLabelingParams getMergedTenantWhiteLabelingParams(TenantId tenantId, String logoImageChecksum, String faviconChecksum) throws Exception {
-        WhiteLabelingParams result = getTenantWhiteLabelingParams(tenantId).get();
+        WhiteLabelingParams result = getTenantWhiteLabelingParams(tenantId);
         result.merge(getSystemWhiteLabelingParams(tenantId));
         result.prepareImages(logoImageChecksum, faviconChecksum);
         return result;
@@ -188,18 +165,18 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
 
     @Override
     public WhiteLabelingParams getMergedCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, String logoImageChecksum, String faviconChecksum) throws Exception {
-        WhiteLabelingParams result = getCustomerWhiteLabelingParams(tenantId, customerId).get();
+        WhiteLabelingParams result = getCustomerWhiteLabelingParams(tenantId, customerId);
         Customer customer = customerService.findCustomerById(tenantId, customerId);
         if (customer.isSubCustomer()) {
             result.merge(getMergedCustomerHierarchyWhileLabelingParams(tenantId, customer.getParentCustomerId(), result));
         }
-        result.merge(getTenantWhiteLabelingParams(tenantId).get()).merge(getSystemWhiteLabelingParams(tenantId));
+        result.merge(getTenantWhiteLabelingParams(tenantId)).merge(getSystemWhiteLabelingParams(tenantId));
         result.prepareImages(logoImageChecksum, faviconChecksum);
         return result;
     }
 
     private WhiteLabelingParams getMergedCustomerHierarchyWhileLabelingParams(TenantId tenantId, CustomerId customerId, WhiteLabelingParams childCustomerWLParams) throws Exception {
-        WhiteLabelingParams entityWhiteLabelParams = getEntityWhiteLabelParams(tenantId, customerId).get();
+        WhiteLabelingParams entityWhiteLabelParams = getEntityWhiteLabelParams(tenantId, customerId);
         childCustomerWLParams.merge(entityWhiteLabelParams);
         Customer customer = customerService.findCustomerById(tenantId, customerId);
         if (customer.isSubCustomer()) {
@@ -211,45 +188,22 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
 
     @Override
     public WhiteLabelingParams saveSystemWhiteLabelingParams(WhiteLabelingParams whiteLabelingParams) {
-        whiteLabelingParams = prepareChecksums(whiteLabelingParams);
-        AdminSettings whiteLabelParamsSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, WHITE_LABEL_PARAMS);
-        if (whiteLabelParamsSettings == null) {
-            whiteLabelParamsSettings = new AdminSettings();
-            whiteLabelParamsSettings.setKey(WHITE_LABEL_PARAMS);
-            ObjectNode node = objectMapper.createObjectNode();
-            whiteLabelParamsSettings.setJsonValue(node);
-        }
-        String json;
-        try {
-            json = objectMapper.writeValueAsString(whiteLabelingParams);
-        } catch (JsonProcessingException e) {
-            log.error("Unable to convert White Labeling Params to JSON!", e);
-            throw new IncorrectParameterException("Unable to convert White Labeling Params to JSON!");
-        }
-        ((ObjectNode) whiteLabelParamsSettings.getJsonValue()).put("value", json);
-        adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, whiteLabelParamsSettings);
+        prepareChecksums(whiteLabelingParams);
+        saveWhiteLabelParams(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID, whiteLabelingParams);
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID)
+                .edgeEventType(EdgeEventType.WHITE_LABELING).actionType(ActionType.UPDATED).build());
         return getSystemWhiteLabelingParams(TenantId.SYS_TENANT_ID);
     }
 
     @Override
     public LoginWhiteLabelingParams saveSystemLoginWhiteLabelingParams(LoginWhiteLabelingParams loginWhiteLabelingParams) {
-        loginWhiteLabelingParams = prepareChecksums(loginWhiteLabelingParams);
-        AdminSettings loginWhiteLabelParamsSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, LOGIN_WHITE_LABEL_PARAMS);
-        if (loginWhiteLabelParamsSettings == null) {
-            loginWhiteLabelParamsSettings = new AdminSettings();
-            loginWhiteLabelParamsSettings.setKey(LOGIN_WHITE_LABEL_PARAMS);
-            ObjectNode node = objectMapper.createObjectNode();
-            loginWhiteLabelParamsSettings.setJsonValue(node);
+        if (!StringUtils.isBlank(loginWhiteLabelingParams.getDomainName())) {
+            throw new DataValidationException("Domain name is prohibited for system level");
         }
-        String json;
-        try {
-            json = objectMapper.writeValueAsString(loginWhiteLabelingParams);
-        } catch (JsonProcessingException e) {
-            log.error("Unable to convert Login White Labeling Params to JSON!", e);
-            throw new IncorrectParameterException("Unable to convert Login White Labeling Params to JSON!");
-        }
-        ((ObjectNode) loginWhiteLabelParamsSettings.getJsonValue()).put("value", json);
-        adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, loginWhiteLabelParamsSettings);
+        prepareChecksums(loginWhiteLabelingParams);
+        saveLoginWhiteLabelParams(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID, loginWhiteLabelingParams);
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID)
+                .edgeEventType(EdgeEventType.LOGIN_WHITE_LABELING).actionType(ActionType.UPDATED).build());
         return getSystemLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID);
     }
 
@@ -266,6 +220,8 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     }
 
     private boolean validateDomain(String domainName) {
+        return true;
+        /* edge only: no validation by domain - fetch is done by hardcoded entity id as owner of edge
         try {
             LoginWhiteLabelingParams systemParams = getSystemLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID);
             if (systemParams != null) {
@@ -280,6 +236,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
             log.warn("Failed to validate domain.", e);
             return false;
         }
+         */
     }
 
     private boolean isBaseUrlMatchesDomain(String baseUrl, String domainName) {
@@ -300,69 +257,35 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     }
 
     private void saveEntityLoginWhiteLabelingParams(TenantId tenantId, EntityId entityId, LoginWhiteLabelingParams loginWhiteLabelParams) {
+        if (loginWhiteLabelParams.getDomainName() == null) {
+            throw new IncorrectParameterException("Domain name could not be empty!");
+        }
         if (!validateDomain(loginWhiteLabelParams.getDomainName())) {
             throw new IncorrectParameterException("Current domain name [" + loginWhiteLabelParams.getDomainName() + "] already used in the system level!");
         }
 
-        loginWhiteLabelParams = prepareChecksums(loginWhiteLabelParams);
-        String loginWhiteLabelKey = constructLoginWhileLabelKey(loginWhiteLabelParams.getDomainName());
-        AdminSettings existentAdminSettingsByKey = adminSettingsService.findAdminSettingsByKey(tenantId, loginWhiteLabelKey);
-        if (StringUtils.isEmpty(loginWhiteLabelParams.getAdminSettingsId())) {
-            if (existentAdminSettingsByKey == null) {
-                existentAdminSettingsByKey = saveLoginWhiteLabelSettings(tenantId, entityId, loginWhiteLabelKey);
-                loginWhiteLabelParams.setAdminSettingsId(existentAdminSettingsByKey.getId().getId().toString());
-            } else {
-                log.error("Current domain name [{}] already registered in the system!", loginWhiteLabelParams.getDomainName());
-                throw new IncorrectParameterException("Current domain name [" + loginWhiteLabelParams.getDomainName() + "] already registered in the system!");
-            }
-        } else {
-            AdminSettings existentLoginWhiteLabelSettingsById = adminSettingsService.findAdminSettingsById(
-                    tenantId,
-                    new AdminSettingsId(UUID.fromString(loginWhiteLabelParams.getAdminSettingsId())));
-
-            // TODO: @voba - admin settings id is set on the cloud
-//            if (existentLoginWhiteLabelSettingsById == null) {
-//                log.error("Admin setting ID is already set in login white labeling object, but doesn't exist in the database");
-//                throw new IllegalStateException("Admin setting ID is already set in login white labeling object, but doesn't exist in the database");
-//            }
-
-            if (existentLoginWhiteLabelSettingsById != null &&
-                    !existentLoginWhiteLabelSettingsById.getKey().equals(loginWhiteLabelKey)) {
-                if (existentAdminSettingsByKey == null) {
-                    adminSettingsService.deleteAdminSettingsByKey(tenantId, existentLoginWhiteLabelSettingsById.getKey());
-                    existentLoginWhiteLabelSettingsById = saveLoginWhiteLabelSettings(tenantId, entityId, loginWhiteLabelKey);
-                    loginWhiteLabelParams.setAdminSettingsId(existentLoginWhiteLabelSettingsById.getId().getId().toString());
-                } else {
-                    log.error("Current domain name [{}] already registered in the system!", loginWhiteLabelParams.getDomainName());
-                    throw new IncorrectParameterException("Current domain name [" + loginWhiteLabelParams.getDomainName() + "] already registered in the system!");
-                }
-            }
-        }
-        saveEntityWhiteLabelParams(tenantId, entityId, loginWhiteLabelParams, LOGIN_WHITE_LABEL_PARAMS);
-    }
-
-    private AdminSettings saveLoginWhiteLabelSettings(TenantId tenantId, EntityId currentEntityId, String loginWhiteLabelKey) {
-        AdminSettings loginWhiteLabelSettings = new AdminSettings();
-        loginWhiteLabelSettings.setKey(loginWhiteLabelKey);
-        ObjectNode node = objectMapper.createObjectNode();
-        loginWhiteLabelSettings.setJsonValue(node);
-        ((ObjectNode) loginWhiteLabelSettings.getJsonValue()).put("entityType", currentEntityId.getEntityType().name());
-        ((ObjectNode) loginWhiteLabelSettings.getJsonValue()).put("entityId", currentEntityId.getId().toString());
-        return adminSettingsService.saveAdminSettings(tenantId, loginWhiteLabelSettings);
+        prepareChecksums(loginWhiteLabelParams);
+        saveLoginWhiteLabelParams(tenantId, entityId, loginWhiteLabelParams);
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(entityId)
+                .edgeEventType(EdgeEventType.LOGIN_WHITE_LABELING).actionType(ActionType.UPDATED).build());
     }
 
     @Override
-    public ListenableFuture<WhiteLabelingParams> saveTenantWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams) {
-        whiteLabelingParams = prepareChecksums(whiteLabelingParams);
-        ListenableFuture<List<String>> listListenableFuture = saveEntityWhiteLabelParams(tenantId, tenantId, whiteLabelingParams, WHITE_LABEL_PARAMS);
-        return Futures.transformAsync(listListenableFuture, list -> getTenantWhiteLabelingParams(tenantId), MoreExecutors.directExecutor());
+    public WhiteLabelingParams saveTenantWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams) {
+        prepareChecksums(whiteLabelingParams);
+        saveWhiteLabelParams(tenantId, tenantId, whiteLabelingParams);
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(tenantId)
+                .edgeEventType(EdgeEventType.WHITE_LABELING).actionType(ActionType.UPDATED).build());
+        return getTenantWhiteLabelingParams(tenantId);
     }
 
     @Override
-    public ListenableFuture<WhiteLabelingParams> saveCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, WhiteLabelingParams whiteLabelingParams) {
-        whiteLabelingParams = prepareChecksums(whiteLabelingParams);
-        ListenableFuture<List<String>> listListenableFuture = saveEntityWhiteLabelParams(tenantId, customerId, whiteLabelingParams, WHITE_LABEL_PARAMS);
-        return Futures.transformAsync(listListenableFuture, list -> getCustomerWhiteLabelingParams(tenantId, customerId), MoreExecutors.directExecutor());
+    public WhiteLabelingParams saveCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, WhiteLabelingParams whiteLabelingParams) {
+        prepareChecksums(whiteLabelingParams);
+        saveWhiteLabelParams(tenantId, customerId, whiteLabelingParams);
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(customerId)
+                .edgeEventType(EdgeEventType.WHITE_LABELING).actionType(ActionType.UPDATED).build());
+        return getCustomerWhiteLabelingParams(tenantId, customerId);
     }
 
     @Override
@@ -379,7 +302,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     public WhiteLabelingParams mergeCustomerWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams) {
         WhiteLabelingParams otherWlParams;
         try {
-            otherWlParams = getTenantWhiteLabelingParams(tenantId).get();
+            otherWlParams = getTenantWhiteLabelingParams(tenantId);
             return whiteLabelingParams.merge(otherWlParams).
                     merge(getSystemWhiteLabelingParams(tenantId));
         } catch (Exception e) {
@@ -390,36 +313,30 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
 
     @Override
     public void deleteDomainWhiteLabelingByEntityId(TenantId tenantId, EntityId entityId) {
-        try {
-            LoginWhiteLabelingParams params = getEntityLoginWhiteLabelParams(tenantId, entityId).get();
-            if (!StringUtils.isEmpty(params.getDomainName())) {
-                String loginWhiteLabelKey = constructLoginWhileLabelKey(params.getDomainName());
-                adminSettingsService.deleteAdminSettingsByKey(tenantId, loginWhiteLabelKey);
-            }
-        } catch (Exception e) {
-            log.error("Unable to get entity Login White Labeling Params!", e);
-            throw new RuntimeException("Unable to get entity Login White Labeling Params!", e);
+        WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(entityId.getEntityType().name(), entityId.getId(), WhiteLabelingType.LOGIN);
+        if (whiteLabelingDao.findById(tenantId, key) != null) {
+            whiteLabelingDao.removeById(tenantId, key);
         }
+        publishEvictEvent(new WhiteLabelingEvictEvent(key));
     }
 
-    private WhiteLabelingParams constructWlParams(String json, boolean isSystem) {
+    private WhiteLabelingParams constructWlParams(JsonNode json, boolean isSystem) {
         WhiteLabelingParams result = null;
-        if (!StringUtils.isEmpty(json)) {
+        if (json != null) {
             try {
-                result = objectMapper.readValue(json, WhiteLabelingParams.class);
+                result = JacksonUtil.treeToValue(json, WhiteLabelingParams.class);
                 if (isSystem) {
-                    JsonNode jsonNode = objectMapper.readTree(json);
-                    if (!jsonNode.has("helpLinkBaseUrl")) {
+                    if (!json.has("helpLinkBaseUrl")) {
                         result.setHelpLinkBaseUrl("https://thingsboard.io");
                     }
-                    if (!jsonNode.has("uiHelpBaseUrl")) {
+                    if (!json.has("uiHelpBaseUrl")) {
                         result.setUiHelpBaseUrl(null);
                     }
-                    if (!jsonNode.has("enableHelpLinks")) {
+                    if (!json.has("enableHelpLinks")) {
                         result.setEnableHelpLinks(true);
                     }
                 }
-            } catch (IOException e) {
+            } catch (IllegalArgumentException e) {
                 log.error("Unable to read White Labeling Params from JSON!", e);
                 throw new IncorrectParameterException("Unable to read White Labeling Params from JSON!");
             }
@@ -435,22 +352,23 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         return result;
     }
 
-    private ListenableFuture<WhiteLabelingParams> getEntityWhiteLabelParams(TenantId tenantId, EntityId entityId) {
-        ListenableFuture<String> jsonFuture;
+    private WhiteLabelingParams getEntityWhiteLabelParams(TenantId tenantId, EntityId entityId) {
+        JsonNode jsonNode = null;
         if (isWhiteLabelingAllowed(tenantId, entityId)) {
-            jsonFuture = getEntityAttributeValue(tenantId, entityId, WHITE_LABEL_PARAMS);
-        } else {
-            jsonFuture = Futures.immediateFuture("");
+            WhiteLabeling whiteLabeling = findById(tenantId, entityId, WhiteLabelingType.GENERAL);
+            if (whiteLabeling != null) {
+                jsonNode = whiteLabeling.getSettings();
+            }
         }
-        return Futures.transform(jsonFuture, json -> constructWlParams(json, false), MoreExecutors.directExecutor());
+        return constructWlParams(jsonNode, false);
     }
 
-    private LoginWhiteLabelingParams constructLoginWlParams(String json) {
+    private LoginWhiteLabelingParams constructLoginWlParams(JsonNode json) {
         LoginWhiteLabelingParams result = null;
-        if (!StringUtils.isEmpty(json)) {
+        if (json != null) {
             try {
-                result = objectMapper.readValue(json, LoginWhiteLabelingParams.class);
-            } catch (IOException e) {
+                result = JacksonUtil.treeToValue(json, LoginWhiteLabelingParams.class);
+            } catch (IllegalArgumentException e) {
                 log.error("Unable to read Login White Labeling Params from JSON!", e);
                 throw new IncorrectParameterException("Unable to read Login White Labeling Params from JSON!");
             }
@@ -461,14 +379,16 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         return result;
     }
 
-    private ListenableFuture<LoginWhiteLabelingParams> getEntityLoginWhiteLabelParams(TenantId tenantId, EntityId entityId) {
-        ListenableFuture<String> jsonFuture;
+
+    private LoginWhiteLabelingParams getEntityLoginWhiteLabelParams(TenantId tenantId, EntityId entityId) {
+        JsonNode jsonNode = null;
         if (isWhiteLabelingAllowed(tenantId, entityId)) {
-            jsonFuture = getEntityAttributeValue(tenantId, entityId, LOGIN_WHITE_LABEL_PARAMS);
-        } else {
-            jsonFuture = Futures.immediateFuture("");
+            WhiteLabeling whiteLabeling = findById(tenantId, entityId, WhiteLabelingType.LOGIN);
+            if (whiteLabeling != null) {
+                jsonNode = whiteLabeling.getSettings();
+            }
         }
-        return Futures.transform(jsonFuture, this::constructLoginWlParams, MoreExecutors.directExecutor());
+        return constructLoginWlParams(jsonNode);
     }
 
     public boolean isWhiteLabelingAllowed(TenantId tenantId, EntityId entityId) {
@@ -528,45 +448,48 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         }
     }
 
-    private ListenableFuture<String> getEntityAttributeValue(TenantId tenantId, EntityId entityId, String key) {
-        ListenableFuture<List<AttributeKvEntry>> attributeKvEntriesFuture;
-        try {
-            attributeKvEntriesFuture = attributesService.find(tenantId, entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key));
-        } catch (Exception e) {
-            log.error("Unable to read White Labeling Params from attributes!", e);
-            throw new IncorrectParameterException("Unable to read White Labeling Params from attributes!");
-        }
-        return Futures.transform(attributeKvEntriesFuture, attributeKvEntries -> {
-            if (attributeKvEntries != null && !attributeKvEntries.isEmpty()) {
-                AttributeKvEntry kvEntry = attributeKvEntries.get(0);
-                return kvEntry.getValueAsString();
-            } else {
-                return "";
-            }
-        }, MoreExecutors.directExecutor());
+    @Override
+    public boolean isWhiteLabelingConfigured(TenantId tenantId) {
+        return findById(tenantId, TenantId.SYS_TENANT_ID, WhiteLabelingType.GENERAL) != null;
     }
 
-    private ListenableFuture<List<String>> saveEntityWhiteLabelParams(TenantId tenantId, EntityId entityId, WhiteLabelingParams whiteLabelingParams, String attributeKey) {
-        String json;
-        try {
-            json = objectMapper.writeValueAsString(whiteLabelingParams);
-        } catch (JsonProcessingException e) {
-            log.error("Unable to convert White Labeling Params to JSON!", e);
-            throw new IncorrectParameterException("Unable to convert White Labeling Params to JSON!");
-        }
-        return saveEntityAttribute(tenantId, entityId, attributeKey, json);
+    private void saveLoginWhiteLabelParams(TenantId tenantId, EntityId entityId, LoginWhiteLabelingParams whiteLabelingParams) {
+        WhiteLabeling whiteLabeling = new WhiteLabeling();
+        whiteLabeling.setEntityId(entityId);
+        whiteLabeling.setType(WhiteLabelingType.LOGIN);
+        whiteLabeling.setSettings(JacksonUtil.valueToTree(whiteLabelingParams));
+        whiteLabeling.setDomain(whiteLabelingParams.getDomainName());
+
+        doSaveWhiteLabelingSettings(tenantId, whiteLabeling);
     }
 
-    private ListenableFuture<List<String>> saveEntityAttribute(TenantId tenantId, EntityId entityId, String key, String value) {
-        List<AttributeKvEntry> attributes = new ArrayList<>();
-        long ts = System.currentTimeMillis();
-        attributes.add(new BaseAttributeKvEntry(new StringDataEntry(key, value), ts));
+    private void saveWhiteLabelParams(TenantId tenantId, EntityId entityId, WhiteLabelingParams whiteLabelingParams) {
+        WhiteLabeling whiteLabeling = new WhiteLabeling();
+        whiteLabeling.setEntityId(entityId);
+        whiteLabeling.setType(WhiteLabelingType.GENERAL);
+        whiteLabeling.setSettings(JacksonUtil.valueToTree(whiteLabelingParams));
+
+        doSaveWhiteLabelingSettings(tenantId, whiteLabeling);
+    }
+
+    private void doSaveWhiteLabelingSettings(TenantId tenantId, WhiteLabeling whiteLabeling) {
         try {
-            return attributesService.save(tenantId, entityId, DataConstants.SERVER_SCOPE, attributes);
-        } catch (Exception e) {
-            log.error("Unable to save White Labeling Params to attributes!", e);
-            throw new IncorrectParameterException("Unable to save White Labeling Params to attributes!");
+            WhiteLabeling saved = whiteLabelingDao.save(tenantId, whiteLabeling);
+            WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(saved.getEntityId().getEntityType().name(), saved.getEntityId().getId(), saved.getType());
+            publishEvictEvent(new WhiteLabelingEvictEvent(key));
+        } catch (Exception t) {
+            checkConstraintViolation(t,
+                    "white_labeling_domain_name_key", "Such domain name already registered in the system!");
+            throw t;
         }
+    }
+
+    private WhiteLabeling findById(TenantId tenantId, EntityId entityId, WhiteLabelingType type) {
+        WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(entityId.getEntityType().name(), entityId.getId(), type);
+        log.trace("Executing findById for key [{}] ", key);
+        return cache.getAndPutInTransaction(key,
+                () -> whiteLabelingDao.findById(tenantId,
+                        key), true);
     }
 
     private <T extends WhiteLabelingParams> T prepareChecksums(T whiteLabelingParams) {
@@ -600,31 +523,39 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         return sb.toString();
     }
 
-    private String constructLoginWhileLabelKey(String domainName) {
-        String loginWhiteLabelKey;
-        if (StringUtils.isEmpty(domainName)) {
-            loginWhiteLabelKey = LOGIN_WHITE_LABEL_PARAMS;
-        } else {
-            loginWhiteLabelKey = LOGIN_WHITE_LABEL_DOMAIN_NAME_PREFIX + "_" + domainName;
-        }
-        return loginWhiteLabelKey;
+    @TransactionalEventListener(classes = WhiteLabelingEvictEvent.class)
+    @Override
+    public void handleEvictEvent(WhiteLabelingEvictEvent event) {
+        cache.evict(event.getKey());
     }
 
     private final Lock edgeLoginWhiteLabelSettingsLock = new ReentrantLock();
 
     @Override
-    public AdminSettings saveOrUpdateEdgeLoginWhiteLabelSettings(TenantId tenantId, EntityId currentEntityId) {
+    public void saveOrUpdateEdgeLoginWhiteLabelSettings(TenantId tenantId, EntityId currentEntityId) {
         edgeLoginWhiteLabelSettingsLock.lock();
         try {
-            String loginWhiteLabelKey = constructLoginWhileLabelKey(EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME);
-            AdminSettings adminSettingsByKey = adminSettingsService.findAdminSettingsByKey(tenantId, loginWhiteLabelKey);
-            if (adminSettingsByKey != null) {
-                adminSettingsService.deleteAdminSettingsByKey(tenantId, loginWhiteLabelKey);
+            checkAndRemoveIfDomainAlreadyUsedByOtherEntity(tenantId, currentEntityId);
+            WhiteLabeling whiteLabeling = findById(tenantId, currentEntityId, WhiteLabelingType.LOGIN);
+            if (whiteLabeling == null) {
+                whiteLabeling = new WhiteLabeling();
             }
-            return saveLoginWhiteLabelSettings(tenantId, currentEntityId, loginWhiteLabelKey);
+            whiteLabeling.setEntityId(currentEntityId);
+            whiteLabeling.setType(WhiteLabelingType.LOGIN);
+            if (whiteLabeling.getSettings() == null) {
+                whiteLabeling.setSettings(JacksonUtil.valueToTree(new LoginWhiteLabelingParams()));
+            }
+            whiteLabeling.setDomain(EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME);
+            doSaveWhiteLabelingSettings(tenantId, whiteLabeling);
         } finally {
             edgeLoginWhiteLabelSettingsLock.unlock();
         }
     }
 
+    private void checkAndRemoveIfDomainAlreadyUsedByOtherEntity(TenantId tenantId, EntityId currentEntityId) {
+        WhiteLabeling whiteLabeling = whiteLabelingDao.findByDomain(tenantId, EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME);
+        if (whiteLabeling != null && whiteLabeling.getEntityId() != null && !whiteLabeling.getEntityId().equals(currentEntityId)) {
+            deleteDomainWhiteLabelingByEntityId(tenantId, whiteLabeling.getEntityId());
+        }
+    }
 }

@@ -32,13 +32,13 @@ package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonParseException;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -50,6 +50,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.converter.AbstractDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.ScriptDownlinkEvaluator;
 import org.thingsboard.integration.api.converter.ScriptUplinkEvaluator;
@@ -60,11 +61,16 @@ import org.thingsboard.script.api.ScriptInvokeService;
 import org.thingsboard.script.api.js.JsInvokeService;
 import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.common.data.EventInfo;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -83,6 +89,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_CONFIGURATION_DESCRIPTION;
@@ -90,6 +97,18 @@ import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_DE
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_SORT_PROPERTY_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_TEXT_SEARCH_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_TYPE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_AWS_IOT_UPLINK_CONVERTER_MESSAGE;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_SIGFOX_UPLINK_CONVERTER_MESSAGE;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_SIGFOX_UPLINK_CONVERTER_METADATA;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_TTN_UPLINK_CONVERTER_MESSAGE;
+import static org.thingsboard.server.controller.ControllerConstants.INTEGRATION_NAME;
+import static org.thingsboard.server.controller.ControllerConstants.INTEGRATION_NAME_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.INTEGRATION_TYPE_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
@@ -116,9 +135,23 @@ public class ConverterController extends AutoCommitController {
     private final Optional<TbelInvokeService> tbelInvokeService;
     private final TbConverterService tbConverterService;
 
-    public static final String CONVERTER_ID = "converterId";
+    private final static Map<IntegrationType, String> converterDefaultMessages = Map.of(
+            IntegrationType.LORIOT, DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE,
+            IntegrationType.SIGFOX, DEFAULT_SIGFOX_UPLINK_CONVERTER_MESSAGE,
+            IntegrationType.TTI, DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE,
+            IntegrationType.TTN, DEFAULT_TTN_UPLINK_CONVERTER_MESSAGE,
+            IntegrationType.CHIRPSTACK, DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE,
+            IntegrationType.AZURE_IOT_HUB, DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE,
+            IntegrationType.AZURE_EVENT_HUB, DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE,
+            IntegrationType.AZURE_SERVICE_BUS, DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE,
+            IntegrationType.AWS_IOT, DEFAULT_AWS_IOT_UPLINK_CONVERTER_MESSAGE
+    );
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private final static Map<IntegrationType, String> converterDefaultMetadatas = Map.of(
+            IntegrationType.SIGFOX, DEFAULT_SIGFOX_UPLINK_CONVERTER_METADATA
+    );
+
+    public static final String CONVERTER_ID = "converterId";
 
     @ApiOperation(value = "Get Converter (getConverterById)",
             notes = "Fetch the Converter object based on the provided Converter Id. " +
@@ -204,54 +237,132 @@ public class ConverterController extends AutoCommitController {
     @RequestMapping(value = "/converter/{converterId}/debugIn", method = RequestMethod.GET)
     @ResponseBody
     public JsonNode getLatestConverterDebugInput(@ApiParam(required = true, value = CONVERTER_ID_PARAM_DESCRIPTION)
-                                                 @PathVariable(CONVERTER_ID) String strConverterId) throws Exception {
+                                                 @PathVariable(CONVERTER_ID) String strConverterId,
+                                                 @ApiParam(required = false, value = CONVERTER_TYPE_DESCRIPTION)
+                                                 @RequestParam(required = false) String converterType,
+                                                 @ApiParam(required = false, value = INTEGRATION_TYPE_DESCRIPTION)
+                                                 @RequestParam(required = false) String integrationType,
+                                                 @ApiParam(required = false, value = INTEGRATION_NAME_PARAM_DESCRIPTION)
+                                                 @RequestParam(required = false) String integrationName) throws Exception {
         checkParameter(CONVERTER_ID, strConverterId);
-        ConverterId converterId = new ConverterId(toUUID(strConverterId));
-        checkConverterId(converterId, Operation.READ);
-        List<EventInfo> events = eventService.findLatestEvents(getTenantId(), converterId, EventType.DEBUG_CONVERTER, 1);
-        JsonNode result = null;
-        if (events != null && !events.isEmpty()) {
-            EventInfo event = events.get(0);
-            JsonNode body = event.getBody();
-            if (body.has("type")) {
-                String type = body.get("type").asText();
-                if (type.equals("Uplink") || type.equals("Downlink")) {
-                    ObjectNode debugIn = objectMapper.createObjectNode();
-                    String inContentType = body.get("inMessageType").asText();
-                    debugIn.put("inContentType", inContentType);
-                    if (type.equals("Uplink")) {
-                        String inContent = body.get("in").asText();
-                        debugIn.put("inContent", inContent);
-                        String inMetadata = body.get("metadata").asText();
-                        debugIn.put("inMetadata", inMetadata);
-                    } else { //Downlink
-                        String inContent = "";
-                        String inMsgType = "";
-                        String inMetadata = "";
-                        String in = body.get("in").asText();
-                        JsonNode inJson = objectMapper.readTree(in);
-                        if (inJson.isArray() && inJson.size() > 0) {
-                            JsonNode msgJson = inJson.get(inJson.size() - 1);
-                            JsonNode msg = msgJson.get("msg");
-                            if (msg.isTextual()) {
-                                inContent = "";
-                            } else if (msg.isObject()) {
-                                inContent = objectMapper.writeValueAsString(msg);
-                            }
-                            inMsgType = msgJson.get("msgType").asText();
-                            inMetadata = objectMapper.writeValueAsString(msgJson.get("metadata"));
+        UUID uuid = toUUID(strConverterId);
+        Converter converter = null;
+
+        if (!EntityId.NULL_UUID.equals(uuid)) {
+            ConverterId converterId = new ConverterId(uuid);
+            converter = checkConverterId(converterId, Operation.READ);
+            List<EventInfo> events = eventService.findLatestEvents(getTenantId(), converterId, EventType.DEBUG_CONVERTER, 1);
+
+            if (events != null && !events.isEmpty()) {
+                JsonNode body = events.get(0).getBody();
+                return createDebugInFromFoundEvent(body);
+            }
+        }
+
+        return createDefaultDebugIn(converter, converterType, integrationType, integrationName);
+    }
+
+    private JsonNode createDefaultDebugIn(Converter converter, String converterType, String integrationType, String integrationName) throws ThingsboardException {
+
+        if ((converter == null && !ConverterType.UPLINK.name().equals(converterType)) ||
+                (converter != null && !ConverterType.UPLINK.equals(converter.getType()))) {
+            return null;
+        }
+
+        Pair<IntegrationType, String> targetIntegrationInfo = getTargetIntegrationTypeAndName(converter, integrationType);
+        if (targetIntegrationInfo == null) {
+            return null;
+        }
+
+        IntegrationType targetIntegrationType = targetIntegrationInfo.getFirst();
+        if (StringUtils.isBlank(integrationName)){
+            integrationName = targetIntegrationInfo.getSecond();
+        }
+
+        return createDebugIn(integrationName, targetIntegrationType);
+    }
+
+    private JsonNode createDebugIn(String integrationName, IntegrationType targetIntegrationType) {
+        ObjectNode debugIn = JacksonUtil.newObjectNode();
+        ObjectNode metadata = JacksonUtil.newObjectNode();
+        metadata.put(INTEGRATION_NAME, integrationName);
+        String inContent = converterDefaultMessages.get(targetIntegrationType);
+
+        if (converterDefaultMetadatas.containsKey(targetIntegrationType)) {
+            metadata.setAll(JacksonUtil.fromString(converterDefaultMetadatas.get(targetIntegrationType), ObjectNode.class));
+        }
+
+        debugIn.put("inMetadata", JacksonUtil.toString(metadata));
+        debugIn.put("inContent", inContent);
+        debugIn.put("inContentType", UplinkContentType.JSON.name());
+
+        return debugIn.isEmpty() ? null : debugIn;
+    }
+
+    private Pair<IntegrationType, String> getTargetIntegrationTypeAndName(Converter converter, String integrationType) throws ThingsboardException {
+        IntegrationType targetIntegrationType = null;
+        String targetIntegrationName = "";
+
+        if (converter != null) {
+            Integration integration = getIntegration(converter.getId());
+            if (integration != null) {
+                targetIntegrationType = integration.getType();
+                targetIntegrationName = integration.getName();
+            }
+        }
+        if (StringUtils.isNotBlank(integrationType) && targetIntegrationType == null) {
+            targetIntegrationType = IntegrationType.valueOf(integrationType);
+        }
+
+        return (targetIntegrationType == null) ? null : Pair.of(targetIntegrationType, targetIntegrationName);
+    }
+
+    private Integration getIntegration(ConverterId converterId) throws ThingsboardException {
+        List<Integration> relatedIntegrations = integrationService.findIntegrationsByConverterId(getTenantId(), converterId);
+        if (relatedIntegrations.size() > 0 && relatedIntegrations.stream().map(Integration::getType).distinct().limit(2).count() == 1) {
+            return relatedIntegrations.get(0);
+        }
+        return null;
+    }
+
+    private static ObjectNode createDebugInFromFoundEvent(JsonNode body) {
+        ObjectNode debugIn = JacksonUtil.newObjectNode();
+        if (body.has("type")) {
+            String type = body.get("type").asText();
+            if (type.equals("Uplink") || type.equals("Downlink")) {
+                String inContentType = body.get("inMessageType").asText();
+                debugIn.put("inContentType", inContentType);
+                if (type.equals("Uplink")) {
+                    String inContent = body.get("in").asText();
+                    debugIn.put("inContent", inContent);
+                    String inMetadata = body.get("metadata").asText();
+                    debugIn.put("inMetadata", inMetadata);
+                } else { //Downlink
+                    String inContent = "";
+                    String inMsgType = "";
+                    String inMetadata = "";
+                    String in = body.get("in").asText();
+                    JsonNode inJson = JacksonUtil.toJsonNode(in);
+                    if (inJson.isArray() && inJson.size() > 0) {
+                        JsonNode msgJson = inJson.get(inJson.size() - 1);
+                        JsonNode msg = msgJson.get("msg");
+                        if (msg.isTextual()) {
+                            inContent = "";
+                        } else if (msg.isObject()) {
+                            inContent = JacksonUtil.toString(msg);
                         }
-                        debugIn.put("inContent", inContent);
-                        debugIn.put("inMsgType", inMsgType);
-                        debugIn.put("inMetadata", inMetadata);
-                        String inIntegrationMetadata = body.get("metadata").asText();
-                        debugIn.put("inIntegrationMetadata", inIntegrationMetadata);
+                        inMsgType = msgJson.get("msgType").asText();
+                        inMetadata = JacksonUtil.toString(msgJson.get("metadata"));
                     }
-                    result = debugIn;
+                    debugIn.put("inContent", inContent);
+                    debugIn.put("inMsgType", inMsgType);
+                    debugIn.put("inMetadata", inMetadata);
+                    String inIntegrationMetadata = body.get("metadata").asText();
+                    debugIn.put("inIntegrationMetadata", inIntegrationMetadata);
                 }
             }
         }
-        return result;
+        return debugIn;
     }
 
     @ApiOperation(value = "Test converter function (testUpLinkConverter)",
@@ -271,7 +382,7 @@ public class ConverterController extends AutoCommitController {
         JsonNode metadata = inputParams.get("metadata");
         String decoder = inputParams.get("decoder").asText();
 
-        Map<String, String> metadataMap = objectMapper.convertValue(metadata, new TypeReference<>() {
+        Map<String, String> metadataMap = JacksonUtil.convertValue(metadata, new TypeReference<>() {
         });
         UplinkMetaData uplinkMetaData = new UplinkMetaData(UplinkContentType.JSON, metadataMap);
 
@@ -289,7 +400,7 @@ public class ConverterController extends AutoCommitController {
                 scriptUplinkEvaluator.destroy();
             }
         }
-        ObjectNode result = objectMapper.createObjectNode();
+        ObjectNode result = JacksonUtil.newObjectNode();
         result.put("output", output);
         result.put("error", errorText);
         return result;
@@ -313,10 +424,10 @@ public class ConverterController extends AutoCommitController {
         JsonNode integrationMetadata = inputParams.get("integrationMetadata");
         String encoder = inputParams.get("encoder").asText();
 
-        Map<String, String> metadataMap = objectMapper.convertValue(metadata, new TypeReference<Map<String, String>>() {
+        Map<String, String> metadataMap = JacksonUtil.convertValue(metadata, new TypeReference<Map<String, String>>() {
         });
 
-        Map<String, String> integrationMetadataMap = objectMapper.convertValue(integrationMetadata, new TypeReference<Map<String, String>>() {
+        Map<String, String> integrationMetadataMap = JacksonUtil.convertValue(integrationMetadata, new TypeReference<Map<String, String>>() {
         });
         IntegrationMetaData integrationMetaData = new IntegrationMetaData(integrationMetadataMap);
 
@@ -336,8 +447,8 @@ public class ConverterController extends AutoCommitController {
                 scriptDownlinkEvaluator.destroy();
             }
         }
-        ObjectNode result = objectMapper.createObjectNode();
-        result.put("output", objectMapper.writeValueAsString(output));
+        ObjectNode result = JacksonUtil.newObjectNode();
+        result.put("output", JacksonUtil.toString(output));
         result.put("error", errorText);
         return result;
     }

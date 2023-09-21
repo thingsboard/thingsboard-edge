@@ -125,6 +125,7 @@ import org.thingsboard.server.service.entitiy.edge.TbEdgeService;
 import org.thingsboard.server.service.entitiy.entity.group.TbEntityGroupService;
 import org.thingsboard.server.service.entitiy.entity.relation.TbEntityRelationService;
 import org.thingsboard.server.service.install.InstallScripts;
+import org.thingsboard.server.service.rule.TbRuleChainService;
 import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 import org.thingsboard.server.service.solutions.data.CreatedEntityInfo;
@@ -211,6 +212,7 @@ public class DefaultSolutionService implements SolutionService {
     private final InstallScripts installScripts;
     private final DeviceProfileService deviceProfileService;
     private final AssetProfileService assetProfileService;
+    private final TbRuleChainService tbRuleChainService;
     private final RuleChainService ruleChainService;
     private final AttributesService attributesService;
     private final TimeseriesService tsService;
@@ -669,7 +671,7 @@ public class DefaultSolutionService implements SolutionService {
             RuleChainMetaData ruleChainMetaData = JacksonUtil.treeToValue(JacksonUtil.toJsonNode(metadataStr), RuleChainMetaData.class);
             RuleChain savedRuleChain = ruleChainService.saveRuleChain(ruleChain);
             ruleChainMetaData.setRuleChainId(savedRuleChain.getId());
-            ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), ruleChainMetaData);
+            ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), ruleChainMetaData, tbRuleChainService::updateRuleNodeConfiguration);
             if (ruleChain.isRoot()) {
                 ruleChainService.setRootRuleChain(ctx.getTenantId(), savedRuleChain.getId());
             }
@@ -700,7 +702,7 @@ public class DefaultSolutionService implements SolutionService {
             RuleChainId ruleChainId = (RuleChainId) EntityIdFactory.getByTypeAndUuid(EntityType.RULE_CHAIN, ctx.getRealIds().get(entityDefinition.getJsonId()));
             RuleChain savedRuleChain = ruleChainService.findRuleChainById(ctx.getTenantId(), ruleChainId);
             ruleChainMetaData.setRuleChainId(savedRuleChain.getId());
-            ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), ruleChainMetaData);
+            ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), ruleChainMetaData, tbRuleChainService::updateRuleNodeConfiguration);
             tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), savedRuleChain.getId(), ComponentLifecycleEvent.UPDATED);
         }
     }
@@ -727,7 +729,7 @@ public class DefaultSolutionService implements SolutionService {
             RuleChainId ruleChainId = (RuleChainId) EntityIdFactory.getByTypeAndUuid(EntityType.RULE_CHAIN, ctx.getRealIds().get(entityDefinition.getJsonId()));
             RuleChain savedRuleChain = ruleChainService.findRuleChainById(ctx.getTenantId(), ruleChainId);
             ruleChainMetaData.setRuleChainId(savedRuleChain.getId());
-            ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), ruleChainMetaData);
+            ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), ruleChainMetaData, tbRuleChainService::updateRuleNodeConfiguration);
             tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), savedRuleChain.getId(), ComponentLifecycleEvent.UPDATED);
         }
     }
@@ -1148,7 +1150,7 @@ public class DefaultSolutionService implements SolutionService {
                     additionalInfo.put("defaultDashboardId", dashboardId.getId().toString());
                     additionalInfo.put("defaultDashboardFullscreen", dd.isFullScreen());
                     user.setAdditionalInfo(additionalInfo);
-                    userService.saveUser(user);
+                    userService.saveUser(ctx.getTenantId(), user);
                     log.info("[{}] Added default dashboard for user {}", entity.getId(), user.getEmail());
                 }
                 UserCredentialsInfo credentialsInfo = new UserCredentialsInfo();
@@ -1191,7 +1193,7 @@ public class DefaultSolutionService implements SolutionService {
                 user.setCustomerId(entity.getId());
                 user.setTenantId(ctx.getTenantId());
                 log.info("[{}] Saving user: {}", entity.getId(), user);
-                user = userService.saveUser(user);
+                user = userService.saveUser(ctx.getTenantId(), user);
                 uDef.setName(user.getEmail());
                 return user;
             } catch (Exception e) {

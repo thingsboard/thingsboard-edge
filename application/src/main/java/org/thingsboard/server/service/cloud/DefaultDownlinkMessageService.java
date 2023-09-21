@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.cloud.CloudEventService;
+import org.thingsboard.server.dao.customer.CustomerServiceImpl;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
@@ -69,6 +70,8 @@ import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.TenantProfileUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.TenantUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetTypeUpdateMsg;
@@ -94,6 +97,8 @@ import org.thingsboard.server.service.cloud.rpc.processor.RoleCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RuleChainCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.SchedulerEventCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.TelemetryCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.TenantCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.TenantProfileCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.UserCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.WhiteLabelingCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.WidgetBundleCloudProcessor;
@@ -194,6 +199,12 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
     private IntegrationCloudProcessor integrationProcessor;
 
     @Autowired
+    private TenantCloudProcessor tenantCloudProcessor;
+
+    @Autowired
+    private TenantProfileCloudProcessor tenantProfileCloudProcessor;
+
+    @Autowired
     private DbCallbackExecutorService dbCallbackExecutorService;
 
     private CustomerId customerId;
@@ -208,7 +219,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                     tenantId, downlinkMsg.getDownlinkMsgId());
             log.trace("DownlinkMsg Body {}", downlinkMsg);
             if (downlinkMsg.hasSyncCompletedMsg()) {
-                result.add(updateSyncRequiredState(tenantId, currentEdgeSettings));
+                result.add(updateSyncRequiredState(tenantId, this.customerId, currentEdgeSettings, queueStartTs));
             }
             if (downlinkMsg.hasEdgeConfiguration()) {
                 result.add(edgeCloudProcessor.processEdgeConfigurationMsgFromCloud(tenantId, downlinkMsg.getEdgeConfiguration()));
@@ -238,14 +249,14 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                     result.add(deviceProcessor.processDeviceMsgFromCloud(tenantId, deviceUpdateMsg, queueStartTs));
                 }
             }
-            if (downlinkMsg.getAssetProfileUpdateMsgCount() > 0) {
-                for (AssetProfileUpdateMsg assetProfileUpdateMsg  : downlinkMsg.getAssetProfileUpdateMsgList()) {
-                    result.add(assetProfileProcessor.processAssetProfileMsgFromCloud(tenantId, assetProfileUpdateMsg));
-                }
-            }
             if (downlinkMsg.getDeviceCredentialsUpdateMsgCount() > 0) {
                 for (DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg : downlinkMsg.getDeviceCredentialsUpdateMsgList()) {
                     result.add(deviceProcessor.processDeviceCredentialsMsg(tenantId, deviceCredentialsUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getAssetProfileUpdateMsgCount() > 0) {
+                for (AssetProfileUpdateMsg assetProfileUpdateMsg  : downlinkMsg.getAssetProfileUpdateMsgList()) {
+                    result.add(assetProfileProcessor.processAssetProfileMsgFromCloud(tenantId, assetProfileUpdateMsg, queueStartTs));
                 }
             }
             if (downlinkMsg.getAssetUpdateMsgCount() > 0) {
@@ -283,7 +294,9 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                     sequenceDependencyLock.lock();
                     try {
                         result.add(customerProcessor.processCustomerMsgFromCloud(tenantId, customerUpdateMsg, queueStartTs));
-                        updateCustomerId(tenantId, customerUpdateMsg);
+                        if (!CustomerServiceImpl.PUBLIC_CUSTOMER_TITLE.equals(customerUpdateMsg.getTitle())) {
+                            updateCustomerId(tenantId, customerUpdateMsg);
+                        }
                     } finally {
                         sequenceDependencyLock.unlock();
                     }
@@ -296,7 +309,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             }
             if (downlinkMsg.getWidgetsBundleUpdateMsgCount() > 0) {
                 for (WidgetsBundleUpdateMsg widgetsBundleUpdateMsg : downlinkMsg.getWidgetsBundleUpdateMsgList()) {
-                    result.add(widgetsBundleProcessor.processWidgetsBundleMsgFromCloud(tenantId, widgetsBundleUpdateMsg, queueStartTs));
+                    result.add(widgetsBundleProcessor.processWidgetsBundleMsgFromCloud(tenantId, widgetsBundleUpdateMsg));
                 }
             }
             if (downlinkMsg.getWidgetTypeUpdateMsgCount() > 0) {
@@ -344,12 +357,15 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             }
             if (downlinkMsg.hasSystemLoginWhiteLabelingParams()) {
                 result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getSystemLoginWhiteLabelingParams()));
+                updateEdgeLoginDomainWhiteLabelingSettings(tenantId);
             }
             if (downlinkMsg.hasTenantLoginWhiteLabelingParams()) {
                 result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getTenantLoginWhiteLabelingParams()));
+                updateEdgeLoginDomainWhiteLabelingSettings(tenantId);
             }
             if (downlinkMsg.hasCustomerLoginWhiteLabelingParams()) {
                 result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getCustomerLoginWhiteLabelingParams()));
+                updateEdgeLoginDomainWhiteLabelingSettings(tenantId);
             }
             if (downlinkMsg.getSchedulerEventUpdateMsgCount() > 0) {
                 for (SchedulerEventUpdateMsg schedulerEventUpdateMsg : downlinkMsg.getSchedulerEventUpdateMsgList()) {
@@ -391,6 +407,16 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                     result.add(integrationProcessor.processIntegrationMsgFromCloud(tenantId, integrationUpdateMsg));
                 }
             }
+            if (downlinkMsg.getTenantProfileUpdateMsgCount() > 0) {
+                for (TenantProfileUpdateMsg tenantProfileUpdateMsg : downlinkMsg.getTenantProfileUpdateMsgList()) {
+                    result.add(tenantProfileCloudProcessor.processTenantProfileMsgFromCloud(tenantId, tenantProfileUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getTenantUpdateMsgCount() > 0) {
+                for (TenantUpdateMsg tenantUpdateMsg : downlinkMsg.getTenantUpdateMsgList()) {
+                    result.add(tenantCloudProcessor.processTenantMsgFromCloud(tenantUpdateMsg));
+                }
+            }
             log.trace("Finished processing DownlinkMsg {}", downlinkMsg.getDownlinkMsgId());
         } catch (Exception e) {
             log.error("Can't process downlink message [{}]", downlinkMsg, e);
@@ -399,10 +425,18 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
         return Futures.allAsList(result);
     }
 
-    private ListenableFuture<Void> updateSyncRequiredState(TenantId tenantId, EdgeSettings currentEdgeSettings) {
+    private ListenableFuture<Void> updateSyncRequiredState(TenantId tenantId, CustomerId customerId, EdgeSettings currentEdgeSettings, Long queueStartTs) {
         log.debug("Marking full sync required to false");
         if (currentEdgeSettings != null) {
             currentEdgeSettings.setFullSyncRequired(false);
+            try {
+                cloudEventService.saveCloudEvent(tenantId, CloudEventType.TENANT, EdgeEventActionType.ATTRIBUTES_REQUEST, tenantId, null, null, queueStartTs);
+                if (customerId != null && !EntityId.NULL_UUID.equals(customerId.getId())) {
+                    cloudEventService.saveCloudEvent(tenantId, CloudEventType.CUSTOMER, EdgeEventActionType.ATTRIBUTES_REQUEST, customerId, null, null, queueStartTs);
+                }
+            } catch (Exception e) {
+                log.error("Failed to request attributes for tenant and customer entities", e);
+            }
             return Futures.transform(cloudEventService.saveEdgeSettings(tenantId, currentEdgeSettings),
                     result -> {
                         log.debug("Full sync required marked as false");
@@ -418,14 +452,18 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
         switch (customerUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-                customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
+                this.customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                customerId = null;
+                this.customerId = null;
                 break;
         }
 
-        EntityId ownerId = customerId != null && !customerId.isNullUid() ? customerId : tenantId;
+        updateEdgeLoginDomainWhiteLabelingSettings(tenantId);
+    }
+
+    private void updateEdgeLoginDomainWhiteLabelingSettings(TenantId tenantId) {
+        EntityId ownerId = this.customerId != null && !this.customerId.isNullUid() ? this.customerId : tenantId;
         whiteLabelingService.saveOrUpdateEdgeLoginWhiteLabelSettings(tenantId, ownerId);
     }
 

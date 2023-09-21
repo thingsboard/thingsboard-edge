@@ -288,7 +288,7 @@ public class FleetTrackingInstallTest extends AbstractSolutionTemplateTest {
         refreshPage();
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.fleetTrackingInstructionBtn().click();
-        solutionTemplatesInstalledView.goToMainDashboardPageBtn().click();
+        solutionTemplatesInstalledView.goToMainDashboard();
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, FLEET_TRACKING_DASHBOARD_GROUP, FLEET_TRACKING_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, FLEET_TRACKING_DASHBOARD_GROUP).getUuidId().toString();
 

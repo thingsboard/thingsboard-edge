@@ -31,7 +31,6 @@
 package org.thingsboard.rule.engine.transform;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,6 +41,7 @@ import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
@@ -60,8 +60,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class TbCopyKeysNodeTest {
-    final ObjectMapper mapper = new ObjectMapper();
-
     DeviceId deviceId;
     TbCopyKeysNode node;
     TbCopyKeysNodeConfiguration config;
@@ -77,7 +75,7 @@ public class TbCopyKeysNodeTest {
         config = new TbCopyKeysNodeConfiguration().defaultConfiguration();
         config.setKeys(Set.of("TestKey_1", "TestKey_2", "TestKey_3", "(\\w*)Data(\\w*)"));
         config.setFromMetadata(true);
-        nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
+        nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
         node = spy(new TbCopyKeysNode());
         node.init(ctx, nodeConfiguration);
     }
@@ -96,8 +94,7 @@ public class TbCopyKeysNodeTest {
 
     @Test
     void givenMsgFromMetadata_whenOnMsg_thenVerifyOutput() throws Exception {
-        String data = "{}";
-        node.onMsg(ctx, getTbMsg(deviceId, data));
+        node.onMsg(ctx, getTbMsg(deviceId, TbMsg.EMPTY_JSON_OBJECT));
 
         ArgumentCaptor<TbMsg> newMsgCaptor = ArgumentCaptor.forClass(TbMsg.class);
         verify(ctx, times(1)).tellSuccess(newMsgCaptor.capture());
@@ -114,7 +111,7 @@ public class TbCopyKeysNodeTest {
     @Test
     void givenMsgFromMsg_whenOnMsg_thenVerifyOutput() throws Exception {
         config.setFromMetadata(false);
-        nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
+        nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
         node.init(ctx, nodeConfiguration);
 
         String data = "{\"DigitData\":22.5,\"TempDataValue\":10.5}";
@@ -135,7 +132,7 @@ public class TbCopyKeysNodeTest {
     @Test
     void givenEmptyKeys_whenOnMsg_thenVerifyOutput() throws Exception {
         TbCopyKeysNodeConfiguration defaultConfig = new TbCopyKeysNodeConfiguration().defaultConfiguration();
-        nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(defaultConfig));
+        nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(defaultConfig));
         node.init(ctx, nodeConfiguration);
 
         String data = "{\"DigitData\":22.5,\"TempDataValue\":10.5}";
@@ -154,8 +151,7 @@ public class TbCopyKeysNodeTest {
 
     @Test
     void givenMsgDataNotJSONObject_whenOnMsg_thenTVerifyOutput() throws Exception {
-        String data = "[]";
-        TbMsg msg = getTbMsg(deviceId, data);
+        TbMsg msg = getTbMsg(deviceId, TbMsg.EMPTY_JSON_ARRAY);
         node.onMsg(ctx, msg);
 
         ArgumentCaptor<TbMsg> newMsgCaptor = ArgumentCaptor.forClass(TbMsg.class);
@@ -175,7 +171,7 @@ public class TbCopyKeysNodeTest {
                 "voltageDataValue", "220",
                 "city", "NY"
         );
-        return TbMsg.newMsg("POST_ATTRIBUTES_REQUEST", entityId, new TbMsgMetaData(mdMap), data, callback);
+        return TbMsg.newMsg(TbMsgType.POST_ATTRIBUTES_REQUEST, entityId, new TbMsgMetaData(mdMap), data, callback);
     }
 
 }

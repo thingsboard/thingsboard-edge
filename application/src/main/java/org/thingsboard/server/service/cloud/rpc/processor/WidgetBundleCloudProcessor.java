@@ -36,10 +36,9 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
-import org.thingsboard.server.common.data.cloud.CloudEventType;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -51,80 +50,71 @@ import org.thingsboard.server.gen.edge.v1.WidgetsBundleUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
 @Component
 @Slf4j
 public class WidgetBundleCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processWidgetsBundleMsgFromCloud(TenantId tenantId,
-                                                                   WidgetsBundleUpdateMsg widgetsBundleUpdateMsg,
-                                                                   Long queueStartTs) throws ExecutionException, InterruptedException {
+                                                                   WidgetsBundleUpdateMsg widgetsBundleUpdateMsg) {
         WidgetsBundleId widgetsBundleId = new WidgetsBundleId(new UUID(widgetsBundleUpdateMsg.getIdMSB(), widgetsBundleUpdateMsg.getIdLSB()));
-        switch (widgetsBundleUpdateMsg.getMsgType()) {
-            case ENTITY_CREATED_RPC_MESSAGE:
-            case ENTITY_UPDATED_RPC_MESSAGE:
-                widgetCreationLock.lock();
-                try {
-                    deleteSystemWidgetBundleIfAlreadyExists(tenantId, widgetsBundleUpdateMsg.getAlias(), widgetsBundleId, queueStartTs);
-                    WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
-                    boolean created = false;
-                    if (widgetsBundle == null) {
-                        created = true;
-                        widgetsBundle = new WidgetsBundle();
-                        if (widgetsBundleUpdateMsg.getIsSystem()) {
-                            widgetsBundle.setTenantId(TenantId.SYS_TENANT_ID);
-                        } else {
-                            widgetsBundle.setTenantId(tenantId);
+        try {
+            edgeSynchronizationManager.getSync().set(true);
+            switch (widgetsBundleUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE:
+                case ENTITY_UPDATED_RPC_MESSAGE:
+                    widgetCreationLock.lock();
+                    try {
+                        deleteSystemWidgetBundleIfAlreadyExists(tenantId, widgetsBundleUpdateMsg.getAlias(), widgetsBundleId);
+                        WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
+                        if (widgetsBundle == null) {
+                            widgetsBundle = new WidgetsBundle();
+                            if (widgetsBundleUpdateMsg.getIsSystem()) {
+                                widgetsBundle.setTenantId(TenantId.SYS_TENANT_ID);
+                            } else {
+                                widgetsBundle.setTenantId(tenantId);
+                            }
+                            widgetsBundle.setId(widgetsBundleId);
+                            widgetsBundle.setCreatedTime(Uuids.unixTimestamp(widgetsBundleId.getId()));
                         }
-                        widgetsBundle.setId(widgetsBundleId);
-                        widgetsBundle.setCreatedTime(Uuids.unixTimestamp(widgetsBundleId.getId()));
-                    }
-                    widgetsBundle.setTitle(widgetsBundleUpdateMsg.getTitle());
-                    widgetsBundle.setAlias(widgetsBundleUpdateMsg.getAlias());
-                    widgetsBundle.setImage(widgetsBundleUpdateMsg.hasImage()
-                            ? new String(widgetsBundleUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8) : null);
-                    widgetsBundle.setDescription(widgetsBundleUpdateMsg.hasDescription() ? widgetsBundleUpdateMsg.getDescription() : null);
-                    widgetsBundleService.saveWidgetsBundle(widgetsBundle, false);
+                        widgetsBundle.setTitle(widgetsBundleUpdateMsg.getTitle());
+                        widgetsBundle.setAlias(widgetsBundleUpdateMsg.getAlias());
+                        widgetsBundle.setImage(widgetsBundleUpdateMsg.hasImage()
+                                ? new String(widgetsBundleUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8) : null);
+                        widgetsBundle.setDescription(widgetsBundleUpdateMsg.hasDescription() ? widgetsBundleUpdateMsg.getDescription() : null);
+                        widgetsBundleService.saveWidgetsBundle(widgetsBundle, false);
 
-                    if (created) {
-                        return requestWidgetsBundleTypes(tenantId, widgetsBundleId, queueStartTs);
-                    } else {
-                        return Futures.immediateFuture(null);
+                        String[] widgetFqns = JacksonUtil.fromString(widgetsBundleUpdateMsg.getWidgets(), String[].class);
+                        if (widgetFqns != null && widgetFqns.length > 0) {
+                            widgetTypeService.updateWidgetsBundleWidgetFqns(widgetsBundle.getTenantId(), widgetsBundleId, Arrays.asList(widgetFqns));
+                        }
+                    } finally {
+                        widgetCreationLock.unlock();
                     }
-                } finally {
-                    widgetCreationLock.unlock();
-                }
-            case ENTITY_DELETED_RPC_MESSAGE:
-                WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
-                if (widgetsBundle != null) {
-                    widgetsBundleService.deleteWidgetsBundle(tenantId, widgetsBundle.getId());
-                }
-                return Futures.immediateFuture(null);
-            case UNRECOGNIZED:
-                return handleUnsupportedMsgType(widgetsBundleUpdateMsg.getMsgType());
+                    break;
+                case ENTITY_DELETED_RPC_MESSAGE:
+                    WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
+                    if (widgetsBundle != null) {
+                        widgetsBundleService.deleteWidgetsBundle(tenantId, widgetsBundle.getId());
+                    }
+                    break;
+                case UNRECOGNIZED:
+                    return handleUnsupportedMsgType(widgetsBundleUpdateMsg.getMsgType());
+            }
+        } finally {
+            edgeSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
     }
 
-    private ListenableFuture<Void> requestWidgetsBundleTypes(TenantId tenantId, WidgetsBundleId widgetsBundleId, Long queueStartTs) {
-        return cloudEventService.saveCloudEventAsync(tenantId,
-                CloudEventType.WIDGETS_BUNDLE,
-                EdgeEventActionType.WIDGET_BUNDLE_TYPES_REQUEST,
-                widgetsBundleId,
-                null,
-                null,
-                queueStartTs);
-    }
-
-    private void deleteSystemWidgetBundleIfAlreadyExists(TenantId tenantId, String bundleAlias, WidgetsBundleId widgetsBundleId, Long queueStartTs) throws ExecutionException, InterruptedException {
+    private void deleteSystemWidgetBundleIfAlreadyExists(TenantId tenantId, String bundleAlias, WidgetsBundleId widgetsBundleId) {
         try {
             WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleByTenantIdAndAlias(TenantId.SYS_TENANT_ID, bundleAlias);
             if (widgetsBundle != null && !widgetsBundleId.equals(widgetsBundle.getId())) {
                 widgetsBundleService.deleteWidgetsBundle(TenantId.SYS_TENANT_ID, widgetsBundle.getId());
-                requestWidgetsBundleTypes(tenantId, widgetsBundleId, queueStartTs).get();
             }
         } catch (IncorrectResultSizeDataAccessException e) {
             // fix for duplicate entries of system widgets
@@ -136,7 +126,6 @@ public class WidgetBundleCloudProcessor extends BaseEdgeProcessor {
                 }
             }
             log.warn("Duplicate widgets bundle found, alias {}. Removed all duplicates!", bundleAlias);
-            requestWidgetsBundleTypes(tenantId, widgetsBundleId, queueStartTs).get();
         }
     }
 

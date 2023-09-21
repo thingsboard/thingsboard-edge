@@ -46,7 +46,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.UserEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.user.UserDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
@@ -62,7 +62,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 @Component
 @Slf4j
 @SqlDao
-public class JpaUserDao extends JpaAbstractSearchTextDao<UserEntity, User> implements UserDao {
+public class JpaUserDao extends JpaAbstractDao<UserEntity, User> implements UserDao {
 
     @Autowired
     private UserRepository userRepository;
@@ -161,6 +161,21 @@ public class JpaUserDao extends JpaAbstractSearchTextDao<UserEntity, User> imple
     public PageData<User> findUsersByTenantIdAndRolesIds(TenantId tenantId, List<RoleId> rolesIds, PageLink pageLink) {
         return DaoUtil.toPageData(userRepository.findByTenantIdAndRolesIds(tenantId.getId(), DaoUtil.toUUIDs(rolesIds),
                 DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public PageData<User> findUsersByTenantsIdsAndRoleId(List<TenantId> tenantsIds, RoleId roleId, PageLink pageLink) {
+        return DaoUtil.toPageData(userRepository.findByTenantsIdsAndRoleId(DaoUtil.toUUIDs(tenantsIds), roleId.getId(), DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public PageData<User> findUsersByTenantProfilesIdsAndRoleId(List<TenantProfileId> tenantProfilesIds, RoleId roleId, PageLink pageLink) {
+        return DaoUtil.toPageData(userRepository.findByTenantProfilesIdsAndRoleId(DaoUtil.toUUIDs(tenantProfilesIds), roleId.getId(), DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public PageData<User> findAllUsersByRoleId(RoleId roleId, PageLink pageLink) {
+        return DaoUtil.toPageData(userRepository.findByRoleId(roleId.getId(), DaoUtil.toPageable(pageLink)));
     }
 
     @Override

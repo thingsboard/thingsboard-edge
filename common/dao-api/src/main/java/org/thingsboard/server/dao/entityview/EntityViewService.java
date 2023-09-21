@@ -51,9 +51,9 @@ import java.util.List;
  */
 public interface EntityViewService extends EntityDaoService {
 
-    EntityView saveEntityView(EntityView entityView, boolean doValidate);
-
     EntityView saveEntityView(EntityView entityView);
+
+    EntityView saveEntityView(EntityView entityView, boolean doValidate);
 
     EntityView findEntityViewById(TenantId tenantId, EntityViewId entityViewId);
 

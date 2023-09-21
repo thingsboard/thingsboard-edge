@@ -57,7 +57,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static org.thingsboard.common.util.DonAsynchron.withCallback;
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @Slf4j
 @RuleNode(
@@ -108,7 +107,7 @@ public class TbChangeOwnerNode implements TbNode {
         withCallback(ownerIdListenableFuture, ownerId -> {
             try {
                 doProcessChangeOwner(ctx, msg, ownerId);
-                ctx.tellNext(msg, SUCCESS);
+                ctx.tellSuccess(msg);
             } catch (ThingsboardException e) {
                 ctx.tellFailure(msg, e);
             }

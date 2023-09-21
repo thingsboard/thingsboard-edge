@@ -29,19 +29,17 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BaseData, GroupEntityInfo } from '@shared/models/base-data';
-import { TenantId } from '@shared/models/id/tenant-id';
-import { EntityId } from '@shared/models/id/entity-id';
-import { HasUUID } from '@shared/models/id/has-uuid';
-import { EntityGroupId } from '@shared/models/id/entity-group-id';
-import { CustomerId } from '@shared/models/id/customer-id';
-import { EdgeId } from '@shared/models/id/edge-id';
-import { EntitySearchQuery } from '@shared/models/relation.models';
-import { RuleChainId } from '@shared/models/id/rule-chain-id';
-import { BaseEventBody } from '@shared/models/event.models';
-import { EventId } from '@shared/models/id/event-id';
-import { EntityType } from '@shared/models/entity-type.models';
-import { EntityInfoData } from '@shared/models/entity.models';
+import {BaseData, GroupEntityInfo} from '@shared/models/base-data';
+import {TenantId} from '@shared/models/id/tenant-id';
+import {EntityId} from '@shared/models/id/entity-id';
+import {HasUUID} from '@shared/models/id/has-uuid';
+import {EntityGroupId} from '@shared/models/id/entity-group-id';
+import {CustomerId} from '@shared/models/id/customer-id';
+import {EdgeId} from '@shared/models/id/edge-id';
+import {EntitySearchQuery} from '@shared/models/relation.models';
+import {RuleChainId} from '@shared/models/id/rule-chain-id';
+import {EventId} from '@shared/models/id/event-id';
+import {EntityType} from '@shared/models/entity-type.models';
 
 export interface EdgeSettings {
   edgeId: string;
@@ -69,10 +67,12 @@ export class CloudEventId implements HasUUID {
 }
 
 export enum CloudEventType {
+  TENANT = 'TENANT',
   DASHBOARD = 'DASHBOARD',
   ASSET = 'ASSET',
   DEVICE = 'DEVICE',
   DEVICE_PROFILE = 'DEVICE_PROFILE',
+  ASSET_PROFILE = 'ASSET_PROFILE',
   ENTITY_VIEW = 'ENTITY_VIEW',
   ALARM = 'ALARM',
   RULE_CHAIN = 'RULE_CHAIN',
@@ -123,9 +123,12 @@ export enum EdgeEventType {
   RELATION = 'RELATION',
   GROUP_PERMISSIONS_REQUEST = 'GROUP_PERMISSIONS_REQUEST',
   TENANT = 'TENANT',
+  TENANT_PROFILE = 'TENANT_PROFILE',
   WIDGETS_BUNDLE = 'WIDGETS_BUNDLE',
   WIDGET_TYPE = 'WIDGET_TYPE',
   ADMIN_SETTINGS = 'ADMIN_SETTINGS',
+  OTA_PACKAGE = 'OTA_PACKAGE',
+  QUEUE = 'QUEUE',
   ENTITY_GROUP = 'ENTITY_GROUP',
   SCHEDULER_EVENT = 'SCHEDULER_EVENT',
   WHITE_LABELING = 'WHITE_LABELING',
@@ -134,7 +137,7 @@ export enum EdgeEventType {
   ROLE = 'ROLE',
   GROUP_PERMISSION = 'GROUP_PERMISSION',
   INTEGRATION = 'INTEGRATION',
-  CONVERTER = 'CONVERTER',
+  CONVERTER = 'CONVERTER'
 }
 
 export enum CloudEventActionType {
@@ -156,7 +159,7 @@ export enum CloudEventActionType {
   RULE_CHAIN_METADATA_REQUEST = 'RULE_CHAIN_METADATA_REQUEST',
   RELATION_REQUEST = 'RELATION_REQUEST',
   CREDENTIALS_REQUEST = 'CREDENTIALS_REQUEST',
-  WIDGET_BUNDLE_TYPES_REQUEST = 'WIDGET_BUNDLE_TYPES_REQUEST',
+  WIDGET_BUNDLE_TYPES_REQUEST = 'WIDGET_BUNDLE_TYPES_REQUEST', // deprecated
   ENTITY_VIEW_REQUEST = 'ENTITY_VIEW_REQUEST',
   GROUP_ENTITIES_REQUEST = 'GROUP_ENTITIES_REQUEST',
   GROUP_PERMISSIONS_REQUEST = 'GROUP_PERMISSIONS_REQUEST',
@@ -179,14 +182,15 @@ export enum EdgeEventActionType {
   RPC_CALL = 'RPC_CALL',
   ALARM_ACK = 'ALARM_ACK',
   ALARM_CLEAR = 'ALARM_CLEAR',
+  ALARM_ASSIGNED = 'ALARM_ASSIGNED',
+  ALARM_UNASSIGNED = 'ALARM_UNASSIGNED',
   ASSIGNED_TO_EDGE = 'ASSIGNED_TO_EDGE',
   UNASSIGNED_FROM_EDGE = 'UNASSIGNED_FROM_EDGE',
   CREDENTIALS_REQUEST = 'CREDENTIALS_REQUEST',
   ENTITY_MERGE_REQUEST = 'ENTITY_MERGE_REQUEST',
   ADDED_TO_ENTITY_GROUP = 'ADDED_TO_ENTITY_GROUP',
   REMOVED_FROM_ENTITY_GROUP = 'REMOVED_FROM_ENTITY_GROUP',
-  CHANGE_OWNER = 'CHANGE_OWNER',
-  RELATIONS_DELETED = 'RELATIONS_DELETED'
+  CHANGE_OWNER = 'CHANGE_OWNER'
 }
 
 export enum EdgeEventStatus {
@@ -196,10 +200,12 @@ export enum EdgeEventStatus {
 
 export const cloudEventTypeTranslations = new Map<CloudEventType, string>(
   [
+    [CloudEventType.TENANT, 'cloud-event.cloud-event-type-tenant'],
     [CloudEventType.DASHBOARD, 'cloud-event.cloud-event-type-dashboard'],
     [CloudEventType.ASSET, 'cloud-event.cloud-event-type-asset'],
     [CloudEventType.DEVICE, 'cloud-event.cloud-event-type-device'],
     [CloudEventType.DEVICE_PROFILE, 'cloud-event.cloud-event-type-device-profile'],
+    [CloudEventType.ASSET_PROFILE, 'cloud-event.cloud-event-type-asset-profile'],
     [CloudEventType.ENTITY_VIEW, 'cloud-event.cloud-event-type-entity-view'],
     [CloudEventType.ENTITY_GROUP, 'cloud-event.cloud-event-type-entity-group'],
     [CloudEventType.ALARM, 'cloud-event.cloud-event-type-alarm'],
@@ -259,12 +265,14 @@ export const edgeEventTypeTranslations = new Map<EdgeEventType, string>(
     [EdgeEventType.CUSTOMER, 'edge-event.type-customer'],
     [EdgeEventType.RELATION, 'edge-event.type-relation'],
     [EdgeEventType.TENANT, 'edge-event.type-tenant'],
+    [EdgeEventType.TENANT_PROFILE, 'edge-event.type-tenant-profile'],
     [EdgeEventType.WIDGETS_BUNDLE, 'edge-event.type-widgets-bundle'],
     [EdgeEventType.WIDGET_TYPE, 'edge-event.type-widgets-type'],
     [EdgeEventType.ADMIN_SETTINGS, 'edge-event.type-admin-settings'],
+    [EdgeEventType.OTA_PACKAGE, 'edge-event.type-ota-package'],
+    [EdgeEventType.QUEUE, 'edge-event.type-queue'],
     [EdgeEventType.ENTITY_GROUP, 'edge-event.type-entity-group'],
     [EdgeEventType.SCHEDULER_EVENT, 'edge-event.type-scheduler-event'],
-    [EdgeEventType.TENANT, 'edge-event.type-tenant'],
     [EdgeEventType.WHITE_LABELING, 'edge-event.type-white-labeling'],
     [EdgeEventType.LOGIN_WHITE_LABELING, 'edge-event.type-login-white-labeling'],
     [EdgeEventType.CUSTOM_TRANSLATION, 'edge-event.type-custom-translation'],
@@ -290,14 +298,15 @@ export const edgeEventActionTypeTranslations = new Map<EdgeEventActionType, stri
     [EdgeEventActionType.RPC_CALL, 'edge-event.action-type-rpc-call'],
     [EdgeEventActionType.ALARM_ACK, 'edge-event.action-type-alarm-ack'],
     [EdgeEventActionType.ALARM_CLEAR, 'edge-event.action-type-alarm-clear'],
+    [EdgeEventActionType.ALARM_ASSIGNED, 'edge-event.action-type-alarm-assigned'],
+    [EdgeEventActionType.ALARM_UNASSIGNED, 'edge-event.action-type-alarm-unassigned'],
     [EdgeEventActionType.ASSIGNED_TO_EDGE, 'edge-event.action-type-assigned-to-edge'],
     [EdgeEventActionType.UNASSIGNED_FROM_EDGE, 'edge-event.action-type-unassigned-from-edge'],
     [EdgeEventActionType.CREDENTIALS_REQUEST, 'edge-event.action-type-credentials-request'],
     [EdgeEventActionType.ENTITY_MERGE_REQUEST, 'edge-event.action-type-entity-merge-request'],
     [EdgeEventActionType.ADDED_TO_ENTITY_GROUP, 'edge-event.action-type-added-to-entity-group'],
     [EdgeEventActionType.REMOVED_FROM_ENTITY_GROUP, 'edge-event.action-type-removed-from-entity-group'],
-    [EdgeEventActionType.CHANGE_OWNER, 'edge-event.action-type-change-owner'],
-    [EdgeEventActionType.RELATIONS_DELETED, 'edge-event.action-type-relations-deleted']
+    [EdgeEventActionType.CHANGE_OWNER, 'edge-event.action-type-change-owner']
   ]
 );
 
@@ -327,7 +336,13 @@ export interface EdgeEvent extends BaseData<EventId> {
 }
 
 export interface EdgeInstallInstructions {
-  dockerInstallInstructions: string;
+  installInstructions: string;
+}
+
+export enum EdgeInstructionsMethod {
+  ubuntu,
+  centos,
+  docker
 }
 
 export const edgeEntityGroupTypes: EntityType[] = [

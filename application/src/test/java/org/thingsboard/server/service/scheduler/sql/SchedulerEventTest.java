@@ -57,7 +57,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.thingsboard.server.common.data.DataConstants.RPC_CALL_FROM_SERVER_TO_DEVICE;
+import static org.thingsboard.server.common.data.msg.TbMsgType.RPC_CALL_FROM_SERVER_TO_DEVICE;
 import static org.thingsboard.server.dao.scheduler.BaseSchedulerEventService.getOriginatorId;
 
 @DaoSqlTest
@@ -103,7 +103,7 @@ public class SchedulerEventTest extends AbstractControllerTest {
         SchedulerEvent savedSchedulerEvent = doPost("/api/schedulerEvent", schedulerEvent, SchedulerEvent.class);
 
         verify(tbClusterService, timeout(10000)).pushMsgToRuleEngine(eq(tenantId), eq(getOriginatorId(savedSchedulerEvent)), argThat(tbMsg -> {
-                    if (tbMsg.getType().equals(RPC_CALL_FROM_SERVER_TO_DEVICE)) {
+                    if (tbMsg.isTypeOf(RPC_CALL_FROM_SERVER_TO_DEVICE)) {
                         assertEquals(tbMsg.getOriginator(), savedDevice.getId());
                         assertEquals(testRpc, tbMsg.getData());
                         assertEquals(serviceInfoProvider.getServiceId(), tbMsg.getMetaData().getValue("originServiceId"));
@@ -118,14 +118,14 @@ public class SchedulerEventTest extends AbstractControllerTest {
         SchedulerEvent schedulerEvent = new SchedulerEvent();
         schedulerEvent.setName("TestRpc");
         schedulerEvent.setType("sendRpcRequest");
-        ObjectNode schedule = mapper.createObjectNode();
+        ObjectNode schedule = JacksonUtil.newObjectNode();
         schedule.put("startTime", Long.MAX_VALUE);
         schedule.put("timezone", "UTC");
         schedulerEvent.setSchedule(schedule);
         schedulerEvent.setOriginatorId(originatorId);
 
         ObjectNode configuration = JacksonUtil.newObjectNode();
-        configuration.put("msgType", RPC_CALL_FROM_SERVER_TO_DEVICE);
+        configuration.put("msgType", RPC_CALL_FROM_SERVER_TO_DEVICE.name());
         configuration.set("msgBody", JacksonUtil.toJsonNode(testRpc));
         schedulerEvent.setConfiguration(configuration);
 

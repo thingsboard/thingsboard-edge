@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.action;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
@@ -42,30 +41,31 @@ import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasTenantId;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmComment;
+import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
-import org.thingsboard.server.common.data.kv.DataType;
-import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.data.notification.rule.trigger.AlarmAssignmentTrigger;
+import org.thingsboard.server.common.data.notification.rule.trigger.AlarmCommentTrigger;
+import org.thingsboard.server.common.data.notification.rule.trigger.EntitiesLimitTrigger;
+import org.thingsboard.server.common.data.notification.rule.trigger.EntityActionTrigger;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.msg.notification.trigger.EntitiesLimitTrigger;
-import org.thingsboard.server.common.msg.notification.trigger.EntityActionTrigger;
+import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
 import org.thingsboard.server.dao.audit.AuditLogService;
-import org.thingsboard.server.queue.notification.NotificationRuleProcessor;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -75,8 +75,6 @@ public class EntityActionService {
     private final TbClusterService tbClusterService;
     private final AuditLogService auditLogService;
     private final NotificationRuleProcessor notificationRuleProcessor;
-
-    private static final ObjectMapper json = new ObjectMapper();
 
     public <E extends HasName, I extends EntityId> void pushEntityActionToRuleEngine(I entityId, E entity, TenantId tenantId, CustomerId customerId,
                                                                                      ActionType actionType, Object... additionalInfo) {
@@ -90,94 +88,8 @@ public class EntityActionService {
 
     public <E extends HasName, I extends EntityId> void pushEntityActionToRuleEngine(I entityId, E entity, User user, TenantId tenantId, CustomerId customerId,
                                                                                       ActionType actionType, Object... additionalInfo) {
-        String msgType = null;
-        switch (actionType) {
-            case ADDED:
-                msgType = DataConstants.ENTITY_CREATED;
-                break;
-            case DELETED:
-                msgType = DataConstants.ENTITY_DELETED;
-                break;
-            case UPDATED:
-                msgType = DataConstants.ENTITY_UPDATED;
-                break;
-            case ASSIGNED_TO_CUSTOMER:
-                msgType = DataConstants.ENTITY_ASSIGNED;
-                break;
-            case CHANGE_OWNER:
-                msgType = DataConstants.OWNER_CHANGED;
-                break;
-            case UNASSIGNED_FROM_CUSTOMER:
-                msgType = DataConstants.ENTITY_UNASSIGNED;
-                break;
-            case ATTRIBUTES_UPDATED:
-                msgType = DataConstants.ATTRIBUTES_UPDATED;
-                break;
-            case ATTRIBUTES_DELETED:
-                msgType = DataConstants.ATTRIBUTES_DELETED;
-                break;
-            case ADDED_TO_ENTITY_GROUP:
-                msgType = DataConstants.ADDED_TO_ENTITY_GROUP;
-                break;
-            case REMOVED_FROM_ENTITY_GROUP:
-                msgType = DataConstants.REMOVED_FROM_ENTITY_GROUP;
-                break;
-            case ALARM_ACK:
-                msgType = DataConstants.ALARM_ACK;
-                break;
-            case ALARM_CLEAR:
-                msgType = DataConstants.ALARM_CLEAR;
-                break;
-            case ALARM_ASSIGNED:
-                msgType = DataConstants.ALARM_ASSIGNED;
-                break;
-            case ALARM_UNASSIGNED:
-                msgType = DataConstants.ALARM_UNASSIGNED;
-                break;
-            case ALARM_DELETE:
-                msgType = DataConstants.ALARM_DELETE;
-                break;
-            case ADDED_COMMENT:
-                msgType = DataConstants.COMMENT_CREATED;
-                break;
-            case UPDATED_COMMENT:
-                msgType = DataConstants.COMMENT_UPDATED;
-                break;
-            case ASSIGNED_FROM_TENANT:
-                msgType = DataConstants.ENTITY_ASSIGNED_FROM_TENANT;
-                break;
-            case ASSIGNED_TO_TENANT:
-                msgType = DataConstants.ENTITY_ASSIGNED_TO_TENANT;
-                break;
-            case PROVISION_SUCCESS:
-                msgType = DataConstants.PROVISION_SUCCESS;
-                break;
-            case PROVISION_FAILURE:
-                msgType = DataConstants.PROVISION_FAILURE;
-                break;
-            case TIMESERIES_UPDATED:
-                msgType = DataConstants.TIMESERIES_UPDATED;
-                break;
-            case TIMESERIES_DELETED:
-                msgType = DataConstants.TIMESERIES_DELETED;
-                break;
-            case ASSIGNED_TO_EDGE:
-                msgType = DataConstants.ENTITY_ASSIGNED_TO_EDGE;
-                break;
-            case UNASSIGNED_FROM_EDGE:
-                msgType = DataConstants.ENTITY_UNASSIGNED_FROM_EDGE;
-                break;
-            case RELATION_ADD_OR_UPDATE:
-                msgType = DataConstants.RELATION_ADD_OR_UPDATE;
-                break;
-            case RELATION_DELETED:
-                msgType = DataConstants.RELATION_DELETED;
-                break;
-            case RELATIONS_DELETED:
-                msgType = DataConstants.RELATIONS_DELETED;
-                break;
-        }
-        if (!StringUtils.isEmpty(msgType)) {
+        Optional<TbMsgType> msgType = actionType.getRuleEngineMsgType();
+        if (msgType.isPresent()) {
             try {
                 TbMsgMetaData metaData = new TbMsgMetaData();
                 if(user != null) {
@@ -240,18 +152,18 @@ public class EntityActionService {
                     metaData.putValue("unassignedEdgeName", strEdgeName);
                 } else if (actionType == ActionType.ADDED_COMMENT || actionType == ActionType.UPDATED_COMMENT) {
                     AlarmComment comment = extractParameter(AlarmComment.class, 0, additionalInfo);
-                    metaData.putValue("comment", json.writeValueAsString(comment));
+                    metaData.putValue("comment", JacksonUtil.toString(comment));
                 }
                 ObjectNode entityNode;
                 if (entity != null) {
-                    entityNode = json.valueToTree(entity);
+                    entityNode = JacksonUtil.OBJECT_MAPPER.valueToTree(entity);
                     if (entityId.getEntityType() == EntityType.DASHBOARD) {
                         entityNode.put("configuration", "");
                     }
                     metaData.putValue("entityName", entity.getName());
                     metaData.putValue("entityType", entityId.getEntityType().toString());
                 } else {
-                    entityNode = json.createObjectNode();
+                    entityNode = JacksonUtil.newObjectNode();
                     if (actionType == ActionType.ATTRIBUTES_UPDATED) {
                         String scope = extractParameter(String.class, 0, additionalInfo);
                         @SuppressWarnings("unchecked")
@@ -285,7 +197,7 @@ public class EntityActionService {
                         entityNode.put("startTs", extractParameter(Long.class, 1, additionalInfo));
                         entityNode.put("endTs", extractParameter(Long.class, 2, additionalInfo));
                     } else if (ActionType.RELATION_ADD_OR_UPDATE.equals(actionType) || ActionType.RELATION_DELETED.equals(actionType)) {
-                        entityNode = json.valueToTree(extractParameter(EntityRelation.class, 0, additionalInfo));
+                        entityNode = JacksonUtil.OBJECT_MAPPER.valueToTree(extractParameter(EntityRelation.class, 0, additionalInfo));
                     }
                 }
 
@@ -295,21 +207,9 @@ public class EntityActionService {
                     }
                 }
                 if (tenantId != null && !tenantId.isSysTenantId()) {
-                    if (actionType == ActionType.ADDED) {
-                        notificationRuleProcessor.process(EntitiesLimitTrigger.builder()
-                                .tenantId(tenantId)
-                                .entityType(entityId.getEntityType())
-                                .build());
-                    }
-                    notificationRuleProcessor.process(EntityActionTrigger.builder()
-                            .tenantId(tenantId)
-                            .entityId(entityId)
-                            .entity(entity)
-                            .actionType(actionType)
-                            .user(user)
-                            .build());
+                    processNotificationRules(tenantId, entityId, entity, actionType, user, additionalInfo);
                 }
-                TbMsg tbMsg = TbMsg.newMsg(msgType, entityId, customerId, metaData, TbMsgDataType.JSON, json.writeValueAsString(entityNode));
+                TbMsg tbMsg = TbMsg.newMsg(msgType.get(), entityId, customerId, metaData, TbMsgDataType.JSON, JacksonUtil.toString(entityNode));
                 tbClusterService.pushMsgToRuleEngine(tenantId, entityId, tbMsg, null);
             } catch (Exception e) {
                 log.warn("[{}] Failed to push entity action to rule engine: {}", entityId, actionType, e);
@@ -317,28 +217,51 @@ public class EntityActionService {
         }
     }
 
-    public void sendEntityNotificationMsgToEdge(TenantId tenantId, EntityId entityId, EdgeEventActionType action) {
-        tbClusterService.sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action, null, null);
-    }
-
-    private void addKvEntry(ObjectNode entityNode, KvEntry kvEntry) throws Exception {
-        if (kvEntry.getDataType() == DataType.BOOLEAN) {
-            kvEntry.getBooleanValue().ifPresent(value -> entityNode.put(kvEntry.getKey(), value));
-        } else if (kvEntry.getDataType() == DataType.DOUBLE) {
-            kvEntry.getDoubleValue().ifPresent(value -> entityNode.put(kvEntry.getKey(), value));
-        } else if (kvEntry.getDataType() == DataType.LONG) {
-            kvEntry.getLongValue().ifPresent(value -> entityNode.put(kvEntry.getKey(), value));
-        } else if (kvEntry.getDataType() == DataType.JSON) {
-            if (kvEntry.getJsonValue().isPresent()) {
-                entityNode.set(kvEntry.getKey(), json.readTree(kvEntry.getJsonValue().get()));
-            }
-        } else {
-            entityNode.put(kvEntry.getKey(), kvEntry.getValueAsString());
+    private void processNotificationRules(TenantId tenantId, EntityId entityId, HasName entity, ActionType actionType, User user, Object... additionalInfo) {
+        switch (actionType) {
+            case ADDED:
+                notificationRuleProcessor.process(EntitiesLimitTrigger.builder()
+                        .tenantId(tenantId)
+                        .entityType(entityId.getEntityType())
+                        .build());
+            case UPDATED:
+            case DELETED:
+                notificationRuleProcessor.process(EntityActionTrigger.builder()
+                        .tenantId(tenantId)
+                        .entityId(entityId)
+                        .entity(entity)
+                        .actionType(actionType)
+                        .user(user)
+                        .build());
+                break;
+            case ALARM_ASSIGNED:
+            case ALARM_UNASSIGNED:
+                if (!(entity instanceof AlarmInfo)) { // should not normally happen
+                    log.warn("Invalid alarm assignment event: entity is not instance of AlarmInfo");
+                    break;
+                }
+                notificationRuleProcessor.process(AlarmAssignmentTrigger.builder()
+                        .tenantId(tenantId)
+                        .alarmInfo((AlarmInfo) entity)
+                        .actionType(actionType)
+                        .user(user)
+                        .build());
+                break;
+            case ADDED_COMMENT:
+            case UPDATED_COMMENT:
+                if (!(entity instanceof Alarm)) { // should not normally happen
+                    log.warn("Invalid alarm comment event: entity is not instance of Alarm");
+                    break;
+                }
+                notificationRuleProcessor.process(AlarmCommentTrigger.builder()
+                        .tenantId(tenantId)
+                        .comment(extractParameter(AlarmComment.class, 0, additionalInfo))
+                        .alarm((Alarm) entity)
+                        .actionType(actionType)
+                        .user(user)
+                        .build());
+                break;
         }
-    }
-
-    public void sendGroupEntityNotificationMsgToEdge(TenantId tenantId, EntityId entityId, EntityGroupId entityGroupId, EdgeEventActionType action) {
-        tbClusterService.sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action, entityId.getEntityType(), entityGroupId);
     }
 
     public <E extends HasName, I extends EntityId> void logEntityAction(User user, I entityId, E entity, CustomerId customerId,
@@ -369,7 +292,7 @@ public class EntityActionService {
             Map<Long, List<TsKvEntry>> groupedTelemetry = timeseries.stream()
                     .collect(Collectors.groupingBy(TsKvEntry::getTs));
             for (Map.Entry<Long, List<TsKvEntry>> entry : groupedTelemetry.entrySet()) {
-                ObjectNode element = json.createObjectNode();
+                ObjectNode element = JacksonUtil.newObjectNode();
                 element.put("ts", entry.getKey());
                 ObjectNode values = element.putObject("values");
                 for (TsKvEntry tsKvEntry : entry.getValue()) {

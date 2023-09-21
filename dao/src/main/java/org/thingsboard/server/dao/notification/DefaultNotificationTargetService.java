@@ -56,11 +56,14 @@ import org.thingsboard.server.common.data.notification.targets.platform.UserGrou
 import org.thingsboard.server.common.data.notification.targets.platform.UserListFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.UserRoleFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.UsersFilter;
+import org.thingsboard.server.common.data.notification.targets.platform.UsersFilterType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityDaoService;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.user.UserService;
 
 import java.util.List;
@@ -80,6 +83,7 @@ public class DefaultNotificationTargetService extends AbstractEntityService impl
     private final NotificationRequestDao notificationRequestDao;
     private final NotificationRuleDao notificationRuleDao;
     private final UserService userService;
+    private final RoleService roleService;
 
     @Override
     public NotificationTarget saveNotificationTarget(TenantId tenantId, NotificationTarget notificationTarget) {
@@ -111,6 +115,11 @@ public class DefaultNotificationTargetService extends AbstractEntityService impl
     @Override
     public List<NotificationTarget> findNotificationTargetsByTenantIdAndIds(TenantId tenantId, List<NotificationTargetId> ids) {
         return notificationTargetDao.findByTenantIdAndIds(tenantId, ids);
+    }
+
+    @Override
+    public List<NotificationTarget> findNotificationTargetsByTenantIdAndUsersFilterType(TenantId tenantId, UsersFilterType filterType) {
+        return notificationTargetDao.findByTenantIdAndUsersFilterType(tenantId, filterType);
     }
 
     @Override
@@ -149,17 +158,20 @@ public class DefaultNotificationTargetService extends AbstractEntityService impl
             }
             case TENANT_ADMINISTRATORS: {
                 TenantAdministratorsFilter filter = (TenantAdministratorsFilter) usersFilter;
+                Role tenantAdminsRole = roleService.findOrCreateTenantAdminRole();
                 if (!tenantId.equals(TenantId.SYS_TENANT_ID)) {
-                    return userService.findTenantAdmins(tenantId, pageLink);
+                    return userService.findUsersByTenantsIdsAndRoleId(List.of(tenantId), tenantAdminsRole.getId(), pageLink);
                 } else {
                     if (isNotEmpty(filter.getTenantsIds())) {
-                        return userService.findTenantAdminsByTenantsIds(filter.getTenantsIds().stream()
-                                .map(TenantId::fromUUID).collect(Collectors.toList()), pageLink);
+                        return userService.findUsersByTenantsIdsAndRoleId(filter.getTenantsIds().stream()
+                                        .map(TenantId::fromUUID).collect(Collectors.toList()),
+                                tenantAdminsRole.getId(), pageLink);
                     } else if (isNotEmpty(filter.getTenantProfilesIds())) {
-                        return userService.findTenantAdminsByTenantProfilesIds(filter.getTenantProfilesIds().stream()
-                                .map(TenantProfileId::new).collect(Collectors.toList()), pageLink);
+                        return userService.findUsersByTenantProfilesIdsAndRoleId(filter.getTenantProfilesIds().stream()
+                                        .map(TenantProfileId::new).collect(Collectors.toList()),
+                                tenantAdminsRole.getId(), pageLink);
                     } else {
-                        return userService.findAllTenantAdmins(pageLink);
+                        return userService.findAllUsersByRoleId(tenantAdminsRole.getId(), pageLink);
                     }
                 }
             }
@@ -228,6 +240,11 @@ public class DefaultNotificationTargetService extends AbstractEntityService impl
     @Override
     public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
         return Optional.ofNullable(findNotificationTargetById(tenantId, new NotificationTargetId(entityId.getId())));
+    }
+
+    @Override
+    public void deleteEntity(TenantId tenantId, EntityId id) {
+        deleteNotificationTargetById(tenantId, (NotificationTargetId) id);
     }
 
     @Override

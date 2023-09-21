@@ -47,7 +47,6 @@ import {
 import {
   MarkdownWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/cards/markdown-widget-settings.component';
-import { WidgetFontComponent } from '@home/components/widget/lib/settings/common/widget-font.component';
 import { LabelWidgetLabelComponent } from '@home/components/widget/lib/settings/cards/label-widget-label.component';
 import { LabelWidgetSettingsComponent } from '@home/components/widget/lib/settings/cards/label-widget-settings.component';
 import {
@@ -58,16 +57,16 @@ import {
 } from '@home/components/widget/lib/settings/cards/dashboard-state-widget-settings.component';
 import {
   EntitiesHierarchyWidgetSettingsComponent
-} from '@home/components/widget/lib/settings/cards/entities-hierarchy-widget-settings.component';
+} from '@home/components/widget/lib/settings/entity/entities-hierarchy-widget-settings.component';
 import {
   HtmlCardWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/cards/html-card-widget-settings.component';
 import {
   EntitiesTableWidgetSettingsComponent
-} from '@home/components/widget/lib/settings/cards/entities-table-widget-settings.component';
+} from '@home/components/widget/lib/settings/entity/entities-table-widget-settings.component';
 import {
   EntitiesTableKeySettingsComponent
-} from '@home/components/widget/lib/settings/cards/entities-table-key-settings.component';
+} from '@home/components/widget/lib/settings/entity/entities-table-key-settings.component';
 import {
   AlarmsTableWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/alarm/alarms-table-widget-settings.component';
@@ -87,7 +86,6 @@ import {
 import {
   DigitalGaugeWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/gauge/digital-gauge-widget-settings.component';
-import { ValueSourceComponent } from '@home/components/widget/lib/settings/common/value-source.component';
 import { FixedColorLevelComponent } from '@home/components/widget/lib/settings/gauge/fixed-color-level.component';
 import { TickValueComponent } from '@home/components/widget/lib/settings/gauge/tick-value.component';
 import { FlotWidgetSettingsComponent } from '@home/components/widget/lib/settings/chart/flot-widget-settings.component';
@@ -275,6 +273,12 @@ import {
   TripAnimationPointSettingsComponent
 } from '@home/components/widget/lib/settings/map/trip-animation-point-settings.component';
 import {
+  GatewayLogsSettingsComponent
+} from '@home/components/widget/lib/settings/gateway/gateway-logs-settings.component';
+import {
+  GatewayServiceRPCSettingsComponent
+} from '@home/components/widget/lib/settings/gateway/gateway-service-rpc-settings.component';
+import {
   DocLinksWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/home-page/doc-links-widget-settings.component';
 import {
@@ -289,6 +293,25 @@ import {
 import {
   SchedulerEventsWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/scheduler/scheduler-events-widget-settings.component';
+import {
+  ValueCardWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/cards/value-card-widget-settings.component';
+import { WidgetSettingsCommonModule } from '@home/components/widget/lib/settings/common/widget-settings-common.module';
+import {
+  AggregatedValueCardKeySettingsComponent
+} from '@home/components/widget/lib/settings/cards/aggregated-value-card-key-settings.component';
+import {
+  AggregatedValueCardWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/cards/aggregated-value-card-widget-settings.component';
+import {
+  AlarmCountWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/alarm/alarm-count-widget-settings.component';
+import {
+  EntityCountWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/entity/entity-count-widget-settings.component';
+import {
+  BatteryLevelWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/indicator/battery-level-widget-settings.component';
 
 @NgModule({
   declarations: [
@@ -297,7 +320,6 @@ import {
     TimeseriesTableKeySettingsComponent,
     TimeseriesTableLatestKeySettingsComponent,
     MarkdownWidgetSettingsComponent,
-    WidgetFontComponent,
     LabelWidgetLabelComponent,
     LabelWidgetSettingsComponent,
     SimpleCardWidgetSettingsComponent,
@@ -313,7 +335,6 @@ import {
     AnalogueLinearGaugeWidgetSettingsComponent,
     AnalogueCompassWidgetSettingsComponent,
     DigitalGaugeWidgetSettingsComponent,
-    ValueSourceComponent,
     FixedColorLevelComponent,
     TickValueComponent,
     FlotWidgetSettingsComponent,
@@ -387,9 +408,17 @@ import {
     TripAnimationPointSettingsComponent,
     MapWidgetSettingsComponent,
     RouteMapWidgetSettingsComponent,
+    GatewayLogsSettingsComponent,
+    GatewayServiceRPCSettingsComponent,
     TripAnimationWidgetSettingsComponent,
     DocLinksWidgetSettingsComponent,
     QuickLinksWidgetSettingsComponent,
+    ValueCardWidgetSettingsComponent,
+    AggregatedValueCardKeySettingsComponent,
+    AggregatedValueCardWidgetSettingsComponent,
+    AlarmCountWidgetSettingsComponent,
+    EntityCountWidgetSettingsComponent,
+    BatteryLevelWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -397,7 +426,8 @@ import {
   imports: [
     CommonModule,
     SharedModule,
-    SharedHomeComponentsModule
+    SharedHomeComponentsModule,
+    WidgetSettingsCommonModule
   ],
   exports: [
     QrCodeWidgetSettingsComponent,
@@ -405,7 +435,6 @@ import {
     TimeseriesTableKeySettingsComponent,
     TimeseriesTableLatestKeySettingsComponent,
     MarkdownWidgetSettingsComponent,
-    WidgetFontComponent,
     LabelWidgetLabelComponent,
     LabelWidgetSettingsComponent,
     SimpleCardWidgetSettingsComponent,
@@ -421,7 +450,6 @@ import {
     AnalogueLinearGaugeWidgetSettingsComponent,
     AnalogueCompassWidgetSettingsComponent,
     DigitalGaugeWidgetSettingsComponent,
-    ValueSourceComponent,
     FixedColorLevelComponent,
     TickValueComponent,
     FlotWidgetSettingsComponent,
@@ -495,9 +523,17 @@ import {
     TripAnimationPointSettingsComponent,
     MapWidgetSettingsComponent,
     RouteMapWidgetSettingsComponent,
+    GatewayLogsSettingsComponent,
+    GatewayServiceRPCSettingsComponent,
     TripAnimationWidgetSettingsComponent,
     DocLinksWidgetSettingsComponent,
     QuickLinksWidgetSettingsComponent,
+    ValueCardWidgetSettingsComponent,
+    AggregatedValueCardKeySettingsComponent,
+    AggregatedValueCardWidgetSettingsComponent,
+    AlarmCountWidgetSettingsComponent,
+    EntityCountWidgetSettingsComponent,
+    BatteryLevelWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -568,8 +604,16 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-map-widget-settings': MapWidgetSettingsComponent,
   'tb-route-map-widget-settings': RouteMapWidgetSettingsComponent,
   'tb-trip-animation-widget-settings': TripAnimationWidgetSettingsComponent,
+  'tb-gateway-logs-settings': GatewayLogsSettingsComponent,
+  'tb-gateway-service-rpc-settings':GatewayServiceRPCSettingsComponent,
   'tb-doc-links-widget-settings': DocLinksWidgetSettingsComponent,
   'tb-quick-links-widget-settings': QuickLinksWidgetSettingsComponent,
+  'tb-value-card-widget-settings': ValueCardWidgetSettingsComponent,
+  'tb-aggregated-value-card-key-settings': AggregatedValueCardKeySettingsComponent,
+  'tb-aggregated-value-card-widget-settings': AggregatedValueCardWidgetSettingsComponent,
+  'tb-alarm-count-widget-settings': AlarmCountWidgetSettingsComponent,
+  'tb-entity-count-widget-settings': EntityCountWidgetSettingsComponent,
+  'tb-battery-level-widget-settings': BatteryLevelWidgetSettingsComponent,
   'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
   'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
 };

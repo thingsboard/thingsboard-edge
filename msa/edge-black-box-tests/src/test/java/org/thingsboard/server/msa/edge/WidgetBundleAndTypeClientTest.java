@@ -57,7 +57,7 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 17);
+                .until(() -> edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 21);
 
         PageData<WidgetsBundle> pageData = edgeRestClient.getWidgetsBundles(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.WIDGETS_BUNDLE);
@@ -94,7 +94,6 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
         // create widget type
         WidgetTypeDetails widgetType = new WidgetTypeDetails();
         widgetType.setName("Test Widget Type");
-        widgetType.setBundleAlias(savedWidgetsBundle.getAlias());
         ObjectNode descriptor = JacksonUtil.OBJECT_MAPPER.createObjectNode();
         descriptor.put("key", "value");
         widgetType.setDescriptor(descriptor);

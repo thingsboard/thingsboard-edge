@@ -39,7 +39,6 @@ import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextEntity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -49,8 +48,8 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(name = ModelConstants.ASSET_PROFILE_COLUMN_FAMILY_NAME)
-public final class AssetProfileEntity extends BaseSqlEntity<AssetProfile> implements SearchTextEntity<AssetProfile> {
+@Table(name = ModelConstants.ASSET_PROFILE_TABLE_NAME)
+public final class AssetProfileEntity extends BaseSqlEntity<AssetProfile> {
 
     @Column(name = ModelConstants.ASSET_PROFILE_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -63,9 +62,6 @@ public final class AssetProfileEntity extends BaseSqlEntity<AssetProfile> implem
 
     @Column(name = ModelConstants.ASSET_PROFILE_DESCRIPTION_PROPERTY)
     private String description;
-
-    @Column(name = ModelConstants.SEARCH_TEXT_PROPERTY)
-    private String searchText;
 
     @Column(name = ModelConstants.ASSET_PROFILE_IS_DEFAULT_PROPERTY)
     private boolean isDefault;
@@ -114,20 +110,6 @@ public final class AssetProfileEntity extends BaseSqlEntity<AssetProfile> implem
         if (assetProfile.getExternalId() != null) {
             this.externalId = assetProfile.getExternalId().getId();
         }
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return name;
-    }
-
-    @Override
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
-    }
-
-    public String getSearchText() {
-        return searchText;
     }
 
     @Override

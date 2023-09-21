@@ -51,9 +51,9 @@ public class Customer extends ContactBased<CustomerId> implements HasTenantId, H
 
     @NoXss
     @Length(fieldName = "title")
-    @ApiModelProperty(position = 3, value = "Title of the customer", example = "Company A")
+    @ApiModelProperty(position = 3, required = true, value = "Title of the customer", example = "Company A")
     private String title;
-    @ApiModelProperty(position = 5, required = true, value = "JSON object with Tenant Id")
+    @ApiModelProperty(position = 5, value = "JSON object with Tenant Id")
     private TenantId tenantId;
     @ApiModelProperty(position = 6, value = "JSON object with parent Customer Id")
     private CustomerId parentCustomerId;
@@ -143,43 +143,43 @@ public class Customer extends ContactBased<CustomerId> implements HasTenantId, H
         return super.getCreatedTime();
     }
 
-    @ApiModelProperty(position = 9, required = true, value = "Country", example = "US")
+    @ApiModelProperty(position = 9, value = "Country", example = "US")
     @Override
     public String getCountry() {
         return super.getCountry();
     }
 
-    @ApiModelProperty(position = 10, required = true, value = "State", example = "NY")
+    @ApiModelProperty(position = 10, value = "State", example = "NY")
     @Override
     public String getState() {
         return super.getState();
     }
 
-    @ApiModelProperty(position = 11, required = true, value = "City", example = "New York")
+    @ApiModelProperty(position = 11, value = "City", example = "New York")
     @Override
     public String getCity() {
         return super.getCity();
     }
 
-    @ApiModelProperty(position = 12, required = true, value = "Address Line 1", example = "42 Broadway Suite 12-400")
+    @ApiModelProperty(position = 12, value = "Address Line 1", example = "42 Broadway Suite 12-400")
     @Override
     public String getAddress() {
         return super.getAddress();
     }
 
-    @ApiModelProperty(position = 13, required = true, value = "Address Line 2", example = "")
+    @ApiModelProperty(position = 13, value = "Address Line 2", example = "")
     @Override
     public String getAddress2() {
         return super.getAddress2();
     }
 
-    @ApiModelProperty(position = 14, required = true, value = "Zip code", example = "10004")
+    @ApiModelProperty(position = 14, value = "Zip code", example = "10004")
     @Override
     public String getZip() {
         return super.getZip();
     }
 
-    @ApiModelProperty(position = 15, required = true, value = "Phone number", example = "+1(415)777-7777")
+    @ApiModelProperty(position = 15, value = "Phone number", example = "+1(415)777-7777")
     @Override
     public String getPhone() {
         return super.getPhone();
@@ -216,11 +216,6 @@ public class Customer extends ContactBased<CustomerId> implements HasTenantId, H
     @ApiModelProperty(position = 4, value = "Name of the customer. Read-only, duplicated from title for backward compatibility", example = "Company A", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     public String getName() {
         return title;
-    }
-
-    @Override
-    public String getSearchText() {
-        return getTitle();
     }
 
     @Override

@@ -37,8 +37,8 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
 import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.validation.Length;
@@ -48,7 +48,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Slf4j
-public class RuleNode extends SearchTextBasedWithAdditionalInfo<RuleNodeId> implements HasName {
+public class RuleNode extends BaseDataWithAdditionalInfo<RuleNodeId> implements HasName {
 
     private static final long serialVersionUID = -5656679015121235465L;
 
@@ -65,7 +65,9 @@ public class RuleNode extends SearchTextBasedWithAdditionalInfo<RuleNodeId> impl
     private boolean debugMode;
     @ApiModelProperty(position = 7, value = "Enable/disable singleton mode. ", example = "false")
     private boolean singletonMode;
-    @ApiModelProperty(position = 8, value = "JSON with the rule node configuration. Structure depends on the rule node implementation.", dataType = "com.fasterxml.jackson.databind.JsonNode")
+    @ApiModelProperty(position = 8, value = "Version of rule node configuration. ", example = "0")
+    private int configurationVersion;
+    @ApiModelProperty(position = 9, value = "JSON with the rule node configuration. Structure depends on the rule node implementation.", dataType = "com.fasterxml.jackson.databind.JsonNode")
     private transient JsonNode configuration;
     @JsonIgnore
     private byte[] configurationBytes;
@@ -92,17 +94,12 @@ public class RuleNode extends SearchTextBasedWithAdditionalInfo<RuleNodeId> impl
     }
 
     @Override
-    public String getSearchText() {
-        return getName();
-    }
-
-    @Override
     public String getName() {
         return name;
     }
 
     public JsonNode getConfiguration() {
-        return SearchTextBasedWithAdditionalInfo.getJson(() -> configuration, () -> configurationBytes);
+        return BaseDataWithAdditionalInfo.getJson(() -> configuration, () -> configurationBytes);
     }
 
     public void setConfiguration(JsonNode data) {
@@ -124,7 +121,7 @@ public class RuleNode extends SearchTextBasedWithAdditionalInfo<RuleNodeId> impl
         return super.getCreatedTime();
     }
 
-    @ApiModelProperty(position = 8, value = "Additional parameters of the rule node. Contains 'layoutX' and 'layoutY' properties for visualization.", dataType = "com.fasterxml.jackson.databind.JsonNode")
+    @ApiModelProperty(position = 10, value = "Additional parameters of the rule node. Contains 'layoutX' and 'layoutY' properties for visualization.", dataType = "com.fasterxml.jackson.databind.JsonNode")
     @Override
     public JsonNode getAdditionalInfo() {
         return super.getAdditionalInfo();

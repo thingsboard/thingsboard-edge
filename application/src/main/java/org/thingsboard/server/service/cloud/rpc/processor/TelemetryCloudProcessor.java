@@ -38,6 +38,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.AttributesRequestMsg;
 import org.thingsboard.server.gen.edge.v1.EntityDataProto;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
@@ -55,9 +56,10 @@ public class TelemetryCloudProcessor extends BaseTelemetryProcessor {
         return DataConstants.CLOUD_MSG_SOURCE;
     }
 
-    public UplinkMsg convertTelemetryEventToUplink(CloudEvent cloudEvent) throws Exception {
+    public UplinkMsg convertTelemetryEventToUplink(TenantId tenantId, CloudEvent cloudEvent) throws Exception {
         EntityType entityType = EntityType.valueOf(cloudEvent.getType().name());
-        EntityDataProto entityDataProto = convertTelemetryEventToEntityDataProto(entityType, cloudEvent.getEntityId(),
+        EntityDataProto entityDataProto = convertTelemetryEventToEntityDataProto(
+                tenantId, entityType, cloudEvent.getEntityId(),
                 cloudEvent.getAction(), cloudEvent.getEntityBody());
         return UplinkMsg.newBuilder()
                 .setUplinkMsgId(EdgeUtils.nextPositiveInt())

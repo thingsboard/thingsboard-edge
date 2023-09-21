@@ -32,8 +32,8 @@ package org.thingsboard.rule.engine.mail;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbEmail;
@@ -43,6 +43,8 @@ import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.BlobEntityId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 
@@ -58,9 +60,6 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
-import static org.thingsboard.rule.engine.mail.TbSendEmailNode.SEND_EMAIL_TYPE;
-
 @Slf4j
 @RuleNode(
         type = ComponentType.TRANSFORMATION,
@@ -75,7 +74,6 @@ import static org.thingsboard.rule.engine.mail.TbSendEmailNode.SEND_EMAIL_TYPE;
 )
 public class TbMsgToEmailNode implements TbNode {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String IMAGES = "images";
     private static final String DYNAMIC = "dynamic";
 
@@ -98,7 +96,7 @@ public class TbMsgToEmailNode implements TbNode {
         try {
             TbEmail email = convert(msg);
             TbMsg emailMsg = buildEmailMsg(ctx, msg, email);
-            ctx.tellNext(emailMsg, SUCCESS);
+            ctx.tellNext(emailMsg, TbNodeConnectionType.SUCCESS);
         } catch (Exception ex) {
             log.warn("Can not convert message to email " + ex.getMessage());
             ctx.tellFailure(msg, ex);
@@ -106,8 +104,8 @@ public class TbMsgToEmailNode implements TbNode {
     }
 
     private TbMsg buildEmailMsg(TbContext ctx, TbMsg msg, TbEmail email) throws JsonProcessingException {
-        String emailJson = MAPPER.writeValueAsString(email);
-        return ctx.transformMsg(msg, SEND_EMAIL_TYPE, msg.getOriginator(), msg.getMetaData().copy(), emailJson);
+        String emailJson = JacksonUtil.toString(email);
+        return ctx.transformMsg(msg, TbMsgType.SEND_EMAIL, msg.getOriginator(), msg.getMetaData().copy(), emailJson);
     }
 
 
@@ -141,7 +139,7 @@ public class TbMsgToEmailNode implements TbNode {
         }
         String imagesStr = msg.getMetaData().getValue(IMAGES);
         if (!StringUtils.isEmpty(imagesStr)) {
-            Map<String, String> imgMap = MAPPER.readValue(imagesStr, new TypeReference<HashMap<String, String>>() {});
+            Map<String, String> imgMap = JacksonUtil.fromString(imagesStr, new TypeReference<HashMap<String, String>>() {});
             builder.images(imgMap);
         }
         builder.attachments(attachments);

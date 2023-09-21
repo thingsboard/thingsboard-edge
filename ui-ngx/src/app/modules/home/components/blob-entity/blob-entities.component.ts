@@ -53,10 +53,10 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { TimePageLink } from '@shared/models/page/page-link';
 import { CollectionViewer, DataSource, SelectionModel } from '@angular/cdk/collections';
 import { blobEntityTypeTranslationMap, BlobEntityWithCustomerInfo } from '@shared/models/blob-entity.models';
-import { BehaviorSubject, forkJoin, fromEvent, merge, Observable, of, ReplaySubject } from 'rxjs';
+import { BehaviorSubject, forkJoin, merge, Observable, of, ReplaySubject, Subject } from 'rxjs';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import { BlobEntityService } from '@core/http/blob-entity.service';
-import { catchError, debounceTime, distinctUntilChanged, map, take, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, map, takeUntil, tap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { Direction, SortOrder, sortOrderFromString } from '@shared/models/page/sort-order';
 import { DAY, historyInterval, HistoryWindowType, Timewindow } from '@shared/models/time/time.models';
@@ -65,6 +65,7 @@ import { DialogService } from '@core/services/dialog.service';
 import { UtilsService } from '@core/services/utils.service';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { hidePageSizePixelValue } from '@shared/models/constants';
+import { FormBuilder } from '@angular/forms';
 
 @Component({
   selector: 'tb-blob-entities',
@@ -117,7 +118,10 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
 
   dataSource: BlobEntitiesDatasource;
 
+  textSearch = this.fb.control('', {nonNullable: true});
+
   private widgetResize$: ResizeObserver;
+  private destroy$ = new Subject<void>();
 
   constructor(protected store: Store<AppState>,
               private utils: UtilsService,
@@ -125,7 +129,8 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
               private blobEntityService: BlobEntityService,
               private userPermissionsService: UserPermissionsService,
               private dialogService: DialogService,
-              private cd: ChangeDetectorRef) {
+              private cd: ChangeDetectorRef,
+              private fb: FormBuilder) {
     super(store);
   }
 
@@ -166,6 +171,8 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
     if (this.widgetResize$) {
       this.widgetResize$.disconnect();
     }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private initializeWidgetConfig() {
@@ -250,28 +257,25 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
 
   ngAfterViewInit(): void {
     if (this.showData) {
-      fromEvent(this.searchInputField.nativeElement, 'keyup')
-        .pipe(
-          debounceTime(150),
-          distinctUntilChanged(),
-          tap(() => {
-            if (this.displayPagination) {
-              this.paginator.pageIndex = 0;
-            }
-            this.updateData();
-          })
-        )
-        .subscribe();
+      this.textSearch.valueChanges.pipe(
+        debounceTime(150),
+        distinctUntilChanged((prev, current) => (this.pageLink.textSearch ?? '') === current.trim()),
+        takeUntil(this.destroy$)
+      ).subscribe((value) => {
+        if (this.displayPagination) {
+          this.paginator.pageIndex = 0;
+        }
+        this.pageLink.textSearch = value.trim();
+        this.updateData();
+      });
 
       if (this.displayPagination) {
-        this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
+        this.sort.sortChange.pipe(takeUntil(this.destroy$)).subscribe(() => this.paginator.pageIndex = 0);
       }
 
-      ((this.displayPagination ? merge(this.sort.sortChange, this.paginator.page) : this.sort.sortChange) as Observable<any>)
-        .pipe(
-          tap(() => this.updateData())
-        )
-        .subscribe();
+      ((this.displayPagination ? merge(this.sort.sortChange, this.paginator.page) : this.sort.sortChange) as Observable<any>).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe(() => this.updateData());
 
       this.updateData();
     }
@@ -313,7 +317,6 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
 
   enterFilterMode() {
     this.textSearchMode = true;
-    this.pageLink.textSearch = '';
     if (this.widgetMode) {
       this.ctx.hideTitlePanel = true;
       this.ctx.detectChanges(true);
@@ -326,11 +329,7 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
 
   exitFilterMode() {
     this.textSearchMode = false;
-    this.pageLink.textSearch = null;
-    if (this.displayPagination) {
-      this.paginator.pageIndex = 0;
-    }
-    this.updateData();
+    this.textSearch.reset();
     if (this.widgetMode) {
       this.ctx.hideTitlePanel = false;
       this.ctx.detectChanges(true);
@@ -478,19 +477,15 @@ class BlobEntitiesDatasource implements DataSource<BlobEntityWithCustomerInfo> {
   }
 
   masterToggle() {
-    this.entitiesSubject.pipe(
-      tap((entities) => {
-        const numSelected = this.selection.selected.length;
-        if (numSelected === entities.length) {
-          this.selection.clear();
-        } else {
-          entities.forEach(row => {
-            this.selection.select(row);
-          });
-        }
-      }),
-      take(1)
-    ).subscribe();
+    const entities = this.entitiesSubject.getValue();
+    const numSelected = this.selection.selected.length;
+    if (numSelected === entities.length) {
+      this.selection.clear();
+    } else {
+      entities.forEach(row => {
+        this.selection.select(row);
+      });
+    }
   }
 
 }

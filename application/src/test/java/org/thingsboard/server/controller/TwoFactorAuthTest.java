@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.jboss.aerogear.security.otp.Totp;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +64,7 @@ import org.thingsboard.server.common.data.security.model.mfa.provider.TotpTwoFaP
 import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFaProviderConfig;
 import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFaProviderType;
 import org.thingsboard.server.dao.audit.AuditLogService;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.security.auth.mfa.TwoFactorAuthService;
 import org.thingsboard.server.service.security.auth.mfa.config.TwoFaConfigManager;
@@ -87,7 +89,8 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public abstract class TwoFactorAuthTest extends AbstractControllerTest {
+@DaoSqlTest
+public class TwoFactorAuthTest extends AbstractControllerTest {
 
     @Autowired
     private TwoFaConfigManager twoFaConfigManager;
@@ -126,6 +129,7 @@ public abstract class TwoFactorAuthTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore // @voba - two factor disabled on edge
     public void testTwoFa_totp() throws Exception {
         TotpTwoFaAccountConfig totpTwoFaAccountConfig = configureTotpTwoFa();
 
@@ -146,6 +150,7 @@ public abstract class TwoFactorAuthTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore // @voba - two factor disabled on edge
     public void testTwoFa_sms() throws Exception {
         configureSmsTwoFa();
 
@@ -168,6 +173,7 @@ public abstract class TwoFactorAuthTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore // @voba - two factor disabled on edge
     public void testTwoFaPreVerificationTokenLifetime() throws Exception {
         configureTotpTwoFa(twoFaSettings -> {
             twoFaSettings.setTotalAllowedTimeForVerification(65);
@@ -185,6 +191,7 @@ public abstract class TwoFactorAuthTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore // @voba - two factor disabled on edge
     public void testCheckVerificationCode_userBlocked() throws Exception {
         configureTotpTwoFa(twoFaSettings -> {
             twoFaSettings.setMaxVerificationFailuresBeforeUserLockout(10);
@@ -214,6 +221,7 @@ public abstract class TwoFactorAuthTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore // @voba - two factor disabled on edge
     public void testSendVerificationCode_rateLimit() throws Exception {
         configureTotpTwoFa(twoFaSettings -> {
             twoFaSettings.setMinVerificationCodeSendPeriod(10);
@@ -238,6 +246,7 @@ public abstract class TwoFactorAuthTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore // @voba - two factor disabled on edge
     public void testCheckVerificationCode_rateLimit() throws Exception {
         TotpTwoFaAccountConfig totpTwoFaAccountConfig = configureTotpTwoFa(twoFaSettings -> {
             twoFaSettings.setVerificationCodeCheckRateLimit("3:10");
@@ -269,6 +278,7 @@ public abstract class TwoFactorAuthTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore // @voba - two factor disabled on edge
     public void testCheckVerificationCode_invalidVerificationCode() throws Exception {
         configureTotpTwoFa();
         logInWithPreVerificationToken(username, password);
@@ -281,6 +291,7 @@ public abstract class TwoFactorAuthTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore // @voba - two factor disabled on edge
     public void testCheckVerificationCode_codeExpiration() throws Exception {
         configureSmsTwoFa(smsTwoFaProviderConfig -> {
             smsTwoFaProviderConfig.setVerificationCodeLifetime(10);
@@ -306,6 +317,7 @@ public abstract class TwoFactorAuthTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore // @voba - two factor disabled on edge
     public void testTwoFa_logLoginAction() throws Exception {
         TotpTwoFaAccountConfig totpTwoFaAccountConfig = configureTotpTwoFa();
 
@@ -345,6 +357,7 @@ public abstract class TwoFactorAuthTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore // @voba - two factor disabled on edge
     public void testAuthWithoutTwoFaAccountConfig() throws ThingsboardException {
         configureTotpTwoFa();
         twoFaConfigManager.deleteTwoFaAccountConfig(tenantId, user.getId(), TwoFaProviderType.TOTP);
@@ -355,6 +368,7 @@ public abstract class TwoFactorAuthTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore // @voba - two factor disabled on edge
     public void testTwoFa_multipleProviders() throws Exception {
         PlatformTwoFaSettings platformTwoFaSettings = new PlatformTwoFaSettings();
         platformTwoFaSettings.setUseSystemTwoFactorAuthSettings(true);

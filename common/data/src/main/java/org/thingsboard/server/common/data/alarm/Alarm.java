@@ -179,7 +179,6 @@ public class Alarm extends BaseData<AlarmId> implements HasName, TenantEntity, H
     }
 
     public static AlarmStatus toStatus(boolean cleared, boolean acknowledged) {
-
         if (cleared) {
             return acknowledged ? AlarmStatus.CLEARED_ACK : AlarmStatus.CLEARED_UNACK;
         } else {

@@ -53,9 +53,11 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
+import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.AssetProfile;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
@@ -90,7 +92,7 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
     private static final int WIDTH = 1680;
     private static final int HEIGHT = 1050;
     private static final String REMOTE_WEBDRIVER_HOST = "http://localhost:4444";
-    protected final PageLink pageLink = new PageLink(10);
+    protected final PageLink pageLink = new PageLink(30);
     private final ContainerTestSuite instance = ContainerTestSuite.getInstance();
     private JavascriptExecutor js;
     public static final long WAIT_TIMEOUT = TimeUnit.SECONDS.toMillis(10);
@@ -168,6 +170,19 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
                 .findFirst().orElse(null);
     }
 
+    public Device getDeviceByName(String name) {
+        return testRestClient.getDevices(pageLink).getData().stream()
+                .filter(s -> s.getName().equals(name))
+                .findFirst().orElse(null);
+    }
+
+    public List<Device> getDevicesByName(List<String> deviceNames) {
+        List<Device> allDevices = testRestClient.getDevices(pageLink).getData();
+        return allDevices.stream()
+                .filter(device -> deviceNames.contains(device.getName()))
+                .collect(Collectors.toList());
+    }
+
     public List<RuleChain> getRuleChainsByName(String name) {
         return testRestClient.getRuleChains(pageLink).getData().stream()
                 .filter(s -> s.getName().equals(name))
@@ -185,13 +200,10 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
     }
 
     public DeviceProfile getDeviceProfileByName(String name) {
-        try {
-            return testRestClient.getDeviceProfiles(pageLink).getData().stream()
-                    .filter(x -> x.getName().equals(name)).collect(Collectors.toList()).get(0);
-        } catch (Exception e) {
-            log.error("No such device profile with name: " + name);
-            return null;
-        }
+        return testRestClient.getDeviceProfiles(pageLink).getData().stream()
+                .filter(x -> x.getName().equals(name))
+                .findFirst()
+                .orElse(null);
     }
 
     public AssetProfile getAssetProfileByName(String name) {
@@ -205,13 +217,10 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
     }
 
     public EntityGroupInfo getEntityGroupByName(EntityType entityType, String name) {
-        try {
-            return testRestClient.getEntityGroups(entityType).stream()
-                    .filter(x -> x.getName().equals(name)).collect(Collectors.toList()).get(0);
-        } catch (Exception e) {
-            log.error("No such " + entityType.name() + " with name: " + name);
-            return null;
-        }
+        return testRestClient.getEntityGroups(entityType).stream()
+                .filter(x -> x.getName().equals(name))
+                .findFirst()
+                .orElse(null);
     }
 
     public Dashboard getDashboardByName(EntityType entityType, String entityGroupName, String name) {
@@ -275,13 +284,9 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
         }
     }
 
-    public WebStorage getWebStorage() {
-        return webStorage = (WebStorage) driver;
-    }
-
     public void clearStorage() {
-        getWebStorage().getLocalStorage().clear();
-        getWebStorage().getSessionStorage().clear();
+        getJs().executeScript("window.localStorage.clear();");
+        getJs().executeScript("window.sessionStorage.clear();");
     }
 
     public void deleteAlarmById(AlarmId alarmId) {
@@ -299,6 +304,13 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
     public void deleteCustomerById(CustomerId customerId) {
         if (customerId != null) {
             testRestClient.deleteCustomer(customerId);
+        }
+    }
+
+    public void deleteCustomerByName(String customerName) {
+        Customer customer = getCustomerByName(customerName);
+        if (customer != null) {
+            testRestClient.deleteCustomer(customer.getId());
         }
     }
 
@@ -329,6 +341,36 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
     public void deleteDashboardById(DashboardId dashboardId) {
         if (dashboardId != null) {
             testRestClient.deleteDashboard(dashboardId);
+        }
+    }
+
+    public void deleteDeviceByName(String deviceName) {
+        Device device = getDeviceByName(deviceName);
+        if (device != null) {
+            testRestClient.deleteDevice(device.getId());
+        }
+    }
+
+    public void deleteDevicesByName(List<String> deviceNames) {
+        List<Device> devices = getDevicesByName(deviceNames);
+        for (Device device : devices) {
+            if (device != null) {
+                testRestClient.deleteDevice(device.getId());
+            }
+        }
+    }
+
+    public void deleteDeviceProfileByTitle(String deviceProfileTitle) {
+        DeviceProfile deviceProfile = getDeviceProfileByName(deviceProfileTitle);
+        if (deviceProfile != null) {
+            testRestClient.deleteDeviseProfile(deviceProfile.getId());
+        }
+    }
+
+    public void deleteEntityGroupByName(EntityType entityType, String entityGroupName) {
+        EntityGroup entityGroup = getEntityGroupByName(entityType, entityGroupName);
+        if (entityGroup != null) {
+            testRestClient.deleteEntityGroup(entityGroup.getId());
         }
     }
 }

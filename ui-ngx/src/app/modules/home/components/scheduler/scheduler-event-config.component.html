@@ -52,7 +52,7 @@
     *ngIf="!useDefinedTemplate"
     formControlName="msgBody"
     label="{{ 'scheduler.message-body' | translate }}"
-    required
+    jsonRequired
     [fillHeight]="true">
   </tb-json-object-edit>
   <div *ngIf="showMetadata">

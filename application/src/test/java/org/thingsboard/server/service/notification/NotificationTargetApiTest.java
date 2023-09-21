@@ -37,21 +37,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
-import org.thingsboard.server.common.data.notification.rule.trigger.EntityActionNotificationRuleTriggerConfig;
+import org.thingsboard.server.common.data.notification.rule.trigger.config.EntityActionNotificationRuleTriggerConfig;
 import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
 import org.thingsboard.server.common.data.notification.targets.platform.AllUsersFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.CustomerUsersFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.PlatformUsersNotificationTargetConfig;
+import org.thingsboard.server.common.data.notification.targets.platform.TenantAdministratorsFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.UserListFilter;
+import org.thingsboard.server.common.data.notification.targets.platform.UsersFilter;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.notification.NotificationTargetDao;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -111,34 +116,36 @@ public class NotificationTargetApiTest extends AbstractNotificationApiTest {
     }
 
     @Test
-    public void givenNotificationTargetConfig_testGetRecipients() throws Exception {
-        NotificationTarget notificationTarget = new NotificationTarget();
-        notificationTarget.setTenantId(tenantId);
-        notificationTarget.setName("Test target");
+    public void givenCustomerUsersTargetFilter_testGetRecipients() throws Exception {
+        CustomerUsersFilter filter = new CustomerUsersFilter();
+        filter.setCustomerId(customerId.getId());
 
-        PlatformUsersNotificationTargetConfig targetConfig = new PlatformUsersNotificationTargetConfig();
-        CustomerUsersFilter customerUsersFilter = new CustomerUsersFilter();
-        customerUsersFilter.setCustomerId(customerId.getId());
-        targetConfig.setUsersFilter(customerUsersFilter);
-        notificationTarget.setConfiguration(targetConfig);
-
-        List<User> recipients = getRecipients(notificationTarget);
+        List<User> recipients = getRecipients(filter);
         assertThat(recipients).size().isNotZero();
         assertThat(recipients).allSatisfy(recipient -> {
             assertThat(recipient.getCustomerId()).isEqualTo(customerId);
         });
+    }
 
-        AllUsersFilter allUsersFilter = new AllUsersFilter();
-        targetConfig.setUsersFilter(allUsersFilter);
-        recipients = getRecipients(notificationTarget);
+    @Test
+    public void givenAllUsersTargetFilter_testGetRecipients() throws Exception {
+        AllUsersFilter filter = new AllUsersFilter();
+
+        List<User> recipients = getRecipients(filter);
         assertThat(recipients).size().isGreaterThanOrEqualTo(2);
         assertThat(recipients).allSatisfy(recipient -> {
             assertThat(recipient.getTenantId()).isEqualTo(tenantId);
         });
+    }
 
+    @Test
+    public void givenAllUsersTargetFilter_sysAdmin_testGetRecipients() throws Exception {
+        loginSysAdmin();
         createDifferentTenant();
         loginSysAdmin();
-        recipients = getRecipients(notificationTarget);
+        AllUsersFilter filter = new AllUsersFilter();
+
+        List<User> recipients = getRecipients(filter);
         assertThat(recipients).size().isGreaterThanOrEqualTo(3);
         assertThat(recipients).anySatisfy(recipient -> {
             assertThat(recipient.getTenantId()).isEqualTo(tenantId);
@@ -146,6 +153,96 @@ public class NotificationTargetApiTest extends AbstractNotificationApiTest {
         assertThat(recipients).anySatisfy(recipient -> {
             assertThat(recipient.getTenantId()).isEqualTo(savedDifferentTenant.getId());
         });
+    }
+
+    @Test
+    public void givenTenantAdminsTargetFilter_onSysAdminLevel_testGetRecipients() throws Exception {
+        loginSysAdmin();
+        User tenantAdmin1 = new User();
+        tenantAdmin1.setTenantId(tenantId);
+        tenantAdmin1.setEmail("tenant-admin1@tb.org");
+        tenantAdmin1.setAuthority(Authority.TENANT_ADMIN);
+        tenantAdmin1 = createUser(tenantAdmin1, tenantAdmin1.getEmail());
+
+        createDifferentTenant();
+        loginSysAdmin();
+        User tenantAdmin2 = new User();
+        tenantAdmin2.setTenantId(differentTenantId);
+        tenantAdmin2.setEmail("tenant-admin2@tb.org");
+        tenantAdmin2.setAuthority(Authority.TENANT_ADMIN);
+        tenantAdmin2 = createUser(tenantAdmin2, tenantAdmin2.getEmail());
+
+        loginTenantAdmin();
+        EntityGroup tenantUsers = entityGroupService.findOrCreateTenantUsersGroup(tenantId);
+        User tenantUser1 = new User();
+        tenantUser1.setEmail("tenant-user1@tb.org");
+        tenantUser1.setAuthority(Authority.TENANT_ADMIN);
+        tenantUser1 = createUser(tenantUser1, tenantUser1.getEmail(), tenantUsers.getId());
+
+        loginDifferentTenant();
+        tenantUsers = entityGroupService.findOrCreateTenantUsersGroup(differentTenantId);
+        User tenantUser2 = new User();
+        tenantUser2.setEmail("tenant-user2@tb.org");
+        tenantUser2.setAuthority(Authority.TENANT_ADMIN);
+        tenantUser2 = createUser(tenantUser2, tenantUser2.getEmail(), tenantUsers.getId());
+
+        loginSysAdmin();
+        TenantAdministratorsFilter tenantAdminsFilter = new TenantAdministratorsFilter();
+        tenantAdminsFilter.setTenantsIds(Set.of(tenantId.getId()));
+        List<User> recipients = getRecipients(tenantAdminsFilter);
+        assertThat(recipients).extracting(User::getId)
+                .contains(tenantAdmin1.getId())
+                .doesNotContain(tenantUser1.getId())
+                .doesNotContain(tenantUser2.getId(), tenantAdmin2.getId());
+
+        tenantAdminsFilter.setTenantsIds(Set.of(differentTenantId.getId()));
+        recipients = getRecipients(tenantAdminsFilter);
+        assertThat(recipients).extracting(User::getId)
+                .contains(tenantAdmin2.getId())
+                .doesNotContain(tenantUser2.getId())
+                .doesNotContain(tenantUser1.getId(), tenantAdmin1.getId());
+
+        tenantAdminsFilter.setTenantsIds(Set.of(tenantId.getId(), differentTenantId.getId()));
+        recipients = getRecipients(tenantAdminsFilter);
+        assertThat(recipients).extracting(User::getId)
+                .contains(tenantAdmin1.getId(), tenantAdmin2.getId())
+                .doesNotContain(tenantUser1.getId(), tenantUser2.getId());
+
+        tenantAdminsFilter.setTenantsIds(Collections.emptySet());
+        recipients = getRecipients(tenantAdminsFilter);
+        assertThat(recipients).extracting(User::getId)
+                .contains(tenantAdmin1.getId(), tenantAdmin2.getId())
+                .doesNotContain(tenantUser1.getId(), tenantUser2.getId());
+
+        tenantAdminsFilter.setTenantsIds(null);
+        tenantAdminsFilter.setTenantProfilesIds(Set.of(tenantProfileId.getId()));
+        recipients = getRecipients(tenantAdminsFilter);
+        assertThat(recipients).extracting(User::getId)
+                .contains(tenantAdmin1.getId(), tenantAdmin2.getId())
+                .doesNotContain(tenantUser1.getId(), tenantUser2.getId());
+    }
+
+    @Test
+    public void givenTenantAdminsTargetFilter_onTenantLevel_testGetRecipients() throws Exception {
+        loginSysAdmin();
+        User tenantAdmin1 = new User();
+        tenantAdmin1.setTenantId(tenantId);
+        tenantAdmin1.setEmail("tenant-admin1@tb.org");
+        tenantAdmin1.setAuthority(Authority.TENANT_ADMIN);
+        tenantAdmin1 = createUser(tenantAdmin1, tenantAdmin1.getEmail());
+
+        loginTenantAdmin();
+        EntityGroup tenantUsers = entityGroupService.findOrCreateTenantUsersGroup(tenantId);
+        User tenantUser1 = new User();
+        tenantUser1.setEmail("tenant-user1@tb.org");
+        tenantUser1.setAuthority(Authority.TENANT_ADMIN);
+        tenantUser1 = createUser(tenantUser1, tenantUser1.getEmail(), tenantUsers.getId());
+
+        TenantAdministratorsFilter tenantAdminsFilter = new TenantAdministratorsFilter();
+        List<User> recipients = getRecipients(tenantAdminsFilter);
+        assertThat(recipients).extracting(User::getId)
+                .contains(tenantAdmin1.getId())
+                .doesNotContain(tenantUser1.getId());
     }
 
     @Test
@@ -194,7 +291,12 @@ public class NotificationTargetApiTest extends AbstractNotificationApiTest {
                 .andExpect(statusMatcher);
     }
 
-    private List<User> getRecipients(NotificationTarget notificationTarget) throws Exception {
+    private List<User> getRecipients(UsersFilter usersFilter) throws Exception {
+        NotificationTarget notificationTarget = new NotificationTarget();
+        notificationTarget.setName(usersFilter.toString());
+        PlatformUsersNotificationTargetConfig targetConfig = new PlatformUsersNotificationTargetConfig();
+        targetConfig.setUsersFilter(usersFilter);
+        notificationTarget.setConfiguration(targetConfig);
         return doPostWithTypedResponse("/api/notification/target/recipients?page=0&pageSize=100", notificationTarget, new TypeReference<PageData<User>>() {}).getData();
     }
 

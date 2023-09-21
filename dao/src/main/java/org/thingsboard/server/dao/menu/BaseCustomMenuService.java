@@ -31,14 +31,16 @@
 package org.thingsboard.server.dao.menu;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -47,6 +49,7 @@ import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 
@@ -57,17 +60,14 @@ import java.util.List;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class BaseCustomMenuService implements CustomMenuService {
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String CUSTOM_MENU_ATTR_NAME = "customMenu";
 
-    @Autowired
-    private AdminSettingsService adminSettingsService;
-
-    @Autowired
-    private AttributesService attributesService;
+    private final AdminSettingsService adminSettingsService;
+    private final AttributesService attributesService;
+    private final CustomerService customerService;
 
     @Override
     public CustomMenu getSystemCustomMenu(TenantId tenantId) {
@@ -86,7 +86,14 @@ public class BaseCustomMenuService implements CustomMenuService {
 
     @Override
     public CustomMenu getCustomerCustomMenu(TenantId tenantId, CustomerId customerId) {
-        return getEntityCustomMenu(tenantId, customerId);
+        var result = getEntityCustomMenu(tenantId, customerId);
+        if (result == null) {
+            Customer customer = customerService.findCustomerById(tenantId, customerId);
+            if (customer.isSubCustomer()) {
+                return getEntityCustomMenu(tenantId, customer.getParentCustomerId());
+            }
+        }
+        return result;
     }
 
     @Override
@@ -116,17 +123,17 @@ public class BaseCustomMenuService implements CustomMenuService {
         if (customMenuSettings == null) {
             customMenuSettings = new AdminSettings();
             customMenuSettings.setKey(CUSTOM_MENU_ATTR_NAME);
-            ObjectNode node = objectMapper.createObjectNode();
+            ObjectNode node = JacksonUtil.newObjectNode();
             customMenuSettings.setJsonValue(node);
         }
         String json;
         try {
             if (customMenu != null) {
-                json = objectMapper.writeValueAsString(customMenu);
+                json = JacksonUtil.toString(customMenu);
             } else {
                 json = "";
             }
-        } catch (JsonProcessingException e) {
+        } catch (IllegalArgumentException e) {
             log.error("Unable to convert custom menu to JSON!", e);
             throw new IncorrectParameterException("Unable to convert custom menu to JSON!");
         }
@@ -151,8 +158,8 @@ public class BaseCustomMenuService implements CustomMenuService {
         CustomMenu result = null;
         if (!StringUtils.isEmpty(json)) {
             try {
-                result = objectMapper.readValue(json, CustomMenu.class);
-            } catch (IOException e) {
+                result = JacksonUtil.fromString(json, CustomMenu.class);
+            } catch (IllegalArgumentException e) {
                 log.error("Unable to read custom menu from JSON!", e);
                 throw new IncorrectParameterException("Unable to read custom menu from JSON!");
             }
@@ -185,11 +192,11 @@ public class BaseCustomMenuService implements CustomMenuService {
         String json;
         try {
             if (customMenu != null) {
-                json = objectMapper.writeValueAsString(customMenu);
+                json = JacksonUtil.toString(customMenu);
             } else {
                 json = "";
             }
-        } catch (JsonProcessingException e) {
+        } catch (IllegalArgumentException e) {
             log.error("Unable to convert custom menu to JSON!", e);
             throw new IncorrectParameterException("Unable to convert custom menu to JSON!");
         }

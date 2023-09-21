@@ -63,14 +63,15 @@ import {
 } from '@shared/components/dialog/json-object-edit-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { MatFormFieldAppearance, SubscriptSizing } from '@angular/material/form-field';
 
 type FieldAlignment = 'row' | 'column';
 
 type MultipleInputWidgetDataKeyType = 'server' | 'shared' | 'timeseries';
 export type MultipleInputWidgetDataKeyValueType = 'string' | 'double' | 'integer' |
                                                   'JSON' | 'booleanCheckbox' | 'booleanSwitch' |
-                                                  'dateTime' | 'date' | 'time' | 'select';
-type MultipleInputWidgetDataKeyEditableType = 'editable' | 'disabled' | 'readonly';
+                                                  'dateTime' | 'date' | 'time' | 'select' | 'color';
+export type MultipleInputWidgetDataKeyEditableType = 'editable' | 'disabled' | 'readonly';
 
 type ConvertGetValueFunction = (value: any, ctx: WidgetContext) => any;
 type ConvertSetValueFunction = (value: any, originValue: any, ctx: WidgetContext) => any;
@@ -86,6 +87,8 @@ interface MultipleInputWidgetSettings {
   groupTitle: string;
   fieldsAlignment: FieldAlignment;
   fieldsInRow: number;
+  columnGap: number;
+  rowGap: number;
   attributesShared?: boolean;
 }
 
@@ -103,6 +106,8 @@ interface MultipleInputWidgetDataKeySettings {
   isEditable: MultipleInputWidgetDataKeyEditableType;
   disabledOnDataKey: string;
   dataKeyHidden: boolean;
+  appearance: MatFormFieldAppearance;
+  subscriptSizing: SubscriptSizing;
   step?: number;
   minValue?: number;
   maxValue?: number;
@@ -163,8 +168,7 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
   private isSavingInProgress = false;
 
   isVerticalAlignment: boolean;
-  inputWidthSettings: string;
-  changeAlignment: boolean;
+  columns: number;
   saveButtonLabel: string;
   resetButtonLabel: string;
 
@@ -217,10 +221,7 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
   private initializeConfig() {
 
     if (this.settings.widgetTitle && this.settings.widgetTitle.length) {
-      const titlePatternText = this.utils.customTranslation(this.settings.widgetTitle, this.settings.widgetTitle);
-      this.ctx.widgetTitle = createLabelFromDatasource(this.datasources[0], titlePatternText);
-    } else {
-      this.ctx.widgetTitle = this.ctx.widgetConfig.title;
+      this.ctx.widgetTitle = this.settings.widgetTitle;
     }
 
     this.settings.groupTitle = this.settings.groupTitle || '${entityName}';
@@ -246,15 +247,15 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
     if (isUndefined(this.settings.fieldsInRow)) {
       this.settings.fieldsInRow = 2;
     }
-    // For backward compatibility
-
     this.isVerticalAlignment = !(this.settings.fieldsAlignment === 'row');
-
-    if (!this.isVerticalAlignment && this.settings.fieldsInRow) {
-      this.inputWidthSettings = 100 / this.settings.fieldsInRow + '%';
+    if (isUndefined(this.settings.columnGap)) {
+      this.settings.columnGap = 10;
+    }
+    if (isUndefined(this.settings.rowGap)) {
+      this.settings.rowGap = 5;
     }
 
-    this.updateWidgetDisplaying();
+    this.updateColumns();
   }
 
   private updateDatasources() {
@@ -302,6 +303,15 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
                 dataKey.settings.isEditable = 'editable';
               }
             }
+
+            if (isUndefined(dataKey.settings.appearance)) {
+              dataKey.settings.appearance = 'outline';
+            }
+
+            if (isUndefined(dataKey.settings.subscriptSizing)) {
+              dataKey.settings.subscriptSizing = 'fixed';
+            }
+
             // For backward compatibility
 
             if (dataKey.settings.dataKeyValueType === 'select') {
@@ -464,9 +474,8 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
         }
 
         if (key.settings.isEditable === 'editable' && key.settings.disabledOnDataKey) {
-          const conditions = data.filter((item) => {
-            return source.datasource === item.datasource && item.dataKey.name === key.settings.disabledOnDataKey;
-          });
+          const conditions = data.filter((item) =>
+              source.datasource === item.datasource && item.dataKey.name === key.settings.disabledOnDataKey);
           if (conditions && conditions.length) {
             if (conditions[0].data.length) {
               if (conditions[0].data[0][1] === 'false') {
@@ -506,8 +515,17 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
     return data;
   }
 
-  private updateWidgetDisplaying() {
-    this.changeAlignment = (this.ctx.$container && this.ctx.$container[0].offsetWidth < 620);
+  private updateColumns() {
+    const changeAlignment = (this.ctx.$container && this.ctx.$container[0].offsetWidth < 620);
+    if (changeAlignment) {
+      this.columns = 1;
+    } else {
+      if (!this.isVerticalAlignment && this.settings.fieldsInRow) {
+        this.columns = this.settings.fieldsInRow;
+      } else {
+        this.columns = 1;
+      }
+    }
   }
 
   public onDataUpdated() {
@@ -516,7 +534,7 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
   }
 
   private resize() {
-    this.updateWidgetDisplaying();
+    this.updateColumns();
     this.ctx.detectChanges();
   }
 
@@ -601,7 +619,8 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
   }
 
   public inputChanged(source: MultipleInputWidgetSource, key: MultipleInputWidgetDataKey) {
-    if (!this.settings.showActionButtons && !this.isSavingInProgress && this.multipleInputFormGroup.get(key.formId).valid) {
+    const control = this.multipleInputFormGroup.get(key.formId);
+    if (!this.settings.showActionButtons && !this.isSavingInProgress && (Array.isArray(control.value) || control.valid)) {
       this.isSavingInProgress = true;
       const dataToSave: MultipleInputWidgetSource = {
         datasource: source.datasource,
@@ -609,6 +628,13 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
       };
       this.save(dataToSave);
     }
+  }
+
+  public colorChanged(source: MultipleInputWidgetSource, key: MultipleInputWidgetDataKey, color: string) {
+    this.multipleInputFormGroup.get(key.formId).setValue(color);
+    this.multipleInputFormGroup.get(key.formId).markAsDirty();
+    this.multipleInputFormGroup.get(key.formId).markAsTouched();
+    this.inputChanged(source, key);
   }
 
   public saveForm() {
@@ -749,7 +775,7 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
     this.multipleInputFormGroup.reset(undefined, {emitEvent: false});
     this.sources.forEach((source) => {
       for (const key of this.visibleKeys(source)) {
-        this.multipleInputFormGroup.get(key.formId).patchValue(key.value, {emitEvent: false});
+        this.multipleInputFormGroup.get(key.formId).patchValue(key.value);
       }
     });
     this.multipleInputFormGroup.markAsPristine();
@@ -765,6 +791,7 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
         jsonValue: formControl.value,
+        required: key.settings.required,
         title:  key.settings.dialogTitle,
         saveLabel: key.settings.saveButtonLabel,
         cancelLabel: key.settings.cancelButtonLabel
@@ -780,5 +807,17 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
         }
       }
     );
+  }
+
+  invalid(): boolean {
+    for (const source of this.sources) {
+      for (const key of this.visibleKeys(source)) {
+        const control = this.multipleInputFormGroup.get(key.formId);
+        if (!Array.isArray(control.value) && control.invalid) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }

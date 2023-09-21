@@ -98,7 +98,8 @@ export class ValueInputComponent implements OnInit, ControlValueAccessor {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
-        jsonValue: this.modelValue
+        jsonValue: this.modelValue,
+        required: true
       }
     }).afterClosed().subscribe(
       (res) => {
@@ -140,7 +141,8 @@ export class ValueInputComponent implements OnInit, ControlValueAccessor {
   }
 
   updateView() {
-    if (this.inputForm.valid || this.valueType === ValueType.BOOLEAN) {
+    if (this.inputForm.valid || this.valueType === ValueType.BOOLEAN ||
+      (this.valueType === ValueType.JSON && Array.isArray(this.modelValue))) {
       let value = this.modelValue;
       if (this.stringNotRequired && this.valueType === ValueType.STRING && !value) {
         value = '';

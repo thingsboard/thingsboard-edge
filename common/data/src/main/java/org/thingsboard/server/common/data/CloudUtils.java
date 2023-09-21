@@ -43,8 +43,12 @@ public final class CloudUtils {
         switch (entityType) {
             case DEVICE:
                 return CloudEventType.DEVICE;
+            case DEVICE_PROFILE:
+                return CloudEventType.DEVICE_PROFILE;
             case ASSET:
                 return CloudEventType.ASSET;
+            case ASSET_PROFILE:
+                return CloudEventType.ASSET_PROFILE;
             case ENTITY_VIEW:
                 return CloudEventType.ENTITY_VIEW;
             case DASHBOARD:
@@ -55,6 +59,8 @@ public final class CloudUtils {
                 return CloudEventType.ALARM;
             case TENANT:
                 return CloudEventType.TENANT;
+            case TENANT_PROFILE:
+                return CloudEventType.TENANT_PROFILE;
             case CUSTOMER:
                 return CloudEventType.CUSTOMER;
             case ENTITY_GROUP:

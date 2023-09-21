@@ -40,7 +40,7 @@ CREATE OR REPLACE PROCEDURE insert_tb_schema_settings()
 $$
 BEGIN
     IF (SELECT COUNT(*) FROM tb_schema_settings) = 0 THEN
-        INSERT INTO tb_schema_settings (schema_version) VALUES (3003000);
+        INSERT INTO tb_schema_settings (schema_version) VALUES (3006000);
     END IF;
 END;
 $$;
@@ -109,7 +109,6 @@ CREATE TABLE IF NOT EXISTS converter (
     configuration varchar(10000000),
     debug_mode boolean,
     name varchar(255),
-    search_text varchar(255),
     tenant_id uuid,
     type varchar(255),
     external_id uuid,
@@ -131,7 +130,6 @@ CREATE TABLE IF NOT EXISTS integration (
     converter_id uuid not null,
     downlink_converter_id uuid,
     routing_key varchar(255),
-    search_text varchar(255),
     tenant_id uuid,
     type varchar(255),
     external_id uuid,
@@ -179,9 +177,9 @@ CREATE TABLE IF NOT EXISTS component_descriptor (
     actions varchar(255),
     clazz varchar UNIQUE,
     configuration_descriptor varchar,
+    configuration_version int DEFAULT 0,
     name varchar(255),
     scope varchar(255),
-    search_text varchar(255),
     type varchar(255),
     clustering_mode varchar(255)
 );
@@ -196,7 +194,6 @@ CREATE TABLE IF NOT EXISTS customer (
     country varchar(255),
     email varchar(255),
     phone varchar(255),
-    search_text varchar(255),
     state varchar(255),
     tenant_id uuid,
     parent_customer_id uuid,
@@ -211,7 +208,6 @@ CREATE TABLE IF NOT EXISTS dashboard (
     created_time bigint NOT NULL,
     configuration varchar,
     assigned_customers varchar(1000000),
-    search_text varchar(255),
     tenant_id uuid,
     customer_id uuid,
     title varchar(255),
@@ -232,7 +228,6 @@ CREATE TABLE IF NOT EXISTS rule_chain (
     first_rule_node_id uuid,
     root boolean,
     debug_mode boolean,
-    search_text varchar(255),
     tenant_id uuid,
     external_id uuid,
     CONSTRAINT rule_chain_external_id_unq_key UNIQUE (tenant_id, external_id)
@@ -243,12 +238,12 @@ CREATE TABLE IF NOT EXISTS rule_node (
     created_time bigint NOT NULL,
     rule_chain_id uuid,
     additional_info varchar,
+    configuration_version int DEFAULT 0,
     configuration varchar(10000000),
     type varchar(255),
     name varchar(255),
     debug_mode boolean,
     singleton_mode boolean,
-    search_text varchar(255),
     external_id uuid
 );
 
@@ -280,7 +275,6 @@ CREATE TABLE IF NOT EXISTS ota_package (
     data oid,
     data_size bigint,
     additional_info varchar,
-    search_text varchar(255),
     CONSTRAINT ota_package_tenant_title_version_unq_key UNIQUE (tenant_id, title, version)
 );
 
@@ -305,7 +299,6 @@ CREATE TABLE IF NOT EXISTS asset_profile (
     name varchar(255),
     image varchar(1000000),
     description varchar,
-    search_text varchar(255),
     is_default boolean,
     tenant_id uuid,
     default_rule_chain_id uuid,
@@ -328,7 +321,6 @@ CREATE TABLE IF NOT EXISTS asset (
     asset_profile_id uuid NOT NULL,
     name varchar(255),
     label varchar(255),
-    search_text varchar(255),
     tenant_id uuid,
     type varchar(255),
     external_id uuid,
@@ -347,7 +339,6 @@ CREATE TABLE IF NOT EXISTS device_profile (
     provision_type varchar(255),
     profile_data jsonb,
     description varchar,
-    search_text varchar(255),
     is_default boolean,
     tenant_id uuid,
     firmware_id uuid,
@@ -399,7 +390,6 @@ CREATE TABLE IF NOT EXISTS device (
     type varchar(255),
     name varchar(255),
     label varchar(255),
-    search_text varchar(255),
     tenant_id uuid,
     firmware_id uuid,
     software_id uuid,
@@ -541,7 +531,6 @@ CREATE TABLE IF NOT EXISTS tb_user (
     first_name varchar(255),
     last_name varchar(255),
     phone varchar(255),
-    search_text varchar(255),
     tenant_id uuid
 );
 
@@ -551,7 +540,6 @@ CREATE TABLE IF NOT EXISTS tenant_profile (
     name varchar(255),
     profile_data jsonb,
     description varchar,
-    search_text varchar(255),
     is_default boolean,
     isolated_tb_core boolean,
     isolated_tb_rule_engine boolean,
@@ -570,7 +558,6 @@ CREATE TABLE IF NOT EXISTS tenant (
     email varchar(255),
     phone varchar(255),
     region varchar(255),
-    search_text varchar(255),
     state varchar(255),
     title varchar(255),
     zip varchar(255),
@@ -591,26 +578,38 @@ CREATE TABLE IF NOT EXISTS user_credentials (
 CREATE TABLE IF NOT EXISTS widget_type (
     id uuid NOT NULL CONSTRAINT widget_type_pkey PRIMARY KEY,
     created_time bigint NOT NULL,
-    alias varchar(255),
-    bundle_alias varchar(255),
+    fqn varchar(512),
     descriptor varchar(1000000),
     name varchar(255),
     tenant_id uuid,
     image varchar(1000000),
-    description varchar(255)
+    deprecated boolean NOT NULL DEFAULT false,
+    description varchar(255),
+    external_id uuid,
+    CONSTRAINT uq_widget_type_fqn UNIQUE (tenant_id, fqn),
+    CONSTRAINT widget_type_external_id_unq_key UNIQUE (tenant_id, external_id)
 );
 
 CREATE TABLE IF NOT EXISTS widgets_bundle (
     id uuid NOT NULL CONSTRAINT widgets_bundle_pkey PRIMARY KEY,
     created_time bigint NOT NULL,
     alias varchar(255),
-    search_text varchar(255),
     tenant_id uuid,
     title varchar(255),
     image varchar(1000000),
     description varchar(255),
     external_id uuid,
+    CONSTRAINT uq_widgets_bundle_alias UNIQUE (tenant_id, alias),
     CONSTRAINT widgets_bundle_external_id_unq_key UNIQUE (tenant_id, external_id)
+);
+
+CREATE TABLE IF NOT EXISTS widgets_bundle_widget (
+    widgets_bundle_id uuid NOT NULL,
+    widget_type_id uuid NOT NULL,
+    widget_type_order int NOT NULL DEFAULT 0,
+    CONSTRAINT widgets_bundle_widget_pkey PRIMARY KEY (widgets_bundle_id, widget_type_id),
+    CONSTRAINT fk_widgets_bundle FOREIGN KEY (widgets_bundle_id) REFERENCES widgets_bundle(id) ON DELETE CASCADE,
+    CONSTRAINT fk_widget_type FOREIGN KEY (widget_type_id) REFERENCES widget_type(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS entity_group (
@@ -634,7 +633,6 @@ CREATE TABLE IF NOT EXISTS scheduler_event (
     originator_id uuid,
     originator_type varchar(255),
     name varchar(255),
-    search_text varchar(255),
     tenant_id uuid,
     type varchar(255),
     schedule varchar,
@@ -649,7 +647,6 @@ CREATE TABLE IF NOT EXISTS blob_entity (
     name varchar(255),
     type varchar(255),
     content_type varchar(255),
-    search_text varchar(255),
     data varchar(10485760),
     additional_info varchar
 ) PARTITION BY RANGE (created_time);
@@ -666,7 +663,6 @@ CREATE TABLE IF NOT EXISTS entity_view (
     keys varchar(10000000),
     start_ts bigint,
     end_ts bigint,
-    search_text varchar(255),
     additional_info varchar,
     external_id uuid,
     CONSTRAINT entity_view_external_id_unq_key UNIQUE (tenant_id, external_id)
@@ -679,7 +675,6 @@ CREATE TABLE IF NOT EXISTS role (
     customer_id uuid,
     name varchar(255),
     type varchar(255),
-    search_text varchar(255),
     permissions varchar(10000000),
     additional_info varchar,
     external_id uuid,
@@ -882,6 +877,7 @@ CREATE TABLE IF NOT EXISTS resource (
     search_text varchar(255),
     file_name varchar(255) NOT NULL,
     data varchar,
+    etag varchar,
     CONSTRAINT resource_unq_key UNIQUE (tenant_id, resource_type, resource_key)
 );
 
@@ -898,13 +894,13 @@ CREATE TABLE IF NOT EXISTS edge (
     secret varchar(255),
     edge_license_key varchar(30),
     cloud_endpoint varchar(255),
-    search_text varchar(255),
     tenant_id uuid,
     CONSTRAINT edge_name_unq_key UNIQUE (tenant_id, name),
     CONSTRAINT edge_routing_key_unq_key UNIQUE (routing_key)
 );
 
 CREATE TABLE IF NOT EXISTS edge_event (
+    seq_id INT GENERATED ALWAYS AS IDENTITY,
     id uuid NOT NULL,
     created_time bigint NOT NULL,
     edge_id uuid,
@@ -917,6 +913,7 @@ CREATE TABLE IF NOT EXISTS edge_event (
     entity_group_id uuid,
     ts bigint NOT NULL
 ) PARTITION BY RANGE(created_time);
+ALTER TABLE IF EXISTS edge_event ALTER COLUMN seq_id SET CYCLE;
 
 CREATE TABLE IF NOT EXISTS device_group_ota_package (
     id uuid NOT NULL CONSTRAINT entity_group_firmware_pkey PRIMARY KEY,
@@ -1006,30 +1003,6 @@ BEGIN
 END
 $$;
 
-CREATE OR REPLACE VIEW integration_info as
-SELECT created_time, id, tenant_id, name, type, debug_mode, enabled, is_remote,
-       allow_create_devices_or_assets, is_edge_template, search_text,
-       (SELECT cast(json_agg(element) as varchar)
-        FROM (SELECT sum(se.e_messages_processed + se.e_errors_occurred) element
-              FROM stats_event se
-              WHERE se.tenant_id = i.tenant_id
-                AND se.entity_id = i.id
-                AND ts >= (EXTRACT(EPOCH FROM current_timestamp) * 1000 - 24 * 60 * 60 * 1000)::bigint
-
-              GROUP BY ts / 3600000
-              ORDER BY ts / 3600000) stats) as stats,
-       (CASE WHEN i.enabled THEN
-                 (SELECT cast(json_v as varchar)
-                  FROM attribute_kv
-                  WHERE entity_type = 'INTEGRATION'
-                    AND entity_id = i.id
-                    AND attribute_type = 'SERVER_SCOPE'
-                    AND attribute_key LIKE 'integration_status_%'
-                  ORDER BY last_update_ts
-                  LIMIT 1) END) as status
-FROM integration i;
-
-
 CREATE TABLE IF NOT EXISTS user_settings (
     user_id uuid NOT NULL,
     type VARCHAR(50) NOT NULL,
@@ -1044,7 +1017,9 @@ CREATE TABLE IF NOT EXISTS notification_target (
     tenant_id UUID NOT NULL,
     name VARCHAR(255) NOT NULL,
     configuration VARCHAR(10000) NOT NULL,
-    CONSTRAINT uq_notification_target_name UNIQUE (tenant_id, name)
+    external_id UUID,
+    CONSTRAINT uq_notification_target_name UNIQUE (tenant_id, name),
+    CONSTRAINT uq_notification_target_external_id UNIQUE (tenant_id, external_id)
 );
 
 CREATE TABLE IF NOT EXISTS notification_template (
@@ -1054,7 +1029,9 @@ CREATE TABLE IF NOT EXISTS notification_template (
     name VARCHAR(255) NOT NULL,
     notification_type VARCHAR(50) NOT NULL,
     configuration VARCHAR(10000000) NOT NULL,
-    CONSTRAINT uq_notification_template_name UNIQUE (tenant_id, name)
+    external_id UUID,
+    CONSTRAINT uq_notification_template_name UNIQUE (tenant_id, name),
+    CONSTRAINT uq_notification_template_external_id UNIQUE (tenant_id, external_id)
 );
 
 CREATE TABLE IF NOT EXISTS notification_rule (
@@ -1062,12 +1039,15 @@ CREATE TABLE IF NOT EXISTS notification_rule (
     created_time BIGINT NOT NULL,
     tenant_id UUID NOT NULL,
     name VARCHAR(255) NOT NULL,
+    enabled BOOLEAN NOT NULL DEFAULT true,
     template_id UUID NOT NULL CONSTRAINT fk_notification_rule_template_id REFERENCES notification_template(id),
     trigger_type VARCHAR(50) NOT NULL,
     trigger_config VARCHAR(1000) NOT NULL,
     recipients_config VARCHAR(10000) NOT NULL,
     additional_config VARCHAR(255),
-    CONSTRAINT uq_notification_rule_name UNIQUE (tenant_id, name)
+    external_id UUID,
+    CONSTRAINT uq_notification_rule_name UNIQUE (tenant_id, name),
+    CONSTRAINT uq_notification_rule_external_id UNIQUE (tenant_id, external_id)
 );
 
 CREATE TABLE IF NOT EXISTS notification_request (
@@ -1077,7 +1057,7 @@ CREATE TABLE IF NOT EXISTS notification_request (
     targets VARCHAR(10000) NOT NULL,
     template_id UUID,
     template VARCHAR(10000000),
-    info VARCHAR(1000),
+    info VARCHAR(1000000),
     additional_config VARCHAR(1000),
     originator_entity_id UUID,
     originator_entity_type VARCHAR(32),
@@ -1097,3 +1077,18 @@ CREATE TABLE IF NOT EXISTS notification (
     additional_config VARCHAR(1000),
     status VARCHAR(32)
 ) PARTITION BY RANGE (created_time);
+
+CREATE TABLE IF NOT EXISTS white_labeling (
+    entity_type varchar(255),
+    entity_id uuid,
+    type VARCHAR(16),
+    settings VARCHAR(10000000),
+    domain_name VARCHAR(255) UNIQUE,
+    CONSTRAINT white_labeling_pkey PRIMARY KEY (entity_type, entity_id, type));
+
+CREATE TABLE IF NOT EXISTS alarm_types (
+    tenant_id uuid NOT NULL,
+    type varchar(255) NOT NULL,
+    CONSTRAINT tenant_id_type_unq_key UNIQUE (tenant_id, type),
+    CONSTRAINT fk_entity_tenant_id FOREIGN KEY (tenant_id) REFERENCES tenant(id) ON DELETE CASCADE
+);

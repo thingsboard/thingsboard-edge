@@ -177,8 +177,8 @@ export class EdgeService {
     return this.http.post<BulkImportResult>('/api/edge/bulk_import', entitiesData, defaultHttpOptionsFromConfig(config));
   }
 
-  public getEdgeDockerInstallInstructions(edgeId: string, config?: RequestConfig): Observable<EdgeInstallInstructions> {
-    return this.http.get<EdgeInstallInstructions>(`/api/edge/instructions/${edgeId}`, defaultHttpOptionsFromConfig(config));
+  public getEdgeInstallInstructions(edgeId: string, method: string = 'ubuntu', config?: RequestConfig): Observable<EdgeInstallInstructions> {
+    return this.http.get<EdgeInstallInstructions>(`/api/edge/instructions/${edgeId}/${method}`, defaultHttpOptionsFromConfig(config));
   }
 
   public findAllRelatedEdgesMissingAttributes(integrationId: string, config?: RequestConfig): Observable<string> {

@@ -167,6 +167,26 @@ public class DeviceClientTest extends AbstractContainerTest {
                     return device2Groups.contains(savedDeviceEntityGroup2.getId());
                 });
 
+        // add device #2 to group #1
+        cloudRestClient.addEntitiesToEntityGroup(savedDeviceEntityGroup1.getId(), Collections.singletonList(savedDevice2.getId()));
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<EntityGroupId> device2Groups = edgeRestClient.getEntityGroupsForEntity(savedDevice2.getId());
+                    return device2Groups.contains(savedDeviceEntityGroup1.getId());
+                });
+
+        // remove device #2 from group #1
+        cloudRestClient.removeEntitiesFromEntityGroup(savedDeviceEntityGroup1.getId(), Collections.singletonList(savedDevice2.getId()));
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<EntityGroupId> device2Groups = edgeRestClient.getEntityGroupsForEntity(savedDevice2.getId());
+                    return !device2Groups.contains(savedDeviceEntityGroup1.getId()) && device2Groups.contains(savedDeviceEntityGroup2.getId());
+                });
+
         // remove device #2 from group #2
         cloudRestClient.removeEntitiesFromEntityGroup(savedDeviceEntityGroup2.getId(), Collections.singletonList(savedDevice2.getId()));
         Awaitility.await()

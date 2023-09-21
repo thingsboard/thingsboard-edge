@@ -41,7 +41,7 @@ import {
   ViewChild
 } from '@angular/core';
 import { MatFormFieldAppearance } from '@angular/material/form-field';
-import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { merge, Observable, of, Subject } from 'rxjs';
 import { catchError, debounceTime, map, share, switchMap, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
@@ -53,7 +53,7 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { EntityService } from '@core/http/entity.service';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
-import { isEqual } from '@core/utils';
+import { isDefinedAndNotNull, isEqual } from '@core/utils';
 import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
@@ -129,6 +129,7 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
   requiredText: string;
 
   @Input()
+  @coerceBoolean()
   useFullEntityId: boolean;
 
   @Input()
@@ -334,7 +335,7 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
 
   async writeValue(value: string | EntityId | null): Promise<void> {
     this.searchText = '';
-    if (value !== null && (typeof value === 'string' || (value.entityType && value.id))) {
+    if (isDefinedAndNotNull(value) && (typeof value === 'string' || (value.entityType && value.id))) {
       let targetEntityType: EntityType;
       let id: string;
       if (typeof value === 'string') {

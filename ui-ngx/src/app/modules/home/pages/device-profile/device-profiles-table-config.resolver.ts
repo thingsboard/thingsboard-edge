@@ -114,6 +114,7 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
         isEnabled: () => true,
         onAction: ($event, entity) => this.exportDeviceProfile($event, entity)
       },
+      /* @voba: not visible on edge
       {
         name: this.translate.instant('device-profile.set-default'),
         icon: 'flag',
@@ -121,6 +122,7 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
           this.userPermissionsService.hasGenericPermission(Resource.DEVICE_PROFILE, Operation.WRITE),
         onAction: ($event, entity) => this.setDefaultDeviceProfile($event, entity)
       }
+       */
     );
 
     this.config.deleteEntityTitle = deviceProfile => this.translate.instant('device-profile.delete-device-profile-title',

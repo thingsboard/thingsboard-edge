@@ -103,9 +103,15 @@ export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePag
     this.columns.push(
       new DateEntityTableColumn<CloudEvent>('createdTime', 'cloud-event.created-time', this.datePipe, '150px'),
       new EntityTableColumn<CloudEvent>('action', 'cloud-event.action', '25%',
-        entity => this.translate.instant(cloudEventActionTypeTranslations.get(entity.action)), entity => ({}), false),
+        entity => {
+          let key = cloudEventActionTypeTranslations.get(entity.action);
+          return key ? this.translate.instant(key) : entity.action;
+        }, entity => ({}), false),
       new EntityTableColumn<CloudEvent>('type', 'cloud-event.entity-type', '25%',
-        entity => this.translate.instant(cloudEventTypeTranslations.get(entity.type)), entity => ({}), false),
+        entity => {
+          let key = cloudEventTypeTranslations.get(entity.type);
+          return key ? this.translate.instant(key) : entity.type;
+        }, entity => ({}), false),
       new EntityTableColumn<CloudEvent>('entityId', 'cloud-event.entity-id', '30%'),
       new EntityTableColumn<CloudEvent>('status', 'event.status', '10%',
         (entity) => this.updateCloudEventStatus(entity.createdTime),

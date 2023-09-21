@@ -31,7 +31,6 @@
 package org.thingsboard.server.service.install;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -46,6 +45,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
@@ -118,6 +118,7 @@ import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
@@ -134,14 +135,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.thingsboard.server.common.data.DataConstants.DEFAULT_DEVICE_TYPE;
+
 @Service
 @Profile("install")
 @Slf4j
 public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
     public static final String CUSTOMER_CRED = "customer";
-    public static final String DEFAULT_DEVICE_TYPE = "default";
     public static final String ACTIVITY_STATE = "active";
 
     @Autowired
@@ -155,6 +156,9 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
 
     @Autowired
     private AdminSettingsService adminSettingsService;
+
+    @Autowired
+    private WidgetTypeService widgetTypeService;
 
     @Autowired
     private WidgetsBundleService widgetsBundleService;
@@ -277,7 +281,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         AdminSettings generalSettings = new AdminSettings();
         generalSettings.setTenantId(TenantId.SYS_TENANT_ID);
         generalSettings.setKey("general");
-        ObjectNode node = objectMapper.createObjectNode();
+        ObjectNode node = JacksonUtil.newObjectNode();
         node.put("baseUrl", "http://localhost:8080");
         node.put("prohibitDifferentUrl", false);
         generalSettings.setJsonValue(node);
@@ -286,7 +290,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         AdminSettings mailSettings = new AdminSettings();
         mailSettings.setTenantId(TenantId.SYS_TENANT_ID);
         mailSettings.setKey("mail");
-        node = objectMapper.createObjectNode();
+        node = JacksonUtil.newObjectNode();
         node.put("mailFrom", "ThingsBoard <sysadmin@localhost.localdomain>");
         node.put("smtpProtocol", "smtp");
         node.put("smtpHost", "localhost");
@@ -524,6 +528,10 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
     public void deleteSystemWidgetBundle(String bundleAlias) throws Exception {
         WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleByTenantIdAndAlias(TenantId.SYS_TENANT_ID, bundleAlias);
         if (widgetsBundle != null) {
+            var widgetTypes = widgetTypeService.findWidgetTypesInfosByWidgetsBundleId(TenantId.SYS_TENANT_ID, widgetsBundle.getId());
+            for (var widgetType : widgetTypes) {
+                widgetTypeService.deleteWidgetType(TenantId.SYS_TENANT_ID, widgetType.getId());
+            }
             widgetsBundleService.deleteWidgetsBundle(TenantId.SYS_TENANT_ID, widgetsBundle.getId());
         }
     }
@@ -553,6 +561,10 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         this.deleteSystemWidgetBundle("navigation_widgets");
         this.deleteSystemWidgetBundle("edge_widgets");
         this.deleteSystemWidgetBundle("home_page_widgets");
+        this.deleteSystemWidgetBundle("entity_widgets");
+        this.deleteSystemWidgetBundle("html_widgets");
+        this.deleteSystemWidgetBundle("tables");
+        this.deleteSystemWidgetBundle("count_widgets");
         installScripts.loadSystemWidgets();
     }
 
@@ -566,7 +578,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         user.setEmail(email);
         user.setTenantId(tenantId);
         user.setCustomerId(customerId);
-        user = userService.saveUser(user);
+        user = userService.saveUser(tenantId, user);
         UserCredentials userCredentials = userService.findUserCredentialsByUserId(TenantId.SYS_TENANT_ID, user.getId());
         userCredentials.setPassword(passwordEncoder.encode(password));
         userCredentials.setEnabled(true);
@@ -593,7 +605,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         device.setDeviceProfileId(deviceProfileId);
         device.setName(name);
         if (description != null) {
-            ObjectNode additionalInfo = objectMapper.createObjectNode();
+            ObjectNode additionalInfo = JacksonUtil.newObjectNode();
             additionalInfo.put("description", description);
             device.setAdditionalInfo(additionalInfo);
         }
@@ -759,6 +771,11 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         }
         executor.shutdown();
         executor.awaitTermination(Integer.MAX_VALUE, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void updateDefaultNotificationConfigs() {
+        notificationSettingsService.updateDefaultNotificationConfigs(TenantId.SYS_TENANT_ID);
     }
 
 }

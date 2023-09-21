@@ -42,7 +42,9 @@ import {
   DeviceCredentials,
   DeviceInfo,
   DeviceInfoQuery,
-  DeviceSearchQuery
+  DeviceSearchQuery,
+  PublishLaunchCommand,
+  PublishTelemetryCommand
 } from '@app/shared/models/device.models';
 import { EntitySubtype } from '@app/shared/models/entity-type.models';
 import { AuthService } from '@core/auth/auth.service';
@@ -50,7 +52,6 @@ import { map } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
 import { BulkImportRequest, BulkImportResult } from '@home/components/import-export/import-export.models';
 import { PersistentRpc, RpcStatus } from '@shared/models/rpc.models';
-import { DashboardInfo } from '@shared/models/dashboard.models';
 
 @Injectable({
   providedIn: 'root'
@@ -155,6 +156,22 @@ export class DeviceService {
     return this.http.post<Device>(url, device, defaultHttpOptionsFromConfig(config));
   }
 
+  public saveDeviceWithCredentials(device: Device, credentials: DeviceCredentials,
+                                   entityGroupIds?: string | string[], config?: RequestConfig): Observable<Device> {
+    let url = '/api/device-with-credentials';
+    if (entityGroupIds) {
+      if (Array.isArray(entityGroupIds)) {
+        url += `?entityGroupIds=${entityGroupIds.join(',')}`;
+      } else {
+        url += `?entityGroupId=${entityGroupIds}`;
+      }
+    }
+    return this.http.post<Device>(url, {
+      device,
+      credentials
+    }, defaultHttpOptionsFromConfig(config));
+  }
+
   public deleteDevice(deviceId: string, config?: RequestConfig) {
     return this.http.delete(`/api/device/${deviceId}`, defaultHttpOptionsFromConfig(config));
   }
@@ -250,4 +267,13 @@ export class DeviceService {
   public bulkImportDevices(entitiesData: BulkImportRequest, config?: RequestConfig): Observable<BulkImportResult> {
     return this.http.post<BulkImportResult>('/api/device/bulk_import', entitiesData, defaultHttpOptionsFromConfig(config));
   }
+
+  public getDevicePublishTelemetryCommands(deviceId: string, config?: RequestConfig): Observable<PublishTelemetryCommand> {
+    return this.http.get<PublishTelemetryCommand>(`/api/device-connectivity/${deviceId}`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public getDevicePublishLaunchCommands(deviceId: string, config?: RequestConfig): Observable<PublishLaunchCommand> {
+    return this.http.get<PublishLaunchCommand>(`/api/device-connectivity/gateway-launch/${deviceId}`, defaultHttpOptionsFromConfig(config));
+  }
+
 }

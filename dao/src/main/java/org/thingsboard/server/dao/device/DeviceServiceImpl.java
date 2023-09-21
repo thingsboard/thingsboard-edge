@@ -84,6 +84,8 @@ import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
@@ -193,10 +195,6 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     @Transactional
     @Override
     public Device saveDeviceWithCredentials(Device device, DeviceCredentials deviceCredentials) {
-        if (device.getId() == null) {
-            Device deviceWithName = this.findDeviceByTenantIdAndName(device.getTenantId(), device.getName());
-            device = deviceWithName == null ? device : deviceWithName.updateDevice(device);
-        }
         Device savedDevice = this.saveDeviceWithoutCredentials(device, true);
         deviceCredentials.setDeviceId(savedDevice.getId());
         if (device.getId() == null) {
@@ -241,9 +239,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
             DeviceProfile deviceProfile;
             if (device.getDeviceProfileId() == null) {
                 if (!StringUtils.isEmpty(device.getType())) {
-                    // TODO: @voba device profiles are not created on edge at the moment
-                    // deviceProfile = this.deviceProfileService.findOrCreateDeviceProfile(device.getTenantId(), device.getType());
-                    deviceProfile = findDeviceProfileByNameOrDefault(device.getTenantId(), device.getType());
+                    deviceProfile = this.deviceProfileService.findOrCreateDeviceProfile(device.getTenantId(), device.getType());
                 } else {
                     deviceProfile = this.deviceProfileService.findDefaultDeviceProfile(device.getTenantId());
                 }
@@ -265,6 +261,8 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
                 entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
                 countService.publishCountEntityEvictEvent(savedDevice.getTenantId(), EntityType.DEVICE);
             }
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedDevice.getTenantId())
+                    .entityId(savedDevice.getId()).added(device.getId() == null).build());
             return savedDevice;
         } catch (Exception t) {
             handleEvictEvent(deviceCacheEvictEvent);
@@ -332,7 +330,6 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
         if (entityViews != null && !entityViews.isEmpty()) {
             throw new DataValidationException("Can't delete device that has entity views!");
         }
-
         DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, deviceId);
         if (deviceCredentials != null) {
             deviceCredentialsService.deleteDeviceCredentials(tenantId, deviceCredentials);
@@ -343,6 +340,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
 
         publishEvictEvent(deviceCacheEvictEvent);
         countService.publishCountEntityEvictEvent(tenantId, EntityType.DEVICE);
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(deviceId).build());
     }
 
     @Override
@@ -598,6 +596,12 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     @Override
     public long countByTenantId(TenantId tenantId) {
         return deviceDao.countByTenantId(tenantId);
+    }
+
+    @Override
+    @Transactional
+    public void deleteEntity(TenantId tenantId, EntityId id) {
+        deleteDevice(tenantId, (DeviceId) id);
     }
 
     private PaginatedRemover<TenantId, Device> tenantDevicesRemover =

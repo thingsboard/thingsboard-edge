@@ -30,7 +30,10 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field [formGroup]="entitySubtypeListFormGroup" class="mat-block tb-chip-list">
+<mat-form-field [formGroup]="entitySubtypeListFormGroup" [floatLabel]="floatLabel"
+                [appearance]="appearance" [subscriptSizing]="subscriptSizing"
+                [class.tb-chip-list]="!label" [class]="additionalClasses" class="mat-block">
+  <mat-label *ngIf="label">{{ label }}</mat-label>
   <mat-chip-grid #chipList formControlName="entitySubtypeList">
     <mat-chip-row
       *ngFor="let entitySubtype of entitySubtypeList"
@@ -65,6 +68,9 @@
       </span>
     </mat-option>
   </mat-autocomplete>
+  <div matSuffix>
+    <ng-content select="[matSuffix]"></ng-content>
+  </div>
   <mat-error *ngIf="entitySubtypeListFormGroup.get('entitySubtypeList').hasError('required')">
     {{ subtypeListEmptyText | translate }}
   </mat-error>

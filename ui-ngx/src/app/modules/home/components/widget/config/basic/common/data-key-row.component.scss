@@ -1,0 +1,106 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+
+@import '../../../../../../../../scss/constants';
+
+.tb-data-key-row {
+  .mat-mdc-form-field.tb-inline-field.tb-key-field {
+    .mat-mdc-text-field-wrapper:not(.mdc-text-field--outlined) {
+      padding-left: 8px;
+      padding-right: 0;
+      .mat-mdc-form-field-infix {
+        padding-top: 0;
+        padding-bottom: 6px;
+        .mdc-evolution-chip-set .mdc-evolution-chip {
+          margin: 0;
+        }
+        input.mat-mdc-chip-input {
+          height: 32px;
+          margin-left: 0;
+        }
+      }
+    }
+    .mat-mdc-chip.mat-mdc-standard-chip.tb-datakey-chip {
+      .tb-attribute-chip {
+        .tb-chip-labels {
+          background: transparent;
+        }
+      }
+    }
+  }
+
+  .tb-source-field {
+    width: 108px;
+    min-width: 108px;
+  }
+
+  .tb-key-field {
+    flex: 1;
+    min-width: 150px;
+    @media #{$mat-gt-sm} {
+      flex: 1 1 60%;
+    }
+  }
+
+  .tb-label-field {
+    flex: 1 1 40%;
+    min-width: 100px;
+  }
+
+  .tb-color-field, .tb-units-field, .tb-decimals-field {
+    display: flex;
+    flex-direction: row;
+    place-content: center;
+    align-items: center;
+  }
+
+  .tb-units-field {
+    width: 80px;
+    min-width: 80px;
+  }
+
+  .tb-color-field {
+    width: 40px;
+    min-width: 40px;
+  }
+
+  .tb-decimals-field {
+    width: 60px;
+    min-width: 60px;
+  }
+
+  .tb-label-field, .tb-units-field, .tb-color-field, .tb-decimals-field {
+    display: none;
+    @media #{$mat-gt-sm} {
+      display: block;
+    }
+  }
+}

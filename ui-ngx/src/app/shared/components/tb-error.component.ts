@@ -31,11 +31,12 @@
 
 import { ChangeDetectorRef, Component, Input } from '@angular/core';
 import { animate, state, style, transition, trigger } from '@angular/animations';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-error',
   template: `
-  <div [@animation]="state" style="margin-top:0.5rem;font-size:.75rem;">
+  <div [@animation]="state" [ngStyle]="{marginTop: noMargin ? '0' : '0.5rem', fontSize: '.75rem'}">
       <mat-error >
       {{message}}
     </mat-error>
@@ -67,6 +68,10 @@ export class TbErrorComponent {
 
   constructor(private cd: ChangeDetectorRef) {
   }
+
+  @Input()
+  @coerceBoolean()
+  noMargin = false;
 
   @Input()
   set error(value) {

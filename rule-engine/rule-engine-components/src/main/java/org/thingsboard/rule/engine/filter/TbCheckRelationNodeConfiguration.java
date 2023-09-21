@@ -32,6 +32,7 @@ package org.thingsboard.rule.engine.filter;
 
 import lombok.Data;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
+import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 
 /**
@@ -48,9 +49,9 @@ public class TbCheckRelationNodeConfiguration implements NodeConfiguration<TbChe
 
     @Override
     public TbCheckRelationNodeConfiguration defaultConfiguration() {
-        TbCheckRelationNodeConfiguration configuration = new TbCheckRelationNodeConfiguration();
+        var configuration = new TbCheckRelationNodeConfiguration();
         configuration.setDirection(EntitySearchDirection.FROM.name());
-        configuration.setRelationType("Contains");
+        configuration.setRelationType(EntityRelation.CONTAINS_TYPE);
         configuration.setCheckForSingleEntity(true);
         return configuration;
     }

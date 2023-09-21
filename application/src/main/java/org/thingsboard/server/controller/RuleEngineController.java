@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.FutureCallback;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -47,13 +46,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
-import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -65,7 +65,6 @@ import org.thingsboard.server.service.security.AccessValidator;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
@@ -89,8 +88,6 @@ public class RuleEngineController extends BaseController {
             " * **'serviceId'** to identify the platform server that received the request;\n" +
             " * **'requestUUID'** to identify the request and route possible response from the Rule Engine;\n\n" +
             "Use **'rest call reply'** rule node to push the reply from rule engine back as a REST API call response. ";
-    protected final ObjectMapper jsonMapper = new ObjectMapper();
-
     @Autowired
     private RuleEngineCallService ruleEngineCallService;
 
@@ -182,7 +179,7 @@ public class RuleEngineController extends BaseController {
                 entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
             }
             //Check that this is a valid JSON
-            jsonMapper.readTree(requestBody);
+            JacksonUtil.toJsonNode(requestBody);
             final DeferredResult<ResponseEntity> response = new DeferredResult<>();
             accessValidator.validate(currentUser, Operation.WRITE, entityId, new HttpValidationCallback(response, new FutureCallback<DeferredResult<ResponseEntity>>() {
                 @Override
@@ -193,7 +190,7 @@ public class RuleEngineController extends BaseController {
                     metaData.put("serviceId", serviceInfoProvider.getServiceId());
                     metaData.put("requestUUID", requestId.toString());
                     metaData.put("expirationTime", Long.toString(expTime));
-                    TbMsg msg = TbMsg.newMsg(queueName, DataConstants.REST_API_REQUEST, entityId, currentUser.getCustomerId(), new TbMsgMetaData(metaData), requestBody);
+                    TbMsg msg = TbMsg.newMsg(queueName, TbMsgType.REST_API_REQUEST, entityId, currentUser.getCustomerId(), new TbMsgMetaData(metaData), requestBody);
                     ruleEngineCallService.processRestAPICallToRuleEngine(currentUser.getTenantId(), requestId, msg, queueName != null,
                             reply -> reply(new LocalRequestMetaData(msg, currentUser, result), reply));
                 }
@@ -211,8 +208,8 @@ public class RuleEngineController extends BaseController {
                 }
             }));
             return response;
-        } catch (IOException ioe) {
-            throw new ThingsboardException("Invalid request body", ioe, ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        } catch (IllegalArgumentException iae) {
+            throw new ThingsboardException("Invalid request body", iae, ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
     }
 
@@ -226,8 +223,8 @@ public class RuleEngineController extends BaseController {
             if (!StringUtils.isEmpty(responseData)) {
                 try {
                     logRuleEngineCall(rpcRequest, response, null);
-                    responseWriter.setResult(new ResponseEntity<>(jsonMapper.readTree(responseData), HttpStatus.OK));
-                } catch (IOException e) {
+                    responseWriter.setResult(new ResponseEntity<>(JacksonUtil.toJsonNode(responseData), HttpStatus.OK));
+                } catch (IllegalArgumentException e) {
                     log.debug("Failed to decode device response: {}", responseData, e);
                     logRuleEngineCall(rpcRequest, response, e);
                     responseWriter.setResult(new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE));

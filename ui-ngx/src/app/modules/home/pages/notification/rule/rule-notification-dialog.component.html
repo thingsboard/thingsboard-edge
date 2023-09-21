@@ -59,6 +59,9 @@
             {{ 'notification.rule-name-required' | translate }}
           </mat-error>
         </mat-form-field>
+        <mat-slide-toggle formControlName="enabled" style="margin-bottom: 22px;">
+          {{ 'notification.rule-enable' | translate }}
+        </mat-slide-toggle>
         <mat-form-field class="mat-block">
           <mat-label translate>notification.trigger.trigger</mat-label>
           <mat-select formControlName="triggerType" required>
@@ -71,8 +74,7 @@
           </mat-error>
         </mat-form-field>
         <tb-template-autocomplete
-          required
-          allowCreate
+          required allowCreate allowEdit
           formControlName="templateId"
           [notificationTypes]="ruleNotificationForm.get('triggerType').value">
         </tb-template-autocomplete>
@@ -558,6 +560,29 @@
     <mat-step *ngIf="ruleNotificationForm.get('triggerType').value === triggerType.NEW_PLATFORM_VERSION"
               [stepControl]="newPlatformVersionTemplateForm">
       <ng-template matStepLabel>{{ 'notification.new-platform-version-trigger-settings' | translate }}</ng-template>
+      <form [formGroup]="ruleNotificationForm">
+        <section formGroupName="additionalConfig">
+          <mat-form-field class="mat-block">
+            <mat-label translate>notification.description</mat-label>
+            <input matInput formControlName="description">
+          </mat-form-field>
+        </section>
+      </form>
+    </mat-step>
+
+    <mat-step *ngIf="ruleNotificationForm.get('triggerType').value === triggerType.RATE_LIMITS"
+              [stepControl]="rateLimitsTemplateForm">
+      <ng-template matStepLabel>{{ 'notification.rate-limits-trigger-settings' | translate }}</ng-template>
+      <form [formGroup]="rateLimitsTemplateForm">
+        <section formGroupName="triggerConfig">
+          <tb-string-items-list
+            label="{{ 'notification.rate-limits' | translate }}"
+            hint="{{ 'notification.api-feature-hint' | translate }}"
+            [predefinedValues]="limitedApis"
+            formControlName="apis">
+          </tb-string-items-list>
+        </section>
+      </form>
       <form [formGroup]="ruleNotificationForm">
         <section formGroupName="additionalConfig">
           <mat-form-field class="mat-block">

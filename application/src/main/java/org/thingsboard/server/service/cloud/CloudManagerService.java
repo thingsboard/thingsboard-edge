@@ -63,7 +63,6 @@ import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.cloud.CloudEventService;
@@ -76,8 +75,12 @@ import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.AssetCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.AssetProfileCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.CustomerCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.DashboardCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.DeviceProfileCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EdgeCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityGroupCloudProcessor;
@@ -165,6 +168,9 @@ public class CloudManagerService {
     private DeviceCloudProcessor deviceProcessor;
 
     @Autowired
+    private DeviceProfileCloudProcessor deviceProfileProcessor;
+
+    @Autowired
     private AlarmCloudProcessor alarmProcessor;
 
     @Autowired
@@ -178,6 +184,15 @@ public class CloudManagerService {
 
     @Autowired
     private EntityViewCloudProcessor entityViewProcessor;
+
+    @Autowired
+    private DashboardCloudProcessor dashboardProcessor;
+
+    @Autowired
+    private AssetCloudProcessor assetProcessor;
+
+    @Autowired
+    private AssetProfileCloudProcessor assetProfileProcessor;
 
     @Autowired
     private RuleChainCloudProcessor ruleChainProcessor;
@@ -276,37 +291,35 @@ public class CloudManagerService {
                 try {
                     if (initialized) {
                         queueStartTs = getQueueStartTs().get();
-                        Long seqIdOffset = getQueueSeqIdOffset().get();
-                        long now = System.currentTimeMillis();
+                        Long queueSeqIdStart = getQueueSeqIdStart().get();
                         TimePageLink pageLink = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
-                                0, null, new SortOrder("seqId"), queueStartTs, now);
-                        if (newCloudEventsAvailable(seqIdOffset, now)) {
-                            PageData<CloudEvent> pageData;
+                                0, null, null, queueStartTs, System.currentTimeMillis());
+                        if (newCloudEventsAvailable(queueSeqIdStart, pageLink)) {
+                            PageData<CloudEvent> cloudEvents;
                             boolean success = true;
                             CloudEvent latestCloudEvent = null;
                             do {
-                                pageData = cloudEventService.findCloudEvents(tenantId, seqIdOffset, null, pageLink);
+                                cloudEvents = cloudEventService.findCloudEvents(tenantId, queueSeqIdStart, null, pageLink);
                                 if (initialized) {
-                                    if (pageData.getData().isEmpty()) {
+                                    if (cloudEvents.getData().isEmpty()) {
                                         log.info("seqId column of cloud_event table started new cycle");
-                                        Long seqIdEnd = Integer.toUnsignedLong(cloudEventStorageSettings.getMaxReadRecordsCount());
-                                        pageData = cloudEventService.findCloudEvents(tenantId, 0L, seqIdEnd, pageLink);
+                                        cloudEvents = findCloudEventsFromBeginning(pageLink);
                                     }
-                                    log.trace("[{}] event(s) are going to be converted.", pageData.getData().size());
-                                    List<UplinkMsg> uplinkMsgsPack = convertToUplinkMsgsPack(pageData.getData());
+                                    log.trace("[{}] event(s) are going to be converted.", cloudEvents.getData().size());
+                                    List<UplinkMsg> uplinkMsgsPack = convertToUplinkMsgsPack(cloudEvents.getData());
                                     if (!uplinkMsgsPack.isEmpty()) {
                                         success = sendUplinkMsgsPack(uplinkMsgsPack);
                                     } else {
                                         success = true;
                                     }
-                                    if (!pageData.getData().isEmpty()) {
-                                        latestCloudEvent = pageData.getData().get(pageData.getData().size() - 1);
+                                    if (!cloudEvents.getData().isEmpty()) {
+                                        latestCloudEvent = cloudEvents.getData().get(cloudEvents.getData().size() - 1);
                                     }
                                     if (success) {
                                         pageLink = pageLink.nextPageLink();
                                     }
                                 }
-                            } while (initialized && (!success || pageData.hasNext()));
+                            } while (initialized && (!success || cloudEvents.hasNext()));
                             if (latestCloudEvent != null) {
                                 try {
                                     Long newStartTs = Uuids.unixTimestamp(latestCloudEvent.getUuidId());
@@ -332,11 +345,21 @@ public class CloudManagerService {
         });
     }
 
-    private boolean newCloudEventsAvailable(Long seqIdOffset, long now) {
-        TimePageLink pageLink = new TimePageLink(Short.MAX_VALUE,0, null, new SortOrder("seqId"), queueStartTs, now);
-        PageData<CloudEvent> cloudEvents = cloudEventService.findCloudEvents(tenantId, 0L, null, pageLink);
-        // next seq_id available or new cycle started (seq_id starts from '1')
-        return cloudEvents.getData().stream().anyMatch(ce -> ce.getSeqId() > seqIdOffset || ce.getSeqId() == 1);
+    private boolean newCloudEventsAvailable(Long queueSeqIdStart, TimePageLink pageLink) {
+        PageData<CloudEvent> cloudEvents = cloudEventService.findCloudEvents(tenantId, queueSeqIdStart, null, pageLink);
+        if (cloudEvents.getData().isEmpty()) {
+            // check if new cycle started (seq_id starts from '1')
+            cloudEvents = findCloudEventsFromBeginning(pageLink);
+            return cloudEvents.getData().stream().anyMatch(ce -> ce.getSeqId() == 1);
+        } else {
+            return true;
+        }
+    }
+
+    private PageData<CloudEvent> findCloudEventsFromBeginning(TimePageLink pageLink) {
+        long seqIdEnd = Integer.toUnsignedLong(cloudEventStorageSettings.getMaxReadRecordsCount());
+        seqIdEnd = Math.max(seqIdEnd, 50L);
+        return cloudEventService.findCloudEvents(tenantId, 0L, seqIdEnd, pageLink);
     }
 
     private boolean sendUplinkMsgsPack(List<UplinkMsg> uplinkMsgsPack) throws InterruptedException {
@@ -410,7 +433,7 @@ public class CloudManagerService {
                     case POST_ATTRIBUTES:
                     case ATTRIBUTES_DELETED:
                     case TIMESERIES_UPDATED:
-                        uplinkMsg = telemetryProcessor.convertTelemetryEventToUplink(cloudEvent);
+                        uplinkMsg = telemetryProcessor.convertTelemetryEventToUplink(this.tenantId, cloudEvent);
                         break;
                     case ATTRIBUTES_REQUEST:
                         uplinkMsg = telemetryProcessor.convertAttributesRequestEventToUplink(cloudEvent);
@@ -454,8 +477,18 @@ public class CloudManagerService {
         switch (cloudEvent.getType()) {
             case DEVICE:
                 return deviceProcessor.convertDeviceEventToUplink(tenantId, cloudEvent);
+            case DEVICE_PROFILE:
+                return deviceProfileProcessor.convertDeviceProfileEventToUplink(cloudEvent);
             case ALARM:
                 return alarmProcessor.convertAlarmEventToUplink(cloudEvent);
+            case ASSET:
+                return assetProcessor.convertAssetEventToUplink(cloudEvent);
+            case ASSET_PROFILE:
+                return assetProfileProcessor.convertAssetProfileEventToUplink(cloudEvent);
+            case DASHBOARD:
+                return dashboardProcessor.convertDashboardEventToUplink(cloudEvent);
+            case ENTITY_VIEW:
+                return entityViewProcessor.convertEntityViewEventToUplink(cloudEvent);
             case RELATION:
                 return relationProcessor.convertRelationEventToUplink(cloudEvent);
             default:
@@ -468,7 +501,7 @@ public class CloudManagerService {
         return getLongAttrByKey(QUEUE_START_TS_ATTR_KEY);
     }
 
-    private ListenableFuture<Long> getQueueSeqIdOffset() {
+    private ListenableFuture<Long> getQueueSeqIdStart() {
         return getLongAttrByKey(QUEUE_SEQ_ID_OFFSET_ATTR_KEY);
     }
 
@@ -616,6 +649,7 @@ public class CloudManagerService {
     private void onDownlink(DownlinkMsg downlinkMsg) {
         boolean edgeCustomerIdUpdated = updateCustomerIdIfRequired(downlinkMsg);
         if (this.syncInProgress && downlinkMsg.hasSyncCompletedMsg()) {
+            log.trace("[{}] downlinkMsg hasSyncCompletedMsg = true", downlinkMsg);
             this.syncInProgress = false;
         }
         ListenableFuture<List<Void>> future =
@@ -631,7 +665,7 @@ public class CloudManagerService {
                 if (downlinkMsg.hasEdgeConfiguration()) {
                     if (edgeCustomerIdUpdated && !syncInProgress) {
                         log.info("Edge customer id has been updated. Sending sync request...");
-                        edgeRpcClient.sendSyncRequestMsg(true, false);
+                        edgeRpcClient.sendSyncRequestMsg(false);
                         syncInProgress = true;
                     }
                 }

@@ -88,7 +88,7 @@ public class TbVersionControlProducerProvider implements TbQueueProducerProvider
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToRuleEngineNotificationMsg>> getRuleEngineNotificationsMsgProducer() {
-        throw new RuntimeException("Not Implemented! Should not be used by Version Control Service!");
+        throw new RuntimeException(NOT_IMPLEMENTED);
     }
 
     @Override

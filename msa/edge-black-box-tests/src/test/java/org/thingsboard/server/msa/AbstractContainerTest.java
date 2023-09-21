@@ -34,16 +34,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustStrategy;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.ssl.SSLContexts;
 import org.awaitility.Awaitility;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -51,12 +41,10 @@ import org.junit.Rule;
 import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
-import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
@@ -100,7 +88,6 @@ import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
-import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.QueueId;
@@ -130,12 +117,12 @@ import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 
-import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
@@ -216,7 +203,7 @@ public abstract class AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> {
                     try {
-                        return edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 17;
+                        return edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 21;
                     } catch (Throwable e) {
                         return false;
                     }
@@ -281,7 +268,7 @@ public abstract class AbstractContainerTest {
 
     protected static DeviceProfile createCustomDeviceProfile(String deviceProfileName,
                                                              DeviceProfileTransportConfiguration deviceProfileTransportConfiguration) {
-        return createDeviceProfile(deviceProfileName, deviceProfileTransportConfiguration);
+        return doCreateDeviceProfile(deviceProfileName, deviceProfileTransportConfiguration, cloudRestClient);
     }
 
     protected static DeviceProfile createCustomDeviceProfile(String deviceProfileName) {
@@ -315,7 +302,11 @@ public abstract class AbstractContainerTest {
         }
     };
 
-    protected static DeviceProfile createDeviceProfile(String name, DeviceProfileTransportConfiguration deviceProfileTransportConfiguration) {
+    protected static DeviceProfile createDeviceProfileOnEdge(String name) {
+        return doCreateDeviceProfile(name, new DefaultDeviceProfileTransportConfiguration(), edgeRestClient);
+    }
+
+    private static DeviceProfile doCreateDeviceProfile(String name, DeviceProfileTransportConfiguration deviceProfileTransportConfiguration, RestClient restClient) {
         DeviceProfile deviceProfile = new DeviceProfile();
         deviceProfile.setName(name);
         deviceProfile.setType(DeviceProfileType.DEFAULT);
@@ -326,17 +317,14 @@ public abstract class AbstractContainerTest {
         DeviceProfileData deviceProfileData = new DeviceProfileData();
         DefaultDeviceProfileConfiguration configuration = new DefaultDeviceProfileConfiguration();
         deviceProfileData.setConfiguration(configuration);
-        if (deviceProfileTransportConfiguration != null) {
-            deviceProfileData.setTransportConfiguration(deviceProfileTransportConfiguration);
-        } else {
-            deviceProfileData.setTransportConfiguration(new DefaultDeviceProfileTransportConfiguration());
-        }
+        deviceProfileData.setTransportConfiguration(Objects.requireNonNullElseGet(deviceProfileTransportConfiguration,
+                DefaultDeviceProfileTransportConfiguration::new));
         deviceProfile.setProfileData(deviceProfileData);
         deviceProfile.setDefault(false);
         deviceProfile.setDefaultRuleChainId(null);
         deviceProfile.setDefaultQueueName("Main");
         extendDeviceProfileData(deviceProfile);
-        return cloudRestClient.saveDeviceProfile(deviceProfile);
+        return restClient.saveDeviceProfile(deviceProfile);
     }
 
     protected static void extendDeviceProfileData(DeviceProfile deviceProfile) {
@@ -421,6 +409,11 @@ public abstract class AbstractContainerTest {
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getEntityGroupById(entityGroup.getId()).isPresent());
+
+        try {
+            // wait until GROUP_ENTITIES_REQUEST message from edge processed
+            TimeUnit.SECONDS.sleep(1);
+        } catch (Exception ignored) {}
     }
 
     protected Asset saveAssetOnCloud(String assetName, String type, EntityGroupId entityGroupId) {
@@ -434,6 +427,19 @@ public abstract class AbstractContainerTest {
         Dashboard dashboard = new Dashboard();
         dashboard.setTitle(dashboardTitle);
         return cloudRestClient.saveDashboard(dashboard, entityGroupId);
+    }
+
+    protected Asset saveAssetOnEdge(String assetName, String type, EntityGroupId entityGroupId) {
+        Asset asset = new Asset();
+        asset.setName(assetName);
+        asset.setType(type);
+        return edgeRestClient.saveAsset(asset, entityGroupId);
+    }
+
+    protected Dashboard saveDashboardOnEdge(String dashboardTitle, EntityGroupId entityGroupId) {
+        Dashboard dashboard = new Dashboard();
+        dashboard.setTitle(dashboardTitle);
+        return edgeRestClient.saveDashboard(dashboard, entityGroupId);
     }
 
     protected void assertEntitiesByIdsAndType(List<EntityId> entityIds, EntityType entityType) {
@@ -856,20 +862,9 @@ public abstract class AbstractContainerTest {
         RuleChainMetaData ruleChainMetaData = new RuleChainMetaData();
         ruleChainMetaData.setRuleChainId(ruleChain.getId());
 
-        RuleNode ruleNode1 = new RuleNode();
-        ruleNode1.setName("name1");
-        ruleNode1.setType("type1");
-        ruleNode1.setConfiguration(JacksonUtil.OBJECT_MAPPER.readTree("\"key1\": \"val1\""));
-
-        RuleNode ruleNode2 = new RuleNode();
-        ruleNode2.setName("name2");
-        ruleNode2.setType("type2");
-        ruleNode2.setConfiguration(JacksonUtil.OBJECT_MAPPER.readTree("\"key2\": \"val2\""));
-
-        RuleNode ruleNode3 = new RuleNode();
-        ruleNode3.setName("name3");
-        ruleNode3.setType("type3");
-        ruleNode3.setConfiguration(JacksonUtil.OBJECT_MAPPER.readTree("\"key3\": \"val3\""));
+        RuleNode ruleNode1 = createRuleNode("name1");
+        RuleNode ruleNode2 = createRuleNode("name2");
+        RuleNode ruleNode3 = createRuleNode("name3");
 
         List<RuleNode> ruleNodes = new ArrayList<>();
         ruleNodes.add(ruleNode1);
@@ -887,10 +882,20 @@ public abstract class AbstractContainerTest {
         cloudRestClient.saveRuleChainMetaData(ruleChainMetaData);
     }
 
+    private RuleNode createRuleNode(String name) {
+        RuleNode ruleNode = new RuleNode();
+        ruleNode.setName(name);
+        ruleNode.setType("org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode");
+        ruleNode.setDebugMode(true);
+        ObjectNode configuration = JacksonUtil.newObjectNode();
+        configuration.put("version", 0);
+        ruleNode.setConfiguration(JacksonUtil.valueToTree(configuration));
+        return ruleNode;
+    }
+
     protected void unAssignFromEdgeAndDeleteRuleChain(RuleChainId ruleChainId) {
         // unassign rule chain from edge
         cloudRestClient.unassignRuleChainFromEdge(edge.getId(), ruleChainId);
-
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
@@ -898,6 +903,10 @@ public abstract class AbstractContainerTest {
 
         // delete rule chain
         cloudRestClient.deleteRuleChain(ruleChainId);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getRuleChainById(ruleChainId).isEmpty());
     }
 
     protected DashboardId createDashboardAndAssignToEdge(String dashboardName, EntityGroup dashboardGroup) {
@@ -921,6 +930,10 @@ public abstract class AbstractContainerTest {
 
         cloudRestClient.deleteDashboard(dashboardId);
         cloudRestClient.deleteEntityGroup(dashboardGroupId);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getEntityGroupById(dashboardGroupId).isEmpty());
     }
 
     protected OtaPackageId createOtaPackageInfo(DeviceProfileId deviceProfileId, OtaPackageType otaPackageType) throws Exception {

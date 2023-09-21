@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -38,24 +37,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
+import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
-import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.service.edge.rpc.processor.dashboard.BaseDashboardProcessor;
 
 import java.util.UUID;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class DashboardCloudProcessor extends BaseEdgeProcessor {
-
-    private final Lock dashboardCreationLock = new ReentrantLock();
+public class DashboardCloudProcessor extends BaseDashboardProcessor {
 
     @Autowired
     private DashboardService dashboardService;
@@ -64,61 +65,92 @@ public class DashboardCloudProcessor extends BaseEdgeProcessor {
                                                                DashboardUpdateMsg dashboardUpdateMsg,
                                                                Long queueStartTs) throws ThingsboardException {
         DashboardId dashboardId = new DashboardId(new UUID(dashboardUpdateMsg.getIdMSB(), dashboardUpdateMsg.getIdLSB()));
-        CustomerId customerId = safeGetCustomerId(dashboardUpdateMsg.getCustomerIdMSB(), dashboardUpdateMsg.getCustomerIdLSB());
-        switch (dashboardUpdateMsg.getMsgType()) {
-            case ENTITY_CREATED_RPC_MESSAGE:
-            case ENTITY_UPDATED_RPC_MESSAGE:
-                dashboardCreationLock.lock();
-                try {
-                    Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
-                    boolean created = false;
-                    if (dashboard == null) {
-                        dashboard = new Dashboard();
-                        dashboard.setId(dashboardId);
-                        dashboard.setCreatedTime(Uuids.unixTimestamp(dashboardId.getId()));
-                        dashboard.setTenantId(tenantId);
-                        created = true;
+        try {
+            edgeSynchronizationManager.getSync().set(true);
+            switch (dashboardUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE:
+                case ENTITY_UPDATED_RPC_MESSAGE:
+                    saveOrUpdateDashboard(tenantId, dashboardId, dashboardUpdateMsg, queueStartTs);
+                    return requestForAdditionalData(tenantId, dashboardId, queueStartTs);
+                case ENTITY_DELETED_RPC_MESSAGE:
+                    if (dashboardUpdateMsg.hasEntityGroupIdMSB() && dashboardUpdateMsg.hasEntityGroupIdLSB()) {
+                        UUID entityGroupUUID = safeGetUUID(dashboardUpdateMsg.getEntityGroupIdMSB(),
+                                dashboardUpdateMsg.getEntityGroupIdLSB());
+                        EntityGroupId entityGroupId =
+                                new EntityGroupId(entityGroupUUID);
+                        entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, dashboardId);
                     } else {
-                        changeOwnerIfRequired(tenantId, customerId, dashboardId);
+                        Dashboard dashboardById = dashboardService.findDashboardById(tenantId, dashboardId);
+                        if (dashboardById != null) {
+                            dashboardService.deleteDashboard(tenantId, dashboardId);
+                            pushDashboardDeletedEventToRuleEngine(tenantId, dashboardById);
+                        }
                     }
-                    dashboard.setTitle(dashboardUpdateMsg.getTitle());
-                    dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
-                    dashboard.setCustomerId(customerId);
-                    Dashboard savedDashboard = dashboardService.saveDashboard(dashboard, false);
-                    if (created) {
-                        entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());
-                    }
-                    safeAddToEntityGroup(tenantId, dashboardUpdateMsg, dashboardId);
-                } finally {
-                    dashboardCreationLock.unlock();
-                }
-                return requestForAdditionalData(tenantId, dashboardId, queueStartTs);
-            case ENTITY_DELETED_RPC_MESSAGE:
-                if (dashboardUpdateMsg.hasEntityGroupIdMSB() && dashboardUpdateMsg.hasEntityGroupIdLSB()) {
-                    UUID entityGroupUUID = safeGetUUID(dashboardUpdateMsg.getEntityGroupIdMSB(),
-                            dashboardUpdateMsg.getEntityGroupIdLSB());
-                    EntityGroupId entityGroupId =
-                            new EntityGroupId(entityGroupUUID);
-                    entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, dashboardId);
-                } else {
-                    Dashboard dashboardById = dashboardService.findDashboardById(tenantId, dashboardId);
-                    if (dashboardById != null) {
-                        dashboardService.deleteDashboard(tenantId, dashboardId);
-                    }
-                }
-                return Futures.immediateFuture(null);
-            case UNRECOGNIZED:
-            default:
-                return handleUnsupportedMsgType(dashboardUpdateMsg.getMsgType());
+                    return Futures.immediateFuture(null);
+                case UNRECOGNIZED:
+                default:
+                    return handleUnsupportedMsgType(dashboardUpdateMsg.getMsgType());
+            }
+        } finally {
+            edgeSynchronizationManager.getSync().remove();
         }
     }
 
-    private void safeAddToEntityGroup(TenantId tenantId, DashboardUpdateMsg dashboardUpdateMsg, DashboardId dashboardId) {
-        if (dashboardUpdateMsg.hasEntityGroupIdMSB() && dashboardUpdateMsg.hasEntityGroupIdLSB()) {
-            UUID entityGroupUUID = safeGetUUID(dashboardUpdateMsg.getEntityGroupIdMSB(),
-                    dashboardUpdateMsg.getEntityGroupIdLSB());
-            EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
-            safeAddEntityToGroup(tenantId, entityGroupId, dashboardId);
+    private void saveOrUpdateDashboard(TenantId tenantId, DashboardId dashboardId, DashboardUpdateMsg dashboardUpdateMsg, Long queueStartTs) throws ThingsboardException {
+        CustomerId customerId = safeGetCustomerId(dashboardUpdateMsg.getCustomerIdMSB(), dashboardUpdateMsg.getCustomerIdLSB());
+        boolean created = super.saveOrUpdateDashboard(tenantId, dashboardId, dashboardUpdateMsg, customerId);
+        if (created) {
+            pushDashboardCreatedEventToRuleEngine(tenantId, dashboardId);
         }
+    }
+
+    private void pushDashboardCreatedEventToRuleEngine(TenantId tenantId, DashboardId dashboardId) {
+        Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
+        pushDashboardEventToRuleEngine(tenantId, dashboard, TbMsgType.ENTITY_CREATED);
+    }
+
+    private void pushDashboardDeletedEventToRuleEngine(TenantId tenantId, Dashboard dashboard) {
+        pushDashboardEventToRuleEngine(tenantId, dashboard, TbMsgType.ENTITY_DELETED);
+    }
+
+    private void pushDashboardEventToRuleEngine(TenantId tenantId, Dashboard dashboard, TbMsgType msgType) {
+        try {
+            String dashboardAsString = JacksonUtil.toString(dashboard);
+            pushEntityEventToRuleEngine(tenantId, dashboard.getId(), null, msgType, dashboardAsString, new TbMsgMetaData());
+        } catch (Exception e) {
+            log.warn("[{}][{}] Failed to push dashboard action to rule engine: {}", tenantId, dashboard.getId(), msgType.name(), e);
+        }
+    }
+
+    public UplinkMsg convertDashboardEventToUplink(CloudEvent cloudEvent) {
+        DashboardId dashboardId = new DashboardId(cloudEvent.getEntityId());
+        UplinkMsg msg = null;
+        EntityGroupId entityGroupId = cloudEvent.getEntityGroupId() != null ? new EntityGroupId(cloudEvent.getEntityGroupId()) : null;
+        switch (cloudEvent.getAction()) {
+            case ADDED:
+            case UPDATED:
+            case ADDED_TO_ENTITY_GROUP:
+                Dashboard dashboard = dashboardService.findDashboardById(cloudEvent.getTenantId(), dashboardId);
+                if (dashboard != null) {
+                    UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
+                    DashboardUpdateMsg dashboardUpdateMsg =
+                            dashboardMsgConstructor.constructDashboardUpdatedMsg(msgType, dashboard, entityGroupId);
+                    msg = UplinkMsg.newBuilder()
+                            .setUplinkMsgId(EdgeUtils.nextPositiveInt())
+                            .addDashboardUpdateMsg(dashboardUpdateMsg).build();
+                } else {
+                    log.info("Skipping event as dashboard was not found [{}]", cloudEvent);
+                }
+                break;
+            case DELETED:
+            case REMOVED_FROM_ENTITY_GROUP:
+                DashboardUpdateMsg dashboardUpdateMsg =
+                        dashboardMsgConstructor.constructDashboardDeleteMsg(dashboardId, entityGroupId);
+                msg = UplinkMsg.newBuilder()
+                        .setUplinkMsgId(EdgeUtils.nextPositiveInt())
+                        .addDashboardUpdateMsg(dashboardUpdateMsg).build();
+                break;
+        }
+        return msg;
     }
 }

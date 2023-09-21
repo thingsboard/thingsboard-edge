@@ -37,7 +37,6 @@ import org.junit.ClassRule;
 import org.junit.extensions.cpsuite.ClasspathSuite;
 import org.junit.runner.RunWith;
 import org.testcontainers.containers.DockerComposeContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
 import java.io.IOException;
@@ -95,6 +94,7 @@ public class ContainerTestSuite {
                         new File("./../../docker-edge/docker-compose.volumes.yml"))
                         .withPull(false)
                         .withLocalCompose(true)
+                        .withOptions("--compatibility")
                         .withTailChildContainers(true)
                         .withEnv(installTb.getEnv())
                         .withEnv(env)

@@ -1,0 +1,69 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<ng-container [formGroup]="legendConfigForm">
+  <div class="tb-form-row space-between">
+    <div>{{ 'legend.direction' | translate }}</div>
+    <mat-form-field class="medium-width" appearance="outline" subscriptSizing="dynamic">
+      <mat-select formControlName="direction">
+        <mat-option *ngFor="let direction of legendDirections" [value]="direction">
+          {{ legendDirectionTranslations.get(legendDirection[direction]) | translate }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="tb-form-row space-between">
+    <div>{{ 'legend.position' | translate }}</div>
+    <mat-form-field class="medium-width" appearance="outline" subscriptSizing="dynamic">
+      <mat-select formControlName="position">
+        <mat-option *ngFor="let pos of legendPositions" [value]="pos"
+                    [disabled]="legendConfigForm.get('direction').value === legendDirection.row &&
+                                (pos === legendPosition.left || pos === legendPosition.right)">
+          {{ legendPositionTranslations.get(legendPosition[pos]) | translate }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="tb-form-row space-between column-lt-md">
+    <div translate>legend.show-values</div>
+    <mat-chip-listbox multiple formControlName="showValues">
+      <mat-chip-option value="min">{{ 'legend.min-option' | translate }}</mat-chip-option>
+      <mat-chip-option value="max">{{ 'legend.max-option' | translate }}</mat-chip-option>
+      <mat-chip-option value="average">{{ 'legend.average-option' | translate }}</mat-chip-option>
+      <mat-chip-option value="total">{{ 'legend.total-option' | translate }}</mat-chip-option>
+      <mat-chip-option value="latest">{{ 'legend.latest-option' | translate }}</mat-chip-option>
+    </mat-chip-listbox>
+  </div>
+  <mat-slide-toggle class="mat-slide" formControlName="sortDataKeys">
+    {{ 'legend.sort-legend' | translate }}
+  </mat-slide-toggle>
+</ng-container>

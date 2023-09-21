@@ -31,7 +31,7 @@
 package org.thingsboard.rule.engine.analytics.latest.alarm;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -40,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
@@ -48,6 +49,7 @@ import org.mockito.internal.verification.Times;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.Stubber;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesRelationsQuery;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
@@ -69,6 +71,8 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
@@ -76,9 +80,9 @@ import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.dao.relation.RelationService;
 
 import java.util.ArrayList;
@@ -99,7 +103,6 @@ import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @RunWith(MockitoJUnitRunner.class)
 @Slf4j
@@ -145,12 +148,12 @@ public class TbAlarmsCountNodeTest {
         node = new TbAlarmsCountNode();
 
         doAnswer((Answer<TbMsg>) invocationOnMock -> {
-            String type = (String) (invocationOnMock.getArguments())[1];
+            TbMsgType type = (TbMsgType) (invocationOnMock.getArguments())[1];
             EntityId originator = (EntityId) (invocationOnMock.getArguments())[2];
             TbMsgMetaData metaData = (TbMsgMetaData) (invocationOnMock.getArguments())[3];
             String data = (String) (invocationOnMock.getArguments())[4];
             return TbMsg.newMsg(type, originator, metaData.copy(), data);
-        }).when(ctx).newMsg(ArgumentMatchers.isNull(), ArgumentMatchers.any(String.class), ArgumentMatchers.nullable(EntityId.class),
+        }).when(ctx).newMsg(ArgumentMatchers.isNull(), ArgumentMatchers.any(TbMsgType.class), ArgumentMatchers.nullable(EntityId.class),
                 ArgumentMatchers.any(TbMsgMetaData.class), ArgumentMatchers.any(String.class));
 
         scheduleCount = 0;
@@ -235,10 +238,9 @@ public class TbAlarmsCountNodeTest {
 
         config.setPeriodTimeUnit(TimeUnit.MILLISECONDS);
         config.setPeriodValue(0);
-        config.setOutMsgType(SessionMsgType.POST_TELEMETRY_REQUEST.name());
+        config.setOutMsgType(TbMsgType.POST_TELEMETRY_REQUEST.name());
 
-        ObjectMapper mapper = new ObjectMapper();
-        nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
+        nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
 
         expectedAllAlarmsCountMap = new HashMap<>();
         expectedActiveAlarmsCountMap = new HashMap<>();
@@ -254,6 +256,26 @@ public class TbAlarmsCountNodeTest {
     @Test
     public void childEntitiesFailedByRelationQueryAlarmsCount() throws TbNodeException {
         performAlarmsCountTest(true);
+    }
+
+    @Test
+    public void givenOldConfig_whenUpgrade_thenShouldReturnTrueResultWithNewConfig() throws Exception {
+        var node = new TbAlarmsCountNode();
+        var defaultConfig = new TbAlarmsCountNodeConfiguration().defaultConfiguration();
+        String oldConfig = "{\"parentEntitiesQuery\":{\"type\":\"group\",\"entityGroupId\":null},\"periodTimeUnit\":\"MINUTES\",\"periodValue\":5,\"queueName\":null,\"countAlarmsForChildEntities\":false,\"alarmsCountMappings\":[{\"target\":\"alarmsCount\",\"typesList\":null,\"severityList\":null,\"statusList\":null,\"latestInterval\":0}]}";
+        TbPair<Boolean, JsonNode> upgrade = node.upgrade(0, JacksonUtil.toJsonNode(oldConfig));
+        Assertions.assertTrue(upgrade.getFirst());
+        Assertions.assertEquals(defaultConfig, JacksonUtil.treeToValue(upgrade.getSecond(), TbAlarmsCountNodeConfiguration.class));
+    }
+
+    @Test
+    public void givenNewConfigWithOldVersion_whenUpgrade_thenShouldReturnFalseResultWithTheSameConfig() throws Exception {
+        var node = new TbAlarmsCountNode();
+        var defaultConfig = new TbAlarmsCountNodeConfiguration().defaultConfiguration();
+        JsonNode expectedConfig = JacksonUtil.valueToTree(defaultConfig);
+        TbPair<Boolean, JsonNode> upgrade = node.upgrade(0, expectedConfig);
+        Assertions.assertFalse(upgrade.getFirst());
+        Assertions.assertEquals(defaultConfig, JacksonUtil.treeToValue(upgrade.getSecond(), defaultConfig.getClass()));
     }
 
     private void performAlarmsCountTest(boolean genFailures) throws TbNodeException {
@@ -306,7 +328,7 @@ public class TbAlarmsCountNodeTest {
         int totalEntities = parentCount + totalChildCount;
 
         ArgumentCaptor<TbMsg> captor = ArgumentCaptor.forClass(TbMsg.class);
-        verify(ctx, new Times(totalEntities)).enqueueForTellNext(captor.capture(), eq(SUCCESS));
+        verify(ctx, new Times(totalEntities)).enqueueForTellNext(captor.capture(), eq(TbNodeConnectionType.SUCCESS));
 
         List<TbMsg> messages = captor.getAllValues();
         for (TbMsg msg : messages) {
@@ -379,7 +401,7 @@ public class TbAlarmsCountNodeTest {
     }
 
     private void verifyMessage(TbMsg msg) {
-        Assert.assertEquals(SessionMsgType.POST_TELEMETRY_REQUEST.name(), msg.getType());
+        Assert.assertTrue(msg.isTypeOf(TbMsgType.POST_TELEMETRY_REQUEST));
         EntityId entityId = msg.getOriginator();
         Assert.assertNotNull(entityId);
         String data = msg.getData();

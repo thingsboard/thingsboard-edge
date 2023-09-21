@@ -81,7 +81,6 @@ export class SentNotificationDialogComponent extends
 
   @ViewChild('createNotification', {static: true}) createNotification: MatStepper;
   stepperOrientation: Observable<StepperOrientation>;
-  stepperLabelPosition: Observable<'bottom' | 'end'>;
 
   isAdd = true;
   entityType = EntityType;
@@ -121,9 +120,6 @@ export class SentNotificationDialogComponent extends
 
     this.stepperOrientation = this.breakpointObserver.observe(MediaBreakpoints['gt-sm'])
       .pipe(map(({matches}) => matches ? 'horizontal' : 'vertical'));
-
-    this.stepperLabelPosition = this.breakpointObserver.observe(MediaBreakpoints['gt-md'])
-      .pipe(map(({matches}) => matches ? 'end' : 'bottom'));
 
     this.notificationRequestForm = this.fb.group({
       useTemplate: [false],
@@ -182,7 +178,6 @@ export class SentNotificationDialogComponent extends
       }
       this.notificationRequestForm.get('useTemplate').setValue(useTemplate, {onlySelf : true});
     }
-
     this.refreshAllowDeliveryMethod();
   }
 
@@ -358,19 +353,23 @@ export class SentNotificationDialogComponent extends
   refreshAllowDeliveryMethod() {
     this.notificationService.getAvailableDeliveryMethods({ignoreLoading: true}).subscribe(allowMethods => {
       this.allowNotificationDeliveryMethods = allowMethods;
-      this.updateDeliveryMethodsDisableState();
-      this.showRefresh = (this.notificationDeliveryMethods.length !== allowMethods.length);
+      if (!this.notificationRequestForm.get('useTemplate').value) {
+        this.updateDeliveryMethodsDisableState();
+        this.showRefresh = (this.notificationDeliveryMethods.length !== allowMethods.length);
+      }
     });
   }
 
   private updateDeliveryMethodsDisableState() {
-    this.notificationDeliveryMethods.forEach(method => {
-      if (this.allowNotificationDeliveryMethods.includes(method)) {
-        this.getDeliveryMethodsTemplatesControl(method).enable({emitEvent: true});
-      } else {
-        this.getDeliveryMethodsTemplatesControl(method).disable({emitEvent: true});
-        this.getDeliveryMethodsTemplatesControl(method).setValue(false, {emitEvent: true}); //used for notify again
-      }
-    });
+    if (this.allowNotificationDeliveryMethods) {
+      this.notificationDeliveryMethods.forEach(method => {
+        if (this.allowNotificationDeliveryMethods.includes(method)) {
+          this.getDeliveryMethodsTemplatesControl(method).enable({emitEvent: true});
+        } else {
+          this.getDeliveryMethodsTemplatesControl(method).disable({emitEvent: true});
+          this.getDeliveryMethodsTemplatesControl(method).setValue(false, {emitEvent: true}); //used for notify again
+        }
+      });
+    }
   }
 }

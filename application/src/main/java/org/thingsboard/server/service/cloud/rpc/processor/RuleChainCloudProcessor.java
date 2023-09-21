@@ -66,6 +66,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
@@ -78,6 +79,7 @@ public class RuleChainCloudProcessor extends BaseEdgeProcessor {
     public ListenableFuture<Void> processRuleChainMsgFromCloud(TenantId tenantId, RuleChainUpdateMsg ruleChainUpdateMsg,
                                                                Long queueStartTs) {
         try {
+            edgeSynchronizationManager.getSync().set(true);
             RuleChainId ruleChainId = new RuleChainId(new UUID(ruleChainUpdateMsg.getIdMSB(), ruleChainUpdateMsg.getIdLSB()));
             switch (ruleChainUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
@@ -136,6 +138,8 @@ public class RuleChainCloudProcessor extends BaseEdgeProcessor {
             String errMsg = String.format("Can't process rule chain update msg %s", ruleChainUpdateMsg);
             log.error(errMsg, e);
             return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
+        } finally {
+            edgeSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
     }
@@ -156,7 +160,7 @@ public class RuleChainCloudProcessor extends BaseEdgeProcessor {
                         ruleChainMetadata.setFirstNodeIndex(ruleChainMetadataUpdateMsg.getFirstNodeIndex());
                     }
                     if (ruleChainMetadata.getNodes().size() > 0) {
-                        ruleChainService.saveRuleChainMetaData(tenantId, ruleChainMetadata);
+                        ruleChainService.saveRuleChainMetaData(tenantId, ruleChainMetadata, Function.identity());
                         tbClusterService.broadcastEntityStateChangeEvent(tenantId, ruleChainId, ComponentLifecycleEvent.UPDATED);
                     }
                     break;
@@ -209,6 +213,8 @@ public class RuleChainCloudProcessor extends BaseEdgeProcessor {
             ruleNode.setDebugMode(proto.getDebugMode());
             ruleNode.setConfiguration(JacksonUtil.OBJECT_MAPPER.readTree(proto.getConfiguration()));
             ruleNode.setAdditionalInfo(JacksonUtil.OBJECT_MAPPER.readTree(proto.getAdditionalInfo()));
+            ruleNode.setSingletonMode(proto.getSingletonMode());
+            ruleNode.setConfigurationVersion(proto.getConfigurationVersion());
             result.add(ruleNode);
         }
         return result;
