@@ -160,6 +160,8 @@ public abstract class BaseApiUsageState {
                 return apiUsageState.getDbStorageState();
             case JS:
                 return apiUsageState.getJsExecState();
+            case TBEL:
+                return apiUsageState.getTbelExecState();
             case EMAIL:
                 return apiUsageState.getEmailExecState();
             case SMS:
@@ -185,6 +187,9 @@ public abstract class BaseApiUsageState {
                 break;
             case JS:
                 apiUsageState.setJsExecState(value);
+                break;
+            case TBEL:
+                apiUsageState.setTbelExecState(value);
                 break;
             case EMAIL:
                 apiUsageState.setEmailExecState(value);
