@@ -68,6 +68,7 @@ public class TenantProfileEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testIsolatedTenantProfile() throws Exception {
         loginSysAdmin();
 

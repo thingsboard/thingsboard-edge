@@ -15,12 +15,11 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
@@ -28,57 +27,48 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
-import org.thingsboard.server.common.data.tenant.profile.TenantProfileData;
 import org.thingsboard.server.gen.edge.v1.TenantProfileUpdateMsg;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 @Component
 @Slf4j
 public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
 
-    @Autowired
-    private DataDecodingEncodingService dataDecodingEncodingService;
-
     public ListenableFuture<Void> processTenantProfileMsgFromCloud(TenantId tenantId, TenantProfileUpdateMsg tenantProfileUpdateMsg) {
-        TenantProfileId tenantProfileId = new TenantProfileId(new UUID(tenantProfileUpdateMsg.getIdMSB(), tenantProfileUpdateMsg.getIdLSB()));
+        TenantProfile tenantProfileMsg  = JacksonUtil.fromEdgeString(tenantProfileUpdateMsg.getEntity(), TenantProfile.class);
+        if (tenantProfileMsg == null) {
+            throw new RuntimeException("[{" + tenantId + "}] tenantProfileUpdateMsg {" + tenantProfileUpdateMsg + "} cannot be converted to tenant profile");
+        }
         try {
             edgeSynchronizationManager.getSync().set(true);
 
             switch (tenantProfileUpdateMsg.getMsgType()) {
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    String tenantProfileMsgName = tenantProfileUpdateMsg.getName();
+                    String tenantProfileMsgName = tenantProfileMsg.getName();
                     TenantProfile tenantProfileByName = findTenantProfileByName(tenantId, tenantProfileMsgName);
                     boolean removePreviousProfile = false;
-                    if (tenantProfileByName != null && !tenantProfileByName.getId().equals(tenantProfileId)) {
+                    if (tenantProfileByName != null && !tenantProfileByName.getId().equals(tenantProfileMsg.getId())) {
                         renamePreviousTenantProfile(tenantProfileByName);
                         removePreviousProfile = true;
                     }
-                    TenantProfile tenantProfile = tenantProfileService.findTenantProfileById(tenantId, tenantProfileId);
+                    TenantProfile tenantProfile = tenantProfileService.findTenantProfileById(tenantId, tenantProfileMsg.getId());
+                    boolean isDefault = tenantProfileMsg.isDefault();
                     if (tenantProfile == null) {
-                        tenantProfile = createTenantProfile(tenantProfileId, tenantProfileMsgName, tenantProfileByName != null && tenantProfileByName.isDefault());
+                        tenantProfileMsg.setDefault(false);
+                        tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfileMsg, false);
                     }
-                    if (!tenantProfile.isDefault() && tenantProfileUpdateMsg.getDefault()) {
-                        tenantProfileService.setDefaultTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile.getId());
+                    if (isDefault) {
+                        tenantProfileService.setDefaultTenantProfile(TenantId.SYS_TENANT_ID, tenantProfileMsg.getId());
+                        tenantProfileMsg.setDefault(true);
                     }
-                    tenantProfile.setName(tenantProfileMsgName);
-                    tenantProfile.setDefault(tenantProfileUpdateMsg.getDefault());
-                    tenantProfile.setDescription(tenantProfileUpdateMsg.getDescription());
-                    tenantProfile.setIsolatedTbRuleEngine(tenantProfileUpdateMsg.getIsolatedRuleChain());
-                    tenantProfile.setProfileDataBytes(tenantProfile.getProfileDataBytes());
-                    Optional<TenantProfileData> profileDataOpt =
-                            dataDecodingEncodingService.decode(tenantProfileUpdateMsg.getProfileDataBytes().toByteArray());
-                    tenantProfile.setProfileData(profileDataOpt.orElse(null));
 
-                    TenantProfile savedTenantProfile = tenantProfileService.saveTenantProfile(tenantId, tenantProfile, false);
+                    TenantProfile savedTenantProfile = tenantProfileService.saveTenantProfile(tenantId, tenantProfileMsg, false);
                     notifyCluster(tenantId, savedTenantProfile);
 
                     if (removePreviousProfile) {
-                        updateTenants(tenantProfileId, tenantProfileByName.getId());
+                        updateTenants(tenantProfileMsg.getId(), tenantProfileByName.getId());
                         tenantProfileService.deleteTenantProfile(tenantId, tenantProfileByName.getId());
                         tbClusterService.broadcastEntityStateChangeEvent(tenantId, tenantProfileByName.getId(), ComponentLifecycleEvent.DELETED);
                     }
@@ -119,14 +109,6 @@ public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
                 tenantService.saveTenant(tenant);
             }
         }
-    }
-
-    private TenantProfile createTenantProfile(TenantProfileId tenantProfileId, String name, boolean isDefaultPreviousProfile) {
-        TenantProfile tenantProfile = new TenantProfile();
-        tenantProfile.setId(tenantProfileId);
-        tenantProfile.setCreatedTime(Uuids.unixTimestamp(tenantProfileId.getId()));
-        tenantProfile.setName(name);
-        return tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile, false);
     }
 
     private void notifyCluster(TenantId tenantId, TenantProfile savedTenantProfile) {

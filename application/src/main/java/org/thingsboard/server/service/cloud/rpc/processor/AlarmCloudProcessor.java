@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.service.edge.rpc.processor.alarm.BaseAlarmProcessor;
 
@@ -27,9 +28,9 @@ import org.thingsboard.server.service.edge.rpc.processor.alarm.BaseAlarmProcesso
 @Slf4j
 public class AlarmCloudProcessor extends BaseAlarmProcessor {
 
-    public UplinkMsg convertAlarmEventToUplink(CloudEvent cloudEvent) {
+    public UplinkMsg convertAlarmEventToUplink(CloudEvent cloudEvent, EdgeVersion edgeVersion) {
         AlarmUpdateMsg alarmUpdateMsg =
-                convertAlarmEventToAlarmMsg(cloudEvent.getTenantId(), cloudEvent.getEntityId(), cloudEvent.getAction(), cloudEvent.getEntityBody());
+                convertAlarmEventToAlarmMsg(cloudEvent.getTenantId(), cloudEvent.getEntityId(), cloudEvent.getAction(), cloudEvent.getEntityBody(), edgeVersion);
         if (alarmUpdateMsg != null) {
             return UplinkMsg.newBuilder()
                     .setUplinkMsgId(EdgeUtils.nextPositiveInt())

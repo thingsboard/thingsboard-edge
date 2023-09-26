@@ -54,6 +54,7 @@ import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkResponseMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
@@ -441,23 +442,24 @@ public class CloudManagerService {
 
     private UplinkMsg convertEntityEventToUplink(TenantId tenantId, CloudEvent cloudEvent) {
         log.trace("Executing convertEntityEventToUplink, cloudEvent [{}], edgeEventAction [{}]", cloudEvent, cloudEvent.getAction());
+        EdgeVersion edgeVersion = EdgeVersion.V_3_6_1;
         switch (cloudEvent.getType()) {
             case DEVICE:
-                return deviceProcessor.convertDeviceEventToUplink(tenantId, cloudEvent);
+                return deviceProcessor.convertDeviceEventToUplink(tenantId, cloudEvent, edgeVersion);
             case DEVICE_PROFILE:
-                return deviceProfileProcessor.convertDeviceProfileEventToUplink(cloudEvent);
+                return deviceProfileProcessor.convertDeviceProfileEventToUplink(cloudEvent, edgeVersion);
             case ALARM:
-                return alarmProcessor.convertAlarmEventToUplink(cloudEvent);
+                return alarmProcessor.convertAlarmEventToUplink(cloudEvent, edgeVersion);
             case ASSET:
-                return assetProcessor.convertAssetEventToUplink(cloudEvent);
+                return assetProcessor.convertAssetEventToUplink(cloudEvent, edgeVersion);
             case ASSET_PROFILE:
-                return assetProfileProcessor.convertAssetProfileEventToUplink(cloudEvent);
+                return assetProfileProcessor.convertAssetProfileEventToUplink(cloudEvent, edgeVersion);
             case DASHBOARD:
-                return dashboardProcessor.convertDashboardEventToUplink(cloudEvent);
+                return dashboardProcessor.convertDashboardEventToUplink(cloudEvent, edgeVersion);
             case ENTITY_VIEW:
-                return entityViewProcessor.convertEntityViewEventToUplink(cloudEvent);
+                return entityViewProcessor.convertEntityViewEventToUplink(cloudEvent, edgeVersion);
             case RELATION:
-                return relationProcessor.convertRelationEventToUplink(cloudEvent);
+                return relationProcessor.convertRelationEventToUplink(cloudEvent, edgeVersion);
             default:
                 log.warn("Unsupported cloud event type [{}]", cloudEvent);
                 return null;
