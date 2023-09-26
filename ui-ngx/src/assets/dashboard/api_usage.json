@@ -4629,7 +4629,8 @@
           "titleTooltip": "",
           "widgetCss": "",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -4770,7 +4771,8 @@
           "titleTooltip": "",
           "widgetCss": "",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
