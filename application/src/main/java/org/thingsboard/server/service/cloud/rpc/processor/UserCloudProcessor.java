@@ -15,7 +15,6 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -26,10 +25,8 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.user.UserServiceImpl;
@@ -51,11 +48,9 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
     private UserService userService;
 
     public ListenableFuture<Void> processUserMsgFromCloud(TenantId tenantId,
-                                                          CustomerId edgeCustomerId,
                                                           UserUpdateMsg userUpdateMsg,
                                                           Long queueStartTs) {
         UserId userId = new UserId(new UUID(userUpdateMsg.getIdMSB(), userUpdateMsg.getIdLSB()));
-        CustomerId customerId = safeGetCustomerId(userUpdateMsg.getCustomerIdMSB(), userUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId);
         try {
             cloudSynchronizationManager.getSync().set(true);
             switch (userUpdateMsg.getMsgType()) {
@@ -63,21 +58,12 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     userCreationLock.lock();
                     try {
-                        boolean created = false;
-                        User user = userService.findUserById(tenantId, userId);
+                        User user = JacksonUtil.fromStringIgnoreUnknownProperties(userUpdateMsg.getEntity(), User.class);
                         if (user == null) {
-                            user = new User();
-                            user.setTenantId(tenantId);
-                            user.setId(userId);
-                            user.setCreatedTime(Uuids.unixTimestamp(userId.getId()));
-                            created = true;
+                            throw new RuntimeException("[{" + tenantId + "}] userUpdateMsg {" + userUpdateMsg + "} cannot be converted to user");
                         }
-                        user.setEmail(userUpdateMsg.getEmail());
-                        user.setAuthority(Authority.valueOf(userUpdateMsg.getAuthority()));
-                        user.setFirstName(userUpdateMsg.hasFirstName() ? userUpdateMsg.getFirstName() : null);
-                        user.setLastName(userUpdateMsg.hasLastName() ? userUpdateMsg.getLastName() : null);
-                        user.setAdditionalInfo(userUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(userUpdateMsg.getAdditionalInfo()) : null);
-                        user.setCustomerId(customerId);
+                        User userById = userService.findUserById(tenantId, userId);
+                        boolean created = userById == null;
                         User savedUser = userService.saveUser(tenantId, user, false);
                         if (created) {
                             createDefaultUserCredentials(savedUser.getTenantId(), savedUser.getId());
@@ -107,18 +93,22 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
     public ListenableFuture<Void> processUserCredentialsMsgFromCloud(TenantId tenantId, UserCredentialsUpdateMsg userCredentialsUpdateMsg) {
         try {
             cloudSynchronizationManager.getSync().set(true);
-            UserId userId = new UserId(new UUID(userCredentialsUpdateMsg.getUserIdMSB(), userCredentialsUpdateMsg.getUserIdLSB()));
-            User user = userService.findUserById(tenantId, userId);
+            UserCredentials userCredentialsMsg = JacksonUtil.fromStringIgnoreUnknownProperties(userCredentialsUpdateMsg.getEntity(), UserCredentials.class);
+            if (userCredentialsMsg == null) {
+                throw new RuntimeException("[{" + tenantId + "}] userCredentialsUpdateMsg {" + userCredentialsUpdateMsg + "} cannot be converted to user credentials");
+            }
+            User user = userService.findUserById(tenantId, userCredentialsMsg.getUserId());
             if (user != null) {
-                UserCredentials userCredentials = userService.findUserCredentialsByUserId(tenantId, user.getId());
-                if (userCredentials == null) {
-                    userCredentials = createDefaultUserCredentials(tenantId, userId);
+                UserCredentials userCredentialsByUserId = userService.findUserCredentialsByUserId(tenantId, user.getId());
+                if (userCredentialsByUserId == null) {
+                    userCredentialsByUserId = createDefaultUserCredentials(tenantId, userCredentialsMsg.getUserId());
                 }
-                userCredentials.setEnabled(userCredentialsUpdateMsg.getEnabled());
-                userCredentials.setPassword(userCredentialsUpdateMsg.getPassword());
-                userCredentials.setActivateToken(null);
-                userCredentials.setResetToken(null);
-                userService.saveUserCredentials(tenantId, userCredentials);
+                userCredentialsByUserId.setEnabled(userCredentialsMsg.isEnabled());
+                userCredentialsByUserId.setPassword(userCredentialsMsg.getPassword());
+                userCredentialsByUserId.setActivateToken(userCredentialsMsg.getActivateToken());
+                userCredentialsByUserId.setResetToken(userCredentialsMsg.getResetToken());
+                userCredentialsByUserId.setAdditionalInfo(userCredentialsMsg.getAdditionalInfo());
+                userService.saveUserCredentials(tenantId, userCredentialsByUserId);
             }
         } finally {
             cloudSynchronizationManager.getSync().remove();

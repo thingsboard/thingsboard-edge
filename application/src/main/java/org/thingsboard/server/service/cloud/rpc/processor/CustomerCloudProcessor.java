@@ -31,8 +31,6 @@ import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
-import java.util.UUID;
-
 @Component
 @Slf4j
 public class CustomerCloudProcessor extends BaseEdgeProcessor {
@@ -42,7 +40,10 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processCustomerMsgFromCloud(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg,
                                                               Long queueStartTs) {
-        CustomerId customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
+        Customer customer = JacksonUtil.fromEdgeString(customerUpdateMsg.getEntity(), Customer.class);
+        if (customer == null) {
+            throw new RuntimeException("[{" + tenantId + "}] customerUpdateMsg {" + customerUpdateMsg + "} cannot be converted to customer");
+        }
         try {
             cloudSynchronizationManager.getSync().set(true);
 
@@ -51,32 +52,15 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     customerCreationLock.lock();
                     try {
-                        Customer customer = customerService.findCustomerById(tenantId, customerId);
-                        if (customer == null) {
-                            customer = new Customer();
-                            customer.setId(customerId);
-                            customer.setCreatedTime(Uuids.unixTimestamp(customerId.getId()));
-                            customer.setTenantId(tenantId);
-                        }
-                        customer.setTitle(customerUpdateMsg.getTitle());
-                        customer.setCountry(customerUpdateMsg.hasCountry() ? customerUpdateMsg.getCountry() : null);
-                        customer.setState(customerUpdateMsg.hasState() ? customerUpdateMsg.getState() : null);
-                        customer.setCity(customerUpdateMsg.hasCity() ? customerUpdateMsg.getCity() : null);
-                        customer.setAddress(customerUpdateMsg.hasAddress() ? customerUpdateMsg.getAddress() : null);
-                        customer.setAddress2(customerUpdateMsg.hasAddress2() ? customerUpdateMsg.getAddress2() : null);
-                        customer.setZip(customerUpdateMsg.hasZip() ? customerUpdateMsg.getZip() : null);
-                        customer.setPhone(customerUpdateMsg.hasPhone() ? customerUpdateMsg.getPhone() : null);
-                        customer.setEmail(customerUpdateMsg.hasEmail() ? customerUpdateMsg.getEmail() : null);
-                        customer.setAdditionalInfo(customerUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(customerUpdateMsg.getAdditionalInfo()) : null);
                         customerService.saveCustomer(customer, false);
                     } finally {
                         customerCreationLock.unlock();
                     }
-                    return requestForAdditionalData(tenantId, customerId, queueStartTs);
+                    return requestForAdditionalData(tenantId, customer.getId(), queueStartTs);
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    Customer customerById = customerService.findCustomerById(tenantId, customerId);
+                    Customer customerById = customerService.findCustomerById(tenantId, customer.getId());
                     if (customerById != null) {
-                       customerService.deleteCustomer(tenantId, customerId);
+                       customerService.deleteCustomer(tenantId, customer.getId());
                     }
                     return Futures.immediateFuture(null);
                 case UNRECOGNIZED:

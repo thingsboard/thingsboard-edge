@@ -37,20 +37,16 @@ import java.util.List;
 public class AdminSettingsCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processAdminSettingsMsgFromCloud(TenantId tenantId, AdminSettingsUpdateMsg adminSettingsUpdateMsg) {
-        String key = adminSettingsUpdateMsg.getKey();
-        String jsonValue = adminSettingsUpdateMsg.getJsonValue();
-        if (adminSettingsUpdateMsg.getIsSystem()) {
-            AdminSettings adminSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key);
-            if (adminSettings == null) {
-                adminSettings = new AdminSettings();
-                adminSettings.setKey(key);
-            }
-            adminSettings.setJsonValue(JacksonUtil.toJsonNode(jsonValue));
-            adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, adminSettings);
+        AdminSettings adminSettingsMsg = JacksonUtil.fromEdgeString(adminSettingsUpdateMsg.getEntity(), AdminSettings.class);
+        if (adminSettingsMsg == null) {
+            throw new RuntimeException("[{" + tenantId + "}] adminSettingsUpdateMsg {" + adminSettingsUpdateMsg + " } cannot be converted to admin settings");
+        }
+        if (adminSettingsMsg.getId() != null) {
+            adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, adminSettingsMsg);
 
         } else {
             List<AttributeKvEntry> attributes = new ArrayList<>();
-            attributes.add(new BaseAttributeKvEntry(new StringDataEntry(key, jsonValue), System.currentTimeMillis()));
+            attributes.add(new BaseAttributeKvEntry(new StringDataEntry(adminSettingsMsg.getKey(), adminSettingsMsg.getJsonValue().asText()), System.currentTimeMillis()));
             attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);
         }
         return Futures.immediateFuture(null);
