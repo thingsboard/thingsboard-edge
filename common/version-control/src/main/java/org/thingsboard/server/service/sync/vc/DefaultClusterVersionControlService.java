@@ -44,7 +44,6 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
-import org.thingsboard.common.util.CollectionsUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -55,11 +54,11 @@ import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
 import org.thingsboard.server.common.data.sync.vc.VersionCreationResult;
 import org.thingsboard.server.common.data.sync.vc.VersionedEntityInfo;
+import org.thingsboard.server.common.data.util.CollectionsUtil;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.AddMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.EntityIdProto;
 import org.thingsboard.server.gen.transport.TransportProtos.BranchInfoProto;
 import org.thingsboard.server.gen.transport.TransportProtos.CommitRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.CommitResponseMsg;
@@ -68,7 +67,6 @@ import org.thingsboard.server.gen.transport.TransportProtos.EntitiesContentReque
 import org.thingsboard.server.gen.transport.TransportProtos.EntitiesContentResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.EntityContentRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.EntityContentResponseMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.EntityIdProto;
 import org.thingsboard.server.gen.transport.TransportProtos.EntityVersionProto;
 import org.thingsboard.server.gen.transport.TransportProtos.ListBranchesRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ListBranchesResponseMsg;
@@ -139,7 +137,7 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
 
     @Value("${queue.vc.poll-interval:25}")
     private long pollDuration;
-    @Value("${queue.vc.pack-processing-timeout:60000}")
+    @Value("${queue.vc.pack-processing-timeout:180000}")
     private long packProcessingTimeout;
     @Value("${vc.git.io_pool_size:3}")
     private int ioPoolSize;

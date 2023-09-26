@@ -71,7 +71,7 @@ export class SolutionInstallDialogComponent extends
 
   gotoMainDashboard(): void {
     if (this.solutionInstallResponse.dashboardGroupId && this.solutionInstallResponse.dashboardId) {
-      const url = this.router.createUrlTree(['dashboardGroups', this.solutionInstallResponse.dashboardGroupId.id,
+      const url = this.router.createUrlTree(['dashboards', 'groups', this.solutionInstallResponse.dashboardGroupId.id,
         this.solutionInstallResponse.dashboardId.id]);
       this.dialogRef.close();
       this.router.navigateByUrl(url);

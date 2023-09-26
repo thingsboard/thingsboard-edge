@@ -31,13 +31,10 @@
 package org.thingsboard.integration.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
 import org.thingsboard.common.util.JacksonUtil;
@@ -49,16 +46,19 @@ import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.integration.api.util.ExceptionUtil;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.event.IntegrationDebugEvent;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -67,6 +67,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Created by ashvayka on 25.12.17.
@@ -74,7 +75,6 @@ import java.util.Map;
 @Slf4j
 public abstract class AbstractIntegration<T> implements ThingsboardPlatformIntegration<T> {
 
-    protected final ObjectMapper mapper = new ObjectMapper();
     protected Integration configuration;
     protected IntegrationContext context;
     protected TBUplinkDataConverter uplinkConverter;
@@ -153,6 +153,11 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         return statistics;
     }
 
+    @Override
+    public ListenableFuture<Void> processAsync(T msg) {
+        throw new RuntimeException("Process async not implemented");
+    }
+
     protected <T> T getClientConfiguration(Integration configuration, Class<T> clazz) {
         JsonNode clientConfiguration = configuration.getConfiguration().get("clientConfiguration");
         return getClientConfiguration(clientConfiguration, clazz);
@@ -183,8 +188,11 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     private void processDeviceUplinkData(IntegrationContext context, UplinkData data) {
+        TenantId tenantId = configuration.getTenantId();
+        context.getRateLimitService().ifPresent(rls -> rls.checkLimit(tenantId, data.getDeviceName(), data::toString));
+        String entityName = data.getDeviceName();
         DeviceUplinkDataProto.Builder builder = DeviceUplinkDataProto.newBuilder()
-                .setDeviceName(data.getDeviceName())
+                .setDeviceName(entityName)
                 .setDeviceType(data.getDeviceType());
         if (StringUtils.isNotEmpty(data.getDeviceLabel())) {
             builder.setDeviceLabel(data.getDeviceLabel());
@@ -205,8 +213,9 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     private void processAssetUplinkData(IntegrationContext context, UplinkData data) {
+        String entityName = data.getAssetName();
         AssetUplinkDataProto.Builder builder = AssetUplinkDataProto.newBuilder()
-                .setAssetName(data.getAssetName()).setAssetType(data.getAssetType());
+                .setAssetName(entityName).setAssetType(data.getAssetType());
         if (StringUtils.isNotEmpty(data.getAssetLabel())) {
             builder.setAssetLabel(data.getAssetLabel());
         }
@@ -215,6 +224,9 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         }
         if (StringUtils.isNotEmpty(data.getGroupName())) {
             builder.setGroupName(data.getGroupName());
+        }
+        if (data.getTelemetry() != null) {
+            builder.setPostTelemetryMsg(data.getTelemetry());
         }
         if (data.getTelemetry() != null) {
             builder.setPostTelemetryMsg(data.getTelemetry());
@@ -244,11 +256,27 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         return false;
     }
 
-    protected void persistDebug(IntegrationContext context, String type, UplinkContentType messageType, String message, String status, Exception exception) {
+    protected void persistDebug(IntegrationContext context, String type, UplinkContentType messageType, String message, String status, Throwable exception) {
         persistDebug(context, type, messageType.name(), message, status, exception);
     }
 
-    protected void persistDebug(IntegrationContext context, String type, String messageType, String message, String status, Exception exception) {
+    protected void persistDebug(IntegrationContext context, String type, String messageType, String message, String status, Throwable exception) {
+        IntegrationId integrationId = configuration.getId();
+        if (exception instanceof TbRateLimitsException) {
+            EntityType limitedEntity = ((TbRateLimitsException) exception).getEntityType();
+            if (context.getRateLimitService().get().alreadyProcessed(integrationId, limitedEntity)) {
+                log.trace("[{}] [{}] [{}] Rate limited debug event already sent.", configuration.getTenantId(), integrationId, limitedEntity);
+                return;
+            }
+        } else if (!context.getRateLimitService().map(s -> s.checkLimit(configuration.getTenantId(), integrationId, false)).orElse(true)) {
+            if (context.getRateLimitService().get().alreadyProcessed(integrationId, EntityType.INTEGRATION)) {
+                log.trace("[{}] [{}] [{}] Rate limited debug event already sent.", configuration.getTenantId(), integrationId, EntityType.INTEGRATION);
+            } else {
+                exception = new TbRateLimitsException(EntityType.INTEGRATION, "Integration debug rate limits reached!");
+                status = "ERROR";
+            }
+        }
+
         var event = IntegrationDebugEvent.builder()
                 .tenantId(configuration.getTenantId())
                 .entityId(configuration.getId().getId())
@@ -264,22 +292,25 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         context.saveEvent(event.build(), new DebugEventCallback());
     }
 
-    protected String toString(Exception e) {
+    protected String toString(Throwable e) {
         return ExceptionUtil.toString(e, configuration.getId(), context.isExceptionStackTraceEnabled());
     }
 
-    protected ListenableFuture<List<UplinkData>> convertToUplinkDataListAsync(IntegrationContext context, byte[] data, UplinkMetaData md) throws Exception {
+    protected ListenableFuture<List<UplinkData>> convertToUplinkDataListAsync(IntegrationContext context, byte[] data, UplinkMetaData md) {
         try {
             return this.uplinkConverter.convertUplink(context.getUplinkConverterContext(), data, md, context.getCallBackExecutorService());
-        } catch (Exception e) {
+        } catch (Throwable t) {
             if (log.isDebugEnabled()) {
                 log.debug("[{}][{}] Failed to apply uplink data converter function for data: {} and metadata: {}", configuration.getId(), configuration.getName(), Base64Utils.encodeToString(data), md);
             }
-            throw e;
+            return Futures.immediateFailedFuture(t);
         }
     }
 
+    //Please, prefer async method convertToUplinkDataListAsync
     protected List<UplinkData> convertToUplinkDataList(IntegrationContext context, byte[] data, UplinkMetaData md) throws Exception {
+        Optional<IntegrationRateLimitService> rateLimitService = context.getRateLimitService();
+        rateLimitService.ifPresent(s -> s.checkLimit(configuration.getTenantId(), () -> JacksonUtil.toString(JacksonUtil.fromBytes(data))));
         return convertToUplinkDataListAsync(context, data, md).get();
     }
 
@@ -288,12 +319,12 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         integrationStatistics.incMessagesProcessed();
         if (configuration.isDebugMode()) {
             try {
-                ObjectNode json = mapper.createObjectNode();
+                ObjectNode json = JacksonUtil.newObjectNode();
                 if (data.getMetadata() != null && !data.getMetadata().isEmpty()) {
-                    json.set("metadata", mapper.valueToTree(data.getMetadata()));
+                    json.set("metadata", JacksonUtil.valueToTree(data.getMetadata()));
                 }
                 json.set("payload", getDownlinkPayloadJson(data));
-                persistDebug(context, "Downlink", "JSON", mapper.writeValueAsString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
+                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
@@ -309,7 +340,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             }
             if (configuration.isDebugMode()) {
                 try {
-                    persistDebug(context, "Downlink", "JSON", mapper.writeValueAsString(msg), status, exception);
+                    persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(msg), status, exception);
                 } catch (Exception e) {
                     log.warn("Failed to persist debug message", e);
                 }
@@ -320,7 +351,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected JsonNode getDownlinkPayloadJson(DownlinkData data) throws IOException {
         String contentType = data.getContentType();
         if ("JSON".equals(contentType)) {
-            return mapper.readTree(data.getData());
+            return JacksonUtil.fromBytes(data.getData());
         } else if ("TEXT".equals(contentType)) {
             return new TextNode(new String(data.getData(), StandardCharsets.UTF_8));
         } else { //BINARY
@@ -331,7 +362,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected <T> void logDownlink(IntegrationContext context, String updateType, T msg) {
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context, updateType, "JSON", mapper.writeValueAsString(msg), downlinkConverter != null ? "OK" : "FAILURE", null);
+                persistDebug(context, updateType, "JSON", JacksonUtil.toString(msg), downlinkConverter != null ? "OK" : "FAILURE", null);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }

@@ -46,6 +46,7 @@ export interface DashboardPageInitData {
   widgetEditMode?: boolean;
   singlePageMode?: boolean;
   entityGroup?: EntityGroupInfo;
+  customerId?: string;
 }
 
 export interface DashboardContext {

@@ -70,17 +70,19 @@
       </mat-panel-description>
     </mat-expansion-panel-header>
     <ng-template matExpansionPanelContent>
-      <mat-slide-toggle class="checkbox" [aria-label]="'integration.clean-session' | translate"
-                        formControlName="cleanSession">
-        {{ 'integration.clean-session' | translate }}
-      </mat-slide-toggle>
+      <div class="row" fxLayout="column" fxLayoutGap="8px">
+        <mat-slide-toggle class="checkbox" [aria-label]="'integration.clean-session' | translate"
+                          formControlName="cleanSession" style="padding: 16px;">
+          {{ 'integration.clean-session' | translate }}
+        </mat-slide-toggle>
+        <mat-slide-toggle class="checkbox" [aria-label]="'integration.retained-message' | translate"
+                          formControlName="retainedMessage" style="padding: 16px;">
+          {{ 'integration.retained-message' | translate }}
+        </mat-slide-toggle>
+      </div>
       <mat-form-field class="mat-block">
         <mat-label translate>integration.client-id</mat-label>
         <input matInput formControlName="clientId" autocomplete="new-clientId">
-        <mat-error translate *ngIf="mqttIntegrationConfigForm.get('clientConfiguration.clientId').hasError('pattern')">integration.client-id-pattern
-        </mat-error>
-        <mat-error translate *ngIf="mqttIntegrationConfigForm.get('clientConfiguration.clientId').hasError('maxlength')">integration.client-id-range
-        </mat-error>
       </mat-form-field>
       <div class="tb-hint client-id" [ngClass]="{invisible: mqttIntegrationConfigForm.get('clientConfiguration.clientId').errors}" translate>
         integration.client-id-hint

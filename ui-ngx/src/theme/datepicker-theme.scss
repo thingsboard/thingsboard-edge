@@ -28,9 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@use '~@angular/material' as mat;
-
-@include mat.core();
+@use '@angular/material' as mat;
 
 $mat-datetimepicker-selected-today-box-shadow-width: 1px;
 
@@ -39,15 +37,17 @@ $mat-datetimepicker-selected-today-box-shadow-width: 1px;
   $primary: map-get($theme, primary);
 
   $primary-color: mat.get-color-from-palette($primary);
+  $primary-contrast: mat.get-color-from-palette($primary, default-contrast);
 
   .mat-datetimepicker-calendar-header {
     background-color: $primary-color;
+    color: $primary-contrast;
   }
 
   .mat-datetimepicker-calendar-body-cell-content {
     &.mat-datetimepicker-calendar-body-selected {
       background-color: $primary-color;
-      color: white;
+      color: $primary-contrast;
     }
 
     &.mat-datetimepicker-calendar-body-disabled > .mat-datetimepicker-calendar-body-selected {
@@ -60,7 +60,7 @@ $mat-datetimepicker-selected-today-box-shadow-width: 1px;
       }
 
       &.mat-datetimepicker-calendar-body-selected {
-        box-shadow: inset 0 0 0 $mat-datetimepicker-selected-today-box-shadow-width mat.get-color-from-palette($primary, default-contrast);
+        box-shadow: inset 0 0 0 $mat-datetimepicker-selected-today-box-shadow-width $primary-contrast;
       }
     }
   }

@@ -29,26 +29,9 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
-  .tb-material-icons-dialog {
-    position: relative;
-  }
-  .tb-icons-load {
-    top: 64px;
-    z-index: 3;
-    background: rgba(255, 255, 255, .75);
-  }
-}
-
-:host ::ng-deep {
-  .tb-material-icons-dialog {
-    button.mat-icon-button.tb-select-icon-button {
-      width: 56px;
-      height: 56px;
-      padding: 16px;
-      margin: 10px;
-      border: solid 1px #ffa500;
-      border-radius: 0;
-      line-height: 0;
-    }
+  .tb-close-button {
+    position: absolute;
+    top: 6px;
+    right: 6px;
   }
 }

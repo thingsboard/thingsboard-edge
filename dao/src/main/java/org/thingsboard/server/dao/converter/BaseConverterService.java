@@ -35,25 +35,33 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.entity.EntityCountService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
-@Service
+@Service("ConverterDaoService")
 @Slf4j
 public class BaseConverterService extends AbstractEntityService implements ConverterService {
 
@@ -67,12 +75,21 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     @Autowired
     private DataValidator<Converter> converterValidator;
 
+    @Autowired
+    private EntityCountService entityCountService;
+
     @Override
     public Converter saveConverter(Converter converter) {
         log.trace("Executing saveConverter [{}]", converter);
         converterValidator.validate(converter, Converter::getTenantId);
         try {
-            return converterDao.save(converter.getTenantId(), converter);
+            Converter savedConverter = converterDao.save(converter.getTenantId(), converter);
+            if (converter.getId() == null) {
+                entityCountService.publishCountEntityEvictEvent(converter.getTenantId(), EntityType.CONVERTER);
+            }
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(converter.getTenantId()).entity(converter)
+                    .entityId(savedConverter.getId()).added(converter.getId() == null).build());
+            return savedConverter;
         } catch (Exception t) {
             checkConstraintViolation(t,
                     "converter_external_id_unq_key", "Converter with such external id already exists!");
@@ -87,6 +104,13 @@ public class BaseConverterService extends AbstractEntityService implements Conve
         return converterDao.findById(tenantId, converterId.getId());
     }
 
+    @Override
+    public Optional<Converter> findConverterByName(TenantId tenantId, String converterName) {
+        log.trace("Executing findConverterByName [{}]", converterName);
+        PageLink pageLink = new PageLink(1);
+        PageData<Converter> pageData = converterDao.findConverterByTenantIdAndName(tenantId.getId(), converterName, pageLink);
+        return pageData.getData().stream().findFirst();
+    }
     @Override
     public ListenableFuture<Converter> findConverterByIdAsync(TenantId tenantId, ConverterId converterId) {
         log.trace("Executing findConverterById [{}]", converterId);
@@ -119,6 +143,7 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     }
 
     @Override
+    @Transactional
     public void deleteConverter(TenantId tenantId, ConverterId converterId) {
         log.trace("Executing deleteConverter [{}]", converterId);
         validateId(converterId, INCORRECT_CONVERTER_ID + converterId);
@@ -134,7 +159,9 @@ public class BaseConverterService extends AbstractEntityService implements Conve
                 throw t;
             }
         }
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(converterId).build());
         deleteEntityRelations(tenantId, converterId);
+        entityCountService.publishCountEntityEvictEvent(tenantId, EntityType.CONVERTER);
     }
 
     @Override
@@ -157,4 +184,26 @@ public class BaseConverterService extends AbstractEntityService implements Conve
                     deleteConverter(tenantId, new ConverterId(entity.getId().getId()));
                 }
             };
+
+    @Override
+    public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
+        return Optional.ofNullable(findConverterById(tenantId, new ConverterId(entityId.getId())));
+    }
+
+    @Override
+    public long countByTenantId(TenantId tenantId) {
+        return converterDao.countByTenantId(tenantId);
+    }
+
+    @Override
+    @Transactional
+    public void deleteEntity(TenantId tenantId, EntityId id) {
+        deleteConverter(tenantId, (ConverterId) id);
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.CONVERTER;
+    }
+
 }

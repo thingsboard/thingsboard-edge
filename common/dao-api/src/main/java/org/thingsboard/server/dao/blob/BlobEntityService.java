@@ -39,10 +39,11 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
 
-public interface BlobEntityService {
+public interface BlobEntityService extends EntityDaoService {
 
     BlobEntity findBlobEntityById(TenantId tenantId, BlobEntityId blobEntityId);
 

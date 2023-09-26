@@ -34,12 +34,21 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.rule.engine.analytics.latest.TbAbstractLatestNode;
-import org.thingsboard.rule.engine.api.*;
+import org.thingsboard.rule.engine.api.RuleNode;
+import org.thingsboard.rule.engine.api.ScriptEngine;
+import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -47,6 +56,7 @@ import java.util.concurrent.ConcurrentHashMap;
         type = ComponentType.ANALYTICS,
         name = "aggregate latest (deprecated)",
         configClazz = TbAggLatestTelemetryNodeConfiguration.class,
+        version = 1,
         nodeDescription = "Periodically aggregates entities attributes or latest timeseries",
         nodeDetails = "Performs aggregation of attributes or latest timeseries fetched from child entities with configurable period. " +
                 "Generates outgoing messages with aggregated values for each parent entity. By default, an outgoing message generates with 'POST_TELEMETRY_REQUEST' type. " +
@@ -59,9 +69,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class TbAggLatestTelemetryNode extends TbAbstractLatestNode<TbAggLatestTelemetryNodeConfiguration> {
 
-    private static final String TB_AGG_LATEST_NODE_MSG = "TbAggLatestNodeMsg";
-
-    private Map<String, ScriptEngine> attributesScriptEngineMap = new ConcurrentHashMap<>();
+    private final Map<String, ScriptEngine> attributesScriptEngineMap = new ConcurrentHashMap<>();
 
     @Override
     protected TbAggLatestTelemetryNodeConfiguration loadMapperNodeConfig(TbNodeConfiguration configuration) throws TbNodeException {
@@ -69,8 +77,8 @@ public class TbAggLatestTelemetryNode extends TbAbstractLatestNode<TbAggLatestTe
     }
 
     @Override
-    protected String tickMessageType() {
-        return TB_AGG_LATEST_NODE_MSG;
+    protected TbMsgType tickMessageType() {
+        return TbMsgType.TB_AGG_LATEST_SELF_MSG;
     }
 
     @Override
@@ -86,12 +94,10 @@ public class TbAggLatestTelemetryNode extends TbAbstractLatestNode<TbAggLatestTe
 
     @Override
     public void destroy() {
-        if (this.attributesScriptEngineMap != null) {
-            for (ScriptEngine se : this.attributesScriptEngineMap.values()) {
-                se.destroy();
-            }
-            this.attributesScriptEngineMap.clear();
+        for (ScriptEngine se : this.attributesScriptEngineMap.values()) {
+            se.destroy();
         }
+        this.attributesScriptEngineMap.clear();
     }
 
 }

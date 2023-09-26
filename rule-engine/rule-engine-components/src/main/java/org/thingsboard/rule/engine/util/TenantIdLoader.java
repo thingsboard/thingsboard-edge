@@ -50,6 +50,10 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.NotificationRequestId;
+import org.thingsboard.server.common.data.id.NotificationRuleId;
+import org.thingsboard.server.common.data.id.NotificationTargetId;
+import org.thingsboard.server.common.data.id.NotificationTemplateId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.RoleId;
@@ -145,6 +149,20 @@ public class TenantIdLoader {
                 } else {
                     tenantEntity = null;
                 }
+                break;
+            case NOTIFICATION_TARGET:
+                tenantEntity = ctx.getNotificationTargetService().findNotificationTargetById(ctxTenantId, new NotificationTargetId(id));
+                break;
+            case NOTIFICATION_TEMPLATE:
+                tenantEntity = ctx.getNotificationTemplateService().findNotificationTemplateById(ctxTenantId, new NotificationTemplateId(id));
+                break;
+            case NOTIFICATION_REQUEST:
+                tenantEntity = ctx.getNotificationRequestService().findNotificationRequestById(ctxTenantId, new NotificationRequestId(id));
+                break;
+            case NOTIFICATION:
+                return ctxTenantId;
+            case NOTIFICATION_RULE:
+                tenantEntity = ctx.getNotificationRuleService().findNotificationRuleById(ctxTenantId, new NotificationRuleId(id));
                 break;
             //PE Entities
             case ENTITY_GROUP:

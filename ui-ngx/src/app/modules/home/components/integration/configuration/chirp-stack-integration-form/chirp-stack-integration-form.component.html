@@ -46,7 +46,7 @@
       <mat-label translate>integration.http-endpoint</mat-label>
       <input matInput formControlName="httpEndpoint">
     </mat-form-field>
-    <button mat-button mat-icon-button ngxClipboard type="button" color="primary"
+    <button mat-icon-button ngxClipboard type="button" color="primary"
             (cbOnSuccess)="onHttpEndpointCopied()"
             [cbContent]="chirpStackIntegrationConfigForm.get('httpEndpoint').value"
             matTooltip="{{'integration.copy-http-endpoint-url' | translate }}">
@@ -68,6 +68,10 @@
       integration.application-server-api-token-required
     </mat-error>
   </mat-form-field>
+  <mat-slide-toggle class="mat-slide" style="padding-bottom: 16px;"
+                    formControlName="useAPI4Plus">
+    {{ 'integration.use-api-four-plus' | translate }}
+  </mat-slide-toggle>
 
   <ng-container [ngTemplateOutlet]="executeRemotelyTemplate">
   </ng-container>

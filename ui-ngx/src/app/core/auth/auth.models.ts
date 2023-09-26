@@ -30,6 +30,7 @@
 ///
 
 import { AuthUser, User } from '@shared/models/user.model';
+import { UserSettings } from '@shared/models/user-settings.models';
 
 export interface SysParamsState {
   userTokenAccessEnabled: boolean;
@@ -39,6 +40,12 @@ export interface SysParamsState {
   customerWhiteLabelingAllowed: boolean;
   hasRepository: boolean;
   tbelEnabled: boolean;
+  persistDeviceStateToTelemetry: boolean;
+  userSettings: UserSettings;
+}
+
+export interface SysParams extends SysParamsState {
+  maxDatapointsLimit: number;
 }
 
 export interface AuthPayload extends SysParamsState {

@@ -31,7 +31,6 @@
 package org.thingsboard.server.queue.common;
 
 import org.thingsboard.server.common.msg.queue.RuleEngineException;
-import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
@@ -51,6 +50,6 @@ public class TbQueueTbMsgCallbackWrapper implements TbQueueCallback {
 
     @Override
     public void onFailure(Throwable t) {
-        tbMsgCallback.onFailure(new RuleEngineException(t.getMessage()));
+        tbMsgCallback.onFailure(new RuleEngineException(t.getMessage(), t));
     }
 }

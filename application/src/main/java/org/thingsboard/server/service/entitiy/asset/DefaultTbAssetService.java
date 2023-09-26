@@ -42,13 +42,13 @@ import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.thingsboard.server.dao.asset.BaseAssetService.TB_SERVICE_QUEUE;
@@ -67,6 +67,11 @@ public class DefaultTbAssetService extends AbstractTbEntityService implements Tb
 
     @Override
     public Asset save(Asset asset, EntityGroup entityGroup, User user) throws Exception {
+        return save(asset, entityGroup != null ? Collections.singletonList(entityGroup) : null, user);
+    }
+
+    @Override
+    public Asset save(Asset asset, List<EntityGroup> entityGroups, User user) throws Exception {
         ActionType actionType = asset.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = asset.getTenantId();
         try {
@@ -80,7 +85,7 @@ public class DefaultTbAssetService extends AbstractTbEntityService implements Tb
             }
             Asset savedAsset = checkNotNull(assetService.saveAsset(asset));
             autoCommit(user, savedAsset.getId());
-            createOrUpdateGroupEntity(tenantId, savedAsset, entityGroup, actionType, user);
+            createOrUpdateGroupEntity(tenantId, savedAsset, entityGroups, actionType, user);
             tbClusterService.broadcastEntityStateChangeEvent(tenantId, savedAsset.getId(),
                     asset.getId() == null ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
             return savedAsset;
@@ -92,19 +97,24 @@ public class DefaultTbAssetService extends AbstractTbEntityService implements Tb
 
     @Override
     public ListenableFuture<Void> delete(Asset asset, User user) {
+        ActionType actionType = ActionType.DELETED;
         TenantId tenantId = asset.getTenantId();
         AssetId assetId = asset.getId();
         try {
-            List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, assetId);
             assetService.deleteAsset(tenantId, assetId);
-            notificationEntityService.notifyDeleteEntity(tenantId, assetId, asset, asset.getCustomerId(),
-                    ActionType.DELETED, relatedEdgeIds, user, assetId.toString());
+            notificationEntityService.logEntityAction(tenantId, assetId, asset, asset.getCustomerId(), actionType, user, assetId.toString());
             tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetId, ComponentLifecycleEvent.DELETED);
             return removeAlarmsByEntityId(tenantId, assetId);
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.ASSET), ActionType.DELETED, user, e,
+            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.ASSET), actionType, user, e,
                     assetId.toString());
             throw e;
         }
+    }
+
+    @Override
+    public ListenableFuture<Void> delete(AssetId assetId, User user) {
+        Asset asset = assetService.findAssetById(user.getTenantId(), assetId);
+        return delete(asset, user);
     }
 }

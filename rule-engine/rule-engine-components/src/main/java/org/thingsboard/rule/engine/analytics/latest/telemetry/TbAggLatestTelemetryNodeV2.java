@@ -48,6 +48,8 @@ import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
@@ -63,11 +65,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @SuppressWarnings("UnstableApiUsage")
 @Slf4j
@@ -85,9 +85,9 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 )
 public class TbAggLatestTelemetryNodeV2 implements TbNode {
     private final Gson gson = new Gson();
-    private static final String TB_AGG_LATEST_NODE_MSG = "TbAggLatestNodeMsg";
+    private static final int CACHE_TTL_MULTIPLIER = 3;
     private TbAggLatestTelemetryNodeV2Configuration config;
-    private final Map<EntityId, AggDeduplicationData> lastMsgMap = new WeakHashMap<>();
+    private final Map<EntityId, AggDeduplicationData> lastMsgMap = new HashMap<>();
     private final Set<String> clientAttributeNames = new HashSet<>();
     private final Set<String> sharedAttributeNames = new HashSet<>();
     private final Set<String> serverAttributeNames = new HashSet<>();
@@ -122,6 +122,7 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
                     break;
             }
         });
+        scheduleClearInactiveEntitiesMsg(ctx);
     }
 
     private void addAllSafe(Set<String> dest, Collection<String> source) {
@@ -132,10 +133,16 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
-        if (msg.getType().equals(TB_AGG_LATEST_NODE_MSG)) {
-            processDelayedMsg(ctx, msg.getOriginator());
-        } else {
-            processRegularMsg(ctx, msg);
+        switch (msg.getInternalType()) {
+            case TB_AGG_LATEST_SELF_MSG:
+                processDelayedMsg(ctx, msg.getOriginator());
+                break;
+            case TB_AGG_LATEST_CLEAR_INACTIVE_ENTITIES_SELF_MSG:
+                processClearInactiveEntitiesMsg(ctx);
+                break;
+            default:
+                processRegularMsg(ctx, msg);
+                break;
         }
     }
 
@@ -166,6 +173,23 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
         if (deduplicationData != null && deduplicationData.getMsg() != null) {
             doCalculate(ctx, deduplicationData.getMsg(), System.currentTimeMillis());
         }
+    }
+
+    private void processClearInactiveEntitiesMsg(TbContext ctx) {
+        try {
+            long inactiveTs = System.currentTimeMillis() - config.getDeduplicationInSec() * 1000 * CACHE_TTL_MULTIPLIER;
+            lastMsgMap.entrySet()
+                    .removeIf(entry -> entry.getValue() != null
+                            && entry.getValue().getTs() < inactiveTs);
+        } finally {
+            scheduleClearInactiveEntitiesMsg(ctx);
+        }
+    }
+
+    private void scheduleClearInactiveEntitiesMsg(TbContext ctx) {
+        long delayMs = Math.max(TimeUnit.HOURS.toMillis(1), config.getDeduplicationInSec() * 1000 * CACHE_TTL_MULTIPLIER);
+        ctx.tellSelf(ctx.newMsg(null, TbMsgType.TB_AGG_LATEST_CLEAR_INACTIVE_ENTITIES_SELF_MSG, ctx.getSelfId(), null, TbMsgMetaData.EMPTY, TbMsg.EMPTY_STRING),
+                delayMs);
     }
 
     private void doCalculate(TbContext ctx, TbMsg msg, long ts) {
@@ -220,9 +244,8 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
             public void onSuccess(@Nullable Object result) {
                 try {
                     doCalculate(ctx, msg, ts, entityDataList.get());
-                } catch (InterruptedException | ExecutionException e) {
-                    log.warn("[{}] Unexpected error: {}", ctx.getSelfId(), msg.getOriginator(), e);
                 } catch (Exception e) {
+                    log.warn("[{}] Unexpected error: {}", ctx.getSelfId(), msg.getOriginator(), e);
                     onFailure(e);
                 }
             }
@@ -236,6 +259,7 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
 
     private void doCalculate(TbContext ctx, TbMsg msg, long ts, List<TbAggEntityData> childDataList) {
         if (childDataList.isEmpty()) {
+            ctx.ack(msg);
             return;
         }
         childDataList.forEach(TbAggEntityData::prepare);
@@ -253,7 +277,7 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
         }
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("ts", Long.toString(ts));
-        ctx.enqueueForTellNext(TbMsg.newMsg(config.getQueueName(), config.getOutMsgType(), msg.getOriginator(), metaData, gson.toJson(result)), SUCCESS);
+        ctx.enqueueForTellNext(TbMsg.newMsg(config.getQueueName(), config.getOutMsgType(), msg.getOriginator(), metaData, gson.toJson(result)), TbNodeConnectionType.SUCCESS);
         ctx.ack(msg);
     }
 
@@ -264,7 +288,7 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
     }
 
     private void scheduleDelayedMsg(TbContext ctx, EntityId entityId, long delayMs) {
-        ctx.tellSelf(ctx.newMsg(null, TB_AGG_LATEST_NODE_MSG, entityId, null, new TbMsgMetaData(), ""), delayMs);
+        ctx.tellSelf(ctx.newMsg(null, TbMsgType.TB_AGG_LATEST_SELF_MSG, entityId, null, TbMsgMetaData.EMPTY, TbMsg.EMPTY_STRING), delayMs);
     }
 
     @Override

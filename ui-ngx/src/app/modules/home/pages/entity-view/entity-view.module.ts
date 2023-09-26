@@ -37,16 +37,20 @@ import { EntityViewComponent } from '@modules/home/pages/entity-view/entity-view
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
 import { ENTITY_VIEW_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
 import { EntityViewGroupConfigFactory } from '@home/pages/entity-view/entity-view-group-config.factory';
+import { EntityViewTableHeaderComponent } from '@home/pages/entity-view/entity-view-table-header.component';
+import { EntityViewRoutingModule } from '@home/pages/entity-view/entity-view-routing.module';
 
 @NgModule({
   declarations: [
-    EntityViewComponent
+    EntityViewComponent,
+    EntityViewTableHeaderComponent
   ],
   imports: [
     CommonModule,
     SharedModule,
     HomeComponentsModule,
-    HomeDialogsModule
+    HomeDialogsModule,
+    EntityViewRoutingModule
   ],
   providers: [
     {

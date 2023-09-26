@@ -30,11 +30,12 @@
  */
 package org.thingsboard.server.common.data.widget;
 
-import io.swagger.annotations.ApiModelProperty;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
@@ -42,24 +43,23 @@ import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 @Data
-public class BaseWidgetType extends BaseData<WidgetTypeId> implements TenantEntity {
+public class BaseWidgetType extends BaseData<WidgetTypeId> implements HasName, TenantEntity {
 
     private static final long serialVersionUID = 8388684344603660756L;
 
     @ApiModelProperty(position = 3, value = "JSON object with Tenant Id.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private TenantId tenantId;
     @NoXss
-    @Length(fieldName = "bundleAlias")
-    @ApiModelProperty(position = 4, value = "Reference to widget bundle", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
-    private String bundleAlias;
-    @NoXss
-    @Length(fieldName = "alias")
-    @ApiModelProperty(position = 5, value = "Unique alias that is used in dashboards as a reference widget type", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
-    private String alias;
+    @Length(fieldName = "fqn")
+    @ApiModelProperty(position = 5, value = "Unique FQN that is used in dashboards as a reference widget type", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    private String fqn;
     @NoXss
     @Length(fieldName = "name")
-    @ApiModelProperty(position = 6, value = "Widget name used in search and UI", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @ApiModelProperty(position = 6, value = "Widget name used in search and UI")
     private String name;
+
+    @ApiModelProperty(position = 7, value = "Whether widget type is deprecated.", example = "true")
+    private boolean deprecated;
 
     public BaseWidgetType() {
         super();
@@ -72,9 +72,9 @@ public class BaseWidgetType extends BaseData<WidgetTypeId> implements TenantEnti
     public BaseWidgetType(BaseWidgetType widgetType) {
         super(widgetType);
         this.tenantId = widgetType.getTenantId();
-        this.bundleAlias = widgetType.getBundleAlias();
-        this.alias = widgetType.getAlias();
+        this.fqn = widgetType.getFqn();
         this.name = widgetType.getName();
+        this.deprecated = widgetType.isDeprecated();
     }
 
     @Override

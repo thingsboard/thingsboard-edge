@@ -30,6 +30,8 @@
  */
 package org.thingsboard.rule.engine.analytics.incoming;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -46,15 +48,17 @@ import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
-import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
-import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import java.util.List;
 import java.util.UUID;
@@ -67,6 +71,7 @@ import java.util.function.Consumer;
         type = ComponentType.ANALYTICS,
         name = "aggregate stream",
         configClazz = TbSimpleAggMsgNodeConfiguration.class,
+        version = 1,
         nodeDescription = "Aggregates incoming data stream grouped by originator Entity Id",
         nodeDetails = "Calculates MIN/MAX/SUM/AVG/COUNT/UNIQUE based on the incoming data stream. " +
                 "Groups incoming data stream based on originator id of the message (i.e. particular device, asset, customer) and <b>\"aggregation interval value\"</b> into Intervals.<br/><br/>" +
@@ -83,13 +88,6 @@ import java.util.function.Consumer;
 )
 public class TbSimpleAggMsgNode implements TbNode {
 
-    private static final String TB_REPORT_TICK_MSG = "TbIntervalTickMsg";
-    private static final String TB_PERSIST_TICK_MSG = "TbPersistTickMsg";
-    private static final String TB_ENTITIES_TICK_MSG = "TbEntitiesTickMsg";
-    // millis at 00:00:00.000 15 Oct 1582.
-    private static final long START_EPOCH = -12219292800000L;
-
-    private final JsonParser gsonParser = new JsonParser();
     private final Gson gson = new Gson();
 
     private StatePersistPolicy statePersistPolicy;
@@ -111,10 +109,10 @@ public class TbSimpleAggMsgNode implements TbNode {
         this.queueName = config.getQueueName();
         this.statePersistPolicy = StatePersistPolicy.valueOf(config.getStatePersistencePolicy());
         this.intervalPersistPolicy = IntervalPersistPolicy.valueOf(config.getIntervalPersistencePolicy());
-        this.intervals = new TbIntervalTable(ctx, config, gsonParser);
+        this.intervals = new TbIntervalTable(ctx, config);
         this.intervalReportCheckPeriod = Math.max(TimeUnit.valueOf(config.getIntervalCheckTimeUnit()).toMillis(config.getIntervalCheckValue()), TimeUnit.MINUTES.toMillis(1));
         this.statePersistCheckPeriod = Math.max(TimeUnit.valueOf(config.getStatePersistenceTimeUnit()).toMillis(config.getStatePersistenceValue()), TimeUnit.MINUTES.toMillis(1));
-        this.outMsgType = StringUtils.isNotBlank(config.getOutMsgType()) ? config.getOutMsgType() : SessionMsgType.POST_TELEMETRY_REQUEST.name();
+        this.outMsgType = StringUtils.isNotBlank(config.getOutMsgType()) ? config.getOutMsgType() : TbMsgType.POST_TELEMETRY_REQUEST.name();
         scheduleReportTickMsg(ctx, null);
         if (StatePersistPolicy.PERIODICALLY.name().equalsIgnoreCase(config.getStatePersistencePolicy())) {
             scheduleStatePersistTickMsg(ctx, null);
@@ -132,14 +130,14 @@ public class TbSimpleAggMsgNode implements TbNode {
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
-        switch (msg.getType()) {
-            case TB_REPORT_TICK_MSG:
+        switch (msg.getInternalType()) {
+            case TB_SIMPLE_AGG_REPORT_SELF_MSG:
                 onIntervalTickMsg(ctx, msg);
                 break;
-            case TB_PERSIST_TICK_MSG:
+            case TB_SIMPLE_AGG_PERSIST_SELF_MSG:
                 onPersistTickMsg(ctx, msg);
                 break;
-            case TB_ENTITIES_TICK_MSG:
+            case TB_SIMPLE_AGG_ENTITIES_SELF_MSG:
                 try {
                     onEntitiesTickMsg(ctx, msg);
                 } catch (Exception e) {
@@ -205,7 +203,7 @@ public class TbSimpleAggMsgNode implements TbNode {
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("ts", Long.toString(ts));
         ctx.enqueueForTellNext(TbMsg.newMsg(queueName, outMsgType, entityId, metaData,
-                interval.toValueJson(gson, config.getOutputValueKey())), TbRelationTypes.SUCCESS);
+                interval.toValueJson(gson, config.getOutputValueKey())), TbNodeConnectionType.SUCCESS);
     }
 
     private void onPersistTickMsg(TbContext ctx, TbMsg msg) {
@@ -258,24 +256,28 @@ public class TbSimpleAggMsgNode implements TbNode {
     }
 
     void scheduleReportTickMsg(TbContext ctx, TbMsg msg) {
-        TbMsg tickMsg = ctx.newMsg(queueName, TB_REPORT_TICK_MSG, ctx.getSelfId(),
-                msg != null ? msg.getCustomerId() : null, new TbMsgMetaData(), "");
+        TbMsg tickMsg = ctx.newMsg(queueName, TbMsgType.TB_SIMPLE_AGG_REPORT_SELF_MSG, ctx.getSelfId(),
+                getCustomerId(msg), TbMsgMetaData.EMPTY, TbMsg.EMPTY_STRING);
         nextReportTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, intervalReportCheckPeriod);
     }
 
     private void scheduleStatePersistTickMsg(TbContext ctx, TbMsg msg) {
-        TbMsg tickMsg = ctx.newMsg(queueName, TB_PERSIST_TICK_MSG, ctx.getSelfId(),
-                msg != null ? msg.getCustomerId() : null, new TbMsgMetaData(), "");
+        TbMsg tickMsg = ctx.newMsg(queueName, TbMsgType.TB_SIMPLE_AGG_PERSIST_SELF_MSG, ctx.getSelfId(),
+                getCustomerId(msg), TbMsgMetaData.EMPTY, TbMsg.EMPTY_STRING);
         nextPersistTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, statePersistCheckPeriod);
     }
 
     private void scheduleEntitiesTickMsg(TbContext ctx, TbMsg msg) {
-        TbMsg tickMsg = ctx.newMsg(queueName, TB_ENTITIES_TICK_MSG, ctx.getSelfId(),
-                msg != null ? msg.getCustomerId() : null, new TbMsgMetaData(), "");
+        TbMsg tickMsg = ctx.newMsg(queueName, TbMsgType.TB_SIMPLE_AGG_ENTITIES_SELF_MSG, ctx.getSelfId(),
+                getCustomerId(msg), TbMsgMetaData.EMPTY, TbMsg.EMPTY_STRING);
         nextEntitiesTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, entitiesCheckPeriod);
+    }
+
+    private CustomerId getCustomerId(TbMsg msg) {
+        return msg != null ? msg.getCustomerId() : null;
     }
 
     private long extractTs(TbMsg msg) {
@@ -305,6 +307,18 @@ public class TbSimpleAggMsgNode implements TbNode {
             throw new IllegalArgumentException("Found JSON null for [" + config.getInputValueKey() + "] key!");
         }
         return je;
+    }
+
+    @Override
+    public TbPair<Boolean, JsonNode> upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
+        if (fromVersion == 0) {
+            if (!oldConfiguration.hasNonNull("outMsgType")) {
+                ObjectNode newConfig = (ObjectNode) oldConfiguration;
+                newConfig.put("outMsgType", TbMsgType.POST_TELEMETRY_REQUEST.name());
+                return new TbPair<>(true, newConfig);
+            }
+        }
+        return new TbPair<>(false, oldConfiguration);
     }
 
 }

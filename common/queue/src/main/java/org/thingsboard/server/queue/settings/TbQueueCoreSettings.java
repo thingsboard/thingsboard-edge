@@ -43,9 +43,6 @@ public class TbQueueCoreSettings {
     @Value("${queue.core.topic}")
     private String topic;
 
-    @Value("${queue.core.integrations-topic:tb_integrations_topic}")
-    private String integrationsTopic;
-
     @Value("${queue.core.ota.topic:tb_ota_package}")
     private String otaPackageTopic;
 

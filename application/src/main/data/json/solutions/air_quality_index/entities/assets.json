@@ -2,7 +2,7 @@
   {
     "name": "Los Angeles, CA",
     "type": "AQI City",
-    "group": "Air Quality Monitoring",
+    "group": "AQI City",
     "attributes": {
       "batteryLevelThreshold": 30,
       "inactivityTimeout": 14400000

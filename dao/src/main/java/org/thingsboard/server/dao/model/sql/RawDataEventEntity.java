@@ -33,7 +33,6 @@ package org.thingsboard.server.dao.model.sql;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.event.ErrorEvent;
 import org.thingsboard.server.common.data.event.RawDataEvent;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseEntity;
@@ -42,11 +41,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
-import static org.thingsboard.server.dao.model.ModelConstants.ERROR_EVENT_TABLE_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.EVENT_ERROR_COLUMN_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.EVENT_MESSAGE_COLUMN_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.EVENT_MESSAGE_TYPE_COLUMN_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.EVENT_METHOD_COLUMN_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.EVENT_UUID_COLUMN_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.RAW_DATA_EVENT_TABLE_NAME;
 

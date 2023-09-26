@@ -37,7 +37,7 @@ $previewSize: 100px !default;
   .tb-container {
     margin-top: 0;
     label.tb-title {
-      display: block;
+      display: flex;
       padding-bottom: 8px;
     }
   }
@@ -102,13 +102,14 @@ $previewSize: 100px !default;
   button.browse-file {
     padding: 0;
     font-size: 16px;
-    span.mat-button-wrapper {
+    label {
       display: block;
-      label {
-        display: block;
-        cursor: pointer;
-        padding: 0 16px;
-      }
+      cursor: pointer;
+      padding: 0 16px;
     }
+  }
+
+  .pointer-event {
+    pointer-events: auto;
   }
 }

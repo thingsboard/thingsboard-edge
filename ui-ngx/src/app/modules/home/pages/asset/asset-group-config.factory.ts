@@ -39,7 +39,7 @@ import {
 } from '@home/models/group/group-entities-table-config.models';
 import { Inject, Injectable } from '@angular/core';
 import { EntityType } from '@shared/models/entity-type.models';
-import { tap } from 'rxjs/operators';
+import { mergeMap, tap } from 'rxjs/operators';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { MatDialog } from '@angular/material/dialog';
@@ -48,7 +48,7 @@ import { EntityGroupParams } from '@shared/models/entity-group.models';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
-import { Asset } from '@shared/models/asset.models';
+import { AssetInfo } from '@shared/models/asset.models';
 import { AssetService } from '@core/http/asset.service';
 import { AssetComponent } from '@home/pages/asset/asset.component';
 import { Operation } from '@shared/models/security.models';
@@ -56,9 +56,9 @@ import { Router, UrlTree } from '@angular/router';
 import { WINDOW } from '@core/services/window.service';
 
 @Injectable()
-export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<Asset> {
+export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<AssetInfo> {
 
-  constructor(private groupConfigTableConfigService: GroupConfigTableConfigService<Asset>,
+  constructor(private groupConfigTableConfigService: GroupConfigTableConfigService<AssetInfo>,
               private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
               private utils: UtilsService,
@@ -70,10 +70,11 @@ export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<As
               @Inject(WINDOW) private window: Window) {
   }
 
-  createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<Asset>): Observable<GroupEntityTableConfig<Asset>> {
-    const config = new GroupEntityTableConfig<Asset>(entityGroup, params);
+  createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<AssetInfo>): Observable<GroupEntityTableConfig<AssetInfo>> {
+    const config = new GroupEntityTableConfig<AssetInfo>(entityGroup, params);
 
     config.entityComponent = AssetComponent;
+    config.addDialogStyle = {height: '620px'};
 
     config.entityTitle = (asset) => asset ?
       this.utils.customTranslation(asset.name, asset.name) : '';
@@ -83,13 +84,13 @@ export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<As
     config.deleteEntitiesTitle = count => this.translate.instant('asset.delete-assets-title', {count});
     config.deleteEntitiesContent = () => this.translate.instant('asset.delete-assets-text');
 
-    config.loadEntity = id => this.assetService.getAsset(id.id);
-    config.saveEntity = asset => {
-      return this.assetService.saveAsset(asset).pipe(
+    config.loadEntity = id => this.assetService.getAssetInfo(id.id);
+    config.saveEntity = asset => this.assetService.saveAsset(asset).pipe(
         tap(() => {
           this.broadcast.broadcast('assetSaved');
-        }));
-    };
+        }),
+        mergeMap((savedAsset) => this.assetService.getAssetInfo(savedAsset.id.id)
+        ));
     config.deleteEntity = id => this.assetService.deleteAsset(id.id);
 
     config.onEntityAction = action => this.onAssetAction(action, config, params);
@@ -107,7 +108,7 @@ export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<As
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
   }
 
-  importAssets($event: Event, config: GroupEntityTableConfig<Asset>) {
+  importAssets($event: Event, config: GroupEntityTableConfig<AssetInfo>) {
     const entityGroup = config.entityGroup;
     const entityGroupId = !entityGroup.groupAll ? entityGroup.id.id : null;
     let customerId: CustomerId = null;
@@ -122,7 +123,7 @@ export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<As
     });
   }
 
-  private openAsset($event: Event, asset: Asset, config: GroupEntityTableConfig<Asset>, params: EntityGroupParams) {
+  private openAsset($event: Event, asset: AssetInfo, config: GroupEntityTableConfig<AssetInfo>, params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -132,8 +133,8 @@ export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<As
         url = this.router.createUrlTree(['customerGroups', params.entityGroupId, params.customerId,
           'edgeGroups', params.childEntityGroupId, params.edgeId, 'assetGroups', params.edgeEntitiesGroupId, asset.id.id]);
       } else {
-        url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
-          params.customerId, 'assetGroups', params.childEntityGroupId, asset.id.id]);
+        url = this.router.createUrlTree(['customers', 'groups', params.entityGroupId,
+          params.customerId, 'entities', 'assets', 'groups', params.childEntityGroupId, asset.id.id]);
       }
       this.window.open(window.location.origin + url, '_blank');
     } else {
@@ -142,10 +143,23 @@ export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<As
     }
   }
 
-  onAssetAction(action: EntityAction<Asset>, config: GroupEntityTableConfig<Asset>, params: EntityGroupParams): boolean {
+  manageOwnerAndGroups($event: Event, asset: AssetInfo, config: GroupEntityTableConfig<AssetInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, asset).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
+  }
+
+  onAssetAction(action: EntityAction<AssetInfo>, config: GroupEntityTableConfig<AssetInfo>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
         this.openAsset(action.event, action.entity, config, params);
+        return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
         return true;
     }
     return false;

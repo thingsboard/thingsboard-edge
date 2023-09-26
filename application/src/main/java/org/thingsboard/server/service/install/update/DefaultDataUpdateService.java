@@ -30,10 +30,9 @@
  */
 package org.thingsboard.server.service.install.update;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -43,10 +42,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode;
-import org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNode;
-import org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2;
-import org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNode;
+import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.flow.TbRuleChainInputNode;
 import org.thingsboard.rule.engine.flow.TbRuleChainInputNodeConfiguration;
 import org.thingsboard.rule.engine.profile.TbDeviceProfileNode;
@@ -60,7 +56,6 @@ import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.ShortCustomerInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
@@ -79,7 +74,6 @@ import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.integration.AbstractIntegration;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -89,6 +83,7 @@ import org.thingsboard.server.common.data.kv.BaseReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -108,10 +103,7 @@ import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileQueueConfiguration;
-import org.thingsboard.server.common.data.wl.Favicon;
-import org.thingsboard.server.common.data.wl.PaletteSettings;
-import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
-import org.thingsboard.server.common.msg.session.SessionMsgType;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -134,15 +126,15 @@ import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.dao.sql.JpaExecutorService;
 import org.thingsboard.server.dao.sql.device.DeviceProfileRepository;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
-import org.thingsboard.server.dao.wl.WhiteLabelingService;
+import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
-import org.thingsboard.server.service.install.TbRuleEngineQueueConfigService;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -155,6 +147,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.StringUtils.isBlank;
@@ -164,11 +157,8 @@ import static org.thingsboard.server.common.data.StringUtils.isBlank;
 @Slf4j
 public class DefaultDataUpdateService implements DataUpdateService {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final int MAX_PENDING_SAVE_RULE_NODE_FUTURES = 100;
 
-    private static final String WHITE_LABEL_PARAMS = "whiteLabelParams";
-    private static final String LOGO_IMAGE = "logoImage";
-    private static final String LOGO_IMAGE_CHECKSUM = "logoImageChecksum";
     private static final String MAIL_TEMPLATES = "mailTemplates";
     private static final int DEFAULT_LIMIT = 100;
     public static final String USE_SYSTEM_MAIL_SETTINGS = "useSystemMailSettings";
@@ -219,9 +209,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private SystemDataLoaderService systemDataLoaderService;
 
     @Autowired
-    private WhiteLabelingService whiteLabelingService;
-
-    @Autowired
     private AttributesService attributesService;
 
     @Autowired
@@ -247,7 +234,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private QueueService queueService;
 
     @Autowired
-    private TbRuleEngineQueueConfigService queueConfig;
+    private ComponentDiscoveryService componentDiscoveryService;
 
     @Autowired
     private EventService eventService;
@@ -259,6 +246,12 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private BlobEntityDao blobEntityDao;
     @Autowired
     private EdgeEventDao edgeEventDao;
+
+    @Autowired
+    private IntegrationRateLimitsUpdater integrationRateLimitsUpdater;
+
+    @Autowired
+    JpaExecutorService jpaExecutorService;
 
     @Override
     public void updateData(String fromVersion) throws Exception {
@@ -309,13 +302,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 } else {
                     log.info("Skipping audit logs migration");
                 }
-                boolean skipEdgeEventsMigration = getEnv("TB_SKIP_EDGE_EVENTS_MIGRATION", false);
-                if (!skipEdgeEventsMigration) {
-                    log.info("Starting edge events migration. Can be skipped with TB_SKIP_EDGE_EVENTS_MIGRATION env variable set to true");
-                    edgeEventDao.migrateEdgeEvents();
-                } else {
-                    log.info("Skipping edge events migration");
-                }
+                migrateEdgeEvents("Starting edge events migration. ");
                 boolean skipBlobEntitiesMigration = getEnv("TB_SKIP_BLOB_ENTITIES_MIGRATION", false);
                 if (!skipBlobEntitiesMigration) {
                     log.info("Starting blob entities migration. Can be skipped with TB_SKIP_BLOB_ENTITIES_MIGRATION set to true");
@@ -324,8 +311,13 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     log.info("Skipping blob entities migration");
                 }
                 break;
-            case "3.4.4":
-                log.info("Updating data from version 3.4.4 to 3.4.4PE ...");
+            case "3.5.1":
+                log.info("Updating data from version 3.5.1 to 3.6.0 ...");
+                integrationRateLimitsUpdater.updateEntities();
+                migrateEdgeEvents("Starting edge events migration - adding seq_id column. ");
+                break;
+            case "ce":
+                log.info("Updating data ...");
                 tenantsCustomersGroupAllUpdater.updateEntities();
                 tenantEntitiesGroupAllUpdater.updateEntities();
                 tenantIntegrationUpdater.updateEntities();
@@ -337,17 +329,85 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     systemDataLoaderService.updateMailTemplates(mailTemplateSettings.getId(), mailTemplateSettings.getJsonValue());
                 }
 
-                //White Labeling updates
-                updateSystemWhiteLabelingParameters();
-                List<ListenableFuture<WhiteLabelingParams>> futures = tenantsWhiteLabelingUpdater.updateEntities(null);
-                for (ListenableFuture<WhiteLabelingParams> future : futures) {
-                    future.get();
-                }
-                updateAnalyticsRuleNode();
+                // todo: update TbDuplicateMsgToGroupNode to use TbVersionedNode interface.
                 updateDuplicateMsgRuleNode();
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
+        }
+    }
+
+    private void migrateEdgeEvents(String logPrefix) {
+        boolean skipEdgeEventsMigration = getEnv("TB_SKIP_EDGE_EVENTS_MIGRATION", false);
+        if (!skipEdgeEventsMigration) {
+            log.info(logPrefix + "Can be skipped with TB_SKIP_EDGE_EVENTS_MIGRATION env variable set to true");
+            edgeEventDao.migrateEdgeEvents();
+        } else {
+            log.info("Skipping edge events migration");
+        }
+    }
+
+    @Override
+    public void upgradeRuleNodes() {
+        try {
+            var futures = new ArrayList<ListenableFuture<?>>(100);
+            int totalRuleNodesUpgraded = 0;
+            log.info("Starting rule nodes upgrade ...");
+            var nodeClassToVersionMap = componentDiscoveryService.getVersionedNodes();
+            log.debug("Found {} versioned nodes to check for upgrade!", nodeClassToVersionMap.size());
+            for (var ruleNodeClassInfo : nodeClassToVersionMap) {
+                var ruleNodeType = ruleNodeClassInfo.getClassName();
+                var ruleNodeTypeForLogs = ruleNodeClassInfo.getSimpleName();
+                var toVersion = ruleNodeClassInfo.getCurrentVersion();
+                log.debug("Going to check for nodes with type: {} to upgrade to version: {}.", ruleNodeTypeForLogs, toVersion);
+                var ruleNodesToUpdate = new PageDataIterable<>(
+                        pageLink -> ruleChainService.findAllRuleNodesByTypeAndVersionLessThan(ruleNodeType, toVersion, pageLink), 1024
+                );
+                if (Iterables.isEmpty(ruleNodesToUpdate)) {
+                    log.debug("There are no active nodes with type: {}, or all nodes with this type already set to latest version!", ruleNodeTypeForLogs);
+                } else {
+                    for (var ruleNode : ruleNodesToUpdate) {
+                        var ruleNodeId = ruleNode.getId();
+                        var oldConfiguration = ruleNode.getConfiguration();
+                        int fromVersion = ruleNode.getConfigurationVersion();
+                        log.debug("Going to upgrade rule node with id: {} type: {} fromVersion: {} toVersion: {}",
+                                ruleNodeId, ruleNodeTypeForLogs, fromVersion, toVersion);
+                        try {
+                            var tbVersionedNode = (TbNode) ruleNodeClassInfo.getClazz().getDeclaredConstructor().newInstance();
+                            TbPair<Boolean, JsonNode> upgradeRuleNodeConfigurationResult = tbVersionedNode.upgrade(fromVersion, oldConfiguration);
+                            if (upgradeRuleNodeConfigurationResult.getFirst()) {
+                                ruleNode.setConfiguration(upgradeRuleNodeConfigurationResult.getSecond());
+                            }
+                            ruleNode.setConfigurationVersion(toVersion);
+                            futures.add(jpaExecutorService.submit(() -> {
+                                ruleChainService.saveRuleNode(TenantId.SYS_TENANT_ID, ruleNode);
+                                log.debug("Successfully upgrade rule node with id: {} type: {} fromVersion: {} toVersion: {}",
+                                        ruleNodeId, ruleNodeTypeForLogs, fromVersion, toVersion);
+                            }));
+                            if (futures.size() >= MAX_PENDING_SAVE_RULE_NODE_FUTURES) {
+                                log.info("{} upgraded rule nodes so far ...",
+                                        totalRuleNodesUpgraded += awaitFuturesToCompleteAndGetCount(futures));
+                                futures.clear();
+                            }
+                        } catch (Exception e) {
+                            log.warn("Failed to upgrade rule node with id: {} type: {} fromVersion: {} toVersion: {} due to: ",
+                                    ruleNodeId, ruleNodeTypeForLogs, fromVersion, toVersion, e);
+                        }
+                    }
+                }
+            }
+            log.info("Finished rule nodes upgrade. Upgraded rule nodes count: {}",
+                    totalRuleNodesUpgraded + awaitFuturesToCompleteAndGetCount(futures));
+        } catch (Exception e) {
+            log.error("Unexpected error during rule nodes upgrade: ", e);
+        }
+    }
+
+    private int awaitFuturesToCompleteAndGetCount(List<ListenableFuture<?>> futures) {
+        try {
+            return Futures.allAsList(futures).get().size();
+        } catch (ExecutionException | InterruptedException e) {
+            throw new RuntimeException("Failed to process save rule nodes requests due to: ", e);
         }
     }
 
@@ -498,33 +558,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
     }
 
-    private void updateAnalyticsRuleNode() {
-        List<String> ruleNodeNames = new ArrayList<>();
-        ruleNodeNames.add(TbSimpleAggMsgNode.class.getName());
-        ruleNodeNames.add(TbAlarmsCountNode.class.getName());
-        ruleNodeNames.add(TbAlarmsCountNodeV2.class.getName());
-        ruleNodeNames.add(TbAggLatestTelemetryNode.class.getName());
-
-        ruleNodeNames.forEach(ruleNodeName -> {
-            PageDataIterable<RuleNode> ruleNodesIterator = new PageDataIterable<>(link -> ruleChainService.findAllRuleNodesByType(ruleNodeName, link), 1024);
-            ruleNodesIterator.forEach(ruleNode -> {
-                JsonNode json = ruleNode.getConfiguration();
-                if (json != null && json.isObject()) {
-                    ObjectNode configNode = (ObjectNode) json;
-                    if (!configNode.has("outMsgType")) {
-                        RuleChain targetRuleChain = ruleChainService.findRuleChainById(TenantId.SYS_TENANT_ID, ruleNode.getRuleChainId());
-                        if (targetRuleChain != null) {
-                            TenantId tenantId = targetRuleChain.getTenantId();
-                            configNode.put("outMsgType", SessionMsgType.POST_TELEMETRY_REQUEST.name());
-                            ruleNode.setConfiguration(JacksonUtil.valueToTree(configNode));
-                            ruleChainService.saveRuleNode(tenantId, ruleNode);
-                        }
-                    }
-                }
-            });
-        });
-    }
-    
     private void updateDuplicateMsgRuleNode() {
         PageDataIterable<RuleNode> ruleNodesIterator = new PageDataIterable<>(
                 link -> ruleChainService.findAllRuleNodesByType(TbDuplicateMsgToGroupNode.class.getName(), link), 1024);
@@ -633,8 +666,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
                             md.getNodes().add(ruleNode);
                             md.setFirstNodeIndex(newIdx);
-                            md.addConnectionInfo(newIdx, oldIdx, "Success");
-                            ruleChainService.saveRuleChainMetaData(tenant.getId(), md);
+                            md.addConnectionInfo(newIdx, oldIdx, TbNodeConnectionType.SUCCESS);
+                            ruleChainService.saveRuleChainMetaData(tenant.getId(), md, Function.identity());
                         }
                     } catch (Exception e) {
                         log.error("[{}] Unable to update Tenant: {}", tenant.getId(), tenant.getName(), e);
@@ -681,26 +714,16 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
                 @Override
                 protected void updateEntity(Tenant tenant) {
-                    try {
-                        List<EntityGroup> entityGroups = entityGroupService.findAllEntityGroups(TenantId.SYS_TENANT_ID, tenant.getId()).get();
-                        for (EntityGroup entityGroup : entityGroups) {
-                            if (entityGroup.getOwnerId() == null || entityGroup.getOwnerId().isNullUid()) {
-                                entityGroup.setOwnerId(tenant.getId());
-                                entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, tenant.getId(), entityGroup);
-                            }
-                        }
-                        EntityGroup entityGroup;
-                        Optional<EntityGroup> customerGroupOptional =
-                                entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, tenant.getId(), EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
-                        if (!customerGroupOptional.isPresent()) {
-                            entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, tenant.getId(), EntityType.CUSTOMER);
-                        } else {
-                            entityGroup = customerGroupOptional.get();
-                        }
-                        new CustomersGroupAllUpdater(entityGroup).updateEntities(tenant.getId());
-                    } catch (InterruptedException | ExecutionException e) {
-                        log.error("Unable to update Tenant", e);
+                    new EntityGroupsOwnerUpdater(tenant.getId()).updateEntities(tenant.getId());
+                    EntityGroup entityGroup;
+                    Optional<EntityGroup> customerGroupOptional =
+                            entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, tenant.getId(), EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
+                    if (!customerGroupOptional.isPresent()) {
+                        entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, tenant.getId(), EntityType.CUSTOMER);
+                    } else {
+                        entityGroup = customerGroupOptional.get();
                     }
+                    new CustomersGroupAllUpdater(entityGroup).updateEntities(tenant.getId());
                 }
             };
 
@@ -767,6 +790,34 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
             };
 
+    private class EntityGroupsOwnerUpdater extends PaginatedUpdater<EntityId, EntityGroup> {
+
+        private final EntityId ownerId;
+
+        public EntityGroupsOwnerUpdater(EntityId ownerId) {
+            this.ownerId = ownerId;
+        }
+
+        @Override
+        protected String getName() {
+            return "Entity groups owner updater";
+        }
+
+        @Override
+        protected PageData<EntityGroup> findEntities(EntityId parentEntityId, PageLink pageLink) {
+            return entityGroupService.findAllEntityGroupsByParentRelation(TenantId.SYS_TENANT_ID, parentEntityId, pageLink);
+        }
+
+        @Override
+        protected void updateEntity(EntityGroup entityGroup) {
+            if (entityGroup.getOwnerId() == null || entityGroup.getOwnerId().isNullUid()) {
+                entityGroup.setOwnerId(this.ownerId);
+                entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, this.ownerId, entityGroup);
+            }
+        }
+
+    }
+
     private class TenantAdminsGroupAllUpdater extends GroupAllPaginatedUpdater<TenantId, User> {
 
         private final EntityGroup tenantAdmins;
@@ -809,7 +860,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         @Override
         protected PageData<User> findEntities(TenantId id, PageLink pageLink) {
             try {
-                List<EntityId> entityIds = entityGroupService.findAllEntityIds(TenantId.SYS_TENANT_ID, groupAll.getId(), new PageLink(Integer.MAX_VALUE)).get();
+                List<EntityId> entityIds = entityGroupService.findAllEntityIdsAsync(TenantId.SYS_TENANT_ID, groupAll.getId(), new PageLink(Integer.MAX_VALUE)).get();
                 List<UserId> userIds = entityIds.stream().map(entityId -> new UserId(entityId.getId())).collect(Collectors.toList());
                 List<User> users;
                 if (!userIds.isEmpty()) {
@@ -887,37 +938,27 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 return;
             }
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), customer.getId());
-            try {
-                List<EntityGroup> entityGroups = entityGroupService.findAllEntityGroups(TenantId.SYS_TENANT_ID, customer.getId()).get();
-                for (EntityGroup entityGroup : entityGroups) {
-                    if (!customer.getId().equals(entityGroup.getOwnerId())) {
-                        entityGroup.setOwnerId(customer.getId());
-                        entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, customer.getId(), entityGroup);
-                    }
-                }
-                EntityType[] entityGroupTypes = new EntityType[]{EntityType.USER, EntityType.CUSTOMER, EntityType.ASSET, EntityType.DEVICE, EntityType.DASHBOARD, EntityType.ENTITY_VIEW, EntityType.EDGE};
-                for (EntityType groupType : entityGroupTypes) {
-                    Optional<EntityGroup> entityGroupOptional =
-                            entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, customer.getId(), groupType, EntityGroup.GROUP_ALL_NAME);
-                    if (!entityGroupOptional.isPresent()) {
-                        EntityGroup entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, customer.getId(), groupType);
-                        if (groupType == EntityType.USER) {
-                            if (!customer.isPublic()) {
-                                entityGroupService.findOrCreateCustomerAdminsGroup(customer.getTenantId(), customer.getId(), null);
-                                Optional<EntityGroup> customerUsersOptional =
-                                        entityGroupService.findEntityGroupByTypeAndName(customer.getTenantId(), customer.getId(), EntityType.USER, EntityGroup.GROUP_CUSTOMER_USERS_NAME);
-                                if (!customerUsersOptional.isPresent()) {
-                                    EntityGroup customerUsers = entityGroupService.findOrCreateCustomerUsersGroup(customer.getTenantId(), customer.getId(), null);
-                                    new CustomerUsersGroupAllUpdater(customer.getTenantId(), entityGroup, customerUsers).updateEntities(customer.getId());
-                                }
-                            } else {
-                                entityGroupService.findOrCreatePublicUsersGroup(customer.getTenantId(), customer.getId());
+            new EntityGroupsOwnerUpdater(customer.getId()).updateEntities(customer.getId());
+            EntityType[] entityGroupTypes = new EntityType[]{EntityType.USER, EntityType.CUSTOMER, EntityType.ASSET, EntityType.DEVICE, EntityType.DASHBOARD, EntityType.ENTITY_VIEW, EntityType.EDGE};
+            for (EntityType groupType : entityGroupTypes) {
+                Optional<EntityGroup> entityGroupOptional =
+                        entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, customer.getId(), groupType, EntityGroup.GROUP_ALL_NAME);
+                if (!entityGroupOptional.isPresent()) {
+                    EntityGroup entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, customer.getId(), groupType);
+                    if (groupType == EntityType.USER) {
+                        if (!customer.isPublic()) {
+                            entityGroupService.findOrCreateCustomerAdminsGroup(customer.getTenantId(), customer.getId(), null);
+                            Optional<EntityGroup> customerUsersOptional =
+                                    entityGroupService.findEntityGroupByTypeAndName(customer.getTenantId(), customer.getId(), EntityType.USER, EntityGroup.GROUP_CUSTOMER_USERS_NAME);
+                            if (!customerUsersOptional.isPresent()) {
+                                EntityGroup customerUsers = entityGroupService.findOrCreateCustomerUsersGroup(customer.getTenantId(), customer.getId(), null);
+                                new CustomerUsersGroupAllUpdater(customer.getTenantId(), entityGroup, customerUsers).updateEntities(customer.getId());
                             }
+                        } else {
+                            entityGroupService.findOrCreatePublicUsersGroup(customer.getTenantId(), customer.getId());
                         }
                     }
                 }
-            } catch (InterruptedException | ExecutionException e) {
-                log.error("Unable to update Customer", e);
             }
         }
     }
@@ -948,7 +989,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 return dashboardService.findDashboardsByTenantId(id, pageLink);
             } else {
                 try {
-                    List<EntityId> entityIds = entityGroupService.findAllEntityIds(TenantId.SYS_TENANT_ID, groupAll.getId(), new PageLink(Integer.MAX_VALUE)).get();
+                    List<EntityId> entityIds = entityGroupService.findAllEntityIdsAsync(TenantId.SYS_TENANT_ID, groupAll.getId(), new PageLink(Integer.MAX_VALUE)).get();
                     List<DashboardId> dashboardIds = entityIds.stream().map(entityId -> new DashboardId(entityId.getId())).collect(Collectors.toList());
                     List<DashboardInfo> dashboards;
                     if (!dashboardIds.isEmpty()) {
@@ -992,48 +1033,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
             }
         }
     }
-
-    private WhiteLabelingPaginatedUpdater<String, Tenant> tenantsWhiteLabelingUpdater = new WhiteLabelingPaginatedUpdater<String, Tenant>() {
-
-        @Override
-        protected String getName() {
-            return "Tenants white-labeling updater";
-        }
-
-        @Override
-        protected PageData<Tenant> findEntities(String id, PageLink pageLink) {
-            return tenantService.findTenants(pageLink);
-        }
-
-        @Override
-        protected ListenableFuture<WhiteLabelingParams> updateEntity(Tenant tenant) throws Exception {
-            List<ListenableFuture<WhiteLabelingParams>> futures = customersWhiteLabelingUpdater.updateEntities(tenant.getId());
-            for (ListenableFuture<WhiteLabelingParams> future : futures) {
-                future.get();
-            }
-            ListenableFuture<List<String>> future = updateTenantMailTemplates(tenant.getId());
-            return Futures.transformAsync(future, l -> updateEntityWhiteLabelingParameters(tenant.getId()),
-                    MoreExecutors.directExecutor());
-        }
-    };
-
-    private WhiteLabelingPaginatedUpdater<TenantId, Customer> customersWhiteLabelingUpdater = new WhiteLabelingPaginatedUpdater<TenantId, Customer>() {
-
-        @Override
-        protected String getName() {
-            return "Customers white-labeling updater";
-        }
-
-        @Override
-        protected PageData<Customer> findEntities(TenantId id, PageLink pageLink) {
-            return customerService.findCustomersByTenantId(id, pageLink);
-        }
-
-        @Override
-        protected ListenableFuture<WhiteLabelingParams> updateEntity(Customer customer) {
-            return updateEntityWhiteLabelingParameters(customer.getId());
-        }
-    };
 
     private PaginatedUpdater<String, Tenant> tenantIntegrationUpdater = new PaginatedUpdater<String, Tenant>() {
         @Override
@@ -1107,50 +1106,10 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }, MoreExecutors.directExecutor());
     }
 
-    private void updateSystemWhiteLabelingParameters() {
-        AdminSettings whiteLabelParamsSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, WHITE_LABEL_PARAMS);
-        JsonNode storedWl = null;
-        String logoImageUrl = null;
-        if (whiteLabelParamsSettings != null) {
-            String json = whiteLabelParamsSettings.getJsonValue().get("value").asText();
-            if (!StringUtils.isEmpty(json)) {
-                try {
-                    storedWl = objectMapper.readTree(json);
-                } catch (IOException e) {
-                    log.error("Unable to read System White Labeling Params!", e);
-                }
-            }
-        }
-        AdminSettings logoImageSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, LOGO_IMAGE);
-        if (logoImageSettings != null) {
-            logoImageUrl = logoImageSettings.getJsonValue().get("value").asText();
-        }
-        WhiteLabelingParams preparedWhiteLabelingParams = createWhiteLabelingParams(storedWl, logoImageUrl, true);
-        whiteLabelingService.saveSystemWhiteLabelingParams(preparedWhiteLabelingParams);
-        adminSettingsService.deleteAdminSettingsByKey(TenantId.SYS_TENANT_ID, LOGO_IMAGE);
-        adminSettingsService.deleteAdminSettingsByKey(TenantId.SYS_TENANT_ID, LOGO_IMAGE_CHECKSUM);
-    }
-
-    private ListenableFuture<WhiteLabelingParams> updateEntityWhiteLabelingParameters(EntityId entityId) {
-        JsonNode storedWl = getEntityWhiteLabelParams(entityId);
-        String logoImageUrl = getEntityAttributeValue(entityId, LOGO_IMAGE);
-        WhiteLabelingParams preparedWhiteLabelingParams = createWhiteLabelingParams(storedWl, logoImageUrl, false);
-        ListenableFuture<WhiteLabelingParams> result = Futures.immediateFuture(null);
-        if (entityId.getEntityType() == EntityType.TENANT) {
-            result = whiteLabelingService.saveTenantWhiteLabelingParams(new TenantId(entityId.getId()), preparedWhiteLabelingParams);
-        }
-        if (entityId.getEntityType() == EntityType.CUSTOMER) {
-            result = whiteLabelingService.saveCustomerWhiteLabelingParams(TenantId.SYS_TENANT_ID, new CustomerId(entityId.getId()), preparedWhiteLabelingParams);
-        }
-        deleteEntityAttribute(entityId, LOGO_IMAGE);
-        deleteEntityAttribute(entityId, LOGO_IMAGE_CHECKSUM);
-        return result;
-    }
-
     private ListenableFuture<List<String>> updateTenantMailTemplates(TenantId tenantId) throws IOException {
         String mailTemplatesJsonString = getEntityAttributeValue(tenantId, MAIL_TEMPLATES);
         if (!StringUtils.isEmpty(mailTemplatesJsonString)) {
-            JsonNode oldMailTemplates = objectMapper.readTree(mailTemplatesJsonString);
+            JsonNode oldMailTemplates = JacksonUtil.toJsonNode(mailTemplatesJsonString);
             ObjectNode updatedMailTemplates = installScripts.updateMailTemplates(oldMailTemplates);
 
             if (oldMailTemplates.has(USE_SYSTEM_MAIL_SETTINGS)) {
@@ -1216,13 +1175,13 @@ public class DefaultDataUpdateService implements DataUpdateService {
             };
 
     private void updateTenantAlarmsCustomer(TenantId tenantId, String name, AtomicLong processed) {
-        AlarmQuery alarmQuery = new AlarmQuery(null, new TimePageLink(1024 * 4), null, null, false);
+        AlarmQuery alarmQuery = new AlarmQuery(null, new TimePageLink(1024 * 4), null, null, null, false);
         PageData<AlarmInfo> alarms = alarmDao.findAlarms(tenantId, alarmQuery);
         boolean hasNext = true;
         while (hasNext) {
             for (Alarm alarm : alarms.getData()) {
                 if (alarm.getCustomerId() == null && alarm.getOriginator() != null) {
-                    alarm.setCustomerId(entityService.fetchEntityCustomerId(tenantId, alarm.getOriginator()));
+                    alarm.setCustomerId(entityService.fetchEntityCustomerId(tenantId, alarm.getOriginator()).get());
                     alarmDao.save(tenantId, alarm);
                 }
                 if (processed.incrementAndGet() % 1000 == 0) {
@@ -1238,116 +1197,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
     }
 
-    private WhiteLabelingParams createWhiteLabelingParams(JsonNode storedWl, String logoImageUrl, boolean isSystem) {
-        WhiteLabelingParams whiteLabelingParams = new WhiteLabelingParams();
-        whiteLabelingParams.setLogoImageUrl(logoImageUrl);
-        if (storedWl != null) {
-            if (storedWl.has("logoImageUrl")) {
-                logoImageUrl = storedWl.get("logoImageUrl").asText();
-                if (!StringUtils.isEmpty(logoImageUrl) && !"null".equals(logoImageUrl)) {
-                    whiteLabelingParams.setLogoImageUrl(logoImageUrl);
-                }
-            }
-            if (storedWl.has("logoImageHeight")) {
-                int logoImageHeight = storedWl.get("logoImageHeight").asInt();
-                if (logoImageHeight > 0) {
-                    whiteLabelingParams.setLogoImageHeight(logoImageHeight);
-                }
-            }
-            if (storedWl.has("appTitle")) {
-                String appTitle = storedWl.get("appTitle").asText();
-                if (!StringUtils.isEmpty(appTitle) && !"null".equals(appTitle)) {
-                    whiteLabelingParams.setAppTitle(appTitle);
-                }
-            }
-            if (storedWl.has("faviconUrl")) {
-                String faviconUrl = storedWl.get("faviconUrl").asText();
-                if (!StringUtils.isEmpty(faviconUrl) && !"null".equals(faviconUrl)) {
-                    String faviconType = "";
-                    if (storedWl.has("faviconType")) {
-                        faviconType = storedWl.get("faviconType").asText();
-                    }
-                    Favicon favicon;
-                    if (StringUtils.isEmpty(faviconType)) {
-                        favicon = new Favicon(faviconUrl);
-                    } else {
-                        favicon = new Favicon(faviconUrl, faviconType);
-                    }
-                    whiteLabelingParams.setFavicon(favicon);
-                }
-            }
-            if (storedWl.has("favicon")) {
-                JsonNode faviconJson = storedWl.get("favicon");
-                Favicon favicon = null;
-                try {
-                    favicon = objectMapper.treeToValue(faviconJson, Favicon.class);
-                } catch (JsonProcessingException e) {
-                    log.error("Unable to read Favicon from previous White Labeling Params!", e);
-                }
-                whiteLabelingParams.setFavicon(favicon);
-            }
-            if (storedWl.has("paletteSettings")) {
-                JsonNode paletteSettingsJson = storedWl.get("paletteSettings");
-                PaletteSettings paletteSettings = null;
-                try {
-                    paletteSettings = objectMapper.treeToValue(paletteSettingsJson, PaletteSettings.class);
-                } catch (JsonProcessingException e) {
-                    log.error("Unable to read Palette Settings from previous White Labeling Params!", e);
-                }
-                whiteLabelingParams.setPaletteSettings(paletteSettings);
-            }
-            if (storedWl.has("customCss")) {
-                String customCss = storedWl.get("customCss").asText();
-                if (!StringUtils.isEmpty(customCss) && !"null".equals(customCss)) {
-                    whiteLabelingParams.setCustomCss(customCss);
-                }
-            }
-        }
-        if (isSystem) {
-            String helpLinkBaseUrl = "https://thingsboard.io";
-            if (storedWl != null && storedWl.has("helpLinkBaseUrl")) {
-                JsonNode helpLinkBaseUrlJson = storedWl.get("helpLinkBaseUrl");
-                if (helpLinkBaseUrlJson.isTextual()) {
-                    if (!StringUtils.isEmpty(helpLinkBaseUrlJson.asText())) {
-                        helpLinkBaseUrl = helpLinkBaseUrlJson.asText();
-                    }
-                }
-            }
-            whiteLabelingParams.setHelpLinkBaseUrl(helpLinkBaseUrl);
-            String uiHelpBaseUrl = null;
-            if (storedWl != null && storedWl.has("uiHelpBaseUrl")) {
-                JsonNode uiHelpBaseUrlJson = storedWl.get("uiHelpBaseUrl");
-                if (uiHelpBaseUrlJson.isTextual()) {
-                    if (!StringUtils.isEmpty(uiHelpBaseUrlJson.asText())) {
-                        uiHelpBaseUrl = uiHelpBaseUrlJson.asText();
-                    }
-                }
-            }
-            whiteLabelingParams.setUiHelpBaseUrl(uiHelpBaseUrl);
-            if (storedWl != null && storedWl.has("enableHelpLinks")) {
-                whiteLabelingParams.setEnableHelpLinks(storedWl.get("enableHelpLinks").asBoolean());
-            } else {
-                whiteLabelingParams.setEnableHelpLinks(true);
-            }
-        }
-        return whiteLabelingParams;
-    }
-
-    private JsonNode getEntityWhiteLabelParams(EntityId entityId) {
-        String value = getEntityAttributeValue(entityId, WHITE_LABEL_PARAMS);
-        if (!StringUtils.isEmpty(value)) {
-            try {
-                return objectMapper.readTree(value);
-            } catch (IOException e) {
-                log.error("Unable to read White Labeling Params from JSON!", e);
-                return null;
-            }
-        } else {
-            return null;
-        }
-    }
-
-    private String getEntityAttributeValue(EntityId entityId, String key) {
+       private String getEntityAttributeValue(EntityId entityId, String key) {
         List<AttributeKvEntry> attributeKvEntries = null;
         try {
             attributeKvEntries = attributesService.find(TenantId.SYS_TENANT_ID, entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
@@ -1372,50 +1222,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
             log.error("Unable to save White Labeling Params to attributes!", e);
             throw new IncorrectParameterException("Unable to save White Labeling Params to attributes!");
         }
-    }
-
-    private void deleteEntityAttribute(EntityId entityId, String key) {
-        try {
-            attributesService.removeAll(TenantId.SYS_TENANT_ID, entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
-        } catch (Exception e) {
-            log.error("Unable to delete attribute for " + key + "!", e);
-        }
-    }
-
-    private abstract static class WhiteLabelingPaginatedUpdater<I, D extends SearchTextBased<? extends UUIDBased>> {
-
-        private static final int DEFAULT_LIMIT = 100;
-        private int updated = 0;
-
-        public List<ListenableFuture<WhiteLabelingParams>> updateEntities(I id) throws Exception {
-            updated = 0;
-            PageLink pageLink = new PageLink(DEFAULT_LIMIT);
-            boolean hasNext = true;
-            List<ListenableFuture<WhiteLabelingParams>> result = new ArrayList<>();
-            while (hasNext) {
-                PageData<D> entities = findEntities(id, pageLink);
-                for (D entity : entities.getData()) {
-                    result.add(updateEntity(entity));
-                }
-                updated += entities.getData().size();
-                hasNext = entities.hasNext();
-                if (hasNext) {
-                    log.info("{}: {} entities updated so far...", getName(), updated);
-                    pageLink = pageLink.nextPageLink();
-                } else {
-                    if (updated > DEFAULT_LIMIT) {
-                        log.info("{}: {} total entities updated.", getName(), updated);
-                    }
-                }
-            }
-            return result;
-        }
-
-        protected abstract String getName();
-
-        protected abstract PageData<D> findEntities(I id, PageLink pageLink);
-
-        protected abstract ListenableFuture<WhiteLabelingParams> updateEntity(D entity) throws Exception;
     }
 
     boolean convertDeviceProfileAlarmRulesForVersion330(JsonNode spec) {
@@ -1512,7 +1318,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         return mainQueueConfiguration;
     }
 
-    private boolean getEnv(String name, boolean defaultValue) {
+    public static boolean getEnv(String name, boolean defaultValue) {
         String env = System.getenv(name);
         if (env == null) {
             return defaultValue;

@@ -29,7 +29,18 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, ChangeDetectorRef, Component, Input, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  ViewChild,
+  ViewContainerRef
+} from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
@@ -38,16 +49,17 @@ import { EntitiesTableComponent } from '@home/components/entity/entities-table.c
 import { EventTableConfig } from './event-table-config';
 import { EventService } from '@core/http/event.service';
 import { DialogService } from '@core/services/dialog.service';
-import { DebugEventType, EventType } from '@shared/models/event.models';
+import { DebugEventType, EventBody, EventType } from '@shared/models/event.models';
 import { Overlay } from '@angular/cdk/overlay';
 import { Subscription } from 'rxjs';
+import { isNotEmptyStr } from '@core/utils';
 
 @Component({
   selector: 'tb-event-table',
   templateUrl: './event-table.component.html',
   styleUrls: ['./event-table.component.scss']
 })
-export class EventTableComponent implements OnInit, AfterViewInit {
+export class EventTableComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @Input()
   tenantId: string;
@@ -61,9 +73,16 @@ export class EventTableComponent implements OnInit, AfterViewInit {
   @Input()
   debugEventTypes: Array<DebugEventType>;
 
+  @Input()
+  isReadOnly: boolean = false;
+
   activeValue = false;
   dirtyValue = false;
   entityIdValue: EntityId;
+
+  get active(): boolean {
+    return this.activeValue;
+  }
 
   @Input()
   set active(active: boolean) {
@@ -88,6 +107,28 @@ export class EventTableComponent implements OnInit, AfterViewInit {
       }
     }
   }
+
+  private functionTestButtonLabelValue: string;
+
+  get functionTestButtonLabel(): string {
+    return this.functionTestButtonLabelValue;
+  }
+
+  @Input()
+  set functionTestButtonLabel(value: string) {
+    if (isNotEmptyStr(value)) {
+      this.functionTestButtonLabelValue = value;
+    } else {
+      this.functionTestButtonLabelValue = '';
+    }
+    if (this.eventTableConfig) {
+      this.eventTableConfig.testButtonLabel = this.functionTestButtonLabel;
+      this.eventTableConfig.updateCellAction();
+    }
+  }
+
+  @Output()
+  debugEventSelected = new EventEmitter<EventBody>();
 
   @ViewChild(EntitiesTableComponent, {static: true}) entitiesTable: EntitiesTableComponent;
 
@@ -120,7 +161,10 @@ export class EventTableComponent implements OnInit, AfterViewInit {
       this.debugEventTypes,
       this.overlay,
       this.viewContainerRef,
-      this.cd
+      this.cd,
+      this.isReadOnly,
+      this.functionTestButtonLabel,
+      this.debugEventSelected
     );
   }
 

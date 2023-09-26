@@ -56,6 +56,4 @@ public interface InternalTelemetryService extends RuleEngineTelemetryService {
 
     void deleteLatestInternal(TenantId tenantId, EntityId entityId, List<String> keys, FutureCallback<Void> callback);
 
-
-
 }

@@ -32,8 +32,8 @@
 import { Component, forwardRef } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -62,11 +62,11 @@ import { PubSubIntegration } from '@shared/models/integration.models';
 })
 export class PubSubIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
 
-  pubSubIntegrationConfigForm: FormGroup;
+  pubSubIntegrationConfigForm: UntypedFormGroup;
 
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
     super();
     this.pubSubIntegrationConfigForm = this.fb.group({
       projectId: [null, Validators.required],

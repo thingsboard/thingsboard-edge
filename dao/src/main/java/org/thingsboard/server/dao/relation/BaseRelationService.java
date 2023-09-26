@@ -49,6 +49,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.cache.TbTransactionalCache;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -60,10 +61,11 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.dao.entity.EntityService;
+import org.thingsboard.server.dao.eventsourcing.RelationActionEvent;
 import org.thingsboard.server.dao.service.ConstraintValidator;
 import org.thingsboard.server.dao.sql.JpaExecutorService;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.sql.relation.JpaRelationQueryExecutorService;
+import org.thingsboard.server.exception.DataValidationException;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -170,6 +172,7 @@ public class BaseRelationService implements RelationService {
         validate(relation);
         var result = relationDao.saveRelation(tenantId, relation);
         publishEvictEvent(EntityRelationEvent.from(relation));
+        eventPublisher.publishEvent(new RelationActionEvent(tenantId, relation, ActionType.RELATION_ADD_OR_UPDATE));
         return result;
     }
 
@@ -184,6 +187,7 @@ public class BaseRelationService implements RelationService {
         }
         for (EntityRelation relation : relations) {
             publishEvictEvent(EntityRelationEvent.from(relation));
+            eventPublisher.publishEvent(new RelationActionEvent(tenantId, relation, ActionType.RELATION_ADD_OR_UPDATE));
         }
     }
 
@@ -192,7 +196,10 @@ public class BaseRelationService implements RelationService {
         log.trace("Executing saveRelationAsync [{}]", relation);
         validate(relation);
         var future = relationDao.saveRelationAsync(tenantId, relation);
-        future.addListener(() -> handleEvictEvent(EntityRelationEvent.from(relation)), MoreExecutors.directExecutor());
+        future.addListener(() -> {
+            handleEvictEvent(EntityRelationEvent.from(relation));
+            eventPublisher.publishEvent(new RelationActionEvent(tenantId, relation, ActionType.RELATION_ADD_OR_UPDATE));
+        }, MoreExecutors.directExecutor());
         return future;
     }
 
@@ -203,6 +210,7 @@ public class BaseRelationService implements RelationService {
         var result = relationDao.deleteRelation(tenantId, relation);
         //TODO: evict cache only if the relation was deleted. Note: relationDao.deleteRelation requires improvement.
         publishEvictEvent(EntityRelationEvent.from(relation));
+        eventPublisher.publishEvent(new RelationActionEvent(tenantId, relation, ActionType.RELATION_DELETED));
         return result;
     }
 
@@ -211,7 +219,10 @@ public class BaseRelationService implements RelationService {
         log.trace("Executing deleteRelationAsync [{}]", relation);
         validate(relation);
         var future = relationDao.deleteRelationAsync(tenantId, relation);
-        future.addListener(() -> handleEvictEvent(EntityRelationEvent.from(relation)), MoreExecutors.directExecutor());
+        future.addListener(() -> {
+            handleEvictEvent(EntityRelationEvent.from(relation));
+            eventPublisher.publishEvent(new RelationActionEvent(tenantId, relation, ActionType.RELATION_DELETED));
+        }, MoreExecutors.directExecutor());
         return future;
     }
 
@@ -221,7 +232,9 @@ public class BaseRelationService implements RelationService {
         validate(from, to, relationType, typeGroup);
         var result = relationDao.deleteRelation(tenantId, from, to, relationType, typeGroup);
         //TODO: evict cache only if the relation was deleted. Note: relationDao.deleteRelation requires improvement.
-        publishEvictEvent(new EntityRelationEvent(from, to, relationType, typeGroup));
+        EntityRelation entityRelation = new EntityRelation(from, to, relationType, typeGroup);
+        publishEvictEvent(EntityRelationEvent.from(entityRelation));
+        eventPublisher.publishEvent(new RelationActionEvent(tenantId, entityRelation, ActionType.RELATION_DELETED));
         return result;
     }
 
@@ -237,15 +250,34 @@ public class BaseRelationService implements RelationService {
 
     @Transactional
     @Override
+    public void deleteEntityCommonRelations(TenantId tenantId, EntityId entityId) {
+        deleteEntityRelations(tenantId, entityId, RelationTypeGroup.COMMON);
+    }
+
+    @Transactional
+    @Override
     public void deleteEntityRelations(TenantId tenantId, EntityId entityId) {
+        deleteEntityRelations(tenantId, entityId, null);
+    }
+
+    @Transactional
+    public void deleteEntityRelations(TenantId tenantId, EntityId entityId, RelationTypeGroup relationTypeGroup) {
         log.trace("Executing deleteEntityRelations [{}]", entityId);
         validate(entityId);
-        List<EntityRelation> inboundRelations = new ArrayList<>(relationDao.findAllByTo(tenantId, entityId));
-        List<EntityRelation> outboundRelations = new ArrayList<>(relationDao.findAllByFrom(tenantId, entityId));
+        List<EntityRelation> inboundRelations = relationTypeGroup == null
+                    ? relationDao.findAllByTo(tenantId, entityId)
+                    : relationDao.findAllByTo(tenantId, entityId, relationTypeGroup);
+        List<EntityRelation> outboundRelations = relationTypeGroup == null
+                    ? relationDao.findAllByFrom(tenantId, entityId)
+                    : relationDao.findAllByFrom(tenantId, entityId, relationTypeGroup);
 
         if (!inboundRelations.isEmpty()) {
             try {
-                relationDao.deleteInboundRelations(tenantId, entityId);
+                if (relationTypeGroup == null) {
+                    relationDao.deleteInboundRelations(tenantId, entityId);
+                } else {
+                    relationDao.deleteInboundRelations(tenantId, entityId, relationTypeGroup);
+                }
             } catch (ConcurrencyFailureException e) {
                 log.debug("Concurrency exception while deleting relations [{}]", inboundRelations, e);
             }
@@ -256,7 +288,11 @@ public class BaseRelationService implements RelationService {
         }
 
         if (!outboundRelations.isEmpty()) {
-            relationDao.deleteOutboundRelations(tenantId, entityId);
+            if (relationTypeGroup == null) {
+                relationDao.deleteOutboundRelations(tenantId, entityId);
+            } else {
+                relationDao.deleteOutboundRelations(tenantId, entityId, relationTypeGroup);
+            }
 
             for (EntityRelation relation : outboundRelations) {
                 eventPublisher.publishEvent(EntityRelationEvent.from(relation));
@@ -389,12 +425,10 @@ public class BaseRelationService implements RelationService {
     private ListenableFuture<EntityRelationInfo> fetchRelationInfoAsync(TenantId tenantId, EntityRelation relation,
                                                                         Function<EntityRelation, EntityId> entityIdGetter,
                                                                         BiConsumer<EntityRelationInfo, String> entityNameSetter) {
-        ListenableFuture<String> entityName = entityService.fetchEntityNameAsync(tenantId, entityIdGetter.apply(relation));
-        return Futures.transform(entityName, entityName1 -> {
-            EntityRelationInfo entityRelationInfo1 = new EntityRelationInfo(relation);
-            entityNameSetter.accept(entityRelationInfo1, entityName1);
-            return entityRelationInfo1;
-        }, MoreExecutors.directExecutor());
+        EntityRelationInfo relationInfo = new EntityRelationInfo(relation);
+        entityNameSetter.accept(relationInfo,
+                entityService.fetchEntityName(tenantId, entityIdGetter.apply(relation)).orElse("N/A"));
+        return Futures.immediateFuture(relationInfo);
     }
 
     @Override
@@ -651,5 +685,4 @@ public class BaseRelationService implements RelationService {
             handleEvictEvent(event);
         }
     }
-
 }

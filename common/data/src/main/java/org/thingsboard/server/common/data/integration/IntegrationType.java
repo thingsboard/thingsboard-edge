@@ -40,6 +40,7 @@ public enum IntegrationType {
     THINGPARK(false),
     TPE(false),
     CHIRPSTACK(false),
+    PARTICLE(false),
     TMOBILE_IOT_CDP(false),
     HTTP(false),
     MQTT(true),
@@ -60,7 +61,9 @@ public enum IntegrationType {
     APACHE_PULSAR(false),
     RABBITMQ(false),
     LORIOT(false),
-    COAP(false);
+    COAP(false),
+    TUYA(false),
+    AZURE_SERVICE_BUS(true);
 
     IntegrationType(boolean singleton) {
         this.singleton = singleton;

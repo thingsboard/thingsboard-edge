@@ -31,7 +31,7 @@
 
 import { Component } from '@angular/core';
 import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.models';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 
@@ -42,14 +42,14 @@ import { AppState } from '@core/core.state';
 })
 export class AlarmsTableWidgetSettingsComponent extends WidgetSettingsComponent {
 
-  alarmsTableWidgetSettingsForm: FormGroup;
+  alarmsTableWidgetSettingsForm: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
-  protected settingsForm(): FormGroup {
+  protected settingsForm(): UntypedFormGroup {
     return this.alarmsTableWidgetSettingsForm;
   }
 
@@ -62,10 +62,13 @@ export class AlarmsTableWidgetSettingsComponent extends WidgetSettingsComponent 
       enableFilter: true,
       enableStickyHeader: true,
       enableStickyAction: true,
+      showCellActionsMenu: true,
       reserveSpaceForHiddenAction: 'true',
       displayDetails: true,
       allowAcknowledgment: true,
       allowClear: true,
+      allowAssign: true,
+      displayActivity: true,
       displayPagination: true,
       defaultPageSize: 10,
       defaultSortOrder: '-createdTime',
@@ -83,10 +86,13 @@ export class AlarmsTableWidgetSettingsComponent extends WidgetSettingsComponent 
       enableFilter: [settings.enableFilter, []],
       enableStickyHeader: [settings.enableStickyHeader, []],
       enableStickyAction: [settings.enableStickyAction, []],
+      showCellActionsMenu: [settings.showCellActionsMenu, []],
       reserveSpaceForHiddenAction: [settings.reserveSpaceForHiddenAction, []],
       displayDetails: [settings.displayDetails, []],
       allowAcknowledgment: [settings.allowAcknowledgment, []],
       allowClear: [settings.allowClear, []],
+      allowAssign: [settings.allowAssign, []],
+      displayActivity: [settings.displayActivity, []],
       displayPagination: [settings.displayPagination, []],
       defaultPageSize: [settings.defaultPageSize, [Validators.min(1)]],
       defaultSortOrder: [settings.defaultSortOrder, []],

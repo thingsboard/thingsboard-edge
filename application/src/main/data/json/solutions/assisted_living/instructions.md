@@ -11,13 +11,13 @@ One may improve the algorithm based on the particular use case.
 
 
 <div class="img-float" style="max-width: 50%;margin: 20px auto;">
-<img src="https://thingsboard.io/images/solutions/assisted_living/al-scheme.png" alt="Assisted Living">
+<img src="https://img.thingsboard.io/solutions/assisted_living/al-scheme.png" alt="Assisted Living">
 </div>
 
 
 ### Assisted Living Administration Dashboard
 
-The <a href="${Assisted LivingDASHBOARD_URL}" target="_blank">"Assisted Living"</a> dashboard
+The <a href="${Assisted Living AdministrationDASHBOARD_URL}" target="_blank">"Assisted Living Administration"</a> dashboard
 is intended for monitoring and controlling the status of residents, areas of the institution, devices, and their management. It has multiple states:
 
 * **Main** state is assigned to provisions of residents, alarms of residents, and rooms. The Main state contains:
@@ -32,7 +32,7 @@ is intended for monitoring and controlling the status of residents, areas of the
     By default, you can set the values (for major and critical) at which alarms will be triggered. These values are: Room temperature(range from/to in %), Room humidity(range from/to in C), Room air quality(range from/to in IAQ), Door open(duration in min), Window open(duration in min), Sensors battery level(in %), Water leaks and Smoke detected. You can also determine the number of the attendant.
 
 <div class="img-float" style="max-width: 50%;margin: 20px auto;">
-<img src="https://thingsboard.io/images/solutions/assisted_living/1-main-state.png" alt="Assisted Living">
+<img src="https://img.thingsboard.io/solutions/assisted_living/1-main-state.png" alt="Assisted Living">
 </div>
 
 The main state also contains links to the states of resident and zone management.
@@ -44,7 +44,7 @@ To switch to the Resident state - click on the “Residents” button on Main St
 Basic data of residents is divided into the following data blocks: "Personal info", "Emergency contact", "Health information", "Location", "Wristband".
 
 <div class="img-float" style="max-width:50%;margin: 20px auto">
-<img src="https://thingsboard.io/images/solutions/assisted_living/2-residents-state.png" alt="Assisted Living">
+<img src="https://img.thingsboard.io/solutions/assisted_living/2-residents-state.png" alt="Assisted Living">
 </div>
   
 Click the “Zones” button on Main State to switch to the Zones state.
@@ -54,7 +54,7 @@ Click the “Zones” button on Main State to switch to the Zones state.
 * **Zones state** is intended for the management of zones, which in the future will be the basis for rooms and devices. You can create, edit or delete a zone as needed. In order to create a new zone - click the "Add zone" button and then specify the name and add a mapping scheme. Then save the zone. In our example, we created the zones “Floor 1” and “Floor 2”. 
 
 <div class="img-float" style="max-width: 50%;margin: 20px auto;">
-<img src="https://thingsboard.io/images/solutions/assisted_living/3-zones-state.png" alt="Assisted Living">
+<img src="https://img.thingsboard.io/solutions/assisted_living/3-zones-state.png" alt="Assisted Living">
 </div>
 
 
@@ -67,7 +67,7 @@ You can create the desired room and define it in the corresponding location on t
 You can create a device of the appropriate type and attach it to the corresponding room, thus creating a connection between them.
 
 <div class="img-float" style="max-width:50%;margin: 20px auto">
-<img src="https://thingsboard.io/images/solutions/assisted_living/4-zone-state.png" alt="Assisted Living">
+<img src="https://img.thingsboard.io/solutions/assisted_living/4-zone-state.png" alt="Assisted Living">
 </div>
 
 <br>
@@ -75,7 +75,7 @@ You can create a device of the appropriate type and attach it to the correspondi
 **When you are trying to add devices, note that you can select only those devices that are in "Device Groups" -> "Unassigned Devices" on the "Customers hierarchy" page.** To add new devices on your dashboard, first create them on the "Customers hierarchy" page.
 
 <div class="img-float" style="max-width: 50%;margin: 20px auto;">
-<img src="https://thingsboard.io/images/solutions/assisted_living/5-customer-hierarchy.png" alt="Assisted Living" style="border: 1px solid #eee;">
+<img src="https://img.thingsboard.io/solutions/assisted_living/5-customer-hierarchy.png" alt="Assisted Living" style="border: 1px solid #eee;">
 </div>
 
 
@@ -153,7 +153,7 @@ Let's recreate an event where we will generate data that will trigger an alarm a
 For example, let's take resident **"William Harris"**. His current vital heart rate is - 95 BPM.
 
 <div class="img-float" style="max-width: 40%;margin: 20px auto;">
-<img src="https://thingsboard.io/images/solutions/assisted_living/example-1-1.png" alt="Assisted Living">
+<img src="https://img.thingsboard.io/solutions/assisted_living/example-1-1.png" alt="Assisted Living">
 </div>
 
 To check the current resident alarm settings, go to the "Notification rules" section in the "Resident alarms" section by clicking on the "gear" button.
@@ -161,7 +161,7 @@ To check the current resident alarm settings, go to the "Notification rules" sec
 You can see the heart rate alarm threshold for different alarm types.
 
 <div class="img-float" style="max-width: 40%;margin: 20px auto;">
-<img src="https://thingsboard.io/images/solutions/assisted_living/example-1-2.png" alt="Assisted Living">
+<img src="https://img.thingsboard.io/solutions/assisted_living/example-1-2.png" alt="Assisted Living">
 </div>
 
 Then to emulate the resident's "pulse" data let's take the value: "55" for bpm. After that, we should execute the following command:
@@ -175,7 +175,7 @@ curl -v -X POST -d "{\"serial\": \"C00000025FE2\", \"data\":{\"pulse\":55}}" ${B
 Since the BPM indicator is equal to 55 and falls under the requirements for calling an alarm - the alarm with the type "heart rate" for the resident "William Harris" was displayed in the "Resident alarms" section, and its marker was also highlighted in red.
 
 <div class="img-float" style="max-width: 55%;margin: 20px auto;">
-<img src="https://thingsboard.io/images/solutions/assisted_living/example-1-3.png" alt="Assisted Living">
+<img src="https://img.thingsboard.io/solutions/assisted_living/example-1-3.png" alt="Assisted Living">
 </div>
 
 
@@ -188,7 +188,7 @@ Therefore, for example, let's create a case in which the system tracks and displ
 Take, for example, **"Isabella Davis"**, who is in her room on the **Floor 1**.
 
 <div class="img-float" style="max-width: 40%;margin: 20px auto;">
-<img src="https://thingsboard.io/images/solutions/assisted_living/example-2-1.png" alt="Assisted Living">
+<img src="https://img.thingsboard.io/solutions/assisted_living/example-2-1.png" alt="Assisted Living">
 </div>
 
 The system determines the placement of residents using a bracelet that transmits the corresponding signal and a Gateway placed in the corresponding room/zone that processes it. Thus, the Gateway with the best connection level with the bracelet is considered the resident's location.
@@ -203,7 +203,7 @@ curl -v -X POST -d "{\"serial\": \"C00000066F66\", \"rssi\": -10, \"data\":{\"ba
 
 
 <div class="img-float" style="max-width: 40%;margin: 20px auto;">
-<img src="https://thingsboard.io/images/solutions/assisted_living/example-2-2.png" alt="Assisted Living">
+<img src="https://img.thingsboard.io/solutions/assisted_living/example-2-2.png" alt="Assisted Living">
 </div>
 
 After using this command, we can see that after the data transfer, **Isabella Davis** moved to **“Room 103”** because his gateway connection signal was better than “Room 104”.
@@ -217,7 +217,7 @@ This time we will reproduce the alarm of the room sensor that monitors the IAQ l
 To check the current room alarm settings, go to the "Notification rules" section in the "Room alarms" section by clicking on the "gear" button.
 
 <div class="img-float" style="max-width: 40%;margin: 20px auto;">
-<img src="https://thingsboard.io/images/solutions/assisted_living/example-3-1.png" alt="Assisted Living">
+<img src="https://img.thingsboard.io/solutions/assisted_living/example-3-1.png" alt="Assisted Living">
 </div>
 
 As we can see, the room IAQ level alarm will go off if the value exceeds 150.
@@ -225,13 +225,13 @@ As we can see, the room IAQ level alarm will go off if the value exceeds 150.
 Next, for our example, let's take a resident's room, for instance - Room 101, in which the IAQ level is at the permissible level - "67".
 
 <div class="img-float" style="max-width: 40%;margin: 20px auto;">
-<img src="https://thingsboard.io/images/solutions/assisted_living/example-3-2.png" alt="Assisted Living">
+<img src="https://img.thingsboard.io/solutions/assisted_living/example-3-2.png" alt="Assisted Living">
 </div>
 
 To emulate the room's "iaq" data, let's take the value: "160". After that, we should execute the following command:
 
 <div class="img-float" style="max-width: 50%;margin: 20px auto;">
-<img src="https://thingsboard.io/images/solutions/assisted_living/example-3-3.png" alt="Assisted Living">
+<img src="https://img.thingsboard.io/solutions/assisted_living/example-3-3.png" alt="Assisted Living">
 </div>
 
 
@@ -257,4 +257,57 @@ As part of this solution, the following entities were created:
 
 ${all_entities}
 
+### Edge computing
 
+**Optionally**, this solution can be extended to use edge computing.
+
+<a href="https://thingsboard.io/products/thingsboard-edge/" target="_blank">ThingsBoard Edge</a> allows bringing data analysis and management to the edge, where the data created.
+At the same time ThingsBoard Edge seamlessly synchronizing with the ThingsBoard cloud according to your business needs.
+
+As example, in the context of  Assisted Living solution, edge computing could be useful if you have residences that are located in different parts of town, country or worldwide.
+In this case, ThingsBoard Edge can be deployed into every residence to process data from resident sensors, enabling real-time analysis and decision-making, such as getting alarm notifications in case health status of resident become critical and calling for assistance.
+Edge is going to process data in case there is no network connection to the central ThingsBoard server, and thus no data will be lost and required decisions are going to be taken locally.
+Eventually, required data is going to be pushed to the cloud, once network connection is established.
+Configuration of edge computing business logic is centralized in a single place - ThingsBoard server.
+
+In the scope of this solution, new edge entity <a href="${Remote Residence R1EDGE_DETAILS_URL}" target="_blank">Remote Residence R1</a> was created.
+
+Additionally, particular entities and entity groups were already assigned to the edge entity to simplify the edge deployment:
+
+* **"Administrators"** *USER* group of customer "Assisted Living Company";
+* **"Residents"** *USER* group of customer "Assisted Living Company";
+* **"Floor 1"** asset;
+* **"Floor 2"** asset;
+* **"Root 101"** asset;
+* **"Root 102"** asset;
+* **"D00000010001"** device;
+* **"D00000020002"** device;
+* **"C00000015FE1"** device;
+* **"C00000025FE2"** device;
+* **"Assisted Living"** *DASHBOARD* group.
+
+**NOTE**: only limited number of assets and devices were assigned to the edge due to the limitation of default edge license.
+
+To install ThingsBoard Edge and connect to the cloud, please navigate to <a href="${Remote Residence R1EDGE_DETAILS_URL}" target="_blank">edge details page</a> and click **Install & Connect instructions** button.
+
+Once the edge is installed and connected to the cloud, you will be able to log in into edge using your tenant credentials.
+
+#### Push data to device on edge
+
+All the devices that were assigned to the edge entity "Remote Residence R1" are going to be automatically provisioned to the edge.
+
+You can see these devices once you log in into edge and navigate to the **Entities -> Devices** page.
+
+To emulate the data upload on behalf of resident **"William Harris"** and simulate pulse update to the edge, one should execute the following command:
+
+```bash
+curl -v -X POST -d "{\"serial\": \"C00000025FE2\", \"data\":{\"pulse\":55}}" http://localhost:8080/api/v1/${D00000020002ACCESS_TOKEN}/telemetry --header "Content-Type:application/json"{:copy-code}
+```
+
+Or please use next command if you updated edge HTTP 8080 bind port to **18080** during edge installation:
+
+```bash
+curl -v -X POST -d "{\"serial\": \"C00000025FE2\", \"data\":{\"pulse\":55}}" http://localhost:18080/api/v1/${D00000020002ACCESS_TOKEN}/telemetry --header "Content-Type:application/json"{:copy-code}
+```
+
+Once you'll push data on behalf of resident **"William Harris"** to edge, you'll be able to see alarm generated on dashboard and telemetry update on the cloud for this resident as well.

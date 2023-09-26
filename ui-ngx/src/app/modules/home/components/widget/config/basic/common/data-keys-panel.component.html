@@ -1,0 +1,83 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="tb-form-panel">
+  <div class="tb-form-panel-title">{{ panelTitle }}</div>
+  <div class="tb-form-table">
+    <div class="tb-form-table-header no-padding-right">
+      <div *ngIf="hasAdditionalLatestDataKeys" class="tb-form-table-header-cell tb-source-header" translate>datakey.source</div>
+      <div class="tb-form-table-header-cell tb-key-header" translate>datakey.key</div>
+      <div class="tb-form-table-header-cell tb-label-header" translate>datakey.label</div>
+      <div *ngIf="!hideDataKeyColor" class="tb-form-table-header-cell tb-color-header" translate>datakey.color</div>
+      <div *ngIf="!hideUnits" class="tb-form-table-header-cell tb-units-header" translate>widget-config.units-short</div>
+      <div *ngIf="!hideDecimals" class="tb-form-table-header-cell tb-decimals-header" translate>widget-config.decimals-short</div>
+      <div class="tb-form-table-header-cell tb-actions-header"></div>
+    </div>
+    <div *ngIf="keysFormArray().controls.length; else noKeys" class="tb-form-table-body tb-drop-list"
+         cdkDropList cdkDropListOrientation="vertical"
+         [cdkDropListDisabled]="!dragEnabled"
+         (cdkDropListDropped)="keyDrop($event)">
+      <div cdkDrag [cdkDragDisabled]="!dragEnabled"
+           class="tb-draggable-form-table-row"
+           *ngFor="let keyControl of keysFormArray().controls; trackBy: trackByKey; let $index = index;">
+        <tb-data-key-row fxFlex
+                         [formControl]="keyControl"
+                         [datasourceType]="datasourceType"
+                         [deviceId]="deviceId"
+                         [entityAliasId]="entityAliasId"
+                         (keyRemoved)="removeKey($index)">
+        </tb-data-key-row>
+        <div class="tb-form-table-row-cell-buttons">
+          <button fxHide.lt-lg
+                  mat-icon-button
+                  type="button"
+                  cdkDragHandle
+                  [ngClass]="{'tb-hidden': !dragEnabled}"
+                  matTooltip="{{ 'action.drag' | translate }}"
+                  matTooltipPosition="above">
+            <mat-icon>drag_indicator</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+    <tb-error *ngIf="errorText" noMargin [error]="errorText" style="padding-left: 12px;"></tb-error>
+  </div>
+  <div>
+    <button type="button" mat-stroked-button color="primary" (click)="addKey()">
+      {{ addKeyTitle }}
+    </button>
+  </div>
+</div>
+<ng-template #noKeys>
+  <span fxLayoutAlign="center center"
+        class="tb-prompt">{{ noKeysText }}</span>
+</ng-template>

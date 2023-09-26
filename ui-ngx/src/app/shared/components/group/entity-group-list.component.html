@@ -30,16 +30,16 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field appearance="standard" [formGroup]="entityGroupListFormGroup" class="mat-block">
-  <mat-chip-list #chipList formControlName="entityGroups">
-    <mat-chip
+<mat-form-field [formGroup]="entityGroupListFormGroup" class="mat-block" [ngClass]="{'tb-chip-list': !labelText}">
+  <mat-label *ngIf="labelText">{{ labelText }}</mat-label>
+  <mat-chip-grid #chipList formControlName="entityGroups">
+    <mat-chip-row
       *ngFor="let entityGroup of entityGroups"
-      [selectable]="!disabled"
       [removable]="!disabled"
       (removed)="remove(entityGroup)">
       {{entityGroup.name}}
       <mat-icon matChipRemove *ngIf="!disabled">close</mat-icon>
-    </mat-chip>
+    </mat-chip-row>
     <input matInput type="text" placeholder="{{ !disabled ? ('entity-group.entity-group-list' | translate) : '' }}"
            style="max-width: 200px;"
            #entityGroupInput
@@ -47,20 +47,35 @@
            formControlName="entityGroup"
            matAutocompleteOrigin
            #origin="matAutocompleteOrigin"
+           (keydown)="entityGroupEnter($event)"
+           (keypress)="entityGroupEnter($event)"
            [matAutocompleteConnectedTo]="origin"
            [matAutocomplete]="entityGroupAutocomplete"
            [matChipInputFor]="chipList">
-  </mat-chip-list>
-  <mat-autocomplete #entityGroupAutocomplete="matAutocomplete"
+  </mat-chip-grid>
+  <mat-autocomplete class="tb-autocomplete"
+                    #entityGroupAutocomplete="matAutocomplete"
                     class="tb-autocomplete"
+                    panelWidth="fit-content"
                     [displayWith]="displayEntityGroupFn">
     <mat-option *ngFor="let entityGroup of filteredEntityGroups | async" [value]="entityGroup">
       <span [innerHTML]="entityGroup.name | highlight:searchText"></span>
     </mat-option>
-    <mat-option *ngIf="!(filteredEntityGroups | async)?.length" [value]="null">
-      <span>
-          {{ translate.get('entity-group.no-entity-groups-matching', {entityGroup: searchText}) | async }}
-      </span>
+    <mat-option *ngIf="!(filteredEntityGroups | async)?.length" [value]="null" class="tb-not-found">
+      <div class="tb-not-found-content" (click)="$event.stopPropagation()">
+        <div *ngIf="!textIsNotEmpty(searchText); else searchNotEmpty">
+          <span translate>entity-group.no-entity-groups-text</span>
+        </div>
+        <ng-template #searchNotEmpty>
+          <div>
+            {{ translate.get('entity-group.no-entity-groups-matching',
+            {entityGroup: truncate.transform(searchText, true, 12, &apos;...&apos;)}) | async }}
+          </div>
+        </ng-template>
+        <span *ngIf="createGroupFunction">
+          <a translate (click)="createEntityGroup($event, searchText)">entity-group.create-new-entity-group</a>
+        </span>
+      </div>
     </mat-option>
   </mat-autocomplete>
   <mat-error *ngIf="entityGroupListFormGroup.get('entityGroups').hasError('required')">

@@ -30,15 +30,17 @@
  */
 package org.thingsboard.server.dao.translation;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -47,27 +49,24 @@ import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class BaseCustomTranslationService implements CustomTranslationService {
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String CUSTOM_TRANSLATION_ATTR_NAME = "customTranslation";
 
-    @Autowired
-    private AdminSettingsService adminSettingsService;
-
-    @Autowired
-    private AttributesService attributesService;
+    private final AdminSettingsService adminSettingsService;
+    private final AttributesService attributesService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public CustomTranslation getSystemCustomTranslation(TenantId tenantId) {
@@ -109,18 +108,20 @@ public class BaseCustomTranslationService implements CustomTranslationService {
         if (customTranslationSettings == null) {
             customTranslationSettings = new AdminSettings();
             customTranslationSettings.setKey(CUSTOM_TRANSLATION_ATTR_NAME);
-            ObjectNode node = objectMapper.createObjectNode();
+            ObjectNode node = JacksonUtil.newObjectNode();
             customTranslationSettings.setJsonValue(node);
         }
         String json;
         try {
-            json = objectMapper.writeValueAsString(customTranslation);
-        } catch (JsonProcessingException e) {
+            json = JacksonUtil.toString(customTranslation);
+        } catch (IllegalArgumentException e) {
             log.error("Unable to convert custom translation to JSON!", e);
             throw new IncorrectParameterException("Unable to convert custom translation to JSON!");
         }
         ((ObjectNode) customTranslationSettings.getJsonValue()).put("value", json);
         adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, customTranslationSettings);
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID)
+                .edgeEventType(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
         return getSystemCustomTranslation(TenantId.SYS_TENANT_ID);
     }
 
@@ -140,8 +141,8 @@ public class BaseCustomTranslationService implements CustomTranslationService {
         CustomTranslation result = null;
         if (!StringUtils.isEmpty(json)) {
             try {
-                result = objectMapper.readValue(json, CustomTranslation.class);
-            } catch (IOException e) {
+                result = JacksonUtil.fromString(json, CustomTranslation.class);
+            } catch (IllegalArgumentException e) {
                 log.error("Unable to read custom translation from JSON!", e);
                 throw new IncorrectParameterException("Unable to read custom translation from JSON!");
             }
@@ -176,12 +177,14 @@ public class BaseCustomTranslationService implements CustomTranslationService {
     private void saveEntityCustomTranslation(TenantId tenantId, EntityId entityId, CustomTranslation customTranslation) {
         String json;
         try {
-            json = objectMapper.writeValueAsString(customTranslation);
-        } catch (JsonProcessingException e) {
+            json = JacksonUtil.toString(customTranslation);
+        } catch (IllegalArgumentException e) {
             log.error("Unable to convert custom translation to JSON!", e);
             throw new IncorrectParameterException("Unable to convert custom translation to JSON!");
         }
         saveEntityAttribute(tenantId, entityId, json);
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(entityId)
+                .edgeEventType(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
     }
 
     private void saveEntityAttribute(TenantId tenantId, EntityId entityId, String value) {

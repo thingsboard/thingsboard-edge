@@ -31,9 +31,11 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
@@ -53,7 +55,7 @@ public class CustomerGroupEditMenuTest extends AbstractDriverBaseTest {
     private CustomerPageHelper customerPage;
     private String customerGroupName;
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
         sideBarMenuView = new SideBarMenuViewHelper(driver);
@@ -68,15 +70,17 @@ public class CustomerGroupEditMenuTest extends AbstractDriverBaseTest {
         }
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Edit customer group")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Change name by edit menu")
     public void changeTitle() {
         String customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
         this.customerGroupName = customerGroupName;
         String changedName = "Changed" + getRandomNumber();
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.detailsBtn(customerGroupName).click();
         customerPage.setHeaderName();
         String nameBefore = customerPage.getHeaderName();
@@ -91,14 +95,16 @@ public class CustomerGroupEditMenuTest extends AbstractDriverBaseTest {
         Assert.assertEquals(changedName, nameAfter);
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Edit customer group")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Delete name and save")
     public void deleteName() {
         String customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
         this.customerGroupName = customerGroupName;
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.detailsBtn(customerGroupName).click();
         customerPage.entityGroupEditPencilBtn().click();
         customerPage.nameFieldEditMenu().clear();
@@ -106,14 +112,16 @@ public class CustomerGroupEditMenuTest extends AbstractDriverBaseTest {
         Assert.assertFalse(customerPage.entityGroupDoneBtnVisibleEditView().isEnabled());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Edit customer group")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Save only with space")
     public void saveOnlyWithSpace() {
         String customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
         this.customerGroupName = customerGroupName;
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.detailsBtn(customerGroupName).click();
         customerPage.entityGroupEditPencilBtn().click();
         customerPage.changeNameEditMenu(" ");
@@ -126,14 +134,16 @@ public class CustomerGroupEditMenuTest extends AbstractDriverBaseTest {
         Assert.assertEquals(customerGroupName, customerPage.getHeaderName());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Edit customer group")
     @Test(priority = 20, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "editMenuDescription")
-    @Description
+    @Description("Write the description and save the changes/Change the description and save the changes/Delete the description and save the changes")
     public void editDescription(String description, String newDescription, String finalDescription) {
         String customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER, description));
         this.customerGroupName = customerGroupName;
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.detailsBtn(customerGroupName).click();
         customerPage.entityGroupEditPencilBtn().click();
         customerPage.descriptionEntityView().sendKeys(newDescription);
@@ -142,5 +152,4 @@ public class CustomerGroupEditMenuTest extends AbstractDriverBaseTest {
 
         Assert.assertEquals(customerPage.getDescription(), finalDescription);
     }
-
 }

@@ -31,7 +31,7 @@
 
 import { Component } from '@angular/core';
 import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.models';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 
@@ -42,14 +42,14 @@ import { AppState } from '@core/core.state';
 })
 export class UpdateMultipleAttributesWidgetSettingsComponent extends WidgetSettingsComponent {
 
-  updateMultipleAttributesWidgetSettingsForm: FormGroup;
+  updateMultipleAttributesWidgetSettingsForm: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
-  protected settingsForm(): FormGroup {
+  protected settingsForm(): UntypedFormGroup {
     return this.updateMultipleAttributesWidgetSettingsForm;
   }
 
@@ -64,7 +64,9 @@ export class UpdateMultipleAttributesWidgetSettingsComponent extends WidgetSetti
       showGroupTitle: false,
       groupTitle: '',
       fieldsAlignment: 'row',
-      fieldsInRow: 2
+      fieldsInRow: 2,
+      rowGap: 5,
+      columnGap: 10
     };
   }
 
@@ -92,6 +94,11 @@ export class UpdateMultipleAttributesWidgetSettingsComponent extends WidgetSetti
 
       fieldsAlignment: [settings.fieldsAlignment, []],
       fieldsInRow: [settings.fieldsInRow, [Validators.min(1)]],
+
+      // Layout gap
+
+      rowGap: [settings.rowGap, [Validators.min(0)]],
+      columnGap: [settings.columnGap, [Validators.min(0)]]
     });
   }
 
@@ -120,13 +127,16 @@ export class UpdateMultipleAttributesWidgetSettingsComponent extends WidgetSetti
     }
     if (fieldsAlignment === 'row') {
       this.updateMultipleAttributesWidgetSettingsForm.get('fieldsInRow').enable();
+      this.updateMultipleAttributesWidgetSettingsForm.get('columnGap').enable();
     } else {
       this.updateMultipleAttributesWidgetSettingsForm.get('fieldsInRow').disable();
+      this.updateMultipleAttributesWidgetSettingsForm.get('columnGap').disable();
     }
     this.updateMultipleAttributesWidgetSettingsForm.get('updateAllValues').updateValueAndValidity({emitEvent});
     this.updateMultipleAttributesWidgetSettingsForm.get('saveButtonLabel').updateValueAndValidity({emitEvent});
     this.updateMultipleAttributesWidgetSettingsForm.get('resetButtonLabel').updateValueAndValidity({emitEvent});
     this.updateMultipleAttributesWidgetSettingsForm.get('groupTitle').updateValueAndValidity({emitEvent});
     this.updateMultipleAttributesWidgetSettingsForm.get('fieldsInRow').updateValueAndValidity({emitEvent});
+    this.updateMultipleAttributesWidgetSettingsForm.get('columnGap').updateValueAndValidity({emitEvent});
   }
 }

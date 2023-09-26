@@ -32,9 +32,9 @@ package org.thingsboard.server.service.install.update;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.HasCustomerId;
-import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -44,7 +44,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 
@@ -58,7 +57,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
-public abstract class EntityGroupAllPaginatedUpdater<I extends UUIDBased, D extends SearchTextBased<I>
+public abstract class EntityGroupAllPaginatedUpdater<I extends UUIDBased, D extends BaseData<I>
         & TenantEntity & HasCustomerId> extends PaginatedUpdater<TenantId,D> {
 
     protected final EntityGroup groupAll;
@@ -95,7 +94,7 @@ public abstract class EntityGroupAllPaginatedUpdater<I extends UUIDBased, D exte
             return this.findAllTenantEntitiesFunction.apply(id, pageLink);
         } else {
             try {
-                List<EntityId> entityIds = entityGroupService.findAllEntityIds(TenantId.SYS_TENANT_ID, groupAll.getId(), new PageLink(Integer.MAX_VALUE)).get();
+                List<EntityId> entityIds = entityGroupService.findAllEntityIdsAsync(TenantId.SYS_TENANT_ID, groupAll.getId(), new PageLink(Integer.MAX_VALUE)).get();
                 List<I> ids = entityIds.stream().map(entityId -> toIdFunction.apply(entityId)).collect(Collectors.toList());
                 List<D> entities;
                 if (!ids.isEmpty()) {

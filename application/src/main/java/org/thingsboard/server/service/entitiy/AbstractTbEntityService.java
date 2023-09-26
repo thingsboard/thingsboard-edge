@@ -36,6 +36,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.GroupEntity;
@@ -48,7 +49,6 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -84,7 +84,7 @@ public abstract class AbstractTbEntityService {
     protected EdgeService edgeService;
     @Autowired
     protected AlarmService alarmService;
-    @Autowired
+    @Autowired @Lazy
     protected AlarmSubscriptionService alarmSubscriptionService;
     @Autowired
     protected CustomerService customerService;
@@ -92,12 +92,12 @@ public abstract class AbstractTbEntityService {
     protected TbClusterService tbClusterService;
     @Autowired
     protected EntityGroupService entityGroupService;
-    @Autowired(required = false)
+    @Autowired(required = false) @Lazy
     private EntitiesVersionControlService vcService;
 
     protected ListenableFuture<Void> removeAlarmsByEntityId(TenantId tenantId, EntityId entityId) {
         ListenableFuture<PageData<AlarmInfo>> alarmsFuture =
-                alarmService.findAlarms(tenantId, new AlarmQuery(entityId, new TimePageLink(Integer.MAX_VALUE), null, null, false));
+                alarmService.findAlarms(tenantId, new AlarmQuery(entityId, new TimePageLink(Integer.MAX_VALUE), null, null, null, false));
 
         ListenableFuture<List<AlarmId>> alarmIdsFuture = Futures.transform(alarmsFuture, page ->
                 page.getData().stream().map(AlarmInfo::getId).collect(Collectors.toList()), dbExecutor);
@@ -135,18 +135,19 @@ public abstract class AbstractTbEntityService {
         return (I) EntityIdFactory.getByTypeAndUuid(entityType, ModelConstants.NULL_UUID);
     }
 
-    protected <I extends EntityId, T extends GroupEntity<I>> void createOrUpdateGroupEntity(TenantId tenantId, T entity, EntityGroup entityGroup,
-                                                                                            ActionType actionType, User user) throws ThingsboardException {
+    protected <I extends EntityId, T extends GroupEntity<I>> void createOrUpdateGroupEntity(TenantId tenantId, T entity, List<EntityGroup> entityGroups,
+                                                                                            ActionType actionType, User user) {
         EntityId entityId = entity.getId();
         CustomerId customerId = entity.getCustomerId();
-        if (entityGroup != null && actionType == ActionType.ADDED) {
-            EntityGroupId entityGroupId = entityGroup.getId();
-            entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, entityId);
-            notificationEntityService.notifyAddToEntityGroup(tenantId, entityId, entity, customerId, entityGroupId, user,
-                    entityId.toString(), entityGroupId.toString(), entityGroup.getName());
+        if (entityGroups != null && actionType == ActionType.ADDED) {
+            for (EntityGroup entityGroup : entityGroups) {
+                EntityGroupId entityGroupId = entityGroup.getId();
+                entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, entityId);
+                notificationEntityService.logEntityAction(tenantId, entityId, entity, customerId, ActionType.ADDED_TO_ENTITY_GROUP,
+                        user, entityId.toString(), entityGroupId.toString(), entityGroup.getName());
+            }
         }
-
-        notificationEntityService.notifyCreateOrUpdateEntity(tenantId, entityId, entity, customerId, actionType, user);
+        notificationEntityService.logEntityAction(tenantId, entityId, entity, customerId, actionType, user);
     }
 
     protected ListenableFuture<UUID> autoCommit(User user, EntityId entityId) throws Exception {

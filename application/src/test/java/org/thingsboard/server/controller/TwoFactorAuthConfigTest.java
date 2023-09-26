@@ -61,6 +61,7 @@ import org.thingsboard.server.common.data.security.model.mfa.provider.SmsTwoFaPr
 import org.thingsboard.server.common.data.security.model.mfa.provider.TotpTwoFaProviderConfig;
 import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFaProviderConfig;
 import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFaProviderType;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.service.security.auth.mfa.TwoFactorAuthService;
 import org.thingsboard.server.service.security.auth.mfa.config.TwoFaConfigManager;
 import org.thingsboard.server.service.security.auth.mfa.provider.impl.OtpBasedTwoFaProvider;
@@ -85,7 +86,8 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
+@DaoSqlTest
+public class TwoFactorAuthConfigTest extends AbstractControllerTest {
 
     @SpyBean
     private TotpTwoFaProvider totpTwoFactorAuthProvider;
@@ -159,9 +161,9 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
                 .andExpect(status().isBadRequest()));
 
         assertThat(errorMessage).contains(
-                "verification code check rate limit configuration is invalid",
-                "maximum number of verification failure before user lockout must be positive",
-                "total amount of time allotted for verification must be greater than or equal 60"
+                "verificationCodeCheckRateLimit is invalid",
+                "maxVerificationFailuresBeforeUserLockout must be positive",
+                "totalAllowedTimeForVerification must be greater than or equal to 60"
         );
 
         twoFaSettings.setUseSystemTwoFactorAuthSettings(true);
@@ -240,7 +242,7 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
         invalidTotpTwoFaProviderConfig.setIssuerName("   ");
 
         String errorResponse = savePlatformTwoFaSettingsAndGetError(invalidTotpTwoFaProviderConfig);
-        assertThat(errorResponse).containsIgnoringCase("issuer name must not be blank");
+        assertThat(errorResponse).containsIgnoringCase("issuerName must not be blank");
     }
 
     @Test
@@ -255,8 +257,8 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
         invalidSmsTwoFaProviderConfig.setSmsVerificationMessageTemplate(null);
         invalidSmsTwoFaProviderConfig.setVerificationCodeLifetime(0);
         errorResponse = savePlatformTwoFaSettingsAndGetError(invalidSmsTwoFaProviderConfig);
-        assertThat(errorResponse).containsIgnoringCase("verification message template is required");
-        assertThat(errorResponse).containsIgnoringCase("verification code lifetime is required");
+        assertThat(errorResponse).containsIgnoringCase("smsVerificationMessageTemplate is required");
+        assertThat(errorResponse).containsIgnoringCase("verificationCodeLifetime is required");
     }
 
     private String savePlatformTwoFaSettingsAndGetError(TwoFaProviderConfig invalidTwoFaProviderConfig) throws Exception {
@@ -320,12 +322,12 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
 
         String errorMessage = getErrorMessage(doPost("/api/2fa/account/config/submit", totpTwoFaAccountConfig)
                 .andExpect(status().isBadRequest()));
-        assertThat(errorMessage).containsIgnoringCase("otp auth url cannot be blank");
+        assertThat(errorMessage).containsIgnoringCase("authUrl must not be blank");
 
         totpTwoFaAccountConfig.setAuthUrl("otpauth://totp/T B: aba");
         errorMessage = getErrorMessage(doPost("/api/2fa/account/config/submit", totpTwoFaAccountConfig)
                 .andExpect(status().isBadRequest()));
-        assertThat(errorMessage).containsIgnoringCase("otp auth url is invalid");
+        assertThat(errorMessage).containsIgnoringCase("authUrl is invalid");
 
         totpTwoFaAccountConfig.setAuthUrl("otpauth://totp/ThingsBoard%20(Tenant):tenant@thingsboard.org?issuer=ThingsBoard+%28Tenant%29&secret=FUNBIM3CXFNNGQR6ZIPVWHP65PPFWDII");
         doPost("/api/2fa/account/config/submit", totpTwoFaAccountConfig)
@@ -440,14 +442,14 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
 
         String errorMessage = getErrorMessage(doPost("/api/2fa/account/config/submit", smsTwoFaAccountConfig)
                 .andExpect(status().isBadRequest()));
-        assertThat(errorMessage).containsIgnoringCase("phone number cannot be blank");
+        assertThat(errorMessage).containsIgnoringCase("phoneNumber must not be blank");
 
         String nonE164PhoneNumber = "8754868";
         smsTwoFaAccountConfig.setPhoneNumber(nonE164PhoneNumber);
 
         errorMessage = getErrorMessage(doPost("/api/2fa/account/config/submit", smsTwoFaAccountConfig)
                 .andExpect(status().isBadRequest()));
-        assertThat(errorMessage).containsIgnoringCase("phone number is not of E.164 format");
+        assertThat(errorMessage).containsIgnoringCase("phoneNumber is not of E.164 format");
     }
 
     @Test

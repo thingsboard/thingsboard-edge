@@ -38,12 +38,13 @@ import { EntityId } from '@shared/models/id/entity-id';
 import {
   Alarm,
   AlarmInfo,
-  AlarmQuery,
+  AlarmQuery, AlarmQueryV2,
   AlarmSearchStatus,
   AlarmSeverity,
   AlarmStatus
 } from '@shared/models/alarm.models';
-import { UtilsService } from '@core/services/utils.service';
+import { EntitySubtype } from '@shared/models/entity-type.models';
+import { PageLink } from '@shared/models/page/page-link';
 
 @Injectable({
   providedIn: 'root'
@@ -51,8 +52,7 @@ import { UtilsService } from '@core/services/utils.service';
 export class AlarmService {
 
   constructor(
-    private http: HttpClient,
-    private utils: UtilsService
+    private http: HttpClient
   ) { }
 
   public getAlarm(alarmId: string, config?: RequestConfig): Observable<Alarm> {
@@ -67,22 +67,48 @@ export class AlarmService {
     return this.http.post<Alarm>('/api/alarm', alarm, defaultHttpOptionsFromConfig(config));
   }
 
-  public ackAlarm(alarmId: string, config?: RequestConfig): Observable<void> {
-    return this.http.post<void>(`/api/alarm/${alarmId}/ack`, null, defaultHttpOptionsFromConfig(config));
+  public ackAlarm(alarmId: string, config?: RequestConfig): Observable<AlarmInfo> {
+    return this.http.post<AlarmInfo>(`/api/alarm/${alarmId}/ack`, null, defaultHttpOptionsFromConfig(config));
   }
 
-  public clearAlarm(alarmId: string, config?: RequestConfig): Observable<void> {
-    return this.http.post<void>(`/api/alarm/${alarmId}/clear`, null, defaultHttpOptionsFromConfig(config));
+  public clearAlarm(alarmId: string, config?: RequestConfig): Observable<AlarmInfo> {
+    return this.http.post<AlarmInfo>(`/api/alarm/${alarmId}/clear`, null, defaultHttpOptionsFromConfig(config));
   }
 
-  public deleteAlarm(alarmId: string, config?: RequestConfig): Observable<void> {
-    return this.http.delete<void>(`/api/alarm/${alarmId}`, defaultHttpOptionsFromConfig(config));
+  public assignAlarm(alarmId: string, assigneeId: string, config?: RequestConfig): Observable<void> {
+    return this.http.post<void>(`/api/alarm/${alarmId}/assign/${assigneeId}`, null, defaultHttpOptionsFromConfig(config));
+  }
+
+  public unassignAlarm(alarmId: string, config?: RequestConfig): Observable<void> {
+    return this.http.delete<void>(`/api/alarm/${alarmId}/assign`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public deleteAlarm(alarmId: string, config?: RequestConfig): Observable<boolean> {
+    return this.http.delete<boolean>(`/api/alarm/${alarmId}`, defaultHttpOptionsFromConfig(config));
   }
 
   public getAlarms(query: AlarmQuery,
                    config?: RequestConfig): Observable<PageData<AlarmInfo>> {
     return this.http.get<PageData<AlarmInfo>>(`/api/alarm${query.toQuery()}`,
       defaultHttpOptionsFromConfig(config));
+  }
+
+  public getAlarmsV2(query: AlarmQueryV2,
+                     config?: RequestConfig): Observable<PageData<AlarmInfo>> {
+    return this.http.get<PageData<AlarmInfo>>(`/api/v2/alarm${query.toQuery()}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getAllAlarms(query: AlarmQuery,
+                      config?: RequestConfig): Observable<PageData<AlarmInfo>> {
+    return this.http.get<PageData<AlarmInfo>>(`/api/alarms${query.toQuery()}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getAllAlarmsV2(query: AlarmQueryV2,
+      config?: RequestConfig): Observable<PageData<AlarmInfo>> {
+      return this.http.get<PageData<AlarmInfo>>(`/api/v2/alarms${query.toQuery()}`,
+        defaultHttpOptionsFromConfig(config));
   }
 
   public getHighestAlarmSeverity(entityId: EntityId, alarmSearchStatus: AlarmSearchStatus, alarmStatus: AlarmStatus,
@@ -95,6 +121,10 @@ export class AlarmService {
     }
     return this.http.get<AlarmSeverity>(url,
       defaultHttpOptionsFromConfig(config));
+  }
+
+  public getAlarmTypes(pageLink: PageLink, config?: RequestConfig): Observable<PageData<EntitySubtype>> {
+    return this.http.get<PageData<EntitySubtype>>(`/api/alarm/types${pageLink.toQuery()}`, defaultHttpOptionsFromConfig(config));
   }
 
 }

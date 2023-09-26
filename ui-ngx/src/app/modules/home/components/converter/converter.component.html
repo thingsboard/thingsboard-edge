@@ -97,6 +97,14 @@
             [functionArgs]="['payload', 'metadata']"
             helpId="converter/decoder_fn"
             noValidate>
+              <button toolbarSuffixButton
+                      mat-icon-button
+                      matTooltip="{{ 'converter.test-decoder-fuction' | translate }}"
+                      matTooltipPosition="above"
+                      class="tb-mat-32"
+                      (click)="openConverterTestDialog()">
+                <mat-icon class="material-icons" color="primary">bug_report</mat-icon>
+              </button>
           </tb-js-func>
           <tb-js-func
             *ngIf="entityForm.get('configuration').get('scriptLang').value === scriptLanguage.TBEL"
@@ -104,8 +112,17 @@
             functionName="Decoder"
             [functionArgs]="['payload', 'metadata']"
             [disableUndefinedCheck]="true"
+            [scriptLanguage]="scriptLanguage.TBEL"
             helpId="converter/tbel/decoder_fn"
             noValidate>
+              <button toolbarSuffixButton
+                      mat-icon-button
+                      matTooltip="{{ 'converter.test-decoder-fuction' | translate }}"
+                      matTooltipPosition="above"
+                      class="tb-mat-32"
+                      (click)="openConverterTestDialog()">
+                <mat-icon class="material-icons" color="primary">bug_report</mat-icon>
+              </button>
           </tb-js-func>
         </section>
         <section *ngIf="entityForm.get('type').value === converterType.DOWNLINK">
@@ -116,24 +133,49 @@
             [functionArgs]="['msg', 'metadata', 'msgType', 'integrationMetadata']"
             helpId="converter/encoder_fn"
             noValidate>
+            <button toolbarSuffixButton
+                    mat-icon-button
+                    matTooltip="{{ 'converter.test-encoder-fuction' | translate }}"
+                    matTooltipPosition="above"
+                    class="tb-mat-32"
+                    (click)="openConverterTestDialog()">
+              <mat-icon class="material-icons" color="primary">bug_report</mat-icon>
+            </button>
           </tb-js-func>
           <tb-js-func
             *ngIf="entityForm.get('configuration').get('scriptLang').value === scriptLanguage.TBEL"
+            [scriptLanguage]="scriptLanguage.TBEL"
             formControlName="tbelEncoder"
             functionName="Encoder"
             [functionArgs]="['msg', 'metadata', 'msgType', 'integrationMetadata']"
+            [disableUndefinedCheck]="true"
             helpId="converter/tbel/encoder_fn"
             noValidate>
+            <button toolbarSuffixButton
+                    mat-icon-button
+                    matTooltip="{{ 'converter.test-encoder-fuction' | translate }}"
+                    matTooltipPosition="above"
+                    class="tb-mat-32"
+                    (click)="openConverterTestDialog()">
+              <mat-icon class="material-icons" color="primary">bug_report</mat-icon>
+            </button>
           </tb-js-func>
         </section>
-        <div fxLayout="row">
+        <div fxLayout="row" style="padding-bottom: 16px;">
           <button [fxShow]="isEdit"
                   [disabled]="isLoading$ | async"
                   type="button" mat-button mat-raised-button color="primary"
-                  (click)="openConverterTestDialog(entityForm.get('type').value === converterType.UPLINK)">
+                  (click)="openConverterTestDialog()">
             {{ (entityForm.get('type').value === converterType.UPLINK ? 'converter.test-decoder-fuction' : 'converter.test-encoder-fuction') | translate }}
           </button>
         </div>
+        <tb-string-items-list *ngIf="entityForm.get('type').value === converterType.UPLINK" style="margin-bottom: 16px;"
+                              subscriptSizing="dynamic"
+                              label="{{ 'converter.update-only-keys-list' | translate }}"
+                              hint="{{ 'converter.update-only-keys-list-hint' | translate }}"
+                              placeholder="{{ 'converter.add-key' | translate }}"
+                              formControlName="updateOnlyKeys">
+        </tb-string-items-list>
       </div>
       <div formGroupName="additionalInfo" fxLayout="column">
         <mat-form-field class="mat-block">

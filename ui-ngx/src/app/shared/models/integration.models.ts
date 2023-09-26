@@ -44,7 +44,9 @@ export enum IntegrationType {
   SIGFOX = 'SIGFOX',
   TTI = 'TTI',
   CHIRPSTACK = 'CHIRPSTACK',
+  PARTICLE = 'PARTICLE',
   AZURE_EVENT_HUB = 'AZURE_EVENT_HUB',
+  AZURE_SERVICE_BUS = 'AZURE_SERVICE_BUS',
   COAP = 'COAP',
   OPC_UA = 'OPC_UA',
   APACHE_PULSAR = 'APACHE_PULSAR',
@@ -61,7 +63,8 @@ export enum IntegrationType {
   THINGPARK = 'THINGPARK',
   TMOBILE_IOT_CDP = 'TMOBILE_IOT_CDP',
   TPE = 'TPE',
-  UDP = 'UDP'
+  UDP = 'UDP',
+  TUYA = 'TUYA'
 }
 
 export enum CoapSecurityMode {
@@ -217,11 +220,28 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
       }
     ],
     [
+      IntegrationType.PARTICLE,
+      {
+        name: 'integration.type-particle',
+        description: 'integration.type-particle-description',
+        icon: 'assets/integration-icon/particle.svg'
+      }
+    ],
+    [
       IntegrationType.AZURE_EVENT_HUB,
       {
         name: 'integration.type-azure-event-hub',
         description: 'integration.type-azure-event-hub-description',
         icon: 'assets/integration-icon/azure-event-hub.svg',
+        checkConnection: true
+      }
+    ],
+    [
+      IntegrationType.AZURE_SERVICE_BUS,
+      {
+        name: 'integration.type-azure-service-bus',
+        description: 'integration.type-azure-service-bus-description',
+        icon: 'assets/integration-icon/azure-service-bus.svg',
         checkConnection: true
       }
     ],
@@ -305,6 +325,14 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
       }
     ],
     [
+      IntegrationType.TUYA,
+      {
+        name: 'integration.type-tuya',
+        description: 'integration.type-tuya-description',
+        icon: 'assets/integration-icon/tuya.svg'
+      }
+    ],
+    [
       IntegrationType.CUSTOM,
       {
         name: 'integration.type-custom',
@@ -333,6 +361,7 @@ const integrationHelpLinkMap = new Map<IntegrationType, string>(
     [IntegrationType.TTN, 'integrationTheThingsNetwork'],
     [IntegrationType.TTI, 'integrationTheThingsIndustries'],
     [IntegrationType.CHIRPSTACK, 'integrationChirpStack'],
+    [IntegrationType.PARTICLE, 'integrationParticle'],
     [IntegrationType.AZURE_EVENT_HUB, 'integrationAzureEventHub'],
     [IntegrationType.AZURE_IOT_HUB, 'integrationAzureIoTHub'],
     [IntegrationType.OPC_UA, 'integrationOpcUa'],
@@ -343,14 +372,15 @@ const integrationHelpLinkMap = new Map<IntegrationType, string>(
     [IntegrationType.APACHE_PULSAR, 'integrationApachePulsar'],
     [IntegrationType.PUB_SUB, 'integrationPubsub'],
     [IntegrationType.COAP, 'integrationCoAP'],
+    [IntegrationType.TUYA, 'integrationTuya'],
     [IntegrationType.CUSTOM, 'integrationCustom']
   ]
 );
 
 export type IntegrationConfiguration = ApachePulsarIntegration | HttpIntegration | ThingParkIntegration | LoriotIntegration |
   MqttIntegration | AwsIotIntegration | AwsSqsIntegration | AwsKinesisIntegration | IbmWatsonIotIntegration | TtnIntegration |
-  ChipStackIntegration | AzureEventHubIntegration | AzureIotHubIntegration | OpcUaIntegration | UpdIntegration | TcpIntegration |
-  KafkaIntegration | RabbitMqIntegration | PubSubIntegration | CoapIntegration | CustomIntegration;
+  ChipStackIntegration | ParticleIntegration | AzureEventHubIntegration | AzureIotHubIntegration | OpcUaIntegration | UpdIntegration |
+  TcpIntegration | KafkaIntegration | RabbitMqIntegration | PubSubIntegration | CoapIntegration | TuyaIntegration | CustomIntegration;
 
 export function getIntegrationHelpLink(integration: Integration): string {
   if (integration && integration.type) {
@@ -406,6 +436,10 @@ export enum IntegrationSubType {
 export function resolveIntegrationParams(route: ActivatedRouteSnapshot): IntegrationParams {
   const routeParams = {...route.params};
   const routeData = {...route.data};
+  let backNavigationCommands: any[];
+  if (routeData.backNavigationCommands) {
+    backNavigationCommands = routeData.backNavigationCommands;
+  }
   let edgeId: string;
   let integrationScope: string;
   if (routeParams?.hierarchyView) {
@@ -421,7 +455,8 @@ export function resolveIntegrationParams(route: ActivatedRouteSnapshot): Integra
     hierarchyView: routeParams?.hierarchyView,
     entityGroupId: routeParams?.entityGroupId,
     childEntityGroupId: routeParams?.childEntityGroupId,
-    customerId: routeParams?.customerId
+    customerId: routeParams?.customerId,
+    backNavigationCommands
   };
 }
 
@@ -633,6 +668,16 @@ export interface AzureEventHubIntegration {
   };
 }
 
+export interface AzureServicesBusIntegration {
+  clientConfiguration: {
+    connectionString: string;
+    topicName: string;
+    subName: string;
+    downlinkConnectionString: string;
+    downlinkTopicName: string;
+  }
+}
+
 export interface AzureIotHubIntegration{
   clientConfiguration: {
     host: string;
@@ -649,6 +694,16 @@ export interface ChipStackIntegration {
     httpEndpoint: string,
     applicationServerUrl: string;
     applicationServerAPIToken: string;
+    useAPI4Plus: boolean;
+  };
+}
+
+export interface ParticleIntegration {
+  clientConfiguration: {
+    baseUrl: string;
+    httpEndpoint: string;
+    enableSecurity?: boolean;
+    headersFilter?: {[key: string]: string} | null;
   };
 }
 
@@ -787,6 +842,34 @@ export interface RabbitMqIntegration {
     autoDelete: boolean;
   };
 }
+
+export enum TuyaRegion {
+  CN = 'CN',
+  US = 'US',
+  EU = 'EU',
+  IN = 'IN'
+}
+
+export enum TuyaEnv {
+  PROD = 'PROD',
+  TEST = 'TEST'
+}
+
+export interface TuyaIntegration {
+  clientConfiguration: {
+    region: TuyaRegion;
+    accessId: string;
+    accessKey: string;
+    env: TuyaEnv;
+  };
+}
+
+export const TuyaRegionTranslation = new Map<TuyaRegion, string>([
+  [TuyaRegion.CN, 'integration.region-cn'],
+  [TuyaRegion.US, 'integration.region-us'],
+  [TuyaRegion.EU, 'integration.region-eu'],
+  [TuyaRegion.IN, 'integration.region-in']
+]);
 
 interface TcpHandlerConfiguration {
   handlerType: TcpHandlerConfigurationType;

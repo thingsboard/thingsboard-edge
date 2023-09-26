@@ -42,5 +42,6 @@ public class DeviceProfileEvictEvent {
     private final String oldName;
     private final DeviceProfileId deviceProfileId;
     private final boolean defaultProfile;
+    private final String provisionDeviceKey;
 
 }

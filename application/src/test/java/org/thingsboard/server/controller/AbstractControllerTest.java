@@ -44,6 +44,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.permission.ShareGroupRequest;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
@@ -53,6 +58,7 @@ import java.net.URISyntaxException;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ActiveProfiles("test")
 @RunWith(SpringRunner.class)
@@ -70,7 +76,8 @@ public abstract class AbstractControllerTest extends AbstractNotifyEntityTest {
     @LocalServerPort
     protected int wsPort;
 
-    private TbTestWebSocketClient wsClient; // lazy
+    private volatile TbTestWebSocketClient wsClient; // lazy
+    private volatile TbTestWebSocketClient anotherWsClient; // lazy
 
     public TbTestWebSocketClient getWsClient() {
         if (wsClient == null) {
@@ -87,6 +94,21 @@ public abstract class AbstractControllerTest extends AbstractNotifyEntityTest {
         return wsClient;
     }
 
+    public TbTestWebSocketClient getAnotherWsClient() {
+        if (anotherWsClient == null) {
+            synchronized (this) {
+                try {
+                    if (anotherWsClient == null) {
+                        anotherWsClient = buildAndConnectWebSocketClient();
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        return anotherWsClient;
+    }
+
     @Before
     public void beforeWsTest() throws Exception {
         // placeholder
@@ -97,22 +119,46 @@ public abstract class AbstractControllerTest extends AbstractNotifyEntityTest {
         if (wsClient != null) {
             wsClient.close();
         }
+        if (anotherWsClient != null) {
+            anotherWsClient.close();
+        }
     }
 
-    private TbTestWebSocketClient buildAndConnectWebSocketClient() throws URISyntaxException, InterruptedException {
+    protected TbTestWebSocketClient buildAndConnectWebSocketClient() throws URISyntaxException, InterruptedException {
         TbTestWebSocketClient wsClient = new TbTestWebSocketClient(new URI(WS_URL + wsPort + "/api/ws/plugins/telemetry?token=" + token));
         assertThat(wsClient.connectBlocking(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         return wsClient;
     }
 
-    protected void resetSysAdminWhiteLabelingSettings(String tenantEmail, String tenantPassword) throws Exception {
+    protected void resetSysAdminWhiteLabelingSettings() throws Exception {
         loginSysAdmin();
 
         doPost("/api/whiteLabel/loginWhiteLabelParams", new LoginWhiteLabelingParams(), LoginWhiteLabelingParams.class);
         doPost("/api/whiteLabel/whiteLabelParams", new WhiteLabelingParams(), WhiteLabelingParams.class);
         doPost("/api/customTranslation/customTranslation", new CustomTranslation(), CustomTranslation.class);
+    }
 
-        loginUser(tenantEmail, tenantPassword);
+    protected EntityGroupInfo createSharedPublicEntityGroup(String name, EntityType entityType, EntityId ownerId) throws Exception {
+        EntityGroup entityGroup = new EntityGroup();
+        entityGroup.setName(name);
+        entityGroup.setType(entityType);
+        EntityGroupInfo groupInfo =
+                doPostWithResponse("/api/entityGroup", entityGroup, EntityGroupInfo.class);
+
+        ShareGroupRequest groupRequest = new ShareGroupRequest(
+                ownerId,
+                true,
+                null,
+                true,
+                null
+        );
+
+        doPost("/api/entityGroup/" + groupInfo.getId() + "/share", groupRequest)
+                .andExpect(status().isOk());
+
+        doPost("/api/entityGroup/" + groupInfo.getId() + "/makePublic")
+                .andExpect(status().isOk());
+        return doGet("/api/entityGroup/" + groupInfo.getUuidId(), EntityGroupInfo.class);
     }
 
 }

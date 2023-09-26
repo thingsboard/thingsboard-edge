@@ -36,14 +36,18 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
+import java.util.Optional;
 
-public interface ConverterService {
+public interface ConverterService extends EntityDaoService {
 
     Converter saveConverter(Converter converter);
 
     Converter findConverterById(TenantId tenantId, ConverterId converterId);
+
+    Optional<Converter> findConverterByName(TenantId tenantId, String converterName);
 
     ListenableFuture<Converter> findConverterByIdAsync(TenantId tenantId, ConverterId converterId);
 

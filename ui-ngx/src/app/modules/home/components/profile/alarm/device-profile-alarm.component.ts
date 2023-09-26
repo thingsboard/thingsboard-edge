@@ -32,15 +32,15 @@
 import { Component, EventEmitter, forwardRef, Input, OnInit, Output } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   Validator,
   Validators
 } from '@angular/forms';
-import { AlarmRule, DeviceProfileAlarm, deviceProfileAlarmValidator } from '@shared/models/device.models';
+import { DeviceProfileAlarmRule, DeviceProfileAlarm, deviceProfileAlarmValidator } from '@shared/models/device.models';
 import { MatDialog } from '@angular/material/dialog';
 import { COMMA, ENTER, SEMICOLON } from '@angular/cdk/keycodes';
 import { MatChipInputEvent } from '@angular/material/chips';
@@ -82,14 +82,14 @@ export class DeviceProfileAlarmComponent implements ControlValueAccessor, OnInit
 
   private modelValue: DeviceProfileAlarm;
 
-  alarmFormGroup: FormGroup;
+  alarmFormGroup: UntypedFormGroup;
 
   private propagateChange = null;
   private propagateChangePending = false;
 
   constructor(private dialog: MatDialog,
               private utils: UtilsService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
   }
 
   registerOnChange(fn: any): void {
@@ -144,7 +144,7 @@ export class DeviceProfileAlarmComponent implements ControlValueAccessor, OnInit
   }
 
   public addClearAlarmRule() {
-    const clearAlarmRule: AlarmRule = {
+    const clearAlarmRule: DeviceProfileAlarmRule = {
       condition: {
         condition: []
       }
@@ -156,7 +156,7 @@ export class DeviceProfileAlarmComponent implements ControlValueAccessor, OnInit
     this.alarmFormGroup.patchValue({clearRule: null});
   }
 
-  public validate(c: FormControl) {
+  public validate(c: UntypedFormControl) {
     if (c.parent) {
       const alarmType = c.value.alarmType;
       const profileAlarmsType = [];
@@ -187,7 +187,7 @@ export class DeviceProfileAlarmComponent implements ControlValueAccessor, OnInit
   }
 
   addRelationType(event: MatChipInputEvent): void {
-    const input = event.input;
+    const input = event.chipInput.inputElement;
     let value = event.value;
     if ((value || '').trim()) {
       value = value.trim();

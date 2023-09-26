@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@use '~@angular/material' as mat;
+@use '@angular/material' as mat;
 @import "../theme/app-theme.scss";
 
 $tb-primary-50: map_get(mat.$teal-palette, 50);
@@ -75,7 +75,7 @@ $tb-warn: mat.get-color-from-palette(map-get($tb-theme, warn), text);
         transition-property: max-width;
         position: relative;
 
-        .mat-icon-button {
+        .mat-mdc-icon-button {
           align-self: end;
         }
       }
@@ -140,41 +140,16 @@ $tb-warn: mat.get-color-from-palette(map-get($tb-theme, warn), text);
 }
 
 :host ::ng-deep {
-  .mat-slider-wrapper {
-    .mat-slider-thumb-container {
-      .mat-slider-thumb-label {
-        width: 35px;
-        height: 35px;
-      }
-    }
-  }
-
   .mat-button-toggle-group {
     width: 100%;
     min-width: 354px;
     border: 2px solid rgba(0, 0, 0, 0.06);
-
     .mat-button-toggle-checked  {
       background: rgba(0, 0, 0, 0.06);
     }
-
     .mat-button-toggle {
       border: none !important;
     }
-  }
-
-  /* Make mat-slider tooltip always visible */
-  .mat-slider-thumb-label {
-    transform: rotate(45deg) !important;
-    border-radius: 50% 50% 0 !important;
-  }
-
-  .mat-slider-thumb {
-    transform: scale(0) !important;
-  }
-
-  .mat-slider-thumb-label-text {
-    opacity: 1 !important;
   }
 }
 

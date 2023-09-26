@@ -498,7 +498,7 @@
           "layoutY": 120
         },
         "type": "org.thingsboard.rule.engine.debug.TbMsgGeneratorNode",
-        "name": "Field 1 Water Consumption Simulator",
+        "name": "Field 2 Water Consumption Simulator",
         "debugMode": false,
         "configuration": {
           "msgCount": 0,

@@ -39,12 +39,14 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.TbCallback;
@@ -65,6 +67,11 @@ import java.util.concurrent.TimeoutException;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@TestPropertySource(properties = {
+        "js.evaluator=local",
+        "service.integrations.supported=ALL",
+        "transport.coap.enabled=true",
+})
 @Slf4j
 @DaoSqlTest
 public class BasicOpcUaIntegrationTest extends AbstractIntegrationTest {
@@ -82,7 +89,7 @@ public class BasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         startServer();
 
         InputStream resourceAsStream = ObjectNode.class.getClassLoader().getResourceAsStream(OPCUA_UPLINK_CONVERTER_FILEPATH);
-        ObjectNode jsonFile = mapper.readValue(resourceAsStream, ObjectNode.class);
+        ObjectNode jsonFile = JacksonUtil.fromBytes(resourceAsStream.readAllBytes(), ObjectNode.class);
         Assert.assertNotNull(jsonFile);
 
         if (jsonFile.has("configuration") && jsonFile.get("configuration").has("decoder")) {
@@ -287,7 +294,7 @@ public class BasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         dataNode.set("data", writeValuesNode);
         TbMsgMetaData tbMsgMetaData = new TbMsgMetaData(new HashMap<>());
 
-        TbMsg tbMsg = TbMsg.newMsg("INTEGRATION_DOWNLINK", originatorId, tbMsgMetaData, writeValueNode.toString());
+        TbMsg tbMsg = TbMsg.newMsg(TbMsgType.ATTRIBUTES_UPDATED, originatorId, tbMsgMetaData, writeValueNode.toString());
         return TransportProtos.IntegrationDownlinkMsgProto.newBuilder()
                 .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
                 .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
@@ -305,7 +312,7 @@ public class BasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         return !eventsList.isEmpty();
     }
 
-    private Device createDevice(String deviceName, String deviceType) {
+    protected Device createDevice(String deviceName, String deviceType) {
         Device device = new Device();
         device.setName(deviceName);
         device.setType(deviceType);

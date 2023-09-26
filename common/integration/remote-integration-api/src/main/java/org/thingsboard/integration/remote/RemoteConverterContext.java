@@ -30,11 +30,11 @@
  */
 package org.thingsboard.integration.remote;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.integration.api.IntegrationCallback;
+import org.thingsboard.integration.api.IntegrationRateLimitService;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.storage.EventStorage;
 import org.thingsboard.server.common.data.FSTUtils;
@@ -43,13 +43,14 @@ import org.thingsboard.server.gen.integration.TbEventProto;
 import org.thingsboard.server.gen.integration.TbEventSource;
 import org.thingsboard.server.gen.integration.UplinkMsg;
 
+import java.util.Optional;
+
 @Data
 @Slf4j
 public class RemoteConverterContext implements ConverterContext {
 
     private final EventStorage eventStorage;
     private final boolean isUplink;
-    private final ObjectMapper mapper;
     private final String clientId;
     private final int port;
 
@@ -72,5 +73,10 @@ public class RemoteConverterContext implements ConverterContext {
                         .setEvent(ByteString.copyFrom(FSTUtils.encode(event)))
                         .build()
                 ).build(), callback);
+    }
+
+    @Override
+    public Optional<IntegrationRateLimitService> getRateLimitService() {
+        return Optional.empty();
     }
 }

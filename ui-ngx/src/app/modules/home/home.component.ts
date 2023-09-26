@@ -29,22 +29,24 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, ElementRef, Inject, OnInit, ViewChild } from '@angular/core';
-import { combineLatest, fromEvent, Observable } from 'rxjs';
-import { select, Store } from '@ngrx/store';
-import { debounceTime, distinctUntilChanged, map, share, tap } from 'rxjs/operators';
+import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { combineLatest, Observable, Subject } from 'rxjs';
+import { Store } from '@ngrx/store';
+import { debounceTime, distinctUntilChanged, map, share, skip, startWith, takeUntil } from 'rxjs/operators';
 
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
-import { User } from '@shared/models/user.model';
 import { PageComponent } from '@shared/components/page.component';
 import { AppState } from '@core/core.state';
-import { getCurrentAuthState, selectAuthUser, selectUserDetails } from '@core/auth/auth.selectors';
+import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { MediaBreakpoints } from '@shared/models/constants';
 import screenfull from 'screenfull';
 import { MatSidenav } from '@angular/material/sidenav';
 import { AuthState } from '@core/auth/auth.models';
 import { WINDOW } from '@core/services/window.service';
 import { instanceOfSearchableComponent, ISearchableComponent } from '@home/models/searchable-component.models';
+import { ActiveComponentService } from '@core/services/active-component.service';
+import { RouterTabsComponent } from '@home/components/router-tabs.component';
+import { FormBuilder } from '@angular/forms';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { TranslateService } from '@ngx-translate/core';
 
@@ -53,7 +55,7 @@ import { TranslateService } from '@ngx-translate/core';
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
-export class HomeComponent extends PageComponent implements AfterViewInit, OnInit {
+export class HomeComponent extends PageComponent implements AfterViewInit, OnInit, OnDestroy {
 
   authState: AuthState = getCurrentAuthState(this.store);
 
@@ -72,16 +74,18 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
 
   fullscreenEnabled = screenfull.isEnabled;
 
-  authUser$: Observable<any>;
-  userDetails$: Observable<User>;
-  userDetailsString: Observable<string>;
-
   searchEnabled = false;
   showSearch = false;
-  searchText = '';
+  textSearch = this.fb.control('', {nonNullable: true});
+
+  hideLoadingBar = false;
+
+  private destroy$ = new Subject<void>();
 
   constructor(protected store: Store<AppState>,
               @Inject(WINDOW) private window: Window,
+              private activeComponentService: ActiveComponentService,
+              private fb: FormBuilder,
               public wl: WhiteLabelingService,
               public translate: TranslateService,
               public breakpointObserver: BreakpointObserver) {
@@ -90,18 +94,13 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
 
   ngOnInit() {
 
-    this.authUser$ = this.store.pipe(select(selectAuthUser));
-    this.userDetails$ = this.store.pipe(select(selectUserDetails));
-    this.userDetailsString = this.userDetails$.pipe(map((user: User) => {
-      return JSON.stringify(user);
-    }));
-
     const isGtSm = this.breakpointObserver.isMatched(MediaBreakpoints['gt-sm']);
     this.sidenavMode = isGtSm ? 'side' : 'over';
     this.sidenavOpened = isGtSm;
 
     this.breakpointObserver
       .observe(MediaBreakpoints['gt-sm'])
+      .pipe(takeUntil(this.destroy$))
       .subscribe((state: BreakpointState) => {
           if (state.matches) {
             this.sidenavMode = 'side';
@@ -114,16 +113,19 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
       );
   }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   ngAfterViewInit() {
-    fromEvent(this.searchInputField.nativeElement, 'keyup')
-      .pipe(
-        debounceTime(150),
-        distinctUntilChanged(),
-        tap(() => {
-          this.searchTextUpdated();
-        })
-      )
-      .subscribe();
+    this.textSearch.valueChanges.pipe(
+      debounceTime(150),
+      startWith(''),
+      distinctUntilChanged((a: string, b: string) => a.trim() === b.trim()),
+      skip(1),
+      takeUntil(this.destroy$)
+    ).subscribe(value => this.searchTextUpdated(value.trim()));
   }
 
   sidenavClicked() {
@@ -147,9 +149,21 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
   }
 
   activeComponentChanged(activeComponent: any) {
+    this.activeComponentService.setCurrentActiveComponent(activeComponent);
+    if (!this.activeComponent) {
+      setTimeout(() => {
+        this.updateActiveComponent(activeComponent);
+      }, 0);
+    } else {
+      this.updateActiveComponent(activeComponent);
+    }
+  }
+
+  private updateActiveComponent(activeComponent: any) {
     this.showSearch = false;
-    this.searchText = '';
+    this.textSearch.reset('', {emitEvent: false});
     this.activeComponent = activeComponent;
+    this.hideLoadingBar = activeComponent && activeComponent instanceof RouterTabsComponent;
     if (this.activeComponent && instanceOfSearchableComponent(this.activeComponent)) {
       this.searchEnabled = true;
       this.searchableComponent = this.activeComponent;
@@ -176,25 +190,22 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
   closeSearch() {
     if (this.searchEnabled) {
       this.showSearch = false;
-      if (this.searchText.length) {
-        this.searchText = '';
-        this.searchTextUpdated();
+      if (this.textSearch.value.length) {
+        this.textSearch.reset();
       }
     }
   }
 
   platformNameAndVersion$(): Observable<string> {
     return combineLatest([this.wl.getPlatformName$(), this.wl.getPlatformVersion$()]).pipe(
-      map((res) => {
-        return this.translate.instant('white-labeling.version-mask', {name: res[0], version: res[1]});
-      }),
+      map((res) => this.translate.instant('white-labeling.version-mask', {name: res[0], version: res[1]})),
       share()
     );
   }
 
-  private searchTextUpdated() {
+  private searchTextUpdated(searchText: string) {
     if (this.searchableComponent) {
-      this.searchableComponent.onSearchTextUpdated(this.searchText);
+      this.searchableComponent.onSearchTextUpdated(searchText);
     }
   }
 }

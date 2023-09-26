@@ -34,7 +34,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { Authority } from '@shared/models/authority.enum';
 import { SchedulerEventsComponent } from '@home/components/scheduler/scheduler-events.component';
 
-const routes: Routes = [
+export const schedulerRoutes: Routes = [
   {
     path: 'scheduler',
     component: SchedulerEventsComponent,
@@ -46,6 +46,13 @@ const routes: Routes = [
         icon: 'schedule'
       }
     }
+  }
+];
+
+const routes: Routes = [
+  {
+    path: 'scheduler',
+    redirectTo: '/features/scheduler'
   }
 ];
 

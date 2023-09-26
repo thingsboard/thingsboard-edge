@@ -37,10 +37,10 @@ import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.ExportableCustomerEntityDao;
 import org.thingsboard.server.dao.TenantEntityDao;
-import org.thingsboard.server.common.data.util.TbPair;
 
 import java.util.List;
 import java.util.Optional;
@@ -68,6 +68,8 @@ public interface AssetDao extends Dao<Asset>, TenantEntityDao, ExportableCustome
      * @return the list of asset objects
      */
     PageData<Asset> findAssetsByTenantId(UUID tenantId, PageLink pageLink);
+
+    Long countAssets();
 
     /**
      * Find assets by tenantId, type and page link.

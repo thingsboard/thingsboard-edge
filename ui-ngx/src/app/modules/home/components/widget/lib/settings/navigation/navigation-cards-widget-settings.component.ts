@@ -31,10 +31,10 @@
 
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.models';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { MatChipInputEvent, MatChipList } from '@angular/material/chips';
+import { MatChipInputEvent, MatChipGrid } from '@angular/material/chips';
 import { MatAutocomplete, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { COMMA, ENTER, SEMICOLON } from '@angular/cdk/keycodes';
 import { Observable, of, Subject } from 'rxjs';
@@ -47,7 +47,7 @@ import { map, mergeMap, share, startWith } from 'rxjs/operators';
 })
 export class NavigationCardsWidgetSettingsComponent extends WidgetSettingsComponent {
 
-  @ViewChild('filterItemsChipList') filterItemsChipList: MatChipList;
+  @ViewChild('filterItemsChipList') filterItemsChipList: MatChipGrid;
   @ViewChild('filterItemAutocomplete') filterItemAutocomplete: MatAutocomplete;
   @ViewChild('filterItemInput') filterItemInput: ElementRef<HTMLInputElement>;
 
@@ -55,7 +55,7 @@ export class NavigationCardsWidgetSettingsComponent extends WidgetSettingsCompon
 
   separatorKeysCodes = [ENTER, COMMA, SEMICOLON];
 
-  navigationCardsWidgetSettingsForm: FormGroup;
+  navigationCardsWidgetSettingsForm: UntypedFormGroup;
 
   filteredFilterItems: Observable<Array<string>>;
 
@@ -64,7 +64,7 @@ export class NavigationCardsWidgetSettingsComponent extends WidgetSettingsCompon
   filterItemInputChange = new Subject<string>();
 
   constructor(protected store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
     this.filteredFilterItems = this.filterItemInputChange
       .pipe(
@@ -75,7 +75,7 @@ export class NavigationCardsWidgetSettingsComponent extends WidgetSettingsCompon
       );
   }
 
-  protected settingsForm(): FormGroup {
+  protected settingsForm(): UntypedFormGroup {
     return this.navigationCardsWidgetSettingsForm;
   }
 

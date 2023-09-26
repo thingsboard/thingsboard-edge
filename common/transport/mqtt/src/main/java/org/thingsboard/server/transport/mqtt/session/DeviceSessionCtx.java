@@ -34,6 +34,7 @@ import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttMessage;
+import io.netty.handler.codec.mqtt.MqttVersion;
 import io.netty.util.ReferenceCountUtil;
 import lombok.Getter;
 import lombok.Setter;
@@ -89,8 +90,13 @@ public class DeviceSessionCtx extends MqttDeviceAwareSessionContext {
     @Setter
     private boolean provisionOnly = false;
 
+    @Getter
+    @Setter
+    private MqttVersion mqttVersion;
+
     private volatile MqttTopicFilter telemetryTopicFilter = MqttTopicFilterFactory.getDefaultTelemetryFilter();
-    private volatile MqttTopicFilter attributesTopicFilter = MqttTopicFilterFactory.getDefaultAttributesFilter();
+    private volatile MqttTopicFilter attributesPublishTopicFilter = MqttTopicFilterFactory.getDefaultAttributesFilter();
+    private volatile MqttTopicFilter attributesSubscribeTopicFilter = MqttTopicFilterFactory.getDefaultAttributesFilter();
     private volatile TransportPayloadType payloadType = TransportPayloadType.JSON;
     private volatile Descriptors.Descriptor attributesDynamicMessageDescriptor;
     private volatile Descriptors.Descriptor telemetryDynamicMessageDescriptor;
@@ -102,8 +108,12 @@ public class DeviceSessionCtx extends MqttDeviceAwareSessionContext {
     private volatile boolean sendAckOnValidationException;
 
     @Getter
+    private volatile boolean deviceProfileMqttTransportType;
+
+    @Getter
     @Setter
     private TransportPayloadType provisionPayloadType = payloadType;
+
 
     public DeviceSessionCtx(UUID sessionId, ConcurrentMap<MqttTopicMatcher, Integer> mqttQoSMap, MqttTransportContext context) {
         super(sessionId, mqttQoSMap);
@@ -120,7 +130,11 @@ public class DeviceSessionCtx extends MqttDeviceAwareSessionContext {
     }
 
     public boolean isDeviceAttributesTopic(String topicName) {
-        return attributesTopicFilter.filter(topicName);
+        return attributesPublishTopicFilter.filter(topicName);
+    }
+
+    public boolean isDeviceSubscriptionAttributesTopic(String topicName) {
+        return attributesSubscribeTopicFilter.filter(topicName);
     }
 
     public MqttTransportAdaptor getPayloadAdaptor() {
@@ -170,8 +184,10 @@ public class DeviceSessionCtx extends MqttDeviceAwareSessionContext {
             MqttDeviceProfileTransportConfiguration mqttConfig = (MqttDeviceProfileTransportConfiguration) transportConfiguration;
             TransportPayloadTypeConfiguration transportPayloadTypeConfiguration = mqttConfig.getTransportPayloadTypeConfiguration();
             payloadType = transportPayloadTypeConfiguration.getTransportPayloadType();
+            deviceProfileMqttTransportType = true;
             telemetryTopicFilter = MqttTopicFilterFactory.toFilter(mqttConfig.getDeviceTelemetryTopic());
-            attributesTopicFilter = MqttTopicFilterFactory.toFilter(mqttConfig.getDeviceAttributesTopic());
+            attributesPublishTopicFilter = MqttTopicFilterFactory.toFilter(mqttConfig.getDeviceAttributesTopic());
+            attributesSubscribeTopicFilter = MqttTopicFilterFactory.toFilter(mqttConfig.getDeviceAttributesSubscribeTopic());
             sendAckOnValidationException = mqttConfig.isSendAckOnValidationException();
             if (TransportPayloadType.PROTOBUF.equals(payloadType)) {
                 ProtoTransportPayloadConfiguration protoTransportPayloadConfig = (ProtoTransportPayloadConfiguration) transportPayloadTypeConfiguration;
@@ -181,8 +197,9 @@ public class DeviceSessionCtx extends MqttDeviceAwareSessionContext {
             }
         } else {
             telemetryTopicFilter = MqttTopicFilterFactory.getDefaultTelemetryFilter();
-            attributesTopicFilter = MqttTopicFilterFactory.getDefaultAttributesFilter();
+            attributesPublishTopicFilter = MqttTopicFilterFactory.getDefaultAttributesFilter();
             payloadType = TransportPayloadType.JSON;
+            deviceProfileMqttTransportType = false;
             sendAckOnValidationException = false;
         }
         updateAdaptor();

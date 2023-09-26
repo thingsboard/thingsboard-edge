@@ -30,12 +30,13 @@
 ///
 
 import { AfterViewInit, Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { SchedulerEventConfiguration } from '@shared/models/scheduler-event.models';
 import { MessageType } from '@shared/models/rule-node.models';
 import { EntityType } from '@shared/models/entity-type.models';
+import { jsonRequired } from '@shared/components/json-object-edit.component';
 
 @Component({
   selector: 'tb-send-rpc-request-event-config',
@@ -51,7 +52,7 @@ export class SendRpcRequestComponent implements ControlValueAccessor, OnInit, Af
 
   modelValue: SchedulerEventConfiguration | null;
 
-  sendRpcRequestFormGroup: FormGroup;
+  sendRpcRequestFormGroup: UntypedFormGroup;
 
   entityType = EntityType;
 
@@ -61,13 +62,13 @@ export class SendRpcRequestComponent implements ControlValueAccessor, OnInit, Af
   private propagateChange = (v: any) => { };
 
   constructor(private store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.sendRpcRequestFormGroup = this.fb.group({
       originatorId: [null, [Validators.required]],
       msgBody: this.fb.group(
         {
           method: [null, [Validators.required, Validators.pattern(/^\S+$/)]],
-          params: [null, [Validators.required]]
+          params: [null, [jsonRequired]]
         }
       )
     });

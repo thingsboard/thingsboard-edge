@@ -31,7 +31,6 @@
 package org.thingsboard.server.dao.aspect;
 
 import lombok.Data;
-import org.springframework.data.util.Pair;
 import org.thingsboard.server.common.data.id.TenantId;
 
 import java.util.Map;

@@ -44,8 +44,8 @@ import org.thingsboard.server.common.transport.TransportService;
 import org.thingsboard.server.common.transport.TransportTenantProfileCache;
 import org.thingsboard.server.common.transport.limits.TransportRateLimitService;
 import org.thingsboard.server.common.transport.profile.TenantProfileUpdateResult;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbTransportComponent;
 
 import java.util.Collections;
@@ -97,6 +97,7 @@ public class DefaultTransportTenantProfileCache implements TransportTenantProfil
         if (profileOpt.isPresent()) {
             TenantProfile newProfile = profileOpt.get();
             log.trace("[{}] put: {}", newProfile.getId(), newProfile);
+            profiles.put(newProfile.getId(), newProfile);
             Set<TenantId> affectedTenants = tenantProfileIds.get(newProfile.getId());
             return new TenantProfileUpdateResult(newProfile, affectedTenants != null ? affectedTenants : Collections.emptySet());
         } else {

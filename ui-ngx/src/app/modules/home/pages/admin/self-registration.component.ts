@@ -34,7 +34,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
 import { Router } from '@angular/router';
-import { FormBuilder, FormGroup, FormGroupDirective, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, FormGroupDirective, Validators } from '@angular/forms';
 import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
 import { SelfRegistrationService } from '@core/http/self-register.service';
 import { SelfRegistrationParams } from '@shared/models/self-register.models';
@@ -51,10 +51,10 @@ import { AttributeService } from '@core/http/attribute.service';
 })
 export class SelfRegistrationComponent extends PageComponent implements OnInit, HasConfirmForm {
 
-  selfRegistrationFormGroup: FormGroup;
+  selfRegistrationFormGroup: UntypedFormGroup;
   selfRegistrationParams: SelfRegistrationParams;
   registerLink: string;
-  deleteDisabled: boolean = true;
+  deleteDisabled = true;
 
   entityTypes = EntityType;
 
@@ -77,7 +77,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
               private selfRegistrationService: SelfRegistrationService,
               private attributeService: AttributeService,
               private translate: TranslateService,
-              public fb: FormBuilder) {
+              public fb: UntypedFormBuilder) {
     super(store);
   }
 
@@ -95,6 +95,8 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
       domainName: [null, [Validators.required, Validators.pattern('((?![:/]).)*$')]],
       captchaSiteKey: [null, [Validators.required]],
       captchaSecretKey: [null, [Validators.required]],
+      captchaVersion: ['v2', []],
+      captchaAction: ['', []],
       notificationEmail: [null, [Validators.required, Validators.email]],
       signUpTextMessage: [null, [Validators.maxLength(200)]],
       permissions: [null],
@@ -171,7 +173,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
     );
   }
 
-  confirmForm(): FormGroup {
+  confirmForm(): UntypedFormGroup {
     return this.selfRegistrationFormGroup;
   }
 
@@ -207,6 +209,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
     if (selfRegistrationFormValue.showTermsOfUse == null) {
       selfRegistrationFormValue.showTermsOfUse = false;
     }
+    selfRegistrationFormValue.captchaVersion = selfRegistrationFormValue.captchaVersion || 'v2';
     this.deleteDisabled = !this.selfRegistrationParams.adminSettingsId;
     (selfRegistrationFormValue as any).enableMobileSelfRegistration = isNotEmptyStr(selfRegistrationFormValue.pkgName);
     this.selfRegistrationFormGroup.reset(selfRegistrationFormValue);

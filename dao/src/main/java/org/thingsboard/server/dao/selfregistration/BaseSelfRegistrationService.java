@@ -31,11 +31,11 @@
 package org.thingsboard.server.dao.selfregistration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
@@ -60,8 +60,6 @@ import java.util.UUID;
 @Service
 @Slf4j
 public class BaseSelfRegistrationService implements SelfRegistrationService {
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private static final String SELF_REGISTRATION_PARAMS = "selfRegistrationParams";
 
@@ -181,7 +179,7 @@ public class BaseSelfRegistrationService implements SelfRegistrationService {
     private AdminSettings saveSelfRegistrationSettings(TenantId tenantId, EntityId currentEntityId, String selfRegistrationKey) {
         AdminSettings selfRegistrationSettings = new AdminSettings();
         selfRegistrationSettings.setKey(selfRegistrationKey);
-        ObjectNode node = OBJECT_MAPPER.createObjectNode();
+        ObjectNode node = JacksonUtil.newObjectNode();
         selfRegistrationSettings.setJsonValue(node);
         ((ObjectNode) selfRegistrationSettings.getJsonValue()).put("entityType", currentEntityId.getEntityType().name());
         ((ObjectNode) selfRegistrationSettings.getJsonValue()).put("entityId", currentEntityId.getId().toString());
@@ -197,10 +195,10 @@ public class BaseSelfRegistrationService implements SelfRegistrationService {
         selfRegistrationParams.setTermsOfUse(null);
         String termsOfUseJson;
         try {
-            selfRegistrationJson = OBJECT_MAPPER.writeValueAsString(selfRegistrationParams);
-            privacyPolicyJson = OBJECT_MAPPER.writeValueAsString(OBJECT_MAPPER.createObjectNode().put(PRIVACY_POLICY, privacyPolicy));
-            termsOfUseJson = OBJECT_MAPPER.writeValueAsString(OBJECT_MAPPER.createObjectNode().put(TERMS_OF_USE, termsOfUse));
-        } catch (JsonProcessingException e) {
+            selfRegistrationJson = JacksonUtil.toString(selfRegistrationParams);
+            privacyPolicyJson = JacksonUtil.toString(JacksonUtil.newObjectNode().put(PRIVACY_POLICY, privacyPolicy));
+            termsOfUseJson = JacksonUtil.toString(JacksonUtil.newObjectNode().put(TERMS_OF_USE, termsOfUse));
+        } catch (IllegalArgumentException e) {
             log.error("Unable to convert Self Registration Params to JSON!", e);
             throw new IncorrectParameterException("Unable to convert Self Registration Params to JSON!");
         }
@@ -270,8 +268,8 @@ public class BaseSelfRegistrationService implements SelfRegistrationService {
         SelfRegistrationParams result = null;
         if (!StringUtils.isEmpty(json)) {
             try {
-                result = OBJECT_MAPPER.readValue(json, SelfRegistrationParams.class);
-            } catch (IOException e) {
+                result = JacksonUtil.fromString(json, SelfRegistrationParams.class);
+            } catch (IllegalArgumentException e) {
                 log.error("Unable to read Self Registration Params from JSON!", e);
                 throw new IncorrectParameterException("Unable to read Self Registration Params from JSON!");
             }

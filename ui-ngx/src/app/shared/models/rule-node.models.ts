@@ -39,8 +39,10 @@ import { PageComponent } from '@shared/components/page.component';
 import { AfterViewInit, EventEmitter, Inject, OnInit, Directive } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { AbstractControl, FormGroup } from '@angular/forms';
+import { AbstractControl, UntypedFormGroup } from '@angular/forms';
 import { RuleChainType } from '@shared/models/rule-chain.models';
+import { DebugRuleNodeEventBody } from '@shared/models/event.models';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface RuleNodeConfiguration {
   [key: string]: any;
@@ -51,6 +53,8 @@ export interface RuleNode extends BaseData<RuleNodeId> {
   type: string;
   name: string;
   debugMode: boolean;
+  singletonMode: boolean;
+  configurationVersion?: number;
   configuration: RuleNodeConfiguration;
   additionalInfo?: any;
 }
@@ -84,15 +88,20 @@ export interface RuleNodeConfigurationDescriptor {
 export interface IRuleNodeConfigurationComponent {
   ruleNodeId: string;
   ruleChainId: string;
+  hasScript: boolean;
+  disabled: boolean;
+  testScriptLabel?: string;
+  changeScript?: EventEmitter<void>;
   ruleChainType: RuleChainType;
   configuration: RuleNodeConfiguration;
   configurationChanged: Observable<RuleNodeConfiguration>;
   validate();
+  testScript? (debugEventBody?: DebugRuleNodeEventBody);
   [key: string]: any;
 }
 
 @Directive()
-// tslint:disable-next-line:directive-class-suffix
+// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export abstract class RuleNodeConfigurationComponent extends PageComponent implements
   IRuleNodeConfigurationComponent, OnInit, AfterViewInit {
 
@@ -100,11 +109,26 @@ export abstract class RuleNodeConfigurationComponent extends PageComponent imple
 
   ruleChainId: string;
 
+  hasScript: boolean = false;
+
   ruleChainType: RuleChainType;
 
   configurationValue: RuleNodeConfiguration;
 
   private configurationSet = false;
+  private disabledValue = false;
+
+  set disabled(value: boolean) {
+    if (this.disabledValue !== value) {
+      this.disabledValue = value;
+      if (value) {
+        this.configForm().disable({emitEvent: false});
+      } else {
+        this.configForm().enable({emitEvent: false});
+        this.updateValidators(false);
+      }
+    }
+  };
 
   set configuration(value: RuleNodeConfiguration) {
     this.configurationValue = value;
@@ -194,7 +218,7 @@ export abstract class RuleNodeConfigurationComponent extends PageComponent imple
 
   protected onValidate() {}
 
-  protected abstract configForm(): FormGroup;
+  protected abstract configForm(): UntypedFormGroup;
 
   protected abstract onConfigurationSet(configuration: RuleNodeConfiguration);
 
@@ -330,11 +354,13 @@ export const ruleNodeTypeDescriptors = new Map<RuleNodeType, RuleNodeTypeDescrip
 
 export interface RuleNodeComponentDescriptor extends ComponentDescriptor {
   type: RuleNodeType;
+  configurationVersion: number,
   configurationDescriptor?: RuleNodeConfigurationDescriptor;
 }
 
 export interface FcRuleNodeType extends FcNode {
   component?: RuleNodeComponentDescriptor;
+  singletonMode?: boolean;
   nodeClass?: string;
   icon?: string;
   iconUrl?: string;
@@ -400,6 +426,10 @@ export enum MessageType {
   ATTRIBUTES_DELETED = 'ATTRIBUTES_DELETED',
   ALARM_ACKNOWLEDGED = 'ALARM_ACKNOWLEDGED',
   ALARM_CLEARED = 'ALARM_CLEARED',
+  ALARM_ASSIGNED = 'ALARM_ASSIGNED',
+  ALARM_UNASSIGNED = 'ALARM_UNASSIGNED',
+  COMMENT_CREATED = 'COMMENT_CREATED',
+  COMMENT_UPDATED = 'COMMENT_UPDATED',
   ADDED_TO_GROUP = 'ADDED_TO_GROUP',
   REMOVED_FROM_GROUP = 'REMOVED_FROM_GROUP',
   ENTITY_ASSIGNED_FROM_TENANT = 'ENTITY_ASSIGNED_FROM_TENANT',
@@ -442,6 +472,10 @@ export const messageTypeNames = new Map<MessageType, string>(
     [MessageType.ATTRIBUTES_DELETED, 'Attributes Deleted'],
     [MessageType.ALARM_ACKNOWLEDGED, 'Alarm Acknowledged'],
     [MessageType.ALARM_CLEARED, 'Alarm Cleared'],
+    [MessageType.ALARM_ASSIGNED, 'Alarm Assigned'],
+    [MessageType.ALARM_UNASSIGNED, 'Alarm Unassigned'],
+    [MessageType.COMMENT_CREATED, 'Comment Created'],
+    [MessageType.COMMENT_UPDATED, 'Comment Updated'],
     [MessageType.ADDED_TO_GROUP, 'Added to Group'],
     [MessageType.REMOVED_FROM_GROUP, 'Removed from Group'],
     [MessageType.ENTITY_ASSIGNED_FROM_TENANT, 'Entity Assigned From Tenant'],
@@ -483,6 +517,7 @@ const ruleNodeClazzHelpLinkMap = {
   'org.thingsboard.rule.engine.metadata.TbGetRelatedAttributeNode': 'ruleNodeRelatedAttributes',
   'org.thingsboard.rule.engine.metadata.TbGetTenantAttributeNode': 'ruleNodeTenantAttributes',
   'org.thingsboard.rule.engine.metadata.TbGetTenantDetailsNode': 'ruleNodeTenantDetails',
+  'org.thingsboard.rule.engine.metadata.CalculateDeltaNode': 'ruleNodeCalculateDelta',
   'org.thingsboard.rule.engine.transform.TbChangeOriginatorNode': 'ruleNodeChangeOriginator',
   'org.thingsboard.rule.engine.transform.TbTransformMsgNode': 'ruleNodeTransformMsg',
   'org.thingsboard.rule.engine.mail.TbMsgToEmailNode': 'ruleNodeMsgToEmail',
@@ -544,3 +579,4 @@ export function getRuleNodeHelpLink(component: RuleNodeComponentDescriptor): str
   }
   return 'ruleEngine';
 }
+

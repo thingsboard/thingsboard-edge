@@ -30,7 +30,7 @@
 ///
 
 import { Component, EventEmitter, forwardRef, Input, OnInit, Output } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -48,7 +48,7 @@ export interface LabelWidgetLabel {
 @Component({
   selector: 'tb-label-widget-label',
   templateUrl: './label-widget-label.component.html',
-  styleUrls: ['./label-widget-label.component.scss', './../widget-settings.scss'],
+  styleUrls: ['./label-widget-label.component.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -72,11 +72,11 @@ export class LabelWidgetLabelComponent extends PageComponent implements OnInit, 
 
   private propagateChange = null;
 
-  public labelWidgetLabelFormGroup: FormGroup;
+  public labelWidgetLabelFormGroup: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 

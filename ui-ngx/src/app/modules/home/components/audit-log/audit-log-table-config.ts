@@ -68,10 +68,10 @@ export class AuditLogTableConfig extends EntityTableConfig<AuditLog, TimePageLin
               private auditLogMode: AuditLogMode = AuditLogMode.TENANT,
               public entityId: EntityId = null,
               public userId: UserId = null,
-              public customerId: CustomerId = null,
+              public customerId: string = null,
               updateOnInit = true,
               pageMode = false) {
-    super();
+    super({customerId});
     this.loadDataOnInit = updateOnInit;
     this.tableTitle = '';
     this.useTimePageLink = true;
@@ -138,7 +138,7 @@ export class AuditLogTableConfig extends EntityTableConfig<AuditLog, TimePageLin
       case AuditLogMode.USER:
         return this.auditLogService.getAuditLogsByUserId(this.userId.id, pageLink);
       case AuditLogMode.CUSTOMER:
-        return this.auditLogService.getAuditLogsByCustomerId(this.customerId.id, pageLink);
+        return this.auditLogService.getAuditLogsByCustomerId(this.customerId, pageLink);
     }
   }
 

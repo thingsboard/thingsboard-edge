@@ -31,49 +31,55 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
-import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
+import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
 
 public class ManageCustomersDevicesTest extends AbstractDriverBaseTest {
-    private SideBarMenuViewElements sideBarMenuView;
+    private SideBarMenuViewHelper sideBarMenuView;
     private CustomerPageHelper customerPage;
-    private final String iconText = ": Device groups";
+    private final String iconText = ": Devices";
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
-        sideBarMenuView = new SideBarMenuViewElements(driver);
+        sideBarMenuView = new SideBarMenuViewHelper(driver);
         customerPage = new CustomerPageHelper(driver);
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Manage customer devices")
     @Test(groups = "smoke")
-    @Description
+    @Description("Open manage window by right corner btn")
     public void openWindowByRightCornerBtn() {
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.setCustomerName();
         customerPage.manageCustomersDeviceGroupsBtn(customerPage.getCustomerName()).click();
 
-        Assert.assertTrue(urlContains("deviceGroups"));
+        Assert.assertTrue(urlContains("devices"));
         Assert.assertNotNull(customerPage.customerUserIconHeader());
         Assert.assertTrue(customerPage.customerUserIconHeader().isDisplayed());
         Assert.assertTrue(customerPage.customerUserIconHeader().getText().contains(customerPage.getCustomerName() + iconText));
         Assert.assertTrue(customerPage.customerManageWindowIconHead().getText().contains(customerPage.getCustomerName() + iconText));
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Manage customer devices")
     @Test(groups = "smoke")
-    @Description
+    @Description("Open manage window by btn in entity view")
     public void openWindowByView() {
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.setCustomerName();
         customerPage.entity(customerPage.getCustomerName()).click();
-        customerPage.manageCustomersDeviceGroupsBtnView().click();
+        jsClick(customerPage.manageCustomersDeviceGroupsBtnView());
 
-        Assert.assertTrue(urlContains("deviceGroups"));
+        Assert.assertTrue(urlContains("devices"));
         Assert.assertNotNull(customerPage.customerUserIconHeader());
         Assert.assertTrue(customerPage.customerUserIconHeader().isDisplayed());
         Assert.assertTrue(customerPage.customerUserIconHeader().getText().contains(customerPage.getCustomerName() + iconText));

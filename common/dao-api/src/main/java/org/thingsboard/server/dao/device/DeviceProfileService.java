@@ -37,16 +37,19 @@ import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
 
-public interface DeviceProfileService {
+public interface DeviceProfileService extends EntityDaoService {
 
     DeviceProfile findDeviceProfileById(TenantId tenantId, DeviceProfileId deviceProfileId);
 
     DeviceProfile findDeviceProfileByName(TenantId tenantId, String profileName);
 
     DeviceProfileInfo findDeviceProfileInfoById(TenantId tenantId, DeviceProfileId deviceProfileId);
+
+    DeviceProfile saveDeviceProfile(DeviceProfile deviceProfile, boolean doValidate);
 
     DeviceProfile saveDeviceProfile(DeviceProfile deviceProfile);
 
@@ -57,6 +60,8 @@ public interface DeviceProfileService {
     PageData<DeviceProfileInfo> findDeviceProfileInfos(TenantId tenantId, PageLink pageLink, String transportType);
 
     ListenableFuture<List<DeviceProfileInfo>> findDeviceProfilesByIdsAsync(TenantId tenantId, List<DeviceProfileId> deviceProfileIds);
+
+    DeviceProfile findDeviceProfileByProvisionDeviceKey(String provisionDeviceKey);
 
     DeviceProfile findOrCreateDeviceProfile(TenantId tenantId, String profileName);
 

@@ -49,6 +49,9 @@ import { Lwm2mDeviceTransportConfigurationComponent } from './data/lwm2m-device-
 import { SnmpDeviceTransportConfigurationComponent } from './data/snmp-device-transport-configuration.component';
 import { DeviceCredentialsModule } from '@home/components/device/device-credentials.module';
 import { DeviceProfileCommonModule } from '@home/components/profile/device/common/device-profile-common.module';
+import { DeviceCheckConnectivityDialogComponent } from './device-check-connectivity-dialog.component';
+import { DeviceRoutingModule } from '@home/pages/device/device-routing.module';
+import { DeviceTableHeaderComponent } from '@home/pages/device/device-table-header.component';
 
 @NgModule({
   declarations: [
@@ -62,8 +65,9 @@ import { DeviceProfileCommonModule } from '@home/components/profile/device/commo
     DeviceTransportConfigurationComponent,
     DeviceDataComponent,
     DeviceComponent,
+    DeviceTableHeaderComponent,
     DeviceCredentialsDialogComponent,
-    DeviceCredentialsDialogComponent
+    DeviceCheckConnectivityDialogComponent
   ],
   imports: [
     CommonModule,
@@ -72,6 +76,7 @@ import { DeviceProfileCommonModule } from '@home/components/profile/device/commo
     HomeDialogsModule,
     DeviceCredentialsModule,
     DeviceProfileCommonModule,
+    DeviceRoutingModule
   ],
   providers: [
     {

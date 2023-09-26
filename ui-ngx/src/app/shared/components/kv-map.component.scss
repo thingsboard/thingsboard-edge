@@ -39,25 +39,5 @@
         color: rgba(0, 0, 0, .38);
       }
     }
-
-    .container{
-      overflow-x: auto;
-
-      >:last-child{
-        margin-bottom: 4px;
-      }
-    }
-  }
-}
-
-:host ::ng-deep {
-  .mat-form-field-wrapper {
-    padding-bottom: 0;
-  }
-  .mat-form-field-infix {
-    border-top: 0;
-  }
-  .mat-form-field-underline {
-    bottom: 0;
   }
 }

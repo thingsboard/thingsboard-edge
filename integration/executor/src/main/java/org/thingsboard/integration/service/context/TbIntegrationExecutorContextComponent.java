@@ -31,6 +31,7 @@
 package org.thingsboard.integration.service.context;
 
 import io.netty.channel.EventLoopGroup;
+import org.thingsboard.integration.api.IntegrationRateLimitService;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.service.integration.downlink.DownlinkCacheService;
@@ -54,4 +55,6 @@ public interface TbIntegrationExecutorContextComponent {
     ExecutorService getCallBackExecutorService();
 
     ExecutorService getGeneralExecutorService();
+
+    IntegrationRateLimitService getRateLimitService();
 }

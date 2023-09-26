@@ -49,11 +49,11 @@ public interface EdgeRpcClient {
 
     void disconnect(boolean onError) throws InterruptedException;
 
-    void sendSyncRequestMsg(boolean syncRequired);
-
-    void sendSyncRequestMsg(boolean syncRequired, boolean fullSync);
+    void sendSyncRequestMsg(boolean fullSyncRequired);
 
     void sendUplinkMsg(UplinkMsg uplinkMsg);
 
     void sendDownlinkResponseMsg(DownlinkResponseMsg downlinkResponseMsg);
+
+    int getServerMaxInboundMessageSize();
 }

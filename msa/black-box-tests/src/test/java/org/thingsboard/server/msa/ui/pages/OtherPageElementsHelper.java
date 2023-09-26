@@ -30,8 +30,10 @@
  */
 package org.thingsboard.server.msa.ui.pages;
 
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class OtherPageElementsHelper extends OtherPageElements {
     public OtherPageElementsHelper(WebDriver driver) {
@@ -61,17 +63,26 @@ public class OtherPageElementsHelper extends OtherPageElements {
         return entityGroupName;
     }
 
-    public boolean entityIsNotPresent(String entityName) {
+    public boolean assertEntityIsNotPresent(String entityName) {
         return elementIsNotPresent(getEntity(entityName));
     }
 
+    private void clickHelpButton(WebElement helpBtn) {
+        helpBtn.click();
+        try {
+            wait.until(ExpectedConditions.numberOfWindowsToBe(2));
+        } catch (WebDriverException e) {
+            helpBtn.click();
+        }
+    }
+
     public void goToHelpPage() {
-        helpBtn().click();
+        clickHelpButton(helpBtn());
         goToNextTab(2);
     }
 
     public void goToHelpEntityGroupPage() {
-        helpBtnEntityGroup().click();
+        clickHelpButton(helpBtnEntityGroup());
         goToNextTab(2);
     }
 
@@ -93,49 +104,23 @@ public class OtherPageElementsHelper extends OtherPageElements {
         descriptionEntityView().sendKeys(newDescription);
     }
 
-    public String deleteTrash(String entityName) {
-        String s = "";
-        if (deleteBtn(entityName) != null) {
-            deleteBtn(entityName).click();
-            warningPopUpYesBtn().click();
-            return entityName;
-        } else {
-            for (int i = 0; i < deleteBtns().size(); i++) {
-                if (deleteBtns().get(i).isEnabled()) {
-                    deleteBtns().get(i).click();
-                    warningPopUpYesBtn().click();
-                    if (elementIsNotPresent(getWarningMessage())) {
-                        s = driver.findElements(By.xpath(getDeleteBtns()
-                                + "/../../../mat-cell/following-sibling::mat-cell/following-sibling::mat-cell[contains(@class,'cdk-column-name')]/span")).get(i).getText();
-                        break;
-                    }
-                }
-            }
-            return s;
-        }
+    public String deleteRuleChainTrash(String entityName) {
+        deleteBtn(entityName).click();
+        warningPopUpYesBtn().click();
+        return entityName;
     }
 
     public String deleteSelected(String entityName) {
-        String s = "";
-        if (deleteBtn(entityName) != null) {
-            checkBox(entityName).click();
-            deleteSelectedBtn().click();
-            warningPopUpYesBtn().click();
-            return entityName;
-        } else {
-            for (int i = 0; i < checkBoxes().size(); i++) {
-                if (checkBoxes().get(i).isDisplayed()) {
-                    s = driver.findElements(By.xpath(getCheckboxes() + "/../../mat-cell/following-sibling::mat-cell/following-sibling::mat-cell[contains(@class,'cdk-column-column1')]/span")).get(i).getText();
-                    checkBox(s).click();
-                    deleteSelectedBtn().click();
-                    warningPopUpYesBtn().click();
-                    if (elementIsNotPresent(getWarningMessage())) {
-                        break;
-                    }
-                }
-            }
-            return s;
-        }
+        checkBox(entityName).click();
+        jsClick(deleteSelectedBtn());
+        warningPopUpYesBtn().click();
+        return entityName;
+    }
+
+    public void deleteSelected(int countOfCheckBoxes) {
+        clickOnCheckBoxes(countOfCheckBoxes);
+        jsClick(deleteSelectedBtn());
+        warningPopUpYesBtn().click();
     }
 
     public void searchEntity(String namePath) {
@@ -152,10 +137,17 @@ public class OtherPageElementsHelper extends OtherPageElements {
         doubleClick(sortByNameBtn());
     }
 
-    public void changeOwner(String customerName){
+    public void changeOwner(String customerName) {
         changeOwnerViewField().click();
         entityFromDropDown(customerName).click();
         changeOwnerViewChangeOwnerBtn().click();
         warningPopUpYesBtn().click();
+    }
+
+    public void changeItemsCountPerPage(int itemCount) {
+        itemsPerPage().click();
+        WebElement element = itemsCount(itemCount);
+        element.click();
+        waitUntilInvisibilityOfElementLocated(element);
     }
 }

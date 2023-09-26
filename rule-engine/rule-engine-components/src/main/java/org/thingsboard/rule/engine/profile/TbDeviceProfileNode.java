@@ -33,6 +33,7 @@ package org.thingsboard.rule.engine.profile;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.RuleEngineDeviceProfileCache;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -40,12 +41,12 @@ import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.plugin.ComponentType;
@@ -53,7 +54,6 @@ import org.thingsboard.server.common.data.rule.RuleNodeState;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
-import org.thingsboard.common.util.JacksonUtil;
 
 import java.util.Map;
 import java.util.UUID;
@@ -75,9 +75,6 @@ import java.util.concurrent.TimeUnit;
         configDirective = "tbDeviceProfileConfig"
 )
 public class TbDeviceProfileNode implements TbNode {
-    private static final String PERIODIC_MSG_TYPE = "TbDeviceProfilePeriodicMsg";
-    private static final String PROFILE_UPDATE_MSG_TYPE = "TbDeviceProfileUpdateMsg";
-    private static final String DEVICE_UPDATE_MSG_TYPE = "TbDeviceUpdateMsg";
 
     private TbDeviceProfileNodeConfiguration config;
     private RuleEngineDeviceProfileCache cache;
@@ -91,6 +88,10 @@ public class TbDeviceProfileNode implements TbNode {
         this.ctx = ctx;
         scheduleAlarmHarvesting(ctx, null);
         ctx.addDeviceProfileListeners(this::onProfileUpdate, this::onDeviceUpdate);
+        initAlarmRuleState(false);
+    }
+
+    private void initAlarmRuleState(boolean printNewlyAddedDeviceStates) {
         if (config.isFetchAlarmRulesStateOnStart()) {
             log.info("[{}] Fetching alarm rule state", ctx.getSelfId());
             int fetchCount = 0;
@@ -101,7 +102,7 @@ public class TbDeviceProfileNode implements TbNode {
                     for (RuleNodeState rns : states.getData()) {
                         fetchCount++;
                         if (rns.getEntityId().getEntityType().equals(EntityType.DEVICE) && ctx.isLocalEntity(rns.getEntityId())) {
-                            getOrCreateDeviceState(ctx, new DeviceId(rns.getEntityId().getId()), rns);
+                            getOrCreateDeviceState(ctx, new DeviceId(rns.getEntityId().getId()), rns, printNewlyAddedDeviceStates);
                         }
                     }
                 }
@@ -122,12 +123,12 @@ public class TbDeviceProfileNode implements TbNode {
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException {
         EntityType originatorType = msg.getOriginator().getEntityType();
-        if (msg.getType().equals(PERIODIC_MSG_TYPE)) {
+        if (msg.isTypeOf(TbMsgType.DEVICE_PROFILE_PERIODIC_SELF_MSG)) {
             scheduleAlarmHarvesting(ctx, msg);
             harvestAlarms(ctx, System.currentTimeMillis());
-        } else if (msg.getType().equals(PROFILE_UPDATE_MSG_TYPE)) {
+        } else if (msg.isTypeOf(TbMsgType.DEVICE_PROFILE_UPDATE_SELF_MSG)) {
             updateProfile(ctx, new DeviceProfileId(UUID.fromString(msg.getData())));
-        } else if (msg.getType().equals(DEVICE_UPDATE_MSG_TYPE)) {
+        } else if (msg.isTypeOf(TbMsgType.DEVICE_UPDATE_SELF_MSG)) {
             JsonNode data = JacksonUtil.toJsonNode(msg.getData());
             DeviceId deviceId = new DeviceId(UUID.fromString(data.get("deviceId").asText()));
             if (data.has("profileId")) {
@@ -138,14 +139,14 @@ public class TbDeviceProfileNode implements TbNode {
         } else {
             if (EntityType.DEVICE.equals(originatorType)) {
                 DeviceId deviceId = new DeviceId(msg.getOriginator().getId());
-                if (msg.getType().equals(DataConstants.ENTITY_UPDATED)) {
+                if (msg.isTypeOf(TbMsgType.ENTITY_UPDATED)) {
                     invalidateDeviceProfileCache(deviceId, msg.getData());
                     ctx.tellSuccess(msg);
-                } else if (msg.getType().equals(DataConstants.ENTITY_DELETED)) {
+                } else if (msg.isTypeOf(TbMsgType.ENTITY_DELETED)) {
                     removeDeviceState(deviceId);
                     ctx.tellSuccess(msg);
                 } else {
-                    DeviceState deviceState = getOrCreateDeviceState(ctx, deviceId, null);
+                    DeviceState deviceState = getOrCreateDeviceState(ctx, deviceId, null, false);
                     if (deviceState != null) {
                         deviceState.process(ctx, msg);
                     } else {
@@ -163,6 +164,7 @@ public class TbDeviceProfileNode implements TbNode {
     public void onPartitionChangeMsg(TbContext ctx, PartitionChangeMsg msg) {
         // Cleanup the cache for all entities that are no longer assigned to current server partitions
         deviceStates.entrySet().removeIf(entry -> !ctx.isLocalEntity(entry.getKey()));
+        initAlarmRuleState(true);
     }
 
     @Override
@@ -171,20 +173,23 @@ public class TbDeviceProfileNode implements TbNode {
         deviceStates.clear();
     }
 
-    protected DeviceState getOrCreateDeviceState(TbContext ctx, DeviceId deviceId, RuleNodeState rns) {
+    protected DeviceState getOrCreateDeviceState(TbContext ctx, DeviceId deviceId, RuleNodeState rns, boolean printNewlyAddedDeviceStates) {
         DeviceState deviceState = deviceStates.get(deviceId);
         if (deviceState == null) {
             DeviceProfile deviceProfile = cache.get(ctx.getTenantId(), deviceId);
             if (deviceProfile != null) {
                 deviceState = new DeviceState(ctx, config, deviceId, new ProfileState(deviceProfile), rns);
                 deviceStates.put(deviceId, deviceState);
+                if (printNewlyAddedDeviceStates) {
+                    log.info("[{}][{}] Device [{}] was added during PartitionChangeMsg", ctx.getTenantId(), ctx.getSelfId(), deviceId);
+                }
             }
         }
         return deviceState;
     }
 
     protected void scheduleAlarmHarvesting(TbContext ctx, TbMsg msg) {
-        TbMsg periodicCheck = TbMsg.newMsg(PERIODIC_MSG_TYPE, ctx.getTenantId(), msg != null ? msg.getCustomerId() : null, TbMsgMetaData.EMPTY, "{}");
+        TbMsg periodicCheck = TbMsg.newMsg(TbMsgType.DEVICE_PROFILE_PERIODIC_SELF_MSG, ctx.getTenantId(), msg != null ? msg.getCustomerId() : null, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
         ctx.tellSelf(periodicCheck, TimeUnit.MINUTES.toMillis(1));
     }
 
@@ -209,7 +214,7 @@ public class TbDeviceProfileNode implements TbNode {
     }
 
     protected void onProfileUpdate(DeviceProfile profile) {
-        ctx.tellSelf(TbMsg.newMsg(PROFILE_UPDATE_MSG_TYPE, ctx.getTenantId(), TbMsgMetaData.EMPTY, profile.getId().getId().toString()), 0L);
+        ctx.tellSelf(TbMsg.newMsg(TbMsgType.DEVICE_PROFILE_UPDATE_SELF_MSG, ctx.getTenantId(), TbMsgMetaData.EMPTY, profile.getId().getId().toString()), 0L);
     }
 
     private void onDeviceUpdate(DeviceId deviceId, DeviceProfile deviceProfile) {
@@ -218,7 +223,7 @@ public class TbDeviceProfileNode implements TbNode {
         if (deviceProfile != null) {
             msgData.put("deviceProfileId", deviceProfile.getId().getId().toString());
         }
-        ctx.tellSelf(TbMsg.newMsg(DEVICE_UPDATE_MSG_TYPE, ctx.getTenantId(), TbMsgMetaData.EMPTY, JacksonUtil.toString(msgData)), 0L);
+        ctx.tellSelf(TbMsg.newMsg(TbMsgType.DEVICE_UPDATE_SELF_MSG, ctx.getTenantId(), TbMsgMetaData.EMPTY, JacksonUtil.toString(msgData)), 0L);
     }
 
     protected void invalidateDeviceProfileCache(DeviceId deviceId, String deviceJson) {
@@ -231,7 +236,7 @@ public class TbDeviceProfileNode implements TbNode {
                     removeDeviceState(deviceId);
                 }
             } catch (IllegalArgumentException e) {
-                log.debug("[{}] Received device update notification with non-device msg body: [{}][{}]", ctx.getSelfId(), deviceId, e);
+                log.debug("[{}] Received device update notification with non-device msg body: [{}]", ctx.getSelfId(), deviceId, e);
             }
         }
     }

@@ -39,6 +39,7 @@ import org.testng.annotations.BeforeMethod;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EventInfo;
+import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
@@ -88,7 +89,9 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
     public void afterIntegrationTest() {
         if (device != null){
             testRestClient.deleteDevice(device.getId());
-            testRestClient.deleteIntegration(integration.getId());
+            if (integration.getId() != null) {
+                testRestClient.deleteIntegration(integration.getId());
+            }
             testRestClient.deleteConverter(integration.getDefaultConverterId());
             if (integration.getDownlinkConverterId() != null) {
                 testRestClient.deleteConverter(integration.getDownlinkConverterId());
@@ -160,6 +163,27 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
                     return eventInfos.size() == finalCount;
                 });
     }
+
+    protected void waitForConverterDebugEvent(Converter converter, String eventType, int count) {
+        int finalCount = count;
+        Awaitility
+                .await()
+                .alias("Get converter events")
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> {
+                    PageData<EventInfo> events = testRestClient.getEvents(converter.getId(), EventType.DEBUG_CONVERTER, converter.getTenantId(), new TimePageLink(finalCount));
+                    if (events.getData().isEmpty()) {
+                        return false;
+                    }
+
+                    List<EventInfo> eventInfos = events.getData().stream().filter(eventInfo ->
+                                    eventType.equalsIgnoreCase(eventInfo.getBody().get("type").asText()))
+                            .collect(Collectors.toList());
+
+                    return eventInfos.size() == finalCount;
+                });
+    }
+
     protected RuleChainId getDefaultRuleChainId() {
         PageData<RuleChain> ruleChains = testRestClient.getRuleChains(new PageLink(40, 0));
         Optional<RuleChain> defaultRuleChain = ruleChains.getData()
@@ -177,14 +201,14 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
         newRuleChain.setName("testRuleChain");
         RuleChain ruleChain = testRestClient.saveRuleChain(newRuleChain);
 
-        JsonNode configuration = mapper.readTree(this.getClass().getClassLoader().getResourceAsStream("DownlinkRuleChainMetadata.json"));
+        JsonNode configuration = JacksonUtil.OBJECT_MAPPER.readTree(this.getClass().getClassLoader().getResourceAsStream("DownlinkRuleChainMetadata.json"));
         RuleChainMetaData ruleChainMetaData = new RuleChainMetaData();
         ruleChainMetaData.setRuleChainId(ruleChain.getId());
         ruleChainMetaData.setFirstNodeIndex(configuration.get("firstNodeIndex").asInt());
-        ruleChainMetaData.setNodes(Arrays.asList(mapper.treeToValue(configuration.get("nodes"), RuleNode[].class)));
+        ruleChainMetaData.setNodes(Arrays.asList(JacksonUtil.OBJECT_MAPPER.treeToValue(configuration.get("nodes"), RuleNode[].class)));
         RuleNode integrationNode  = ruleChainMetaData.getNodes().stream().filter(ruleNode -> ruleNode.getType().equals("org.thingsboard.rule.engine.integration.TbIntegrationDownlinkNode")).findFirst().get();
-        integrationNode.setConfiguration(mapper.createObjectNode().put("integrationId", integrationId.toString()));
-        ruleChainMetaData.setConnections(Arrays.asList(mapper.treeToValue(configuration.get("connections"), NodeConnectionInfo[].class)));
+        integrationNode.setConfiguration(JacksonUtil.newObjectNode().put("integrationId", integrationId.toString()));
+        ruleChainMetaData.setConnections(Arrays.asList(JacksonUtil.OBJECT_MAPPER.treeToValue(configuration.get("connections"), NodeConnectionInfo[].class)));
 
         testRestClient.postRuleChainMetadata(ruleChainMetaData);
 

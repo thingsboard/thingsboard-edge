@@ -30,8 +30,6 @@
  */
 package org.thingsboard.server.actors.ruleChain;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
@@ -41,6 +39,7 @@ import org.bouncycastle.util.Arrays;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.api.MailService;
+import org.thingsboard.rule.engine.api.NotificationCenter;
 import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
 import org.thingsboard.rule.engine.api.RuleEngineApiUsageStateService;
@@ -51,8 +50,9 @@ import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
 import org.thingsboard.rule.engine.api.ScriptEngine;
 import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.TbPeContext;
-import org.thingsboard.rule.engine.api.TbRelationTypes;
+import org.thingsboard.rule.engine.api.slack.SlackService;
 import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
 import org.thingsboard.rule.engine.util.TenantIdLoader;
 import org.thingsboard.script.api.ScriptType;
@@ -60,7 +60,6 @@ import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
@@ -71,8 +70,8 @@ import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.asset.AssetProfile;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -83,13 +82,14 @@ import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.rule.RuleNodeState;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
-import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.TbMsgProcessingStackItem;
@@ -97,6 +97,7 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
+import org.thingsboard.server.dao.alarm.AlarmCommentService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
@@ -117,6 +118,10 @@ import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.nosql.CassandraStatementTask;
 import org.thingsboard.server.dao.nosql.TbResultSetFuture;
+import org.thingsboard.server.dao.notification.NotificationRequestService;
+import org.thingsboard.server.dao.notification.NotificationRuleService;
+import org.thingsboard.server.dao.notification.NotificationTargetService;
+import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -144,13 +149,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import static org.thingsboard.server.common.data.msg.TbMsgType.ATTRIBUTES_DELETED;
+import static org.thingsboard.server.common.data.msg.TbMsgType.ATTRIBUTES_UPDATED;
+import static org.thingsboard.server.common.data.msg.TbMsgType.ENTITY_CREATED;
+
 /**
  * Created by ashvayka on 19.03.18.
  */
 @Slf4j
 class DefaultTbContext implements TbContext, TbPeContext {
-
-    public final static ObjectMapper mapper = new ObjectMapper();
 
     private final ActorSystemContext mainCtx;
     private final String ruleChainName;
@@ -164,7 +171,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
 
     @Override
     public void tellSuccess(TbMsg msg) {
-        tellNext(msg, Collections.singleton(TbRelationTypes.SUCCESS), null);
+        tellNext(msg, Collections.singleton(TbNodeConnectionType.SUCCESS), null);
     }
 
     @Override
@@ -243,7 +250,13 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public void enqueueForTellFailure(TbMsg tbMsg, String failureMessage) {
         TopicPartitionInfo tpi = resolvePartition(tbMsg);
-        enqueueForTellNext(tpi, tbMsg, Collections.singleton(TbRelationTypes.FAILURE), failureMessage, null, null);
+        enqueueForTellNext(tpi, tbMsg, Collections.singleton(TbNodeConnectionType.FAILURE), failureMessage, null, null);
+    }
+
+    @Override
+    public void enqueueForTellFailure(TbMsg tbMsg, Throwable th) {
+        TopicPartitionInfo tpi = resolvePartition(tbMsg);
+        enqueueForTellNext(tpi, tbMsg, Collections.singleton(TbNodeConnectionType.FAILURE), getFailureMessage(th), null, null);
     }
 
     @Override
@@ -337,20 +350,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public void tellFailure(TbMsg msg, Throwable th) {
         if (nodeCtx.getSelf().isDebugMode()) {
-            mainCtx.persistDebugOutput(nodeCtx.getTenantId(), nodeCtx.getSelf().getId(), msg, TbRelationTypes.FAILURE, th);
+            mainCtx.persistDebugOutput(nodeCtx.getTenantId(), nodeCtx.getSelf().getId(), msg, TbNodeConnectionType.FAILURE, th);
         }
-        String failureMessage;
-        if (th != null) {
-            if (!StringUtils.isEmpty(th.getMessage())) {
-                failureMessage = th.getMessage();
-            } else {
-                failureMessage = th.getClass().getSimpleName();
-            }
-        } else {
-            failureMessage = null;
-        }
+        String failureMessage = getFailureMessage(th);
         nodeCtx.getChainActor().tell(new RuleNodeToRuleChainTellNextMsg(nodeCtx.getSelf().getRuleChainId(),
-                nodeCtx.getSelf().getId(), Collections.singleton(TbRelationTypes.FAILURE),
+                nodeCtx.getSelf().getId(), Collections.singleton(TbNodeConnectionType.FAILURE),
                 msg, failureMessage));
     }
 
@@ -373,58 +377,69 @@ class DefaultTbContext implements TbContext, TbPeContext {
         return TbMsg.transformMsg(origMsg, type, originator, metaData, data);
     }
 
-    public TbMsg customerCreatedMsg(Customer customer, RuleNodeId ruleNodeId) {
-        return entityActionMsg(customer, customer.getId(), ruleNodeId, DataConstants.ENTITY_CREATED);
+    @Override
+    public TbMsg newMsg(String queueName, TbMsgType type, EntityId originator, TbMsgMetaData metaData, String data) {
+        return newMsg(queueName, type, originator, null, metaData, data);
     }
 
+    @Override
+    public TbMsg newMsg(String queueName, TbMsgType type, EntityId originator, CustomerId customerId, TbMsgMetaData metaData, String data) {
+        return TbMsg.newMsg(queueName, type, originator, customerId, metaData, data, nodeCtx.getSelf().getRuleChainId(), nodeCtx.getSelf().getId());
+    }
+
+    @Override
+    public TbMsg transformMsg(TbMsg origMsg, TbMsgType type, EntityId originator, TbMsgMetaData metaData, String data) {
+        return TbMsg.transformMsg(origMsg, type, originator, metaData, data);
+    }
+
+    @Override
+    public TbMsg transformMsg(TbMsg origMsg, TbMsgMetaData metaData, String data) {
+        return TbMsg.transformMsg(origMsg, metaData, data);
+    }
+
+    @Override
+    public TbMsg transformMsgOriginator(TbMsg origMsg, EntityId originator) {
+        return TbMsg.transformMsgOriginator(origMsg, originator);
+    }
+
+    @Override
+    public TbMsg customerCreatedMsg(Customer customer, RuleNodeId ruleNodeId) {
+        return entityActionMsg(customer, customer.getId(), ruleNodeId, ENTITY_CREATED);
+    }
+
+    @Override
     public TbMsg deviceCreatedMsg(Device device, RuleNodeId ruleNodeId) {
         DeviceProfile deviceProfile = null;
         if (device.getDeviceProfileId() != null) {
             deviceProfile = mainCtx.getDeviceProfileCache().find(device.getDeviceProfileId());
         }
-        return entityActionMsg(device, device.getId(), ruleNodeId, DataConstants.ENTITY_CREATED, deviceProfile);
+        return entityActionMsg(device, device.getId(), ruleNodeId, ENTITY_CREATED, deviceProfile);
     }
 
+    @Override
     public TbMsg assetCreatedMsg(Asset asset, RuleNodeId ruleNodeId) {
         AssetProfile assetProfile = null;
         if (asset.getAssetProfileId() != null) {
             assetProfile = mainCtx.getAssetProfileCache().find(asset.getAssetProfileId());
         }
-        return entityActionMsg(asset, asset.getId(), ruleNodeId, DataConstants.ENTITY_CREATED, assetProfile);
+        return entityActionMsg(asset, asset.getId(), ruleNodeId, ENTITY_CREATED, assetProfile);
     }
 
+    @Override
     public TbMsg alarmActionMsg(Alarm alarm, RuleNodeId ruleNodeId, String action) {
-        HasRuleEngineProfile profile = null;
-        if (EntityType.DEVICE.equals(alarm.getOriginator().getEntityType())) {
-            DeviceId deviceId = new DeviceId(alarm.getOriginator().getId());
-            profile = mainCtx.getDeviceProfileCache().get(getTenantId(), deviceId);
-        } else if (EntityType.ASSET.equals(alarm.getOriginator().getEntityType())) {
-            AssetId assetId = new AssetId(alarm.getOriginator().getId());
-            profile = mainCtx.getAssetProfileCache().get(getTenantId(), assetId);
-        }
-        return entityActionMsg(alarm, alarm.getOriginator(), ruleNodeId, action, profile);
+        EntityId originator = alarm.getOriginator();
+        HasRuleEngineProfile profile = getRuleEngineProfile(originator);
+        return entityActionMsg(alarm, originator, ruleNodeId, action, profile);
     }
 
-    public TbMsg attributesUpdatedActionMsg(EntityId originator, RuleNodeId ruleNodeId, String scope, List<AttributeKvEntry> attributes) {
-        ObjectNode entityNode = JacksonUtil.newObjectNode();
-        if (attributes != null) {
-            attributes.forEach(attributeKvEntry -> JacksonUtil.addKvEntry(entityNode, attributeKvEntry));
-        }
-        return attributesActionMsg(originator, ruleNodeId, scope, DataConstants.ATTRIBUTES_UPDATED, JacksonUtil.toString(entityNode));
+    @Override
+    public TbMsg alarmActionMsg(Alarm alarm, RuleNodeId ruleNodeId, TbMsgType actionMsgType) {
+        EntityId originator = alarm.getOriginator();
+        HasRuleEngineProfile profile = getRuleEngineProfile(originator);
+        return entityActionMsg(alarm, originator, ruleNodeId, actionMsgType, profile);
     }
 
-    public TbMsg attributesDeletedActionMsg(EntityId originator, RuleNodeId ruleNodeId, String scope, List<String> keys) {
-        ObjectNode entityNode = JacksonUtil.newObjectNode();
-        ArrayNode attrsArrayNode = entityNode.putArray("attributes");
-        if (keys != null) {
-            keys.forEach(attrsArrayNode::add);
-        }
-        return attributesActionMsg(originator, ruleNodeId, scope, DataConstants.ATTRIBUTES_DELETED, JacksonUtil.toString(entityNode));
-    }
-
-    private TbMsg attributesActionMsg(EntityId originator, RuleNodeId ruleNodeId, String scope, String action, String msgData) {
-        TbMsgMetaData tbMsgMetaData = getActionMetaData(ruleNodeId);
-        tbMsgMetaData.putValue("scope", scope);
+    private HasRuleEngineProfile getRuleEngineProfile(EntityId originator) {
         HasRuleEngineProfile profile = null;
         if (EntityType.DEVICE.equals(originator.getEntityType())) {
             DeviceId deviceId = new DeviceId(originator.getId());
@@ -433,7 +448,33 @@ class DefaultTbContext implements TbContext, TbPeContext {
             AssetId assetId = new AssetId(originator.getId());
             profile = mainCtx.getAssetProfileCache().get(getTenantId(), assetId);
         }
-        return entityActionMsg(originator, tbMsgMetaData, msgData, action, profile);
+        return profile;
+    }
+
+    @Override
+    public TbMsg attributesUpdatedActionMsg(EntityId originator, RuleNodeId ruleNodeId, String scope, List<AttributeKvEntry> attributes) {
+        ObjectNode entityNode = JacksonUtil.newObjectNode();
+        if (attributes != null) {
+            attributes.forEach(attributeKvEntry -> JacksonUtil.addKvEntry(entityNode, attributeKvEntry));
+        }
+        return attributesActionMsg(originator, ruleNodeId, scope, ATTRIBUTES_UPDATED, JacksonUtil.toString(entityNode));
+    }
+
+    @Override
+    public TbMsg attributesDeletedActionMsg(EntityId originator, RuleNodeId ruleNodeId, String scope, List<String> keys) {
+        ObjectNode entityNode = JacksonUtil.newObjectNode();
+        ArrayNode attrsArrayNode = entityNode.putArray("attributes");
+        if (keys != null) {
+            keys.forEach(attrsArrayNode::add);
+        }
+        return attributesActionMsg(originator, ruleNodeId, scope, ATTRIBUTES_DELETED, JacksonUtil.toString(entityNode));
+    }
+
+    private TbMsg attributesActionMsg(EntityId originator, RuleNodeId ruleNodeId, String scope, TbMsgType actionMsgType, String msgData) {
+        TbMsgMetaData tbMsgMetaData = getActionMetaData(ruleNodeId);
+        tbMsgMetaData.putValue("scope", scope);
+        HasRuleEngineProfile profile = getRuleEngineProfile(originator);
+        return entityActionMsg(originator, tbMsgMetaData, msgData, actionMsgType, profile);
     }
 
     @Override
@@ -441,18 +482,20 @@ class DefaultTbContext implements TbContext, TbPeContext {
         mainCtx.getClusterService().onEdgeEventUpdate(tenantId, edgeId);
     }
 
-    public <E, I extends EntityId> TbMsg entityActionMsg(E entity, I id, RuleNodeId ruleNodeId, String action) {
-        return entityActionMsg(entity, id, ruleNodeId, action, null);
+    public <E, I extends EntityId> TbMsg entityActionMsg(E entity, I id, RuleNodeId ruleNodeId, TbMsgType actionMsgType) {
+        return entityActionMsg(entity, id, ruleNodeId, actionMsgType, null);
     }
 
+    @Deprecated(since = "3.6.0", forRemoval = true)
     public <E, I extends EntityId, K extends HasRuleEngineProfile> TbMsg entityActionMsg(E entity, I id, RuleNodeId ruleNodeId, String action, K profile) {
         try {
-            return entityActionMsg(id, getActionMetaData(ruleNodeId), mapper.writeValueAsString(mapper.valueToTree(entity)), action, profile);
-        } catch (JsonProcessingException | IllegalArgumentException e) {
+            return entityActionMsg(id, getActionMetaData(ruleNodeId), JacksonUtil.toString(JacksonUtil.valueToTree(entity)), action, profile);
+        } catch (IllegalArgumentException e) {
             throw new RuntimeException("Failed to process " + id.getEntityType().name().toLowerCase() + " " + action + " msg: " + e);
         }
     }
 
+    @Deprecated(since = "3.6.0", forRemoval = true)
     private <I extends EntityId, K extends HasRuleEngineProfile> TbMsg entityActionMsg(I id, TbMsgMetaData msgMetaData, String msgData, String action, K profile) {
         String defaultQueueName = null;
         RuleChainId defaultRuleChainId = null;
@@ -461,6 +504,24 @@ class DefaultTbContext implements TbContext, TbPeContext {
             defaultRuleChainId = profile.getDefaultRuleChainId();
         }
         return TbMsg.newMsg(defaultQueueName, action, id, msgMetaData, msgData, defaultRuleChainId, null);
+    }
+
+    public <E, I extends EntityId, K extends HasRuleEngineProfile> TbMsg entityActionMsg(E entity, I id, RuleNodeId ruleNodeId, TbMsgType actionMsgType, K profile) {
+        try {
+            return entityActionMsg(id, getActionMetaData(ruleNodeId), JacksonUtil.toString(JacksonUtil.valueToTree(entity)), actionMsgType, profile);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Failed to process " + id.getEntityType().name().toLowerCase() + " " + actionMsgType.name() + " msg: " + e);
+        }
+    }
+
+    private <I extends EntityId, K extends HasRuleEngineProfile> TbMsg entityActionMsg(I id, TbMsgMetaData msgMetaData, String msgData, TbMsgType actionMsgType, K profile) {
+        String defaultQueueName = null;
+        RuleChainId defaultRuleChainId = null;
+        if (profile != null) {
+            defaultQueueName = profile.getDefaultQueueName();
+            defaultRuleChainId = profile.getDefaultRuleChainId();
+        }
+        return TbMsg.newMsg(defaultQueueName, actionMsgType, id, msgMetaData, msgData, defaultRuleChainId, null);
     }
 
     @Override
@@ -501,6 +562,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public ListeningExecutor getExternalCallExecutor() {
         return mainCtx.getExternalCallExecutorService();
+    }
+
+    @Override
+    public ListeningExecutor getNotificationExecutor() {
+        return mainCtx.getNotificationExecutor();
     }
 
     @Override
@@ -643,6 +709,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
+    public AlarmCommentService getAlarmCommentService() {
+        return mainCtx.getAlarmCommentService();
+    }
+
+    @Override
     public RuleChainService getRuleChainService() {
         return mainCtx.getRuleChainService();
     }
@@ -724,6 +795,41 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public SmsSenderFactory getSmsSenderFactory() {
         return mainCtx.getSmsSenderFactory();
+    }
+
+    @Override
+    public NotificationCenter getNotificationCenter() {
+        return mainCtx.getNotificationCenter();
+    }
+
+    @Override
+    public NotificationTargetService getNotificationTargetService() {
+        return mainCtx.getNotificationTargetService();
+    }
+
+    @Override
+    public NotificationTemplateService getNotificationTemplateService() {
+        return mainCtx.getNotificationTemplateService();
+    }
+
+    @Override
+    public NotificationRequestService getNotificationRequestService() {
+        return mainCtx.getNotificationRequestService();
+    }
+
+    @Override
+    public NotificationRuleService getNotificationRuleService() {
+        return mainCtx.getNotificationRuleService();
+    }
+
+    @Override
+    public SlackService getSlackService() {
+        return mainCtx.getSlackService();
+    }
+
+    @Override
+    public boolean isExternalNodeForceAck() {
+        return mainCtx.isExternalNodeForceAck();
     }
 
     @Override
@@ -818,7 +924,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
 
     @Override
     public void pushToIntegration(IntegrationId integrationId, TbMsg msg, FutureCallback<Void> callback) {
-        boolean restApiCall = msg.getType().equals(DataConstants.RPC_CALL_FROM_SERVER_TO_DEVICE);
+        boolean restApiCall = msg.isTypeOf(TbMsgType.RPC_CALL_FROM_SERVER_TO_DEVICE);
         UUID requestUUID;
         String serviceId;
         if (restApiCall) {
@@ -989,10 +1095,24 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
-    public void checkTenantEntity(EntityId entityId) {
+    public void checkTenantEntity(EntityId entityId) throws TbNodeException {
         if (!this.getTenantId().equals(TenantIdLoader.findTenantId(this, entityId))) {
-            throw new RuntimeException("Entity with id: '" + entityId + "' specified in the configuration doesn't belong to the current tenant.");
+            throw new TbNodeException("Entity with id: '" + entityId + "' specified in the configuration doesn't belong to the current tenant.", true);
         }
+    }
+
+    private static String getFailureMessage(Throwable th) {
+        String failureMessage;
+        if (th != null) {
+            if (!StringUtils.isEmpty(th.getMessage())) {
+                failureMessage = th.getMessage();
+            } else {
+                failureMessage = th.getClass().getSimpleName();
+            }
+        } else {
+            failureMessage = null;
+        }
+        return failureMessage;
     }
 
     private class SimpleTbQueueCallback implements TbQueueCallback {

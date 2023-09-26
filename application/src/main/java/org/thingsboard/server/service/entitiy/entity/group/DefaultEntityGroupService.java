@@ -42,7 +42,7 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -54,7 +54,6 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -67,36 +66,31 @@ public class DefaultEntityGroupService extends AbstractTbEntityService implement
     private final EntityGroupService entityGroupService;
 
     @Override
-    public EntityGroup save(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup, User user) throws Exception {
+    public EntityGroupInfo save(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup, User user) throws Exception {
         ActionType actionType = entityGroup.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         try {
             EntityGroup savedEntityGroup = checkNotNull(entityGroupService.saveEntityGroup(tenantId, parentEntityId, entityGroup));
             autoCommit(user, savedEntityGroup.getType(), savedEntityGroup.getId());
 
-            notificationEntityService.logEntityAction(tenantId, savedEntityGroup.getId(), savedEntityGroup,
-                    actionType, user);
-
-            boolean sendMsgToEdge = actionType.equals(ActionType.UPDATED);
-            notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, savedEntityGroup.getId(),
-                    savedEntityGroup, user, actionType, sendMsgToEdge, null);
-            return savedEntityGroup;
+            notificationEntityService.logEntityAction(tenantId, savedEntityGroup.getId(), savedEntityGroup, null, actionType, user);
+            return checkNotNull(entityGroupService.findEntityGroupInfoById(tenantId, savedEntityGroup.getId()));
         } catch (Exception e) {
-            notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, emptyId(EntityType.ENTITY_GROUP),
-                    entityGroup, user, actionType, false, e);
+            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.ENTITY_GROUP), entityGroup, null, actionType, user, e);
             throw e;
         }
     }
 
     @Override
-    public void delete(TenantId tenantId, List<EdgeId> relatedEdgeIds, EntityGroup entityGroup, User user) throws ThingsboardException {
+    public void delete(TenantId tenantId, EntityGroup entityGroup, User user) throws ThingsboardException {
+        ActionType actionType = ActionType.DELETED;
         EntityGroupId entityGroupId = entityGroup.getId();
         try {
             entityGroupService.deleteEntityGroup(tenantId, entityGroupId);
-            notificationEntityService.notifyDeleteEntity(tenantId, entityGroupId, entityGroup, null,
-                    ActionType.DELETED, relatedEdgeIds, user, entityGroupId.getId().toString());
+            notificationEntityService.logEntityAction(tenantId, entityGroupId, entityGroup, null,
+                    actionType, user, entityGroupId.getId().toString());
         } catch (Exception e) {
-            notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, emptyId(EntityType.ENTITY_GROUP),
-                    entityGroup, user, ActionType.DELETED, false, e, entityGroupId.getId().toString());
+            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.ENTITY_GROUP), entityGroup,
+                    null, actionType, user, e, entityGroupId.getId().toString());
             throw e;
         }
     }

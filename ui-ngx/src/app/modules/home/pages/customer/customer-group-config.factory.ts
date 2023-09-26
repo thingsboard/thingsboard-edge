@@ -44,7 +44,7 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { EntityGroupParams, ShortEntityView } from '@shared/models/entity-group.models';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
-import { Customer } from '@shared/models/customer.model';
+import { CustomerInfo } from '@shared/models/customer.model';
 import { CustomerService } from '@core/http/customer.service';
 import { CustomerComponent } from '@home/pages/customer/customer.component';
 import { Router, UrlTree } from '@angular/router';
@@ -54,11 +54,13 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { WINDOW } from '@core/services/window.service';
+import { mergeMap } from 'rxjs/operators';
+import { DeviceInfo } from '@shared/models/device.models';
 
 @Injectable()
-export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory<Customer> {
+export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory<CustomerInfo> {
 
-  constructor(private groupConfigTableConfigService: GroupConfigTableConfigService<Customer>,
+  constructor(private groupConfigTableConfigService: GroupConfigTableConfigService<CustomerInfo>,
               private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
               private utils: UtilsService,
@@ -70,11 +72,13 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
               @Inject(WINDOW) private window: Window) {
   }
 
-  createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<Customer>): Observable<GroupEntityTableConfig<Customer>> {
+  createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<CustomerInfo>):
+    Observable<GroupEntityTableConfig<CustomerInfo>> {
     const authState = getCurrentAuthState(this.store);
-    const config = new GroupEntityTableConfig<Customer>(entityGroup, params);
+    const config = new GroupEntityTableConfig<CustomerInfo>(entityGroup, params);
 
     config.entityComponent = CustomerComponent;
+    config.addDialogStyle = {height: '1060px'};
 
     config.entityTitle = (customer) => customer ?
       this.utils.customTranslation(customer.title, customer.title) : '';
@@ -84,8 +88,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     config.deleteEntitiesTitle = count => this.translate.instant('customer.delete-customers-title', {count});
     config.deleteEntitiesContent = () => this.translate.instant('customer.delete-customers-text');
 
-    config.loadEntity = id => this.customerService.getCustomer(id.id);
-    config.saveEntity = customer => this.customerService.saveCustomer(customer);
+    config.loadEntity = id => this.customerService.getCustomerInfo(id.id);
+    config.saveEntity = customer => this.customerService.saveCustomer(customer).pipe(
+      mergeMap((savedCustomer) => this.customerService.getCustomerInfo(savedCustomer.id.id))
+    );
     config.deleteEntity = id => this.customerService.deleteCustomer(id.id);
 
     if (params.hierarchyView) {
@@ -102,10 +108,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
 
     config.onEntityAction = action => this.onCustomerAction(action, config, params);
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.USER_GROUP, Operation.READ)) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.USER, Operation.READ)) {
       config.cellActionDescriptors.push(
         {
-          name: this.translate.instant('customer.manage-customer-user-groups'),
+          name: this.translate.instant('customer.manage-customer-users'),
           icon: 'account_circle',
           isEnabled: config.manageUsersEnabled,
           onAction: ($event, entity) => this.manageUsers($event, entity, config, params)
@@ -113,10 +119,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
       );
     }
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.CUSTOMER_GROUP, Operation.READ)) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.CUSTOMER, Operation.READ)) {
       config.cellActionDescriptors.push(
         {
-          name: this.translate.instant('customer.manage-customer-groups'),
+          name: this.translate.instant('customer.manage-customers'),
           icon: 'supervisor_account',
           isEnabled: config.manageCustomersEnabled,
           onAction: ($event, entity) => this.manageCustomers($event, entity, config, params)
@@ -124,10 +130,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
       );
     }
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.ASSET_GROUP, Operation.READ)) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.ASSET, Operation.READ)) {
       config.cellActionDescriptors.push(
         {
-          name: this.translate.instant('customer.manage-customer-asset-groups'),
+          name: this.translate.instant('customer.manage-customer-assets'),
           icon: 'domain',
           isEnabled: config.manageAssetsEnabled,
           onAction: ($event, entity) => this.manageAssets($event, entity, config, params)
@@ -135,10 +141,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
       );
     }
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.DEVICE_GROUP, Operation.READ)) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.DEVICE, Operation.READ)) {
       config.cellActionDescriptors.push(
         {
-          name: this.translate.instant('customer.manage-customer-device-groups'),
+          name: this.translate.instant('customer.manage-customer-devices'),
           icon: 'devices_other',
           isEnabled: config.manageDevicesEnabled,
           onAction: ($event, entity) => this.manageDevices($event, entity, config, params)
@@ -146,10 +152,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
       );
     }
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.ENTITY_VIEW_GROUP, Operation.READ)) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.ENTITY_VIEW, Operation.READ)) {
       config.cellActionDescriptors.push(
         {
-          name: this.translate.instant('customer.manage-customer-entity-view-groups'),
+          name: this.translate.instant('customer.manage-customer-entity-views'),
           icon: 'view_quilt',
           isEnabled: config.manageEntityViewsEnabled,
           onAction: ($event, entity) => this.manageEntityViews($event, entity, config, params)
@@ -157,10 +163,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
       );
     }
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.EDGE_GROUP, Operation.READ) && authState.edgesSupportEnabled) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.READ) && authState.edgesSupportEnabled) {
       config.cellActionDescriptors.push(
         {
-          name: this.translate.instant('customer.manage-customer-edge-groups'),
+          name: this.translate.instant('customer.manage-customer-edges'),
           icon: 'router',
           isEnabled: config.manageEdgesEnabled,
           onAction: ($event, entity) => this.manageEdges($event, entity, config, params)
@@ -168,10 +174,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
       );
     }
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.DASHBOARD_GROUP, Operation.READ)) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.DASHBOARD, Operation.READ)) {
       config.cellActionDescriptors.push(
         {
-          name: this.translate.instant('customer.manage-customer-dashboard-groups'),
+          name: this.translate.instant('customer.manage-customer-dashboards'),
           icon: 'dashboard',
           isEnabled: config.manageDashboardsEnabled,
           onAction: ($event, entity) => this.manageDashboards($event, entity, config, params)
@@ -182,17 +188,17 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
   }
 
-  private openCustomer($event: Event, customer: Customer, config: GroupEntityTableConfig<Customer>, params: EntityGroupParams) {
+  private openCustomer($event: Event, customer: CustomerInfo, config: GroupEntityTableConfig<CustomerInfo>, params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
     if (params.hierarchyView) {
       let url: UrlTree;
       if (params.customerId !== null) {
-        url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
-          params.customerId, 'customerGroups', params.childEntityGroupId, customer.id.id]);
+        url = this.router.createUrlTree(['customers', 'groups', params.entityGroupId,
+          params.customerId, 'customers', 'groups', params.childEntityGroupId, customer.id.id]);
       } else {
-        url = this.router.createUrlTree(['customerGroups', params.entityGroupId, customer.id.id]);
+        url = this.router.createUrlTree(['customers', 'groups', params.entityGroupId, customer.id.id]);
       }
       this.window.open(window.location.origin + url, '_blank');
     } else {
@@ -201,7 +207,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     }
   }
 
-  manageUsers($event: Event, customer: Customer | ShortEntityView, config: GroupEntityTableConfig<Customer>,
+  manageUsers($event: Event, customer: CustomerInfo | ShortEntityView, config: GroupEntityTableConfig<CustomerInfo>,
               params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
@@ -209,11 +215,11 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     if (params.hierarchyView) {
       params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, customer.id.id, EntityType.USER);
     } else {
-      this.router.navigateByUrl(`customerGroups/${config.entityGroup.id.id}/${customer.id.id}/userGroups`);
+      this.navigateToChildCustomerPage(config, customer, '/users');
     }
   }
 
-  manageCustomers($event: Event, customer: Customer | ShortEntityView, config: GroupEntityTableConfig<Customer>,
+  manageCustomers($event: Event, customer: CustomerInfo | ShortEntityView, config: GroupEntityTableConfig<CustomerInfo>,
                   params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
@@ -221,11 +227,11 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     if (params.hierarchyView) {
       params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, customer.id.id, EntityType.CUSTOMER);
     } else {
-      this.router.navigateByUrl(`customerGroups/${config.entityGroup.id.id}/${customer.id.id}/customerGroups`);
+      this.navigateToChildCustomerPage(config, customer, '/customers/all');
     }
   }
 
-  manageAssets($event: Event, customer: Customer | ShortEntityView, config: GroupEntityTableConfig<Customer>,
+  manageAssets($event: Event, customer: CustomerInfo | ShortEntityView, config: GroupEntityTableConfig<CustomerInfo>,
                params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
@@ -233,11 +239,11 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     if (params.hierarchyView) {
       params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, customer.id.id, EntityType.ASSET);
     } else {
-      this.router.navigateByUrl(`customerGroups/${config.entityGroup.id.id}/${customer.id.id}/assetGroups`);
+      this.navigateToChildCustomerPage(config, customer, '/entities/assets');
     }
   }
 
-  manageDevices($event: Event, customer: Customer | ShortEntityView, config: GroupEntityTableConfig<Customer>,
+  manageDevices($event: Event, customer: CustomerInfo | ShortEntityView, config: GroupEntityTableConfig<CustomerInfo>,
                 params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
@@ -245,11 +251,11 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     if (params.hierarchyView) {
       params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, customer.id.id, EntityType.DEVICE);
     } else {
-      this.router.navigateByUrl(`customerGroups/${config.entityGroup.id.id}/${customer.id.id}/deviceGroups`);
+      this.navigateToChildCustomerPage(config, customer, '/entities/devices');
     }
   }
 
-  manageEntityViews($event: Event, customer: Customer | ShortEntityView, config: GroupEntityTableConfig<Customer>,
+  manageEntityViews($event: Event, customer: CustomerInfo | ShortEntityView, config: GroupEntityTableConfig<CustomerInfo>,
                     params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
@@ -257,11 +263,11 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     if (params.hierarchyView) {
       params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, customer.id.id, EntityType.ENTITY_VIEW);
     } else {
-      this.router.navigateByUrl(`customerGroups/${config.entityGroup.id.id}/${customer.id.id}/entityViewGroups`);
+      this.navigateToChildCustomerPage(config, customer, '/entities/entityViews');
     }
   }
 
-  manageEdges($event: Event, customer: Customer | ShortEntityView, config: GroupEntityTableConfig<Customer>,
+  manageEdges($event: Event, customer: CustomerInfo | ShortEntityView, config: GroupEntityTableConfig<CustomerInfo>,
               params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
@@ -269,11 +275,11 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     if (params.hierarchyView) {
       params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, customer.id.id, EntityType.EDGE);
     } else {
-      this.router.navigateByUrl(`customerGroups/${config.entityGroup.id.id}/${customer.id.id}/edgeGroups`);
+      this.navigateToChildCustomerPage(config, customer, '/edgeManagement/instances');
     }
   }
 
-  manageDashboards($event: Event, customer: Customer | ShortEntityView, config: GroupEntityTableConfig<Customer>,
+  manageDashboards($event: Event, customer: CustomerInfo | ShortEntityView, config: GroupEntityTableConfig<CustomerInfo>,
                    params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
@@ -281,11 +287,27 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     if (params.hierarchyView) {
       params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, customer.id.id, EntityType.DASHBOARD);
     } else {
-      this.router.navigateByUrl(`customerGroups/${config.entityGroup.id.id}/${customer.id.id}/dashboardGroups`);
+      this.navigateToChildCustomerPage(config, customer, '/dashboards');
     }
   }
 
-  onCustomerAction(action: EntityAction<Customer>, config: GroupEntityTableConfig<Customer>, params: EntityGroupParams): boolean {
+  private navigateToChildCustomerPage(config: GroupEntityTableConfig<CustomerInfo>,
+                                      customer: CustomerInfo | ShortEntityView, page: string) {
+    const targetGroups = config.groupParams.shared ? 'shared' : 'groups';
+    this.router.navigateByUrl(`customers/${targetGroups}/${config.entityGroup.id.id}/${customer.id.id}${page}`);
+  }
+
+  manageOwnerAndGroups($event: Event, customer: CustomerInfo, config: GroupEntityTableConfig<CustomerInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, customer).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
+  }
+
+  onCustomerAction(action: EntityAction<CustomerInfo>, config: GroupEntityTableConfig<CustomerInfo>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
         this.openCustomer(action.event, action.entity, config, params);
@@ -310,6 +332,9 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
         return true;
       case 'manageDashboards':
         this.manageDashboards(action.event, action.entity, config, params);
+        return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
         return true;
     }
     return false;

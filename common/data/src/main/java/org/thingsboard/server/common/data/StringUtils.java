@@ -33,9 +33,17 @@ package org.thingsboard.server.common.data;
 import com.google.common.base.Splitter;
 import org.apache.commons.lang3.RandomStringUtils;
 
+import java.security.SecureRandom;
+import java.util.Base64;
+
 import static org.apache.commons.lang3.StringUtils.repeat;
 
 public class StringUtils {
+
+    private static final int DEFAULT_TOKEN_LENGTH = 8;
+
+    public static final SecureRandom RANDOM = new SecureRandom();
+
     public static final String EMPTY = "";
 
     public static final int INDEX_NOT_FOUND = -1;
@@ -54,6 +62,10 @@ public class StringUtils {
 
     public static boolean isNotBlank(String source) {
         return source != null && !source.isEmpty() && !source.trim().isEmpty();
+    }
+
+    public static String notBlankOrDefault(String src, String def) {
+        return isNotBlank(src) ? src : def;
     }
 
     public static String removeStart(final String str, final String remove) {
@@ -161,6 +173,24 @@ public class StringUtils {
         return org.apache.commons.lang3.StringUtils.equals(str1, str2);
     }
 
+    public static boolean equalsAny(String string, String... otherStrings) {
+        for (String otherString : otherStrings) {
+            if (equals(string, otherString)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean equalsAnyIgnoreCase(String string, String... otherStrings) {
+        for (String otherString : otherStrings) {
+            if (equalsIgnoreCase(string, otherString)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static String substringAfterLast(String str, String sep) {
         return org.apache.commons.lang3.StringUtils.substringAfterLast(str, sep);
     }
@@ -183,6 +213,13 @@ public class StringUtils {
         return org.apache.commons.lang3.StringUtils.contains(seq, searchSeq);
     }
 
+    /**
+     * Use this to prevent org.postgresql.util.PSQLException: ERROR: invalid byte sequence for encoding "UTF8": 0x00
+     **/
+    public static boolean contains0x00(final String s) {
+        return s != null && s.contains("\u0000");
+    }
+
     public static String randomNumeric(int length) {
         return RandomStringUtils.randomNumeric(length);
     }
@@ -201,6 +238,17 @@ public class StringUtils {
 
     public static String randomAlphabetic(int count) {
         return RandomStringUtils.randomAlphabetic(count);
+    }
+
+    public static String generateSafeToken(int length) {
+        byte[] bytes = new byte[length];
+        RANDOM.nextBytes(bytes);
+        Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
+        return encoder.encodeToString(bytes);
+    }
+
+    public static String generateSafeToken() {
+        return generateSafeToken(DEFAULT_TOKEN_LENGTH);
     }
 
 }

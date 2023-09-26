@@ -32,8 +32,8 @@
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -72,7 +72,7 @@ import { isDefinedAndNotNull } from '@core/utils';
 })
 export class SnmpDeviceTransportConfigurationComponent implements ControlValueAccessor, OnInit, Validator {
 
-  snmpDeviceTransportConfigurationFormGroup: FormGroup;
+  snmpDeviceTransportConfigurationFormGroup: UntypedFormGroup;
 
   snmpDeviceProtocolVersions = Object.values(SnmpDeviceProtocolVersion);
   snmpAuthenticationProtocols = Object.values(SnmpAuthenticationProtocol);
@@ -97,7 +97,7 @@ export class SnmpDeviceTransportConfigurationComponent implements ControlValueAc
   private propagateChange = (v: any) => { };
 
   constructor(private store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
   }
 
   registerOnChange(fn: any): void {
@@ -142,6 +142,9 @@ export class SnmpDeviceTransportConfigurationComponent implements ControlValueAc
       this.snmpDeviceTransportConfigurationFormGroup.disable({emitEvent: false});
     } else {
       this.snmpDeviceTransportConfigurationFormGroup.enable({emitEvent: false});
+      this.updateDisabledFormValue(
+        this.snmpDeviceTransportConfigurationFormGroup.get('protocolVersion').value || SnmpDeviceProtocolVersion.V2C
+      );
     }
   }
 

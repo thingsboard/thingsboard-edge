@@ -58,6 +58,7 @@ public class DataConstants {
     public static final String RETRIES = "retries";
     public static final String EDGE_ID = "edgeId";
     public static final String DEVICE_ID = "deviceId";
+    public static final String GATEWAY_PARAMETER = "gateway";
     public static final String COAP_TRANSPORT_NAME = "COAP";
     public static final String LWM2M_TRANSPORT_NAME = "LWM2M";
     public static final String MQTT_TRANSPORT_NAME = "MQTT";
@@ -92,7 +93,11 @@ public class DataConstants {
     public static final String TIMESERIES_DELETED = "TIMESERIES_DELETED";
     public static final String ALARM_ACK = "ALARM_ACK";
     public static final String ALARM_CLEAR = "ALARM_CLEAR";
+    public static final String ALARM_ASSIGNED = "ALARM_ASSIGNED";
+    public static final String ALARM_UNASSIGNED = "ALARM_UNASSIGNED";
     public static final String ALARM_DELETE = "ALARM_DELETE";
+    public static final String COMMENT_CREATED = "COMMENT_CREATED";
+    public static final String COMMENT_UPDATED = "COMMENT_UPDATED";
     public static final String ENTITY_ASSIGNED_FROM_TENANT = "ENTITY_ASSIGNED_FROM_TENANT";
     public static final String ENTITY_ASSIGNED_TO_TENANT = "ENTITY_ASSIGNED_TO_TENANT";
     public static final String PROVISION_SUCCESS = "PROVISION_SUCCESS";
@@ -126,6 +131,7 @@ public class DataConstants {
     public static final String PROVISION_KEY = "provisionDeviceKey";
     public static final String PROVISION_SECRET = "provisionDeviceSecret";
 
+    public static final String DEFAULT_DEVICE_TYPE = "default";
     public static final String DEVICE_NAME = "deviceName";
     public static final String DEVICE_TYPE = "deviceType";
     public static final String CERT_PUB_KEY = "x509CertPubKey";
@@ -143,8 +149,11 @@ public class DataConstants {
     public static final String UPDATE_SOFTWARE = "updateSoftware";
 
     public static final String SELF_REGISTRATION_DOMAIN_NAME_PREFIX = "selfRegistrationDomainNamePrefix_";
+    public static final String RULE_NODE_STATE_PREFIX = "RuleNodeState_";
 
     public static final String LAST_CONNECTED_GATEWAY = "lastConnectedGateway";
+
+    public static final String MQTT_TOPIC = "mqttTopic";
 
     public static final String MAIN_QUEUE_NAME = "Main";
     public static final String MAIN_QUEUE_TOPIC = "tb_rule_engine.main";

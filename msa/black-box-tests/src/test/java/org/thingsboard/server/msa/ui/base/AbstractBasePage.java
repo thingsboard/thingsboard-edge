@@ -30,10 +30,14 @@
  */
 package org.thingsboard.server.msa.ui.base;
 
+import io.qameta.allure.Allure;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
@@ -41,15 +45,19 @@ import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.io.ByteArrayInputStream;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
-@Slf4j
+import static org.assertj.core.api.Assertions.fail;
+
 abstract public class AbstractBasePage {
+    public static final long WAIT_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
     protected WebDriver driver;
     protected WebDriverWait wait;
     protected Actions actions;
@@ -57,7 +65,7 @@ abstract public class AbstractBasePage {
 
     public AbstractBasePage(WebDriver driver) {
         this.driver = driver;
-        this.wait = new WebDriverWait(driver, Duration.ofMillis(8000));
+        this.wait = new WebDriverWait(driver, Duration.ofMillis(WAIT_TIMEOUT));
         this.actions = new Actions(driver);
         this.js = (JavascriptExecutor) driver;
     }
@@ -71,8 +79,7 @@ abstract public class AbstractBasePage {
         try {
             return wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(locator)));
         } catch (WebDriverException e) {
-            log.error("No visibility element: " + locator);
-            return null;
+            return fail("No visibility element: " + locator);
         }
     }
 
@@ -80,8 +87,16 @@ abstract public class AbstractBasePage {
         try {
             return wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(locator)));
         } catch (WebDriverException e) {
-            log.error("No presence element: " + locator);
-            return null;
+            return fail("No presence element: " + locator);
+        }
+    }
+
+    protected List<WebElement> waitUntilPresenceOfElementsLocated(String locator) {
+        try {
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(locator)));
+            return driver.findElements(By.xpath(locator));
+        } catch (WebDriverException e) {
+            return fail("No presence elements: " + locator);
         }
     }
 
@@ -89,8 +104,7 @@ abstract public class AbstractBasePage {
         try {
             return wait.until(ExpectedConditions.elementToBeClickable(By.xpath(locator)));
         } catch (WebDriverException e) {
-            log.error("No clickable element: " + locator);
-            return null;
+            return fail("No clickable element: " + locator);
         }
     }
 
@@ -99,8 +113,7 @@ abstract public class AbstractBasePage {
             wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(locator)));
             return driver.findElements(By.xpath(locator));
         } catch (WebDriverException e) {
-            log.error("No visibility elements: " + locator);
-            return null;
+            return fail("No visibility elements: " + locator);
         }
     }
 
@@ -109,8 +122,7 @@ abstract public class AbstractBasePage {
             wait.until(ExpectedConditions.elementToBeClickable(By.xpath(locator)));
             return driver.findElements(By.xpath(locator));
         } catch (WebDriverException e) {
-            log.error("No clickable elements: " + locator);
-            return null;
+            return fail("No clickable elements: " + locator);
         }
     }
 
@@ -118,7 +130,7 @@ abstract public class AbstractBasePage {
         try {
             wait.until(ExpectedConditions.urlContains(urlPath));
         } catch (WebDriverException e) {
-            log.error("This URL path is missing");
+            fail("This URL path is missing");
         }
     }
 
@@ -134,7 +146,7 @@ abstract public class AbstractBasePage {
         try {
             return wait.until(ExpectedConditions.not(ExpectedConditions.visibilityOfElementLocated(By.xpath(locator))));
         } catch (WebDriverException e) {
-            throw new AssertionError("Element is present");
+            return fail("Element is present: " + locator);
         }
     }
 
@@ -146,11 +158,11 @@ abstract public class AbstractBasePage {
         }
     }
 
-    public void waitUntilElementNotVisibility(WebElement element){
+    public void waitUntilElementNotVisibility(WebElement element) {
         try {
             wait.until(ExpectedConditions.not(ExpectedConditions.visibilityOf(element)));
         } catch (WebDriverException e) {
-            log.error(element.getTagName() + "is visibility");
+            fail(element.getTagName() + "is visibility");
         }
     }
 
@@ -158,7 +170,7 @@ abstract public class AbstractBasePage {
         try {
             return wait.until(ExpectedConditions.not(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.xpath(locator))));
         } catch (WebDriverException e) {
-            throw new AssertionError("Elements is present");
+            return fail("Elements is present: " + locator);
         }
     }
 
@@ -166,7 +178,7 @@ abstract public class AbstractBasePage {
         try {
             wait.until(ExpectedConditions.numberOfWindowsToBe(tabNumber));
         } catch (WebDriverException e) {
-            log.error("No tabs with this number");
+            fail("No tabs with this number: " + tabNumber);
         }
     }
 
@@ -190,7 +202,7 @@ abstract public class AbstractBasePage {
         try {
             wait.until(ExpectedConditions.attributeContains(element, attribute, value));
         } catch (WebDriverException e) {
-            log.error("Miss locator, attribute or value");
+            fail("Failed to wait until attribute '" + attribute + "' of element '" + element + "' contains value '" + value + "'");
         }
     }
 
@@ -198,7 +210,15 @@ abstract public class AbstractBasePage {
         try {
             wait.until(ExpectedConditions.invisibilityOf(element));
         } catch (WebDriverException e) {
-            log.error("Element is visible");
+            fail("Element is visible");
+        }
+    }
+
+    protected WebElement waitUntilVisibilityOfElementLocated(WebElement element) {
+        try {
+            return wait.until(ExpectedConditions.visibilityOf(element));
+        } catch (WebDriverException e) {
+            return fail("No visibility element: " + element.getTagName());
         }
     }
 
@@ -228,5 +248,37 @@ abstract public class AbstractBasePage {
     public static char getRandomSymbol() {
         String s = "~`!@#$^&*()_+=-";
         return s.charAt(new Random().nextInt(s.length()));
+    }
+
+    public void captureScreen(WebDriver driver, String screenshotName) {
+        if (driver instanceof TakesScreenshot) {
+            Allure.addAttachment(screenshotName,
+                    new ByteArrayInputStream(((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES)));
+        }
+    }
+
+    public void pull(WebElement element, int xOffset, int yOffset) {
+        actions.clickAndHold(element).moveByOffset(xOffset, yOffset).release().perform();
+    }
+
+    public void waitUntilAttributeToBe(String locator, String attribute, String value) {
+        try {
+            wait.until(ExpectedConditions.attributeToBe(By.xpath(locator), attribute, value));
+        } catch (WebDriverException e) {
+            fail("Failed to wait until attribute '" + attribute + "' of element located by '" + locator + "' is '" + value + "'");
+        }
+    }
+
+    public void clearInputField(WebElement element) {
+        element.click();
+        element.sendKeys(Keys.CONTROL + "A" + Keys.BACK_SPACE);
+    }
+
+    public void waitUntilAttributeToBeNotEmpty(WebElement element, String attribute) {
+        try {
+            wait.until(ExpectedConditions.attributeToBeNotEmpty(element, attribute));
+        } catch (WebDriverException e) {
+            fail("Failed to wait until attribute '" + attribute + "' of element '" + element + "' is not empty");
+        }
     }
 }

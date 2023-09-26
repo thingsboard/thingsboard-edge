@@ -30,7 +30,7 @@
 ///
 
 import { Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { isNotEmptyStr, isString } from '@core/utils';
 import { IntegrationType, IntegrationTypeInfo, integrationTypeInfoMap } from '@shared/models/integration.models';
@@ -53,7 +53,7 @@ type IntegrationInfo = IntegrationTypeInfo & {type: IntegrationType};
 })
 export class IntegrationTypeSelectComponent implements ControlValueAccessor, OnInit {
 
-  integrationTypeFormGroup: FormGroup;
+  integrationTypeFormGroup: UntypedFormGroup;
   searchText = '';
 
   filteredIntegrationTypes: Observable<Array<IntegrationInfo>>;
@@ -88,7 +88,7 @@ export class IntegrationTypeSelectComponent implements ControlValueAccessor, OnI
 
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder,
+  constructor(private fb: UntypedFormBuilder,
               private translate: TranslateService) {
     this.integrationTypeFormGroup = this.fb.group({
       type: ['']

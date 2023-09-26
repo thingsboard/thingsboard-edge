@@ -31,11 +31,6 @@
 package org.thingsboard.rule.engine.api;
 
 import lombok.Data;
-import org.thingsboard.rule.engine.api.NodeConfiguration;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 @Data
 public class EmptyNodeConfiguration implements NodeConfiguration<EmptyNodeConfiguration> {
@@ -44,7 +39,6 @@ public class EmptyNodeConfiguration implements NodeConfiguration<EmptyNodeConfig
 
     @Override
     public EmptyNodeConfiguration defaultConfiguration() {
-        EmptyNodeConfiguration configuration = new EmptyNodeConfiguration();
-        return configuration;
+        return new EmptyNodeConfiguration();
     }
 }

@@ -36,7 +36,7 @@
 
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.4.4PE-SNAPSHOT</version>
+        <version>3.6.1PE-SNAPSHOT</version>
         <artifactId>msa</artifactId>
     </parent>
     <groupId>org.thingsboard.msa</groupId>
@@ -228,6 +228,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.thingsboard.common.integration</groupId>
+            <artifactId>mqtt-integrations</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
             <scope>test</scope>
@@ -249,6 +254,10 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-iot-device-sdk-java-samples</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-messaging-servicebus</artifactId>
         </dependency>
     </dependencies>
     <profiles>

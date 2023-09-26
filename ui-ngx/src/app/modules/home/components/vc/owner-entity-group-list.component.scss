@@ -55,12 +55,12 @@
     overflow-x: hidden;
     max-height: 250px;
 
-    button.mat-icon-button {
-      mat-icon {
+    button.mat-mdc-icon-button {
+      .mat-icon {
         color: rgba(0, 0, 0, .54);
       }
       &[disabled][disabled] {
-        mat-icon {
+        .mat-icon {
           color: rgba(0, 0, 0, .26);
         }
       }

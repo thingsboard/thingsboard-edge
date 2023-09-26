@@ -1,0 +1,447 @@
+{
+  "ruleChain": {
+    "additionalInfo": {
+      "description": ""
+    },
+    "name": "SI Soil Moisture (Remote Farm)",
+    "type": "EDGE",
+    "firstRuleNodeId": null,
+    "root": false,
+    "debugMode": false,
+    "configuration": null,
+    "externalId": null
+  },
+  "metadata": {
+    "firstNodeIndex": 6,
+    "nodes": [
+      {
+        "additionalInfo": {
+          "layoutX": 929,
+          "layoutY": 151
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
+        "name": "Save Timeseries",
+        "debugMode": false,
+        "configuration": {
+          "defaultTTL": 0
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 928,
+          "layoutY": 92
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+        "name": "Save Client Attributes",
+        "debugMode": false,
+        "configuration": {
+          "scope": "CLIENT_SCOPE"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": null,
+          "layoutX": 587,
+          "layoutY": 152
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
+        "name": "Message Type Switch",
+        "debugMode": false,
+        "configuration": {
+          "version": 0
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": null,
+          "layoutX": 927,
+          "layoutY": 284
+        },
+        "type": "org.thingsboard.rule.engine.action.TbLogNode",
+        "name": "Log RPC from Device",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
+          "tbelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": null,
+          "layoutX": 926,
+          "layoutY": 345
+        },
+        "type": "org.thingsboard.rule.engine.action.TbLogNode",
+        "name": "Log Other",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
+          "tbelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 926,
+          "layoutY": 216
+        },
+        "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
+        "name": "RPC Call Request",
+        "debugMode": false,
+        "configuration": {
+          "timeoutInSeconds": 60
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 302,
+          "layoutY": 150
+        },
+        "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
+        "name": "Device Profile Node",
+        "debugMode": false,
+        "configuration": {
+          "persistAlarmRulesState": false,
+          "fetchAlarmRulesStateOnStart": false
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 927,
+          "layoutY": 423
+        },
+        "type": "org.thingsboard.rule.engine.metadata.TbGetRelatedAttributeNode",
+        "name": "Fetch Moisture Thresholds",
+        "debugMode": false,
+        "configuration": {
+          "relationsQuery": {
+            "fetchLastLevelOnly": false,
+            "direction": "TO",
+            "maxLevel": 1,
+            "filters": [
+              {
+                "relationType": "FieldToMoistureSensor",
+                "entityTypes": [
+                  "ASSET"
+                ]
+              }
+            ]
+          },
+          "telemetry": false,
+          "attrMapping": {
+            "maxMoistureThreshold": "maxMoistureThreshold",
+            "minMoistureThreshold": "minMoistureThreshold"
+          }
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1196,
+          "layoutY": 250
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
+        "name": "To Field Asset",
+        "debugMode": false,
+        "configuration": {
+          "originatorSource": "RELATED",
+          "relationsQuery": {
+            "fetchLastLevelOnly": false,
+            "direction": "TO",
+            "maxLevel": 1,
+            "filters": [
+              {
+                "relationType": "FieldToMoistureSensor",
+                "entityTypes": [
+                  "ASSET"
+                ]
+              }
+            ]
+          }
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1432,
+          "layoutY": 336
+        },
+        "type": "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
+        "name": "Aggregate Avg",
+        "debugMode": false,
+        "configuration": {
+          "inputValueKey": "moisture",
+          "outputValueKey": "avgMoisture",
+          "mathFunction": "AVG",
+          "aggIntervalType": "CUSTOM",
+          "timeZoneId": "UTC",
+          "aggIntervalValue": 5,
+          "aggIntervalTimeUnit": "MINUTES",
+          "intervalPersistencePolicy": "ON_EACH_MESSAGE",
+          "intervalCheckValue": 1,
+          "intervalCheckTimeUnit": "MINUTES",
+          "statePersistencePolicy": "ON_EACH_CHANGE",
+          "statePersistenceValue": 1,
+          "statePersistenceTimeUnit": "MINUTES",
+          "autoCreateIntervals": false,
+          "periodValue": 5,
+          "periodTimeUnit": "MINUTES",
+          "parentEntitiesQuery": {
+            "type": "group",
+            "entityGroupId": null
+          },
+          "queueName": null,
+          "outMsgType": "POST_TELEMETRY_REQUEST"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1202,
+          "layoutY": 148
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbCheckMessageNode",
+        "name": "Has Moisture?",
+        "debugMode": false,
+        "configuration": {
+          "messageNames": [
+            "moisture"
+          ],
+          "metadataNames": [],
+          "checkAllKeys": true
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1699,
+          "layoutY": 256
+        },
+        "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
+        "name": "To Field Rule Chain",
+        "debugMode": false,
+        "configuration": {
+          "ruleChainId": "c3daff10-9676-11ed-b5e1-392bb934190c"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1481,
+          "layoutY": 423
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+        "name": "Save Attributes",
+        "debugMode": false,
+        "configuration": {
+          "scope": "SERVER_SCOPE",
+          "notifyDevice": false
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1204,
+          "layoutY": 424
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "Change msg type",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "var newMsg = {};\nnewMsg.maxMoistureThreshold = parseInt(metadata[\"maxMoistureThreshold\"]);\nnewMsg.minMoistureThreshold = parseInt(metadata[\"minMoistureThreshold\"]);\nreturn {\n    msg: newMsg, \n    metadata: metadata, \n    msgType: \"POST_ATTRIBUTES_REQUEST\"\n};",
+          "tbelScript": "var newMsg = {};\nnewMsg.maxMoistureThreshold = parseInt(metadata[\"maxMoistureThreshold\"]);\nnewMsg.minMoistureThreshold = parseInt(metadata[\"minMoistureThreshold\"]);\nreturn {\n    msg: newMsg, \n    metadata: metadata, \n    msgType: \"POST_ATTRIBUTES_REQUEST\"\n};"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 655,
+          "layoutY": 422
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbJsFilterNode",
+        "name": "Check Field relation",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "return msg.type === \"FieldToMoistureSensor\";",
+          "tbelScript": "return msg.type == \"FieldToMoistureSensor\";"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 590,
+          "layoutY": 35
+        },
+        "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
+        "name": "Count Alarms",
+        "debugMode": false,
+        "configuration": {
+          "ruleChainId": "dceb0310-9676-11ed-b5e1-392bb934190c"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1434,
+          "layoutY": 164
+        },
+        "type": "org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNodeV2",
+        "name": "Aggregate Latest Moisture",
+        "debugMode": false,
+        "configuration": {
+          "direction": "FROM",
+          "relationType": "FieldToMoistureSensor",
+          "deduplicationInSec": 10,
+          "aggMappings": [
+            {
+              "source": "moisture",
+              "sourceScope": "LATEST_TELEMETRY",
+              "defaultValue": 0,
+              "target": "latestAvgMoisture",
+              "aggFunction": "AVG",
+              "filter": {
+                "serverAttributeNames": [
+                  "active"
+                ],
+                "scriptLang": "TBEL",
+                "tbelFilterFunction": "if (attributes.active != null) {\n    return attributes.active;\n}\nreturn false;"
+              }
+            }
+          ],
+          "outMsgType": "POST_TELEMETRY_REQUEST",
+          "queueName": "Main"
+        },
+        "externalId": null
+      }
+    ],
+    "connections": [
+      {
+        "fromIndex": 0,
+        "toIndex": 10,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 0,
+        "type": "Post telemetry"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 1,
+        "type": "Post attributes"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 3,
+        "type": "RPC Request from Device"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 4,
+        "type": "Other"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 5,
+        "type": "RPC Request to Device"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 14,
+        "type": "Relation Added or Updated"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 15,
+        "type": "Alarm Acknowledged"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 15,
+        "type": "Alarm Cleared"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 2,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 15,
+        "type": "Alarm Cleared"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 15,
+        "type": "Alarm Created"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 15,
+        "type": "Alarm Severity Updated"
+      },
+      {
+        "fromIndex": 7,
+        "toIndex": 13,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 8,
+        "toIndex": 9,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 8,
+        "toIndex": 16,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 9,
+        "toIndex": 11,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 10,
+        "toIndex": 8,
+        "type": "True"
+      },
+      {
+        "fromIndex": 13,
+        "toIndex": 12,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 14,
+        "toIndex": 7,
+        "type": "True"
+      },
+      {
+        "fromIndex": 16,
+        "toIndex": 11,
+        "type": "Success"
+      }
+    ],
+    "ruleChainConnections": null
+  }
+}

@@ -73,7 +73,7 @@ export class ImageInputComponent extends PageComponent implements AfterViewInit,
   inputId = this.utils.guid();
 
   @Input()
-  dropLabel = this.translate.instant('image-input.drop-image-or');
+  dropLabel = this.translate.instant('image-input.drag-and-drop');
 
   @Input()
   maxImageSize = 0;

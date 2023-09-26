@@ -39,5 +39,8 @@ public class SolutionDescriptor extends SolutionTemplate {
 
     private List<String> imageUrls;
     private String previewImageUrl;
+    private String videoPreviewImageUrl;
+    private String previewMp4Url;
+    private String previewWebmUrl;
 
 }

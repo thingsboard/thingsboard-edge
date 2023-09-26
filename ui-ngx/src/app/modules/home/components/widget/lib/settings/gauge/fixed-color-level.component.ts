@@ -34,8 +34,8 @@ import { Component, EventEmitter, forwardRef, Input, OnInit, Output } from '@ang
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALUE_ACCESSOR, ValidationErrors,
   Validators
 } from '@angular/forms';
@@ -65,7 +65,7 @@ export function fixedColorLevelValidator(control: AbstractControl): ValidationEr
 @Component({
   selector: 'tb-fixed-color-level',
   templateUrl: './fixed-color-level.component.html',
-  styleUrls: ['./fixed-color-level.component.scss', './../widget-settings.scss'],
+  styleUrls: ['./fixed-color-level.component.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -92,11 +92,11 @@ export class FixedColorLevelComponent extends PageComponent implements OnInit, C
 
   private propagateChange = null;
 
-  public fixedColorLevelFormGroup: FormGroup;
+  public fixedColorLevelFormGroup: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 

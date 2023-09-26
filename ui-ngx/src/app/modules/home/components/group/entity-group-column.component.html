@@ -32,64 +32,63 @@
 -->
 <div [formGroup]="columnFormGroup" class="tb-entity-group-column" fxFlex fxLayout="row" fxLayoutAlign="start center"
      style="padding: 0 0 0 10px; margin: 5px;">
-  <mat-form-field floatLabel="always" hideRequiredMarker fxFlex.xs
-                  [ngStyle]="{minWidth: 'initial', maxWidth: '90px'}"
-                  [ngStyle.gt-xs]="{minWidth: '130px', maxWidth: '130px'}">
-    <mat-label></mat-label>
-    <mat-select matInput required formControlName="type">
-      <mat-option *ngFor="let type of columnTypes" [value]="type">
-        {{ entityGroupColumnTypeTranslations.get(type) | translate }}
-      </mat-option>
-    </mat-select>
-  </mat-form-field>
-  <div fxFlex.xs style="padding-left: 5px;"
-       [ngStyle]="{minWidth: 'initial', maxWidth: '90px'}"
-       [ngStyle.gt-xs]="{minWidth: '130px', maxWidth: '130px'}"
+  <div fxFlex.lt-xl
+       class="tb-column-type"
        fxLayout="column">
-    <mat-form-field floatLabel="always" hideRequiredMarker fxFlex
+    <mat-form-field subscriptSizing="dynamic">
+      <mat-select required formControlName="type">
+        <mat-option *ngFor="let type of columnTypes" [value]="type">
+          {{ entityGroupColumnTypeTranslations.get(type) | translate }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div fxFlex.lt-xl style="padding-left: 5px;"
+       class="tb-column-value"
+       fxLayout="column">
+    <mat-form-field subscriptSizing="dynamic"
                     *ngIf="columnFormGroup.get('type').value === columnType.ENTITY_FIELD">
-      <mat-label></mat-label>
-      <mat-select matInput required formControlName="key">
+      <mat-select required formControlName="key">
         <mat-option *ngFor="let field of entityFieldKeys" [value]="field">
           {{ entityFields[field].name | translate }}
         </mat-option>
       </mat-select>
     </mat-form-field>
-    <mat-form-field floatLabel="always" hideRequiredMarker *ngIf="columnFormGroup.get('type').value !== columnType.ENTITY_FIELD">
-      <mat-label></mat-label>
+    <mat-form-field subscriptSizing="dynamic" *ngIf="columnFormGroup.get('type').value !== columnType.ENTITY_FIELD">
       <input matInput required
              formControlName="key"
              placeholder="{{ 'entity-group.column-value' | translate }}"/>
     </mat-form-field>
   </div>
-  <div fxHide.xs fxFlex style="padding-left: 5px;" fxLayout="column">
-    <mat-form-field floatLabel="always" hideRequiredMarker>
-      <mat-label></mat-label>
+  <div fxHide.lt-xl fxFlex style="padding-left: 5px;" fxLayout="column">
+    <mat-form-field subscriptSizing="dynamic">
       <input matInput
              formControlName="title"
              placeholder="{{ 'entity-group.column-title' | translate }}"/>
     </mat-form-field>
   </div>
-  <mat-form-field floatLabel="always" hideRequiredMarker fxHide.xs
-                  style="padding-left: 5px; min-width: 120px; max-width: 120px;">
-    <mat-label></mat-label>
-    <mat-select matInput required formControlName="sortOrder">
-      <mat-option *ngFor="let sortOrder of sortOrders" [value]="sortOrder">
-        {{ entityGroupSortOrderTranslations.get(sortOrder) | translate }}
-      </mat-option>
-    </mat-select>
-  </mat-form-field>
-  <div fxHide.xs style="padding-left: 5px; min-width: 40px; max-width: 40px;" fxLayout="column" fxLayoutAlign="start center">
+  <div fxFlex.lt-xl fxHide.lt-lg style="padding-left: 5px;"
+       class="tb-column-sort-order"
+       fxLayout="column">
+    <mat-form-field subscriptSizing="dynamic">
+      <mat-select required formControlName="sortOrder">
+        <mat-option *ngFor="let sortOrder of sortOrders" [value]="sortOrder">
+          {{ entityGroupSortOrderTranslations.get(sortOrder) | translate }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div fxHide.xs style="padding-left: 5px; min-width: 48px; max-width: 48px;" fxLayout="column" fxLayoutAlign="start center">
     <mat-checkbox formControlName="mobileHide"></mat-checkbox>
   </div>
-  <span *ngIf="disabled" style="padding-left: 5px; min-width: 40px; min-height: 40px;">&nbsp;</span>
-  <button mat-icon-button color="primary" style="min-width: 40px;"
+  <span *ngIf="disabled" style="padding-left: 5px; min-width: 48px; min-height: 48px;">&nbsp;</span>
+  <button mat-icon-button color="primary"
           (click)="openColumn($event)"
           matTooltip="{{ (disabled ? 'action.view' : 'action.edit') | translate }}"
           matTooltipPosition="above">
     <mat-icon>{{ disabled ? 'more_vert' : 'edit' }}</mat-icon>
   </button>
-  <button *ngIf="!disabled" mat-icon-button color="primary" style="min-width: 40px;"
+  <button *ngIf="!disabled" mat-icon-button color="primary"
           (click)="removeColumn.emit()"
           matTooltip="{{ 'action.remove' | translate }}"
           matTooltipPosition="above">

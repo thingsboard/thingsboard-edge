@@ -36,12 +36,12 @@ import com.google.gson.JsonParser;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContext;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.util.Collections;
@@ -63,14 +63,14 @@ public abstract class AbstractGeofencingNode<T extends TbGpsGeofencingFilterNode
     abstract protected Class<T> getConfigClazz();
 
     protected boolean checkMatches(TbMsg msg) throws TbNodeException {
-        JsonElement msgDataElement = new JsonParser().parse(msg.getData());
+        JsonElement msgDataElement = JsonParser.parseString(msg.getData());
         if (!msgDataElement.isJsonObject()) {
-            throw new TbNodeException("Incoming Message is not a valid JSON object");
+            throw new TbNodeException("Incoming Message is not a valid JSON object!");
         }
         JsonObject msgDataObj = msgDataElement.getAsJsonObject();
         double latitude = getValueFromMessageByName(msg, msgDataObj, config.getLatitudeKeyName());
         double longitude = getValueFromMessageByName(msg, msgDataObj, config.getLongitudeKeyName());
-        List<Perimeter> perimeters = getPerimeters(msg, msgDataObj);
+        List<Perimeter> perimeters = getPerimeters(msg);
         boolean matches = false;
         for (Perimeter perimeter : perimeters) {
             if (checkMatches(perimeter, latitude, longitude)) {
@@ -89,11 +89,11 @@ public abstract class AbstractGeofencingNode<T extends TbGpsGeofencingFilterNode
         } else if (perimeter.getPerimeterType() == PerimeterType.POLYGON) {
             return GeoUtil.contains(perimeter.getPolygonsDefinition(), new Coordinates(latitude, longitude));
         } else {
-            throw new TbNodeException("Unsupported perimeter type: " + perimeter.getPerimeterType());
+            throw new TbNodeException("Unsupported perimeter type: " + perimeter.getPerimeterType()  + "!");
         }
     }
 
-    protected List<Perimeter> getPerimeters(TbMsg msg, JsonObject msgDataObj) throws TbNodeException {
+    protected List<Perimeter> getPerimeters(TbMsg msg) throws TbNodeException {
         if (config.isFetchPerimeterInfoFromMessageMetadata()) {
             if (StringUtils.isEmpty(config.getPerimeterKeyName())) {
                 // Old configuration before "perimeterKeyName" was introduced

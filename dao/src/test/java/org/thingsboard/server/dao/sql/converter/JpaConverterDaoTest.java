@@ -42,8 +42,10 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.AbstractJpaDaoTest;
 import org.thingsboard.server.dao.converter.ConverterDao;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.assertEquals;
@@ -94,6 +96,39 @@ public class JpaConverterDaoTest extends AbstractJpaDaoTest {
 
         Optional<Converter> converterOpt2 = converterDao.findConverterByTenantIdAndName(tenantId2, "NON_EXISTENT_NAME");
         assertFalse("Optional expected to be empty", converterOpt2.isPresent());
+    }
+
+    @Test
+    public void testFindConvertersByTenantIdAndNameAndType() {
+        UUID converterId1 = Uuids.timeBased();
+        UUID converterId2 = Uuids.timeBased();
+        UUID tenantId = Uuids.timeBased();
+        String name = "TEST_CONVERTER";
+        saveConverter(converterId1, tenantId, name, ConverterType.UPLINK);
+        saveConverter(converterId2, tenantId, name, ConverterType.DOWNLINK);
+
+        Optional<Converter> converterOpt1 = converterDao.findConverterByTenantIdAndNameAndType(tenantId, name, ConverterType.UPLINK);
+        assertTrue("Optional expected to be non-empty", converterOpt1.isPresent());
+        assertEquals(converterId1, converterOpt1.get().getId().getId());
+
+        Optional<Converter> converterOpt2 = converterDao.findConverterByTenantIdAndNameAndType(tenantId, name, ConverterType.DOWNLINK);
+        assertTrue("Optional expected to be non-empty", converterOpt2.isPresent());
+        assertEquals(converterId2, converterOpt2.get().getId().getId());
+    }
+
+    @Test
+    public void testFindConvertersByTenantIdAndName() {
+        UUID converterId1 = Uuids.timeBased();
+        UUID converterId2 = Uuids.timeBased();
+        UUID tenantId = Uuids.timeBased();
+        String name = "TEST_CONVERTER";
+        saveConverter(converterId1, tenantId, name, ConverterType.UPLINK);
+        saveConverter(converterId2, tenantId, name, ConverterType.DOWNLINK);
+
+        PageLink pageLink = new PageLink(2);
+        List<UUID> converterIds = converterDao.findConverterByTenantIdAndName(tenantId, name, pageLink).getData()
+                .stream().map(converter -> converter.getId().getId()).collect(Collectors.toList());
+        assertTrue(converterIds.contains(converterId1) || converterIds.contains(converterId2));
     }
 
     private void saveConverter(UUID id, UUID tenantId, String name, ConverterType type) {

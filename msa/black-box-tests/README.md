@@ -14,7 +14,7 @@ Also, for start test for MQTT integration, you need to have an **_eclipse-mosqui
 
 Also, for start test for OPC UA integration, you need to have an **_opc-plc_** image. For get this image, you need use:
 
-        docker pull mcr.microsoft.com/iotedge/opc-plc:latest
+        docker pull mcr.microsoft.com/iotedge/opc-plc:2.8.5
 
 As result, in REPOSITORY column, next images should be present:
 
@@ -30,13 +30,17 @@ As result, in REPOSITORY column, next images should be present:
         thingsboard/tb-pe-http-integration
         thingsboard/tb-pe-mqtt-integration
 
-- Run the black box tests in the [msa/black-box-tests](../black-box-tests) directory with Redis standalone:
+- Run the black box tests (without ui tests) in the [msa/black-box-tests](../black-box-tests) directory with Redis standalone:
 
         mvn clean install -DblackBoxTests.skip=false
 
 - Run the black box tests in the [msa/black-box-tests](../black-box-tests) directory with Redis cluster:
 
         mvn clean install -DblackBoxTests.skip=false -DblackBoxTests.redisCluster=true
+
+- Run the black box tests in the [msa/black-box-tests](../black-box-tests) directory with Redis sentinel:
+
+        mvn clean install -DblackBoxTests.skip=false -DblackBoxTests.redisSentinel=true
 
 - Run the black box tests in the [msa/black-box-tests](../black-box-tests) directory in Hybrid mode (postgres +
   cassandra):
@@ -67,16 +71,48 @@ As result, in REPOSITORY column, next images should be present:
 
   -DblackBoxTests.azureEventHubConnectionString=YOUR_CONNECTION_STRING
 
+  Note: for Azure Service Bus integration add next VM options:
+
+  -DblackBoxTests.azureServiceBusConnectionString=YOUR_CONNECTION_STRING
+  -DblackBoxTests.azureServiceBusTopicName=YOUR_TOPIC_NAME
+  -DblackBoxTests.azureServiceBusSubName=YOUR_SUB_NAME
+  -DblackBoxTests.azureServiceBusDownlinkConnectionString=YOUR_CONNECTION_STRING
+  -DblackBoxTests.azureServiceBusDownlinkTopicName=YOUR_TOPIC_NAME 
+  -DblackBoxTests.azureServiceBusDownlinkSubName=YOUR_SUB_NAME
+
 - To run the black box tests with using local env run tests in the [msa/black-box-tests](../black-box-tests) directory with runLocal property:
 
         mvn clean install -DblackBoxTests.skip=false -DrunLocal=true
 
-- To run ui smoke tests in the [msa/black-box-tests](../black-box-tests) directory specifying suite name: 
+- To run only integrations tests in the [msa/black-box-tests](../black-box-tests) directory:
+
+        mvn clean install -DblackBoxTests.skip=false -Dsuite=integrations
+
+- To run only connectivity tests in the [msa/black-box-tests](../black-box-tests) directory:
+
+        mvn clean install -DblackBoxTests.skip=false -Dsuite=connectivity
+
+- To run only ui tests in the [msa/black-box-tests](../black-box-tests) directory: 
 
         mvn clean install -DblackBoxTests.skip=false -Dsuite=uiTests
 
-- To run all tests in the [msa/black-box-tests](../black-box-tests) directory specifying suite name:
+- To run only ui smoke rule chains tests in the [msa/black-box-tests](../black-box-tests) directory:
+
+        mvn clean install -DblackBoxTests.skip=false -Dsuite=smokesRuleChain
+
+- To run only ui smoke customers tests in the [msa/black-box-tests](../black-box-tests) directory:
+
+        mvn clean install -DblackBoxTests.skip=false -Dsuite=smokesCustomer
+
+- To run only ui smoke profiles tests in the [msa/black-box-tests](../black-box-tests) directory:
+
+        mvn clean install -DblackBoxTests.skip=false -Dsuite=smokesPrifiles
+
+- To run all tests (black-box and ui) in the [msa/black-box-tests](../black-box-tests) directory:
 
         mvn clean install -DblackBoxTests.skip=false -Dsuite=all 
 
-
+### To run a separate test manually on a built UI:
+1. Add the black-box-tests module in the [pom.xml](../pom.xml) or add as a Maven project
+2. Add Vm Option "*-DrunLocal=true -Dtb.baseUiUrl=http://localhost:4200/*" in "Run" -> "Edit Configuration" -> "Edit Configuration Templates" -> "TestNG"
+3. To run a specific test, go to the test class in the [UI tests package](../black-box-tests/src/test/java/org/thingsboard/server/msa/ui/tests) and run the test. Alternatively, go to the [resources](../black-box-tests/src/test/resources) in the black-box-tests module and run the test suite that you need.

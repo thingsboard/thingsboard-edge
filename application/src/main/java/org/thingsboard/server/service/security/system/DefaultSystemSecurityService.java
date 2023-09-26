@@ -73,7 +73,6 @@ import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.user.UserServiceImpl;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.exception.DataValidationException;
-import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.auth.rest.RestAuthenticationDetails;
 import org.thingsboard.server.service.security.exception.UserPasswordExpiredException;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -91,7 +90,6 @@ import static org.thingsboard.server.common.data.CacheConstants.SECURITY_SETTING
 
 @Service
 @Slf4j
-@TbCoreComponent
 public class DefaultSystemSecurityService implements SystemSecurityService {
 
     @Autowired
@@ -249,8 +247,7 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
 
         if (userCredentials != null && isPositiveInteger(passwordPolicy.getPasswordReuseFrequencyDays())) {
             long passwordReuseFrequencyTs = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(passwordPolicy.getPasswordReuseFrequencyDays());
-            User user = userService.findUserById(tenantId, userCredentials.getUserId());
-            JsonNode additionalInfo = user.getAdditionalInfo();
+            JsonNode additionalInfo = userCredentials.getAdditionalInfo();
             if (additionalInfo instanceof ObjectNode && additionalInfo.has(UserServiceImpl.USER_PASSWORD_HISTORY)) {
                 JsonNode userPasswordHistoryJson = additionalInfo.get(UserServiceImpl.USER_PASSWORD_HISTORY);
                 Map<String, String> userPasswordHistoryMap = JacksonUtil.convertValue(userPasswordHistoryJson, new TypeReference<>() {});
@@ -310,11 +307,11 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
 
         JsonNode prohibitDifferentUrl = generalSettings.getJsonValue().get("prohibitDifferentUrl");
 
-        if (prohibitDifferentUrl != null && prohibitDifferentUrl.asBoolean()) {
+        if ((prohibitDifferentUrl != null && prohibitDifferentUrl.asBoolean()) || httpServletRequest == null) {
             baseUrl = generalSettings.getJsonValue().get("baseUrl").asText();
         }
 
-        if (StringUtils.isEmpty(baseUrl)) {
+        if (StringUtils.isEmpty(baseUrl) && httpServletRequest != null) {
             baseUrl = MiscUtils.constructBaseUrl(httpServletRequest);
         }
 

@@ -30,7 +30,7 @@
 ///
 
 import { Component, Input } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 
 @Component({
   selector: 'tb-cert-upload',
@@ -39,7 +39,7 @@ import { FormGroup } from '@angular/forms';
 })
 export class CertUploadComponent {
 
-  @Input() form: FormGroup;
+  @Input() form: UntypedFormGroup;
 
   @Input() disabled: boolean;
 

@@ -32,8 +32,8 @@
 import { Component, forwardRef, Input, OnDestroy, TemplateRef, ViewEncapsulation } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -62,7 +62,7 @@ import { takeUntil } from 'rxjs/operators';
 })
 export class IntegrationConfigurationComponent implements ControlValueAccessor, Validator, OnDestroy {
 
-  integrationConfigurationForm: FormGroup;
+  integrationConfigurationForm: UntypedFormGroup;
   integrationTypes = IntegrationType;
 
   @Input() executeRemotelyTemplate: TemplateRef<any>;
@@ -76,10 +76,10 @@ export class IntegrationConfigurationComponent implements ControlValueAccessor, 
 
   @Input() disabled: boolean;
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
     this.integrationConfigurationForm = this.fb.group({
       configuration: [null, Validators.required]
     });

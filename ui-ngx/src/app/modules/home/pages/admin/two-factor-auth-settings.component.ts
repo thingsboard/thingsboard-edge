@@ -34,7 +34,7 @@ import { PageComponent } from '@shared/components/page.component';
 import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { TwoFactorAuthenticationService } from '@core/http/two-factor-authentication.service';
 import {
   TwoFactorAuthProviderConfigForm,
@@ -67,7 +67,7 @@ export class TwoFactorAuthSettingsComponent extends PageComponent implements OnI
 
   readonly = this.isTenantAdmin() && !this.userPermissionsService.hasGenericPermission(Resource.WHITE_LABELING, Operation.WRITE);
 
-  twoFaFormGroup: FormGroup;
+  twoFaFormGroup: UntypedFormGroup;
   twoFactorAuthProviderType = TwoFactorAuthProviderType;
   twoFactorAuthProvidersData = twoFactorAuthProvidersData;
 
@@ -76,7 +76,7 @@ export class TwoFactorAuthSettingsComponent extends PageComponent implements OnI
   constructor(protected store: Store<AppState>,
               private twoFaService: TwoFactorAuthenticationService,
               private userPermissionsService: UserPermissionsService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
@@ -93,7 +93,7 @@ export class TwoFactorAuthSettingsComponent extends PageComponent implements OnI
     this.destroy$.complete();
   }
 
-  confirmForm(): FormGroup {
+  confirmForm(): UntypedFormGroup {
     return this.twoFaFormGroup;
   }
 
@@ -128,9 +128,9 @@ export class TwoFactorAuthSettingsComponent extends PageComponent implements OnI
       $event.stopPropagation();
     }
     if (currentState) {
-      this.getByIndexPanel(index).close();
-    } else {
       this.getByIndexPanel(index).open();
+    } else {
+      this.getByIndexPanel(index).close();
     }
   }
 
@@ -138,8 +138,8 @@ export class TwoFactorAuthSettingsComponent extends PageComponent implements OnI
     return item;
   }
 
-  get providersForm(): FormArray {
-    return this.twoFaFormGroup.get('providers') as FormArray;
+  get providersForm(): UntypedFormArray {
+    return this.twoFaFormGroup.get('providers') as UntypedFormArray;
   }
 
   private build2faSettingsForm(): void {

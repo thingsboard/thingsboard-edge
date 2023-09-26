@@ -43,6 +43,7 @@ import { Widget } from '@app/shared/models/widget.models';
 import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { EntityType } from '@shared/models/entity-type.models';
+import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 
 @Injectable()
 export class WidgetEditorDashboardResolver implements Resolve<Dashboard> {
@@ -55,13 +56,8 @@ export class WidgetEditorDashboardResolver implements Resolve<Dashboard> {
   resolve(route: ActivatedRouteSnapshot): Dashboard {
     const editWidgetInfo = this.utils.editWidgetInfo;
     const widget: Widget = {
-      isSystemType: true,
-      bundleAlias: 'customWidgetBundle',
-      typeAlias: 'customWidget',
+      typeFullFqn: 'system.customWidget',
       type: editWidgetInfo.type,
-      title: 'My widget',
-      image: null,
-      description: null,
       sizeX: editWidgetInfo.sizeX * 2,
       sizeY: editWidgetInfo.sizeY * 2,
       row: 2,
@@ -77,15 +73,14 @@ const routes: Routes = [
   {
     path: 'dashboard/:dashboardId',
     component: DashboardPageComponent,
+    canDeactivate: [ConfirmOnExitGuard],
     data: {
       breadcrumb: {
         skip: true
       },
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      canActivate: (userPermissionsService: UserPermissionsService): boolean => {
-        return userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD) &&
-          userPermissionsService.hasResourcesGenericPermission([Resource.WIDGETS_BUNDLE, Resource.WIDGET_TYPE], Operation.READ);
-      },
+      canActivate: (userPermissionsService: UserPermissionsService): boolean =>
+        userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD),
       title: 'dashboard.dashboard',
       widgetEditMode: false,
       singlePageMode: true
@@ -98,6 +93,7 @@ const routes: Routes = [
   {
     path: 'widget-editor',
     component: DashboardPageComponent,
+    canDeactivate: [ConfirmOnExitGuard],
     data: {
       breadcrumb: {
         skip: true

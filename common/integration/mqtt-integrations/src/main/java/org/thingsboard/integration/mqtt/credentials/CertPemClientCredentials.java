@@ -43,8 +43,8 @@ import org.bouncycastle.openssl.PEMEncryptedKeyPair;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.mqtt.MqttClientConfig;
+import org.thingsboard.server.common.data.StringUtils;
 
 import javax.crypto.Cipher;
 import javax.crypto.EncryptedPrivateKeyInfo;

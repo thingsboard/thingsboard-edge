@@ -43,19 +43,26 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.CollectionType;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.google.common.collect.Lists;
 import org.thingsboard.server.common.data.kv.DataType;
 import org.thingsboard.server.common.data.kv.KvEntry;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
 
 /**
  * Created by Valerii Sosliuk on 5/12/2017.
@@ -72,6 +79,10 @@ public class JacksonUtil {
             .configure(JsonWriteFeature.QUOTE_FIELD_NAMES.mappedFeature(), false)
             .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true)
             .build();
+
+    public static ObjectMapper getObjectMapperWithJavaTimeModule() {
+        return new ObjectMapper().registerModule(new JavaTimeModule());
+    }
 
     public static <T> T convertValue(Object fromValue, Class<T> toValueType) {
         try {
@@ -127,6 +138,15 @@ public class JacksonUtil {
         }
     }
 
+    public static <T> T fromBytes(byte[] bytes, TypeReference<T> valueTypeRef) {
+        try {
+            return bytes != null ? OBJECT_MAPPER.readValue(bytes, valueTypeRef) : null;
+        } catch (IOException e) {
+            throw new IllegalArgumentException("The given string value: "
+                    + Arrays.toString(bytes) + " cannot be transformed to Json object", e);
+        }
+    }
+
     public static JsonNode fromBytes(byte[] bytes) {
         try {
             return OBJECT_MAPPER.readTree(bytes);
@@ -139,6 +159,14 @@ public class JacksonUtil {
     public static String toString(Object value) {
         try {
             return value != null ? OBJECT_MAPPER.writeValueAsString(value) : null;
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("The given Json object value: "
+                    + value + " cannot be transformed to a String", e);
+        }
+    }
+    public static String writeValueAsString(Object value) {
+        try {
+            return OBJECT_MAPPER.writeValueAsString(value);
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("The given Json object value: "
                     + value + " cannot be transformed to a String", e);
@@ -209,12 +237,29 @@ public class JacksonUtil {
         }
     }
 
+    public static JsonNode toJsonNode(File value) {
+        try {
+            return value != null ? OBJECT_MAPPER.readTree(value) : null;
+        } catch (IOException e) {
+            throw new IllegalArgumentException("The given File object value: "
+                    + value + " cannot be transformed to a JsonNode", e);
+        }
+    }
+
     public static ObjectNode newObjectNode() {
         return newObjectNode(OBJECT_MAPPER);
     }
 
     public static ObjectNode newObjectNode(ObjectMapper mapper) {
         return mapper.createObjectNode();
+    }
+
+    public static ArrayNode newArrayNode() {
+        return newArrayNode(OBJECT_MAPPER);
+    }
+
+    public static ArrayNode newArrayNode(ObjectMapper mapper) {
+        return mapper.createArrayNode();
     }
 
     public static <T> T clone(T value) {
@@ -250,22 +295,24 @@ public class JacksonUtil {
         return node;
     }
 
-    public static void replaceUuidsRecursively(JsonNode node, Set<String> skipFieldsSet, UnaryOperator<UUID> replacer) {
+    public static void replaceUuidsRecursively(JsonNode node, Set<String> skippedRootFields, Pattern includedFieldsPattern, UnaryOperator<UUID> replacer, boolean root) {
         if (node == null) {
             return;
         }
         if (node.isObject()) {
             ObjectNode objectNode = (ObjectNode) node;
-            List<String> fieldNames = new ArrayList<>(objectNode.size());
-            objectNode.fieldNames().forEachRemaining(fieldNames::add);
+            List<String> fieldNames = Lists.newArrayList(objectNode.fieldNames());
             for (String fieldName : fieldNames) {
-                if (skipFieldsSet.contains(fieldName)) {
+                if (root && skippedRootFields.contains(fieldName)) {
                     continue;
                 }
                 var child = objectNode.get(fieldName);
                 if (child.isObject() || child.isArray()) {
-                    replaceUuidsRecursively(child, skipFieldsSet, replacer);
+                    replaceUuidsRecursively(child, skippedRootFields, includedFieldsPattern, replacer, false);
                 } else if (child.isTextual()) {
+                    if (includedFieldsPattern != null && !RegexUtils.matches(fieldName, includedFieldsPattern)) {
+                        continue;
+                    }
                     String text = child.asText();
                     String newText = RegexUtils.replace(text, RegexUtils.UUID_PATTERN, uuid -> replacer.apply(UUID.fromString(uuid)).toString());
                     if (!text.equals(newText)) {
@@ -278,7 +325,7 @@ public class JacksonUtil {
             for (int i = 0; i < array.size(); i++) {
                 JsonNode arrayElement = array.get(i);
                 if (arrayElement.isObject() || arrayElement.isArray()) {
-                    replaceUuidsRecursively(arrayElement, skipFieldsSet, replacer);
+                    replaceUuidsRecursively(arrayElement, skippedRootFields, includedFieldsPattern, replacer, false);
                 } else if (arrayElement.isTextual()) {
                     String text = arrayElement.asText();
                     String newText = RegexUtils.replace(text, RegexUtils.UUID_PATTERN, uuid -> replacer.apply(UUID.fromString(uuid)).toString());
@@ -287,6 +334,46 @@ public class JacksonUtil {
                     }
                 }
             }
+        }
+    }
+
+    public static Map<String, String> toFlatMap(JsonNode node) {
+        HashMap<String, String> map = new HashMap<>();
+        toFlatMap(node, "", map);
+        return map;
+    }
+
+    public static <T> T fromReader(Reader reader, Class<T> clazz) {
+        try {
+            return reader != null ? OBJECT_MAPPER.readValue(reader, clazz) : null;
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Invalid request payload", e);
+        }
+    }
+
+    public static <T> void writeValue(Writer writer, T value) {
+        try {
+            OBJECT_MAPPER.writeValue(writer, value);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("The given writer value: "
+                    + writer + "cannot be wrote", e);
+        }
+    }
+
+    public static JavaType constructCollectionType(Class collectionClass, Class<?> elementClass) {
+        return OBJECT_MAPPER.getTypeFactory().constructCollectionType(collectionClass, elementClass);
+    }
+
+    private static void toFlatMap(JsonNode node, String currentPath, Map<String, String> map) {
+        if (node.isObject()) {
+            Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
+            currentPath = currentPath.isEmpty() ? "" : currentPath + ".";
+            while (fields.hasNext()) {
+                Map.Entry<String, JsonNode> entry = fields.next();
+                toFlatMap(entry.getValue(), currentPath + entry.getKey(), map);
+            }
+        } else if (node.isValueNode()) {
+            map.put(currentPath, node.asText());
         }
     }
 

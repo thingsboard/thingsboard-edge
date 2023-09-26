@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.service.validator;
 
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.thingsboard.server.common.data.BaseData;
@@ -37,32 +38,36 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.dao.device.DeviceProfileDao;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.Objects;
 
 public abstract class BaseOtaPackageDataValidator<D extends BaseData<?>> extends DataValidator<D> {
 
     @Autowired
+    @Getter
     @Lazy
     private TenantService tenantService;
 
     @Autowired
+    @Getter
     private DeviceProfileDao deviceProfileDao;
 
     protected void validateImpl(OtaPackageInfo otaPackageInfo) {
+        validateString("OtaPackage title", otaPackageInfo.getTitle());
+
         if (otaPackageInfo.getTenantId() == null) {
             throw new DataValidationException("OtaPackage should be assigned to tenant!");
         } else {
-            if (!tenantService.tenantExists(otaPackageInfo.getTenantId())) {
+            if (!getTenantService().tenantExists(otaPackageInfo.getTenantId())) {
                 throw new DataValidationException("OtaPackage is referencing to non-existent tenant!");
             }
         }
 
         if (otaPackageInfo.getDeviceProfileId() != null) {
-            DeviceProfile deviceProfile = deviceProfileDao.findById(otaPackageInfo.getTenantId(), otaPackageInfo.getDeviceProfileId().getId());
+            DeviceProfile deviceProfile = getDeviceProfileDao().findById(otaPackageInfo.getTenantId(), otaPackageInfo.getDeviceProfileId().getId());
             if (deviceProfile == null) {
                 throw new DataValidationException("OtaPackage is referencing to non-existent device profile!");
             }
@@ -70,10 +75,6 @@ public abstract class BaseOtaPackageDataValidator<D extends BaseData<?>> extends
 
         if (otaPackageInfo.getType() == null) {
             throw new DataValidationException("Type should be specified!");
-        }
-
-        if (StringUtils.isEmpty(otaPackageInfo.getTitle())) {
-            throw new DataValidationException("OtaPackage title should be specified!");
         }
 
         if (StringUtils.isEmpty(otaPackageInfo.getVersion())) {

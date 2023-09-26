@@ -65,6 +65,7 @@ public class Integration extends AbstractIntegration implements ExportableEntity
     @Length(fieldName = "secret")
     private String secret;
     private JsonNode configuration;
+    @NoXss
     private JsonNode additionalInfo;
 
     @Getter
@@ -164,12 +165,6 @@ public class Integration extends AbstractIntegration implements ExportableEntity
     public void setAdditionalInfo(JsonNode additionalInfo) {
         this.additionalInfo = additionalInfo;
     }
-
-    @Override
-    public String getSearchText() {
-        return getName();
-    }
-
 
     @Override
     @JsonIgnore

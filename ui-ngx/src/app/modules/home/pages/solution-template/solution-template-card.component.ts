@@ -75,12 +75,12 @@ export class SolutionTemplateCardComponent extends PageComponent implements OnIn
   }
 
   installSolutionTemplate() {
-    const progressSubject = new Subject();
+    const progressSubject = new Subject<void>();
     this.dialogService.progress(progressSubject.asObservable(), this.translate.instant('solution-template.installing'));
     this.solutionsService.installSolutionTemplate(this.solutionTemplate.id).subscribe(
       (response) => {
         if (response.success) {
-          const url = this.router.createUrlTree(['dashboardGroups', response.dashboardGroupId.id, response.dashboardId.id],
+          const url = this.router.createUrlTree(['dashboards', 'groups', response.dashboardGroupId.id, response.dashboardId.id],
             {
               queryParams: {
                 solutionTemplateId: this.solutionTemplate.id

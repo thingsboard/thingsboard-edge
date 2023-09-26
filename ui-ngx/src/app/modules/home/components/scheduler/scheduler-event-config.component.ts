@@ -39,7 +39,7 @@ import {
   OnInit,
   SimpleChanges
 } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
@@ -47,6 +47,7 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { SchedulerEventConfiguration } from '@shared/models/scheduler-event.models';
 import { deepClone, isDefined } from '@core/utils';
 import { SchedulerEventConfigType } from '@home/components/scheduler/scheduler-event-config.models';
+import { jsonRequired } from '@shared/components/json-object-edit.component';
 
 @Component({
   selector: 'tb-scheduler-event-config',
@@ -60,7 +61,7 @@ import { SchedulerEventConfigType } from '@home/components/scheduler/scheduler-e
 })
 export class SchedulerEventConfigComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnChanges, OnDestroy {
 
-  schedulerEventConfigFormGroup: FormGroup;
+  schedulerEventConfigFormGroup: UntypedFormGroup;
 
   modelValue: SchedulerEventConfiguration | null;
 
@@ -85,7 +86,7 @@ export class SchedulerEventConfigComponent implements ControlValueAccessor, OnIn
   constructor(private store: Store<AppState>,
               public translate: TranslateService,
               private userPermissionsService: UserPermissionsService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
   }
 
   registerOnChange(fn: any): void {
@@ -100,7 +101,7 @@ export class SchedulerEventConfigComponent implements ControlValueAccessor, OnIn
       originatorId: [null],
       msgType: [null],
       configuration: [null, Validators.required],
-      msgBody: [null, Validators.required],
+      msgBody: [null, jsonRequired],
       metadata: [null]
     });
     this.schedulerEventConfigFormGroup.valueChanges.subscribe(() => {

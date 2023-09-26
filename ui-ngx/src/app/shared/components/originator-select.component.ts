@@ -39,7 +39,7 @@ import {
   OnInit,
   Output
 } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
@@ -63,7 +63,7 @@ import { Authority } from '@shared/models/authority.enum';
 })
 export class OriginatorSelectComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnDestroy {
 
-  originatorFormGroup: FormGroup;
+  originatorFormGroup: UntypedFormGroup;
 
   modelValue: EntityId | null;
 
@@ -102,7 +102,7 @@ export class OriginatorSelectComponent implements ControlValueAccessor, OnInit, 
 
   constructor(private store: Store<AppState>,
               public translate: TranslateService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.originatorFormGroup = this.fb.group({
       originator: ['entity'],
       entityOriginatorId: [null],

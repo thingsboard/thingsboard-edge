@@ -49,10 +49,10 @@ import { map, mergeMap, takeUntil, tap } from 'rxjs/operators';
 import { forkJoin, Observable, of, Subject } from 'rxjs';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { TranslateService } from '@ngx-translate/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Converter, ConverterType } from '@shared/models/converter.models';
 import { ConverterComponent } from '@home/components/converter/converter.component';
-import { deepTrim, guid } from '@core/utils';
+import { deepTrim, guid, isDefinedAndNotNull } from '@core/utils';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { ConverterService } from '@core/http/converter.service';
 import { IntegrationService } from '@core/http/integration.service';
@@ -86,10 +86,10 @@ export class IntegrationWizardDialogComponent extends
 
   stepperOrientation: Observable<StepperOrientation>;
 
-  integrationWizardForm: FormGroup;
-  uplinkConverterForm: FormGroup;
-  downlinkConverterForm: FormGroup;
-  integrationConfigurationForm: FormGroup;
+  integrationWizardForm: UntypedFormGroup;
+  uplinkConverterForm: UntypedFormGroup;
+  downlinkConverterForm: UntypedFormGroup;
+  integrationConfigurationForm: UntypedFormGroup;
 
   uplinkConverter = {
     type: ConverterType.UPLINK
@@ -100,7 +100,7 @@ export class IntegrationWizardDialogComponent extends
   } as Converter;
 
   private checkConnectionAllow = false;
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
@@ -110,12 +110,12 @@ export class IntegrationWizardDialogComponent extends
               private converterService: ConverterService,
               private integrationService: IntegrationService,
               private translate: TranslateService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
 
     this.isEdgeTemplate = this.data.edgeTemplate;
 
-    this.stepperOrientation = this.breakpointObserver.observe(MediaBreakpoints['gt-xs'])
+    this.stepperOrientation = this.breakpointObserver.observe(MediaBreakpoints['gt-sm'])
       .pipe(map(({matches}) => matches ? 'horizontal' : 'vertical'));
 
     this.integrationWizardForm = this.fb.group({
@@ -131,6 +131,9 @@ export class IntegrationWizardDialogComponent extends
     ).subscribe((value: IntegrationType) => {
       if (integrationTypeInfoMap.has(value)) {
         this.integrationType = this.translate.instant(integrationTypeInfoMap.get(value).name);
+        this.integrationWizardForm.get('name').patchValue( this.translate.instant('integration.integration-name', {
+          integrationType: this.translate.instant(integrationTypeInfoMap.get(value).name)
+        }), {emitEvent: false});
         this.checkConnectionAllow = integrationTypeInfoMap.get(value).checkConnection || false;
         this.showDownlinkStep = !integrationTypeInfoMap.get(value).hideDownlink;
         if (integrationTypeInfoMap.get(value).remote) {
@@ -141,20 +144,18 @@ export class IntegrationWizardDialogComponent extends
           this.integrationConfigurationForm.get('remote').setValue(false, {emitEvent: true});
         }
       } else {
+        this.integrationWizardForm.get('name').patchValue('', {emitEvent: false});
         this.integrationType = '';
       }
       this.integrationConfigurationForm.get('configuration').setValue(null);
     });
 
     this.uplinkConverterForm = this.fb.group({
-      uplinkConverterId: [null, [Validators.required]],
-      converterType: ['exist'],
+      uplinkConverterId: [{value: null, disabled: true}, Validators.required],
+      converterType: ['new'],
       newUplinkConverter: [{
-        value: {
           type: ConverterType.UPLINK
-        },
-        disable: true
-      }]
+        }]
     });
 
     this.downlinkConverterForm = this.fb.group({
@@ -209,10 +210,17 @@ export class IntegrationWizardDialogComponent extends
   ngAfterViewInit() {
     setTimeout(() => {
       this.uplinkConverterForm.setControl('newUplinkConverter', this.uplinkDataConverterComponent.entityForm, {emitEvent: false});
-      this.uplinkConverterForm.get('newUplinkConverter').disable({emitEvent: false});
       this.downlinkConverterForm.setControl('newDownlinkConverter', this.downlinkDataConverterComponent.entityForm, {emitEvent: false});
       this.downlinkConverterForm.get('newDownlinkConverter').disable({emitEvent: false});
     }, 0);
+  }
+
+  public createConvertorName(type: ConverterType) {
+    const name = this.integrationWizardForm.get('name').value;
+    return isDefinedAndNotNull(name) ? this.translate.instant('integration.data-convertor-name', {
+      convertorType: type.charAt(0) + type.slice(1).toLowerCase(),
+      integrationName: name
+    }) : '';
   }
 
   ngOnDestroy() {

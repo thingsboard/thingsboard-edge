@@ -31,28 +31,31 @@
 package org.thingsboard.rule.engine.action;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
+import org.thingsboard.rule.engine.TestDbCallbackExecutor;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.TbPeContext;
-import org.thingsboard.rule.engine.api.TbRelationTypes;
-import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
@@ -60,10 +63,11 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.relation.RelationService;
 
 import java.util.Collections;
-import java.util.concurrent.Callable;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -74,8 +78,6 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class TbCreateRelationNodeTest {
 
-    private static final String RELATION_TYPE_CONTAINS = "Contains";
-
     private TbCreateRelationNode node;
 
     @Mock
@@ -84,6 +86,8 @@ public class TbCreateRelationNodeTest {
     private TbPeContext peCtx;
     @Mock
     private AssetService assetService;
+    @Mock
+    private ConverterService converterService;
     @Mock
     private RelationService relationService;
 
@@ -96,21 +100,7 @@ public class TbCreateRelationNodeTest {
 
     @Before
     public void before() {
-        dbExecutor = new ListeningExecutor() {
-            @Override
-            public <T> ListenableFuture<T> executeAsync(Callable<T> task) {
-                try {
-                    return Futures.immediateFuture(task.call());
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
-            @Override
-            public void execute(Runnable command) {
-                command.run();
-            }
-        };
+        dbExecutor = new TestDbCallbackExecutor();
     }
 
     @Test
@@ -129,15 +119,45 @@ public class TbCreateRelationNodeTest {
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("name", "AssetName");
         metaData.putValue("type", "AssetType");
-        msg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, deviceId, metaData, TbMsgDataType.JSON, "{}", ruleChainId, ruleNodeId);
+        msg = TbMsg.newMsg(TbMsgType.ENTITY_CREATED, deviceId, metaData, TbMsgDataType.JSON, TbMsg.EMPTY_JSON_OBJECT, ruleChainId, ruleNodeId);
 
-        when(ctx.getRelationService().checkRelationAsync(any(), eq(assetId), eq(deviceId), eq(RELATION_TYPE_CONTAINS), eq(RelationTypeGroup.COMMON)))
+        when(ctx.getRelationService().checkRelationAsync(any(), eq(assetId), eq(deviceId), eq(EntityRelation.CONTAINS_TYPE), eq(RelationTypeGroup.COMMON)))
                 .thenReturn(Futures.immediateFuture(false));
-        when(ctx.getRelationService().saveRelationAsync(any(), eq(new EntityRelation(assetId, deviceId, RELATION_TYPE_CONTAINS, RelationTypeGroup.COMMON))))
+        when(ctx.getRelationService().saveRelationAsync(any(), eq(new EntityRelation(assetId, deviceId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON))))
                 .thenReturn(Futures.immediateFuture(true));
 
         node.onMsg(ctx, msg);
-        verify(ctx).tellNext(msg, TbRelationTypes.SUCCESS);
+        verify(ctx).tellNext(msg, TbNodeConnectionType.SUCCESS);
+    }
+
+    @Test
+    public void testCreateNewRelationWithConverter() throws TbNodeException {
+        TbCreateRelationNodeConfiguration configuration = createRelationNodeConfig();
+        configuration.setEntityType(EntityType.CONVERTER.name());
+        init(configuration);
+
+        DeviceId deviceId = new DeviceId(Uuids.timeBased());
+
+
+        ConverterId converterId = new ConverterId(Uuids.timeBased());
+        Converter converter = new Converter();
+        converter.setId(converterId);
+
+        when(converterService.findConverterByName(any(), eq("ConvName"))).thenReturn(Optional.of(converter));
+        when(converterService.findConverterByIdAsync(any(), eq(converterId))).thenReturn(Futures.immediateFuture(converter));
+
+        TbMsgMetaData metaData = new TbMsgMetaData();
+        metaData.putValue("name", "ConvName");
+        metaData.putValue("type", "ConvType");
+        msg = TbMsg.newMsg(TbMsgType.ENTITY_CREATED, deviceId, metaData, TbMsgDataType.JSON, TbMsg.EMPTY_JSON_OBJECT, ruleChainId, ruleNodeId);
+
+        when(ctx.getRelationService().checkRelationAsync(any(), eq(converterId), eq(deviceId), eq(EntityRelation.CONTAINS_TYPE), eq(RelationTypeGroup.COMMON)))
+                .thenReturn(Futures.immediateFuture(false));
+        when(ctx.getRelationService().saveRelationAsync(any(), eq(new EntityRelation(converterId, deviceId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON))))
+                .thenReturn(Futures.immediateFuture(true));
+
+        node.onMsg(ctx, msg);
+        verify(ctx).tellNext(msg, TbNodeConnectionType.SUCCESS);
     }
 
     @Test
@@ -156,19 +176,19 @@ public class TbCreateRelationNodeTest {
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("name", "AssetName");
         metaData.putValue("type", "AssetType");
-        msg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, deviceId, metaData, TbMsgDataType.JSON, "{}", ruleChainId, ruleNodeId);
+        msg = TbMsg.newMsg(TbMsgType.ENTITY_CREATED, deviceId, metaData, TbMsgDataType.JSON, TbMsg.EMPTY_JSON_OBJECT, ruleChainId, ruleNodeId);
 
         EntityRelation relation = new EntityRelation();
-        when(ctx.getRelationService().findByToAndTypeAsync(any(), eq(msg.getOriginator()), eq(RELATION_TYPE_CONTAINS), eq(RelationTypeGroup.COMMON)))
+        when(ctx.getRelationService().findByToAndTypeAsync(any(), eq(msg.getOriginator()), eq(EntityRelation.CONTAINS_TYPE), eq(RelationTypeGroup.COMMON)))
                 .thenReturn(Futures.immediateFuture(Collections.singletonList(relation)));
         when(ctx.getRelationService().deleteRelationAsync(any(), eq(relation))).thenReturn(Futures.immediateFuture(true));
-        when(ctx.getRelationService().checkRelationAsync(any(), eq(assetId), eq(deviceId), eq(RELATION_TYPE_CONTAINS), eq(RelationTypeGroup.COMMON)))
+        when(ctx.getRelationService().checkRelationAsync(any(), eq(assetId), eq(deviceId), eq(EntityRelation.CONTAINS_TYPE), eq(RelationTypeGroup.COMMON)))
                 .thenReturn(Futures.immediateFuture(false));
-        when(ctx.getRelationService().saveRelationAsync(any(), eq(new EntityRelation(assetId, deviceId, RELATION_TYPE_CONTAINS, RelationTypeGroup.COMMON))))
+        when(ctx.getRelationService().saveRelationAsync(any(), eq(new EntityRelation(assetId, deviceId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON))))
                 .thenReturn(Futures.immediateFuture(true));
 
         node.onMsg(ctx, msg);
-        verify(ctx).tellNext(msg, TbRelationTypes.SUCCESS);
+        verify(ctx).tellNext(msg, TbNodeConnectionType.SUCCESS);
     }
 
     @Test
@@ -187,32 +207,29 @@ public class TbCreateRelationNodeTest {
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("name", "AssetName");
         metaData.putValue("type", "AssetType");
-        msg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, deviceId, metaData, TbMsgDataType.JSON, "{}", ruleChainId, ruleNodeId);
+        msg = TbMsg.newMsg(TbMsgType.ENTITY_CREATED, deviceId, metaData, TbMsgDataType.JSON, TbMsg.EMPTY_JSON_OBJECT, ruleChainId, ruleNodeId);
 
-        when(ctx.getRelationService().checkRelationAsync(any(), eq(assetId), eq(deviceId), eq(RELATION_TYPE_CONTAINS), eq(RelationTypeGroup.COMMON)))
+        when(ctx.getRelationService().checkRelationAsync(any(), eq(assetId), eq(deviceId), eq(EntityRelation.CONTAINS_TYPE), eq(RelationTypeGroup.COMMON)))
                 .thenReturn(Futures.immediateFuture(false));
-        when(ctx.getRelationService().saveRelationAsync(any(), eq(new EntityRelation(assetId, deviceId, RELATION_TYPE_CONTAINS, RelationTypeGroup.COMMON))))
+        when(ctx.getRelationService().saveRelationAsync(any(), eq(new EntityRelation(assetId, deviceId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON))))
                 .thenReturn(Futures.immediateFuture(true));
 
         node.onMsg(ctx, msg);
         ArgumentCaptor<TbMsg> msgCaptor = ArgumentCaptor.forClass(TbMsg.class);
-        ArgumentCaptor<String> typeCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<EntityId> originatorCaptor = ArgumentCaptor.forClass(EntityId.class);
-        ArgumentCaptor<TbMsgMetaData> metadataCaptor = ArgumentCaptor.forClass(TbMsgMetaData.class);
-        ArgumentCaptor<String> dataCaptor = ArgumentCaptor.forClass(String.class);
-        verify(ctx).transformMsg(msgCaptor.capture(), typeCaptor.capture(), originatorCaptor.capture(), metadataCaptor.capture(), dataCaptor.capture());
+        verify(ctx).transformMsgOriginator(msgCaptor.capture(), originatorCaptor.capture());
 
         assertEquals(assetId, originatorCaptor.getValue());
     }
 
     public void init(TbCreateRelationNodeConfiguration configuration) throws TbNodeException {
-        ObjectMapper mapper = new ObjectMapper();
-        TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(configuration));
+        TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(configuration));
 
         when(ctx.getDbCallbackExecutor()).thenReturn(dbExecutor);
         when(ctx.getRelationService()).thenReturn(relationService);
         when(ctx.getAssetService()).thenReturn(assetService);
         when(ctx.getPeContext()).thenReturn(peCtx);
+        when(peCtx.getConverterService()).thenReturn(converterService);
 
         node = new TbCreateRelationNode();
         node.init(ctx, nodeConfiguration);
@@ -221,9 +238,9 @@ public class TbCreateRelationNodeTest {
     private TbCreateRelationNodeConfiguration createRelationNodeConfig() {
         TbCreateRelationNodeConfiguration configuration = new TbCreateRelationNodeConfiguration();
         configuration.setDirection(EntitySearchDirection.FROM.name());
-        configuration.setRelationType(RELATION_TYPE_CONTAINS);
+        configuration.setRelationType(EntityRelation.CONTAINS_TYPE);
         configuration.setEntityCacheExpiration(300);
-        configuration.setEntityType("ASSET");
+        configuration.setEntityType(EntityType.ASSET.name());
         configuration.setEntityNamePattern("${name}");
         configuration.setEntityTypePattern("${type}");
         configuration.setCreateEntityIfNotExists(false);

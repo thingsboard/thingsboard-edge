@@ -39,20 +39,19 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.GroupPermission;
-import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.role.Role;
-import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
 import org.thingsboard.server.common.data.sync.ie.EntityGroupExportData;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.sync.vc.data.EntitiesExportCtx;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.thingsboard.server.service.sync.ie.importing.impl.EntityGroupImportService.CONFIG_PROCESSED_FIELDS_PATTERN;
 
 @Service
 @TbCoreComponent
@@ -81,7 +80,7 @@ public class EntityGroupExportService extends BaseEntityExportService<EntityGrou
                     .collect(Collectors.toList());
             exportData.setPermissions(permissions);
         }
-        replaceUuidsRecursively(ctx, JacksonUtil.getSafely(exportData.getEntity().getConfiguration(), "actions"), Collections.singleton("id"));
+        replaceUuidsRecursively(ctx, JacksonUtil.getSafely(exportData.getEntity().getConfiguration(), "actions"),  Collections.emptySet(), CONFIG_PROCESSED_FIELDS_PATTERN);
     }
 
     @Override

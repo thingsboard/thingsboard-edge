@@ -43,7 +43,7 @@
 
 :host {
   .tb-edges-overview {
-    mat-toolbar.mat-table-toolbar:not([color="primary"]) {
+    mat-toolbar.mat-mdc-table-toolbar:not([color="primary"]) {
       background: transparent;
     }
     mat-toolbar {
@@ -55,7 +55,7 @@
       }
     }
 
-    .mat-subheader {
+    .mat-mdc-subheader {
       padding: 15px;
       color: rgba(0,0,0,0.54);
       font-size: 14px;
@@ -86,7 +86,7 @@
           background-size: 18px 18px;
         }
 
-        mat-icon.node-icon {
+        .mat-icon.node-icon {
           width: 22px;
           min-width: 22px;
           height: 22px;
@@ -124,7 +124,7 @@
             background-size: 24px 24px;
           }
 
-          mat-icon.node-icon {
+          .mat-icon.node-icon {
             width: 40px;
             min-width: 40px;
             height: 40px;

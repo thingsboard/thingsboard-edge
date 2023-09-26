@@ -32,7 +32,6 @@ package org.thingsboard.server.service.sms;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.stereotype.Service;
@@ -43,6 +42,7 @@ import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -56,6 +56,7 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
+import org.thingsboard.server.service.transport.DefaultTransportApiService;
 
 import java.util.Arrays;
 import java.util.List;
@@ -126,9 +127,11 @@ public class DefaultSmsService implements SmsService {
         }
     }
 
-    private int sendSms(SmsSender smsSender, String numberTo, String message) throws ThingsboardException {
+    protected int sendSms(SmsSender smsSender, String numberTo, String message) throws ThingsboardException {
         try {
-            return smsSender.sendSms(numberTo, message);
+            int sentSms = smsSender.sendSms(numberTo, message);
+            log.trace("Successfully sent sms to number: {}", numberTo);
+            return sentSms;
         } catch (Exception e) {
             throw handleException(e);
         }

@@ -33,6 +33,7 @@ package org.thingsboard.server.service.script;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,6 +57,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.thingsboard.server.common.data.msg.TbMsgType.POST_TELEMETRY_REQUEST;
 
 @DaoSqlTest
 @TestPropertySource(properties = {
@@ -182,6 +184,8 @@ class TbelInvokeServiceTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("This test is based on assumption that Caffeine cache is LRU based but in fact it is based on " +
+            "Tiny LFU which is the cause that the tests fail sometime: https://arxiv.org/pdf/1512.00727.pdf")
     public void whenCompiledScriptsCacheIsTooBig_thenRemoveRarelyUsedScripts() throws Exception {
         Map<UUID, String> scriptIdToHash = getFieldValue(invokeService, "scriptIdToHash");
         Cache<String, Serializable> compiledScriptsCache = getFieldValue(invokeService, "compiledScriptsCache");
@@ -228,7 +232,7 @@ class TbelInvokeServiceTest extends AbstractControllerTest {
 
     private String invokeScript(UUID scriptId, String str) throws ExecutionException, InterruptedException {
         var msg = JacksonUtil.fromString(str, Map.class);
-        return invokeService.invokeScript(TenantId.SYS_TENANT_ID, null, scriptId, msg, "{}", "POST_TELEMETRY_REQUEST").get().toString();
+        return invokeService.invokeScript(TenantId.SYS_TENANT_ID, null, scriptId, msg, "{}", POST_TELEMETRY_REQUEST.name()).get().toString();
     }
 
 }

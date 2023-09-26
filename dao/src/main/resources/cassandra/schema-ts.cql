@@ -30,7 +30,7 @@
 --
 
 CREATE TABLE IF NOT EXISTS thingsboard.ts_kv_cf (
-    entity_type text, // (DEVICE, CUSTOMER, TENANT)
+    entity_type text, -- (DEVICE, CUSTOMER, TENANT)
     entity_id timeuuid,
     key text,
     partition bigint,
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS thingsboard.ts_kv_cf (
 );
 
 CREATE TABLE IF NOT EXISTS thingsboard.ts_kv_partitions_cf (
-    entity_type text, // (DEVICE, CUSTOMER, TENANT)
+    entity_type text, -- (DEVICE, CUSTOMER, TENANT)
     entity_id timeuuid,
     key text,
     partition bigint,

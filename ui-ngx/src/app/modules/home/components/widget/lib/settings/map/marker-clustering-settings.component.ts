@@ -32,9 +32,9 @@
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   Validator,
@@ -75,12 +75,12 @@ export class MarkerClusteringSettingsComponent extends PageComponent implements 
 
   private propagateChange = null;
 
-  public markerClusteringSettingsFormGroup: FormGroup;
+  public markerClusteringSettingsFormGroup: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
               private widgetService: WidgetService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
@@ -132,7 +132,7 @@ export class MarkerClusteringSettingsComponent extends PageComponent implements 
     this.updateValidators(false);
   }
 
-  public validate(c: FormControl) {
+  public validate(c: UntypedFormControl) {
     return this.markerClusteringSettingsFormGroup.valid ? null : {
       markerClusteringSettings: {
         valid: false,

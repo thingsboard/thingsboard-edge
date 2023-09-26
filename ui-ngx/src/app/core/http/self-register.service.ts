@@ -59,6 +59,7 @@ export class SelfRegistrationService {
       tap((signUpParams) => {
         this.signUpParams = signUpParams;
         this.signUpParams.activate = this.signUpParams.captchaSiteKey !== null;
+        this.signUpParams.captchaVersion = this.signUpParams.captchaVersion || 'v2';
       })
     );
   }

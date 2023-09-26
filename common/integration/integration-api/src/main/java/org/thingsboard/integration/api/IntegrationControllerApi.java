@@ -34,8 +34,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 
-import java.util.concurrent.Executor;
-
 public interface IntegrationControllerApi {
 
     <T> void process(IntegrationType type, String routingKey, DeferredResult<ResponseEntity> result, T msg);

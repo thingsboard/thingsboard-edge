@@ -46,7 +46,7 @@ import {
 import { MAT_SNACK_BAR_DATA, MatSnackBar, MatSnackBarConfig, MatSnackBarRef } from '@angular/material/snack-bar';
 import { NotificationMessage } from '@app/core/notification/notification.models';
 import { Subscription } from 'rxjs';
-import { NotificationService } from '@app/core/services/notification.service';
+import { ToastNotificationService } from '@core/services/toast-notification.service';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { MediaBreakpoints } from '@shared/models/constants';
 import { MatButton } from '@angular/material/button';
@@ -71,7 +71,7 @@ export class ToastDirective implements AfterViewInit, OnDestroy {
 
   constructor(private elementRef: ElementRef,
               private viewContainerRef: ViewContainerRef,
-              private notificationService: NotificationService,
+              private notificationService: ToastNotificationService,
               private componentFactoryResolver: ComponentFactoryResolver,
               private snackBar: MatSnackBar,
               private ngZone: NgZone,
@@ -327,7 +327,7 @@ export class TbSnackBarComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit() {
     if (this.snackBarRef) {
       this.parentEl = this.data.parent.nativeElement;
-      this.snackBarContainerEl = $(this.elementRef.nativeElement).closest('snack-bar-container')[0];
+      this.snackBarContainerEl = $(this.elementRef.nativeElement).closest('.mat-mdc-snack-bar-container')[0];
       this.snackBarContainerEl.style.position = 'absolute';
       this.updateContainerRect();
       this.updatePosition(this.snackBarRef.containerInstance.snackBarConfig);

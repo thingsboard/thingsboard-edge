@@ -3,7 +3,7 @@
     "name": "Air Quality Sensor 1",
     "label": "Hollywood",
     "type": "AQI Sensor",
-    "group": "Air Quality Monitoring",
+    "group": "AQI Sensor",
     "emulator": "AQI Emulator",
     "attributes": {
       "latitude": 34.101667,
@@ -26,7 +26,7 @@
     "name": "Air Quality Sensor 2",
     "label": "Downtown",
     "type": "AQI Sensor",
-    "group": "Air Quality Monitoring",
+    "group": "AQI Sensor",
     "emulator": "AQI Emulator",
     "attributes": {
       "latitude": 34.05,
@@ -49,7 +49,7 @@
     "name": "Air Quality Sensor 3",
     "label": "Beverly Hills",
     "type": "AQI Sensor",
-    "group": "Air Quality Monitoring",
+    "group": "AQI Sensor",
     "emulator": "AQI Emulator",
     "attributes": {
       "latitude": 34.073056,
@@ -72,7 +72,7 @@
     "name": "Air Quality Sensor 4",
     "label": "Santa Monica",
     "type": "AQI Sensor",
-    "group": "Air Quality Monitoring",
+    "group": "AQI Sensor",
     "emulator": "AQI Emulator Low Battery",
     "attributes": {
       "latitude": 34.021944,
@@ -95,7 +95,7 @@
     "name": "Air Quality Sensor 5",
     "label": "Westside",
     "type": "AQI Sensor",
-    "group": "Air Quality Monitoring",
+    "group": "AQI Sensor",
     "emulator": "AQI Emulator",
     "attributes": {
       "latitude": 34.04153,

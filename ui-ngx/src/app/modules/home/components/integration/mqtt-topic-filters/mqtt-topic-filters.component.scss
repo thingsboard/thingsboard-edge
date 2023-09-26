@@ -43,13 +43,3 @@
   }
 }
 
-:host::ng-deep {
-  .no-padding {
-    .mat-form-field-wrapper {
-      padding-bottom: 0;
-    }
-    .mat-form-field-underline {
-      bottom: 0;
-    }
-  }
-}

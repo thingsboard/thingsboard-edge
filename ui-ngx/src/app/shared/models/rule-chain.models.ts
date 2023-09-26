@@ -34,7 +34,7 @@ import { TenantId } from '@shared/models/id/tenant-id';
 import { RuleChainId } from '@shared/models/id/rule-chain-id';
 import { RuleNodeId } from '@shared/models/id/rule-node-id';
 import { RuleNode, RuleNodeComponentDescriptor, RuleNodeType } from '@shared/models/rule-node.models';
-import { ComponentType } from '@shared/models/component-descriptor.models';
+import { ComponentClusteringMode, ComponentType } from '@shared/models/component-descriptor.models';
 import { EntityGroupParams } from '@shared/models/entity-group.models';
 
 export interface RuleChain extends BaseData<RuleChainId>, ExportableEntity<RuleChainId> {
@@ -85,6 +85,8 @@ export const ruleNodeTypeComponentTypes: ComponentType[] =
 export const unknownNodeComponent: RuleNodeComponentDescriptor = {
   type: RuleNodeType.UNKNOWN,
   name: 'unknown',
+  clusteringMode: ComponentClusteringMode.ENABLED,
+  configurationVersion: 0,
   clazz: 'tb.internal.Unknown',
   configurationDescriptor: {
     nodeDefinition: {
@@ -101,6 +103,8 @@ export const unknownNodeComponent: RuleNodeComponentDescriptor = {
 
 export const inputNodeComponent: RuleNodeComponentDescriptor = {
   type: RuleNodeType.INPUT,
+  configurationVersion: 0,
+  clusteringMode: ComponentClusteringMode.ENABLED,
   name: 'Input',
   clazz: 'tb.internal.Input'
 };

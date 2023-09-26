@@ -32,8 +32,8 @@
 import { Component, forwardRef } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -66,14 +66,14 @@ import {
 })
 export class AwsKinesisIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
 
-  awsKinesisConfigForm: FormGroup;
+  awsKinesisConfigForm: UntypedFormGroup;
 
   initialPositionInStreams = Object.keys(InitialPositionInStream);
   InitialPositionInStreamTranslation = InitialPositionInStreamTranslation;
 
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
     super();
     this.awsKinesisConfigForm = this.fb.group({
       streamName: ['', Validators.required],

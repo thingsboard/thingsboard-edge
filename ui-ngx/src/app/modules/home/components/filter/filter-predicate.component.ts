@@ -32,8 +32,8 @@
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -73,7 +73,7 @@ export class FilterPredicateComponent implements ControlValueAccessor, Validator
 
   @Input() onlyUserDynamicSource = false;
 
-  filterPredicateFormGroup: FormGroup;
+  filterPredicateFormGroup: UntypedFormGroup;
 
   type: FilterPredicateType;
 
@@ -81,7 +81,7 @@ export class FilterPredicateComponent implements ControlValueAccessor, Validator
 
   private propagateChange = null;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
   }
 
   ngOnInit(): void {

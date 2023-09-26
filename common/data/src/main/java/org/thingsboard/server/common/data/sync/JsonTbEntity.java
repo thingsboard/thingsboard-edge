@@ -41,12 +41,16 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.notification.rule.NotificationRule;
+import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
+import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
 import org.thingsboard.server.common.data.role.Role;
-import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 
 import java.lang.annotation.ElementType;
@@ -68,10 +72,14 @@ import java.lang.annotation.Target;
         @Type(name = "CUSTOMER", value = Customer.class),
         @Type(name = "ENTITY_VIEW", value = EntityView.class),
         @Type(name = "WIDGETS_BUNDLE", value = WidgetsBundle.class),
+        @Type(name = "WIDGET_TYPE", value = WidgetTypeDetails.class),
         @Type(name = "ENTITY_GROUP", value = EntityGroup.class),
         @Type(name = "CONVERTER", value = Converter.class),
         @Type(name = "INTEGRATION", value = Integration.class),
-        @Type(name = "ROLE", value = Role.class)
+        @Type(name = "ROLE", value = Role.class),
+        @Type(name = "NOTIFICATION_TEMPLATE", value = NotificationTemplate.class),
+        @Type(name = "NOTIFICATION_TARGET", value = NotificationTarget.class),
+        @Type(name = "NOTIFICATION_RULE", value = NotificationRule.class)
 })
 @JsonIgnoreProperties(value = {"tenantId", "createdTime"}, ignoreUnknown = true)
 public @interface JsonTbEntity {

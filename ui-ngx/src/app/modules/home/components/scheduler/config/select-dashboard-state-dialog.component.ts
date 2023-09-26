@@ -42,7 +42,7 @@ import {
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { WINDOW } from '@core/services/window.service';
@@ -79,7 +79,7 @@ export class SelectDashboardStateDialogComponent extends DialogComponent<SelectD
               @Inject(WINDOW) private window: Window,
               @Inject(MAT_DIALOG_DATA) public data: SelectDashboardStateDialogData,
               public dialogRef: MatDialogRef<SelectDashboardStateDialogComponent, string>,
-              public fb: FormBuilder) {
+              public fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
     this.dashboardId = data.dashboardId;
     this.currentState = data.state;

@@ -29,8 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, ElementRef, forwardRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -54,7 +54,7 @@ export interface ValueSourceProperty {
 @Component({
   selector: 'tb-value-source',
   templateUrl: './value-source.component.html',
-  styleUrls: [],
+  styleUrls: ['./../widget-settings.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -64,8 +64,6 @@ export interface ValueSourceProperty {
   ]
 })
 export class ValueSourceComponent extends PageComponent implements OnInit, ControlValueAccessor {
-
-  @HostBinding('style.display') display = 'block';
 
   @ViewChild('entityAliasInput') entityAliasInput: ElementRef;
 
@@ -81,7 +79,7 @@ export class ValueSourceComponent extends PageComponent implements OnInit, Contr
 
   private propagateChange = null;
 
-  public valueSourceFormGroup: FormGroup;
+  public valueSourceFormGroup: UntypedFormGroup;
 
   filteredEntityAliases: Observable<Array<string>>;
   aliasSearchText = '';
@@ -97,7 +95,7 @@ export class ValueSourceComponent extends PageComponent implements OnInit, Contr
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
               private entityService: EntityService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
@@ -227,15 +225,13 @@ export class ValueSourceComponent extends PageComponent implements OnInit, Contr
 
   private fetchEntityKeys(entityAliasId: string, dataKeyTypes: Array<DataKeyType>): Observable<Array<DataKey>> {
     return this.aliasController.getAliasInfo(entityAliasId).pipe(
-      mergeMap((aliasInfo) => {
-        return this.entityService.getEntityKeysByEntityFilter(
+      mergeMap((aliasInfo) => this.entityService.getEntityKeysByEntityFilter(
           aliasInfo.entityFilter,
-          dataKeyTypes,
+          dataKeyTypes, [],
           {ignoreLoading: true, ignoreErrors: true}
         ).pipe(
           catchError(() => of([]))
-        );
-      }),
+        )),
       catchError(() => of([] as Array<DataKey>))
     );
   }

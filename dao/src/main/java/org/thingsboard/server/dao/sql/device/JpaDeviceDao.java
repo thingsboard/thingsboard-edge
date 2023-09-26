@@ -52,15 +52,15 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.device.DeviceDao;
 import org.thingsboard.server.dao.model.sql.DeviceEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+
+import static org.thingsboard.server.dao.DaoUtil.convertTenantEntityTypesToDto;
 
 /**
  * Created by Valerii Sosliuk on 5/6/2017.
@@ -68,7 +68,7 @@ import java.util.UUID;
 @Component
 @SqlDao
 @Slf4j
-public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device> implements DeviceDao {
+public class JpaDeviceDao extends JpaAbstractDao<DeviceEntity, Device> implements DeviceDao {
 
     @Autowired
     private DeviceRepository deviceRepository;
@@ -108,6 +108,11 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
                             Objects.toString(pageLink.getTextSearch(), ""),
                             DaoUtil.toPageable(pageLink)));
         }
+    }
+
+    @Override
+    public Long countDevices() {
+        return deviceRepository.count();
     }
 
     @Override
@@ -225,7 +230,7 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
 
     @Override
     public ListenableFuture<List<EntitySubtype>> findTenantDeviceTypesAsync(UUID tenantId) {
-        return service.submit(() -> convertTenantDeviceTypesToDto(tenantId, deviceRepository.findTenantDeviceTypes(tenantId)));
+        return service.submit(() -> convertTenantEntityTypesToDto(tenantId, EntityType.DEVICE, deviceRepository.findTenantDeviceTypes(tenantId)));
     }
 
     @Override
@@ -246,17 +251,6 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
     @Override
     public Long countByTenantId(TenantId tenantId) {
         return deviceRepository.countByTenantId(tenantId.getId());
-    }
-
-    private List<EntitySubtype> convertTenantDeviceTypesToDto(UUID tenantId, List<String> types) {
-        List<EntitySubtype> list = Collections.emptyList();
-        if (types != null && !types.isEmpty()) {
-            list = new ArrayList<>();
-            for (String type : types) {
-                list.add(new EntitySubtype(TenantId.fromUUID(tenantId), EntityType.DEVICE, type));
-            }
-        }
-        return list;
     }
 
     @Override

@@ -34,7 +34,7 @@ import { AuthService } from '@core/auth/auth.service';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
-import { FormBuilder, Validators } from '@angular/forms';
+import { UntypedFormBuilder, Validators } from '@angular/forms';
 import { TwoFactorAuthenticationService } from '@core/http/two-factor-authentication.service';
 import {
   twoFactorAuthProvidersLoginData,
@@ -88,7 +88,7 @@ export class TwoFactorAuthLoginComponent extends PageComponent implements OnInit
               private twoFactorAuthService: TwoFactorAuthenticationService,
               private authService: AuthService,
               private translate: TranslateService,
-              private fb: FormBuilder,
+              private fb: UntypedFormBuilder,
               public wl: WhiteLabelingService) {
     super(store);
   }

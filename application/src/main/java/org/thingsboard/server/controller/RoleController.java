@@ -46,7 +46,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.RoleId;
@@ -181,9 +180,6 @@ public class RoleController extends AutoCommitController {
             notificationEntityService.logEntityAction(getTenantId(), savedRole.getId(), savedRole,
                     role.getId() == null ? ActionType.ADDED : ActionType.UPDATED, currentUser);
 
-            sendEntityNotificationMsg(getTenantId(), savedRole.getId(),
-                    role.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
-
             return savedRole;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.ROLE), role,
@@ -210,8 +206,6 @@ public class RoleController extends AutoCommitController {
             }
             roleService.deleteRole(getTenantId(), roleId);
             notificationEntityService.logEntityAction(getTenantId(), roleId, role, ActionType.DELETED, getCurrentUser(), strRoleId);
-
-            sendEntityNotificationMsg(getTenantId(), roleId, EdgeEventActionType.DELETED);
 
         } catch (Exception e) {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.ROLE), ActionType.DELETED, getCurrentUser(), e, strRoleId);

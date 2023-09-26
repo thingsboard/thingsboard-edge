@@ -31,20 +31,21 @@
 package org.thingsboard.rule.engine.action;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.ScriptEngine;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.common.util.JacksonUtil;
 
 import static org.thingsboard.common.util.DonAsynchron.withCallback;
 
@@ -53,8 +54,6 @@ import static org.thingsboard.common.util.DonAsynchron.withCallback;
 public abstract class TbAbstractAlarmNode<C extends TbAbstractAlarmNodeConfiguration> implements TbNode {
 
     static final String PREV_ALARM_DETAILS = "prevAlarmDetails";
-
-    private final ObjectMapper mapper = new ObjectMapper();
 
     protected C config;
     private ScriptEngine scriptEngine;
@@ -73,13 +72,13 @@ public abstract class TbAbstractAlarmNode<C extends TbAbstractAlarmNodeConfigura
         withCallback(processAlarm(ctx, msg),
                 alarmResult -> {
                     if (alarmResult.alarm == null) {
-                        ctx.tellNext(msg, "False");
+                        ctx.tellNext(msg, TbNodeConnectionType.FALSE);
                     } else if (alarmResult.isCreated) {
-                        tellNext(ctx, msg, alarmResult, DataConstants.ENTITY_CREATED, "Created");
+                        tellNext(ctx, msg, alarmResult, TbMsgType.ENTITY_CREATED, "Created");
                     } else if (alarmResult.isUpdated) {
-                        tellNext(ctx, msg, alarmResult, DataConstants.ENTITY_UPDATED, "Updated");
+                        tellNext(ctx, msg, alarmResult, TbMsgType.ENTITY_UPDATED, "Updated");
                     } else if (alarmResult.isCleared) {
-                        tellNext(ctx, msg, alarmResult, DataConstants.ALARM_CLEAR, "Cleared");
+                        tellNext(ctx, msg, alarmResult, TbMsgType.ALARM_CLEAR, "Cleared");
                     } else {
                         ctx.tellSuccess(msg);
                     }
@@ -89,13 +88,13 @@ public abstract class TbAbstractAlarmNode<C extends TbAbstractAlarmNodeConfigura
 
     protected abstract ListenableFuture<TbAlarmResult> processAlarm(TbContext ctx, TbMsg msg);
 
-    protected ListenableFuture<JsonNode> buildAlarmDetails(TbContext ctx, TbMsg msg, JsonNode previousDetails) {
+    protected ListenableFuture<JsonNode> buildAlarmDetails(TbMsg msg, JsonNode previousDetails) {
         try {
             TbMsg dummyMsg = msg;
             if (previousDetails != null) {
                 TbMsgMetaData metaData = msg.getMetaData().copy();
-                metaData.putValue(PREV_ALARM_DETAILS, mapper.writeValueAsString(previousDetails));
-                dummyMsg = ctx.transformMsg(msg, msg.getType(), msg.getOriginator(), metaData, msg.getData());
+                metaData.putValue(PREV_ALARM_DETAILS, JacksonUtil.toString(previousDetails));
+                dummyMsg = TbMsg.transformMsgMetadata(msg, metaData);
             }
             return scriptEngine.executeJsonAsync(dummyMsg);
         } catch (Exception e) {
@@ -114,7 +113,7 @@ public abstract class TbAbstractAlarmNode<C extends TbAbstractAlarmNodeConfigura
         } else if (alarmResult.isCleared) {
             metaData.putValue(DataConstants.IS_CLEARED_ALARM, Boolean.TRUE.toString());
         }
-        return ctx.transformMsg(originalMsg, "ALARM", originalMsg.getOriginator(), metaData, data);
+        return ctx.transformMsg(originalMsg, TbMsgType.ALARM, originalMsg.getOriginator(), metaData, data);
     }
 
     @Override
@@ -124,8 +123,8 @@ public abstract class TbAbstractAlarmNode<C extends TbAbstractAlarmNodeConfigura
         }
     }
 
-    private void tellNext(TbContext ctx, TbMsg msg, TbAlarmResult alarmResult, String entityAction, String alarmAction) {
-        ctx.enqueue(ctx.alarmActionMsg(alarmResult.alarm, ctx.getSelfId(), entityAction),
+    private void tellNext(TbContext ctx, TbMsg msg, TbAlarmResult alarmResult, TbMsgType actionMsgType, String alarmAction) {
+        ctx.enqueue(ctx.alarmActionMsg(alarmResult.alarm, ctx.getSelfId(), actionMsgType),
                 () -> ctx.tellNext(toAlarmMsg(ctx, alarmResult, msg), alarmAction),
                 throwable -> ctx.tellFailure(toAlarmMsg(ctx, alarmResult, msg), throwable));
     }

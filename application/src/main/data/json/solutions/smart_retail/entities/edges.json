@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Remote Supermarket R1",
+    "type": "supermarket",
+    "customer": "Retail Company B",
+    "rootRuleChainId": "58a81180-7acc-11ed-a77b-1befcb651669",
+    "attributes": {},
+    "relations": [],
+    "userGroups": [
+      {
+        "name": "Smart Retail Administrators",
+        "customer": "Retail Company B"
+      },
+      {
+        "name": "Smart Retail Users",
+        "customer": "Retail Company B"
+      }
+    ],
+    "assetGroups": [
+      {
+        "name": "Supermarkets",
+        "customer": "Retail Company B"
+      }
+    ],
+    "deviceGroups": [
+      {
+        "name": "Supermarket Devices",
+        "customer": "Retail Company B"
+      }
+    ],
+    "dashboardGroups": [
+      {
+        "name": "Supermarket Users Shared"
+      }
+    ]
+  }
+]

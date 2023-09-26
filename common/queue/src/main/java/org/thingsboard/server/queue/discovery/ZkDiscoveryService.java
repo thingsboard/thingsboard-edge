@@ -31,6 +31,8 @@
 package org.thingsboard.server.queue.discovery;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.ProtocolStringList;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -52,15 +54,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.queue.discovery.event.ServiceListChangedEvent;
 import org.thingsboard.server.queue.util.AfterStartUp;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type.CHILD_REMOVED;
@@ -80,11 +84,15 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
     private Integer zkSessionTimeout;
     @Value("${zk.zk_dir}")
     private String zkDir;
+    @Value("${zk.recalculate_delay:0}")
+    private Long recalculateDelay;
+
+    protected final ConcurrentHashMap<String, ScheduledFuture<?>> delayedTasks;
 
     private final TbServiceInfoProvider serviceInfoProvider;
     private final PartitionService partitionService;
 
-    private ExecutorService reconnectExecutorService;
+    private ScheduledExecutorService zkExecutorService;
     private CuratorFramework client;
     private PathChildrenCache cache;
     private String nodePath;
@@ -96,6 +104,7 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
                               PartitionService partitionService) {
         this.serviceInfoProvider = serviceInfoProvider;
         this.partitionService = partitionService;
+        delayedTasks = new ConcurrentHashMap<>();
     }
 
     @PostConstruct
@@ -106,7 +115,7 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
         Assert.notNull(zkConnectionTimeout, missingProperty("zk.connection_timeout_ms"));
         Assert.notNull(zkSessionTimeout, missingProperty("zk.session_timeout_ms"));
 
-        reconnectExecutorService = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("zk-discovery"));
+        zkExecutorService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("zk-discovery"));
 
         log.info("Initializing discovery service using ZK connect string: {}", zkUrl);
 
@@ -114,7 +123,8 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
         initZkClient();
     }
 
-    private List<TransportProtos.ServiceInfo> getOtherServers() {
+    @Override
+    public List<TransportProtos.ServiceInfo> getOtherServers() {
         return cache.getCurrentData().stream()
                 .filter(cd -> !cd.getPath().equals(nodePath))
                 .map(cd -> {
@@ -126,6 +136,11 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
                     }
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean isMonolith() {
+        return false;
     }
 
     @AfterStartUp(order = AfterStartUp.DISCOVERY_SERVICE)
@@ -141,15 +156,17 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
             return;
         }
         log.info("Going to publish current server...");
-        publishCurrentServer();
+        zkExecutorService.scheduleAtFixedRate(this::publishCurrentServer, 0, 1, TimeUnit.MINUTES);
         log.info("Going to recalculate partitions...");
         recalculatePartitions();
     }
 
+    @SneakyThrows
     public synchronized void publishCurrentServer() {
         TransportProtos.ServiceInfo self = serviceInfoProvider.getServiceInfo();
         if (currentServerExists()) {
-            log.info("[{}] ZK node for current instance already exists, NOT created new one: {}", self.getServiceId(), nodePath);
+            log.trace("[{}] Updating ZK node for current instance: {}", self.getServiceId(), nodePath);
+            client.setData().forPath(nodePath, serviceInfoProvider.generateNewServiceInfoWithCurrentSystemInfo().toByteArray());
         } else {
             try {
                 log.info("[{}] Creating ZK node for current instance", self.getServiceId());
@@ -187,7 +204,7 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
         return (client, newState) -> {
             log.info("[{}] ZK state changed: {}", self.getServiceId(), newState);
             if (newState == ConnectionState.LOST) {
-                reconnectExecutorService.submit(this::reconnect);
+                zkExecutorService.submit(this::reconnect);
             }
         };
     }
@@ -252,7 +269,7 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
     @PreDestroy
     public void destroy() {
         destroyZkClient();
-        reconnectExecutorService.shutdownNow();
+        zkExecutorService.shutdownNow();
         log.info("Stopped discovery service");
     }
 
@@ -292,12 +309,39 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
             log.error("Failed to decode server instance for node {}", data.getPath(), e);
             throw e;
         }
-        log.info("Processing [{}] event for [{}]", pathChildrenCacheEvent.getType(), instance.getServiceId());
+
+        String serviceId = instance.getServiceId();
+        ProtocolStringList serviceTypesList = instance.getServiceTypesList();
+
+        log.trace("Processing [{}] event for [{}]", pathChildrenCacheEvent.getType(), serviceId);
         switch (pathChildrenCacheEvent.getType()) {
             case CHILD_ADDED:
-            case CHILD_UPDATED:
+                ScheduledFuture<?> task = delayedTasks.remove(serviceId);
+                if (task != null) {
+                    if (task.cancel(false)) {
+                        log.debug("[{}] Recalculate partitions ignored. Service was restarted in time [{}].",
+                                serviceId, serviceTypesList);
+                    } else {
+                        log.debug("[{}] Going to recalculate partitions. Service was not restarted in time [{}]!",
+                                serviceId, serviceTypesList);
+                        recalculatePartitions();
+                    }
+                } else {
+                    log.trace("[{}] Going to recalculate partitions due to adding new node [{}].",
+                            serviceId, serviceTypesList);
+                    recalculatePartitions();
+                }
+                break;
             case CHILD_REMOVED:
-                recalculatePartitions();
+                ScheduledFuture<?> future = zkExecutorService.schedule(() -> {
+                    log.debug("[{}] Going to recalculate partitions due to removed node [{}]",
+                            serviceId, serviceTypesList);
+                    ScheduledFuture<?> removedTask = delayedTasks.remove(serviceId);
+                    if (removedTask != null) {
+                        recalculatePartitions();
+                    }
+                }, recalculateDelay, TimeUnit.MILLISECONDS);
+                delayedTasks.put(serviceId, future);
                 break;
             default:
                 break;
@@ -310,6 +354,8 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
      */
     synchronized void recalculatePartitions() {
         try {
+            delayedTasks.values().forEach(future -> future.cancel(false));
+            delayedTasks.clear();
             partitionService.recalculatePartitions(serviceInfoProvider.getServiceInfo(), getOtherServers());
         } catch (Exception e) {
             log.warn("Failed to recalculate partitions", e);

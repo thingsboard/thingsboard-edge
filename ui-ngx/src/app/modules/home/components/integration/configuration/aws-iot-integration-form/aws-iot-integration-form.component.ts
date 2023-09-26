@@ -32,19 +32,15 @@
 import { Component, forwardRef } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
   Validator,
   Validators
 } from '@angular/forms';
-import {
-  mqttClientIdMaxLengthValidator,
-  mqttClientIdPatternValidator,
-  privateNetworkAddressValidator
-} from '@home/components/integration/integration.models';
+import { privateNetworkAddressValidator } from '@home/components/integration/integration.models';
 import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
@@ -67,19 +63,19 @@ import { AwsIotIntegration, IntegrationCredentialType, MqttQos } from '@shared/m
 })
 export class AwsIotIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
 
-  awsIotIntegrationConfigForm: FormGroup;
+  awsIotIntegrationConfigForm: UntypedFormGroup;
 
   IntegrationCredentialType = IntegrationCredentialType;
 
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
     super();
     this.awsIotIntegrationConfigForm = this.fb.group({
       clientConfiguration: this.fb.group({
         host: ['', Validators.required],
         connectTimeoutSec: [10, [Validators.required, Validators.min(1), Validators.max(200)]],
-        clientId: ['', [mqttClientIdPatternValidator, mqttClientIdMaxLengthValidator]],
+        clientId: [''],
         maxBytesInMessage: [32368, [Validators.min(1), Validators.max(256000000)]],
         credentials: [{
           type: IntegrationCredentialType.CertPEM

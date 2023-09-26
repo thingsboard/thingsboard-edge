@@ -68,6 +68,8 @@ import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.TenantProfileUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.TenantUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
@@ -115,8 +117,6 @@ public class EdgeImitator {
     @Getter
     private UplinkResponseMsg latestResponseMsg;
 
-    private boolean connected = false;
-
     public EdgeImitator(String host, int port, String routingKey, String routingSecret) throws NoSuchFieldException, IllegalAccessException {
         edgeRpcClient = new EdgeGrpcClient();
         messagesLatch = new CountDownLatch(0);
@@ -125,13 +125,15 @@ public class EdgeImitator {
         ignoredTypes = new ArrayList<>();
         this.routingKey = routingKey;
         this.routingSecret = routingSecret;
-        setEdgeCredentials("rpcHost", host);
-        setEdgeCredentials("rpcPort", port);
-        setEdgeCredentials("timeoutSecs", 3);
-        setEdgeCredentials("keepAliveTimeSec", 300);
+        updateEdgeClientFields("rpcHost", host);
+        updateEdgeClientFields("rpcPort", port);
+        updateEdgeClientFields("timeoutSecs", 3);
+        updateEdgeClientFields("keepAliveTimeSec", 300);
+        updateEdgeClientFields("keepAliveTimeoutSec", 5);
+        updateEdgeClientFields("maxInboundMessageSize", 4194304);
     }
 
-    private void setEdgeCredentials(String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
+    private void updateEdgeClientFields(String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
         Field fieldToSet = edgeRpcClient.getClass().getDeclaredField(fieldName);
         fieldToSet.setAccessible(true);
         fieldToSet.set(edgeRpcClient, value);
@@ -139,7 +141,6 @@ public class EdgeImitator {
     }
 
     public void connect() {
-        connected = true;
         edgeRpcClient.connect(routingKey, routingSecret,
                 this::onUplinkResponse,
                 this::onEdgeUpdate,
@@ -150,7 +151,6 @@ public class EdgeImitator {
     }
 
     public void disconnect() throws InterruptedException {
-        connected = false;
         edgeRpcClient.disconnect(false);
     }
 
@@ -194,20 +194,21 @@ public class EdgeImitator {
     }
 
     private ListenableFuture<List<Void>> processDownlinkMsg(DownlinkMsg downlinkMsg) {
+        log.trace("processDownlinkMsg: {}", downlinkMsg);
         List<ListenableFuture<Void>> result = new ArrayList<>();
         if (downlinkMsg.getAdminSettingsUpdateMsgCount() > 0) {
             for (AdminSettingsUpdateMsg adminSettingsUpdateMsg : downlinkMsg.getAdminSettingsUpdateMsgList()) {
                 result.add(saveDownlinkMsg(adminSettingsUpdateMsg));
             }
         }
-        if (downlinkMsg.getDeviceUpdateMsgCount() > 0) {
-            for (DeviceUpdateMsg deviceUpdateMsg : downlinkMsg.getDeviceUpdateMsgList()) {
-                result.add(saveDownlinkMsg(deviceUpdateMsg));
-            }
-        }
         if (downlinkMsg.getDeviceProfileUpdateMsgCount() > 0) {
             for (DeviceProfileUpdateMsg deviceProfileUpdateMsg : downlinkMsg.getDeviceProfileUpdateMsgList()) {
                 result.add(saveDownlinkMsg(deviceProfileUpdateMsg));
+            }
+        }
+        if (downlinkMsg.getDeviceUpdateMsgCount() > 0) {
+            for (DeviceUpdateMsg deviceUpdateMsg : downlinkMsg.getDeviceUpdateMsgList()) {
+                result.add(saveDownlinkMsg(deviceUpdateMsg));
             }
         }
         if (downlinkMsg.getDeviceCredentialsUpdateMsgCount() > 0) {
@@ -370,8 +371,21 @@ public class EdgeImitator {
                 result.add(saveDownlinkMsg(queueUpdateMsg));
             }
         }
+        if (downlinkMsg.getTenantUpdateMsgCount() > 0) {
+            for (TenantUpdateMsg tenantUpdateMsg : downlinkMsg.getTenantUpdateMsgList()) {
+                result.add(saveDownlinkMsg(tenantUpdateMsg));
+            }
+        }
+        if (downlinkMsg.getTenantProfileUpdateMsgCount() > 0) {
+            for (TenantProfileUpdateMsg tenantProfileUpdateMsg : downlinkMsg.getTenantProfileUpdateMsgList()) {
+                result.add(saveDownlinkMsg(tenantProfileUpdateMsg));
+            }
+        }
         if (downlinkMsg.hasEdgeConfiguration()) {
             result.add(saveDownlinkMsg(downlinkMsg.getEdgeConfiguration()));
+        }
+        if (downlinkMsg.hasSyncCompletedMsg()) {
+            result.add(saveDownlinkMsg(downlinkMsg.getSyncCompletedMsg()));
         }
 
         return Futures.allAsList(result);

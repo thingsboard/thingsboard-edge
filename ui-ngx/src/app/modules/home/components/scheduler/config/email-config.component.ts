@@ -30,7 +30,7 @@
 ///
 
 import { AfterViewInit, Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
@@ -59,7 +59,7 @@ export class EmailConfigComponent extends PageComponent implements ControlValueA
 
   modelValue: EmailConfig | null;
 
-  emailConfigFormGroup: FormGroup;
+  emailConfigFormGroup: UntypedFormGroup;
 
   @Input()
   disabled: boolean;
@@ -69,7 +69,7 @@ export class EmailConfigComponent extends PageComponent implements ControlValueA
   private propagateChange = (v: any) => { };
 
   constructor(protected store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
     this.emailConfigFormGroup = this.fb.group({
       from: [null, [Validators.required]],

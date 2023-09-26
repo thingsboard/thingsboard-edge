@@ -30,7 +30,7 @@
  */
 ::ng-deep {
   .tb-autocomplete.tb-integration-type-autocomplete {
-    .mat-option {
+    .mat-mdc-option {
       &:focus, &:hover {
         background: transparent;
         &::before {
@@ -44,11 +44,6 @@
           opacity: 0.4;
         }
       }
-    }
-
-    .mat-option-text {
-      display: block;
-      z-index: 1;
     }
 
     .integration-type-button {

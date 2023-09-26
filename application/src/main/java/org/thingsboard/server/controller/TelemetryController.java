@@ -91,15 +91,14 @@ import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
-import org.thingsboard.server.dao.service.ConstraintValidator;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
+import org.thingsboard.server.exception.InvalidParametersException;
+import org.thingsboard.server.exception.UncheckedApiException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.AccessValidator;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.telemetry.AttributeData;
 import org.thingsboard.server.service.telemetry.TsData;
-import org.thingsboard.server.service.telemetry.exception.InvalidParametersException;
-import org.thingsboard.server.service.telemetry.exception.UncheckedApiException;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
@@ -199,11 +198,7 @@ public class TelemetryController extends BaseController {
     public DeferredResult<ResponseEntity> getAttributeKeys(
             @ApiParam(value = ENTITY_TYPE_PARAM_DESCRIPTION, required = true, defaultValue = "DEVICE") @PathVariable("entityType") String entityType,
             @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION, required = true) @PathVariable("entityId") String entityIdStr) throws ThingsboardException {
-        try {
-            return accessValidator.validateEntityAndCallback(getCurrentUser(), Operation.READ_ATTRIBUTES, entityType, entityIdStr, this::getAttributeKeysCallback);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        return accessValidator.validateEntityAndCallback(getCurrentUser(), Operation.READ_ATTRIBUTES, entityType, entityIdStr, this::getAttributeKeysCallback);
     }
 
     @ApiOperation(value = "Get all attribute keys by scope (getAttributeKeysByScope)",
@@ -220,12 +215,8 @@ public class TelemetryController extends BaseController {
             @ApiParam(value = ENTITY_TYPE_PARAM_DESCRIPTION, required = true, defaultValue = "DEVICE") @PathVariable("entityType") String entityType,
             @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION, required = true) @PathVariable("entityId") String entityIdStr,
             @ApiParam(value = ATTRIBUTES_SCOPE_DESCRIPTION, required = true, allowableValues = ATTRIBUTES_SCOPE_ALLOWED_VALUES) @PathVariable("scope") String scope) throws ThingsboardException {
-        try {
-            return accessValidator.validateEntityAndCallback(getCurrentUser(), Operation.READ_ATTRIBUTES, entityType, entityIdStr,
-                    (result, tenantId, entityId) -> getAttributeKeysCallback(result, tenantId, entityId, scope));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        return accessValidator.validateEntityAndCallback(getCurrentUser(), Operation.READ_ATTRIBUTES, entityType, entityIdStr,
+                (result, tenantId, entityId) -> getAttributeKeysCallback(result, tenantId, entityId, scope));
     }
 
     @ApiOperation(value = "Get attributes (getAttributes)",
@@ -243,13 +234,9 @@ public class TelemetryController extends BaseController {
             @ApiParam(value = ENTITY_TYPE_PARAM_DESCRIPTION, required = true, defaultValue = "DEVICE") @PathVariable("entityType") String entityType,
             @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION, required = true) @PathVariable("entityId") String entityIdStr,
             @ApiParam(value = ATTRIBUTES_KEYS_DESCRIPTION) @RequestParam(name = "keys", required = false) String keysStr) throws ThingsboardException {
-        try {
-            SecurityUser user = getCurrentUser();
-            return accessValidator.validateEntityAndCallback(getCurrentUser(), Operation.READ_ATTRIBUTES, entityType, entityIdStr,
-                    (result, tenantId, entityId) -> getAttributeValuesCallback(result, user, entityId, null, keysStr));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        SecurityUser user = getCurrentUser();
+        return accessValidator.validateEntityAndCallback(getCurrentUser(), Operation.READ_ATTRIBUTES, entityType, entityIdStr,
+                (result, tenantId, entityId) -> getAttributeValuesCallback(result, user, entityId, null, keysStr));
     }
 
 
@@ -271,13 +258,9 @@ public class TelemetryController extends BaseController {
             @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION, required = true) @PathVariable("entityId") String entityIdStr,
             @ApiParam(value = ATTRIBUTES_SCOPE_DESCRIPTION, allowableValues = ATTRIBUTES_SCOPE_ALLOWED_VALUES, required = true) @PathVariable("scope") String scope,
             @ApiParam(value = ATTRIBUTES_KEYS_DESCRIPTION) @RequestParam(name = "keys", required = false) String keysStr) throws ThingsboardException {
-        try {
-            SecurityUser user = getCurrentUser();
-            return accessValidator.validateEntityAndCallback(getCurrentUser(), Operation.READ_ATTRIBUTES, entityType, entityIdStr,
-                    (result, tenantId, entityId) -> getAttributeValuesCallback(result, user, entityId, scope, keysStr));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        SecurityUser user = getCurrentUser();
+        return accessValidator.validateEntityAndCallback(getCurrentUser(), Operation.READ_ATTRIBUTES, entityType, entityIdStr,
+                (result, tenantId, entityId) -> getAttributeValuesCallback(result, user, entityId, scope, keysStr));
     }
 
     @ApiOperation(value = "Get time-series keys (getTimeseriesKeys)",
@@ -290,12 +273,8 @@ public class TelemetryController extends BaseController {
     public DeferredResult<ResponseEntity> getTimeseriesKeys(
             @ApiParam(value = ENTITY_TYPE_PARAM_DESCRIPTION, required = true, defaultValue = "DEVICE") @PathVariable("entityType") String entityType,
             @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION, required = true) @PathVariable("entityId") String entityIdStr) throws ThingsboardException {
-        try {
-            return accessValidator.validateEntityAndCallback(getCurrentUser(), Operation.READ_TELEMETRY, entityType, entityIdStr,
-                    (result, tenantId, entityId) -> Futures.addCallback(tsService.findAllLatest(tenantId, entityId), getTsKeysToResponseCallback(result), MoreExecutors.directExecutor()));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        return accessValidator.validateEntityAndCallback(getCurrentUser(), Operation.READ_TELEMETRY, entityType, entityIdStr,
+                (result, tenantId, entityId) -> Futures.addCallback(tsService.findAllLatest(tenantId, entityId), getTsKeysToResponseCallback(result), MoreExecutors.directExecutor()));
     }
 
     @ApiOperation(value = "Get latest time-series value (getLatestTimeseries)",
@@ -320,13 +299,9 @@ public class TelemetryController extends BaseController {
             @ApiParam(value = TELEMETRY_KEYS_DESCRIPTION) @RequestParam(name = "keys", required = false) String keysStr,
             @ApiParam(value = STRICT_DATA_TYPES_DESCRIPTION)
             @RequestParam(name = "useStrictDataTypes", required = false, defaultValue = "false") Boolean useStrictDataTypes) throws ThingsboardException {
-        try {
-            SecurityUser user = getCurrentUser();
-            return accessValidator.validateEntityAndCallback(getCurrentUser(), Operation.READ_TELEMETRY, entityType, entityIdStr,
-                    (result, tenantId, entityId) -> getLatestTimeseriesValuesCallback(result, user, entityId, keysStr, useStrictDataTypes));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        SecurityUser user = getCurrentUser();
+        return accessValidator.validateEntityAndCallback(getCurrentUser(), Operation.READ_TELEMETRY, entityType, entityIdStr,
+                (result, tenantId, entityId) -> getLatestTimeseriesValuesCallback(result, user, entityId, keysStr, useStrictDataTypes));
     }
 
     @ApiOperation(value = "Get time-series data (getTimeseries)",
@@ -363,19 +338,15 @@ public class TelemetryController extends BaseController {
             @RequestParam(name = "orderBy", defaultValue = "DESC") String orderBy,
             @ApiParam(value = STRICT_DATA_TYPES_DESCRIPTION)
             @RequestParam(name = "useStrictDataTypes", required = false, defaultValue = "false") Boolean useStrictDataTypes) throws ThingsboardException {
-        try {
-            return accessValidator.validateEntityAndCallback(getCurrentUser(), Operation.READ_TELEMETRY, entityType, entityIdStr,
-                    (result, tenantId, entityId) -> {
-                        // If interval is 0, convert this to a NONE aggregation, which is probably what the user really wanted
-                        Aggregation agg = interval == 0L ? Aggregation.valueOf(Aggregation.NONE.name()) : Aggregation.valueOf(aggStr);
-                        List<ReadTsKvQuery> queries = toKeysList(keys).stream().map(key -> new BaseReadTsKvQuery(key, startTs, endTs, interval, limit, agg, orderBy))
-                                .collect(Collectors.toList());
+        return accessValidator.validateEntityAndCallback(getCurrentUser(), Operation.READ_TELEMETRY, entityType, entityIdStr,
+                (result, tenantId, entityId) -> {
+                    // If interval is 0, convert this to a NONE aggregation, which is probably what the user really wanted
+                    Aggregation agg = interval == 0L ? Aggregation.valueOf(Aggregation.NONE.name()) : Aggregation.valueOf(aggStr);
+                    List<ReadTsKvQuery> queries = toKeysList(keys).stream().map(key -> new BaseReadTsKvQuery(key, startTs, endTs, interval, limit, agg, orderBy))
+                            .collect(Collectors.toList());
 
-                        Futures.addCallback(tsService.findAll(tenantId, entityId, queries), getTsKvListCallback(result, useStrictDataTypes), MoreExecutors.directExecutor());
-                    });
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+                    Futures.addCallback(tsService.findAll(tenantId, entityId, queries), getTsKvListCallback(result, useStrictDataTypes), MoreExecutors.directExecutor());
+                });
     }
 
     @ApiOperation(value = "Save device attributes (saveDeviceAttributes)",
@@ -399,12 +370,8 @@ public class TelemetryController extends BaseController {
             @ApiParam(value = DEVICE_ID_PARAM_DESCRIPTION, required = true) @PathVariable("deviceId") String deviceIdStr,
             @ApiParam(value = ATTRIBUTES_SCOPE_DESCRIPTION, allowableValues = ATTRIBUTES_SAVE_SCOPE_ALLOWED_VALUES, required = true) @PathVariable("scope") String scope,
             @ApiParam(value = ATTRIBUTES_JSON_REQUEST_DESCRIPTION, required = true) @RequestBody JsonNode request) throws ThingsboardException {
-        try {
-            EntityId entityId = EntityIdFactory.getByTypeAndUuid(EntityType.DEVICE, deviceIdStr);
-            return saveAttributes(getTenantId(), entityId, scope, request);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        EntityId entityId = EntityIdFactory.getByTypeAndUuid(EntityType.DEVICE, deviceIdStr);
+        return saveAttributes(getTenantId(), entityId, scope, request);
     }
 
     @ApiOperation(value = "Save entity attributes (saveEntityAttributesV1)",
@@ -427,12 +394,8 @@ public class TelemetryController extends BaseController {
             @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION, required = true) @PathVariable("entityId") String entityIdStr,
             @ApiParam(value = ATTRIBUTES_SCOPE_DESCRIPTION, allowableValues = ATTRIBUTES_SAVE_SCOPE_ALLOWED_VALUES) @PathVariable("scope") String scope,
             @ApiParam(value = ATTRIBUTES_JSON_REQUEST_DESCRIPTION, required = true) @RequestBody JsonNode request) throws ThingsboardException {
-        try {
-            EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
-            return saveAttributes(getTenantId(), entityId, scope, request);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
+        return saveAttributes(getTenantId(), entityId, scope, request);
     }
 
     @ApiOperation(value = "Save entity attributes (saveEntityAttributesV2)",
@@ -455,12 +418,8 @@ public class TelemetryController extends BaseController {
             @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION, required = true) @PathVariable("entityId") String entityIdStr,
             @ApiParam(value = ATTRIBUTES_SCOPE_DESCRIPTION, allowableValues = ATTRIBUTES_SAVE_SCOPE_ALLOWED_VALUES, required = true) @PathVariable("scope") String scope,
             @ApiParam(value = ATTRIBUTES_JSON_REQUEST_DESCRIPTION, required = true) @RequestBody JsonNode request) throws ThingsboardException {
-        try {
-            EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
-            return saveAttributes(getTenantId(), entityId, scope, request);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
+        return saveAttributes(getTenantId(), entityId, scope, request);
     }
 
 
@@ -484,12 +443,8 @@ public class TelemetryController extends BaseController {
             @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION, required = true) @PathVariable("entityId") String entityIdStr,
             @ApiParam(value = TELEMETRY_SCOPE_DESCRIPTION, required = true, allowableValues = "ANY") @PathVariable("scope") String scope,
             @ApiParam(value = TELEMETRY_JSON_REQUEST_DESCRIPTION, required = true) @RequestBody String requestBody) throws ThingsboardException {
-        try {
-            EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
-            return saveTelemetry(getTenantId(), entityId, requestBody, 0L);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
+        return saveTelemetry(getTenantId(), entityId, requestBody, 0L);
     }
 
     @ApiOperation(value = "Save or update time-series data with TTL (saveEntityTelemetryWithTTL)",
@@ -514,19 +469,17 @@ public class TelemetryController extends BaseController {
             @ApiParam(value = TELEMETRY_SCOPE_DESCRIPTION, required = true, allowableValues = "ANY") @PathVariable("scope") String scope,
             @ApiParam(value = "A long value representing TTL (Time to Live) parameter.", required = true) @PathVariable("ttl") Long ttl,
             @ApiParam(value = TELEMETRY_JSON_REQUEST_DESCRIPTION, required = true) @RequestBody String requestBody) throws ThingsboardException {
-        try {
-            EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
-            return saveTelemetry(getTenantId(), entityId, requestBody, ttl);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
+        return saveTelemetry(getTenantId(), entityId, requestBody, ttl);
     }
 
     @ApiOperation(value = "Delete entity time-series data (deleteEntityTimeseries)",
             notes = "Delete time-series for selected entity based on entity id, entity type and keys." +
                     " Use 'deleteAllDataForKeys' to delete all time-series data." +
                     " Use 'startTs' and 'endTs' to specify time-range instead. " +
-                    " Use 'rewriteLatestIfDeleted' to rewrite latest value (stored in separate table for performance) after deletion of the time range. " +
+                    " Use 'deleteLatest' to delete latest value (stored in separate table for performance) if the value's timestamp matches the time-range. " +
+                    " Use 'rewriteLatestIfDeleted' to rewrite latest value (stored in separate table for performance) if the value's timestamp matches the time-range and 'deleteLatest' param is true." +
+                    " The replacement value will be fetched from the 'time-series' table, and its timestamp will be the most recent one before the defined time-range. " +
                     TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(value = {
@@ -550,18 +503,16 @@ public class TelemetryController extends BaseController {
             @RequestParam(name = "startTs", required = false) Long startTs,
             @ApiParam(value = "A long value representing the end timestamp of removal time range in milliseconds.")
             @RequestParam(name = "endTs", required = false) Long endTs,
+            @ApiParam(value = "If the parameter is set to true, the latest telemetry can be removed, otherwise, in case that parameter is set to false the latest value will not removed.")
+            @RequestParam(name = "deleteLatest", required = false, defaultValue = "true") boolean deleteLatest,
             @ApiParam(value = "If the parameter is set to true, the latest telemetry will be rewritten in case that current latest value was removed, otherwise, in case that parameter is set to false the new latest value will not set.")
             @RequestParam(name = "rewriteLatestIfDeleted", defaultValue = "false") boolean rewriteLatestIfDeleted) throws ThingsboardException {
-        try {
-            EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
-            return deleteTimeseries(entityId, keysStr, deleteAllDataForKeys, startTs, endTs, rewriteLatestIfDeleted);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
+        return deleteTimeseries(entityId, keysStr, deleteAllDataForKeys, startTs, endTs, rewriteLatestIfDeleted, deleteLatest);
     }
 
     private DeferredResult<ResponseEntity> deleteTimeseries(EntityId entityIdStr, String keysStr, boolean deleteAllDataForKeys,
-                                                            Long startTs, Long endTs, boolean rewriteLatestIfDeleted) throws ThingsboardException {
+                                                            Long startTs, Long endTs, boolean rewriteLatestIfDeleted, boolean deleteLatest) throws ThingsboardException {
         List<String> keys = toKeysList(keysStr);
         if (keys.isEmpty()) {
             return getImmediateDeferredResult("Empty keys: " + keysStr, HttpStatus.BAD_REQUEST);
@@ -585,7 +536,7 @@ public class TelemetryController extends BaseController {
         return accessValidator.validateEntityAndCallback(user, Operation.WRITE_TELEMETRY, entityIdStr, (result, tenantId, entityId) -> {
             List<DeleteTsKvQuery> deleteTsKvQueries = new ArrayList<>();
             for (String key : keys) {
-                deleteTsKvQueries.add(new BaseDeleteTsKvQuery(key, deleteFromTs, deleteToTs, rewriteLatestIfDeleted));
+                deleteTsKvQueries.add(new BaseDeleteTsKvQuery(key, deleteFromTs, deleteToTs, rewriteLatestIfDeleted, deleteLatest));
             }
             tsSubService.deleteTimeseriesAndNotify(tenantId, entityId, keys, deleteTsKvQueries, new FutureCallback<>() {
                 @Override
@@ -622,12 +573,8 @@ public class TelemetryController extends BaseController {
             @ApiParam(value = DEVICE_ID_PARAM_DESCRIPTION, required = true) @PathVariable(DEVICE_ID) String deviceIdStr,
             @ApiParam(value = ATTRIBUTES_SCOPE_DESCRIPTION, allowableValues = ATTRIBUTES_SCOPE_ALLOWED_VALUES, required = true) @PathVariable("scope") String scope,
             @ApiParam(value = ATTRIBUTES_KEYS_DESCRIPTION, required = true) @RequestParam(name = "keys") String keysStr) throws ThingsboardException {
-        try {
-            EntityId entityId = EntityIdFactory.getByTypeAndUuid(EntityType.DEVICE, deviceIdStr);
-            return deleteAttributes(entityId, scope, keysStr);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        EntityId entityId = EntityIdFactory.getByTypeAndUuid(EntityType.DEVICE, deviceIdStr);
+        return deleteAttributes(entityId, scope, keysStr);
     }
 
     @ApiOperation(value = "Delete entity attributes (deleteEntityAttributes)",
@@ -650,12 +597,8 @@ public class TelemetryController extends BaseController {
             @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION, required = true) @PathVariable("entityId") String entityIdStr,
             @ApiParam(value = ATTRIBUTES_SCOPE_DESCRIPTION, required = true, allowableValues = ATTRIBUTES_SCOPE_ALLOWED_VALUES) @PathVariable("scope") String scope,
             @ApiParam(value = ATTRIBUTES_KEYS_DESCRIPTION, required = true) @RequestParam(name = "keys") String keysStr) throws ThingsboardException {
-        try {
-            EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
-            return deleteAttributes(entityId, scope, keysStr);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
+        return deleteAttributes(entityId, scope, keysStr);
     }
 
     private DeferredResult<ResponseEntity> deleteAttributes(EntityId entityIdSrc, String scope, String keysStr) throws ThingsboardException {
@@ -699,7 +642,6 @@ public class TelemetryController extends BaseController {
         }
         if (json.isObject()) {
             List<AttributeKvEntry> attributes = extractRequestAttributes(json);
-            attributes.forEach(ConstraintValidator::validateFields);
             if (attributes.isEmpty()) {
                 return getImmediateDeferredResult("No attributes data found in request body!", HttpStatus.BAD_REQUEST);
             }

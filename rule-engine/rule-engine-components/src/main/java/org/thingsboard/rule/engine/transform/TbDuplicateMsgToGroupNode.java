@@ -41,8 +41,8 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.msg.TbMsg;
 
 import java.util.List;
 
@@ -58,41 +58,40 @@ import java.util.List;
         configDirective = "tbTransformationNodeDuplicateToGroupConfig",
         icon = "call_split"
 )
-public class TbDuplicateMsgToGroupNode extends TbAbstractDuplicateMsgToOriginatorsNode {
-
-    private TbDuplicateMsgToGroupNodeConfiguration config;
+public class TbDuplicateMsgToGroupNode extends TbAbstractDuplicateMsgNode<TbDuplicateMsgToGroupNodeConfiguration> {
 
     @Override
-    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
-        this.config = TbNodeUtils.convert(configuration, TbDuplicateMsgToGroupNodeConfiguration.class);
-        validateConfig(ctx, config);
-        setConfig(config);
+    protected TbDuplicateMsgToGroupNodeConfiguration loadNodeConfiguration(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+        var config = TbNodeUtils.convert(configuration, TbDuplicateMsgToGroupNodeConfiguration.class);
+        if (!config.isEntityGroupIsMessageOriginator()) {
+            if (config.getEntityGroupId() == null || config.getEntityGroupId().isNullUid()) {
+                log.error("TbDuplicateMsgToGroupNode configuration should have valid Entity Group Id");
+                throw new IllegalArgumentException("Wrong configuration for TbDuplicateMsgToGroupNode: Entity Group Id is missing.");
+            }
+            ctx.checkTenantEntity(config.getEntityGroupId());
+        }
+        return config;
+    }
+
+    @Override
+    protected ListenableFuture<List<TbMsg>> transform(TbContext ctx, TbMsg msg) {
+        return duplicate(ctx, msg);
     }
 
     @Override
     protected ListenableFuture<List<EntityId>> getNewOriginators(TbContext ctx, EntityId original) {
-        return ctx.getPeContext().getEntityGroupService().findAllEntityIds(ctx.getTenantId(), detectTargetEntityGroupId(original), new PageLink(Integer.MAX_VALUE));
+        return ctx.getPeContext().getEntityGroupService().findAllEntityIdsAsync(ctx.getTenantId(), detectTargetEntityGroupId(original), new PageLink(Integer.MAX_VALUE));
     }
 
     private EntityGroupId detectTargetEntityGroupId(EntityId original) {
         if (config.isEntityGroupIsMessageOriginator()) {
-            if (original.getEntityType() == EntityType.ENTITY_GROUP) {
+            if (EntityType.ENTITY_GROUP.equals(original.getEntityType())) {
                 return new EntityGroupId(original.getId());
             } else {
                 throw new RuntimeException("Message originator is not an entity group!");
             }
         } else {
             return config.getEntityGroupId();
-        }
-    }
-
-    private void validateConfig(TbContext ctx, TbDuplicateMsgToGroupNodeConfiguration conf) {
-        if (!conf.isEntityGroupIsMessageOriginator()) {
-            if (conf.getEntityGroupId() == null || conf.getEntityGroupId().isNullUid()) {
-                log.error("TbDuplicateMsgToGroupNode configuration should have valid Entity Group Id");
-                throw new IllegalArgumentException("Wrong configuration for TbDuplicateMsgToGroupNode: Entity Group Id is missing.");
-            }
-            ctx.checkTenantEntity(conf.getEntityGroupId());
         }
     }
 

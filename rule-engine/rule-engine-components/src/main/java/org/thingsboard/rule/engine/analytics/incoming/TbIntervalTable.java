@@ -37,7 +37,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import org.springframework.data.util.Pair;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.rule.engine.analytics.incoming.state.TbAvgIntervalState;
 import org.thingsboard.rule.engine.analytics.incoming.state.TbCountIntervalState;
 import org.thingsboard.rule.engine.analytics.incoming.state.TbCountUniqueIntervalState;
@@ -46,6 +45,8 @@ import org.thingsboard.rule.engine.analytics.incoming.state.TbMaxIntervalState;
 import org.thingsboard.rule.engine.analytics.incoming.state.TbMinIntervalState;
 import org.thingsboard.rule.engine.analytics.incoming.state.TbSumIntervalState;
 import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
@@ -78,7 +79,6 @@ import java.util.stream.Stream;
 class TbIntervalTable {
 
     private final TbContext ctx;
-    private final JsonParser gsonParser;
     private final Gson gson = new Gson();
     private final AggIntervalType aggIntervalType;
     private final ZoneId tz;
@@ -88,9 +88,8 @@ class TbIntervalTable {
     private final boolean autoCreateIntervals;
     private ConcurrentMap<EntityId, ConcurrentMap<Long, TbIntervalState>> states = new ConcurrentHashMap<>();
 
-    TbIntervalTable(TbContext ctx, TbSimpleAggMsgNodeConfiguration config, JsonParser gson) {
+    TbIntervalTable(TbContext ctx, TbSimpleAggMsgNodeConfiguration config) {
         this.ctx = ctx;
-        this.gsonParser = gson;
         this.aggIntervalType = config.getAggIntervalType() == null ? AggIntervalType.CUSTOM : config.getAggIntervalType();
         long tmpIntervalDuration;
         if (this.aggIntervalType == AggIntervalType.CUSTOM) {
@@ -139,7 +138,7 @@ class TbIntervalTable {
     }
 
     ListenableFuture<Integer> saveIntervalState(EntityId entityId, long ts, TbIntervalState state) {
-        KvEntry kvEntry = new StringDataEntry("RuleNodeState_" + ctx.getSelfId(), state.toStateJson(gson));
+        KvEntry kvEntry = new StringDataEntry(DataConstants.RULE_NODE_STATE_PREFIX + ctx.getSelfId(), state.toStateJson(gson));
         TsKvEntry tsKvEntry = new BasicTsKvEntry(calculateIntervalStart(ts), kvEntry);
         return ctx.getTimeseriesService().save(ctx.getTenantId(), entityId, tsKvEntry);
     }
@@ -202,7 +201,7 @@ class TbIntervalTable {
     }
 
     private ListenableFuture<TbIntervalState> fetchIntervalState(EntityId entityId, long intervalStartTs) {
-        ListenableFuture<TsKvEntry> f = ctx.getTimeseriesService().findOne(ctx.getTenantId(), entityId, intervalStartTs, "RuleNodeState_" + ctx.getSelfId());
+        ListenableFuture<TsKvEntry> f = ctx.getTimeseriesService().findOne(ctx.getTenantId(), entityId, intervalStartTs, DataConstants.RULE_NODE_STATE_PREFIX + ctx.getSelfId());
         return Futures.transform(f, input -> {
             String value = null;
             if (input != null) {
@@ -217,7 +216,7 @@ class TbIntervalTable {
     }
 
     private TbIntervalState readTbIntervalState(String value) {
-        JsonElement stateJson = gsonParser.parse(value);
+        JsonElement stateJson = JsonParser.parseString(value);
         switch (function) {
             case MIN:
                 return new TbMinIntervalState(stateJson);

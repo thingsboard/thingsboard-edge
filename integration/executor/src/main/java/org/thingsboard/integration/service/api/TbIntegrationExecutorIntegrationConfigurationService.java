@@ -31,7 +31,6 @@
 package org.thingsboard.integration.service.api;
 
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.ByteString;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -45,7 +44,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.common.stats.StatsType;
 import org.thingsboard.server.gen.integration.ConverterRequestProto;
 import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
 import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;

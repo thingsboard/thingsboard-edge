@@ -31,7 +31,7 @@
 
 -->
 <form class="mat-elevation-z1"
-      [formGroup]="attributeFormGroup" (ngSubmit)="update()" style="width: 400px; padding: 5px;">
+      [formGroup]="attributeFormGroup" (ngSubmit)="update()" style="padding: 5px;">
   <fieldset [disabled]="isLoading$ | async">
     <tb-value-input
       formControlName="value"
@@ -48,7 +48,7 @@
     </button>
     <button mat-button mat-raised-button color="primary"
             type="submit"
-            [disabled]="(isLoading$ | async) || attributeFormGroup.invalid || !attributeFormGroup.dirty">
+            [disabled]="(isLoading$ | async) || invalid() || !attributeFormGroup.dirty">
       {{ 'action.update' | translate }}
     </button>
   </div>

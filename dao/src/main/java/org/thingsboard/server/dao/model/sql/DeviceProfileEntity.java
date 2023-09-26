@@ -49,7 +49,6 @@ import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextEntity;
 import org.thingsboard.server.dao.util.mapping.JsonBinaryType;
 
 import javax.persistence.Column;
@@ -63,8 +62,8 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
-@Table(name = ModelConstants.DEVICE_PROFILE_COLUMN_FAMILY_NAME)
-public final class DeviceProfileEntity extends BaseSqlEntity<DeviceProfile> implements SearchTextEntity<DeviceProfile> {
+@Table(name = ModelConstants.DEVICE_PROFILE_TABLE_NAME)
+public final class DeviceProfileEntity extends BaseSqlEntity<DeviceProfile> {
 
     @Column(name = ModelConstants.DEVICE_PROFILE_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -90,9 +89,6 @@ public final class DeviceProfileEntity extends BaseSqlEntity<DeviceProfile> impl
     @Column(name = ModelConstants.DEVICE_PROFILE_DESCRIPTION_PROPERTY)
     private String description;
 
-    @Column(name = ModelConstants.SEARCH_TEXT_PROPERTY)
-    private String searchText;
-
     @Column(name = ModelConstants.DEVICE_PROFILE_IS_DEFAULT_PROPERTY)
     private boolean isDefault;
 
@@ -117,6 +113,9 @@ public final class DeviceProfileEntity extends BaseSqlEntity<DeviceProfile> impl
 
     @Column(name = ModelConstants.DEVICE_PROFILE_SOFTWARE_ID_PROPERTY)
     private UUID softwareId;
+
+    @Column(name = ModelConstants.DEVICE_PROFILE_DEFAULT_EDGE_RULE_CHAIN_ID_PROPERTY, columnDefinition = "uuid")
+    private UUID defaultEdgeRuleChainId;
 
     @Column(name = ModelConstants.EXTERNAL_ID_PROPERTY)
     private UUID externalId;
@@ -155,23 +154,12 @@ public final class DeviceProfileEntity extends BaseSqlEntity<DeviceProfile> impl
         if (deviceProfile.getSoftwareId() != null) {
             this.softwareId = deviceProfile.getSoftwareId().getId();
         }
+        if (deviceProfile.getDefaultEdgeRuleChainId() != null) {
+            this.defaultEdgeRuleChainId = deviceProfile.getDefaultEdgeRuleChainId().getId();
+        }
         if (deviceProfile.getExternalId() != null) {
             this.externalId = deviceProfile.getExternalId().getId();
         }
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return name;
-    }
-
-    @Override
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
-    }
-
-    public String getSearchText() {
-        return searchText;
     }
 
     @Override
@@ -203,6 +191,9 @@ public final class DeviceProfileEntity extends BaseSqlEntity<DeviceProfile> impl
         }
         if (softwareId != null) {
             deviceProfile.setSoftwareId(new OtaPackageId(softwareId));
+        }
+        if (defaultEdgeRuleChainId != null) {
+            deviceProfile.setDefaultEdgeRuleChainId(new RuleChainId(defaultEdgeRuleChainId));
         }
         if (externalId != null) {
             deviceProfile.setExternalId(new DeviceProfileId(externalId));

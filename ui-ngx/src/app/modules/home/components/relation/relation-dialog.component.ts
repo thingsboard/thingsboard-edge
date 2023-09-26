@@ -34,7 +34,7 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
 import {
   CONTAINS_TYPE,
   EntityRelation,
@@ -63,14 +63,14 @@ export interface RelationDialogData {
 })
 export class RelationDialogComponent extends DialogComponent<RelationDialogComponent, boolean> implements OnInit, ErrorStateMatcher {
 
-  relationFormGroup: FormGroup;
+  relationFormGroup: UntypedFormGroup;
 
   isAdd: boolean;
   direction: EntitySearchDirection;
   entitySearchDirection = EntitySearchDirection;
   readonly: boolean;
 
-  additionalInfo: FormControl;
+  additionalInfo: UntypedFormControl;
 
   @ViewChild('additionalInfoEdit', {static: true}) additionalInfoEdit: JsonObjectEditComponent;
 
@@ -82,7 +82,7 @@ export class RelationDialogComponent extends DialogComponent<RelationDialogCompo
               private entityRelationService: EntityRelationService,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public dialogRef: MatDialogRef<RelationDialogComponent, boolean>,
-              public fb: FormBuilder) {
+              public fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
     this.isAdd = data.isAdd;
     this.direction = data.direction;
@@ -96,7 +96,7 @@ export class RelationDialogComponent extends DialogComponent<RelationDialogCompo
         [this.direction === EntitySearchDirection.FROM ? this.data.relation.to : this.data.relation.from],
         [Validators.required]]
     });
-    this.additionalInfo = new FormControl(this.data.relation.additionalInfo ? {...this.data.relation.additionalInfo} : null);
+    this.additionalInfo = new UntypedFormControl(this.data.relation.additionalInfo ? {...this.data.relation.additionalInfo} : null);
     if (!this.isAdd) {
       this.relationFormGroup.get('type').disable();
       this.relationFormGroup.get('targetEntityIds').disable();
@@ -111,7 +111,7 @@ export class RelationDialogComponent extends DialogComponent<RelationDialogCompo
     );
   }
 
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: UntypedFormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
     const customErrorState = !!(control && control.invalid && this.submitted);
     return originalErrorState || customErrorState;

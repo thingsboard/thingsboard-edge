@@ -30,16 +30,18 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field appearance="standard" [formGroup]="entitySubtypeListFormGroup" class="mat-block">
-  <mat-chip-list #chipList formControlName="entitySubtypeList">
-    <mat-chip
+<mat-form-field [formGroup]="entitySubtypeListFormGroup" [floatLabel]="floatLabel"
+                [appearance]="appearance" [subscriptSizing]="subscriptSizing"
+                [class.tb-chip-list]="!label" [class]="additionalClasses" class="mat-block">
+  <mat-label *ngIf="label">{{ label }}</mat-label>
+  <mat-chip-grid #chipList formControlName="entitySubtypeList">
+    <mat-chip-row
       *ngFor="let entitySubtype of entitySubtypeList"
-      [selectable]="!disabled"
       [removable]="!disabled"
       (removed)="remove(entitySubtype)">
       {{entitySubtype}}
       <mat-icon matChipRemove *ngIf="!disabled">close</mat-icon>
-    </mat-chip>
+    </mat-chip-row>
     <input matInput type="text" placeholder="{{ !disabled ? ((!entitySubtypeList || !entitySubtypeList.length) ? placeholder : secondaryPlaceholder) : '' }}"
            style="max-width: 200px;"
            #entitySubtypeInput
@@ -52,7 +54,7 @@
            [matChipInputFor]="chipList"
            [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
            (matChipInputTokenEnd)="chipAdd($event)">
-  </mat-chip-list>
+  </mat-chip-grid>
   <mat-autocomplete #entitySubtypeAutocomplete="matAutocomplete"
                     class="tb-autocomplete"
                     (optionSelected)="selected($event)"
@@ -66,6 +68,9 @@
       </span>
     </mat-option>
   </mat-autocomplete>
+  <div matSuffix>
+    <ng-content select="[matSuffix]"></ng-content>
+  </div>
   <mat-error *ngIf="entitySubtypeListFormGroup.get('entitySubtypeList').hasError('required')">
     {{ subtypeListEmptyText | translate }}
   </mat-error>

@@ -32,8 +32,8 @@
 import { Component, forwardRef, Input, OnDestroy } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -44,7 +44,7 @@ import {
 import { Subject } from 'rxjs';
 import { DeviceCredentialMQTTBasic } from '@shared/models/device.models';
 import { takeUntil } from 'rxjs/operators';
-import { isDefinedAndNotNull, isEmptyStr } from '@core/utils';
+import { generateSecret, isDefinedAndNotNull, isEmptyStr } from '@core/utils';
 
 @Component({
   selector: 'tb-device-credentials-mqtt-basic',
@@ -67,12 +67,12 @@ export class DeviceCredentialsMqttBasicComponent implements ControlValueAccessor
   @Input()
   disabled: boolean;
 
-  deviceCredentialsMqttFormGroup: FormGroup;
+  deviceCredentialsMqttFormGroup: UntypedFormGroup;
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private propagateChange = (v: any) => {};
 
-  constructor(public fb: FormBuilder) {
+  constructor(public fb: UntypedFormBuilder) {
     this.deviceCredentialsMqttFormGroup = this.fb.group({
       clientId: [null],
       userName: [null],
@@ -134,7 +134,7 @@ export class DeviceCredentialsMqttBasicComponent implements ControlValueAccessor
   }
 
   private atLeastOne(validator: ValidatorFn, controls: string[] = null) {
-    return (group: FormGroup): ValidationErrors | null => {
+    return (group: UntypedFormGroup): ValidationErrors | null => {
       if (!controls) {
         controls = Object.keys(group.controls);
       }
@@ -142,5 +142,9 @@ export class DeviceCredentialsMqttBasicComponent implements ControlValueAccessor
 
       return hasAtLeastOne ? null : {atLeastOne: true};
     };
+  }
+
+  public generate(formControlName: string) {
+    this.deviceCredentialsMqttFormGroup.get(formControlName).patchValue(generateSecret(20));
   }
 }

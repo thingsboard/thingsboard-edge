@@ -29,16 +29,13 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
-  .mat-icon.icon-value {
-    padding: 4px;
-    margin: 8px 4px 4px;
-    cursor: pointer;
-    border: solid 1px rgba(0, 0, 0, .27);
-  }
-}
-
-:host ::ng-deep {
-  .mat-form-field-infix{
-    width: 146px;
+  .mat-icon {
+    &.icon-value {
+      padding: 4px;
+      margin: 12px 4px 4px;
+      cursor: pointer;
+      border: solid 1px rgba(0, 0, 0, .27);
+      box-sizing: initial;
+    }
   }
 }

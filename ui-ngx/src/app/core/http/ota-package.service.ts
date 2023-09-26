@@ -173,7 +173,7 @@ export class OtaPackageService {
   }
 
   public confirmDialogUpdatePackage(entity: BaseData<EntityId>&OtaPagesIds,
-                                    originEntity: BaseData<EntityId>&OtaPagesIds): Observable<boolean> {
+                                    originEntity?: BaseData<EntityId>&OtaPagesIds): Observable<boolean> {
     const tasks: Observable<number>[] = [];
     if (originEntity?.id?.id && originEntity.firmwareId?.id !== entity.firmwareId?.id) {
       const packageId = entity.firmwareId?.id || originEntity.firmwareId?.id;

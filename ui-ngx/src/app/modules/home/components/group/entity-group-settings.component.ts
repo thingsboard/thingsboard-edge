@@ -30,7 +30,7 @@
 ///
 
 import { AfterViewInit, Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { EntityType } from '@shared/models/entity-type.models';
@@ -56,7 +56,7 @@ export class EntityGroupSettingsComponent extends PageComponent implements Contr
 
   modelValue: EntityGroupSettings | null;
 
-  settingsFormGroup: FormGroup;
+  settingsFormGroup: UntypedFormGroup;
 
   @Input()
   entityType: EntityType;
@@ -70,7 +70,7 @@ export class EntityGroupSettingsComponent extends PageComponent implements Contr
   entityTypes = EntityType;
 
   constructor(protected store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 

@@ -44,9 +44,21 @@ public class SolutionTemplateInfo extends SolutionTemplate {
     @ApiModelProperty(position = 8, value = "Short description to display on template card")
     private String shortDescription;
 
+    @ApiModelProperty(position = 9, value = "Video preview image URL")
+    private String videoPreviewImageUrl;
+
+    @ApiModelProperty(position = 10, value = "Video MP4 URL")
+    private String previewMp4Url;
+
+    @ApiModelProperty(position = 11, value = "Video WEBM URL")
+    private String previewWebmUrl;
+
     public SolutionTemplateInfo(SolutionTemplateInfo solution) {
         super(solution);
         this.previewImageUrl = solution.previewImageUrl;
         this.shortDescription = solution.shortDescription;
+        this.videoPreviewImageUrl = solution.videoPreviewImageUrl;
+        this.previewMp4Url = solution.previewMp4Url;
+        this.previewWebmUrl = solution.previewWebmUrl;
     }
 }

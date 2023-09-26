@@ -54,6 +54,8 @@ public class IntegrationUtil {
                 return newInstance("org.thingsboard.integration.http.tmobile.TMobileIotCdpIntegration");
             case CHIRPSTACK:
                 return newInstance("org.thingsboard.integration.http.chirpstack.ChirpStackIntegration");
+            case PARTICLE:
+                return newInstance("org.thingsboard.integration.http.particle.ParticleIntegration");
             case MQTT:
                 return newInstance("org.thingsboard.integration.mqtt.basic.BasicMqttIntegration");
             case AWS_IOT:
@@ -81,6 +83,8 @@ public class IntegrationUtil {
                 return newInstance("org.thingsboard.integration.rabbitmq.basic.BasicRabbitMQIntegration");
             case APACHE_PULSAR:
                 return newInstance("org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration");
+            case TUYA:
+                return newInstance("org.thingsboard.integration.tuya.TuyaIntegration");
             case COAP:
                 return newInstance("org.thingsboard.integration.coap.CoapIntegration", param);
             case TCP:
@@ -101,6 +105,8 @@ public class IntegrationUtil {
                 } else {
                     throw new RuntimeException("Custom Integrations should be executed remotely!");
                 }
+            case AZURE_SERVICE_BUS:
+                return newInstance("org.thingsboard.integration.azure.AzureServiceBusIntegration");
             default:
                 throw new RuntimeException("Not Implemented!");
         }

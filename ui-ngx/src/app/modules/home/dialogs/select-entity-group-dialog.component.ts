@@ -34,7 +34,14 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import {
+  FormGroupDirective,
+  NgForm,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
 import { EntityId } from '@shared/models/id/entity-id';
 import { Observable } from 'rxjs';
 import { DialogComponent } from '@shared/components/dialog.component';
@@ -44,7 +51,6 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation } from '@shared/models/security.models';
 import { EntityGroup, EntityGroupInfo } from '@shared/models/entity-group.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
-import { BroadcastService } from '@core/services/broadcast.service';
 
 export interface SelectEntityGroupDialogResult {
   groupId: string;
@@ -73,7 +79,7 @@ export interface SelectEntityGroupDialogData {
 export class SelectEntityGroupDialogComponent extends
   DialogComponent<SelectEntityGroupDialogComponent, SelectEntityGroupDialogResult> implements OnInit, ErrorStateMatcher {
 
-  selectEntityGroupFormGroup: FormGroup;
+  selectEntityGroupFormGroup: UntypedFormGroup;
 
   submitted = false;
 
@@ -93,11 +99,10 @@ export class SelectEntityGroupDialogComponent extends
               protected router: Router,
               protected userPermissionsService: UserPermissionsService,
               protected entityGroupService: EntityGroupService,
-              protected broadcast: BroadcastService,
               @Inject(MAT_DIALOG_DATA) public data: SelectEntityGroupDialogData,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public dialogRef: MatDialogRef<SelectEntityGroupDialogComponent, SelectEntityGroupDialogResult>,
-              public fb: FormBuilder) {
+              public fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
     this.ownerId = data.ownerId;
     this.targetGroupType = data.targetGroupType;
@@ -143,7 +148,7 @@ export class SelectEntityGroupDialogComponent extends
     }
   }
 
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: UntypedFormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
     const customErrorState = !!(control && control.invalid && this.submitted);
     return originalErrorState || customErrorState;
@@ -165,9 +170,6 @@ export class SelectEntityGroupDialogComponent extends
       };
       this.entityGroupService.saveEntityGroup(newEntityGroup).subscribe((entityGroup) => {
         this.groupSelected({groupId: entityGroup.id.id, group: entityGroup, isNew: true});
-        if (this.userPermissionsService.isDirectlyOwnedGroup(entityGroup)) {
-          this.broadcast.broadcast(`${this.targetGroupType}changed`);
-        }
       });
     } else {
       const targetEntityGroupId: string = this.selectEntityGroupFormGroup.get('targetEntityGroupId').value;

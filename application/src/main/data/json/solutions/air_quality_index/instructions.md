@@ -17,7 +17,7 @@ Making the dashboard public is also useful when you plan to embed the page into 
 The dashboard has multiple states:
 
 <div class="img-float" style="max-width:50%;margin: 20px auto;float:right">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/instruction-city-state.png" alt="AQI Public Dashboard - City State">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/instruction-city-state.png" alt="AQI Public Dashboard - City State">
 </div>
 
 - **City state** represents the air pollution monitoring of a specific city (in our case Los Angeles) and calculates value based on the maximum AQI received from city sensors. Also, this state contains the following elements:
@@ -37,7 +37,7 @@ The dashboard has multiple states:
     Click on one of these tiles and a pop-up will appear, which will display a description, general recommendations, as well as its statistics for this pollutant.
 
 <div class="img-float" style="max-width:50%;margin: 10px auto">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/instruction-sensor-state.png" alt="AQI Public Dashboard - Sensor State">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/instruction-sensor-state.png" alt="AQI Public Dashboard - Sensor State">
 </div>
 
 
@@ -59,7 +59,7 @@ This dashboard is designed for tenant administrators to perform basic device man
     Click on **“Details”** and go to the selected **Sensor state**.
 
 <div class="img-float" style="max-width: 50%;margin: 10px auto">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/instruction-admin-state-1.png" alt="AQI Administration Dashboard - Sensor State">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/instruction-admin-state-1.png" alt="AQI Administration Dashboard - Sensor State">
 </div>
 
 - **Sensor state** allows you to view detailed information about the sensor. It contains the following sections:
@@ -71,7 +71,7 @@ This dashboard is designed for tenant administrators to perform basic device man
    - Connection status chart.
 
 <div class="img-float" style="max-width: 50%;margin: 10px auto">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/instruction-admin-state-2.png" alt="AQI Administration Dashboard - Sensor State">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/instruction-admin-state-2.png" alt="AQI Administration Dashboard - Sensor State">
 </div>
 
 #### Entity Groups
@@ -86,7 +86,7 @@ Solution has:
 The next step is to find and save the maximum AQI value for AQI City and the average values for temperature and humidity.
 
 <div class="img-float" style="max-width: 50%;margin: 10px auto;">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/instruction-rule-chain-aqi-sensor-1.png" alt="Rule Chain - AQI Sensor">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/instruction-rule-chain-aqi-sensor-1.png" alt="Rule Chain - AQI Sensor">
 </div>
 
 1. Also, we described the conditions for creating Inactivity alarms.
@@ -97,14 +97,14 @@ At the first stage, we check the activity of the sensors:
 2. <!--In order to ensure the display of the dynamic status of device activity on the Administration Dashboard, a separate type of telemetry - **"activityState"** has been created and recorded. The conditions have been prescribed that allow us to check the device's activity and store data about its status.-->
 
 <div class="img-float" style="max-width: 60%;margin:auto">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/instruction-rule-chain-aqi-sensor-2.png" alt="Rule Chain - AQI Sensor">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/instruction-rule-chain-aqi-sensor-2.png" alt="Rule Chain - AQI Sensor">
 </div>
 
 
 3. We also use “alarms count” node to count **batteryLevel** and **Inactivity alarms**, if they are defined by conditions.
 
 <div class="img-float" style="max-width: 50%;margin:auto">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/instruction-rule-chain-aqi-sensor-3.png" alt="Rule Chain - AQI Sensor">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/instruction-rule-chain-aqi-sensor-3.png" alt="Rule Chain - AQI Sensor">
 </div>
 
 <br>
@@ -112,7 +112,7 @@ At the first stage, we check the activity of the sensors:
 **AQI City** rule chain responsible for the simultaneous processing, change or duplicate of such attributes as *batteryLevelThreshold*, *inactivityTimeout* of all sensors participating in the creation of Alarm Rules.
 
 <div class="img-float" style="max-width: 240px;margin: auto;">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/instruction-rule-chain-aqi-city-1.png" alt="Rule Chain - AQI City">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/instruction-rule-chain-aqi-city-1.png" alt="Rule Chain - AQI City">
 </div>
 
 <!--**AQI City** and **AQI Sensor** Rule Chains are responsible for processing all telemetry about pollutants from devices and calculating it to the AQI. Also, the "alarms count" node is used to propagate alarms if it is defined under the conditions.
@@ -127,8 +127,8 @@ The device profile listed below uses pre-defined values for alarm thresholds. Ad
 The profile is configured to raise alarms if the value of "Low Battery Level" is lower than a threshold. The major alarm is raised when the value is lower than what was configured by the administrator.
 
 #### Alarms
-Alarms are generated using two <a href="https://thingsboard.io/docs/user-guide/device-profiles/#alarm-rules" target="_blank">Alarm rules</a> in the
-"AIR Sensor" <a href="/deviceProfiles" target="_blank">device profile</a>.
+Alarms are generated using two <a href="https://thingsboard.io/docs/pe/user-guide/device-profiles/#alarm-rules" target="_blank">Alarm rules</a> in the
+"AIR Sensor" <a href="/profiles/deviceProfiles" target="_blank">device profile</a>.
 User may turn alarms on and off as well as configure the alarm thresholds via the <a href="${MAIN_DASHBOARD_URL}" target="_blank">"Air Quality Monitoring"</a> dashboard using "Edit Sensor" form.
 
 
@@ -149,8 +149,8 @@ We have already created five sensors and loaded some demo data for them. See dev
 curl -v -X POST -d "{\"temperature\":  42, \"humidity\":  73, \"pm25\":  24.4, \"pm10\":  30, \"no2\":  13, \"co\":  2.8, \"so2\":  7, \"o3\":  0.164, \"batteryLevel\":  77 }" ${BASE_URL}/api/v1/${Air Quality Sensor 1ACCESS_TOKEN}/telemetry --header "Content-Type:application/json"{:copy-code}
 ```
 
-The example above uses <a href="https://thingsboard.io/docs/reference/http-api/#telemetry-upload-api" target="_blank">HTTP API</a>.
-See <a href="https://thingsboard.io/docs/getting-started-guides/connectivity/" target="_blank">connecting devices</a> for other connectivity options.
+The example above uses <a href="https://thingsboard.io/docs/pe/reference/http-api/#telemetry-upload-api" target="_blank">HTTP API</a>.
+See <a href="https://thingsboard.io/docs/pe/getting-started-guides/connectivity/" target="_blank">connecting devices</a> for other connectivity options.
 
 ### Solution entities
 
@@ -168,7 +168,7 @@ Let's take for example the sensor Air Quality Sensor 1 (Hollywood), which curren
 
 <br>
 <div class="img-float" style="max-width: 60%;margin:auto">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/use-case-sensor-1-1.png" alt="">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/use-case-sensor-1-1.png" alt="">
 </div>
 
 <br>
@@ -176,7 +176,7 @@ Let's take for example the sensor Air Quality Sensor 1 (Hollywood), which curren
 In order to adjust the **Battery Level** alarm parameters, click on the “settings” button in the “Alarms” section, after which a pop-up will appear for setting the limit values for alarms.
 
 <div class="img-float" style="max-width: 60%;margin:auto">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/use-case-sensor-1-2.png" alt="">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/use-case-sensor-1-2.png" alt="">
 </div>
 
 <br>
@@ -186,7 +186,7 @@ Set Alarm rules to 10% and save by pressing the "Save" button.
 <br>
 
 <div class="img-float" style="max-width: fit-content;margin:auto">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/use-case-sensor-1-3.png" alt="">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/use-case-sensor-1-3.png" alt="">
 </div>
 
 <br>
@@ -204,7 +204,7 @@ Now we can see that the Battery Level of the Hollywood sensor is 9%, this level 
 
 
 <div class="img-float" style="max-width: 60%;margin:auto">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/use-case-sensor-1-4.png" alt="">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/use-case-sensor-1-4.png" alt="">
 </div>
 
 
@@ -220,7 +220,7 @@ The starting value of PM 2.5 in AQI equivalent is 52, you can see it in the pict
 
 
 <div class="img-float" style="max-width: 60%;margin:10px auto">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/use-case-sensor-2-1.png" alt="">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/use-case-sensor-2-1.png" alt="">
 </div>
 
 
@@ -234,11 +234,58 @@ curl -v -X POST -d "{\"pm25\": 400 }" ${BASE_URL}/api/v1/${Air Quality Sensor 2A
 
 
 <div class="img-float" style="max-width: 50%;margin:auto">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/use-case-sensor-2-2.png" alt="">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/use-case-sensor-2-2.png" alt="">
 </div>
 <div class="img-float" style="max-width: 50%;margin:auto">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/use-case-sensor-2-3.png" alt="">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/use-case-sensor-2-3.png" alt="">
 </div>
 
 
 After the data has been sent, you can see that the dashboard received the value of **PM 2.5 - 400 μg/m3** and calculated it as **AQI - 433**, which is a **hazardous** level of pollution.
+
+### Edge computing
+
+**Optionally**, this solution can be extended to use edge computing.
+
+<a href="https://thingsboard.io/products/thingsboard-edge/" target="_blank">ThingsBoard Edge</a> allows bringing data analysis and management to the edge, where the data created.
+At the same time ThingsBoard Edge seamlessly synchronizing with the ThingsBoard cloud according to your business needs.
+
+As example, in the context of Air Quality Monitoring solution, edge computing could be useful if you have cities that are scattered throughout the country.
+In this case, ThingsBoard Edge can be deployed into every city (remote location) to process data from sensors and other devices, calculation of AQI, enabling real-time analysis and decision-making, such as generating alarms in case pollution level is violated. 
+Edge is going to process data in case there is no network connection to the central ThingsBoard server, and thus no data will be lost and required decisions are going to be taken locally. 
+Eventually, required data is going to be pushed to the cloud, once network connection is established. 
+Configuration of edge computing business logic is centralized in a single place - ThingsBoard server.
+
+In the scope of this solution, new edge entity <a href="${Remote Location R1EDGE_DETAILS_URL}" target="_blank">Remote Location R1</a> was created.
+
+Additionally, particular entity groups were already assigned to the edge entity to simplify the edge deployment:
+
+* **"AQI City"** *ASSET* group;
+* **"AQI Sensor"** *DEVICE* group;
+* **"Air Quality Monitoring"** *DASHBOARD* group.
+* **"Air Quality Monitoring Public"** *DASHBOARD* group.
+
+To install ThingsBoard Edge and connect to the cloud, please navigate to <a href="${Remote Location R1EDGE_DETAILS_URL}" target="_blank">edge details page</a> and click **Install & Connect instructions** button.
+
+Once the edge is installed and connected to the cloud, you will be able to log in into edge using your tenant credentials.
+
+#### Push data to device on edge
+
+**"AQI Sensor"** *DEVICE* group was assigned to the edge entity "Remote Location R1".
+This means that all devices from this group will be automatically provisioned to the edge.
+
+You can see devices from this group once you log in into edge and navigate to the **Entities -> Devices** page.
+
+To emulate the data upload on behalf of device "Air Quality Sensor 1" to the edge, one should execute the following command:
+
+```bash
+curl -v -X POST -d "{\"temperature\":  42, \"humidity\":  73, \"pm25\":  24.4, \"pm10\":  30, \"no2\":  13, \"co\":  2.8, \"so2\":  7, \"o3\":  0.164, \"batteryLevel\":  77 }" http://localhost:8080/api/v1/${Air Quality Sensor 1ACCESS_TOKEN}/telemetry --header "Content-Type:application/json"{:copy-code}
+```
+
+Or please use next command if you updated edge HTTP 8080 bind port to **18080** during edge installation:
+
+```bash
+curl -v -X POST -d "{\"temperature\":  42, \"humidity\":  73, \"pm25\":  24.4, \"pm10\":  30, \"no2\":  13, \"co\":  2.8, \"so2\":  7, \"o3\":  0.164, \"batteryLevel\":  77 }" http://localhost:18080/api/v1/${Air Quality Sensor 1ACCESS_TOKEN}/telemetry --header "Content-Type:application/json"{:copy-code}
+```
+
+Once you'll push data to the device "Air Quality Sensor 1" on edge, you'll be able to see telemetry update on the cloud for this device as well.

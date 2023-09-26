@@ -35,7 +35,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { Router } from '@angular/router';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { TwoFactorAuthenticationService } from '@core/http/two-factor-authentication.service';
 import {
   AccountTwoFaSettings,
@@ -58,8 +58,8 @@ export class EmailAuthDialogComponent extends DialogComponent<EmailAuthDialogCom
   private authAccountConfig: TwoFactorAuthAccountConfig;
   private config: AccountTwoFaSettings;
 
-  emailConfigForm: FormGroup;
-  emailVerificationForm: FormGroup;
+  emailConfigForm: UntypedFormGroup;
+  emailVerificationForm: UntypedFormGroup;
 
   @ViewChild('stepper', {static: false}) stepper: MatStepper;
 
@@ -68,7 +68,7 @@ export class EmailAuthDialogComponent extends DialogComponent<EmailAuthDialogCom
               private twoFaService: TwoFactorAuthenticationService,
               @Inject(MAT_DIALOG_DATA) public data: EmailAuthDialogData,
               public dialogRef: MatDialogRef<EmailAuthDialogComponent>,
-              public fb: FormBuilder) {
+              public fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
 
     this.emailConfigForm = this.fb.group({
@@ -119,7 +119,7 @@ export class EmailAuthDialogComponent extends DialogComponent<EmailAuthDialogCom
     return this.dialogRef.close(this.config);
   }
 
-  private showFormErrors(form: FormGroup) {
+  private showFormErrors(form: UntypedFormGroup) {
     Object.keys(form.controls).forEach(field => {
       const control = form.get(field);
       control.markAsTouched({onlySelf: true});

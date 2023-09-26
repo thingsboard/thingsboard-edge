@@ -31,8 +31,8 @@
 
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -62,7 +62,7 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 })
 export class IntegrationCredentialsComponent implements ControlValueAccessor, Validator, OnInit, OnDestroy {
 
-  integrationCredentialForm: FormGroup;
+  integrationCredentialForm: UntypedFormGroup;
   hideSelectType = false;
 
   private allowCredentialTypesValue: IntegrationCredentialType[] = [];
@@ -79,10 +79,9 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
   private ignoreCaCertValue = false;
   @Input()
   set ignoreCaCert(value: boolean) {
-    const newVal = coerceBooleanProperty(value);
-    if (this.ignoreCaCertValue !== newVal && this.integrationCredentialForm) {
-      this.ignoreCaCertValue = newVal;
-      if (newVal) {
+    this.ignoreCaCertValue = coerceBooleanProperty(value);
+    if (this.integrationCredentialForm) {
+      if (this.ignoreCaCertValue) {
         this.integrationCredentialForm.get('caCertFileName').clearValidators();
         this.integrationCredentialForm.get('caCert').clearValidators();
       } else {
@@ -117,10 +116,10 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
   @Input()
   disabled: boolean;
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
   }
 
   ngOnInit() {

@@ -145,23 +145,39 @@ export interface StateEntityOwnerFilter {
 }
 
 export interface AssetTypeFilter {
+  /**
+   * @deprecated
+   */
   assetType?: string;
+  assetTypes?: string[];
   assetNameFilter?: string;
 }
 
 export interface DeviceTypeFilter {
+  /**
+   * @deprecated
+   */
   deviceType?: string;
+  deviceTypes?: string[];
   deviceNameFilter?: string;
 }
 
-export interface EntityViewFilter {
-  entityViewType?: string;
-  entityViewNameFilter?: string;
+export interface EdgeTypeFilter {
+  /**
+   * @deprecated
+   */
+  edgeType?: string;
+  edgeTypes?: string[];
+  edgeNameFilter?: string;
 }
 
-export interface EdgeTypeFilter {
-  edgeType?: string;
-  edgeNameFilter?: string;
+export interface EntityViewFilter {
+  /**
+   * @deprecated
+   */
+  entityViewType?: string;
+  entityViewTypes?: string[];
+  entityViewNameFilter?: string;
 }
 
 export interface RelationsQueryFilter {
@@ -186,7 +202,7 @@ export interface EntitySearchQueryFilter {
   fetchLastLevelOnly?: boolean;
 }
 
-// tslint:disable-next-line:no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ApiUsageStateFilter {
 
 }

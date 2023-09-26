@@ -30,7 +30,7 @@
 ///
 
 import { AfterViewInit, Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { SchedulerEventConfiguration } from '@shared/models/scheduler-event.models';
@@ -55,7 +55,7 @@ export class UpdateAttributesComponent implements ControlValueAccessor, OnInit, 
 
   modelValue: SchedulerEventConfiguration | null;
 
-  updateAttributesFormGroup: FormGroup;
+  updateAttributesFormGroup: UntypedFormGroup;
 
   currentGroupType: EntityType;
 
@@ -73,7 +73,7 @@ export class UpdateAttributesComponent implements ControlValueAccessor, OnInit, 
   private propagateChange = (v: any) => { };
 
   constructor(private store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.attributeScopes.push(AttributeScope.SERVER_SCOPE);
     this.attributeScopes.push(AttributeScope.SHARED_SCOPE);
     this.updateAttributesFormGroup = this.fb.group({

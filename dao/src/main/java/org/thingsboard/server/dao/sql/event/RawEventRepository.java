@@ -37,7 +37,6 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
-import org.thingsboard.server.common.data.event.ErrorEvent;
 import org.thingsboard.server.common.data.event.RawDataEvent;
 import org.thingsboard.server.dao.model.sql.ErrorEventEntity;
 import org.thingsboard.server.dao.model.sql.RawDataEventEntity;

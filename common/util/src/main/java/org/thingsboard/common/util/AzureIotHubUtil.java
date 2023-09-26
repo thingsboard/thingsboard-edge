@@ -32,15 +32,15 @@ package org.thingsboard.common.util;
 
 import lombok.extern.slf4j.Slf4j;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
+import java.util.Iterator;
 
 @Slf4j
 public final class AzureIotHubUtil {
@@ -51,7 +51,7 @@ public final class AzureIotHubUtil {
     private static final String DATA_DIR = "data";
     private static final String CERTS_DIR = "certs";
     private static final String AZURE_DIR = "azure";
-    private static final String FILE_NAME = "BaltimoreCyberTrustRoot.crt.pem";
+    private static final String FILE_NAME = "DigiCertGlobalRootG2.crt.pem";
 
     private static final Path FULL_FILE_PATH;
 
@@ -84,11 +84,7 @@ public final class AzureIotHubUtil {
             final String targetUri = URLEncoder.encode(host.toLowerCase(), "UTF-8");
             final long expiryTime = buildExpiresOn();
             String toSign = targetUri + "\n" + expiryTime;
-            byte[] keyBytes = Base64.getDecoder().decode(sasKey.getBytes(StandardCharsets.UTF_8));
-            SecretKeySpec signingKey = new SecretKeySpec(keyBytes, "HmacSHA256");
-            Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(signingKey);
-            byte[] rawHmac = mac.doFinal(toSign.getBytes(StandardCharsets.UTF_8));
+            byte[] rawHmac = HmacSHA256Util.sign(toSign, Base64.getDecoder().decode(sasKey.getBytes(StandardCharsets.UTF_8)));
             String signature = URLEncoder.encode(Base64.getEncoder().encodeToString(rawHmac), "UTF-8");
             return String.format(SAS_TOKEN_FORMAT, targetUri, signature, expiryTime);
         } catch (Exception e) {
@@ -103,12 +99,31 @@ public final class AzureIotHubUtil {
     }
 
     public static String getDefaultCaCert() {
-        try {
-            return new String(Files.readAllBytes(FULL_FILE_PATH));
-        } catch (IOException e) {
-            log.error("Failed to load Default CaCert file!!! [{}]", FULL_FILE_PATH.toString());
-            throw new RuntimeException("Failed to load Default CaCert file!!!");
+        byte[] fileBytes;
+        if (Files.exists(FULL_FILE_PATH)) {
+            try {
+                fileBytes = Files.readAllBytes(FULL_FILE_PATH);
+            } catch (IOException e) {
+                log.error("Failed to load Default CaCert file!!! [{}]", FULL_FILE_PATH, e);
+                throw new RuntimeException("Failed to load Default CaCert file!!!");
+            }
+        } else {
+            Path azureDirectory = FULL_FILE_PATH.getParent();
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(azureDirectory)) {
+                Iterator<Path> iterator = stream.iterator();
+                if (iterator.hasNext()) {
+                    Path firstFile = iterator.next();
+                    fileBytes = Files.readAllBytes(firstFile);
+                } else {
+                    log.error("Default CaCert file not found in the directory [{}]!!!", azureDirectory);
+                    throw new RuntimeException("Default CaCert file not found in the directory!!!");
+                }
+            } catch (IOException e) {
+                log.error("Failed to load Default CaCert file from the directory [{}]!!!", azureDirectory, e);
+                throw new RuntimeException("Failed to load Default CaCert file from the directory!!!");
+            }
         }
+        return new String(fileBytes);
     }
 
 }

@@ -1,0 +1,141 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<ng-container [formGroup]="entitiesTableWidgetSettingsForm">
+  <div class="tb-form-panel">
+    <div class="tb-form-panel-title" translate>widgets.table.table-header</div>
+    <div class="tb-form-row">
+      <div class="fixed-title-width">{{ 'widgets.table.entities-table-title' | translate }}</div>
+      <mat-form-field fxFlex appearance="outline" subscriptSizing="dynamic">
+        <input matInput formControlName="entitiesTitle" placeholder="{{ 'widget-config.set' | translate }}">
+      </mat-form-field>
+    </div>
+    <div class="tb-form-row">
+      <mat-slide-toggle class="mat-slide"  formControlName="enableStickyHeader">
+        {{ 'widgets.table.enable-sticky-header' | translate }}
+      </mat-slide-toggle>
+    </div>
+    <div class="tb-form-panel stroked">
+      <div class="tb-form-panel-title" translate>widgets.table.header-buttons</div>
+      <mat-slide-toggle class="mat-slide"  formControlName="enableSearch">
+        {{ 'widgets.table.enable-search' | translate }}
+      </mat-slide-toggle>
+      <mat-slide-toggle class="mat-slide"  formControlName="enableSelectColumnDisplay">
+        {{ 'widgets.table.enable-select-column-display' | translate }}
+      </mat-slide-toggle>
+    </div>
+  </div>
+  <div class="tb-form-panel">
+    <div class="tb-form-panel-title" translate>widgets.table.columns</div>
+    <div class="tb-form-row column-xs">
+      <mat-slide-toggle class="mat-slide fixed-title-width" formControlName="displayEntityName">
+        {{ 'widgets.table.display-entity-name' | translate }}
+      </mat-slide-toggle>
+      <mat-form-field fxFlex appearance="outline" subscriptSizing="dynamic">
+        <input matInput formControlName="entityNameColumnTitle" placeholder="{{ 'widget-config.set' | translate }}">
+      </mat-form-field>
+    </div>
+    <div class="tb-form-row column-xs">
+      <mat-slide-toggle class="mat-slide fixed-title-width" formControlName="displayEntityLabel">
+        {{ 'widgets.table.display-entity-label' | translate }}
+      </mat-slide-toggle>
+      <mat-form-field fxFlex appearance="outline" subscriptSizing="dynamic">
+        <input matInput formControlName="entityLabelColumnTitle" placeholder="{{ 'widget-config.set' | translate }}">
+      </mat-form-field>
+    </div>
+    <div class="tb-form-row">
+      <mat-slide-toggle class="mat-slide"  formControlName="displayEntityType">
+        {{ 'widgets.table.display-entity-type' | translate }}
+      </mat-slide-toggle>
+    </div>
+    <div class="tb-form-panel stroked">
+      <mat-slide-toggle class="mat-slide"  formControlName="enableStickyAction">
+        {{ 'widgets.table.enable-sticky-action' | translate }}
+      </mat-slide-toggle>
+      <mat-slide-toggle class="mat-slide"  formControlName="showCellActionsMenu">
+        {{ 'widgets.table.show-cell-actions-menu-mobile' | translate }}
+      </mat-slide-toggle>
+    </div>
+    <mat-form-field fxFlex subscriptSizing="dynamic">
+      <mat-label translate>widgets.table.hidden-cell-button-display-mode</mat-label>
+      <mat-select formControlName="reserveSpaceForHiddenAction">
+        <mat-option [value]="'true'">
+          {{ 'widgets.table.show-empty-space-hidden-action' | translate }}
+        </mat-option>
+        <mat-option [value]="'false'">
+          {{ 'widgets.table.dont-reserve-space-hidden-action' | translate }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field fxFlex subscriptSizing="dynamic">
+      <mat-label translate>widgets.table.default-sort-order</mat-label>
+      <input matInput formControlName="defaultSortOrder">
+    </mat-form-field>
+  </div>
+  <div class="tb-form-panel">
+    <div class="tb-form-panel-title" translate>widgets.table.pagination</div>
+    <mat-slide-toggle class="mat-slide"  formControlName="displayPagination">
+      {{ 'widgets.table.display-pagination' | translate }}
+    </mat-slide-toggle>
+    <div class="tb-form-row space-between column-xs">
+      <div translate>widgets.table.default-page-size</div>
+      <mat-form-field appearance="outline" class="number" subscriptSizing="dynamic">
+        <input matInput formControlName="defaultPageSize" type="number" min="1" step="1" placeholder="{{ 'widget-config.set' | translate }}">
+      </mat-form-field>
+    </div>
+  </div>
+  <div class="tb-form-panel tb-slide-toggle">
+    <div class="tb-form-panel-title" translate>widgets.table.rows</div>
+    <mat-expansion-panel class="tb-settings" [expanded]="entitiesTableWidgetSettingsForm.get('useRowStyleFunction').value">
+      <mat-expansion-panel-header fxLayout="row wrap">
+        <mat-panel-title>
+          <mat-slide-toggle class="mat-slide" formControlName="useRowStyleFunction" (click)="$event.stopPropagation()"
+                            fxLayoutAlign="center">
+            {{ 'widgets.table.use-row-style-function' | translate }}
+          </mat-slide-toggle>
+        </mat-panel-title>
+        <mat-panel-description fxFlex="40" fxLayoutAlign="end center" fxHide.xs translate>
+          widget-config.advanced-settings
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+      <ng-template matExpansionPanelContent>
+        <tb-js-func required
+                    formControlName="rowStyleFunction"
+                    [globalVariables]="functionScopeVariables"
+                    [functionArgs]="['entity', 'ctx']"
+                    functionTitle="{{ 'widgets.table.row-style-function' | translate }}"
+                    helpId="widget/lib/entity/row_style_fn">
+        </tb-js-func>
+      </ng-template>
+    </mat-expansion-panel>
+  </div>
+</ng-container>

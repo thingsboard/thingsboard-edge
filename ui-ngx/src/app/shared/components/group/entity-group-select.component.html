@@ -42,8 +42,8 @@
   </tb-entity-type-select>
   <tb-entity-group-autocomplete
     fxFlex
-    [fxShow]="entityGroupSelectFormGroup.get('groupType').value ||
-              entityGroupSelectFormGroup.get('groupId').value || !displayGroupTypeSelect"
+    [fxShow]="!!entityGroupSelectFormGroup.get('groupType').value ||
+              !!entityGroupSelectFormGroup.get('groupId').value || !displayGroupTypeSelect"
     [required]="required"
     [groupType]="getCurrentGroupType()"
     [ownerId]="ownerId"

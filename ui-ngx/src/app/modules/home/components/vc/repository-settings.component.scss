@@ -29,11 +29,8 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
-  mat-card.repository-settings {
+  .mat-mdc-card.repository-settings {
     margin: 8px;
-  }
-  mat-checkbox {
-    padding-bottom: 16px;
   }
   .fields-group {
     padding: 0 16px 8px;
@@ -50,10 +47,5 @@
       display: block;
       margin-top: 16px;
     }
-  }
-}
-:host ::ng-deep {
-  .mat-checkbox-layout {
-    white-space: normal !important;
   }
 }

@@ -37,7 +37,7 @@ import { AddEntitiesToEdgeDialogComponent } from '@home/dialogs/add-entities-to-
 import { SelectOwnerDialogComponent } from '@home/dialogs/select-owner-dialog.component';
 import { SelectEntityGroupDialogComponent } from '@home/dialogs/select-entity-group-dialog.component';
 import { ShareEntityGroupDialogComponent } from '@home/dialogs/share-entity-group-dialog.component';
-import { AddEntityGroupsToEdgeDialogComponent } from "@home/dialogs/add-entity-groups-to-edge-dialog.component";
+import { AddEntityGroupsToEdgeDialogComponent } from '@home/dialogs/add-entity-groups-to-edge-dialog.component';
 
 @NgModule({
   declarations:

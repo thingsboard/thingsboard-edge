@@ -104,24 +104,20 @@ public class OtaPackageController extends BaseController {
     public ResponseEntity<org.springframework.core.io.Resource> downloadOtaPackage(@ApiParam(value = OTA_PACKAGE_ID_PARAM_DESCRIPTION)
                                                                                    @PathVariable(OTA_PACKAGE_ID) String strOtaPackageId) throws ThingsboardException {
         checkParameter(OTA_PACKAGE_ID, strOtaPackageId);
-        try {
-            OtaPackageId otaPackageId = new OtaPackageId(toUUID(strOtaPackageId));
-            OtaPackage otaPackage = checkOtaPackageId(otaPackageId, Operation.READ);
+        OtaPackageId otaPackageId = new OtaPackageId(toUUID(strOtaPackageId));
+        OtaPackage otaPackage = checkOtaPackageId(otaPackageId, Operation.READ);
 
-            if (otaPackage.hasUrl()) {
-                return ResponseEntity.badRequest().build();
-            }
-
-            ByteArrayResource resource = new ByteArrayResource(otaPackage.getData().array());
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + otaPackage.getFileName())
-                    .header("x-filename", otaPackage.getFileName())
-                    .contentLength(resource.contentLength())
-                    .contentType(parseMediaType(otaPackage.getContentType()))
-                    .body(resource);
-        } catch (Exception e) {
-            throw handleException(e);
+        if (otaPackage.hasUrl()) {
+            return ResponseEntity.badRequest().build();
         }
+
+        ByteArrayResource resource = new ByteArrayResource(otaPackage.getData().array());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + otaPackage.getFileName())
+                .header("x-filename", otaPackage.getFileName())
+                .contentLength(resource.contentLength())
+                .contentType(parseMediaType(otaPackage.getContentType()))
+                .body(resource);
     }
 
     @ApiOperation(value = "Get OTA Package Info (getOtaPackageInfoById)",
@@ -134,12 +130,8 @@ public class OtaPackageController extends BaseController {
     public OtaPackageInfo getOtaPackageInfoById(@ApiParam(value = OTA_PACKAGE_ID_PARAM_DESCRIPTION)
                                                 @PathVariable(OTA_PACKAGE_ID) String strOtaPackageId) throws ThingsboardException {
         checkParameter(OTA_PACKAGE_ID, strOtaPackageId);
-        try {
-            OtaPackageId otaPackageId = new OtaPackageId(toUUID(strOtaPackageId));
-            return checkNotNull(otaPackageService.findOtaPackageInfoById(getTenantId(), otaPackageId));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        OtaPackageId otaPackageId = new OtaPackageId(toUUID(strOtaPackageId));
+        return checkNotNull(otaPackageService.findOtaPackageInfoById(getTenantId(), otaPackageId));
     }
 
     @ApiOperation(value = "Get OTA Package (getOtaPackageById)",
@@ -152,12 +144,8 @@ public class OtaPackageController extends BaseController {
     public OtaPackage getOtaPackageById(@ApiParam(value = OTA_PACKAGE_ID_PARAM_DESCRIPTION)
                                         @PathVariable(OTA_PACKAGE_ID) String strOtaPackageId) throws ThingsboardException {
         checkParameter(OTA_PACKAGE_ID, strOtaPackageId);
-        try {
-            OtaPackageId otaPackageId = new OtaPackageId(toUUID(strOtaPackageId));
-            return checkOtaPackageId(otaPackageId, Operation.READ);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        OtaPackageId otaPackageId = new OtaPackageId(toUUID(strOtaPackageId));
+        return checkOtaPackageId(otaPackageId, Operation.READ);
     }
 
     @ApiOperation(value = "Create Or Update OTA Package Info (saveOtaPackageInfo)",
@@ -221,12 +209,8 @@ public class OtaPackageController extends BaseController {
                                                    @RequestParam(required = false) String sortProperty,
                                                    @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
                                                    @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        try {
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(otaPackageService.findTenantOtaPackagesByTenantId(getTenantId(), pageLink));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        return checkNotNull(otaPackageService.findTenantOtaPackagesByTenantId(getTenantId(), pageLink));
     }
 
     @ApiOperation(value = "Get OTA Package Infos (getOtaPackages)",
@@ -252,13 +236,9 @@ public class OtaPackageController extends BaseController {
                                                    @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter("deviceProfileId", strDeviceProfileId);
         checkParameter("type", strType);
-        try {
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(otaPackageService.findTenantOtaPackagesByTenantIdAndDeviceProfileIdAndTypeAndHasData(getTenantId(),
-                    new DeviceProfileId(toUUID(strDeviceProfileId)), OtaPackageType.valueOf(strType), pageLink));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        return checkNotNull(otaPackageService.findTenantOtaPackagesByTenantIdAndDeviceProfileIdAndTypeAndHasData(getTenantId(),
+                new DeviceProfileId(toUUID(strDeviceProfileId)), OtaPackageType.valueOf(strType), pageLink));
     }
 
     @ApiOperation(value = "Delete OTA Package (deleteOtaPackage)",
@@ -299,13 +279,9 @@ public class OtaPackageController extends BaseController {
                                                         @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter("groupId", strGroupId);
         checkParameter("type", strType);
-        try {
-            EntityGroupId groupId = new EntityGroupId(toUUID(strGroupId));
-            checkEntityGroupId(groupId, Operation.READ);
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(otaPackageService.findOtaPackageInfosByGroupIdAndHasData(groupId, OtaPackageType.valueOf(strType), pageLink));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        EntityGroupId groupId = new EntityGroupId(toUUID(strGroupId));
+        checkEntityGroupId(groupId, Operation.READ);
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        return checkNotNull(otaPackageService.findOtaPackageInfosByGroupIdAndHasData(groupId, OtaPackageType.valueOf(strType), pageLink));
     }
 }

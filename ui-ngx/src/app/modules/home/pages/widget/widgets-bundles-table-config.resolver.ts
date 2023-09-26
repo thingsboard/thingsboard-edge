@@ -136,6 +136,9 @@ export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableCon
     this.config.deleteEntity = id => this.widgetsService.deleteWidgetsBundle(id.id);
     this.config.onEntityAction = action => this.onWidgetsBundleAction(action);
 
+    this.config.entityAdded = widgetsBundle => {
+      this.openWidgetsBundle(null, widgetsBundle);
+    };
   }
 
   resolve(): EntityTableConfig<WidgetsBundle> {
@@ -187,7 +190,7 @@ export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableCon
     if ($event) {
       $event.stopPropagation();
     }
-    this.router.navigateByUrl(`widgets-bundles/${widgetsBundle.id.id}/widgetTypes`);
+    this.router.navigateByUrl(`resources/widgets-bundles/${widgetsBundle.id.id}/widgetTypes`);
   }
 
   exportWidgetsBundle($event: Event, widgetsBundle: WidgetsBundle) {

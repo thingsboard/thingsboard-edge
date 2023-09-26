@@ -29,12 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
 import { LoginWhiteLabelingParams, WhiteLabelingParams } from '@shared/models/white-labeling.models';
@@ -45,19 +45,20 @@ import { environment as env } from '@env/environment';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { isDefined, isEqual } from '@core/utils';
 import { MatDialog } from '@angular/material/dialog';
 import { CustomCssDialogComponent, CustomCssDialogData } from '@home/pages/admin/custom-css-dialog.component';
 import { UiSettingsService } from '@core/http/ui-settings.service';
-import { share } from 'rxjs/operators';
+import { share, skip, takeUntil } from 'rxjs/operators';
+import { WINDOW } from '@core/services/window.service';
 
 @Component({
   selector: 'tb-white-labeling',
   templateUrl: './white-labeling.component.html',
   styleUrls: ['./settings-card.scss']
 })
-export class WhiteLabelingComponent extends PageComponent implements OnInit, HasConfirmForm {
+export class WhiteLabelingComponent extends PageComponent implements OnInit, OnDestroy, HasConfirmForm {
 
   maxFaviconSize = 262144;
   maxFaviconSizeKb = this.maxFaviconSize / 1024;
@@ -66,7 +67,7 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, Has
   maxLogoSize = 4194304;
   maxLogoSizeKb = this.maxLogoSize / 1024;
 
-  wlSettings: FormGroup;
+  wlSettings: UntypedFormGroup;
   whiteLabelingParams: WhiteLabelingParams & LoginWhiteLabelingParams;
 
   isSysAdmin = getCurrentAuthUser(this.store).authority === Authority.SYS_ADMIN;
@@ -91,6 +92,8 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, Has
     }
   ];
 
+  private destroy$ = new Subject<void>();
+
   constructor(protected store: Store<AppState>,
               private router: Router,
               private route: ActivatedRoute,
@@ -99,13 +102,19 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, Has
               private uiSettingsService: UiSettingsService,
               private translate: TranslateService,
               private dialog: MatDialog,
-              public fb: FormBuilder) {
+              public fb: UntypedFormBuilder,
+              @Inject(WINDOW) private window: Window) {
     super(store);
   }
 
   ngOnInit() {
     this.buildWhiteLabelingSettingsForm();
     this.loadWhiteLabelingParams();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private loadWhiteLabelingParams() {
@@ -152,7 +161,7 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, Has
 
     if (this.isLoginWl) {
       this.wlSettings.addControl('baseUrl',
-        this.fb.control('', [Validators.required])
+        this.fb.control('', [])
       );
       this.wlSettings.addControl('prohibitDifferentUrl',
         this.fb.control('', [])
@@ -191,6 +200,17 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, Has
       this.wlSettings.get('showNameVersion').valueChanges.subscribe(() => {
         this.updateValidators();
       });
+      if (this.isLoginWl && !this.isSysAdmin) {
+        this.wlSettings.get('domainName').valueChanges.pipe(
+          skip(1),
+          takeUntil(this.destroy$)
+        ).subscribe((value) => {
+          const baseUrlFormControl = this.wlSettings.get('baseUrl');
+          if (baseUrlFormControl.pristine) {
+            baseUrlFormControl.patchValue(value ? this.window.location.protocol + '//' + value : '');
+          }
+        });
+      }
     }
   }
 
@@ -282,7 +302,7 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, Has
     });
   }
 
-  confirmForm(): FormGroup {
+  confirmForm(): UntypedFormGroup {
     return this.wlSettings;
   }
 

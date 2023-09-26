@@ -33,7 +33,8 @@
 import { WidgetContext } from '@home/models/widget-component.models';
 import {
   createLabelFromDatasource,
-  deepClone, formattedDataFormDatasourceData,
+  deepClone,
+  formattedDataFormDatasourceData,
   insertVariable,
   isDefined,
   isDefinedAndNotNull,
@@ -69,14 +70,14 @@ import {
   TooltipValueFormatFunction
 } from './flot-widget.models';
 import * as moment_ from 'moment';
-import * as tinycolor_ from 'tinycolor2';
+import tinycolor from 'tinycolor2';
 import { AggregationType } from '@shared/models/time/time.models';
 import { CancelAnimationFrame } from '@core/services/raf.service';
 import { UtilsService } from '@core/services/utils.service';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
+import { BehaviorSubject } from 'rxjs';
 import Timeout = NodeJS.Timeout;
 
-const tinycolor = tinycolor_;
 const moment = moment_;
 
 export class TbFlot {
@@ -133,6 +134,9 @@ export class TbFlot {
   private mouseleaveHandler = this.onFlotMouseLeave.bind(this);
   private flotClickHandler = this.onFlotClick.bind(this);
 
+  private enableSelection: boolean;
+  private selectionMode: 'x' | null;
+
   private readonly showTooltip: boolean;
   private readonly animatedPie: boolean;
   private pieDataAnimationDuration: number;
@@ -143,10 +147,18 @@ export class TbFlot {
   private pieAnimationLastTime: number;
   private pieAnimationCaf: CancelAnimationFrame;
 
-  constructor(private ctx: WidgetContext, private readonly chartType: ChartType) {
+  private yMinSubject = new BehaviorSubject(-1);
+  private yMaxSubject = new BehaviorSubject(1);
+
+  yMin$ = this.yMinSubject.asObservable();
+  yMax$ = this.yMaxSubject.asObservable();
+
+  constructor(private ctx: WidgetContext, private readonly chartType: ChartType, private $flotElement?: JQuery<any>, settings?: TbFlotSettings) {
     this.chartType = this.chartType || 'line';
-    this.settings = ctx.settings as TbFlotSettings;
+    this.settings = settings || (ctx.settings as TbFlotSettings);
     this.utils = this.ctx.$injector.get(UtilsService);
+    this.enableSelection = isDefined(this.settings.enableSelection) ? this.settings.enableSelection : true;
+    this.selectionMode = this.enableSelection ? 'x' : null;
     this.showTooltip = isDefined(this.settings.showTooltip) ? this.settings.showTooltip : true;
     this.tooltip = this.showTooltip ? $('#flot-series-tooltip') : null;
     if (this.tooltip?.length === 0) {
@@ -183,7 +195,7 @@ export class TbFlot {
     };
 
     if (this.chartType === 'line' || this.chartType === 'bar' || this.chartType === 'state') {
-      this.options.selection = { mode : 'x' };
+      this.options.selection = { mode: this.selectionMode, touch: true };
       this.options.xaxes = [];
       this.xaxis = {
         mode: 'time',
@@ -219,6 +231,12 @@ export class TbFlot {
           this.yaxis.tickSize = this.settings.yaxis.tickSize;
         } else {
           this.yaxis.tickSize = null;
+        }
+        if (this.settings.yaxis.tickGenerator?.length) {
+          try {
+            this.yaxis.ticks = new Function('axis',
+              this.settings.yaxis.tickGenerator);
+          } catch (e) {}
         }
         if (isNumber(this.settings.yaxis.tickDecimals)) {
           this.yaxis.tickDecimals = this.settings.yaxis.tickDecimals;
@@ -350,12 +368,13 @@ export class TbFlot {
     }
 
     if (this.ctx.defaultSubscription) {
-      this.init(this.ctx.$container, this.ctx.defaultSubscription);
+      this.init(this.$flotElement || this.ctx.$container, this.ctx.defaultSubscription);
     }
   }
 
   private init($element: JQuery<any>, subscription: IWidgetSubscription) {
     this.$element = $element;
+    this.$element.css('letter-spacing', 'normal');
     this.subscription = subscription;
     this.comparisonEnabled = this.subscription ? this.subscription.comparisonEnabled : this.settings.comparisonEnabled;
     if (this.comparisonEnabled) {
@@ -423,7 +442,7 @@ export class TbFlot {
         }
       }
       series.lines = {
-        fill: keySettings.fillLines === true
+        fill: keySettings.fillLines === true ? (keySettings.fillLinesOpacity || 0.4) : false
       };
 
       if (this.settings.stack && !this.comparisonEnabled) {
@@ -727,6 +746,15 @@ export class TbFlot {
     }
   }
 
+  public updateSeriesColor(color: string) {
+    if (this.subscription?.data?.length) {
+      const series = this.subscription.data[0] as TbFlotSeries;
+      series.dataKey.color = color;
+      series.color = color;
+      series.highlightColor = tinycolor(color).setAlpha(.75).toRgbString();
+    }
+  }
+
   private latestDataByDataIndex(index: number): FormattedData {
     if (this.latestData[index]) {
       return this.latestData[index];
@@ -812,6 +840,8 @@ export class TbFlot {
       clearTimeout(this.resizeTimeoutHandle);
       this.resizeTimeoutHandle = null;
     }
+    this.yMinSubject.complete();
+    this.yMaxSubject.complete();
   }
 
   private createPlot() {
@@ -828,6 +858,7 @@ export class TbFlot {
         } else {
           this.plot = $.plot(this.$element, this.subscription.data, this.options) as JQueryPlot;
         }
+        this.updateYMinMax();
       } else {
         this.createPlotTimeoutHandle = setTimeout(this.createPlot.bind(this), 30);
       }
@@ -840,6 +871,20 @@ export class TbFlot {
       this.plot.setupGrid();
     }
     this.plot.draw();
+    this.updateYMinMax();
+  }
+
+  private updateYMinMax() {
+    if (this.plot?.getYAxes().length) {
+      const min = this.plot?.getYAxes()[0].min;
+      const max = this.plot?.getYAxes()[0].max;
+      if (this.yMinSubject.value !== min) {
+        this.yMinSubject.next(min);
+      }
+      if (this.yMaxSubject.value !== max) {
+        this.yMaxSubject.next(max);
+      }
+    }
   }
 
   private redrawPlot() {
@@ -1266,7 +1311,7 @@ export class TbFlot {
     this.$element.css('pointer-events', '');
     this.$element.addClass('mouse-events');
     if (this.chartType !== 'pie') {
-      this.options.selection = {mode: 'x'};
+      this.options.selection = {mode: this.selectionMode, touch: true};
       this.$element.bind('plotselected', this.flotSelectHandler);
       this.$element.bind('dblclick', this.dblclickHandler);
     }
@@ -1591,10 +1636,10 @@ export class TbFlot {
     const descriptors = this.ctx.actionsApi.getActionDescriptors('sliceClick');
     if ($event && descriptors.length) {
       $event.stopPropagation();
-      const entityInfo = this.ctx.actionsApi.getActiveEntityInfo();
-      const entityId = entityInfo ? entityInfo.entityId : null;
-      const entityName = entityInfo ? entityInfo.entityName : null;
-      const entityLabel = entityInfo ? entityInfo.entityLabel : null;
+      const datasource = item.series.datasource;
+      const entityId = datasource ? datasource.entity?.id : null;
+      const entityName = datasource ? datasource.entityName : null;
+      const entityLabel = datasource ? datasource.entityLabel : null;
       this.ctx.actionsApi.handleWidgetAction($event, descriptors[0], entityId, entityName, item, entityLabel);
     }
   }

@@ -31,7 +31,10 @@
 package org.thingsboard.integration.api.converter;
 
 import org.thingsboard.integration.api.IntegrationCallback;
+import org.thingsboard.integration.api.IntegrationRateLimitService;
 import org.thingsboard.server.common.data.event.Event;
+
+import java.util.Optional;
 
 /**
  * Created by ashvayka on 05.12.17.
@@ -50,4 +53,5 @@ public interface ConverterContext {
      */
     void saveEvent(Event event, IntegrationCallback<Void> callback);
 
+    Optional<IntegrationRateLimitService> getRateLimitService();
 }

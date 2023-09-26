@@ -52,7 +52,7 @@ import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbCoreIntegrationExecutorQueueFactory;
-import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.util.AfterStartUp;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
@@ -84,7 +84,7 @@ import java.util.stream.Collectors;
 public class DefaultClusterIntegrationService extends TbApplicationEventListener<PartitionChangeEvent> implements ClusterIntegrationService {
 
     private final TbServiceInfoProvider serviceInfoProvider;
-    private final TbQueueIntegrationNotificationSettings integrationNotificationSettings;
+    private final TbQueueIntegrationExecutorSettings integrationNotificationSettings;
     private final TbCoreIntegrationExecutorQueueFactory queueFactory;
     private final IntegrationManagerService integrationManagerService;
     private final DataDecodingEncodingService encodingService;
@@ -131,10 +131,12 @@ public class DefaultClusterIntegrationService extends TbApplicationEventListener
 
     @Override
     protected void onTbApplicationEvent(PartitionChangeEvent event) {
-        IntegrationType type = IntegrationType.valueOf(event.getQueueKey().getQueueName());
-        subscribeEventsMap.computeIfAbsent(type, t -> new ConcurrentLinkedQueue<>()).add(event.getPartitions());
-        queueExecutor.submit(() -> refreshIntegrationsByType(type));
-        consumers.get(type).subscribe(event.getPartitions());
+        event.getPartitionsMap().forEach(((queueKey, partitions) -> {
+            IntegrationType type = IntegrationType.valueOf(queueKey.getQueueName());
+            subscribeEventsMap.computeIfAbsent(type, t -> new ConcurrentLinkedQueue<>()).add(partitions);
+            queueExecutor.submit(() -> refreshIntegrationsByType(type));
+            consumers.get(type).subscribe(partitions);
+        }));
     }
 
     @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)

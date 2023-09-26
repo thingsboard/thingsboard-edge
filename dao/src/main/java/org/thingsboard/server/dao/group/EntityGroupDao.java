@@ -40,28 +40,19 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.ExportableEntityDao;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface EntityGroupDao extends Dao<EntityGroup>, ExportableEntityDao<EntityGroupId, EntityGroup> {
-    /**
-     * Find entity groups by entity group Ids.
-     *
-     * @param tenantId the tenantId
-     * @param entityGroupIds the entity group Ids
-     * @return the list of entity group objects
-     */
-    ListenableFuture<List<EntityGroup>> findEntityGroupsByIdsAsync(UUID tenantId, List<UUID> entityGroupIds);
 
-    ListenableFuture<List<EntityGroup>> findEntityGroupsByType(UUID tenantId, UUID parentEntityId, EntityType parentEntityType, EntityType groupType);
-
-    ListenableFuture<PageData<EntityGroup>> findEntityGroupsByTypeAndPageLink
+    PageData<EntityGroup> findEntityGroupsByType
             (UUID tenantId, UUID parentEntityId, EntityType parentEntityType, EntityType groupType, PageLink pageLink);
 
-    PageData<EntityGroup> findEntityGroupsByTypeAndPageLink(UUID tenantId, EntityType groupType, PageLink pageLink);
+    PageData<EntityGroup> findEntityGroupsByType(UUID tenantId, EntityType groupType, PageLink pageLink);
 
-    ListenableFuture<List<EntityGroup>> findAllEntityGroups(UUID tenantId, UUID parentEntityId, EntityType parentEntityType);
+    PageData<EntityGroup> findAllEntityGroupsByParentRelation(UUID tenantId, UUID parentEntityId, EntityType parentEntityType, PageLink pageLink);
+
+    PageData<EntityGroup> findAllEntityGroups(UUID tenantId, UUID parentEntityId, EntityType parentEntityType, PageLink pageLink);
 
     Optional<EntityGroup> findEntityGroupByTypeAndName(UUID tenantId, UUID parentEntityId,
                                                        EntityType parentEntityType, EntityType groupType, String name);

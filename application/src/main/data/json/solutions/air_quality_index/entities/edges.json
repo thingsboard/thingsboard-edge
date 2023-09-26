@@ -1,0 +1,31 @@
+[
+  {
+    "name": "Remote Location R1",
+    "type": "location",
+    "ruleChainIds": [
+      "9ae5aac7-1126-467c-8bc0-1d0d0feb3464",
+      "3bc41c36-776c-4d4f-b53f-b7ed7f9a76f3"
+    ],
+    "attributes": {},
+    "relations": [],
+    "userGroups": [],
+    "assetGroups": [
+      {
+        "name": "AQI City"
+      }
+    ],
+    "deviceGroups": [
+      {
+        "name": "AQI Sensor"
+      }
+    ],
+    "dashboardGroups": [
+      {
+        "name": "Air Quality Monitoring Public"
+      },
+      {
+        "name": "Air Quality Monitoring"
+      }
+    ]
+  }
+]

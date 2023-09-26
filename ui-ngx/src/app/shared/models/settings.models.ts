@@ -32,6 +32,7 @@
 import { ValidatorFn } from '@angular/forms';
 import { isNotEmptyStr, isNumber } from '@core/utils';
 import { VersionCreateConfig } from '@shared/models/vc.models';
+import { HasUUID } from '@shared/models/id/has-uuid';
 
 export const smtpPortPattern: RegExp = /^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$/;
 
@@ -40,17 +41,21 @@ export interface AdminSettings<T> {
   jsonValue: T;
 }
 
-export declare type SmtpProtocol = 'smtp' | 'smtps';
+export enum SmtpProtocol {
+  SMTP = 'smtp',
+  SMTPS = 'smtps'
+}
 
 export interface MailServerSettings {
   useSystemMailSettings: boolean;
-  showChangePassword: boolean;
+  showChangePassword?: boolean;
   mailFrom: string;
   smtpProtocol: SmtpProtocol;
   smtpHost: string;
   smtpPort: number;
   timeout: number;
   enableTls: boolean;
+  tlsVersion: string;
   username: string;
   changePassword?: boolean;
   password?: string;
@@ -59,6 +64,39 @@ export interface MailServerSettings {
   proxyPort: number;
   proxyUser: string;
   proxyPassword: string;
+  enableOauth2: boolean;
+  providerId?: string;
+  clientId?: string;
+  clientSecret?: string;
+  providerTenantId?: string;
+  authUri?: string;
+  tokenUri?: string;
+  scope?: Array<string>;
+  redirectUri?: string;
+  tokenGenerated?: boolean;
+}
+
+export enum MailServerOauth2Provider {
+  OFFICE_365 = 'OFFICE_365',
+  CUSTOM = 'CUSTOM'
+}
+
+export interface MailConfigTemplate {
+  id: HasUUID;
+  createdTime: number;
+  name: string;
+  providerId: string;
+  helpLink: string;
+  scope: Array<string>;
+  accessTokenUri: string;
+  authorizationUri: string;
+  enableTls: boolean;
+  tlsVersion: string;
+  smtpProtocol: SmtpProtocol;
+  smtpHost: string;
+  smtpPort: number;
+  timeout: number;
+  additionalInfo: any;
 }
 
 export interface GeneralSettings {
@@ -127,8 +165,12 @@ export interface JwtSettings {
 }
 
 export interface UpdateMessage {
-  message: string;
   updateAvailable: boolean;
+  currentVersion: string;
+  latestVersion: string;
+  upgradeInstructionsUrl: string;
+  currentVersionReleaseNotesUrl: string;
+  latestVersionReleaseNotesUrl: string;
 }
 
 export const phoneNumberPattern = /^\+[1-9]\d{1,14}$/;
@@ -494,3 +536,27 @@ export interface AutoVersionCreateConfig extends VersionCreateConfig {
 }
 
 export type AutoCommitSettings = {[entityType: string]: AutoVersionCreateConfig};
+
+export interface FeaturesInfo {
+  whiteLabelingEnabled: boolean;
+  emailEnabled: boolean;
+  smsEnabled: boolean;
+  notificationEnabled: boolean;
+  oauthEnabled: boolean;
+  twoFaEnabled: boolean;
+}
+
+export interface LicenseInfo {
+  maxDevices: number;
+  maxAssets: number;
+  whiteLabelingEnabled: boolean;
+  development: boolean;
+  plan: string;
+}
+
+export interface LicenseUsageInfo extends LicenseInfo {
+  devicesCount: number;
+  assetsCount: number;
+  dashboardsCount: number;
+  integrationsCount: number;
+}

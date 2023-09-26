@@ -40,7 +40,7 @@ import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import { entityDetailsPageBreadcrumbLabelFunction } from '@home/pages/home-pages.models';
 import { BreadCrumbConfig } from '@shared/components/breadcrumb';
 
-const routes: Routes = [
+export const rolesRoutes: Routes = [
   {
     path: 'roles',
     data: {
@@ -71,13 +71,26 @@ const routes: Routes = [
             icon: 'security'
           } as BreadCrumbConfig<EntityDetailsPageComponent>,
           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          title: 'role.roles'
+          title: 'role.roles',
+          hideTabs: true
         },
         resolve: {
           entitiesTableConfig: RolesTableConfigResolver
         }
       }
     ]
+  }
+];
+
+const routes: Routes = [
+  {
+    path: 'roles',
+    pathMatch: 'full',
+    redirectTo: '/security-settings/roles'
+  },
+  {
+    path: 'roles/:entityId',
+    redirectTo: '/security-settings/roles/:entityId'
   }
 ];
 

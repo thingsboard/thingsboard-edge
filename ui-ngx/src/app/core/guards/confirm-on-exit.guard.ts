@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanDeactivate, RouterStateSnapshot } from '@angular/router';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { select, Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { AuthState } from '@core/auth/auth.models';
@@ -43,7 +43,7 @@ import { isDefined } from '../utils';
 import { Observable, of } from 'rxjs';
 
 export interface HasConfirmForm {
-  confirmForm(): FormGroup;
+  confirmForm(): UntypedFormGroup;
   onExit?(): Observable<any>;
 }
 

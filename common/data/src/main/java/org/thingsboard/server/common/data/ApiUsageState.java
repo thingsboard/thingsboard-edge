@@ -35,9 +35,9 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.thingsboard.server.common.data.id.ApiUsageStateId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.ApiUsageStateId;
 
 @ToString
 @EqualsAndHashCode(callSuper = true)
@@ -53,6 +53,7 @@ public class ApiUsageState extends BaseData<ApiUsageStateId> implements TenantEn
     private ApiUsageStateValue dbStorageState;
     private ApiUsageStateValue reExecState;
     private ApiUsageStateValue jsExecState;
+    private ApiUsageStateValue tbelExecState;
     private ApiUsageStateValue emailExecState;
     private ApiUsageStateValue smsExecState;
     private ApiUsageStateValue alarmExecState;
@@ -73,6 +74,7 @@ public class ApiUsageState extends BaseData<ApiUsageStateId> implements TenantEn
         this.dbStorageState = ur.getDbStorageState();
         this.reExecState = ur.getReExecState();
         this.jsExecState = ur.getJsExecState();
+        this.tbelExecState = ur.getTbelExecState();
         this.emailExecState = ur.getEmailExecState();
         this.smsExecState = ur.getSmsExecState();
         this.alarmExecState = ur.getAlarmExecState();
@@ -92,6 +94,10 @@ public class ApiUsageState extends BaseData<ApiUsageStateId> implements TenantEn
 
     public boolean isJsExecEnabled() {
         return !ApiUsageStateValue.DISABLED.equals(jsExecState);
+    }
+
+    public boolean isTbelExecEnabled() {
+        return !ApiUsageStateValue.DISABLED.equals(tbelExecState);
     }
 
     public boolean isEmailSendEnabled(){

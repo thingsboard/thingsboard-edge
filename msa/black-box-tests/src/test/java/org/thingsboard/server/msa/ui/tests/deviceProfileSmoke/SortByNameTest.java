@@ -31,9 +31,11 @@
 package org.thingsboard.server.msa.ui.tests.deviceProfileSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
@@ -48,7 +50,7 @@ public class SortByNameTest extends AbstractDriverBaseTest {
     private ProfilesPageHelper profilesPage;
     private String name;
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
         sideBarMenuView = new SideBarMenuViewHelper(driver);
@@ -63,8 +65,10 @@ public class SortByNameTest extends AbstractDriverBaseTest {
         }
     }
 
+    @Epic("Device profiles smoke")
+    @Feature("Sort device profile by name")
     @Test(priority = 10, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "nameForSort")
-    @Description
+    @Description("Sort device profile 'UP'")
     public void specialCharacterUp(String name) {
         testRestClient.postDeviceProfile(defaultDeviceProfile(name));
         this.name = name;
@@ -76,8 +80,10 @@ public class SortByNameTest extends AbstractDriverBaseTest {
         Assert.assertEquals(profilesPage.getProfileName(), name);
     }
 
+    @Epic("Device profiles smoke")
+    @Feature("Sort device profile by name")
     @Test(priority = 20, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "nameForAllSort")
-    @Description
+    @Description("Sort device profile 'UP'")
     public void allSortUp(String deviceProfile, String deviceProfileSymbol, String deviceProfileNumber) {
         testRestClient.postDeviceProfile(defaultDeviceProfile(deviceProfileSymbol));
         testRestClient.postDeviceProfile(defaultDeviceProfile(deviceProfile));
@@ -101,8 +107,10 @@ public class SortByNameTest extends AbstractDriverBaseTest {
         Assert.assertEquals(thirdDeviceProfile, deviceProfile);
     }
 
+    @Epic("Device profiles smoke")
+    @Feature("Sort device profile by name")
     @Test(priority = 10, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "nameForSort")
-    @Description
+    @Description("Sort device profile 'DOWN'")
     public void specialCharacterDown(String name) {
         testRestClient.postDeviceProfile(defaultDeviceProfile(name));
         this.name = name;
@@ -114,8 +122,10 @@ public class SortByNameTest extends AbstractDriverBaseTest {
         Assert.assertEquals(profilesPage.getProfileName(), name);
     }
 
+    @Epic("Device profiles smoke")
+    @Feature("Sort device profile by name")
     @Test(priority = 20, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "nameForAllSort")
-    @Description
+    @Description("Sort device profile 'DOWN'")
     public void allSortDown(String deviceProfile, String deviceProfileSymbol, String deviceProfileNumber) {
         testRestClient.postDeviceProfile(defaultDeviceProfile(deviceProfileSymbol));
         testRestClient.postDeviceProfile(defaultDeviceProfile(deviceProfile));

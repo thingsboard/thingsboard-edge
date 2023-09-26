@@ -56,6 +56,8 @@ import org.thingsboard.server.common.data.ClaimRequest;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceInfo;
+import org.thingsboard.server.common.data.DeviceInfoFilter;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.SaveDeviceWithCredentialsRequest;
@@ -77,36 +79,51 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
+import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportRequest;
+import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportResult;
 import org.thingsboard.server.dao.device.claim.ClaimResponse;
 import org.thingsboard.server.dao.device.claim.ClaimResult;
 import org.thingsboard.server.dao.device.claim.ReclaimResult;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.device.DeviceBulkImportService;
-import org.thingsboard.server.service.gateway_device.GatewayNotificationsService;
-import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportRequest;
-import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportResult;
 import org.thingsboard.server.service.entitiy.device.TbDeviceService;
+import org.thingsboard.server.service.gateway_device.GatewayNotificationsService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import javax.annotation.Nullable;
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.DEVICE_ACTIVE_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.DEVICE_ID;
 import static org.thingsboard.server.controller.ControllerConstants.DEVICE_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.DEVICE_INFO_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.DEVICE_NAME_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.DEVICE_PROFILE_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.DEVICE_SORT_PROPERTY_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.DEVICE_TEXT_SEARCH_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.DEVICE_TYPE_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_DESCRIPTION_MARKDOWN;
+import static org.thingsboard.server.controller.ControllerConstants.DEVICE_UPDATE_CREDENTIALS_PARAM_ACCESS_TOKEN_DESCRIPTION_MARKDOWN;
+import static org.thingsboard.server.controller.ControllerConstants.DEVICE_UPDATE_CREDENTIALS_PARAM_LVM2M_RPK_DESCRIPTION_MARKDOWN;
+import static org.thingsboard.server.controller.ControllerConstants.DEVICE_UPDATE_CREDENTIALS_PARAM_MQTT_BASIC_DESCRIPTION_MARKDOWN;
+import static org.thingsboard.server.controller.ControllerConstants.DEVICE_UPDATE_CREDENTIALS_PARAM_X509_CERTIFICATE_DESCRIPTION_MARKDOWN;
+import static org.thingsboard.server.controller.ControllerConstants.DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_ACCESS_TOKEN_DEFAULT_DESCRIPTION_MARKDOWN;
+import static org.thingsboard.server.controller.ControllerConstants.DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_ACCESS_TOKEN_DESCRIPTION_MARKDOWN;
+import static org.thingsboard.server.controller.ControllerConstants.DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_LVM2M_RPK_DESCRIPTION_MARKDOWN;
+import static org.thingsboard.server.controller.ControllerConstants.DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_MQTT_BASIC_DESCRIPTION_MARKDOWN;
+import static org.thingsboard.server.controller.ControllerConstants.DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_X509_CERTIFICATE_DESCRIPTION_MARKDOWN;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.INCLUDE_CUSTOMERS_OR_SUB_CUSTOMERS;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
@@ -150,12 +167,21 @@ public class DeviceController extends BaseController {
     public Device getDeviceById(@ApiParam(value = DEVICE_ID_PARAM_DESCRIPTION)
                                 @PathVariable(DEVICE_ID) String strDeviceId) throws ThingsboardException {
         checkParameter(DEVICE_ID, strDeviceId);
-        try {
-            DeviceId deviceId = new DeviceId(toUUID(strDeviceId));
-            return checkDeviceId(deviceId, Operation.READ);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        DeviceId deviceId = new DeviceId(toUUID(strDeviceId));
+        return checkDeviceId(deviceId, Operation.READ);
+    }
+
+    @ApiOperation(value = "Get Device (getDeviceInfoById)",
+            notes = "Fetch the Device info object based on the provided Device Id. "
+                    + DEVICE_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/device/info/{deviceId}", method = RequestMethod.GET)
+    @ResponseBody
+    public DeviceInfo getDeviceInfoById(@ApiParam(value = DEVICE_ID_PARAM_DESCRIPTION)
+                                        @PathVariable(DEVICE_ID) String strDeviceId) throws ThingsboardException {
+        checkParameter(DEVICE_ID, strDeviceId);
+        DeviceId deviceId = new DeviceId(toUUID(strDeviceId));
+        return checkDeviceInfoId(deviceId, Operation.READ);
     }
 
     @ApiOperation(value = "Create Or Update Device (saveDevice)",
@@ -173,12 +199,13 @@ public class DeviceController extends BaseController {
     public Device saveDevice(@ApiParam(value = "A JSON value representing the device.", required = true) @RequestBody Device device,
                              @ApiParam(value = "Optional value of the device credentials to be used during device creation. " +
                                      "If omitted, access token will be auto-generated.") @RequestParam(name = "accessToken", required = false) String accessToken,
-                             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
+                             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
+                             @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws ThingsboardException {
         SecurityUser user = getCurrentUser();
-        return saveGroupEntity(device, strEntityGroupId,
-                (device1, entityGroup) -> {
+        return saveGroupEntity(device, strEntityGroupId, strEntityGroupIds,
+                (device1, entityGroups) -> {
                     try {
-                        return tbDeviceService.save(device1, accessToken, entityGroup, user);
+                        return tbDeviceService.save(device1, accessToken, entityGroups, user);
                     } catch (Exception e) {
                         throw handleException(e);
                     }
@@ -187,21 +214,33 @@ public class DeviceController extends BaseController {
 
     @ApiOperation(value = "Create Device (saveDevice) with credentials ",
             notes = "Create or update the Device. When creating device, platform generates Device Id as " + UUID_WIKI_LINK +
-                    "Requires to provide the Device Credentials object as well. Useful to create device and credentials in one request. " +
-                    "You may find the example of LwM2M device and RPK credentials below: \n\n" +
-                    DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_DESCRIPTION_MARKDOWN +
+                    "Requires to provide the Device Credentials object as well as an existing device profile ID or use \"default\".\n" +
+                    "You may find the example of device with different type of credentials below: \n\n" +
+                    "- Credentials type: <b>\"Access token\"</b> with <b>device profile ID</b> below: \n\n" +
+                    DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_ACCESS_TOKEN_DESCRIPTION_MARKDOWN  + "\n\n" +
+                    "- Credentials type: <b>\"Access token\"</b> with  <b>device profile default</b> below: \n\n" +
+                    DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_ACCESS_TOKEN_DEFAULT_DESCRIPTION_MARKDOWN  + "\n\n" +
+                    "- Credentials type: <b>\"X509\"</b> with <b>device profile ID</b> below: \n\n" +
+                    "Note: <b>credentialsId</b> -  format <b>Sha3Hash</b>, <b>certificateValue</b> - format <b>PEM</b> (with \"--BEGIN CERTIFICATE----\" and  -\"----END CERTIFICATE-\").\n\n" +
+                    DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_X509_CERTIFICATE_DESCRIPTION_MARKDOWN  + "\n\n" +
+                    "- Credentials type: <b>\"MQTT_BASIC\"</b> with <b>device profile ID</b> below: \n\n" +
+                    DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_MQTT_BASIC_DESCRIPTION_MARKDOWN  + "\n\n" +
+                    "- You may find the example of <b>LwM2M</b> device and <b>RPK</b> credentials below: \n\n" +
+                    "Note: LwM2M device - only existing device profile ID (Transport configuration -> Transport type: \"LWM2M\".\n\n" +
+                    DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_LVM2M_RPK_DESCRIPTION_MARKDOWN + "\n\n" +
                     "Remove 'id', 'tenantId' and optionally 'customerId' from the request body example (below) to create new Device entity. " +
                     TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/device-with-credentials", method = RequestMethod.POST)
     @ResponseBody
     public Device saveDeviceWithCredentials(@ApiParam(value = "The JSON object with device and credentials. See method description above for example.")
-                                            @RequestBody SaveDeviceWithCredentialsRequest deviceAndCredentials,
-                                            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
+                                            @Valid @RequestBody SaveDeviceWithCredentialsRequest deviceAndCredentials,
+                                            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
+                                            @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws ThingsboardException {
         Device device = checkNotNull(deviceAndCredentials.getDevice());
         DeviceCredentials credentials = checkNotNull(deviceAndCredentials.getCredentials());
         SecurityUser user = getCurrentUser();
-        return saveGroupEntity(device, strEntityGroupId,
+        return saveGroupEntity(device, strEntityGroupId, strEntityGroupIds,
                 (device1, entityGroup) -> tbDeviceService.saveDeviceWithCredentials(device1, credentials, entityGroup, user));
     }
 
@@ -233,11 +272,27 @@ public class DeviceController extends BaseController {
         return tbDeviceService.getDeviceCredentialsByDeviceId(device, getCurrentUser());
     }
 
-    @ApiOperation(value = "Update device credentials (updateDeviceCredentials)", notes = "During device creation, platform generates random 'ACCESS_TOKEN' credentials. " +
-            "Use this method to update the device credentials. First use 'getDeviceCredentialsByDeviceId' to get the credentials id and value. " +
-            "Then use current method to update the credentials type and value. It is not possible to create multiple device credentials for the same device. " +
-            "The structure of device credentials id and value is simple for the 'ACCESS_TOKEN' but is much more complex for the 'MQTT_BASIC' or 'LWM2M_CREDENTIALS'."
-            + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_WRITE_CREDENTIALS_CHECK)
+    @ApiOperation(value = "Update device credentials (updateDeviceCredentials)",
+            notes = "During device creation, platform generates random 'ACCESS_TOKEN' credentials.\n" +
+                    "Use this method to update the device credentials. First use 'getDeviceCredentialsByDeviceId' to get the credentials id and value.\n" +
+                    "Then use current method to update the credentials type and value. It is not possible to create multiple device credentials for the same device.\n" +
+                    "The structure of device credentials id and value is simple for the 'ACCESS_TOKEN' but is much more complex for the 'MQTT_BASIC' or 'LWM2M_CREDENTIALS'.\n" +
+                    "You may find the example of device with different type of credentials below: \n\n" +
+                    "- Credentials type: <b>\"Access token\"</b> with <b>device ID</b> and with <b>device ID</b> below: \n\n" +
+                    DEVICE_UPDATE_CREDENTIALS_PARAM_ACCESS_TOKEN_DESCRIPTION_MARKDOWN  + "\n\n" +
+                    "- Credentials type: <b>\"X509\"</b> with <b>device profile ID</b> below: \n\n" +
+                    "Note: <b>credentialsId</b> -  format <b>Sha3Hash</b>, <b>certificateValue</b> - format <b>PEM</b> (with \"--BEGIN CERTIFICATE----\" and  -\"----END CERTIFICATE-\").\n\n" +
+                    DEVICE_UPDATE_CREDENTIALS_PARAM_X509_CERTIFICATE_DESCRIPTION_MARKDOWN  + "\n\n" +
+                    "- Credentials type: <b>\"MQTT_BASIC\"</b> with <b>device profile ID</b> below: \n\n" +
+                    DEVICE_UPDATE_CREDENTIALS_PARAM_MQTT_BASIC_DESCRIPTION_MARKDOWN  + "\n\n" +
+                    "- You may find the example of <b>LwM2M</b> device and <b>RPK</b> credentials below: \n\n" +
+                    "Note: LwM2M device - only existing device profile ID (Transport configuration -> Transport type: \"LWM2M\".\n\n" +
+                    DEVICE_UPDATE_CREDENTIALS_PARAM_LVM2M_RPK_DESCRIPTION_MARKDOWN + "\n\n" +
+                    "Update to real value:\n" +
+                    " - 'id' (this is id of Device Credentials ->  \"Get Device Credentials (getDeviceCredentialsByDeviceId)\",\n" +
+                    " - 'deviceId.id' (this is id of Device).\n" +
+                    "Remove 'tenantId' and optionally 'customerId' from the request body example (below) to create new Device entity." +
+                    TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/device/credentials", method = RequestMethod.POST)
     @ResponseBody
@@ -268,17 +323,13 @@ public class DeviceController extends BaseController {
             @RequestParam(required = false) String sortProperty,
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
-            TenantId tenantId = getCurrentUser().getTenantId();
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            if (type != null && type.trim().length() > 0) {
-                return checkNotNull(deviceService.findDevicesByTenantIdAndType(tenantId, type, pageLink));
-            } else {
-                return checkNotNull(deviceService.findDevicesByTenantId(tenantId, pageLink));
-            }
-        } catch (Exception e) {
-            throw handleException(e);
+        accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        if (type != null && type.trim().length() > 0) {
+            return checkNotNull(deviceService.findDevicesByTenantIdAndType(tenantId, type, pageLink));
+        } else {
+            return checkNotNull(deviceService.findDevicesByTenantId(tenantId, pageLink));
         }
     }
 
@@ -292,13 +343,9 @@ public class DeviceController extends BaseController {
     public Device getTenantDevice(
             @ApiParam(value = DEVICE_NAME_DESCRIPTION)
             @RequestParam String deviceName) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
-            TenantId tenantId = getCurrentUser().getTenantId();
-            return checkNotNull(deviceService.findDeviceByTenantIdAndName(tenantId, deviceName));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        return checkNotNull(deviceService.findDeviceByTenantIdAndName(tenantId, deviceName));
     }
 
     @ApiOperation(value = "Get Customer Devices (getCustomerDevices)",
@@ -323,19 +370,15 @@ public class DeviceController extends BaseController {
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter("customerId", strCustomerId);
-        try {
-            TenantId tenantId = getCurrentUser().getTenantId();
-            CustomerId customerId = new CustomerId(toUUID(strCustomerId));
-            checkCustomerId(customerId, Operation.READ);
-            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            if (type != null && type.trim().length() > 0) {
-                return checkNotNull(deviceService.findDevicesByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
-            } else {
-                return checkNotNull(deviceService.findDevicesByTenantIdAndCustomerId(tenantId, customerId, pageLink));
-            }
-        } catch (Exception e) {
-            throw handleException(e);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+        checkCustomerId(customerId, Operation.READ);
+        accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        if (type != null && type.trim().length() > 0) {
+            return checkNotNull(deviceService.findDevicesByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
+        } else {
+            return checkNotNull(deviceService.findDevicesByTenantIdAndCustomerId(tenantId, customerId, pageLink));
         }
     }
 
@@ -358,15 +401,94 @@ public class DeviceController extends BaseController {
             @RequestParam(required = false) String sortProperty,
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        try {
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            SecurityUser currentUser = getCurrentUser();
-            MergedUserPermissions mergedUserPermissions = currentUser.getUserPermissions();
-            return entityService.findUserEntities(currentUser.getTenantId(), currentUser.getCustomerId(), mergedUserPermissions, EntityType.DEVICE,
-                    Operation.READ, type, pageLink);
-        } catch (Exception e) {
-            throw handleException(e);
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        SecurityUser currentUser = getCurrentUser();
+        MergedUserPermissions mergedUserPermissions = currentUser.getUserPermissions();
+        return entityService.findUserEntities(currentUser.getTenantId(), currentUser.getCustomerId(), mergedUserPermissions, EntityType.DEVICE,
+                Operation.READ, type, pageLink);
+    }
+
+    @ApiOperation(value = "Get All Device Infos for current user (getAllDeviceInfos)",
+            notes = "Returns a page of device info objects owned by the tenant or the customer of a current user. "
+                    + DEVICE_INFO_DESCRIPTION + " " + PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/deviceInfos/all", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<DeviceInfo> getAllDeviceInfos(
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
+            @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
+            @RequestParam int page,
+            @ApiParam(value = INCLUDE_CUSTOMERS_OR_SUB_CUSTOMERS)
+            @RequestParam(required = false) Boolean includeCustomers,
+            @ApiParam(value = DEVICE_PROFILE_ID_PARAM_DESCRIPTION)
+            @RequestParam(required = false) String deviceProfileId,
+            @ApiParam(value = DEVICE_ACTIVE_PARAM_DESCRIPTION)
+            @RequestParam(required = false) Boolean active,
+            @ApiParam(value = DEVICE_TEXT_SEARCH_DESCRIPTION)
+            @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = DEVICE_SORT_PROPERTY_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        DeviceInfoFilter.DeviceInfoFilterBuilder filter = DeviceInfoFilter.builder();
+        filter.tenantId(tenantId);
+        filter.active(active);
+        filter.includeCustomers(includeCustomers != null && includeCustomers);
+        if (deviceProfileId != null && deviceProfileId.length() > 0) {
+            filter.deviceProfileId(new DeviceProfileId(toUUID(deviceProfileId)));
         }
+        if (Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority())) {
+            filter.customerId(getCurrentUser().getCustomerId());
+        }
+        return checkNotNull(deviceService.findDeviceInfosByFilter(filter.build(), pageLink));
+    }
+
+    @ApiOperation(value = "Get Customer Device Infos (getCustomerDeviceInfos)",
+            notes = "Returns a page of device info objects owned by the specified customer. "
+                    + DEVICE_INFO_DESCRIPTION + " " + PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/customer/{customerId}/deviceInfos", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<DeviceInfo> getCustomerDeviceInfos(
+            @ApiParam(value = CUSTOMER_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(CUSTOMER_ID) String strCustomerId,
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
+            @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
+            @RequestParam int page,
+            @ApiParam(value = INCLUDE_CUSTOMERS_OR_SUB_CUSTOMERS)
+            @RequestParam(required = false) Boolean includeCustomers,
+            @ApiParam(value = DEVICE_PROFILE_ID_PARAM_DESCRIPTION)
+            @RequestParam(required = false) String deviceProfileId,
+            @ApiParam(value = DEVICE_ACTIVE_PARAM_DESCRIPTION)
+            @RequestParam(required = false) Boolean active,
+            @ApiParam(value = DEVICE_TEXT_SEARCH_DESCRIPTION)
+            @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = DEVICE_SORT_PROPERTY_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        checkParameter(CUSTOMER_ID, strCustomerId);
+        accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+        checkCustomerId(customerId, Operation.READ);
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        DeviceInfoFilter.DeviceInfoFilterBuilder filter = DeviceInfoFilter.builder();
+        filter.tenantId(tenantId);
+        filter.active(active);
+        filter.includeCustomers(includeCustomers != null && includeCustomers);
+        filter.customerId(customerId);
+        if (deviceProfileId != null && deviceProfileId.length() > 0) {
+            filter.deviceProfileId(new DeviceProfileId(toUUID(deviceProfileId)));
+        }
+        return checkNotNull(deviceService.findDeviceInfosByFilter(filter.build(), pageLink));
     }
 
     @ApiOperation(value = "Get Devices By Ids (getDevicesByIds)",
@@ -377,20 +499,16 @@ public class DeviceController extends BaseController {
     @ResponseBody
     public List<Device> getDevicesByIds(
             @ApiParam(value = "A list of devices ids, separated by comma ','")
-            @RequestParam("deviceIds") String[] strDeviceIds) throws ThingsboardException {
+            @RequestParam("deviceIds") String[] strDeviceIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("deviceIds", strDeviceIds);
-        try {
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            List<DeviceId> deviceIds = new ArrayList<>();
-            for (String strDeviceId : strDeviceIds) {
-                deviceIds.add(new DeviceId(toUUID(strDeviceId)));
-            }
-            List<Device> devices = checkNotNull(deviceService.findDevicesByTenantIdAndIdsAsync(tenantId, deviceIds).get());
-            return filterDevicesByReadPermission(devices);
-        } catch (Exception e) {
-            throw handleException(e);
+        SecurityUser user = getCurrentUser();
+        TenantId tenantId = user.getTenantId();
+        List<DeviceId> deviceIds = new ArrayList<>();
+        for (String strDeviceId : strDeviceIds) {
+            deviceIds.add(new DeviceId(toUUID(strDeviceId)));
         }
+        List<Device> devices = checkNotNull(deviceService.findDevicesByTenantIdAndIdsAsync(tenantId, deviceIds).get());
+        return filterDevicesByReadPermission(devices);
     }
 
     @ApiOperation(value = "Find related devices (findByQuery)",
@@ -402,17 +520,13 @@ public class DeviceController extends BaseController {
     @ResponseBody
     public List<Device> findByQuery(
             @ApiParam(value = "The device search query JSON")
-            @RequestBody DeviceSearchQuery query) throws ThingsboardException {
+            @RequestBody DeviceSearchQuery query) throws ThingsboardException, ExecutionException, InterruptedException {
         checkNotNull(query);
         checkNotNull(query.getParameters());
         checkNotNull(query.getDeviceTypes());
         checkEntityId(query.getParameters().getEntityId(), Operation.READ);
-        try {
-            List<Device> devices = checkNotNull(deviceService.findDevicesByQuery(getCurrentUser().getTenantId(), query).get());
-            return filterDevicesByReadPermission(devices);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        List<Device> devices = checkNotNull(deviceService.findDevicesByQuery(getCurrentUser().getTenantId(), query).get());
+        return filterDevicesByReadPermission(devices);
     }
 
     @ApiOperation(value = "Get devices by Entity Group Id (getDevicesByEntityGroupId)",
@@ -439,12 +553,8 @@ public class DeviceController extends BaseController {
         EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
         EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
         checkEntityGroupType(EntityType.DEVICE, entityGroup.getType());
-        try {
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(deviceService.findDevicesByEntityGroupId(entityGroupId, pageLink));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        return checkNotNull(deviceService.findDevicesByEntityGroupId(entityGroupId, pageLink));
     }
 
     private List<Device> filterDevicesByReadPermission(List<Device> devices) {
@@ -463,15 +573,11 @@ public class DeviceController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/device/types", method = RequestMethod.GET)
     @ResponseBody
-    public List<EntitySubtype> getDeviceTypes() throws ThingsboardException {
-        try {
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            ListenableFuture<List<EntitySubtype>> deviceTypes = deviceService.findDeviceTypesByTenantId(tenantId);
-            return checkNotNull(deviceTypes.get());
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+    public List<EntitySubtype> getDeviceTypes() throws ThingsboardException, ExecutionException, InterruptedException {
+        SecurityUser user = getCurrentUser();
+        TenantId tenantId = user.getTenantId();
+        ListenableFuture<List<EntitySubtype>> deviceTypes = deviceService.findDeviceTypesByTenantId(tenantId);
+        return checkNotNull(deviceTypes.get());
     }
 
     @ApiOperation(value = "Claim device (claimDevice)",
@@ -615,14 +721,10 @@ public class DeviceController extends BaseController {
                                                        @PathVariable("deviceProfileId") String deviceProfileId) throws ThingsboardException {
         checkParameter("OtaPackageType", otaPackageType);
         checkParameter("DeviceProfileId", deviceProfileId);
-        try {
-            return deviceService.countByDeviceProfileAndEmptyOtaPackage(
-                    getTenantId(),
-                    new DeviceProfileId(UUID.fromString(deviceProfileId)),
-                    OtaPackageType.valueOf(otaPackageType));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        return deviceService.countByDeviceProfileAndEmptyOtaPackage(
+                getTenantId(),
+                new DeviceProfileId(UUID.fromString(deviceProfileId)),
+                OtaPackageType.valueOf(otaPackageType));
     }
 
     @ApiOperation(value = "Count devices by device profile  (countByDeviceProfileAndEmptyOtaPackage)",
@@ -641,15 +743,11 @@ public class DeviceController extends BaseController {
         checkParameter("OtaPackageType", otaPackageType);
         checkParameter("OtaPackageId", otaPackageId);
         checkParameter("EntityGroupId", deviceGroupId);
-        try {
-            checkParameter("DeviceGroupId", deviceGroupId);
-            return deviceService.countByEntityGroupAndEmptyOtaPackage(
-                    new EntityGroupId(UUID.fromString(deviceGroupId)),
-                    new OtaPackageId(UUID.fromString(otaPackageId)),
-                    OtaPackageType.valueOf(otaPackageType));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        checkParameter("DeviceGroupId", deviceGroupId);
+        return deviceService.countByEntityGroupAndEmptyOtaPackage(
+                new EntityGroupId(UUID.fromString(deviceGroupId)),
+                new OtaPackageId(UUID.fromString(otaPackageId)),
+                OtaPackageType.valueOf(otaPackageType));
     }
 
     @ApiOperation(value = "Import the bulk of devices (processDevicesBulkImport)",

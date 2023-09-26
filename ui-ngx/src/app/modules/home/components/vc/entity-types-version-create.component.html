@@ -78,17 +78,17 @@
                   </mat-option>
                 </mat-select>
               </mat-form-field>
-              <div fxFlex fxLayout="column" fxLayoutGap="8px">
+              <div fxFlex fxLayout="column">
                 <mat-checkbox *ngIf="entityTypeFormGroup.get('entityType').value === entityTypes.USER" formControlName="savePermissions">
                   {{ 'version-control.export-roles' | translate }}
                 </mat-checkbox>
                 <mat-checkbox *ngIf="entityTypeFormGroup.get('entityType').value === entityTypes.DEVICE" formControlName="saveCredentials">
                   {{ 'version-control.export-credentials' | translate }}
                 </mat-checkbox>
-                <mat-checkbox formControlName="saveAttributes">
+                <mat-checkbox *ngIf="!entityTypesWithoutRelatedData.has(entityTypeFormGroup.get('entityType').value)" formControlName="saveAttributes">
                   {{ 'version-control.export-attributes' | translate }}
                 </mat-checkbox>
-                <mat-checkbox formControlName="saveRelations">
+                <mat-checkbox *ngIf="!entityTypesWithoutRelatedData.has(entityTypeFormGroup.get('entityType').value)" formControlName="saveRelations">
                   {{ 'version-control.export-relations' | translate }}
                 </mat-checkbox>
               </div>

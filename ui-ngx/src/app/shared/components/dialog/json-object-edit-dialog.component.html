@@ -34,7 +34,7 @@
   <mat-toolbar fxLayout="row" color="primary">
     <h2>{{ title }}</h2>
     <span fxFlex></span>
-    <button mat-button mat-icon-button
+    <button mat-icon-button
             (click)="cancel()"
             type="button">
       <mat-icon class="material-icons">close</mat-icon>
@@ -48,8 +48,7 @@
       <tb-json-object-edit
         formControlName="json"
         label="{{ 'value.json-value' | translate }}"
-        validateContent="true"
-        [required]="true"
+        [jsonRequired]="required"
         [fillHeight]="false">
       </tb-json-object-edit>
     </fieldset>
@@ -60,12 +59,12 @@
             type="button"
             [disabled]="(isLoading$ | async)"
             (click)="cancel()" cdkFocusInitial>
-      {{ 'action.cancel' | translate }}
+      {{ cancelButtonLabel }}
     </button>
     <button mat-button mat-raised-button color="primary"
             type="submit"
             [disabled]="(isLoading$ | async) || jsonFormGroup.invalid || !jsonFormGroup.dirty">
-      {{ 'action.save' | translate }}
+      {{ saveButtonLabel }}
     </button>
   </div>
 </form>

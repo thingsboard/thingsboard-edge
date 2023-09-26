@@ -30,7 +30,7 @@
 ///
 
 import { Component, ElementRef, forwardRef, Input, OnInit } from '@angular/core';
-import { ControlValueAccessor, FormControl, NG_VALIDATORS, NG_VALUE_ACCESSOR, Validator } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormControl, NG_VALIDATORS, NG_VALUE_ACCESSOR, Validator } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityType } from '@shared/models/entity-type.models';
@@ -120,6 +120,10 @@ export class TableColumnsAssignmentComponent implements OnInit, ControlValueAcce
           { value: ImportEntityColumnType.lwm2mServerSecurityMode },
           { value: ImportEntityColumnType.lwm2mServerClientPublicKeyOrId },
           { value: ImportEntityColumnType.lwm2mServerClientSecretKey },
+          { value: ImportEntityColumnType.snmpHost },
+          { value: ImportEntityColumnType.snmpPort },
+          { value: ImportEntityColumnType.snmpVersion },
+          { value: ImportEntityColumnType.snmpCommunityString },
         );
         break;
       case EntityType.ASSET:
@@ -219,7 +223,7 @@ export class TableColumnsAssignmentComponent implements OnInit, ControlValueAcce
     }
   }
 
-  public validate(c: FormControl) {
+  public validate(c: UntypedFormControl) {
     return (this.valid) ? null : {
       columnsInvalid: true
     };

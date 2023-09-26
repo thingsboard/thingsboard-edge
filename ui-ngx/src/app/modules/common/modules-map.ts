@@ -98,23 +98,29 @@ import * as TbCore from '@core/public-api';
 import * as TbShared from '@shared/public-api';
 import * as TbHomeComponents from '@home/components/public-api';
 
-import * as MillisecondsToTimeStringPipe from '@shared/pipe/milliseconds-to-time-string.pipe';
+import * as DateAgoPipe from '@shared/pipe/date-ago.pipe';
 import * as EnumToArrayPipe from '@shared/pipe/enum-to-array.pipe';
-import * as HighlightPipe from '@shared/pipe/highlight.pipe';
-import * as TruncatePipe from '@shared/pipe/truncate.pipe';
-import * as TbJsonPipe from '@shared/pipe/tbJson.pipe';
 import * as FileSizePipe from '@shared/pipe/file-size.pipe';
-import * as NospacePipe from '@shared/pipe/nospace.pipe';
-import * as SelectableColumnsPipe from '@shared/pipe/selectable-columns.pipe';
+import * as HighlightPipe from '@shared/pipe/highlight.pipe';
 import * as KeyboardShortcutPipe from '@shared/pipe/keyboard-shortcut.pipe';
+import * as MillisecondsToTimeStringPipe from '@shared/pipe/milliseconds-to-time-string.pipe';
+import * as NospacePipe from '@shared/pipe/nospace.pipe';
 import * as PermissionPipes from '@shared/pipe/permission.pipes';
+import * as SafePipe from '@shared/pipe/safe.pipe';
+import * as SelectableColumnsPipe from '@shared/pipe/selectable-columns.pipe';
+import * as ShortNumberPipe from '@shared/pipe/short-number.pipe';
+import * as TbJsonPipe from '@shared/pipe/tbJson.pipe';
+import * as TruncatePipe from '@shared/pipe/truncate.pipe';
+
+import * as coercion from '@shared/decorators/coercion';
+import * as enumerable from '@shared/decorators/enumerable';
+import * as TbInject from '@shared/decorators/tb-inject';
 
 import * as FooterComponent from '@shared/components/footer.component';
 import * as LogoComponent from '@shared/components/logo.component';
 import * as FooterFabButtonsComponent from '@shared/components/footer-fab-buttons.component';
 import * as FullscreenDirective from '@shared/components/fullscreen.directive';
 import * as CircularProgressDirective from '@shared/components/circular-progress.directive';
-import * as MatChipDraggableDirective from '@shared/components/mat-chip-draggable.directive';
 import * as TbHotkeysDirective from '@shared/components/hotkeys.directive';
 import * as TbAnchorComponent from '@shared/components/tb-anchor.component';
 import * as TbPopoverComponent from '@shared/components/popover.component';
@@ -170,6 +176,8 @@ import * as ColorInputComponent from '@shared/components/color-input.component';
 import * as MaterialIconSelectComponent from '@shared/components/material-icon-select.component';
 import * as NodeScriptTestDialogComponent from '@shared/components/dialog/node-script-test-dialog.component';
 import * as JsonFormComponent from '@shared/components/json-form/json-form.component';
+import * as NotificationComponent from '@shared/components/notification/notification.component';
+import * as TemplateAutocompleteComponent from '@shared/components/notification/template-autocomplete.component';
 import * as ImageInputComponent from '@shared/components/image-input.component';
 import * as FileInputComponent from '@shared/components/file-input.component';
 import * as MessageTypeAutocompleteComponent from '@shared/components/message-type-autocomplete.component';
@@ -187,6 +195,14 @@ import * as WidgetsBundleSearchComponent from '@shared/components/widgets-bundle
 import * as CopyButtonComponent from '@shared/components/button/copy-button.component';
 import * as TogglePasswordComponent from '@shared/components/button/toggle-password.component';
 import * as ProtobufContentComponent from '@shared/components/protobuf-content.component';
+import * as SlackConversationAutocompleteComponent from '@shared/components/slack-conversation-autocomplete.component';
+import * as StringItemsListComponent from '@shared/components/string-items-list.component';
+import * as ToggleHeaderComponent from '@shared/components/toggle-header.component';
+import * as ToggleSelectComponent from '@shared/components/toggle-select.component';
+import * as UnitInputComponent from '@shared/components/unit-input.component';
+import * as MaterialIconsComponent from '@shared/components/material-icons.component';
+import * as TbIconComponent from '@shared/components/icon.component';
+import * as HintTooltipIconComponent from '@shared/components/hint-tooltip-icon.component';
 import * as EntityGroupAutocompleteComponent from '@shared/components/group/entity-group-autocomplete.component';
 import * as OwnerAutocompleteComponent from '@shared/components/group/owner-autocomplete.component';
 import * as EntityGroupSelectComponent from '@shared/components/group/entity-group-select.component';
@@ -215,7 +231,7 @@ import * as AddAttributeDialogComponent from '@home/components/attribute/add-att
 import * as EditAttributeValuePanelComponent from '@home/components/attribute/edit-attribute-value-panel.component';
 import * as DashboardComponent from '@home/components/dashboard/dashboard.component';
 import * as WidgetComponent from '@home/components/widget/widget.component';
-import * as LegendComponent from '@home/components/widget/legend.component';
+import * as LegendComponent from '@home/components/widget/lib/legend.component';
 import * as AliasesEntitySelectPanelComponent from '@home/components/alias/aliases-entity-select-panel.component';
 import * as AliasesEntitySelectComponent from '@home/components/alias/aliases-entity-select.component';
 import * as WidgetConfigComponent from '@home/components/widget/widget-config.component';
@@ -225,10 +241,10 @@ import * as EntityAliasDialogComponent from '@home/components/alias/entity-alias
 import * as EntityFilterComponent from '@home/components/entity/entity-filter.component';
 import * as RelationFiltersComponent from '@home/components/relation/relation-filters.component';
 import * as EntityAliasSelectComponent from '@home/components/alias/entity-alias-select.component';
-import * as DataKeysComponent from '@home/components/widget/data-keys.component';
-import * as DataKeyConfigDialogComponent from '@home/components/widget/data-key-config-dialog.component';
-import * as DataKeyConfigComponent from '@home/components/widget/data-key-config.component';
-import * as LegendConfigComponent from '@home/components/widget/legend-config.component';
+import * as DataKeysComponent from '@home/components/widget/config/data-keys.component';
+import * as DataKeyConfigDialogComponent from '@home/components/widget/config/data-key-config-dialog.component';
+import * as DataKeyConfigComponent from '@home/components/widget/config/data-key-config.component';
+import * as LegendConfigComponent from '@home/components/widget/lib/settings/common/legend-config.component';
 import * as ManageWidgetActionsComponent from '@home/components/widget/action/manage-widget-actions.component';
 import * as WidgetActionDialogComponent from '@home/components/widget/action/widget-action-dialog.component';
 import * as CustomActionPrettyResourcesTabsComponent from '@home/components/widget/action/custom-action-pretty-resources-tabs.component';
@@ -266,7 +282,7 @@ import * as FilterPredicateValueComponent from '@home/components/filter/filter-p
 import * as TenantProfileComponent from '@home/components/profile/tenant-profile.component';
 import * as TenantProfileDialogComponent from '@home/components/profile/tenant-profile-dialog.component';
 import * as TenantProfileDataComponent from '@home/components/profile/tenant-profile-data.component';
-// tslint:disable-next-line:max-line-length
+// eslint-disable-next-line max-len
 import * as DefaultDeviceProfileConfigurationComponent from '@home/components/profile/device/default-device-profile-configuration.component';
 import * as DeviceProfileConfigurationComponent from '@home/components/profile/device/device-profile-configuration.component';
 import * as DeviceProfileComponent from '@home/components/profile/device-profile.component';
@@ -291,7 +307,7 @@ import * as AlarmScheduleInfoComponent from '@home/components/profile/alarm/alar
 import * as AlarmScheduleDialogComponent from '@home/components/profile/alarm/alarm-schedule-dialog.component';
 import * as EditAlarmDetailsDialogComponent from '@home/components/profile/alarm/edit-alarm-details-dialog.component';
 import * as AlarmRuleConditionDialogComponent from '@home/components/profile/alarm/alarm-rule-condition-dialog.component';
-// tslint:disable-next-line:max-line-length
+// eslint-disable-next-line max-len
 import * as DefaultTenantProfileConfigurationComponent from '@home/components/profile/tenant/default-tenant-profile-configuration.component';
 import * as TenantProfileConfigurationComponent from '@home/components/profile/tenant/tenant-profile-configuration.component';
 import * as SmsProviderConfigurationComponent from '@home/components/sms/sms-provider-configuration.component';
@@ -351,6 +367,7 @@ import * as QueueFormComponent from '@home/components/queue/queue-form.component
 import * as AssetProfileComponent from '@home/components/profile/asset-profile.component';
 import * as AssetProfileDialogComponent from '@home/components/profile/asset-profile-dialog.component';
 import * as AssetProfileAutocompleteComponent from '@home/components/profile/asset-profile-autocomplete.component';
+import * as RuleChainSelectComponent from '@shared/components/rule-chain/rule-chain-select.component';
 
 import { IModulesMap } from '@modules/common/modules-map.models';
 
@@ -429,23 +446,29 @@ class ModulesMap implements IModulesMap {
     '@shared/public-api': TbShared,
     '@home/components/public-api': TbHomeComponents,
 
-    '@shared/pipe/milliseconds-to-time-string.pipe': MillisecondsToTimeStringPipe,
+    '@shared/pipe/date-ago.pipe': DateAgoPipe,
     '@shared/pipe/enum-to-array.pipe': EnumToArrayPipe,
-    '@shared/pipe/highlight.pipe': HighlightPipe,
-    '@shared/pipe/truncate.pipe': TruncatePipe,
-    '@shared/pipe/tbJson.pipe': TbJsonPipe,
     '@shared/pipe/file-size.pipe': FileSizePipe,
-    '@shared/pipe/nospace.pipe': NospacePipe,
-    '@shared/pipe/selectable-columns.pipe': SelectableColumnsPipe,
+    '@shared/pipe/highlight.pipe': HighlightPipe,
     '@shared/pipe/keyboard-shortcut.pipe': KeyboardShortcutPipe,
+    '@shared/pipe/milliseconds-to-time-string.pipe': MillisecondsToTimeStringPipe,
+    '@shared/pipe/nospace.pipe': NospacePipe,
     '@shared/pipe/permission.pipes': PermissionPipes,
+    '@shared/pipe/safe.pipe': SafePipe,
+    '@shared/pipe/selectable-columns.pipe': SelectableColumnsPipe,
+    '@shared/pipe/short-number.pipe': ShortNumberPipe,
+    '@shared/pipe/tbJson.pipe': TbJsonPipe,
+    '@shared/pipe/truncate.pipe': TruncatePipe,
+
+    '@shared/decorators/coercion': coercion,
+    '@shared/decorators/enumerable': enumerable,
+    '@shared/decorators/tb-inject': TbInject,
 
     '@shared/components/footer.component': FooterComponent,
     '@shared/components/logo.component': LogoComponent,
     '@shared/components/footer-fab-buttons.component': FooterFabButtonsComponent,
     '@shared/components/fullscreen.directive': FullscreenDirective,
     '@shared/components/circular-progress.directive': CircularProgressDirective,
-    '@shared/components/mat-chip-draggable.directive': MatChipDraggableDirective,
     '@shared/components/hotkeys.directive': TbHotkeysDirective,
     '@shared/components/tb-anchor.component': TbAnchorComponent,
     '@shared/components/popover.component': TbPopoverComponent,
@@ -467,6 +490,7 @@ class ModulesMap implements IModulesMap {
     '@shared/components/time/quick-time-interval.component': QuickTimeIntervalComponent,
     '@shared/components/dashboard-select.component': DashboardSelectComponent,
     '@shared/components/dashboard-select-panel.component': DashboardSelectPanelComponent,
+    '@shared/components/rule-chain/rule-chain-select.component': RuleChainSelectComponent,
     '@shared/components/time/datetime-period.component': DatetimePeriodComponent,
     '@shared/components/time/datetime.component': DatetimeComponent,
     '@shared/components/time/timezone-select.component': TimezoneSelectComponent,
@@ -501,6 +525,8 @@ class ModulesMap implements IModulesMap {
     '@shared/components/material-icon-select.component': MaterialIconSelectComponent,
     '@shared/components/dialog/node-script-test-dialog.component': NodeScriptTestDialogComponent,
     '@shared/components/json-form/json-form.component': JsonFormComponent,
+    '@shared/components/notification/notification.component': NotificationComponent,
+    '@shared/components/notification/template-autocomplete.component': TemplateAutocompleteComponent,
     '@shared/components/image-input.component': ImageInputComponent,
     '@shared/components/file-input.component': FileInputComponent,
     '@shared/components/message-type-autocomplete.component': MessageTypeAutocompleteComponent,
@@ -518,6 +544,14 @@ class ModulesMap implements IModulesMap {
     '@shared/components/button/copy-button.component': CopyButtonComponent,
     '@shared/components/button/toggle-password.component': TogglePasswordComponent,
     '@shared/components/protobuf-content.component': ProtobufContentComponent,
+    '@shared/components/slack-conversation-autocomplete.component': SlackConversationAutocompleteComponent,
+    '@shared/components/string-items-list.component': StringItemsListComponent,
+    '@shared/components/toggle-header.component': ToggleHeaderComponent,
+    '@shared/components/toggle-select.component': ToggleSelectComponent,
+    '@shared/components/unit-input.component': UnitInputComponent,
+    '@shared/components/material-icons.component': MaterialIconsComponent,
+    '@shared/components/icon.component': TbIconComponent,
+    '@shared/components/hint-tooltip-icon.component': HintTooltipIconComponent,
     '@shared/components/group/entity-group-autocomplete.component': EntityGroupAutocompleteComponent,
     '@shared/components/group/owner-autocomplete.component': OwnerAutocompleteComponent,
     '@shared/components/group/entity-group-select.component': EntityGroupSelectComponent,
@@ -546,7 +580,7 @@ class ModulesMap implements IModulesMap {
     '@home/components/attribute/edit-attribute-value-panel.component': EditAttributeValuePanelComponent,
     '@home/components/dashboard/dashboard.component': DashboardComponent,
     '@home/components/widget/widget.component': WidgetComponent,
-    '@home/components/widget/legend.component': LegendComponent,
+    '@home/components/widget/lib/legend.component': LegendComponent,
     '@home/components/alias/aliases-entity-select-panel.component': AliasesEntitySelectPanelComponent,
     '@home/components/alias/aliases-entity-select.component': AliasesEntitySelectComponent,
     '@home/components/widget/widget-config.component': WidgetConfigComponent,
@@ -556,10 +590,10 @@ class ModulesMap implements IModulesMap {
     '@home/components/entity/entity-filter.component': EntityFilterComponent,
     '@home/components/relation/relation-filters.component': RelationFiltersComponent,
     '@home/components/alias/entity-alias-select.component': EntityAliasSelectComponent,
-    '@home/components/widget/data-keys.component': DataKeysComponent,
-    '@home/components/widget/data-key-config-dialog.component': DataKeyConfigDialogComponent,
-    '@home/components/widget/data-key-config.component': DataKeyConfigComponent,
-    '@home/components/widget/legend-config.component': LegendConfigComponent,
+    '@home/components/widget/config/data-keys.component': DataKeysComponent,
+    '@home/components/widget/config/data-key-config-dialog.component': DataKeyConfigDialogComponent,
+    '@home/components/widget/config/data-key-config.component': DataKeyConfigComponent,
+    '@home/components/widget/lib/settings/common/legend-config.component': LegendConfigComponent,
     '@home/components/widget/action/manage-widget-actions.component': ManageWidgetActionsComponent,
     '@home/components/widget/action/widget-action-dialog.component': WidgetActionDialogComponent,
     '@home/components/widget/action/custom-action-pretty-resources-tabs.component': CustomActionPrettyResourcesTabsComponent,
@@ -701,6 +735,13 @@ class ModulesMap implements IModulesMap {
       for (const moduleId of Object.keys(this.modulesMap)) {
         System.set('app:' + moduleId, this.modulesMap[moduleId]);
       }
+      System.constructor.prototype.shouldFetch = (url: string) => url.endsWith('/download');
+      System.constructor.prototype.fetch = (url, options: RequestInit & {meta?: any}) => {
+        if (options?.meta?.additionalHeaders) {
+          options.headers = { ...options.headers, ...options.meta.additionalHeaders };
+        }
+        return fetch(url, options);
+      };
       this.initialized = true;
     }
   }

@@ -30,8 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field appearance="standard" floatLabel="always" hideRequiredMarker [formGroup]="resourceTypeFormGroup" class="mat-block">
-  <mat-label></mat-label>
+<mat-form-field floatLabel="always" hideRequiredMarker [formGroup]="resourceTypeFormGroup" class="mat-block">
   <input matInput type="text" placeholder="{{ 'permission.resource.select-resource' | translate }}"
          #resourceTypeInput
          formControlName="resourceType"
@@ -40,7 +39,7 @@
          [matAutocomplete]="resourceTypeAutocomplete">
   <button *ngIf="resourceTypeFormGroup.get('resourceType').value && !disabled"
           type="button"
-          matSuffix mat-button mat-icon-button aria-label="Clear"
+          matSuffix mat-icon-button aria-label="Clear"
           (click)="clear()">
     <mat-icon class="material-icons">close</mat-icon>
   </button>

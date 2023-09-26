@@ -30,7 +30,7 @@
 ///
 
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Route, RouterModule, Routes } from '@angular/router';
 
 import { EntitiesTableComponent } from '../../components/entity/entities-table.component';
 import { Authority } from '@shared/models/authority.enum';
@@ -40,46 +40,57 @@ import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import { entityDetailsPageBreadcrumbLabelFunction } from '@home/pages/home-pages.models';
 import { BreadCrumbConfig } from '@shared/components/breadcrumb';
 
+export const integrationsRoute = (): Route => (
+{
+  path: 'integrations',
+  data: {
+    breadcrumb: {
+      label: 'integration.integrations',
+      icon: 'input'
+    }
+  },
+  children: [
+    {
+      path: '',
+      component: EntitiesTableComponent,
+      data: {
+        auth: [Authority.TENANT_ADMIN],
+        title: 'integration.integrations',
+        integrationsType: 'tenant'
+      },
+      resolve: {
+        entitiesTableConfig: IntegrationsTableConfigResolver
+      }
+    },
+    {
+      path: ':entityId',
+      component: EntityDetailsPageComponent,
+      canDeactivate: [ConfirmOnExitGuard],
+      data: {
+        breadcrumb: {
+          labelFunction: entityDetailsPageBreadcrumbLabelFunction,
+          icon: 'input'
+        } as BreadCrumbConfig<EntityDetailsPageComponent>,
+        auth: [Authority.TENANT_ADMIN],
+        title: 'integration.integrations',
+        integrationsType: 'tenant'
+      },
+      resolve: {
+        entitiesTableConfig: IntegrationsTableConfigResolver
+      }
+    }
+  ]
+});
+
 const routes: Routes = [
   {
     path: 'integrations',
-    data: {
-      breadcrumb: {
-        label: 'integration.integrations',
-        icon: 'input'
-      }
-    },
-    children: [
-      {
-        path: '',
-        component: EntitiesTableComponent,
-        data: {
-          auth: [Authority.TENANT_ADMIN],
-          title: 'integration.integrations',
-          integrationsType: 'tenant'
-        },
-        resolve: {
-          entitiesTableConfig: IntegrationsTableConfigResolver
-        }
-      },
-      {
-        path: ':entityId',
-        component: EntityDetailsPageComponent,
-        canDeactivate: [ConfirmOnExitGuard],
-        data: {
-          breadcrumb: {
-            labelFunction: entityDetailsPageBreadcrumbLabelFunction,
-            icon: 'input'
-          } as BreadCrumbConfig<EntityDetailsPageComponent>,
-          auth: [Authority.TENANT_ADMIN],
-          title: 'integration.integrations',
-          integrationsType: 'tenant'
-        },
-        resolve: {
-          entitiesTableConfig: IntegrationsTableConfigResolver
-        }
-      }
-    ]
+    pathMatch: 'full',
+    redirectTo: '/integrationsCenter/integrations'
+  },
+  {
+    path: 'integrations/:entityId',
+    redirectTo: '/integrationsCenter/integrations/:entityId'
   }
 ];
 

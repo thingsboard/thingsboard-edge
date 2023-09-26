@@ -46,6 +46,7 @@ import { QueueService } from '@core/http/queue.service';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
 import { emptyPageData } from '@shared/models/page/page-data';
+import { SubscriptSizing } from '@angular/material/form-field';
 
 @Component({
   selector: 'tb-queue-autocomplete',
@@ -71,6 +72,9 @@ export class QueueAutocompleteComponent implements ControlValueAccessor, OnInit 
 
   @Input()
   autocompleteHint: string;
+
+  @Input()
+  subscriptSizing: SubscriptSizing = 'fixed';
 
   private requiredValue: boolean;
   get required(): boolean {
@@ -138,8 +142,6 @@ export class QueueAutocompleteComponent implements ControlValueAccessor, OnInit 
       );
   }
 
-  ngAfterViewInit(): void {}
-
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
     if (this.disabled) {
@@ -156,19 +158,19 @@ export class QueueAutocompleteComponent implements ControlValueAccessor, OnInit 
   writeValue(value: string | null): void {
     this.searchText = '';
     if (value != null) {
-      this.queueService.getQueueByName(value, {ignoreLoading: true, ignoreErrors: true}).subscribe(
-        (entity) => {
+      this.queueService.getQueueByName(value, {ignoreLoading: true, ignoreErrors: true}).subscribe({
+        next: (entity) => {
           this.modelValue = entity.name;
           this.selectQueueFormGroup.get('queueName').patchValue(entity, {emitEvent: false});
         },
-        () => {
+        error: () => {
           this.modelValue = null;
           this.selectQueueFormGroup.get('queueName').patchValue('', {emitEvent: false});
           if (value !== null) {
             this.propagateChange(this.modelValue);
           }
         }
-      );
+      });
     } else {
       this.modelValue = null;
       this.selectQueueFormGroup.get('queueName').patchValue('', {emitEvent: false});
@@ -206,9 +208,7 @@ export class QueueAutocompleteComponent implements ControlValueAccessor, OnInit 
     });
     return this.queueService.getTenantQueuesByServiceType(pageLink, this.queueType, {ignoreLoading: true}).pipe(
       catchError(() => of(emptyPageData<QueueInfo>())),
-      map(pageData => {
-        return pageData.data;
-      })
+      map(pageData => pageData.data)
     );
   }
 

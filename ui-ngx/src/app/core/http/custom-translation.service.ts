@@ -45,7 +45,7 @@ import { DOCUMENT } from '@angular/common';
 })
 export class CustomTranslationService {
 
-  private updateTranslationSubjects: Subject<any>[] = [];
+  private updateTranslationSubjects: Subject<void>[] = [];
   private translateLoadObservable: Observable<CustomTranslation> = null;
 
   private translationMap: {[key: string]: string} = null;
@@ -64,7 +64,7 @@ export class CustomTranslationService {
   }
 
   public updateCustomTranslations(forceUpdate?: boolean): Observable<any> {
-    const updateCustomTranslationSubject = new ReplaySubject<any>();
+    const updateCustomTranslationSubject = new ReplaySubject<void>();
     if (this.translateLoadObservable) {
       this.updateTranslationSubjects.push(updateCustomTranslationSubject);
       return updateCustomTranslationSubject.asObservable();
@@ -149,9 +149,7 @@ export class CustomTranslationService {
 
   public saveCustomTranslation(customTranslation: CustomTranslation): Observable<any> {
     return this.http.post<CustomTranslation>('/api/customTranslation/customTranslation', customTranslation).pipe(
-      mergeMap(() => {
-        return this.updateCustomTranslations(true);
-      })
+      mergeMap(() => this.updateCustomTranslations(true))
     );
   }
 
@@ -194,8 +192,8 @@ export class CustomTranslationService {
     }
     filename += '.' + 'json';
     const blob = new Blob([data], {type: 'text/json'});
-    if (this.window.navigator && this.window.navigator.msSaveOrOpenBlob) {
-      this.window.navigator.msSaveOrOpenBlob(blob, filename);
+    if (this.window.navigator && (this.window.navigator as any).msSaveOrOpenBlob) {
+      (this.window.navigator as any).msSaveOrOpenBlob(blob, filename);
     } else {
       const e = this.document.createEvent('MouseEvents');
       const a = this.document.createElement('a');

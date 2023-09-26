@@ -54,6 +54,7 @@ public class TbMsgGeneratorNodeConfiguration implements NodeConfiguration<TbMsgG
     private String tbelScript;
     private EntityId groupOwnerId;
     private EntityType groupType;
+    private String queueName;
 
     @Override
     public TbMsgGeneratorNodeConfiguration defaultConfiguration() {

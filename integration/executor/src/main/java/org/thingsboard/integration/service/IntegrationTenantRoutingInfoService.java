@@ -40,6 +40,7 @@ public class IntegrationTenantRoutingInfoService implements TenantRoutingInfoSer
 
     @Override
     public TenantRoutingInfo getRoutingInfo(TenantId tenantId) {
-        return new TenantRoutingInfo(tenantId, false);
+        // This dummy implementation is ok since Integration Executor does not produce any rule engine messages.
+        return new TenantRoutingInfo(tenantId, null, false);
     }
 }

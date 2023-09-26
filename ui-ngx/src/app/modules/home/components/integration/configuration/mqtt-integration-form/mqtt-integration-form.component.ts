@@ -32,19 +32,15 @@
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
   Validator,
   Validators
 } from '@angular/forms';
-import {
-  mqttClientIdMaxLengthValidator,
-  mqttClientIdPatternValidator,
-  privateNetworkAddressValidator
-} from '@home/components/integration/integration.models';
+import { privateNetworkAddressValidator } from '@home/components/integration/integration.models';
 import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
@@ -69,22 +65,23 @@ export class MqttIntegrationFormComponent extends IntegrationForm implements OnI
 
   @Input() isEdgeTemplate = false;
 
-  mqttIntegrationConfigForm: FormGroup;
+  mqttIntegrationConfigForm: UntypedFormGroup;
 
   IntegrationCredentialType = IntegrationCredentialType;
 
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
     super();
     this.mqttIntegrationConfigForm = this.fb.group({
       clientConfiguration: this.fb.group({
         host: ['', Validators.required],
         port: [1883, [Validators.min(1), Validators.max(65535)]],
         cleanSession: [true],
+        retainedMessage: [false],
         ssl: [false],
         connectTimeoutSec: [10, [Validators.required, Validators.min(1), Validators.max(200)]],
-        clientId: ['', [mqttClientIdPatternValidator, mqttClientIdMaxLengthValidator]],
+        clientId: [''],
         maxBytesInMessage: [32368, [Validators.min(1), Validators.max(256000000)]],
         credentials: [{
           type: IntegrationCredentialType.Anonymous

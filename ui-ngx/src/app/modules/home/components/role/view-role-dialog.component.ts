@@ -33,7 +33,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { RoleType, roleTypeTranslationMap } from '@shared/models/security.models';
@@ -51,7 +51,7 @@ export interface ViewRoleDialogData {
 export class ViewRoleDialogComponent
   extends DialogComponent<ViewRoleDialogComponent> implements OnInit {
 
-  roleFormGroup: FormGroup;
+  roleFormGroup: UntypedFormGroup;
 
   role = this.data.role;
 
@@ -63,7 +63,7 @@ export class ViewRoleDialogComponent
               protected router: Router,
               @Inject(MAT_DIALOG_DATA) public data: ViewRoleDialogData,
               public dialogRef: MatDialogRef<ViewRoleDialogComponent>,
-              public fb: FormBuilder) {
+              public fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
   }
 

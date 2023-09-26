@@ -29,36 +29,38 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-// tslint:disable-next-line:no-reference
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="../../../../src/typings/rawloader.typings.d.ts" />
 
 import { Inject, Injectable, NgZone } from '@angular/core';
 import { WINDOW } from '@core/services/window.service';
 import { ExceptionData } from '@app/shared/models/error.models';
 import {
+  base64toObj,
+  base64toString,
   baseUrl,
   createLabelFromDatasource,
   deepClone,
   deleteNullProperties,
   guid,
+  hashCode,
   isDefined,
   isDefinedAndNotNull,
   isString,
-  isUndefined
+  isUndefined,
+  objToBase64,
+  objToBase64URI
 } from '@core/utils';
 import { WindowMessage } from '@shared/models/window-message.model';
 import { TranslateService } from '@ngx-translate/core';
 import { customTranslationsPrefix, i18nPrefix } from '@app/shared/models/constants';
 import { DataKey, Datasource, DatasourceType, KeyInfo } from '@shared/models/widget.models';
-import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { DataKeyType } from '@app/shared/models/telemetry/telemetry.models';
 import { alarmFields, alarmSeverityTranslations, alarmStatusTranslations } from '@shared/models/alarm.models';
 import { materialColors } from '@app/shared/models/material.models';
 import { WidgetInfo } from '@home/models/widget-component.models';
 import jsonSchemaDefaults from 'json-schema-defaults';
-import materialIconsCodepoints from '!raw-loader!./material-icons-codepoints.raw';
-import { Observable, of, ReplaySubject } from 'rxjs';
-import { DatePipe } from '@angular/common';
+import { Observable } from 'rxjs';
 import { publishReplay, refCount } from 'rxjs/operators';
 import { WidgetContext } from '@app/modules/home/models/widget-component.models';
 import {
@@ -68,6 +70,8 @@ import {
   TelemetryType
 } from '@shared/models/telemetry/telemetry.models';
 import { EntityId } from '@shared/models/id/entity-id';
+import { DatePipe } from '@angular/common';
+import { entityTypeTranslations } from '@shared/models/entity-type.models';
 
 const i18nRegExp = new RegExp(`{${i18nPrefix}:[^{}]+}`, 'g');
 
@@ -98,13 +102,6 @@ const defaultAlarmFields: Array<string> = [
   alarmFields.status.keyName
 ];
 
-const commonMaterialIcons: Array<string> = ['more_horiz', 'more_vert', 'open_in_new',
-  'visibility', 'play_arrow', 'arrow_back', 'arrow_downward',
-  'arrow_forward', 'arrow_upwards', 'close', 'refresh', 'menu', 'show_chart', 'multiline_chart', 'pie_chart', 'insert_chart', 'people',
-  'person', 'domain', 'devices_other', 'now_widgets', 'dashboards', 'map', 'pin_drop', 'my_location', 'extension', 'search',
-  'settings', 'notifications', 'notifications_active', 'info', 'info_outline', 'warning', 'list', 'file_download', 'import_export',
-  'share', 'add', 'edit', 'done'];
-
 // @dynamic
 @Injectable({
   providedIn: 'root'
@@ -134,8 +131,6 @@ export class UtilsService {
   };
 
   defaultAlarmDataKeys: Array<DataKey> = [];
-
-  materialIcons: Array<string> = [];
 
   constructor(@Inject(WINDOW) private window: Window,
               private zone: NgZone,
@@ -211,6 +206,8 @@ export class UtilsService {
           return alarmStatusTranslations.get(value) ? this.translate.instant(alarmStatusTranslations.get(value)) : value;
         } else if (alarmField === alarmFields.originatorType) {
           return this.translate.instant(entityTypeTranslations.get(value).type);
+        } else if (alarmField.value === alarmFields.assignee.value) {
+          return '';
         }
       }
       return value;
@@ -226,6 +223,10 @@ export class UtilsService {
 
   public processWidgetException(exception: any): ExceptionData {
     const data = this.parseException(exception, -6);
+    if (data.message?.startsWith('NG0')) {
+       data.message = `${this.translate.instant('widget.widget-template-error')}<br/>
+                       <br/><i>${this.translate.instant('dialog.error-message-title')}</i><br/><br/>${data.message}`;
+    }
     if (this.widgetEditMode) {
       const message: WindowMessage = {
         type: 'widgetException',
@@ -316,13 +317,9 @@ export class UtilsService {
 
   public validateDatasources(datasources: Array<Datasource>): Array<Datasource> {
     datasources.forEach((datasource) => {
-      // @ts-ignore
-      if (datasource.type === 'device') {
-        datasource.type = DatasourceType.entity;
-        datasource.entityType = EntityType.DEVICE;
-        if (datasource.deviceId) {
-          datasource.entityId = datasource.deviceId;
-        } else if (datasource.deviceAliasId) {
+      if (datasource.type === DatasourceType.device) {
+        if (datasource.deviceAliasId) {
+          datasource.type = DatasourceType.entity;
           datasource.entityAliasId = datasource.deviceAliasId;
         }
         if (datasource.deviceName) {
@@ -342,31 +339,6 @@ export class UtilsService {
       });
     });
     return datasources;
-  }
-
-  public getMaterialIcons(): Observable<Array<string>> {
-    if (this.materialIcons.length) {
-      return of(this.materialIcons);
-    } else {
-      const materialIconsSubject = new ReplaySubject<Array<string>>();
-      this.zone.runOutsideAngular(() => {
-        const codepointsArray = materialIconsCodepoints
-          .split('\n')
-          .filter((codepoint) => codepoint && codepoint.length);
-        codepointsArray.forEach((codepoint) => {
-          const values = codepoint.split(' ');
-          if (values && values.length === 2) {
-            this.materialIcons.push(values[0]);
-          }
-        });
-        materialIconsSubject.next(this.materialIcons);
-      });
-      return materialIconsSubject.asObservable();
-    }
-  }
-
-  public getCommonMaterialIcons(): Array<string> {
-    return commonMaterialIcons;
   }
 
   public getMaterialColor(index: number) {
@@ -445,6 +417,13 @@ export class UtilsService {
         index++;
       });
     });
+  }
+
+  public stringToHslColor(str: string, saturationPercentage: number, lightnessPercentage: number): string {
+    if (str && str.length) {
+      const hue = hashCode(str) % 360;
+      return `hsl(${hue}, ${saturationPercentage}%, ${lightnessPercentage}%)`;
+    }
   }
 
   public currentPerfTime(): number {
@@ -560,5 +539,31 @@ export class UtilsService {
       publishReplay(1),
       refCount()
     );
+  }
+
+  public objToBase64(obj: any): string {
+    return objToBase64(obj);
+  }
+
+  public base64toString(b64Encoded: string): string {
+    return base64toString(b64Encoded);
+  }
+
+  public objToBase64URI(obj: any): string {
+    return objToBase64URI(obj);
+  }
+
+  public base64toObj(b64Encoded: string): any {
+    return base64toObj(b64Encoded);
+  }
+
+  public plainColorFromVariable(variable: string): string {
+    if (!variable || (!variable.startsWith('--') && !variable.startsWith('var('))) {
+      return variable;
+    }
+    if (variable.startsWith('var(')) {
+      variable = variable.substring(4, variable.length - 1);
+    }
+    return getComputedStyle(this.window.document.documentElement).getPropertyValue(variable);
   }
 }

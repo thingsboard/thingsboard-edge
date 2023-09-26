@@ -30,42 +30,20 @@
  */
 @import "../../../../../scss/constants";
 
-:host-context(.tb-fullscreen-dialog .mat-dialog-container) {
-  @media #{$mat-gt-xs} {
-    .mat-dialog-content {
-      max-height: 75vh;
-    }
+:host-context(.tb-fullscreen-dialog .mat-mdc-dialog-container) {
+  max-width: 820px;
+  min-width: 100%;
+  width: 700px;
+  display: block;
+
+  @media #{$mat-lt-md} {
+    width: 100%;
+    min-width: 80vw;
   }
 
-  .tb-radio-button-group {
-    border: 2px solid rgba(0, 0, 0, 0.06);
-    border-radius: 8px;
-    margin: 12px 0 16px;
-    position: relative;
-
-    .tb-radio-button {
-      margin-bottom: 12px;
-    }
-
-    .tb-radio-button-content {
-      position: relative;
-      padding: 16px 16px 4px;
-    }
-
-    .tb-select-button::before {
-      content: "";
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      left: 0;
-      top: 0;
-      background-color: var(--tb-primary-500);
-      opacity: 0.02;
-    }
-
-    .tb-button-divider {
-      border-top-width: 2px;
-      border-top-color: rgba(0, 0, 0, 0.06);
+  @media #{$mat-gt-xs} {
+    .mat-mdc-dialog-content {
+      max-height: 75vh;
     }
   }
 
@@ -125,8 +103,7 @@
 }
 
 :host ::ng-deep {
-  width: 720px;
-  .mat-dialog-content {
+  .mat-mdc-dialog-content {
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -156,6 +133,7 @@
         height: 580px;
         max-height: 100%;
         width: 100%;;
+        padding-top: 12px;
         overflow-y: auto;
         scrollbar-gutter: stable;
         @media #{$mat-gt-sm} {

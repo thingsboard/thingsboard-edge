@@ -40,10 +40,11 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerInfo;
+import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
 
-public interface SchedulerEventService {
+public interface SchedulerEventService extends EntityDaoService {
 
     SchedulerEvent findSchedulerEventById(TenantId tenantId, SchedulerEventId schedulerEventId);
 

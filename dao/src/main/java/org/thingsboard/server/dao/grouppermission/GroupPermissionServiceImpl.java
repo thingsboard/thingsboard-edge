@@ -31,7 +31,6 @@
 package org.thingsboard.server.dao.grouppermission;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -39,10 +38,13 @@ import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -52,6 +54,8 @@ import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.group.EntityGroupDao;
 import org.thingsboard.server.dao.role.RoleDao;
@@ -66,7 +70,7 @@ import java.util.stream.Collectors;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
-@Service
+@Service("GroupPermissionDaoService")
 @Slf4j
 public class GroupPermissionServiceImpl extends AbstractEntityService implements GroupPermissionService {
 
@@ -96,7 +100,10 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
     public GroupPermission saveGroupPermission(TenantId tenantId, GroupPermission groupPermission) {
         log.trace("Executing save groupPermission [{}]", groupPermission);
         groupPermissionValidator.validate(groupPermission, GroupPermission::getTenantId);
-        return groupPermissionDao.save(tenantId, groupPermission);
+        GroupPermission savedGroupPermission = groupPermissionDao.save(tenantId, groupPermission);
+        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entityId(savedGroupPermission.getId())
+                .added(groupPermission.getId() == null).build());
+        return savedGroupPermission;
     }
 
     @Override
@@ -239,7 +246,7 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
             if (entityGroup != null) {
                 JsonNode additionalInfo = entityGroup.getAdditionalInfo();
                 if (additionalInfo == null) {
-                    additionalInfo = new ObjectMapper().createObjectNode();
+                    additionalInfo = JacksonUtil.newObjectNode();
                 }
                 ((ObjectNode) additionalInfo).put("isPublic", false);
                 ((ObjectNode) additionalInfo).put("publicCustomerId", "");
@@ -248,6 +255,7 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
             }
         }
         deleteEntityRelations(tenantId, groupPermissionId);
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(groupPermissionId).build());
         groupPermissionDao.removeById(tenantId, groupPermissionId.getId());
     }
 
@@ -301,16 +309,13 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
             groupPermissionInfo.setRole(role);
             if (groupPermission.getEntityGroupId() != null && !groupPermission.getEntityGroupId().isNullUid()) {
                 ListenableFuture<EntityGroup> entityGroup = entityGroupService.findEntityGroupByIdAsync(tenantId, groupPermission.getEntityGroupId());
-                return Futures.transformAsync(entityGroup, entityGroup1 -> {
+                return Futures.transform(entityGroup, entityGroup1 -> {
                     groupPermissionInfo.setEntityGroupName(entityGroup1.getName());
                     groupPermissionInfo.setEntityGroupType(entityGroup1.getType());
                     EntityId ownerId = entityGroup1.getOwnerId();
                     groupPermissionInfo.setEntityGroupOwnerId(ownerId);
-                    ListenableFuture <String> ownerName = entityService.fetchEntityNameAsync(tenantId, ownerId);
-                    return Futures.transform(ownerName, ownerName1 -> {
-                        groupPermissionInfo.setEntityGroupOwnerName(ownerName1);
-                        return groupPermissionInfo;
-                    }, MoreExecutors.directExecutor());
+                    groupPermissionInfo.setEntityGroupOwnerName(entityService.fetchEntityName(tenantId, ownerId).orElse("N/A"));
+                    return groupPermissionInfo;
                 }, MoreExecutors.directExecutor());
             } else {
                 return Futures.immediateFuture(groupPermissionInfo);
@@ -324,15 +329,12 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
             GroupPermissionInfo groupPermissionInfo = new GroupPermissionInfo(groupPermission);
             groupPermissionInfo.setRole(role);
             ListenableFuture<EntityGroup> userGroup = entityGroupService.findEntityGroupByIdAsync(tenantId, groupPermission.getUserGroupId());
-            return Futures.transformAsync(userGroup, userGroup1 -> {
+            return Futures.transform(userGroup, userGroup1 -> {
                 groupPermissionInfo.setUserGroupName(userGroup1.getName());
                 EntityId ownerId = userGroup1.getOwnerId();
                 groupPermissionInfo.setUserGroupOwnerId(ownerId);
-                ListenableFuture <String> ownerName = entityService.fetchEntityNameAsync(tenantId, ownerId);
-                return Futures.transform(ownerName, ownerName1 -> {
-                    groupPermissionInfo.setUserGroupOwnerName(ownerName1);
-                    return groupPermissionInfo;
-                }, MoreExecutors.directExecutor());
+                groupPermissionInfo.setUserGroupOwnerName(entityService.fetchEntityName(tenantId, ownerId).orElse("N/A"));
+                return groupPermissionInfo;
             }, MoreExecutors.directExecutor());
         }, MoreExecutors.directExecutor());
     }
@@ -386,5 +388,15 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
         }
     };
 
+
+    @Override
+    public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
+        return Optional.ofNullable(findGroupPermissionById(tenantId, new GroupPermissionId(entityId.getId())));
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.GROUP_PERMISSION;
+    }
 
 }

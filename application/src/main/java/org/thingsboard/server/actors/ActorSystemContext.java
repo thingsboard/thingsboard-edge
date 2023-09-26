@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.actors;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -48,8 +47,10 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
+import org.thingsboard.rule.engine.api.NotificationCenter;
 import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.rule.engine.api.SmsService;
+import org.thingsboard.rule.engine.api.slack.SlackService;
 import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
 import org.thingsboard.script.api.js.JsInvokeService;
 import org.thingsboard.script.api.tbel.TbelInvokeService;
@@ -69,10 +70,12 @@ import org.thingsboard.server.common.data.kv.JsonDataEntry;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
+import org.thingsboard.server.dao.alarm.AlarmCommentService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
@@ -95,6 +98,10 @@ import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateReadExecutor;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateWriteExecutor;
+import org.thingsboard.server.dao.notification.NotificationRequestService;
+import org.thingsboard.server.dao.notification.NotificationRuleService;
+import org.thingsboard.server.dao.notification.NotificationTargetService;
+import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -110,6 +117,7 @@ import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
+import org.thingsboard.server.queue.discovery.DiscoveryService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
@@ -120,6 +128,7 @@ import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
 import org.thingsboard.server.service.entitiy.entityview.TbEntityViewService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.executors.ExternalCallExecutorService;
+import org.thingsboard.server.service.executors.NotificationExecutorService;
 import org.thingsboard.server.service.executors.SharedEventLoopGroupService;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.integration.TbIntegrationDownlinkService;
@@ -140,7 +149,6 @@ import org.thingsboard.server.service.transport.TbCoreToTransportService;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -174,8 +182,6 @@ public class ActorSystemContext {
         }
     };
 
-    protected final ObjectMapper mapper = new ObjectMapper();
-
     private final ConcurrentMap<TenantId, DebugTbRateLimits> debugPerTenantLimits = new ConcurrentHashMap<>();
 
     public ConcurrentMap<TenantId, DebugTbRateLimits> getDebugPerTenantLimits() {
@@ -203,6 +209,10 @@ public class ActorSystemContext {
     @Getter
     @Setter
     private ComponentDiscoveryService componentService;
+
+    @Autowired
+    @Getter
+    private DiscoveryService discoveryService;
 
     @Autowired
     @Getter
@@ -269,6 +279,7 @@ public class ActorSystemContext {
     private RuleNodeStateService ruleNodeStateService;
 
     @Autowired
+    @Getter
     private PartitionService partitionService;
 
     @Autowired
@@ -318,6 +329,10 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
+    private AlarmCommentService alarmCommentService;
+
+    @Autowired
+    @Getter
     private JsInvokeService jsInvokeService;
 
     @Autowired(required = false)
@@ -363,6 +378,10 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
+    private NotificationExecutorService notificationExecutor;
+
+    @Autowired
+    @Getter
     private SharedEventLoopGroupService sharedEventLoopGroupService;
 
     @Autowired
@@ -376,6 +395,34 @@ public class ActorSystemContext {
     @Autowired
     @Getter
     private SmsSenderFactory smsSenderFactory;
+
+    @Autowired
+    @Getter
+    private NotificationCenter notificationCenter;
+
+    @Autowired
+    @Getter
+    private NotificationRuleProcessor notificationRuleProcessor;
+
+    @Autowired
+    @Getter
+    private NotificationTargetService notificationTargetService;
+
+    @Autowired
+    @Getter
+    private NotificationTemplateService notificationTemplateService;
+
+    @Autowired
+    @Getter
+    private NotificationRequestService notificationRequestService;
+
+    @Autowired
+    @Getter
+    private NotificationRuleService notificationRuleService;
+
+    @Autowired
+    @Getter
+    private SlackService slackService;
 
     @Lazy
     @Autowired(required = false)
@@ -560,13 +607,21 @@ public class ActorSystemContext {
     @Getter
     private String debugPerTenantLimitsConfiguration;
 
-    @Value("${actors.rpc.sequential:false}")
+    @Value("${actors.rpc.submit_strategy:BURST}")
     @Getter
-    private boolean rpcSequential;
+    private String rpcSubmitStrategy;
+
+    @Value("${actors.rpc.response_timeout_ms:30000}")
+    @Getter
+    private long rpcResponseTimeout;
 
     @Value("${actors.rpc.max_retries:5}")
     @Getter
     private int maxRpcRetries;
+
+    @Value("${actors.rule.external.force_ack:false}")
+    @Getter
+    private boolean externalNodeForceAck;
 
     @Getter
     @Setter
@@ -693,7 +748,7 @@ public class ActorSystemContext {
                         .dataType(tbMsg.getDataType().name())
                         .relationType(relationType)
                         .data(tbMsg.getData())
-                        .metadata(mapper.writeValueAsString(tbMsg.getMetaData().getData()));
+                        .metadata(JacksonUtil.toString(tbMsg.getMetaData().getData()));
 
                 if (error != null) {
                     event.error(EventUtil.toString(error));
@@ -703,7 +758,7 @@ public class ActorSystemContext {
 
                 ListenableFuture<Void> future = eventService.saveAsync(event.build());
                 Futures.addCallback(future, RULE_NODE_DEBUG_EVENT_ERROR_CALLBACK, MoreExecutors.directExecutor());
-            } catch (IOException ex) {
+            } catch (IllegalArgumentException ex) {
                 log.warn("Failed to persist rule node debug message", ex);
             }
         }

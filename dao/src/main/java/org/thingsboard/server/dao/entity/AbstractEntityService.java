@@ -32,11 +32,9 @@ package org.thingsboard.server.dao.entity;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.util.Pair;
-import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -48,15 +46,16 @@ import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Slf4j
 public abstract class AbstractEntityService {
 
     public static final String INCORRECT_EDGE_ID = "Incorrect edgeId ";
     public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
+
+    @Autowired
+    protected ApplicationEventPublisher eventPublisher;
 
     @Lazy
     @Autowired
@@ -118,5 +117,4 @@ public abstract class AbstractEntityService {
             }
         }
     }
-
 }

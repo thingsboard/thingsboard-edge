@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BaseData, ExportableEntity } from '@shared/models/base-data';
+import { BaseData, ExportableEntity, GroupEntityInfo } from '@shared/models/base-data';
 import { DeviceId } from './id/device-id';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { CustomerId } from '@shared/models/id/customer-id';
@@ -50,6 +50,8 @@ import {
   getDefaultProfileObserveAttrConfig,
   PowerMode
 } from '@home/components/profile/device/lwm2m/lwm2m-profile-config.models';
+import { PageLink } from '@shared/models/page/page-link';
+import { isDefinedAndNotNull } from '@core/utils';
 
 export enum DeviceProfileType {
   DEFAULT = 'DEFAULT',
@@ -64,6 +66,12 @@ export enum DeviceTransportType {
   SNMP = 'SNMP'
 }
 
+export enum BasicTransportType {
+  HTTP = 'HTTP'
+}
+export type TransportType =  BasicTransportType | DeviceTransportType;
+export type NetworkTransportType =  BasicTransportType | Exclude<DeviceTransportType, DeviceTransportType.DEFAULT>;
+
 export enum TransportPayloadType {
   JSON = 'JSON',
   PROTOBUF = 'PROTOBUF'
@@ -77,7 +85,8 @@ export enum CoapTransportDeviceType {
 export enum DeviceProvisionType {
   DISABLED = 'DISABLED',
   ALLOW_CREATE_NEW_DEVICES = 'ALLOW_CREATE_NEW_DEVICES',
-  CHECK_PRE_PROVISIONED_DEVICES = 'CHECK_PRE_PROVISIONED_DEVICES'
+  CHECK_PRE_PROVISIONED_DEVICES = 'CHECK_PRE_PROVISIONED_DEVICES',
+  X509_CERTIFICATE_CHAIN = 'X509_CERTIFICATE_CHAIN'
 }
 
 export interface DeviceConfigurationFormInfo {
@@ -110,13 +119,14 @@ export const deviceProfileTypeConfigurationInfoMap = new Map<DeviceProfileType, 
   ]
 );
 
-export const deviceTransportTypeTranslationMap = new Map<DeviceTransportType, string>(
+export const deviceTransportTypeTranslationMap = new Map<TransportType, string>(
   [
     [DeviceTransportType.DEFAULT, 'device-profile.transport-type-default'],
     [DeviceTransportType.MQTT, 'device-profile.transport-type-mqtt'],
     [DeviceTransportType.COAP, 'device-profile.transport-type-coap'],
     [DeviceTransportType.LWM2M, 'device-profile.transport-type-lwm2m'],
-    [DeviceTransportType.SNMP, 'device-profile.transport-type-snmp']
+    [DeviceTransportType.SNMP, 'device-profile.transport-type-snmp'],
+    [BasicTransportType.HTTP, 'device-profile.transport-type-http']
   ]
 );
 
@@ -125,17 +135,19 @@ export const deviceProvisionTypeTranslationMap = new Map<DeviceProvisionType, st
   [
     [DeviceProvisionType.DISABLED, 'device-profile.provision-strategy-disabled'],
     [DeviceProvisionType.ALLOW_CREATE_NEW_DEVICES, 'device-profile.provision-strategy-created-new'],
-    [DeviceProvisionType.CHECK_PRE_PROVISIONED_DEVICES, 'device-profile.provision-strategy-check-pre-provisioned']
+    [DeviceProvisionType.CHECK_PRE_PROVISIONED_DEVICES, 'device-profile.provision-strategy-check-pre-provisioned'],
+    [DeviceProvisionType.X509_CERTIFICATE_CHAIN, 'device-profile.provision-strategy-x509.certificate-chain']
   ]
 );
 
-export const deviceTransportTypeHintMap = new Map<DeviceTransportType, string>(
+export const deviceTransportTypeHintMap = new Map<TransportType, string>(
   [
     [DeviceTransportType.DEFAULT, 'device-profile.transport-type-default-hint'],
     [DeviceTransportType.MQTT, 'device-profile.transport-type-mqtt-hint'],
     [DeviceTransportType.COAP, 'device-profile.transport-type-coap-hint'],
     [DeviceTransportType.LWM2M, 'device-profile.transport-type-lwm2m-hint'],
-    [DeviceTransportType.SNMP, 'device-profile.transport-type-snmp-hint']
+    [DeviceTransportType.SNMP, 'device-profile.transport-type-snmp-hint'],
+    [BasicTransportType.HTTP, '']
   ]
 );
 
@@ -257,6 +269,8 @@ export interface DefaultDeviceProfileTransportConfiguration {
 export interface MqttDeviceProfileTransportConfiguration {
   deviceTelemetryTopic?: string;
   deviceAttributesTopic?: string;
+  deviceAttributesSubscribeTopic?: string;
+  sparkplug?: boolean;
   sendAckOnValidationException?: boolean;
   transportPayloadTypeConfiguration?: {
     transportPayloadType?: TransportPayloadType;
@@ -298,14 +312,16 @@ export enum SnmpSpecType {
   TELEMETRY_QUERYING = 'TELEMETRY_QUERYING',
   CLIENT_ATTRIBUTES_QUERYING = 'CLIENT_ATTRIBUTES_QUERYING',
   SHARED_ATTRIBUTES_SETTING = 'SHARED_ATTRIBUTES_SETTING',
-  TO_DEVICE_RPC_REQUEST = 'TO_DEVICE_RPC_REQUEST'
+  TO_DEVICE_RPC_REQUEST = 'TO_DEVICE_RPC_REQUEST',
+  TO_SERVER_RPC_REQUEST = 'TO_SERVER_RPC_REQUEST'
 }
 
 export const SnmpSpecTypeTranslationMap = new Map<SnmpSpecType, string>([
-  [SnmpSpecType.TELEMETRY_QUERYING, ' Telemetry'],
-  [SnmpSpecType.CLIENT_ATTRIBUTES_QUERYING, 'Client attributes'],
-  [SnmpSpecType.SHARED_ATTRIBUTES_SETTING, 'Shared attributes'],
-  [SnmpSpecType.TO_DEVICE_RPC_REQUEST, 'RPC request']
+  [SnmpSpecType.TELEMETRY_QUERYING, ' Telemetry (SNMP GET)'],
+  [SnmpSpecType.CLIENT_ATTRIBUTES_QUERYING, 'Client attributes (SNMP GET)'],
+  [SnmpSpecType.SHARED_ATTRIBUTES_SETTING, 'Shared attributes (SNMP SET)'],
+  [SnmpSpecType.TO_DEVICE_RPC_REQUEST, 'To-device RPC request (SNMP GET/SET)'],
+  [SnmpSpecType.TO_SERVER_RPC_REQUEST, 'From-device RPC request (SNMP TRAP)']
 ]);
 
 export interface SnmpCommunicationConfig {
@@ -334,9 +350,12 @@ export interface DeviceProvisionConfiguration {
   type: DeviceProvisionType;
   provisionDeviceSecret?: string;
   provisionDeviceKey?: string;
+  certificateValue?: string;
+  certificateRegExPattern?: string;
+  allowCreateNewDevicesByX509Certificate?: boolean;
 }
 
-export function createDeviceProfileConfiguration(type: DeviceProfileType): DeviceProfileConfiguration {
+export const createDeviceProfileConfiguration = (type: DeviceProfileType): DeviceProfileConfiguration => {
   let configuration: DeviceProfileConfiguration = null;
   if (type) {
     switch (type) {
@@ -347,9 +366,9 @@ export function createDeviceProfileConfiguration(type: DeviceProfileType): Devic
     }
   }
   return configuration;
-}
+};
 
-export function createDeviceConfiguration(type: DeviceProfileType): DeviceConfiguration {
+export const createDeviceConfiguration = (type: DeviceProfileType): DeviceConfiguration => {
   let configuration: DeviceConfiguration = null;
   if (type) {
     switch (type) {
@@ -360,9 +379,9 @@ export function createDeviceConfiguration(type: DeviceProfileType): DeviceConfig
     }
   }
   return configuration;
-}
+};
 
-export function createDeviceProfileTransportConfiguration(type: DeviceTransportType): DeviceProfileTransportConfiguration {
+export const createDeviceProfileTransportConfiguration = (type: DeviceTransportType): DeviceProfileTransportConfiguration => {
   let transportConfiguration: DeviceProfileTransportConfiguration = null;
   if (type) {
     switch (type) {
@@ -374,6 +393,9 @@ export function createDeviceProfileTransportConfiguration(type: DeviceTransportT
         const mqttTransportConfiguration: MqttDeviceProfileTransportConfiguration = {
           deviceTelemetryTopic: 'v1/devices/me/telemetry',
           deviceAttributesTopic: 'v1/devices/me/attributes',
+          deviceAttributesSubscribeTopic: 'v1/devices/me/attributes',
+          sparkplug: false,
+          sparkplugAttributesMetricNames: ['Node Control/*', 'Device Control/*', 'Properties/*'],
           sendAckOnValidationException: false,
           transportPayloadTypeConfiguration: {
             transportPayloadType: TransportPayloadType.JSON,
@@ -414,9 +436,9 @@ export function createDeviceProfileTransportConfiguration(type: DeviceTransportT
     }
   }
   return transportConfiguration;
-}
+};
 
-export function createDeviceTransportConfiguration(type: DeviceTransportType): DeviceTransportConfiguration {
+export const createDeviceTransportConfiguration = (type: DeviceTransportType): DeviceTransportConfiguration => {
   let transportConfiguration: DeviceTransportConfiguration = null;
   if (type) {
     switch (type) {
@@ -452,7 +474,7 @@ export function createDeviceTransportConfiguration(type: DeviceTransportType): D
     }
   }
   return transportConfiguration;
-}
+};
 
 export enum AlarmConditionType {
   SIMPLE = 'SIMPLE',
@@ -495,7 +517,7 @@ export const AlarmScheduleTypeTranslationMap = new Map<AlarmScheduleType, string
 
 export interface AlarmSchedule{
   dynamicValue?: {
-    sourceAttribute: string,
+    sourceAttribute: string;
     sourceType: string;
   };
   type: AlarmScheduleType;
@@ -513,24 +535,22 @@ export interface CustomTimeSchedulerItem{
   endsOn: number;
 }
 
-export interface AlarmRule {
+interface AlarmRule {
   condition: AlarmCondition;
   alarmDetails?: string;
   dashboardId?: DashboardId;
   schedule?: AlarmSchedule;
 }
 
-export function alarmRuleValidator(control: AbstractControl): ValidationErrors | null {
+export { AlarmRule as DeviceProfileAlarmRule };
+
+const alarmRuleValid = (alarmRule: AlarmRule): boolean =>
+  !(!alarmRule || !alarmRule.condition || !alarmRule.condition.condition || !alarmRule.condition.condition.length);
+
+export const alarmRuleValidator = (control: AbstractControl): ValidationErrors | null => {
   const alarmRule: AlarmRule = control.value;
   return alarmRuleValid(alarmRule) ? null : {alarmRule: true};
-}
-
-function alarmRuleValid(alarmRule: AlarmRule): boolean {
-  if (!alarmRule || !alarmRule.condition || !alarmRule.condition.condition || !alarmRule.condition.condition.length) {
-    return false;
-  }
-  return true;
-}
+};
 
 export interface DeviceProfileAlarm {
   id: string;
@@ -544,7 +564,7 @@ export interface DeviceProfileAlarm {
   propagateRelationTypes?: Array<string>;
 }
 
-export function deviceProfileAlarmValidator(control: AbstractControl): ValidationErrors | null {
+export const deviceProfileAlarmValidator = (control: AbstractControl): ValidationErrors | null => {
   const deviceProfileAlarm: DeviceProfileAlarm = control.value;
   if (deviceProfileAlarm && deviceProfileAlarm.id && deviceProfileAlarm.alarmType &&
     deviceProfileAlarm.createRules) {
@@ -569,7 +589,7 @@ export function deviceProfileAlarmValidator(control: AbstractControl): Validatio
     }
   }
   return {deviceProfileAlarm: true};
-}
+};
 
 
 export interface DeviceProfileData {
@@ -595,9 +615,11 @@ export interface DeviceProfile extends BaseData<DeviceProfileId>, ExportableEnti
   firmwareId?: OtaPackageId;
   softwareId?: OtaPackageId;
   profileData: DeviceProfileData;
+  defaultEdgeRuleChainId?: RuleChainId;
 }
 
 export interface DeviceProfileInfo extends EntityInfoData {
+  tenantId?: TenantId;
   type: DeviceProfileType;
   transportType: DeviceTransportType;
   image?: string;
@@ -707,9 +729,9 @@ export interface DeviceData {
 export interface Device extends BaseData<DeviceId>, ExportableEntity<DeviceId> {
   tenantId?: TenantId;
   customerId?: CustomerId;
-  name: string;
-  type: string;
-  label: string;
+  name?: string;
+  type?: string;
+  label?: string;
   firmwareId?: OtaPackageId;
   softwareId?: OtaPackageId;
   deviceProfileId?: DeviceProfileId;
@@ -717,11 +739,47 @@ export interface Device extends BaseData<DeviceId>, ExportableEntity<DeviceId> {
   additionalInfo?: any;
 }
 
-/*export interface DeviceInfo extends Device {
-  customerTitle: string;
-  customerIsPublic: boolean;
-  deviceProfileName: string;
-}*/
+export interface DeviceInfo extends Device, GroupEntityInfo<DeviceId> {
+  active: boolean;
+}
+
+export interface DeviceInfoFilter {
+  customerId?: CustomerId;
+  includeCustomers?: boolean;
+  deviceProfileId?: DeviceProfileId;
+  active?: boolean;
+}
+
+export class DeviceInfoQuery  {
+
+  pageLink: PageLink;
+  deviceInfoFilter: DeviceInfoFilter;
+
+  constructor(pageLink: PageLink, deviceInfoFilter: DeviceInfoFilter) {
+    this.pageLink = pageLink;
+    this.deviceInfoFilter = deviceInfoFilter;
+  }
+
+  public toQuery(): string {
+    let query;
+    if (this.deviceInfoFilter.customerId) {
+      query = `/customer/${this.deviceInfoFilter.customerId.id}/deviceInfos`;
+    } else {
+      query = '/deviceInfos/all';
+    }
+    query += this.pageLink.toQuery();
+    if (isDefinedAndNotNull(this.deviceInfoFilter.includeCustomers)) {
+      query += `&includeCustomers=${this.deviceInfoFilter.includeCustomers}`;
+    }
+    if (this.deviceInfoFilter.deviceProfileId) {
+      query += `&deviceProfileId=${this.deviceInfoFilter.deviceProfileId.id}`;
+    }
+    if (isDefinedAndNotNull(this.deviceInfoFilter.active)) {
+      query += `&active=${this.deviceInfoFilter.active}`;
+    }
+    return query;
+  }
+}
 
 export enum DeviceCredentialsType {
   ACCESS_TOKEN = 'ACCESS_TOKEN',
@@ -766,13 +824,11 @@ export interface DeviceCredentialMQTTBasic {
   password: string;
 }
 
-export function getDeviceCredentialMQTTDefault(): DeviceCredentialMQTTBasic {
-  return {
-    clientId: '',
-    userName: '',
-    password: ''
-  };
-}
+export const getDeviceCredentialMQTTDefault = (): DeviceCredentialMQTTBasic => ({
+  clientId: '',
+  userName: '',
+  password: ''
+});
 
 export interface DeviceSearchQuery extends EntitySearchQuery {
   deviceTypes: Array<string>;
@@ -793,6 +849,39 @@ export interface ClaimResult {
   response: ClaimResponse;
 }
 
+export interface PublishTelemetryCommand {
+  http?: {
+    http?: string;
+    https?: string;
+  };
+  mqtt: {
+    mqtt?: string;
+    mqtts?: string | Array<string>;
+    docker?: {
+      mqtt?: string;
+      mqtts?: string | Array<string>;
+    };
+    sparkplug?: string;
+  };
+  coap: {
+    coap?: string;
+    coaps?: string | Array<string>;
+    docker?: {
+      coap?: string;
+      coaps?: string | Array<string>;
+    };
+  };
+  lwm2m?: string;
+  snmp?: string;
+}
+
+export interface PublishLaunchCommand {
+  mqtt: {
+    linux: string;
+    windows: string;
+  };
+}
+
 export const dayOfWeekTranslations = new Array<string>(
   'device-profile.schedule-day.monday',
   'device-profile.schedule-day.tuesday',
@@ -803,44 +892,23 @@ export const dayOfWeekTranslations = new Array<string>(
   'device-profile.schedule-day.sunday'
 );
 
-export function getDayString(day: number): string {
-  switch (day) {
-    case 0:
-      return 'device-profile.schedule-day.monday';
-    case 1:
-      return this.translate.instant('device-profile.schedule-day.tuesday');
-    case 2:
-      return this.translate.instant('device-profile.schedule-day.wednesday');
-    case 3:
-      return this.translate.instant('device-profile.schedule-day.thursday');
-    case 4:
-      return this.translate.instant('device-profile.schedule-day.friday');
-    case 5:
-      return this.translate.instant('device-profile.schedule-day.saturday');
-    case 6:
-      return this.translate.instant('device-profile.schedule-day.sunday');
-  }
-}
-
-export function timeOfDayToUTCTimestamp(date: Date | number): number {
+export const timeOfDayToUTCTimestamp = (date: Date | number): number => {
   if (typeof date === 'number' || date === null) {
     return 0;
   }
   return _moment.utc([1970, 0, 1, date.getHours(), date.getMinutes(), date.getSeconds(), 0]).valueOf();
-}
+};
 
-export function utcTimestampToTimeOfDay(time = 0): Date {
-  return new Date(time + new Date(time).getTimezoneOffset() * 60 * 1000);
-}
+export const utcTimestampToTimeOfDay = (time = 0): Date => new Date(time + new Date(time).getTimezoneOffset() * 60 * 1000);
 
-function timeOfDayToMoment(date: Date | number): _moment.Moment {
+const timeOfDayToMoment = (date: Date | number): _moment.Moment => {
   if (typeof date === 'number' || date === null) {
     return _moment([1970, 0, 1, 0, 0, 0, 0]);
   }
   return _moment([1970, 0, 1, date.getHours(), date.getMinutes(), 0, 0]);
-}
+};
 
-export function getAlarmScheduleRangeText(startsOn: Date | number, endsOn: Date | number): string {
+export const getAlarmScheduleRangeText = (startsOn: Date | number, endsOn: Date | number): string => {
   const start = timeOfDayToMoment(startsOn);
   const end = timeOfDayToMoment(endsOn);
   if (start < end) {
@@ -850,4 +918,4 @@ export function getAlarmScheduleRangeText(startsOn: Date | number, endsOn: Date 
   }
   return `<span><span class="nowrap">12:00 AM</span> – <span class="nowrap">${end.format('hh:mm A')}</span>` +
     ` and <span class="nowrap">${start.format('hh:mm A')}</span> – <span class="nowrap">12:00 PM</span></span>`;
-}
+};

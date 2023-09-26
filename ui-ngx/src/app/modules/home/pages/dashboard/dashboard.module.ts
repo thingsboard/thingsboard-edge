@@ -38,10 +38,13 @@ import { HomeComponentsModule } from '@modules/home/components/home-components.m
 import { PublicDashboardLinkDialogComponent } from '@home/pages/dashboard/public-dashboard-link.dialog.component';
 import { DASHBOARD_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
 import { DashboardGroupConfigFactory } from '@home/pages/dashboard/dashboard-group-config.factory';
+import { DashboardRoutingModule } from '@home/pages/dashboard/dashboard-routing.module';
+import { DashboardTableHeaderComponent } from '@home/pages/dashboard/dashboard-table-header.component';
 
 @NgModule({
   declarations: [
     DashboardFormComponent,
+    DashboardTableHeaderComponent,
     PublicDashboardLinkDialogComponent
   ],
   imports: [
@@ -49,6 +52,7 @@ import { DashboardGroupConfigFactory } from '@home/pages/dashboard/dashboard-gro
     SharedModule,
     HomeComponentsModule,
     HomeDialogsModule,
+    DashboardRoutingModule
   ],
   providers: [
     {

@@ -117,7 +117,7 @@
       </mat-select>
     </mat-form-field>
     <section *ngIf="tcpConfigForm.get('handlerConfiguration.handlerType').value === HandlerConfigurationType.BINARY">
-      <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
+      <div fxLayout.xs="column" fxLayout="row wrap" fxLayoutGap.gt-xs="8px">
         <mat-form-field fxFlex class="mat-block">
           <mat-label translate>integration.max-frame-length</mat-label>
           <input matInput required type="number" step="1" min="1" max="65535" formControlName="maxFrameLength">

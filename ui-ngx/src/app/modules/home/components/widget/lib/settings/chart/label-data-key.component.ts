@@ -33,8 +33,8 @@ import { Component, EventEmitter, forwardRef, Input, OnInit, Output } from '@ang
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALUE_ACCESSOR, ValidationErrors,
   Validators
 } from '@angular/forms';
@@ -62,7 +62,7 @@ export function labelDataKeyValidator(control: AbstractControl): ValidationError
 @Component({
   selector: 'tb-label-data-key',
   templateUrl: './label-data-key.component.html',
-  styleUrls: ['./label-data-key.component.scss', './../widget-settings.scss'],
+  styleUrls: ['./label-data-key.component.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -86,11 +86,11 @@ export class LabelDataKeyComponent extends PageComponent implements OnInit, Cont
 
   private propagateChange = null;
 
-  public labelDataKeyFormGroup: FormGroup;
+  public labelDataKeyFormGroup: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 

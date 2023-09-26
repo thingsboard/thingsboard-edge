@@ -38,13 +38,14 @@ import { UtilsService } from '@core/services/utils.service';
 import { TranslateService } from '@ngx-translate/core';
 import { Datasource, DatasourceData, DatasourceType, WidgetConfig } from '@shared/models/widget.models';
 import { IWidgetSubscription } from '@core/api/widget-api.models';
-import { FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, ValidatorFn } from '@angular/forms';
 import { AttributeService } from '@core/http/attribute.service';
 import { AttributeData, AttributeScope, DataKeyType, LatestTelemetry } from '@shared/models/telemetry/telemetry.models';
 import { EntityId } from '@shared/models/id/entity-id';
 import { EntityType } from '@shared/models/entity-type.models';
 import { createLabelFromDatasource, isDefinedAndNotNull } from '@core/utils';
 import { Observable } from 'rxjs';
+import { jsonRequired } from '@shared/components/json-object-edit.component';
 
 enum JsonInputWidgetMode {
   ATTRIBUTE = 'ATTRIBUTE',
@@ -83,13 +84,13 @@ export class JsonInputWidgetComponent extends PageComponent implements OnInit {
 
   isFocused: boolean;
   originalValue: any;
-  attributeUpdateFormGroup: FormGroup;
+  attributeUpdateFormGroup: UntypedFormGroup;
 
   toastTargetId = 'json-input-widget' + this.utils.guid();
 
   constructor(protected store: Store<AppState>,
               private utils: UtilsService,
-              private fb: FormBuilder,
+              private fb: UntypedFormBuilder,
               private attributeService: AttributeService,
               private translate: TranslateService) {
     super(store);
@@ -109,12 +110,8 @@ export class JsonInputWidgetComponent extends PageComponent implements OnInit {
 
   private initializeConfig() {
     if (this.settings.widgetTitle && this.settings.widgetTitle.length) {
-      const title = createLabelFromDatasource(this.datasource, this.settings.widgetTitle);
-      this.ctx.widgetTitle = this.utils.customTranslation(title, title);
-    } else {
-      this.ctx.widgetTitle = this.ctx.widgetConfig.title;
+      this.ctx.widgetTitle = this.settings.widgetTitle;
     }
-
     if (this.settings.labelValue && this.settings.labelValue.length) {
       const label = createLabelFromDatasource(this.datasource, this.settings.labelValue);
       this.labelValue = this.utils.customTranslation(label, label);
@@ -150,7 +147,7 @@ export class JsonInputWidgetComponent extends PageComponent implements OnInit {
   private buildForm() {
     const validators: ValidatorFn[] = [];
     if (this.settings.attributeRequired) {
-      validators.push(Validators.required);
+      validators.push(jsonRequired);
     }
     this.attributeUpdateFormGroup = this.fb.group({
       currentValue: [{}, validators]
@@ -162,7 +159,7 @@ export class JsonInputWidgetComponent extends PageComponent implements OnInit {
 
   private updateWidgetData(data: Array<DatasourceData>) {
     if (!this.errorMessage) {
-      let value = {};
+      let value = null;
       if (data[0].data[0][1] !== '') {
         try {
           value = JSON.parse(data[0].data[0][1]);

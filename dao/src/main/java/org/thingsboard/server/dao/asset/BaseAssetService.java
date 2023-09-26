@@ -44,6 +44,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.asset.AssetInfo;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.asset.AssetSearchQuery;
 import org.thingsboard.server.common.data.id.AssetId;
@@ -51,13 +52,17 @@ import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
+import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.exception.DataValidationException;
@@ -66,6 +71,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
@@ -74,7 +80,7 @@ import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 import static org.thingsboard.server.dao.service.Validator.validateString;
 
-@Service
+@Service("AssetDaoService")
 @Slf4j
 public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey, Asset, AssetCacheEvictEvent> implements AssetService {
 
@@ -89,6 +95,9 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
     private AssetDao assetDao;
 
     @Autowired
+    private AssetInfoDao assetInfoDao;
+
+    @Autowired
     private EntityViewService entityViewService;
 
     @Autowired
@@ -96,6 +105,9 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
 
     @Autowired
     private DataValidator<Asset> assetValidator;
+
+    @Autowired
+    private EntityCountService countService;
 
     @TransactionalEventListener(classes = AssetCacheEvictEvent.class)
     @Override
@@ -116,6 +128,13 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
     }
 
     @Override
+    public AssetInfo findAssetInfoById(TenantId tenantId, AssetId assetId) {
+        log.trace("Executing findAssetInfoById [{}]", assetId);
+        validateId(assetId, INCORRECT_ASSET_ID + assetId);
+        return assetInfoDao.findById(tenantId, assetId.getId());
+    }
+
+    @Override
     public ListenableFuture<Asset> findAssetByIdAsync(TenantId tenantId, AssetId assetId) {
         log.trace("Executing findAssetById [{}]", assetId);
         validateId(assetId, INCORRECT_ASSET_ID + assetId);
@@ -132,11 +151,25 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
     }
 
     @Override
+    public Asset saveAsset(Asset asset, boolean doValidate) {
+        return doSaveAsset(asset, doValidate);
+    }
+
+    @Override
     public Asset saveAsset(Asset asset) {
+        return doSaveAsset(asset, true);
+    }
+
+    private Asset doSaveAsset(Asset asset, boolean doValidate) {
         log.trace("Executing saveAsset [{}]", asset);
-        Asset oldAsset = assetValidator.validate(asset, Asset::getTenantId);
-        Asset savedAsset;
+        Asset oldAsset = null;
+        if (doValidate) {
+            oldAsset = assetValidator.validate(asset, Asset::getTenantId);
+        } else if (asset.getId() != null) {
+            oldAsset = findAssetById(asset.getTenantId(), asset.getId());
+        }
         AssetCacheEvictEvent evictEvent = new AssetCacheEvictEvent(asset.getTenantId(), asset.getName(), oldAsset != null ? oldAsset.getName() : null);
+        Asset savedAsset;
         try {
             AssetProfile assetProfile;
             if (asset.getAssetProfileId() == null) {
@@ -158,6 +191,11 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
             asset.setType(assetProfile.getName());
             savedAsset = assetDao.saveAndFlush(asset.getTenantId(), asset);
             publishEvictEvent(evictEvent);
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedAsset.getTenantId())
+                    .entityId(savedAsset.getId()).added(asset.getId() == null).build());
+            if (asset.getId() == null) {
+                countService.publishCountEntityEvictEvent(savedAsset.getTenantId(), EntityType.ASSET);
+            }
         } catch (Exception t) {
             handleEvictEvent(evictEvent);
             checkConstraintViolation(t,
@@ -185,6 +223,8 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
         }
 
         publishEvictEvent(new AssetCacheEvictEvent(asset.getTenantId(), asset.getName(), null));
+        countService.publishCountEntityEvictEvent(tenantId, EntityType.ASSET);
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(assetId).build());
 
         assetDao.removeById(tenantId, assetId.getId());
     }
@@ -195,6 +235,12 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validatePageLink(pageLink);
         return assetDao.findAssetsByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public Long countAssets() {
+        log.trace("Executing countAssets");
+        return assetDao.countAssets();
     }
 
     @Override
@@ -298,12 +344,12 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         ListenableFuture<List<EntitySubtype>> tenantAssetTypes = assetDao.findTenantAssetTypesAsync(tenantId.getId());
         return Futures.transform(tenantAssetTypes,
-            assetTypes -> {
-                if (assetTypes != null) {
-                    assetTypes.sort(Comparator.comparing(EntitySubtype::getType));
-                }
-                return assetTypes;
-            }, MoreExecutors.directExecutor());
+                assetTypes -> {
+                    if (assetTypes != null) {
+                        assetTypes.sort(Comparator.comparing(EntitySubtype::getType));
+                    }
+                    return assetTypes;
+                }, MoreExecutors.directExecutor());
     }
 
     @Override
@@ -329,6 +375,79 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
         validateString(type, "Incorrect type " + type);
         validatePageLink(pageLink);
         return assetDao.findAssetsByEntityGroupIdsAndType(toUUIDs(groupIds), type, pageLink);
+    }
+
+    @Override
+    public PageData<AssetInfo> findAssetInfosByTenantId(TenantId tenantId, PageLink pageLink) {
+        log.trace("Executing findAssetInfosByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validatePageLink(pageLink);
+        return assetInfoDao.findAssetsByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<AssetInfo> findAssetInfosByTenantIdAndAssetProfileId(TenantId tenantId, AssetProfileId assetProfileId, PageLink pageLink) {
+        log.trace("Executing findAssetInfosByTenantIdAndAssetProfileId, tenantId [{}], assetProfileId [{}], pageLink [{}]", tenantId, assetProfileId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(assetProfileId, INCORRECT_ASSET_PROFILE_ID + assetProfileId);
+        validatePageLink(pageLink);
+        return assetInfoDao.findAssetsByTenantIdAndAssetProfileId(tenantId.getId(), assetProfileId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<AssetInfo> findTenantAssetInfosByTenantId(TenantId tenantId, PageLink pageLink) {
+        log.trace("Executing findTenantAssetInfosByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validatePageLink(pageLink);
+        return assetInfoDao.findTenantAssetsByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<AssetInfo> findTenantAssetInfosByTenantIdAndAssetProfileId(TenantId tenantId, AssetProfileId assetProfileId, PageLink pageLink) {
+        log.trace("Executing findTenantAssetInfosByTenantIdAndAssetProfileId, tenantId [{}], assetProfileId [{}], pageLink [{}]", tenantId, assetProfileId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(assetProfileId, INCORRECT_ASSET_PROFILE_ID + assetProfileId);
+        validatePageLink(pageLink);
+        return assetInfoDao.findTenantAssetsByTenantIdAndAssetProfileId(tenantId.getId(), assetProfileId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<AssetInfo> findAssetInfosByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
+        log.trace("Executing findAssetInfosByTenantIdAndCustomerId, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validatePageLink(pageLink);
+        return assetInfoDao.findAssetsByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<AssetInfo> findAssetInfosByTenantIdAndCustomerIdAndAssetProfileId(TenantId tenantId, CustomerId customerId, AssetProfileId assetProfileId, PageLink pageLink) {
+        log.trace("Executing findAssetInfosByTenantIdAndCustomerIdAndAssetProfileId, tenantId [{}], customerId [{}], assetProfileId [{}], pageLink [{}]", tenantId, customerId, assetProfileId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateId(assetProfileId, INCORRECT_ASSET_PROFILE_ID + assetProfileId);
+        validatePageLink(pageLink);
+        return assetInfoDao.findAssetsByTenantIdAndCustomerIdAndAssetProfileId(tenantId.getId(), customerId.getId(), assetProfileId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<AssetInfo> findAssetInfosByTenantIdAndCustomerIdIncludingSubCustomers(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
+        log.trace("Executing findAssetInfosByTenantIdAndCustomerIdIncludingSubCustomers, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validatePageLink(pageLink);
+        return assetInfoDao.findAssetsByTenantIdAndCustomerIdIncludingSubCustomers(tenantId.getId(), customerId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<AssetInfo> findAssetInfosByTenantIdAndCustomerIdAndAssetProfileIdIncludingSubCustomers(TenantId tenantId, CustomerId customerId, AssetProfileId assetProfileId, PageLink pageLink) {
+        log.trace("Executing findAssetInfosByTenantIdAndCustomerIdAndAssetProfileIdIncludingSubCustomers, tenantId [{}], customerId [{}], assetProfileId [{}], pageLink [{}]",
+                tenantId, customerId, assetProfileId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateId(assetProfileId, INCORRECT_ASSET_PROFILE_ID + assetProfileId);
+        validatePageLink(pageLink);
+        return assetInfoDao.findAssetsByTenantIdAndCustomerIdAndAssetProfileIdIncludingSubCustomers(tenantId.getId(), customerId.getId(), assetProfileId.getId(), pageLink);
     }
 
     private PaginatedRemover<TenantId, Asset> tenantAssetsRemover =
@@ -357,4 +476,26 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
             deleteAsset(tenantId, new AssetId(entity.getId().getId()));
         }
     };
+
+    @Override
+    public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
+        return Optional.ofNullable(findAssetById(tenantId, new AssetId(entityId.getId())));
+    }
+
+    @Override
+    public long countByTenantId(TenantId tenantId) {
+        return assetDao.countByTenantId(tenantId);
+    }
+
+    @Override
+    @Transactional
+    public void deleteEntity(TenantId tenantId, EntityId id) {
+        deleteAsset(tenantId, (AssetId) id);
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.ASSET;
+    }
+
 }

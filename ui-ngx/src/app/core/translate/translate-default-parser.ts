@@ -37,7 +37,7 @@ import { isDefinedAndNotNull } from '@core/utils';
 export class TranslateDefaultParser extends TranslateParser {
   templateMatcher: RegExp = /{{\s?([^{}\s]*)\s?}}/g;
 
-  // tslint:disable-next-line:ban-types
+  // eslint-disable-next-line @typescript-eslint/ban-types
   public interpolate(expr: string | Function, params?: any): string {
     let result: string;
 
@@ -73,7 +73,7 @@ export class TranslateDefaultParser extends TranslateParser {
     return target;
   }
 
-  // tslint:disable-next-line:ban-types
+  // eslint-disable-next-line @typescript-eslint/ban-types
   private interpolateFunction(fn: Function, params?: any) {
     return fn(params);
   }

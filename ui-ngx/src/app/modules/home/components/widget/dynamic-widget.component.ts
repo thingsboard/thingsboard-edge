@@ -30,7 +30,7 @@
 ///
 
 import { PageComponent } from '@shared/components/page.component';
-import { Directive, Injector, OnDestroy, OnInit } from '@angular/core';
+import { Directive, Injector, OnDestroy, OnInit, TemplateRef } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { IDynamicWidgetComponent, WidgetContext } from '@home/models/widget-component.models';
@@ -41,7 +41,7 @@ import {
   NotificationType,
   NotificationVerticalPosition
 } from '@core/notification/notification.models';
-import { FormBuilder, Validators } from '@angular/forms';
+import { UntypedFormBuilder, Validators } from '@angular/forms';
 import { DeviceService } from '@core/http/device.service';
 import { AssetService } from '@core/http/asset.service';
 import { EntityViewService } from '@core/http/entity-view.service';
@@ -64,9 +64,11 @@ import { Router } from '@angular/router';
 import { TbInject } from '@shared/decorators/tb-inject';
 import { ReportService } from '@core/http/report.service';
 import { MillisecondsToTimeStringPipe } from '@shared/pipe/milliseconds-to-time-string.pipe';
+import { UserSettingsService } from '@core/http/user-settings.service';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 @Directive()
-// tslint:disable-next-line:directive-class-suffix
+// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export class DynamicWidgetComponent extends PageComponent implements IDynamicWidgetComponent, OnInit, OnDestroy {
 
   executingRpcRequest: boolean;
@@ -80,10 +82,11 @@ export class DynamicWidgetComponent extends PageComponent implements IDynamicWid
 
   constructor(@TbInject(RafService) public raf: RafService,
               @TbInject(Store) protected store: Store<AppState>,
-              @TbInject(FormBuilder) public fb: FormBuilder,
+              @TbInject(UntypedFormBuilder) public fb: UntypedFormBuilder,
               @TbInject(Injector) public readonly $injector: Injector,
               @TbInject('widgetContext') public readonly ctx: WidgetContext,
-              @TbInject('errorMessages') public readonly errorMessages: string[]) {
+              @TbInject('errorMessages') public readonly errorMessages: string[],
+              @TbInject('widgetTitlePanel') public readonly widgetTitlePanel: TemplateRef<any>) {
     super(store);
     this.ctx.$injector = $injector;
     this.ctx.deviceService = $injector.get(DeviceService);
@@ -100,6 +103,7 @@ export class DynamicWidgetComponent extends PageComponent implements IDynamicWid
     this.ctx.dialogs = $injector.get(DialogService);
     this.ctx.customDialog = $injector.get(CustomDialogService);
     this.ctx.resourceService = $injector.get(ResourceService);
+    this.ctx.userSettingsService = $injector.get(UserSettingsService);
     this.ctx.telemetryWsService = $injector.get(TelemetryWebsocketService);
     this.ctx.date = $injector.get(DatePipe);
     this.ctx.milliSecondsToTimeString = $injector.get(MillisecondsToTimeStringPipe);
@@ -108,6 +112,7 @@ export class DynamicWidgetComponent extends PageComponent implements IDynamicWid
     this.ctx.sanitizer = $injector.get(DomSanitizer);
     this.ctx.router = $injector.get(Router);
     this.ctx.reportService = $injector.get(ReportService);
+    this.ctx.wl = $injector.get(WhiteLabelingService);
 
     this.ctx.$scope = this;
     if (this.ctx.defaultSubscription) {
@@ -123,6 +128,7 @@ export class DynamicWidgetComponent extends PageComponent implements IDynamicWid
   }
 
   ngOnDestroy(): void {
+    super.ngOnDestroy();
     if (this.ctx.telemetrySubscribers) {
       this.ctx.telemetrySubscribers.forEach(item =>  item.unsubscribe());
     }

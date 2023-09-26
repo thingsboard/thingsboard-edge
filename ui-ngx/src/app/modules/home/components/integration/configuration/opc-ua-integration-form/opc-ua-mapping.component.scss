@@ -77,16 +77,11 @@
 
 :host::ng-deep {
   .mapping-setting {
-    .mat-content {
-      overflow: visible;
-    }
-
     .mat-expansion-panel-body {
       padding: 0;
 
       .mapping-setting-content {
         margin: 0 16px 16px;
-        overflow-x: auto;
       }
     }
   }

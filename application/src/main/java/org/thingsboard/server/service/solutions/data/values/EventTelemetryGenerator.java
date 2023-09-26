@@ -33,7 +33,6 @@ package org.thingsboard.server.service.solutions.data.values;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.thingsboard.server.service.solutions.data.definition.TelemetryProfile;
 
-import static org.thingsboard.server.service.solutions.data.values.GeneratorTools.getMultiplier;
 import static org.thingsboard.server.service.solutions.data.values.GeneratorTools.randomLong;
 
 

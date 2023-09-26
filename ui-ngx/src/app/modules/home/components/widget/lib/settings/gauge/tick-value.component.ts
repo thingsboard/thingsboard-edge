@@ -31,7 +31,7 @@
 
 import { ValueSourceProperty } from '@home/components/widget/lib/settings/common/value-source.component';
 import { Component, EventEmitter, forwardRef, Input, OnInit, Output } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -42,7 +42,7 @@ import { IAliasController } from '@core/api/widget-api.models';
 @Component({
   selector: 'tb-tick-value',
   templateUrl: './tick-value.component.html',
-  styleUrls: ['./tick-value.component.scss', './../widget-settings.scss'],
+  styleUrls: ['./tick-value.component.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -69,11 +69,11 @@ export class TickValueComponent extends PageComponent implements OnInit, Control
 
   private propagateChange = null;
 
-  public tickValueFormGroup: FormGroup;
+  public tickValueFormGroup: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 

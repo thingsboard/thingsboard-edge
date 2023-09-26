@@ -44,6 +44,7 @@ import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.msg.TbMsg;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -62,21 +63,26 @@ import java.util.concurrent.ExecutionException;
         configDirective = "tbTransformationNodeDuplicateToGroupByNameConfig",
         icon = "call_split"
 )
-public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgToOriginatorsNode {
-
-    private TbDuplicateMsgToGroupByNameNodeConfiguration config;
+public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgNode<TbDuplicateMsgToGroupByNameNodeConfiguration> {
 
     @Override
-    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
-        this.config = TbNodeUtils.convert(configuration, TbDuplicateMsgToGroupByNameNodeConfiguration.class);
-        validateConfig(config);
-        setConfig(config);
+    protected TbDuplicateMsgToGroupByNameNodeConfiguration loadNodeConfiguration(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+        var config = TbNodeUtils.convert(configuration, TbDuplicateMsgToGroupByNameNodeConfiguration.class);
+        if (Resource.groupResourceFromGroupType(config.getGroupType()) == null) {
+            throw new IllegalArgumentException("Wrong configuration. Specified Entity Type is not a group entity.");
+        }
+        return config;
+    }
+
+    @Override
+    protected ListenableFuture<List<TbMsg>> transform(TbContext ctx, TbMsg msg) {
+        return duplicate(ctx, msg);
     }
 
     @Override
     protected ListenableFuture<List<EntityId>> getNewOriginators(TbContext ctx, EntityId original) {
         try {
-            return ctx.getPeContext().getEntityGroupService().findAllEntityIds(ctx.getTenantId(), detectTargetEntityGroupId(ctx, original), new PageLink(Integer.MAX_VALUE));
+            return ctx.getPeContext().getEntityGroupService().findAllEntityIdsAsync(ctx.getTenantId(), detectTargetEntityGroupId(ctx, original), new PageLink(Integer.MAX_VALUE));
         } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -104,12 +110,6 @@ public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgToOri
             } else {
                 throw new RuntimeException("Can't find group with type: " + config.getGroupType() + " name: " + config.getGroupName() + "!");
             }
-        }
-    }
-
-    private void validateConfig(TbDuplicateMsgToGroupByNameNodeConfiguration conf) {
-        if (Resource.groupResourceFromGroupType(conf.getGroupType()) == null) {
-            throw new IllegalArgumentException("Wrong configuration. Specified Entity Type is not a group entity.");
         }
     }
 
