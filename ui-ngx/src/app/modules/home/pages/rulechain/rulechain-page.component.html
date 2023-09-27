@@ -163,13 +163,13 @@
           </tb-details-panel>
         </mat-drawer>
         <mat-drawer-content class="tb-rulechain-graph-content">
-          <button color="primary"
+          <button color="primary" *ngIf="!readonly"
                   mat-mini-fab
                   class="tb-library-node-btn"
-                  (click)="drawer.toggle();"
-                  matTooltip="{{ (drawer.opened ? 'rulenode.close-node-library' : 'rulenode.open-node-library') | translate }}"
+                  (click)="drawer?.toggle();"
+                  matTooltip="{{ (drawer?.opened ? 'rulenode.close-node-library' : 'rulenode.open-node-library') | translate }}"
                   matTooltipPosition="above">
-            <mat-icon class="tb-library-node-btn-icon" [ngClass]="{'tb-library-node-btn-icon-toggled' : drawer.opened}">chevron_right</mat-icon>
+            <mat-icon class="tb-library-node-btn-icon" [ngClass]="{'tb-library-node-btn-icon-toggled' : drawer?.opened}">chevron_right</mat-icon>
           </button>
           <!-- @voba - merge comment
           <button #versionControlButton
