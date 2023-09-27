@@ -235,7 +235,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
         return new LoginWhiteLabelingParams().equals(loginWhiteLabelingParams);
     }
 
-    public DownlinkMsg convertCustomTranslationEventToDownlink(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertCustomTranslationEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         DownlinkMsg result = null;
         try {
             EntityId entityId = JacksonUtil.convertValue(edgeEvent.getBody(), EntityId.class);
@@ -251,7 +251,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                             return null;
                         }
                         CustomTranslationProto customTranslationProto =
-                                customTranslationProtoConstructor.constructCustomTranslationProto(systemCustomTranslation, entityId);
+                                customTranslationProtoConstructor.constructCustomTranslationProto(systemCustomTranslation, entityId, edgeVersion);
                         result = DownlinkMsg.newBuilder()
                                 .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                                 .setSystemCustomTranslationMsg(customTranslationProto)
@@ -263,7 +263,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                             return null;
                         }
                         CustomTranslationProto customTranslationProto =
-                                customTranslationProtoConstructor.constructCustomTranslationProto(tenantCustomTranslation, entityId);
+                                customTranslationProtoConstructor.constructCustomTranslationProto(tenantCustomTranslation, entityId, edgeVersion);
                         result = DownlinkMsg.newBuilder()
                                 .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                                 .setTenantCustomTranslationMsg(customTranslationProto)
@@ -278,7 +278,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                         return null;
                     }
                     CustomTranslationProto customTranslationProto =
-                            customTranslationProtoConstructor.constructCustomTranslationProto(customerCustomTranslation, customerId);
+                            customTranslationProtoConstructor.constructCustomTranslationProto(customerCustomTranslation, customerId, edgeVersion);
                     result = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .setCustomerCustomTranslationMsg(customTranslationProto)

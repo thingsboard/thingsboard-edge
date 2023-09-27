@@ -242,7 +242,9 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof CustomTranslationProto);
         CustomTranslationProto customTranslationProto = (CustomTranslationProto) latestMessage;
-        String enUsLangObject = customTranslationProto.getTranslationMapMap().get("en_US");
+        CustomTranslation ct = JacksonUtil.fromStringIgnoreUnknownProperties(customTranslationProto.getEntity(), CustomTranslation.class);
+        Assert.assertNotNull(ct);
+        String enUsLangObject = ct.getTranslationMap().get("en_US");
         Assert.assertEquals(updatedHomeValue, JacksonUtil.OBJECT_MAPPER.readTree(enUsLangObject).get("home").asText());
     }
 

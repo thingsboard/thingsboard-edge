@@ -35,15 +35,25 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 
 @Component
 @Slf4j
 public class EntityGroupMsgConstructor {
 
-    public EntityGroupUpdateMsg constructEntityGroupUpdatedMsg(UpdateMsgType msgType, EntityGroup entityGroup) {
+    public EntityGroupUpdateMsg constructEntityGroupUpdatedMsg(UpdateMsgType msgType, EntityGroup entityGroup, EdgeVersion edgeVersion) {
+        return EdgeVersionUtils.isEdgeProtoDeprecated(edgeVersion)
+                ? constructDeprecatedEntityGroupUpdatedMsg(msgType, entityGroup)
+                : EntityGroupUpdateMsg.newBuilder().setEntity(JacksonUtil.toString(entityGroup))
+                .setIdMSB(entityGroup.getId().getId().getMostSignificantBits())
+                .setIdLSB(entityGroup.getId().getId().getLeastSignificantBits()).build();
+    }
+
+    private EntityGroupUpdateMsg constructDeprecatedEntityGroupUpdatedMsg(UpdateMsgType msgType, EntityGroup entityGroup) {
         EntityGroupUpdateMsg.Builder builder = EntityGroupUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(entityGroup.getId().getId().getMostSignificantBits())

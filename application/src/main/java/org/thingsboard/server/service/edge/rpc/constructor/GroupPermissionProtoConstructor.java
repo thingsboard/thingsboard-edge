@@ -32,16 +32,27 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.GroupPermissionProto;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 @Component
 @Slf4j
 public class GroupPermissionProtoConstructor {
 
-    public GroupPermissionProto constructGroupPermissionProto(UpdateMsgType msgType, GroupPermission groupPermission) {
+    public GroupPermissionProto constructGroupPermissionProto(UpdateMsgType msgType, GroupPermission groupPermission, EdgeVersion edgeVersion) {
+        return EdgeVersionUtils.isEdgeProtoDeprecated(edgeVersion)
+                ? constructDeprecatedGroupPermissionProto(msgType, groupPermission)
+                : GroupPermissionProto.newBuilder().setEntity(JacksonUtil.toString(groupPermission))
+                .setIdMSB(groupPermission.getId().getId().getMostSignificantBits())
+                .setIdLSB(groupPermission.getId().getId().getLeastSignificantBits()).build();
+    }
+
+    private GroupPermissionProto constructDeprecatedGroupPermissionProto(UpdateMsgType msgType, GroupPermission groupPermission) {
         GroupPermissionProto.Builder builder = GroupPermissionProto.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(groupPermission.getId().getId().getMostSignificantBits())

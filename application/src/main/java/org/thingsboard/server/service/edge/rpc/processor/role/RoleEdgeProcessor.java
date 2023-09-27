@@ -49,6 +49,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -63,7 +64,7 @@ import java.util.UUID;
 @TbCoreComponent
 public class RoleEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg convertRoleEventToDownlink(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertRoleEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         RoleId roleId = new RoleId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
         UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
@@ -74,7 +75,7 @@ public class RoleEdgeProcessor extends BaseEdgeProcessor {
                 if (role != null) {
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addRoleMsg(roleProtoConstructor.constructRoleProto(msgType, role))
+                            .addRoleMsg(roleProtoConstructor.constructRoleProto(msgType, role, edgeVersion))
                             .build();
                 }
                 break;

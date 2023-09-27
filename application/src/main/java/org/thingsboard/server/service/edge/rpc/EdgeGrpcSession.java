@@ -668,24 +668,24 @@ public final class EdgeGrpcSession implements Closeable {
             case QUEUE:
                 return ctx.getQueueEdgeProcessor().convertQueueEventToDownlink(edgeEvent, this.edgeVersion);
             case SCHEDULER_EVENT:
-                return ctx.getSchedulerEventProcessor().convertSchedulerEventToDownlink(edgeEvent);
+                return ctx.getSchedulerEventProcessor().convertSchedulerEventToDownlink(edgeEvent, this.edgeVersion);
             case ENTITY_GROUP:
-                return ctx.getEntityGroupProcessor().convertEntityGroupEventToDownlink(edgeEvent);
+                return ctx.getEntityGroupProcessor().convertEntityGroupEventToDownlink(edgeEvent, this.edgeVersion);
             case WHITE_LABELING:
             case MAIL_TEMPLATES:
                 return ctx.getWhiteLabelingProcessor().convertWhiteLabelingEventToDownlink(edgeEvent, this.edgeVersion);
             case LOGIN_WHITE_LABELING:
                 return ctx.getWhiteLabelingProcessor().convertLoginWhiteLabelingEventToDownlink(edgeEvent, this.edgeVersion);
             case CUSTOM_TRANSLATION:
-                return ctx.getWhiteLabelingProcessor().convertCustomTranslationEventToDownlink(edgeEvent);
+                return ctx.getWhiteLabelingProcessor().convertCustomTranslationEventToDownlink(edgeEvent, this.edgeVersion);
             case ROLE:
-                return ctx.getRoleProcessor().convertRoleEventToDownlink(edgeEvent);
+                return ctx.getRoleProcessor().convertRoleEventToDownlink(edgeEvent, this.edgeVersion);
             case GROUP_PERMISSION:
-                return ctx.getGroupPermissionsProcessor().convertGroupPermissionEventToDownlink(edgeEvent);
+                return ctx.getGroupPermissionsProcessor().convertGroupPermissionEventToDownlink(edgeEvent, this.edgeVersion);
             case INTEGRATION:
-                return ctx.getIntegrationProcessor().convertIntegrationEventToDownlink(edgeEvent);
+                return ctx.getIntegrationProcessor().convertIntegrationEventToDownlink(edgeEvent, this.edgeVersion);
             case CONVERTER:
-                return ctx.getConverterProcessor().convertConverterEventToDownlink(edgeEvent);
+                return ctx.getConverterProcessor().convertConverterEventToDownlink(edgeEvent, this.edgeVersion);
             case TENANT:
                 return ctx.getTenantEdgeProcessor().convertTenantEventToDownlink(edgeEvent, this.edgeVersion);
             case TENANT_PROFILE:

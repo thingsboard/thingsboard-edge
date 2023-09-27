@@ -36,14 +36,24 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.dao.model.ModelConstants;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 @Component
 @Slf4j
 public class SchedulerEventMsgConstructor {
 
-    public SchedulerEventUpdateMsg constructSchedulerEventUpdatedMsg(UpdateMsgType msgType, SchedulerEvent schedulerEvent) {
+    public SchedulerEventUpdateMsg constructSchedulerEventUpdatedMsg(UpdateMsgType msgType, SchedulerEvent schedulerEvent, EdgeVersion edgeVersion) {
+        return EdgeVersionUtils.isEdgeProtoDeprecated(edgeVersion)
+                ? constructDeprecatedSchedulerEventUpdatedMsg(msgType, schedulerEvent)
+                : SchedulerEventUpdateMsg.newBuilder().setEntity(JacksonUtil.toString(schedulerEvent))
+                .setIdMSB(schedulerEvent.getId().getId().getMostSignificantBits())
+                .setIdLSB(schedulerEvent.getId().getId().getLeastSignificantBits()).build();
+    }
+
+    private SchedulerEventUpdateMsg constructDeprecatedSchedulerEventUpdatedMsg(UpdateMsgType msgType, SchedulerEvent schedulerEvent) {
         SchedulerEventUpdateMsg.Builder builder = SchedulerEventUpdateMsg.newBuilder();
         builder.setMsgType(msgType);
         builder.setIdMSB(schedulerEvent.getId().getId().getMostSignificantBits());

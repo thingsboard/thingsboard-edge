@@ -636,6 +636,7 @@ message WhiteLabelingParamsProto {
   optional int64 entityIdMSB = 14;
   optional int64 entityIdLSB = 15;
   optional string entityType = 16;
+  string entity = 17;
 }
 
 message WhiteLabelingProto {

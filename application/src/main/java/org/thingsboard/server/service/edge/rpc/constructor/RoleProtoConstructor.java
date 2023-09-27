@@ -35,14 +35,25 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
+import org.thingsboard.server.gen.edge.v1.IntegrationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 @Component
 @Slf4j
 public class RoleProtoConstructor {
 
-    public RoleProto constructRoleProto(UpdateMsgType msgType, Role role) {
+    public RoleProto constructRoleProto(UpdateMsgType msgType, Role role, EdgeVersion edgeVersion) {
+        return EdgeVersionUtils.isEdgeProtoDeprecated(edgeVersion)
+                ? constructDeprecatedRoleProto(msgType, role)
+                : RoleProto.newBuilder().setEntity(JacksonUtil.toString(role))
+                .setIdMSB(role.getId().getId().getMostSignificantBits())
+                .setIdLSB(role.getId().getId().getLeastSignificantBits()).build();
+    }
+
+    private RoleProto constructDeprecatedRoleProto(UpdateMsgType msgType, Role role) {
         RoleProto.Builder builder = RoleProto.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(role.getId().getId().getMostSignificantBits())
@@ -59,7 +70,6 @@ public class RoleProtoConstructor {
             builder.setCustomerIdMSB(role.getCustomerId().getId().getMostSignificantBits())
                     .setCustomerIdLSB(role.getCustomerId().getId().getLeastSignificantBits());
         }
-
         return builder.build();
     }
 
