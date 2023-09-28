@@ -28,24 +28,52 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.fetch;
+package org.thingsboard.server.dao.util.mapping;
 
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.widget.DeprecatedFilter;
-import org.thingsboard.server.common.data.widget.WidgetTypeInfo;
-import org.thingsboard.server.dao.widget.WidgetTypeService;
+import org.hibernate.usertype.DynamicParameterizedType;
 
-@Slf4j
-public class TenantWidgetTypesEdgeEventFetcher extends BaseWidgetTypesEdgeEventFetcher {
+import java.lang.annotation.Annotation;
 
-    public TenantWidgetTypesEdgeEventFetcher(WidgetTypeService widgetTypeService) {
-        super(widgetTypeService);
+public class ParameterizedParameterType implements DynamicParameterizedType.ParameterType {
+
+    private final Class<?> clasz;
+
+    public ParameterizedParameterType(Class<?> clasz) {
+        this.clasz = clasz;
     }
+
     @Override
-    protected PageData<WidgetTypeInfo> findWidgetTypes(TenantId tenantId, PageLink pageLink) {
-        return widgetTypeService.findTenantWidgetTypesByTenantIdAndPageLink(tenantId, false, DeprecatedFilter.ALL, null, pageLink);
+    public Class getReturnedClass() {
+        return clasz;
+    }
+
+    @Override
+    public Annotation[] getAnnotationsMethod() {
+        return new Annotation[0];
+    }
+
+    @Override
+    public String getCatalog() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getSchema() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getTable() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isPrimaryKey() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String[] getColumns() {
+        throw new UnsupportedOperationException();
     }
 }
