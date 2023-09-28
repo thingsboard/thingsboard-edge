@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-count-panel" [class.tb-count-pointer]="showChevron" (click)="cardClick($event)">
+<div class="tb-count-panel" [class.tb-count-pointer]="hasCardClickAction" (click)="cardClick($event)">
   <div class="tb-count-panel-column">
     <ng-container *ngTemplateOutlet="widgetTitlePanel"></ng-container>
     <div class="tb-count-panel-row">

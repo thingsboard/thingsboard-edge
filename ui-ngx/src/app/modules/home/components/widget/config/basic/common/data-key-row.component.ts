@@ -396,6 +396,7 @@ export class DataKeyRowComponent implements ControlValueAccessor, OnInit, OnChan
         this.keyRowFormGroup.get('units').patchValue(this.modelValue.units, {emitEvent: false});
         this.keyRowFormGroup.get('decimals').patchValue(this.modelValue.decimals, {emitEvent: false});
         this.updateModel();
+        this.cd.markForCheck();
       }
     });
   }

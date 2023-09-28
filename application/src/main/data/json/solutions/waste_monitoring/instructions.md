@@ -16,7 +16,7 @@ This dashboard is intended for monitoring the fullness of trash bins, viewing fu
   - The alarms section is designed to display all alarms related to the fullness sensors and their battery level. You can set the conditions under which alarms will be triggered by clicking the “Alarm Rules” button.
 
 <div class="img-float" style="max-width:50%;margin: 10px auto">
-<img src="https://thingsboard.io/images/solutions/waste_monitoring/waste-monitoring-1.png" alt="Waste Management">
+<img src="https://img.thingsboard.io/solutions/waste_monitoring/waste-monitoring-1.png" alt="Waste Management">
 </div>
 
 The user can go to the bin state in several ways: click on the line in the Bins section of a specific bin or click the "Edit" icon/button, as well as on the popup when clicking on the marker of the interactive map - click on the "Details" button.
@@ -33,7 +33,7 @@ The user can go to the bin state in several ways: click on the line in the Bins 
   - The Alarms section is designed to display and monitor the main alarms that occur.
 
 <div class="img-float" style="max-width:50%;margin: 10px auto">
-<img src="https://thingsboard.io/images/solutions/waste_monitoring/waste-monitoring-2.png" alt="Waste Management">
+<img src="https://img.thingsboard.io/solutions/waste_monitoring/waste-monitoring-2.png" alt="Waste Management">
 </div>
 
 
@@ -42,7 +42,7 @@ The user can go to the bin state in several ways: click on the line in the Bins 
 The **"Waste Sensor Rule Chain"** is processing all incoming messages from waste sensors. This rule chain is responsible for counting alarms of both types and updating the status of the garbage bin by fullness and battery levels.
 
 <div class="img-float" style="max-width:50%;margin: 10px auto">
-<img src="https://thingsboard.io/images/solutions/waste_monitoring/rule-chain.png" alt="Waste Management">
+<img src="https://img.thingsboard.io/solutions/waste_monitoring/rule-chain.png" alt="Waste Management">
 </div>
 
 #### Device Profiles
@@ -97,7 +97,7 @@ Let's recreate an event in which the garbage bin will be filled to 100% and requ
 To do this, let's take, for example, "Waste Sensor" - "389021001241", which currently has 17% capacity.
 
 <div class="img-float" style="width:40%;margin: 20px auto">
-<img src="https://thingsboard.io/images/solutions/waste_monitoring/example-1-1.png" alt="Waste Management">
+<img src="https://img.thingsboard.io/solutions/waste_monitoring/example-1-1.png" alt="Waste Management">
 </div>
 
 Also, the alarm is currently configured and will trigger if the FULLNESS value is greater than or equal to 90%.
@@ -105,7 +105,7 @@ Also, the alarm is currently configured and will trigger if the FULLNESS value i
 <br>
 
 <div class="img-float" style="max-width:20%;margin: 20px auto">
-<img src="https://thingsboard.io/images/solutions/waste_monitoring/example-1-2.png" alt="Waste Management">
+<img src="https://img.thingsboard.io/solutions/waste_monitoring/example-1-2.png" alt="Waste Management">
 </div>
 
 <br>
@@ -119,7 +119,7 @@ curl -v -X POST -d "{\"fullLevel\": 100 }" ${BASE_URL}/api/v1/${389021001241ACCE
 <br>
 
 <div class="img-float" style="max-width:50%;margin: 20px auto">
-<img src="https://thingsboard.io/images/solutions/waste_monitoring/example-1-3.png" alt="Waste Management">
+<img src="https://img.thingsboard.io/solutions/waste_monitoring/example-1-3.png" alt="Waste Management">
 </div>
 
 After the data has been sent, we can see that the fullness is 100% - accordingly, an alarm has been displayed, which will inform the appropriate person about the need to service the bin.

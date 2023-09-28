@@ -487,6 +487,14 @@ public class TestRestClient {
                 .as(Integration.class);
     }
 
+    public void checkConnection(Integration integration) {
+        given().spec(requestSpec)
+                .body(integration)
+                .post("/api/integration/check")
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
     public void saveEntityAttributes(String entityType, String entityId, String scope, JsonNode request) {
         given().spec(requestSpec)
                 .body(request)

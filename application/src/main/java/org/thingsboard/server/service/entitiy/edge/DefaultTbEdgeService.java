@@ -102,7 +102,7 @@ public class DefaultTbEdgeService extends AbstractTbEntityService implements TbE
             }
 
             if (oldEdgeName != null && !oldEdgeName.equals(savedEdge.getName())) {
-                edgeService.renameDeviceEdgeAllGroup(tenantId, savedEdge, oldEdgeName);
+                edgeService.renameEdgeAllGroups(tenantId, savedEdge, oldEdgeName);
             }
 
             notificationEntityService.notifyCreateOrUpdateOrDeleteEdge(tenantId, edgeId, savedEdge.getCustomerId(), savedEdge, actionType, user);
