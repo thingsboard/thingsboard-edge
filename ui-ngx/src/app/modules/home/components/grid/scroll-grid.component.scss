@@ -28,24 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.fetch;
-
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.widget.DeprecatedFilter;
-import org.thingsboard.server.common.data.widget.WidgetTypeInfo;
-import org.thingsboard.server.dao.widget.WidgetTypeService;
-
-@Slf4j
-public class TenantWidgetTypesEdgeEventFetcher extends BaseWidgetTypesEdgeEventFetcher {
-
-    public TenantWidgetTypesEdgeEventFetcher(WidgetTypeService widgetTypeService) {
-        super(widgetTypeService);
-    }
-    @Override
-    protected PageData<WidgetTypeInfo> findWidgetTypes(TenantId tenantId, PageLink pageLink) {
-        return widgetTypeService.findTenantWidgetTypesByTenantIdAndPageLink(tenantId, false, DeprecatedFilter.ALL, null, pageLink);
-    }
+.tb-scroll-grid-viewport {
+  height: 100%;
+  .cdk-virtual-scroll-content-wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+  .cdk-virtual-scroll-spacer {
+    height: auto !important;
+  }
+  .tb-scroll-grid-items-row {
+    display: flex;
+    flex-direction: row;
+  }
+  .tb-scroll-grid-item-container {
+    flex: 1;
+  }
 }

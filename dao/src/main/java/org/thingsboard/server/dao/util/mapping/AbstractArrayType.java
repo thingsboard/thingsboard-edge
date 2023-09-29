@@ -28,24 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.fetch;
+package org.thingsboard.server.dao.util.mapping;
 
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.widget.DeprecatedFilter;
-import org.thingsboard.server.common.data.widget.WidgetTypeInfo;
-import org.thingsboard.server.dao.widget.WidgetTypeService;
+import org.hibernate.type.AbstractSingleColumnStandardBasicType;
+import org.hibernate.usertype.DynamicParameterizedType;
 
-@Slf4j
-public class TenantWidgetTypesEdgeEventFetcher extends BaseWidgetTypesEdgeEventFetcher {
+import java.util.Properties;
 
-    public TenantWidgetTypesEdgeEventFetcher(WidgetTypeService widgetTypeService) {
-        super(widgetTypeService);
+public abstract class AbstractArrayType<T>
+        extends AbstractSingleColumnStandardBasicType<T>
+        implements DynamicParameterizedType {
+
+    public static final String SQL_ARRAY_TYPE = "sql_array_type";
+
+    public AbstractArrayType(AbstractArrayTypeDescriptor<T> arrayTypeDescriptor) {
+        super(
+                ArraySqlTypeDescriptor.INSTANCE,
+                arrayTypeDescriptor
+        );
     }
+
     @Override
-    protected PageData<WidgetTypeInfo> findWidgetTypes(TenantId tenantId, PageLink pageLink) {
-        return widgetTypeService.findTenantWidgetTypesByTenantIdAndPageLink(tenantId, false, DeprecatedFilter.ALL, null, pageLink);
+    protected boolean registerUnderJavaType() {
+        return true;
+    }
+
+    @Override
+    public void setParameterValues(Properties parameters) {
+        ((AbstractArrayTypeDescriptor) getJavaTypeDescriptor()).setParameterValues(parameters);
     }
 }
