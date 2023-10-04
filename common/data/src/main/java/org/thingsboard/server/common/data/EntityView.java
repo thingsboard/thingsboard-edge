@@ -56,7 +56,7 @@ public class EntityView extends BaseDataWithAdditionalInfo<EntityViewId>
 
     private static final long serialVersionUID = 5582010124562018986L;
 
-    @Schema(required = true, description = "JSON object with the referenced Entity Id (Device or Asset).")
+    @Schema(description = "JSON object with the referenced Entity Id (Device or Asset).")
     private EntityId entityId;
     private TenantId tenantId;
     private CustomerId customerId;
@@ -68,7 +68,7 @@ public class EntityView extends BaseDataWithAdditionalInfo<EntityViewId>
     @Length(fieldName = "type")
     @Schema(required = true, description = "Device Profile Name", example = "Temperature Sensor")
     private String type;
-    @Schema(required = true, description = "Set of telemetry and attribute keys to expose via Entity View.")
+    @Schema(description = "Set of telemetry and attribute keys to expose via Entity View.")
     private TelemetryEntityView keys;
     @Schema(description = "Represents the start time of the interval that is used to limit access to target device telemetry. Customer will not be able to see entity telemetry that is outside the specified interval;")
     private long startTimeMs;

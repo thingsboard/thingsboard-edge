@@ -70,10 +70,12 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -101,6 +103,7 @@ public class InstallScripts {
     public static final String RULE_CHAINS_DIR = "rule_chains";
     public static final String ROOT_RULE_CHAIN_DIR = "root_rule_chain";
     public static final String ROOT_RULE_CHAIN_JSON = "root_rule_chain.json";
+    public static final String WIDGET_TYPES_DIR = "widget_types";
     public static final String WIDGET_BUNDLES_DIR = "widget_bundles";
     public static final String OAUTH2_CONFIG_TEMPLATES_DIR = "oauth2_config_templates";
     public static final String DASHBOARDS_DIR = "dashboards";
@@ -141,7 +144,7 @@ public class InstallScripts {
     @Autowired
     private ResourceService resourceService;
 
-    private Path getTenantRuleChainsDir() {
+    Path getTenantRuleChainsDir() {
         return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, RULE_CHAINS_DIR);
     }
 
@@ -149,11 +152,11 @@ public class InstallScripts {
         return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, ROOT_RULE_CHAIN_DIR, ROOT_RULE_CHAIN_JSON);
     }
 
-    private Path getDeviceProfileDefaultRuleChainTemplateFilePath() {
+    Path getDeviceProfileDefaultRuleChainTemplateFilePath() {
         return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, DEVICE_PROFILE_DIR, "rule_chain_template.json");
     }
 
-    private Path getEdgeRuleChainsDir() {
+    Path getEdgeRuleChainsDir() {
         return Paths.get(getDataDir(), JSON_DIR, EDGE_DIR, RULE_CHAINS_DIR);
     }
 
@@ -204,6 +207,14 @@ public class InstallScripts {
         }
     }
 
+    List<Path> findRuleChainsFromPath(Path ruleChainsPath) throws IOException {
+        List<Path> paths = new ArrayList<>();
+        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(ruleChainsPath, path -> path.toString().endsWith(InstallScripts.JSON_EXT))) {
+            dirStream.forEach(paths::add);
+        }
+        return paths;
+    }
+
     public RuleChain createDefaultRuleChain(TenantId tenantId, String ruleChainName) throws IOException {
         return createRuleChainFromFile(tenantId, getDeviceProfileDefaultRuleChainTemplateFilePath(), ruleChainName);
     }
@@ -219,6 +230,23 @@ public class InstallScripts {
     }
 
     public void loadSystemWidgets() throws Exception {
+        Path widgetTypesDir = Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, WIDGET_TYPES_DIR);
+        if (Files.exists(widgetTypesDir)) {
+            try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(widgetTypesDir, path -> path.toString().endsWith(JSON_EXT))) {
+                dirStream.forEach(
+                        path -> {
+                            try {
+                                JsonNode widgetTypeJson = JacksonUtil.toJsonNode(path.toFile());
+                                WidgetTypeDetails widgetTypeDetails = JacksonUtil.treeToValue(widgetTypeJson, WidgetTypeDetails.class);
+                                widgetTypeService.saveWidgetType(widgetTypeDetails);
+                            } catch (Exception e) {
+                                log.error("Unable to load widget type from json: [{}]", path.toString());
+                                throw new RuntimeException("Unable to load widget type from json", e);
+                            }
+                        }
+                );
+            }
+        }
         Path widgetBundlesDir = Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, WIDGET_BUNDLES_DIR);
         try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(widgetBundlesDir, path -> path.toString().endsWith(JSON_EXT))) {
             dirStream.forEach(
@@ -228,19 +256,29 @@ public class InstallScripts {
                             JsonNode widgetsBundleJson = widgetsBundleDescriptorJson.get("widgetsBundle");
                             WidgetsBundle widgetsBundle = JacksonUtil.treeToValue(widgetsBundleJson, WidgetsBundle.class);
                             WidgetsBundle savedWidgetsBundle = widgetsBundleService.saveWidgetsBundle(widgetsBundle);
-                            JsonNode widgetTypesArrayJson = widgetsBundleDescriptorJson.get("widgetTypes");
-                            widgetTypesArrayJson.forEach(
-                                    widgetTypeJson -> {
-                                        try {
-                                            WidgetTypeDetails widgetTypeDetails = JacksonUtil.treeToValue(widgetTypeJson, WidgetTypeDetails.class);
-                                            widgetTypeDetails.setBundleAlias(savedWidgetsBundle.getAlias());
-                                            widgetTypeService.saveWidgetType(widgetTypeDetails);
-                                        } catch (Exception e) {
-                                            log.error("Unable to load widget type from json: [{}]", path.toString());
-                                            throw new RuntimeException("Unable to load widget type from json", e);
+                            List<String> widgetTypeFqns = new ArrayList<>();
+                            if (widgetsBundleDescriptorJson.has("widgetTypes")) {
+                                JsonNode widgetTypesArrayJson = widgetsBundleDescriptorJson.get("widgetTypes");
+                                widgetTypesArrayJson.forEach(
+                                        widgetTypeJson -> {
+                                            try {
+                                                WidgetTypeDetails widgetTypeDetails = JacksonUtil.treeToValue(widgetTypeJson, WidgetTypeDetails.class);
+                                                var savedWidgetType = widgetTypeService.saveWidgetType(widgetTypeDetails);
+                                                widgetTypeFqns.add(savedWidgetType.getFqn());
+                                            } catch (Exception e) {
+                                                log.error("Unable to load widget type from json: [{}]", path.toString());
+                                                throw new RuntimeException("Unable to load widget type from json", e);
+                                            }
                                         }
-                                    }
-                            );
+                                );
+                            }
+                            if (widgetsBundleDescriptorJson.has("widgetTypeFqns")) {
+                                JsonNode widgetFqnsArrayJson = widgetsBundleDescriptorJson.get("widgetTypeFqns");
+                                widgetFqnsArrayJson.forEach(fqnJson -> {
+                                    widgetTypeFqns.add(fqnJson.asText());
+                                });
+                            }
+                            widgetTypeService.updateWidgetsBundleWidgetFqns(TenantId.SYS_TENANT_ID, savedWidgetsBundle.getId(), widgetTypeFqns);
                         } catch (Exception e) {
                             log.error("Unable to load widgets bundle from json: [{}]", path.toString());
                             throw new RuntimeException("Unable to load widgets bundle from json", e);
@@ -390,7 +428,7 @@ public class InstallScripts {
     }
 
     public void loadSystemLwm2mResources() {
-        Path resourceLwm2mPath = Paths.get(dataDir, MODELS_LWM2M_DIR);
+        Path resourceLwm2mPath = Paths.get(getDataDir(), MODELS_LWM2M_DIR);
         try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(resourceLwm2mPath, path -> path.toString().endsWith(InstallScripts.XML_EXT))) {
             dirStream.forEach(
                     path -> {

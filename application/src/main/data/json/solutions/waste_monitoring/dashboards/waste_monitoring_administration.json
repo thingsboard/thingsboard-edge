@@ -3,19 +3,11 @@
   "image": null,
   "mobileHide": false,
   "mobileOrder": null,
-  "ownerName": null,
-  "groups": null,
   "configuration": {
     "description": "",
     "widgets": {
       "ad8020a2-53fd-8334-c94e-2a7af3774780": {
-        "isSystemType": true,
-        "bundleAlias": "maps_v2",
-        "typeAlias": "openstreetmap",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8.5,
         "sizeY": 6,
         "config": {
@@ -258,16 +250,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "ad8020a2-53fd-8334-c94e-2a7af3774780"
+        "id": "ad8020a2-53fd-8334-c94e-2a7af3774780",
+        "typeFullFqn": "system.maps_v2.openstreetmap"
       },
       "6743d611-3f49-5caf-4e28-c06eeebbe225": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -389,16 +376,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "6743d611-3f49-5caf-4e28-c06eeebbe225"
+        "id": "6743d611-3f49-5caf-4e28-c06eeebbe225",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "81c766cd-ae80-9f5e-fa44-9717cb1ba84f": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -504,16 +486,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "81c766cd-ae80-9f5e-fa44-9717cb1ba84f"
+        "id": "81c766cd-ae80-9f5e-fa44-9717cb1ba84f",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "fdcc234a-0d39-30b8-318a-9fad15085bb0": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -619,16 +596,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "fdcc234a-0d39-30b8-318a-9fad15085bb0"
+        "id": "fdcc234a-0d39-30b8-318a-9fad15085bb0",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "369fcee9-5f64-e56d-d723-64f46ec383d1": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -734,16 +706,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "369fcee9-5f64-e56d-d723-64f46ec383d1"
+        "id": "369fcee9-5f64-e56d-d723-64f46ec383d1",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "14b9092d-f098-0ce9-e214-3e19032d450a": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 7.5,
         "sizeY": 6.5,
         "config": {
@@ -796,7 +763,7 @@
           "titleStyle": {
             "fontSize": "16px",
             "fontWeight": 500,
-            "padding": "5px 10px 5px 10px",
+            "padding": "5px 10px 5px 5px",
             "color": "#29313C",
             "letterSpacing": "0.25px"
           },
@@ -1015,16 +982,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "14b9092d-f098-0ce9-e214-3e19032d450a"
+        "id": "14b9092d-f098-0ce9-e214-3e19032d450a",
+        "typeFullFqn": "system.cards.entities_table"
       },
       "bd47533e-1ef8-bea5-e982-728322a17536": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
         "type": "alarm",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 10.5,
         "sizeY": 6.5,
         "config": {
@@ -1072,7 +1034,7 @@
           "titleStyle": {
             "fontSize": "16px",
             "fontWeight": 500,
-            "padding": "5px 10px 5px 10px",
+            "padding": "5px 10px 5px 2px",
             "color": "#29313C",
             "letterSpacing": "0.25px"
           },
@@ -1156,7 +1118,6 @@
               }
             ]
           },
-          "alarmSearchStatus": "ANY",
           "alarmsPollingInterval": 5,
           "showTitleIcon": false,
           "titleIcon": "more_horiz",
@@ -1196,30 +1157,27 @@
               }
             ]
           },
-          "alarmStatusList": [
-            "ACTIVE"
-          ],
-          "alarmSeverityList": [],
-          "alarmTypeList": [],
-          "searchPropagatedAlarms": false,
           "datasources": [],
           "enableDataExport": false,
           "widgetCss": "",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "alarmFilterConfig": {
+            "statusList": [
+              "ACTIVE"
+            ],
+            "severityList": [],
+            "typeList": [],
+            "searchPropagatedAlarms": false
+          }
         },
         "row": 0,
         "col": 0,
-        "id": "bd47533e-1ef8-bea5-e982-728322a17536"
+        "id": "bd47533e-1ef8-bea5-e982-728322a17536",
+        "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
       "b89177ac-8f67-3ae5-dfc8-945d995ced41": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -1380,16 +1338,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "b89177ac-8f67-3ae5-dfc8-945d995ced41"
+        "id": "b89177ac-8f67-3ae5-dfc8-945d995ced41",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "6672413e-b50d-c915-a8da-47f873df2458": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
         "type": "alarm",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 10.5,
         "sizeY": 6.5,
         "config": {
@@ -1437,7 +1390,7 @@
           "titleStyle": {
             "fontSize": "16px",
             "fontWeight": 500,
-            "padding": "5px 10px 5px 10px",
+            "padding": "5px 10px 5px 2px",
             "color": "#29313C",
             "letterSpacing": "0.25px"
           },
@@ -1521,7 +1474,6 @@
               }
             ]
           },
-          "alarmSearchStatus": "ANY",
           "alarmsPollingInterval": 5,
           "showTitleIcon": false,
           "titleIcon": "more_horiz",
@@ -1534,30 +1486,27 @@
             "headerButton": [],
             "actionCellButton": []
           },
-          "alarmStatusList": [
-            "ACTIVE"
-          ],
-          "alarmSeverityList": [],
-          "alarmTypeList": [],
-          "searchPropagatedAlarms": false,
           "datasources": [],
           "enableDataExport": false,
           "widgetCss": "",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "alarmFilterConfig": {
+            "statusList": [
+              "ACTIVE"
+            ],
+            "severityList": [],
+            "typeList": [],
+            "searchPropagatedAlarms": false
+          }
         },
         "row": 0,
         "col": 0,
-        "id": "6672413e-b50d-c915-a8da-47f873df2458"
+        "id": "6672413e-b50d-c915-a8da-47f873df2458",
+        "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
       "f7e58e0e-4207-8e1c-1825-67d85a19234a": {
-        "isSystemType": true,
-        "bundleAlias": "input_widgets",
-        "typeAlias": "markers_placement_openstreetmap",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8.5,
         "sizeY": 6.5,
         "config": {
@@ -1774,16 +1723,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "f7e58e0e-4207-8e1c-1825-67d85a19234a"
+        "id": "f7e58e0e-4207-8e1c-1825-67d85a19234a",
+        "typeFullFqn": "system.input_widgets.markers_placement_openstreetmap"
       },
       "b2fcb4c5-983f-982b-bc76-7d30c7ac64ef": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -1877,7 +1821,18 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "bottom",
+              "sortDataKeys": false,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": true,
+              "showTotal": false,
+              "showLatest": false
+            }
           },
           "title": "Battery level",
           "dropShadow": false,
@@ -1885,7 +1840,7 @@
           "titleStyle": {
             "fontSize": "16px",
             "fontWeight": 500,
-            "padding": "5px 10px 5px 10px",
+            "padding": "5px 10px 5px 0px",
             "color": "#29313C",
             "letterSpacing": "0.25px"
           },
@@ -1896,31 +1851,15 @@
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
-          "showLegend": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "bottom",
-            "sortDataKeys": false,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": true,
-            "showTotal": false,
-            "showLatest": false
-          },
           "useDashboardTimewindow": true
         },
         "row": 0,
         "col": 0,
-        "id": "b2fcb4c5-983f-982b-bc76-7d30c7ac64ef"
+        "id": "b2fcb4c5-983f-982b-bc76-7d30c7ac64ef",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "a42f2f1e-2e95-4a45-724d-3ea9a4fae0f3": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "state_chart",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -2017,7 +1956,16 @@
               "title": null,
               "showLabels": true
             },
-            "customLegendEnabled": false
+            "customLegendEnabled": false,
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              ",position": "bottom",
+              "showMin": false,
+              "showMax": false,
+              "showAvg": false,
+              "showTotal": false
+            }
           },
           "title": "Fullness",
           "dropShadow": false,
@@ -2025,22 +1973,13 @@
           "titleStyle": {
             "fontSize": "16px",
             "fontWeight": 500,
-            "padding": "5px 10px 5px 10px",
+            "padding": "5px 10px 5px 0px",
             "color": "#29313C",
             "letterSpacing": "0.25px"
           },
           "widgetStyle": {},
           "useDashboardTimewindow": true,
-          "showLegend": false,
           "actions": {},
-          "legendConfig": {
-            "direction": "column",
-            ",position": "bottom",
-            "showMin": false,
-            "showMax": false,
-            "showAvg": false,
-            "showTotal": false
-          },
           "showTitleIcon": false,
           "titleTooltip": "",
           "enableDataExport": true,
@@ -2050,7 +1989,8 @@
         },
         "row": 0,
         "col": 0,
-        "id": "a42f2f1e-2e95-4a45-724d-3ea9a4fae0f3"
+        "id": "a42f2f1e-2e95-4a45-724d-3ea9a4fae0f3",
+        "typeFullFqn": "system.charts.state_chart"
       }
     },
     "states": {
@@ -2111,7 +2051,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -2161,7 +2102,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -2174,8 +2116,10 @@
         "filter": {
           "type": "deviceType",
           "resolveMultiple": true,
-          "deviceType": "Waste Sensor",
-          "deviceNameFilter": ""
+          "deviceNameFilter": "",
+          "deviceTypes": [
+            "Waste Sensor"
+          ]
         }
       },
       "bbd8598b-83a5-5da8-43d3-4fd989919131": {

@@ -43,6 +43,6 @@ public interface TbEntityRelationService {
 
     void delete(TenantId tenantId, CustomerId customerId, EntityRelation entity, User user) throws ThingsboardException;
 
-    void deleteRelations(TenantId tenantId, CustomerId customerId, EntityId entityId, User user) throws ThingsboardException;
+    void deleteCommonRelations(TenantId tenantId, CustomerId customerId, EntityId entityId, User user) throws ThingsboardException;
 
 }

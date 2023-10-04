@@ -1,0 +1,79 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="tb-color-picker-panel" [ngClass]="{'singleTab': !useThemePalette}">
+  <div class="tb-color-picker-title" translate>color.color</div>
+  <mat-tab-group *ngIf="useThemePalette; else colorPicker" style="width: 100%;" dynamicHeight
+                 [selectedIndex]="colorMode === 'color' ? 0 : (colorMode === 'primary' ? 1 : 2)" (selectedIndexChange)="selectedIndexChange($event)">
+    <mat-tab label="{{ 'color.color-picker' | translate }}">
+      <div style="padding: 8px 0 0; display: flex; height: 100%;">
+        <ng-container *ngTemplateOutlet="colorPicker"></ng-container>
+      </div>
+    </mat-tab>
+    <mat-tab label="{{ 'color.primary-colors' | translate }}">
+      <tb-theme-color-select
+        palette="primary"
+        [ngModel]="primaryColor"
+        (ngModelChange)="onPrimaryColorChange($event)"
+        [ngModelOptions]="{standalone: true}">
+      </tb-theme-color-select>
+    </mat-tab>
+    <mat-tab label="{{ 'color.accent-colors' | translate }}">
+      <tb-theme-color-select
+        palette="accent"
+        [ngModel]="accentColor"
+        (ngModelChange)="onAccentColorChange($event)"
+        [ngModelOptions]="{standalone: true}">
+      </tb-theme-color-select>
+    </mat-tab>
+  </mat-tab-group>
+  <ng-template #colorPicker>
+    <tb-color-picker [(ngModel)]="plainColor" (ngModelChange)="onPlainColorChange($event)"></tb-color-picker>
+  </ng-template>
+  <div class="tb-color-picker-panel-buttons">
+    <button *ngIf="colorClearButton"
+            mat-button
+            color="primary"
+            type="button"
+            (click)="clearColor()"
+            [disabled]="!getColor()">
+      {{ 'action.clear' | translate }}
+    </button>
+    <button mat-raised-button
+            color="primary"
+            type="button"
+            (click)="selectColor()"
+            [disabled]="!valid || !dirty">
+      {{ 'action.select' | translate }}
+    </button>
+  </div>
+</div>

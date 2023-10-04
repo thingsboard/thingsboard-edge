@@ -37,10 +37,10 @@ import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
-import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 
@@ -83,7 +83,7 @@ public class TbIntegrationDownlinkNode implements TbNode {
             ctx.getPeContext().pushToIntegration(integrationId, msg, new FutureCallback<Void>() {
                 @Override
                 public void onSuccess(@Nullable Void tmp) {
-                    ctx.tellNext(msg, TbRelationTypes.SUCCESS);
+                    ctx.tellNext(msg, TbNodeConnectionType.SUCCESS);
                 }
 
                 @Override
@@ -92,7 +92,7 @@ public class TbIntegrationDownlinkNode implements TbNode {
                 }
             });
         } else {
-            ctx.tellNext(msg, TbRelationTypes.FAILURE);
+            ctx.tellNext(msg, TbNodeConnectionType.FAILURE);
         }
     }
 

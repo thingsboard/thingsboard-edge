@@ -54,7 +54,6 @@ import { Authority } from '@shared/models/authority.enum';
 import { AuthState } from '@core/auth/auth.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { AuthUser } from '@shared/models/user.model';
-import { control } from 'leaflet';
 
 export interface RecipientNotificationDialogData {
   target?: NotificationTarget;
@@ -119,6 +118,8 @@ export class RecipientNotificationDialogComponent extends
         }),
         conversationType: [{value: SlackChanelType.PUBLIC_CHANNEL, disabled: true}],
         conversation: [{value: '', disabled: true}, Validators.required],
+        webhookUrl: [{value: '', disabled: true}, Validators.required],
+        channelName: [{value: '', disabled: true}, Validators.required],
         description: [null]
       })
     });
@@ -135,6 +136,10 @@ export class RecipientNotificationDialogComponent extends
         case NotificationTargetType.SLACK:
           this.targetNotificationForm.get('configuration.conversationType').enable({emitEvent: false});
           this.targetNotificationForm.get('configuration.conversation').enable({emitEvent: false});
+          break;
+        case NotificationTargetType.MICROSOFT_TEAMS:
+          this.targetNotificationForm.get('configuration.webhookUrl').enable({emitEvent: false});
+          this.targetNotificationForm.get('configuration.channelName').enable({emitEvent: false});
           break;
       }
       this.targetNotificationForm.get('configuration.type').enable({emitEvent: false});
@@ -186,7 +191,7 @@ export class RecipientNotificationDialogComponent extends
     if (isDefinedAndNotNull(data.target)) {
       this.targetNotificationForm.patchValue(data.target, {emitEvent: false});
       this.targetNotificationForm.get('configuration.type').updateValueAndValidity({onlySelf: true});
-      if (this.isSysAdmin() && data.target.configuration.usersFilter.type === NotificationTargetConfigType.TENANT_ADMINISTRATORS) {
+      if (this.isSysAdmin() && data.target.configuration.usersFilter?.type === NotificationTargetConfigType.TENANT_ADMINISTRATORS) {
         this.targetNotificationForm.get('configuration.usersFilter.filterByTenants')
           .patchValue(!Array.isArray(this.data.target.configuration.usersFilter.tenantProfilesIds), {onlySelf: true});
       }

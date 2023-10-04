@@ -85,7 +85,6 @@ import { MediaBreakpoints } from '@shared/models/constants';
 import { AuthUser } from '@shared/models/user.model';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import {
-  DatasourceType,
   Widget,
   WidgetConfig,
   WidgetInfo,
@@ -139,7 +138,7 @@ import { AuthState } from '@app/core/auth/auth.models';
 import { ReportService } from '@core/http/report.service';
 import { EntityGroupInfo, resolveGroupParams } from '@shared/models/entity-group.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { Operation } from '@shared/models/security.models';
+import { Operation, Resource } from '@shared/models/security.models';
 import { ReportType } from '@shared/models/report.models';
 import { FiltersDialogComponent, FiltersDialogData } from '@home/components/filter/filters-dialog.component';
 import { Filters } from '@shared/models/query/query.models';
@@ -189,12 +188,14 @@ import { HasDirtyFlag } from '@core/guards/confirm-on-exit.guard';
 })
 export class DashboardPageComponent extends PageComponent implements IDashboardController, HasDirtyFlag, OnInit, AfterViewInit, OnDestroy {
 
+  private forcePristine = false;
+
   get isDirty(): boolean {
-    return this.isEdit;
+    return this.isEdit && !this.forcePristine;
   }
 
   set isDirty(value: boolean) {
-
+    this.forcePristine = !value;
   }
 
   authState: AuthState = getCurrentAuthState(this.store);
@@ -222,7 +223,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   }
 
   get hideToolbar(): boolean {
-    return (this.hideToolbarValue || this.hideToolbarSetting()) && !this.isEdit;
+    return ((this.hideToolbarValue || this.hideToolbarSetting()) && !this.isEdit) || (this.isEditingWidget || this.isAddingWidget);
   }
 
   @Input()
@@ -262,7 +263,6 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   forceDashboardMobileMode = false;
   isAddingWidget = false;
   isAddingWidgetClosed = true;
-  searchBundle = '';
   filterWidgetTypes: widgetType[] = null;
 
   isToolbarOpened = false;
@@ -385,7 +385,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
               private viewContainerRef: ViewContainerRef,
               private cd: ChangeDetectorRef,
               private sanitizer: DomSanitizer,
-              public elRef: ElementRef) {
+              public elRef: ElementRef,
+              private injector: Injector) {
     super(store);
     if (isDefinedAndNotNull(embeddedValue)) {
       this.embedded = embeddedValue;
@@ -455,6 +456,9 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
       this.updateLayoutSizes();
     });
     this.dashboardResize$.observe(this.dashboardContainer.nativeElement);
+    if (!this.widgetEditMode && !this.readonly && this.dashboardUtils.isEmptyDashboard(this.dashboard)) {
+      this.setEditMode(true, false);
+    }
   }
 
   private init(data: DashboardPageInitData) {
@@ -498,6 +502,10 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
                || this.forceFullscreen || this.isMobileApp || this.reportView || this.stateSelectView ||
                this.route.snapshot.queryParamMap.get('readonly') === 'true') {
       this.readonly = true;
+    } else if (this.widgetEditMode) {
+      this.readonly = !this.userPermissionsService.hasGenericPermission(Resource.WIDGET_TYPE, Operation.WRITE);
+    } else {
+      this.readonly = !this.userPermissionsService.hasGenericPermission(Resource.DASHBOARD, Operation.WRITE);
     }
 
     this.dashboardCtx.aliasController = this.parentAliasController ? this.parentAliasController : new AliasController(this.utils,
@@ -634,7 +642,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   }
 
   public hideFullscreenButton(): boolean {
-    if (this.route.snapshot.routeConfig?.path.startsWith('dashboards')) {
+    if (this.router.url.startsWith('/dashboards')) {
       return this.widgetEditMode || this.iframeMode || this.forceFullscreen || this.isEdit;
     }
     return this.widgetEditMode || this.iframeMode || this.forceFullscreen || this.singlePageMode || this.isEdit;
@@ -1066,7 +1074,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
         layout.show = true;
         const layoutInfo: DashboardLayoutInfo = layoutsData[l];
         this.updateLayout(layout, layoutInfo);
-        widgetsCount += layoutInfo.widgetIds ? layoutInfo.widgetIds.length : 0;
+        widgetsCount += layoutInfo.widgetLayouts ? Object.values(layoutInfo.widgetLayouts).filter(item => !item.desktopHide).length : 0;
       } else {
         layout.show = false;
         this.updateLayout(layout, {widgetIds: [], widgetLayouts: {}, gridSettings: null});
@@ -1233,21 +1241,15 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
 
   addWidgetFromType(widget: WidgetInfo) {
     this.onAddWidgetClosed();
-    this.searchBundle = '';
-    this.widgetComponentService.getWidgetInfo(widget.bundleAlias, widget.typeAlias, widget.isSystemType).subscribe(
+    this.widgetComponentService.getWidgetInfo(widget.typeFullFqn).subscribe(
       (widgetTypeInfo) => {
         const config: WidgetConfig = this.dashboardUtils.widgetConfigFromWidgetType(widgetTypeInfo);
         if (!config.title) {
           config.title = 'New ' + widgetTypeInfo.widgetName;
         }
         let newWidget: Widget = {
-          isSystemType: widget.isSystemType,
-          bundleAlias: widget.bundleAlias,
-          typeAlias: widgetTypeInfo.alias,
+          typeFullFqn: widgetTypeInfo.fullFqn,
           type: widgetTypeInfo.type,
-          title: 'New widget',
-          image: null,
-          description: null,
           sizeX: widgetTypeInfo.sizeX,
           sizeY: widgetTypeInfo.sizeY,
           config,
@@ -1262,6 +1264,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
             Widget>(AddWidgetDialogComponent, {
             disableClose: true,
             panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+            maxWidth: '95vw',
+            injector: this.injector,
             data: {
               dashboard: this.dashboard,
               aliasController: this.dashboardCtx.aliasController,
@@ -1509,13 +1513,10 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     return widgetContextActions;
   }
 
-  widgetBundleSelected(){
-    this.searchBundle = '';
-  }
-
   clearSelectedWidgetBundle() {
-    this.searchBundle = '';
+    this.dashboardWidgetSelectComponent.search = '';
     this.dashboardWidgetSelectComponent.widgetsBundle = null;
+    this.dashboardWidgetSelectComponent.selectWidgetMode = 'bundles';
   }
 
   editWidgetsTypesToDisplay($event: Event) {
@@ -1563,10 +1564,6 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     const injector = Injector.create({parent: this.viewContainerRef.injector, providers});
     overlayRef.attach(new ComponentPortal(DisplayWidgetTypesPanelComponent, this.viewContainerRef, injector));
     this.cd.markForCheck();
-  }
-
-  onCloseSearchBundle() {
-    this.searchBundle = '';
   }
 
   public updateDashboardImage($event: Event) {

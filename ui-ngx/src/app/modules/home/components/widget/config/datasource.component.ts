@@ -103,7 +103,7 @@ export class DatasourceComponent implements ControlValueAccessor, OnInit, Valida
 
   public get hasAdditionalLatestDataKeys(): boolean {
     return this.widgetConfigComponent.widgetType === widgetType.timeseries &&
-      this.widgetConfigComponent.modelValue?.typeParameters?.hasAdditionalLatestDataKeys;
+      this.widgetConfigComponent.modelValue?.typeParameters?.hasAdditionalLatestDataKeys && !this.hideLatestDataKeys;
   }
 
   public get dataKeysOptional(): boolean {
@@ -138,6 +138,14 @@ export class DatasourceComponent implements ControlValueAccessor, OnInit, Valida
     return this.widgetConfigComponent.widget;
   }
 
+  public get hideDatasourceLabel(): boolean {
+    return this.datasourcesComponent?.hideDatasourceLabel;
+  }
+
+  public get displayDatasourceFilterForBasicMode(): boolean {
+    return this.datasourcesComponent?.displayDatasourceFilterForBasicMode;
+  }
+
   public get hideDataKeyLabel(): boolean {
     return this.datasourcesComponent?.hideDataKeyLabel;
   }
@@ -158,6 +166,10 @@ export class DatasourceComponent implements ControlValueAccessor, OnInit, Valida
     return this.datasourcesComponent?.hideDataKeys;
   }
 
+  public get hideLatestDataKeys(): boolean {
+    return this.datasourcesComponent?.hideLatestDataKeys;
+  }
+
   @Input()
   disabled: boolean;
 
@@ -168,6 +180,8 @@ export class DatasourceComponent implements ControlValueAccessor, OnInit, Valida
   datasourceType = DatasourceType;
   datasourceTypes: Array<DatasourceType> = [];
   datasourceTypesTranslations = datasourceTypeTranslationMap;
+
+  alarmSearchStatus = AlarmSearchStatus;
 
   datasourceFormGroup: UntypedFormGroup;
 

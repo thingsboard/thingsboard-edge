@@ -94,6 +94,23 @@ public interface EdgeRepository extends JpaRepository<EdgeEntity, UUID> {
                                                  @Param("relationType") String relationType,
                                                  Pageable pageable);
 
+    @Query("SELECT DISTINCT ee.id FROM EdgeEntity ee, RelationEntity re WHERE ee.tenantId = :tenantId " +
+            "AND ee.id = re.fromId AND re.fromType = 'EDGE' AND re.relationTypeGroup = 'EDGE' " +
+            "AND re.relationType = :relationType AND re.toType = 'ENTITY_GROUP' " +
+            "AND re.toId IN (" +
+            "   SELECT fromId FROM RelationEntity " +
+            "   WHERE toId = :entityId AND toType = :entityType AND fromType = 'ENTITY_GROUP' " +
+            "   AND relationType = 'Contains' AND relationTypeGroup = 'FROM_ENTITY_GROUP')")
+    Page<UUID> findEdgeIdsByTenantIdAndGroupEntityId(@Param("tenantId") UUID tenantId,
+                                                     @Param("entityId") UUID entityId,
+                                                     @Param("entityType") String entityType,
+                                                     @Param("relationType") String relationType,
+                                                     Pageable pageable);
+
+    @Query("SELECT ee FROM EdgeEntity ee, TenantEntity te WHERE ee.tenantId = te.id AND te.tenantProfileId = :tenantProfileId ")
+    Page<EdgeEntity> findByTenantProfileId(@Param("tenantProfileId") UUID tenantProfileId,
+                                           Pageable pageable);
+
     @Query("SELECT DISTINCT d.type FROM EdgeEntity d WHERE d.tenantId = :tenantId")
     List<String> findTenantEdgeTypes(@Param("tenantId") UUID tenantId);
 

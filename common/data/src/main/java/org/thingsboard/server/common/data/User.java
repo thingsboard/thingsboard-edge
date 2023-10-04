@@ -158,7 +158,7 @@ public class User extends BaseDataWithAdditionalInfo<UserId> implements GroupEnt
         this.authority = authority;
     }
 
-    @Schema(required = true, description = "First name of the user", example = "John")
+    @Schema(description = "First name of the user", example = "John")
     public String getFirstName() {
         return firstName;
     }
@@ -167,7 +167,7 @@ public class User extends BaseDataWithAdditionalInfo<UserId> implements GroupEnt
         this.firstName = firstName;
     }
 
-    @Schema(required = true, description = "Last name of the user", example = "Doe")
+    @Schema(description = "Last name of the user", example = "Doe")
     public String getLastName() {
         return lastName;
     }
@@ -176,7 +176,7 @@ public class User extends BaseDataWithAdditionalInfo<UserId> implements GroupEnt
         this.lastName = lastName;
     }
 
-    @Schema(required = true, description = "Phone number of the user", example = "38012345123")
+    @Schema(description = "Phone number of the user", example = "38012345123")
     public String getPhone() {
         return phone;
     }

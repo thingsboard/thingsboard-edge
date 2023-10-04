@@ -45,8 +45,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -131,9 +129,9 @@ public class WhiteLabelingController extends BaseController {
         if (Authority.SYS_ADMIN.equals(authority)) {
             whiteLabelingParams = whiteLabelingService.getSystemWhiteLabelingParams(TenantId.SYS_TENANT_ID);
         } else if (Authority.TENANT_ADMIN.equals(authority)) {
-            whiteLabelingParams = whiteLabelingService.getTenantWhiteLabelingParams(getCurrentUser().getTenantId()).get();
+            whiteLabelingParams = whiteLabelingService.getTenantWhiteLabelingParams(getCurrentUser().getTenantId());
         } else if (Authority.CUSTOMER_USER.equals(authority)) {
-            whiteLabelingParams = whiteLabelingService.getCustomerWhiteLabelingParams(getTenantId(), getCurrentUser().getCustomerId()).get();
+            whiteLabelingParams = whiteLabelingService.getCustomerWhiteLabelingParams(getTenantId(), getCurrentUser().getCustomerId());
         }
         return whiteLabelingParams;
     }
@@ -181,12 +179,10 @@ public class WhiteLabelingController extends BaseController {
         if (Authority.SYS_ADMIN.equals(authority)) {
             savedWhiteLabelingParams = whiteLabelingService.saveSystemWhiteLabelingParams(whiteLabelingParams);
         } else if (Authority.TENANT_ADMIN.equals(authority)) {
-            savedWhiteLabelingParams = whiteLabelingService.saveTenantWhiteLabelingParams(getCurrentUser().getTenantId(), whiteLabelingParams).get();
+            savedWhiteLabelingParams = whiteLabelingService.saveTenantWhiteLabelingParams(getCurrentUser().getTenantId(), whiteLabelingParams);
         } else if (Authority.CUSTOMER_USER.equals(authority)) {
-            savedWhiteLabelingParams = whiteLabelingService.saveCustomerWhiteLabelingParams(getTenantId(), getCurrentUser().getCustomerId(), whiteLabelingParams).get();
+            savedWhiteLabelingParams = whiteLabelingService.saveCustomerWhiteLabelingParams(getTenantId(), getCurrentUser().getCustomerId(), whiteLabelingParams);
         }
-        notificationEntityService.notifySendMsgToEdgeService(getCurrentUser().getTenantId(),
-                getCurrentUser().getOwnerId(), EdgeEventType.WHITE_LABELING, EdgeEventActionType.UPDATED);
         return savedWhiteLabelingParams;
     }
 
@@ -211,8 +207,6 @@ public class WhiteLabelingController extends BaseController {
         } else if (Authority.CUSTOMER_USER.equals(authority)) {
             savedLoginWhiteLabelingParams = whiteLabelingService.saveCustomerLoginWhiteLabelingParams(getTenantId(), getCurrentUser().getCustomerId(), loginWhiteLabelingParams);
         }
-        notificationEntityService.notifySendMsgToEdgeService(getCurrentUser().getTenantId(),
-                getCurrentUser().getOwnerId(), EdgeEventType.LOGIN_WHITE_LABELING, EdgeEventActionType.UPDATED);
         return savedLoginWhiteLabelingParams;
     }
 

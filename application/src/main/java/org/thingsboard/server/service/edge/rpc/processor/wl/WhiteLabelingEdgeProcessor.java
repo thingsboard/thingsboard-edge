@@ -86,7 +86,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                                 .build();
                     } else {
                         WhiteLabelingParams tenantWhiteLabelingParams =
-                                whiteLabelingService.getTenantWhiteLabelingParams(edgeEvent.getTenantId()).get();
+                                whiteLabelingService.getTenantWhiteLabelingParams(edgeEvent.getTenantId());
                         if (isDefaultWhiteLabeling(tenantWhiteLabelingParams)) {
                             return null;
                         }
@@ -101,7 +101,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                 case CUSTOMER:
                     CustomerId customerId = new CustomerId(entityId.getId());
                     WhiteLabelingParams customerWhiteLabelingParams =
-                            whiteLabelingService.getCustomerWhiteLabelingParams(edgeEvent.getTenantId(), customerId).get();
+                            whiteLabelingService.getCustomerWhiteLabelingParams(edgeEvent.getTenantId(), customerId);
                     if (isDefaultWhiteLabeling(customerWhiteLabelingParams)) {
                         return null;
                     }
@@ -248,12 +248,12 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                     do {
                         tenantsIds = tenantService.findTenantsIds(pageLink);
                         for (TenantId tenantId1 : tenantsIds.getData()) {
-                            futures.addAll(processActionForAllEdgesByTenantId(tenantId1, type, actionType, null, JacksonUtil.valueToTree(entityId)));
+                            futures.addAll(processActionForAllEdgesByTenantId(tenantId1, type, actionType, null, JacksonUtil.valueToTree(entityId), null));
                         }
                         pageLink = pageLink.nextPageLink();
                     } while (tenantsIds.hasNext());
                 } else {
-                    futures = processActionForAllEdgesByTenantId(tenantId, type, actionType, null, JacksonUtil.valueToTree(entityId));
+                    futures = processActionForAllEdgesByTenantId(tenantId, type, actionType, null, JacksonUtil.valueToTree(entityId), null);
                 }
                 return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
             case CUSTOMER:

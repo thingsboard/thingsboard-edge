@@ -58,7 +58,6 @@ import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -276,9 +275,9 @@ public class EntityGroupController extends AutoCommitController {
                     "Removal of entity group 'All' is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
         }
 
-        List<GroupPermissionInfo> groupPermissions = new ArrayList<>();
-        groupPermissions.addAll(groupPermissionService.findGroupPermissionInfoListByTenantIdAndEntityGroupIdAsync(getTenantId(), entityGroupId).get());
-        if (entityGroup.getType() == EntityType.USER) {
+        List<GroupPermissionInfo> groupPermissions = new ArrayList<>(
+                groupPermissionService.findGroupPermissionInfoListByTenantIdAndEntityGroupIdAsync(getTenantId(), entityGroupId).get());
+        if (EntityType.USER.equals(entityGroup.getType())) {
             groupPermissions.addAll(groupPermissionService.findGroupPermissionInfoListByTenantIdAndUserGroupIdAsync(getTenantId(), entityGroupId).get());
         }
 
@@ -286,8 +285,7 @@ public class EntityGroupController extends AutoCommitController {
             userPermissionsService.onGroupPermissionDeleted(groupPermission);
         }
 
-        List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), entityGroupId);
-        tbEntityGroupService.delete(getTenantId(), relatedEdgeIds, entityGroup, getCurrentUser());
+        tbEntityGroupService.delete(getTenantId(), entityGroup, getCurrentUser());
     }
 
     @ApiOperation(value = "Get Entity Groups by entity type (getEntityGroupsByType)",
@@ -732,6 +730,7 @@ public class EntityGroupController extends AutoCommitController {
         checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
         checkArrayParameter("entityIds", strEntityIds);
         EntityGroup entityGroup = null;
+        ActionType actionType = ActionType.ADDED_TO_ENTITY_GROUP;
         try {
             EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
             entityGroup = checkEntityGroupId(entityGroupId, Operation.ADD_TO_GROUP);
@@ -743,14 +742,20 @@ public class EntityGroupController extends AutoCommitController {
             for (String strEntityId : strEntityIds) {
                 EntityId entityId = EntityIdFactory.getByTypeAndId(entityGroup.getType(), strEntityId);
                 checkEntityId(entityId, Operation.READ);
+                EntityId entityOwner = ownersCacheService.getOwner(getTenantId(), entityId);
+                if (!entityOwner.equals(entityGroup.getOwnerId())) {
+                    throw new ThingsboardException("Unable to add entity with other owner than group. Entity id: " +
+                            entityId, ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+                }
+
                 entityIds.add(entityId);
             }
             entityGroupService.addEntitiesToEntityGroup(getTenantId(), entityGroupId, entityIds);
-            if (entityGroup.getType() == EntityType.USER) {
+            if (EntityType.USER.equals(entityGroup.getType())) {
                 for (EntityId entityId : entityIds) {
                     userPermissionsService.onUserUpdatedOrRemoved(userService.findUserById(getTenantId(), new UserId(entityId.getId())));
                 }
-            } else if (entityGroup.getType() == EntityType.DEVICE) {
+            } else if (EntityType.DEVICE.equals(entityGroup.getType())) {
                 DeviceGroupOtaPackage fw =
                         deviceGroupOtaPackageService.findDeviceGroupOtaPackageByGroupIdAndType(entityGroupId, OtaPackageType.FIRMWARE);
                 DeviceGroupOtaPackage sw =
@@ -763,8 +768,7 @@ public class EntityGroupController extends AutoCommitController {
 
             for (EntityId entityId : entityIds) {
                 notificationEntityService.logEntityAction(getTenantId(), entityId, null,
-                        ActionType.ADDED_TO_ENTITY_GROUP, getCurrentUser(), entityId.toString(), strEntityGroupId, entityGroup.getName());
-                sendGroupEntityNotificationMsg(getTenantId(), entityId, EdgeEventActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
+                        actionType, getCurrentUser(), entityId.toString(), strEntityGroupId, entityGroup.getName());
             }
         } catch (Exception e) {
             if (entityGroup != null) {
@@ -772,7 +776,7 @@ public class EntityGroupController extends AutoCommitController {
                 String groupName = entityGroup.getName();
                 for (String strEntityId : strEntityIds) {
                     notificationEntityService.logEntityAction(getTenantId(), emptyId(entityType),
-                            ActionType.ADDED_TO_ENTITY_GROUP, getCurrentUser(), e, strEntityId, strEntityGroupId, groupName);
+                            actionType, getCurrentUser(), e, strEntityId, strEntityGroupId, groupName);
                 }
             }
             throw e;
@@ -825,8 +829,6 @@ public class EntityGroupController extends AutoCommitController {
             for (EntityId entityId : entityIds) {
                 notificationEntityService.logEntityAction(getTenantId(), entityId, null,
                         ActionType.REMOVED_FROM_ENTITY_GROUP, getCurrentUser(), entityId.toString(), strEntityGroupId, entityGroup.getName());
-                sendGroupEntityNotificationMsg(getTenantId(), entityId,
-                        EdgeEventActionType.REMOVED_FROM_ENTITY_GROUP, entityGroupId);
             }
         } catch (Exception e) {
             if (entityGroup != null) {
@@ -1288,6 +1290,7 @@ public class EntityGroupController extends AutoCommitController {
                                                @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
         checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
+        ActionType actionType = ActionType.ASSIGNED_TO_EDGE;
         try {
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
             Edge edge = checkEdgeId(edgeId, Operation.WRITE);
@@ -1299,14 +1302,12 @@ public class EntityGroupController extends AutoCommitController {
             EntityGroup savedEntityGroup = checkNotNull(entityGroupService.assignEntityGroupToEdge(getCurrentUser().getTenantId(), entityGroupId, edgeId, groupType));
 
             notificationEntityService.logEntityAction(getTenantId(), entityGroupId, savedEntityGroup,
-                    ActionType.ASSIGNED_TO_EDGE, getCurrentUser(), strEntityGroupId, savedEntityGroup.getName(), strEdgeId, edge.getName());
-
-            sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, savedEntityGroup.getId(), groupType, EdgeEventActionType.ASSIGNED_TO_EDGE);
+                    actionType, getCurrentUser(), strEntityGroupId, savedEntityGroup.getName(), strEdgeId, edge.getName());
 
             return savedEntityGroup;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.ENTITY_GROUP),
-                    ActionType.ASSIGNED_TO_EDGE, getCurrentUser(), e, strEntityGroupId, strEdgeId);
+                    actionType, getCurrentUser(), e, strEntityGroupId, strEdgeId);
 
             throw e;
         }
@@ -1331,6 +1332,7 @@ public class EntityGroupController extends AutoCommitController {
                                                    @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
         checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
+        ActionType actionType = ActionType.UNASSIGNED_FROM_EDGE;
         try {
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
             Edge edge = checkEdgeId(edgeId, Operation.WRITE);
@@ -1341,14 +1343,12 @@ public class EntityGroupController extends AutoCommitController {
             EntityGroup savedEntityGroup = checkNotNull(entityGroupService.unassignEntityGroupFromEdge(getCurrentUser().getTenantId(), entityGroupId, edgeId, groupType));
 
             notificationEntityService.logEntityAction(getTenantId(), entityGroupId, entityGroup,
-                    ActionType.UNASSIGNED_FROM_EDGE, getCurrentUser(), strEntityGroupId, savedEntityGroup.getName(), strEdgeId, edge.getName());
-
-            sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, savedEntityGroup.getId(), groupType, EdgeEventActionType.UNASSIGNED_FROM_EDGE);
+                    actionType, getCurrentUser(), strEntityGroupId, savedEntityGroup.getName(), strEdgeId, edge.getName());
 
             return savedEntityGroup;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.ENTITY_GROUP),
-                    ActionType.UNASSIGNED_FROM_EDGE, getCurrentUser(), e, strEntityGroupId);
+                    actionType, getCurrentUser(), e, strEntityGroupId);
 
             throw e;
         }

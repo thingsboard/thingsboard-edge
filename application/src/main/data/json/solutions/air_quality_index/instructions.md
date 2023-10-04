@@ -17,7 +17,7 @@ Making the dashboard public is also useful when you plan to embed the page into 
 The dashboard has multiple states:
 
 <div class="img-float" style="max-width:50%;margin: 20px auto;float:right">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/instruction-city-state.png" alt="AQI Public Dashboard - City State">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/instruction-city-state.png" alt="AQI Public Dashboard - City State">
 </div>
 
 - **City state** represents the air pollution monitoring of a specific city (in our case Los Angeles) and calculates value based on the maximum AQI received from city sensors. Also, this state contains the following elements:
@@ -37,7 +37,7 @@ The dashboard has multiple states:
     Click on one of these tiles and a pop-up will appear, which will display a description, general recommendations, as well as its statistics for this pollutant.
 
 <div class="img-float" style="max-width:50%;margin: 10px auto">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/instruction-sensor-state.png" alt="AQI Public Dashboard - Sensor State">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/instruction-sensor-state.png" alt="AQI Public Dashboard - Sensor State">
 </div>
 
 
@@ -59,7 +59,7 @@ This dashboard is designed for tenant administrators to perform basic device man
     Click on **“Details”** and go to the selected **Sensor state**.
 
 <div class="img-float" style="max-width: 50%;margin: 10px auto">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/instruction-admin-state-1.png" alt="AQI Administration Dashboard - Sensor State">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/instruction-admin-state-1.png" alt="AQI Administration Dashboard - Sensor State">
 </div>
 
 - **Sensor state** allows you to view detailed information about the sensor. It contains the following sections:
@@ -71,7 +71,7 @@ This dashboard is designed for tenant administrators to perform basic device man
    - Connection status chart.
 
 <div class="img-float" style="max-width: 50%;margin: 10px auto">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/instruction-admin-state-2.png" alt="AQI Administration Dashboard - Sensor State">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/instruction-admin-state-2.png" alt="AQI Administration Dashboard - Sensor State">
 </div>
 
 #### Entity Groups
@@ -86,7 +86,7 @@ Solution has:
 The next step is to find and save the maximum AQI value for AQI City and the average values for temperature and humidity.
 
 <div class="img-float" style="max-width: 50%;margin: 10px auto;">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/instruction-rule-chain-aqi-sensor-1.png" alt="Rule Chain - AQI Sensor">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/instruction-rule-chain-aqi-sensor-1.png" alt="Rule Chain - AQI Sensor">
 </div>
 
 1. Also, we described the conditions for creating Inactivity alarms.
@@ -97,14 +97,14 @@ At the first stage, we check the activity of the sensors:
 2. <!--In order to ensure the display of the dynamic status of device activity on the Administration Dashboard, a separate type of telemetry - **"activityState"** has been created and recorded. The conditions have been prescribed that allow us to check the device's activity and store data about its status.-->
 
 <div class="img-float" style="max-width: 60%;margin:auto">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/instruction-rule-chain-aqi-sensor-2.png" alt="Rule Chain - AQI Sensor">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/instruction-rule-chain-aqi-sensor-2.png" alt="Rule Chain - AQI Sensor">
 </div>
 
 
 3. We also use “alarms count” node to count **batteryLevel** and **Inactivity alarms**, if they are defined by conditions.
 
 <div class="img-float" style="max-width: 50%;margin:auto">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/instruction-rule-chain-aqi-sensor-3.png" alt="Rule Chain - AQI Sensor">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/instruction-rule-chain-aqi-sensor-3.png" alt="Rule Chain - AQI Sensor">
 </div>
 
 <br>
@@ -112,7 +112,7 @@ At the first stage, we check the activity of the sensors:
 **AQI City** rule chain responsible for the simultaneous processing, change or duplicate of such attributes as *batteryLevelThreshold*, *inactivityTimeout* of all sensors participating in the creation of Alarm Rules.
 
 <div class="img-float" style="max-width: 240px;margin: auto;">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/instruction-rule-chain-aqi-city-1.png" alt="Rule Chain - AQI City">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/instruction-rule-chain-aqi-city-1.png" alt="Rule Chain - AQI City">
 </div>
 
 <!--**AQI City** and **AQI Sensor** Rule Chains are responsible for processing all telemetry about pollutants from devices and calculating it to the AQI. Also, the "alarms count" node is used to propagate alarms if it is defined under the conditions.
@@ -168,7 +168,7 @@ Let's take for example the sensor Air Quality Sensor 1 (Hollywood), which curren
 
 <br>
 <div class="img-float" style="max-width: 60%;margin:auto">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/use-case-sensor-1-1.png" alt="">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/use-case-sensor-1-1.png" alt="">
 </div>
 
 <br>
@@ -176,7 +176,7 @@ Let's take for example the sensor Air Quality Sensor 1 (Hollywood), which curren
 In order to adjust the **Battery Level** alarm parameters, click on the “settings” button in the “Alarms” section, after which a pop-up will appear for setting the limit values for alarms.
 
 <div class="img-float" style="max-width: 60%;margin:auto">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/use-case-sensor-1-2.png" alt="">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/use-case-sensor-1-2.png" alt="">
 </div>
 
 <br>
@@ -186,7 +186,7 @@ Set Alarm rules to 10% and save by pressing the "Save" button.
 <br>
 
 <div class="img-float" style="max-width: fit-content;margin:auto">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/use-case-sensor-1-3.png" alt="">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/use-case-sensor-1-3.png" alt="">
 </div>
 
 <br>
@@ -204,7 +204,7 @@ Now we can see that the Battery Level of the Hollywood sensor is 9%, this level 
 
 
 <div class="img-float" style="max-width: 60%;margin:auto">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/use-case-sensor-1-4.png" alt="">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/use-case-sensor-1-4.png" alt="">
 </div>
 
 
@@ -220,7 +220,7 @@ The starting value of PM 2.5 in AQI equivalent is 52, you can see it in the pict
 
 
 <div class="img-float" style="max-width: 60%;margin:10px auto">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/use-case-sensor-2-1.png" alt="">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/use-case-sensor-2-1.png" alt="">
 </div>
 
 
@@ -234,10 +234,10 @@ curl -v -X POST -d "{\"pm25\": 400 }" ${BASE_URL}/api/v1/${Air Quality Sensor 2A
 
 
 <div class="img-float" style="max-width: 50%;margin:auto">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/use-case-sensor-2-2.png" alt="">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/use-case-sensor-2-2.png" alt="">
 </div>
 <div class="img-float" style="max-width: 50%;margin:auto">
-<img src="https://thingsboard.io/images/solutions/air_quality_index/use-case-sensor-2-3.png" alt="">
+<img src="https://img.thingsboard.io/solutions/air_quality_index/use-case-sensor-2-3.png" alt="">
 </div>
 
 

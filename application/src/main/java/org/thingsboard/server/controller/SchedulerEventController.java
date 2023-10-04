@@ -49,7 +49,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
@@ -169,11 +168,6 @@ public class SchedulerEventController extends BaseController {
                     savedSchedulerEvent.getCustomerId(),
                     schedulerEvent.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser());
 
-            if (schedulerEvent.getId() != null) {
-                sendEntityNotificationMsg(getTenantId(), savedSchedulerEvent.getId(),
-                        EdgeEventActionType.UPDATED);
-            }
-
             if (schedulerEvent.getId() == null) {
                 schedulerService.onSchedulerEventAdded(savedSchedulerEvent);
             } else {
@@ -199,20 +193,19 @@ public class SchedulerEventController extends BaseController {
             @Parameter(description = SCHEDULER_EVENT_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId) throws ThingsboardException {
         checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
+        ActionType actionType = ActionType.DELETED;
         try {
             SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
             SchedulerEvent schedulerEvent = checkSchedulerEventId(schedulerEventId, Operation.DELETE);
             schedulerEventService.deleteSchedulerEvent(getTenantId(), schedulerEventId);
 
             notificationEntityService.logEntityAction(getTenantId(), schedulerEventId, schedulerEvent,
-                    schedulerEvent.getCustomerId(), ActionType.DELETED, getCurrentUser(), strSchedulerEventId);
-
-            sendEntityNotificationMsg(getTenantId(), schedulerEventId, EdgeEventActionType.DELETED);
+                    schedulerEvent.getCustomerId(), actionType, getCurrentUser(), strSchedulerEventId);
 
             schedulerService.onSchedulerEventDeleted(schedulerEvent);
         } catch (Exception e) {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.SCHEDULER_EVENT),
-                    ActionType.DELETED, getCurrentUser(), e, strSchedulerEventId);
+                    actionType, getCurrentUser(), e, strSchedulerEventId);
 
             throw e;
         }
@@ -310,8 +303,6 @@ public class SchedulerEventController extends BaseController {
             notificationEntityService.logEntityAction(getTenantId(), schedulerEventId, savedSchedulerEvent,
                     ActionType.ASSIGNED_TO_EDGE, getCurrentUser(), strSchedulerEventId, savedSchedulerEvent.getName(), strEdgeId, edge.getName());
 
-            sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, schedulerEventId, EdgeEventActionType.ASSIGNED_TO_EDGE);
-
             return savedSchedulerEvent;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.SCHEDULER_EVENT),
@@ -348,8 +339,6 @@ public class SchedulerEventController extends BaseController {
 
             notificationEntityService.logEntityAction(getTenantId(), schedulerEventId, schedulerEvent, ActionType.UNASSIGNED_FROM_EDGE,
                     getCurrentUser(), strSchedulerEventId, savedSchedulerEvent.getName(), strEdgeId, edge.getName());
-
-            sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, schedulerEventId, EdgeEventActionType.UNASSIGNED_FROM_EDGE);
 
             return savedSchedulerEvent;
         } catch (Exception e) {

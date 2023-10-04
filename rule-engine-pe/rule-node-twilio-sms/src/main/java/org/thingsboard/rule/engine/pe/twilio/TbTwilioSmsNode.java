@@ -40,13 +40,12 @@ import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
-import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import static org.thingsboard.common.util.DonAsynchron.withCallback;
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 /**
  * Created by igor on 5/25/18.
@@ -79,33 +78,40 @@ public class TbTwilioSmsNode implements TbNode {
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
         log.trace("[{}][{}] Msg received: {}", ctx.getTenantId().getId(), ctx.getSelfId().getId(), msg);
+        var tbMsg = ackIfNeeded(ctx, msg);
         try {
             withCallback(ctx.getExternalCallExecutor().executeAsync(() -> {
-                        sendSms(ctx, msg);
+                        sendSms(ctx, tbMsg);
                         return null;
                     }),
                     ok -> {
-                        log.trace("[{}][{}] Successfully processed msg: {}", ctx.getTenantId().getId(), ctx.getSelfId().getId(), msg);
+                        log.trace("[{}][{}] Successfully processed msg: {}", ctx.getTenantId().getId(), ctx.getSelfId().getId(), tbMsg);
                         if (forceAck) {
-                            ctx.enqueueForTellNext(msg.copyWithNewCtx(), TbRelationTypes.SUCCESS);
+                            ctx.enqueueForTellNext(tbMsg.copyWithNewCtx(), TbNodeConnectionType.SUCCESS);
                         } else {
-                            ctx.tellNext(msg, SUCCESS);
+                            ctx.tellNext(tbMsg, TbNodeConnectionType.SUCCESS);
                         }
                     },
                     fail -> {
-                        logFailure(ctx, msg, fail);
+                        logFailure(ctx, tbMsg, fail);
                         if (forceAck) {
-                            ctx.enqueueForTellFailure(msg.copyWithNewCtx(), fail);
+                            ctx.enqueueForTellFailure(tbMsg.copyWithNewCtx(), fail);
                         } else {
-                            ctx.tellFailure(msg, fail);
+                            ctx.tellFailure(tbMsg, fail);
                         }
                     });
-            if (forceAck) {
-                ctx.ack(msg);
-            }
         } catch (Exception ex) {
-            logFailure(ctx, msg, ex);
-            ctx.tellFailure(msg, ex);
+            logFailure(ctx, tbMsg, ex);
+            ctx.tellFailure(tbMsg, ex);
+        }
+    }
+
+    private TbMsg ackIfNeeded(TbContext ctx, TbMsg msg) {
+        if (forceAck) {
+            ctx.ack(msg);
+            return msg.copyWithNewCtx();
+        } else {
+            return msg;
         }
     }
 

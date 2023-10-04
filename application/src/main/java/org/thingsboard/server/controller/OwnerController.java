@@ -51,7 +51,6 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -69,6 +68,7 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
@@ -121,9 +121,10 @@ public class OwnerController extends AutoCommitController {
         }
         checkEntityId(entityId, Operation.CHANGE_OWNER);
         List<EntityGroup> entityGroups = this.validateEntityGroupIds(strEntityGroupIds, entityId, targetOwnerId);
-        List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), entityId);
-        EntityId previousOwnerId = changeOwner(getCurrentUser().getTenantId(), targetOwnerId, entityId);
-        sendChangeOwnerNotificationMsg(getTenantId(), entityId, relatedEdgeIds, previousOwnerId);
+        changeOwner(getCurrentUser().getTenantId(), targetOwnerId, entityId);
+        if (EntityType.EDGE.equals(entityId.getEntityType())) {
+            tbClusterService.broadcastEntityStateChangeEvent(getTenantId(), new EdgeId(entityId.getId()), ComponentLifecycleEvent.UPDATED);
+        }
         if (entityGroups != null) {
             this.addEntityToEntityGroups(getCurrentUser().getTenantId(), entityId, entityGroups);
         }
@@ -162,10 +163,10 @@ public class OwnerController extends AutoCommitController {
             }
         }
         List<EntityGroup> entityGroups = this.validateEntityGroupIds(strEntityGroupIds, entityId, targetOwnerId);
-        List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), entityId);
-        EntityId previousOwnerId = changeOwner(currentUser.getTenantId(), targetOwnerId, entityId);
-
-        sendChangeOwnerNotificationMsg(getTenantId(), entityId, relatedEdgeIds, previousOwnerId);
+        changeOwner(currentUser.getTenantId(), targetOwnerId, entityId);
+        if (EntityType.EDGE.equals(entityId.getEntityType())) {
+            tbClusterService.broadcastEntityStateChangeEvent(getTenantId(), new EdgeId(entityId.getId()), ComponentLifecycleEvent.UPDATED);
+        }
         if (entityGroups != null) {
             this.addEntityToEntityGroups(currentUser.getTenantId(), entityId, entityGroups);
         }
@@ -270,7 +271,6 @@ public class OwnerController extends AutoCommitController {
             }
             notificationEntityService.logEntityAction(getTenantId(), entityId, null,
                     ActionType.ADDED_TO_ENTITY_GROUP, getCurrentUser(), entityId.toString(), entityGroup.getUuidId().toString(), entityGroup.getName());
-            sendGroupEntityNotificationMsg(getTenantId(), entityId, EdgeEventActionType.ADDED_TO_ENTITY_GROUP, entityGroup.getId());
         }
     }
 

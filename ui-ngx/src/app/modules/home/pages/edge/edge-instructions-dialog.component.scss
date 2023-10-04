@@ -1,0 +1,153 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+
+@import "../../../../../scss/constants";
+
+:host {
+  height: 100%;
+  max-height: 100vh;
+  display: grid;
+  grid-template-rows: min-content minmax(auto, 1fr) min-content;
+
+  .tb-loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    height: 300px;
+    max-height: 100%;
+
+    .label {
+      margin-bottom: 0;
+      text-align: center;
+    }
+  }
+
+  .tb-font-14 {
+    font-size: 14px;
+  }
+
+  .tb-flex-1 {
+    flex: 1;
+  }
+
+  @media #{$mat-sm} {
+    width: 705px;
+  }
+
+  @media #{$mat-gt-sm} {
+    width: 1080px;
+  }
+}
+
+:host-context(.mat-mdc-dialog-container) {
+  .tb-dialog-actions {
+    display: flex;
+    gap: 8px;
+    padding: 8px 16px;
+  }
+
+  .mat-mdc-dialog-content {
+    max-height: 80vh;
+    padding: 0 16px 16px 16px;
+    border-top: 16px solid #fff;
+  }
+}
+
+:host ::ng-deep {
+  .tb-markdown-view {
+    padding: 16px 16px 32px 16px;
+    div {
+      background-color: #F0F6F6;
+
+      &.code-wrapper button.clipboard-btn {
+        right: -2px !important;
+        p {
+          color: var(--tb-primary-500) !important;
+        }
+        p, div {
+          background-color: unset !important;
+        }
+        div {
+          img {
+            display: none;
+          }
+          &:after {
+            content: "";
+            position: initial;
+            display: block;
+            width: 18px;
+            height: 18px;
+            background: var(--tb-primary-500);
+            mask-image: url(/assets/copy-code-icon.svg);
+            mask-repeat: no-repeat;
+          }
+        }
+        &.multiline {
+          right: -2px !important;
+        }
+      }
+    }
+    & > *:not(ul) {
+      padding-right: unset !important;
+      padding-left: unset !important;
+    }
+    pre[class*="language-"] {
+      border: 1px solid var(--tb-primary-500) !important;
+    }
+  }
+  .mdc-button__label > span {
+    .mat-icon {
+      vertical-align: text-bottom;
+      box-sizing: initial;
+    }
+  }
+
+  .mat-mdc-tab-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: #fff;
+  }
+
+  .tabs-icon {
+    margin-right: 8px;
+  }
+
+  .tb-form-panel.tb-tab-body {
+    padding: 16px 0 0;
+  }
+
+  .mat-mdc-tab-body {
+    padding: 16px 0;
+  }
+}

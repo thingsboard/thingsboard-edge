@@ -36,6 +36,7 @@ import io.restassured.path.json.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
+import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -50,10 +51,12 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.thingsboard.server.common.data.DataConstants.CLIENT_SCOPE;
 import static org.thingsboard.server.common.data.DataConstants.DEVICE;
 import static org.thingsboard.server.common.data.DataConstants.SHARED_SCOPE;
 import static org.thingsboard.server.common.data.integration.IntegrationType.HTTP;
@@ -77,9 +80,11 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
                     "var result = {\n" +
                     "   deviceName: deviceName,\n" +
                     "   deviceType: deviceType,\n" +
+                    "   updateOnlyKeys: [\"humidity\"],\n" +
                     "   attributes: {\n" +
                     "       model: data.model,\n" +
                     "       serialNumber: data.param2,\n" +
+                    "       humidity: data.humidity\n" +
                     "   },\n" +
                     "   telemetry: {\n" +
                     "       temperature: data.temperature\n" +
@@ -169,6 +174,65 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    public void checkOnUpdateAttributeKeysUploadedAndNotUpdatedWithLocalIntegration() throws Exception {
+        JsonNode config = defaultConfig(HTTPS_URL);
+        integration = Integration.builder()
+                .type(HTTP)
+                .name("http" + RandomStringUtils.randomAlphanumeric(7))
+                .configuration(config)
+                .defaultConverterId(uplinkConverter.getId())
+                .routingKey(ROUTING_KEY)
+                .secret(SECRET_KEY)
+                .isRemote(false)
+                .enabled(true)
+                .debugMode(true)
+                .allowCreateDevicesOrAssets(true)
+                .build();
+
+        integration = testRestClient.postIntegration(integration);
+        waitUntilIntegrationStarted(integration.getId(), integration.getTenantId());
+
+        for (int i=0; i<4; i++) {
+            // Loop is required to update all nodes in cluster mode.
+            // Cluster mode has a corner case when values for keys in updateOnlyKeys can be updated on different nodes.
+            testRestClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, ATTRIBUTE_KEY, TELEMETRY_VALUE));
+        }
+
+        Thread.sleep(3000); // Wait for all attributes updated in cluster mode
+
+        List<JsonNode> attributes = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, ATTRIBUTE_KEY);
+        Assert.assertFalse(attributes.isEmpty());
+        Assert.assertEquals(attributes.get(0).get("value").asText(), TELEMETRY_VALUE);
+
+        long firstUpdateTs = attributes.get(0).get("lastUpdateTs").asLong();
+
+        testRestClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, ATTRIBUTE_KEY, TELEMETRY_VALUE));
+
+        Awaitility
+                .await()
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<JsonNode> attrs = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, ATTRIBUTE_KEY);
+                    Assert.assertFalse(attrs.isEmpty());
+                    Assert.assertEquals(attrs.get(0).get("lastUpdateTs").asLong(), firstUpdateTs);
+                    Assert.assertEquals(attrs.get(0).get("value").asText(), TELEMETRY_VALUE);
+                    return true;
+                });
+
+        testRestClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, ATTRIBUTE_KEY, "35"));
+        Awaitility
+                .await()
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<JsonNode> attrs = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, ATTRIBUTE_KEY);
+                    Assert.assertFalse(attrs.isEmpty());
+                    Assert.assertNotEquals(attrs.get(0).get("lastUpdateTs").asLong(), firstUpdateTs);
+                    Assert.assertEquals(attrs.get(0).get("value").asText(), "35");
+                    return true;
+                });
+    }
+
+    @Test
     public void checkTelemetryUploadedAfterIntegrationConfigUpdated() throws Exception {
         JsonNode config = defaultConfigWithSecurityHeader(HTTPS_URL);
         integration = Integration.builder()
@@ -251,11 +315,24 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
         WsTelemetryResponse actualLatestTelemetry = wsClient.getLastMessage();
         assertThat(actualLatestTelemetry.getDataValuesByKey(TELEMETRY_KEY).get(1)).isEqualTo(TELEMETRY_VALUE);
 
+        //update integration with created config
+        integration.setName("New name");
+        integration = testRestClient.postIntegration(integration);
+        waitForIntegrationEvent(integration, "UPDATED", 1);
+
+        String temperatureValue = "12";
+        remoteHttpClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, temperatureValue), securityHeaders);
+
+        Awaitility
+                .await()
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> wsClient.getMessage().getDataValuesByKey(TELEMETRY_KEY).get(1).equals(temperatureValue));
+
         //update integration with new security header
         JsonNode config2 = defaultConfigWithSecurityHeader2(HTTPS_URL);
         integration.setConfiguration(config2);
         integration = testRestClient.postIntegration(integration);
-        waitForIntegrationEvent(integration, "UPDATED", 1);
+        waitForIntegrationEvent(integration, "UPDATED", 2);
 
         String temperatureValue2 = "58";
         Map<String, Object> securityHeaders2 = JacksonUtil.fromString(config2.get("headersFilter").toString(), new TypeReference<Map<String, Object>>() {});
@@ -269,7 +346,7 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
         //update integration with new security disabled
         integration.setConfiguration(defaultConfig(HTTPS_URL));
         integration = testRestClient.postIntegration(integration);
-        waitForIntegrationEvent(integration, "UPDATED", 2);
+        waitForIntegrationEvent(integration, "UPDATED", 3);
 
         String temperatureValue3 = "35";
         remoteHttpClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, temperatureValue3));

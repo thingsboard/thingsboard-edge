@@ -31,6 +31,7 @@
 package org.thingsboard.integration.api.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.JsonElement;
@@ -38,6 +39,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.UplinkContentType;
@@ -46,14 +48,21 @@ import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.script.api.js.JsInvokeService;
 import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.common.adaptor.JsonConverter;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -64,6 +73,12 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
 
     private static final String DEFAULT_DEVICE_TYPE = "default";
 
+    private static final int MAX_ALLOWED_STRING_LENGTH = 32;
+
+    private final Set<String> updateOnlyKeys = new HashSet<>();
+    private final Map<String, Map<String, String>> currentUpdateOnlyTelemetryPerEntity = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, String>> currentUpdateOnlyAttributesPerEntity = new ConcurrentHashMap<>();
+
     public AbstractUplinkDataConverter(JsInvokeService jsInvokeService, TbelInvokeService tbelInvokeService) {
         super(jsInvokeService, tbelInvokeService);
     }
@@ -71,11 +86,21 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
     @Override
     public void init(Converter configuration) {
         this.configuration = configuration;
+        JsonNode configurationNode = configuration.getConfiguration();
+
+        this.updateOnlyKeys.clear();
+        JsonNode updateOnlyKeysNode = configurationNode.get("updateOnlyKeys");
+
+        if (updateOnlyKeysNode != null && updateOnlyKeysNode.isArray()) {
+            updateOnlyKeysNode.elements().forEachRemaining(key -> this.updateOnlyKeys.add(getAllowedValue(key.asText())));
+        }
+
+        this.currentUpdateOnlyTelemetryPerEntity.values().forEach(entityKeys -> entityKeys.keySet().retainAll(this.updateOnlyKeys));
+        this.currentUpdateOnlyAttributesPerEntity.values().forEach(entityKeys -> entityKeys.keySet().retainAll(this.updateOnlyKeys));
     }
 
     @Override
-    public ListenableFuture<List<UplinkData>> convertUplink(ConverterContext context, byte[] data, UplinkMetaData metadata,
-                                                            ExecutorService callBackExecutorService) throws Exception {
+    public ListenableFuture<List<UplinkData>> convertUplink(ConverterContext context, byte[] data, UplinkMetaData metadata, ExecutorService callBackExecutorService) throws Exception {
         long startTime = System.currentTimeMillis();
         ListenableFuture<String> convertFuture = doConvertUplink(data, metadata);
         ListenableFuture<List<UplinkData>> result = Futures.transform(convertFuture, rawResult -> {
@@ -92,7 +117,16 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
                 resultList.add(parseUplinkData(element.getAsJsonObject()));
             }
             if (configuration.isDebugMode()) {
-                persistUplinkDebug(context, metadata.getContentType(), data, rawResult, metadata);
+                if (context.getRateLimitService().map(s -> s.checkLimit(configuration.getTenantId(), configuration.getId(), false)).orElse(true)) {
+                    persistUplinkDebug(context, metadata.getContentType(), data, rawResult, metadata);
+                } else {
+                    if (context.getRateLimitService().get().alreadyProcessed(configuration.getId(), EntityType.CONVERTER)) {
+                        log.trace("[{}] [{}] [{}] Rate limited debug event already sent.", configuration.getTenantId(), configuration.getId(), EntityType.CONVERTER);
+                    } else {
+                        TbRateLimitsException exception = new TbRateLimitsException(EntityType.CONVERTER, "Converter debug rate limits reached!");
+                        persistUplinkDebug(context, metadata.getContentType(), data, metadata, exception);
+                    }
+                }
             }
             return resultList;
         }, callBackExecutorService);
@@ -116,14 +150,17 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
 
         UplinkData.UplinkDataBuilder builder = UplinkData.builder();
         builder.isAsset(isAsset);
+        String entityName;
         if (isAsset) {
-            builder.assetName(src.get("assetName").getAsString());
+            entityName = src.get("assetName").getAsString();
+            builder.assetName(entityName);
             builder.assetType(src.get("assetType").getAsString());
             if (src.has("assetLabel")) {
                 builder.assetLabel(src.get("assetLabel").getAsString());
             }
         } else {
-            builder.deviceName(src.get("deviceName").getAsString());
+            entityName = src.get("deviceName").getAsString();
+            builder.deviceName(entityName);
             if (src.has("deviceType")) {
                 builder.deviceType(src.get("deviceType").getAsString());
             } else {
@@ -140,15 +177,95 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         if (src.has("groupName")) {
             builder.groupName(src.get("groupName").getAsString());
         }
+
+        Map<String, String> currentOnValueTelemetryUpdate = this.currentUpdateOnlyTelemetryPerEntity.getOrDefault(entityName, new ConcurrentHashMap<>());
+        Map<String, String> currentOnValueAttributesUpdate = this.currentUpdateOnlyAttributesPerEntity.getOrDefault(entityName, new ConcurrentHashMap<>());
         if (src.has("telemetry")) {
-            builder.telemetry(parseTelemetry(src.get("telemetry")));
+            PostTelemetryMsg parsedTelemetry = parseTelemetry(src.get("telemetry"));
+            if (!this.updateOnlyKeys.isEmpty()) {
+                parsedTelemetry = filterTelemetryOnKeyValueUpdateAndUpdateMap(parsedTelemetry, currentOnValueTelemetryUpdate);
+            }
+            builder.telemetry(parsedTelemetry);
         }
         if (src.has("attributes")) {
-            builder.attributesUpdate(parseAttributesUpdate(src.get("attributes")));
+            PostAttributeMsg attributes = parseAttributesUpdate(src.get("attributes"));
+            if (!this.updateOnlyKeys.isEmpty()) {
+                attributes = filterAttributeOnKeyValueUpdateAndUpdateMap(attributes, currentOnValueAttributesUpdate);
+            }
+            builder.attributesUpdate(attributes);
+        }
+
+        if (!currentOnValueTelemetryUpdate.isEmpty()) {
+            this.currentUpdateOnlyTelemetryPerEntity.put(entityName, currentOnValueTelemetryUpdate);
+        }
+
+        if (!currentOnValueAttributesUpdate.isEmpty()) {
+            this.currentUpdateOnlyAttributesPerEntity.put(entityName, currentOnValueAttributesUpdate);
         }
 
         //TODO: add support of attribute requests and client-side RPC.
         return builder.build();
+    }
+
+    private PostTelemetryMsg filterTelemetryOnKeyValueUpdateAndUpdateMap(PostTelemetryMsg telemetry, Map<String, String> currentEntityKeyValues) {
+        PostTelemetryMsg.Builder filteredTelemetryBuilder = PostTelemetryMsg.newBuilder();
+        for (TransportProtos.TsKvListProto tsKvList : telemetry.getTsKvListList()) {
+            TransportProtos.TsKvListProto.Builder filteredTsKvListBuilder = TransportProtos.TsKvListProto.newBuilder().setTs(tsKvList.getTs());
+
+            List<TransportProtos.KeyValueProto> filtered = filterKeyValueAndUpdateMap(tsKvList.getKvList(), currentEntityKeyValues);
+            filteredTsKvListBuilder.addAllKv(filtered);
+
+            if (!filteredTsKvListBuilder.getKvList().isEmpty()) {
+                filteredTelemetryBuilder.addTsKvList(filteredTsKvListBuilder.build());
+            }
+        }
+
+        return !currentEntityKeyValues.isEmpty() ? filteredTelemetryBuilder.build() : telemetry;
+    }
+
+    private PostAttributeMsg filterAttributeOnKeyValueUpdateAndUpdateMap(PostAttributeMsg attributes, Map<String, String> currentEntityKeyValues) {
+        PostAttributeMsg.Builder filteredAttributesBuilder = PostAttributeMsg.newBuilder();
+        List<TransportProtos.KeyValueProto> filtered = filterKeyValueAndUpdateMap(attributes.getKvList(), currentEntityKeyValues);
+        filteredAttributesBuilder.addAllKv(filtered);
+        return !currentEntityKeyValues.isEmpty() ? filteredAttributesBuilder.build() : attributes;
+    }
+
+    List<TransportProtos.KeyValueProto> filterKeyValueAndUpdateMap(List<TransportProtos.KeyValueProto> kvList, Map<String, String> currentEntityKeyValues) {
+        List<TransportProtos.KeyValueProto> filtered = new ArrayList<>();
+        for (TransportProtos.KeyValueProto keyValue : kvList) {
+            String key = getAllowedValue(keyValue.getKey());
+            boolean isOnValueUpdate = this.updateOnlyKeys.contains(key);
+            if (isOnValueUpdate) {
+                String value = getValueAsAllowedString(keyValue);
+                boolean shouldAddToResult = currentEntityKeyValues.isEmpty() ||
+                        !currentEntityKeyValues.containsKey(key) ||
+                        !currentEntityKeyValues.get(key).equals(value);
+                if (shouldAddToResult) {
+                    filtered.add(keyValue);
+                    currentEntityKeyValues.put(key, value);
+                }
+            } else {
+                filtered.add(keyValue);
+            }
+        }
+        return filtered;
+    }
+
+    private String getValueAsAllowedString(TransportProtos.KeyValueProto keyValueProto) {
+        switch (keyValueProto.getType()) {
+            case STRING_V:
+                return getAllowedValue(keyValueProto.getStringV());
+            case JSON_V:
+                return getAllowedValue(keyValueProto.getJsonV());
+            case DOUBLE_V:
+                return getAllowedValue(String.valueOf(keyValueProto.getDoubleV()));
+            case LONG_V:
+                return getAllowedValue(String.valueOf(keyValueProto.getLongV()));
+            case BOOLEAN_V:
+                return getAllowedValue(String.valueOf(keyValueProto.getBoolV()));
+            default:
+                return null;
+        }
     }
 
     private boolean getIsAssetAndVerify(JsonObject src) {
@@ -205,5 +322,9 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
 
     private String getTypeUplink(byte[] inMessage) throws JsonProcessingException {
         return (inMessage != null && inMessage.length > 23 && Arrays.equals(Arrays.copyOfRange(inMessage, 1, 23), JacksonUtil.writeValueAsBytes("DevEUI_downlink_Sent"))) ? "Downlink_Sent" : "Uplink";
+    }
+
+    private String getAllowedValue(String incoming) {
+        return incoming.length() > MAX_ALLOWED_STRING_LENGTH ? DigestUtils.sha1Hex(incoming) : incoming;
     }
 }

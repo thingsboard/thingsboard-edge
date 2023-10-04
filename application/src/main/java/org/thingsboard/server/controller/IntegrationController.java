@@ -49,7 +49,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EdgeId;
@@ -181,10 +180,6 @@ public class IntegrationController extends AutoCommitController {
             notificationEntityService.logEntityAction(getTenantId(), result.getId(), result,
                     created ? ActionType.ADDED : ActionType.UPDATED, currentUser);
 
-            if (result.isEdgeTemplate() && !created) {
-                sendEntityNotificationMsg(result.getTenantId(), result.getId(), EdgeEventActionType.UPDATED);
-            }
-
             return result;
         } catch (TimeoutException e) {
             throw new ThingsboardRuntimeException("Timeout to validate the configuration!", ThingsboardErrorCode.GENERAL);
@@ -284,11 +279,6 @@ public class IntegrationController extends AutoCommitController {
             IntegrationId integrationId = new IntegrationId(toUUID(strIntegrationId));
             Integration integration = checkIntegrationId(integrationId, Operation.DELETE);
 
-            List<EdgeId> relatedEdgeIds = null;
-            if (integration.isEdgeTemplate()) {
-                relatedEdgeIds = findRelatedEdgeIds(getTenantId(), integrationId);
-            }
-
             integrationService.deleteIntegration(getTenantId(), integrationId);
 
             if (!integration.isEdgeTemplate()) {
@@ -297,10 +287,6 @@ public class IntegrationController extends AutoCommitController {
 
             notificationEntityService.logEntityAction(getTenantId(), integrationId, integration, ActionType.DELETED,
                     getCurrentUser(), strIntegrationId);
-
-            if (integration.isEdgeTemplate()) {
-                sendDeleteNotificationMsg(integration.getTenantId(), integrationId, relatedEdgeIds);
-            }
 
         } catch (Exception e) {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.INTEGRATION), ActionType.DELETED,
@@ -374,8 +360,6 @@ public class IntegrationController extends AutoCommitController {
             notificationEntityService.logEntityAction(getTenantId(), integrationId, savedIntegration,
                     ActionType.ASSIGNED_TO_EDGE, getCurrentUser(), strIntegrationId, strEdgeId, edge.getName());
 
-            sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, savedIntegration.getId(), EdgeEventActionType.ASSIGNED_TO_EDGE);
-
             return savedIntegration;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.INTEGRATION),
@@ -409,8 +393,6 @@ public class IntegrationController extends AutoCommitController {
 
             notificationEntityService.logEntityAction(getTenantId(), integrationId, integration,
                     ActionType.UNASSIGNED_FROM_EDGE, getCurrentUser(), strIntegrationId, strEdgeId, edge.getName());
-
-            sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, savedIntegration.getId(), EdgeEventActionType.UNASSIGNED_FROM_EDGE);
 
             return savedIntegration;
         } catch (Exception e) {

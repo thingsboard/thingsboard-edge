@@ -21,7 +21,7 @@ This dashboard is intended to monitor the remaining fuel in the tanks, view cons
   - the ***Alarms section*** is designed to display all alarms related to the remaining fuel level, temperature, and battery level. You can set the conditions under which alarms will be triggered by clicking the “Alarm Rules” button. By default, the following types of alarms are defined: “Low battery level”, “Low temperature”, “High temperature” and “Low remaining level”.
 
 <div class="img-float" style="max-width:50%;margin: 10px auto">
-<img src="https://thingsboard.io/images/solutions/fuel_level_monitoring/fuel-monitoring-1.png" alt="Fuel level monitoring">
+<img src="https://img.thingsboard.io/solutions/fuel_level_monitoring/fuel-monitoring-1.png" alt="Fuel level monitoring">
 </div>
 
 The user can go to the Tank state in several ways: click on the line in the Tanks section of a specific tank or click the "Details" button on the popup when clicking on the marker of the interactive map.
@@ -35,7 +35,7 @@ The user can go to the Tank state in several ways: click on the line in the Tank
   - the Alarm section is a list of alarms for a specific tank.
 
 <div class="img-float" style="max-width:50%;margin: 10px auto">
-<img src="https://thingsboard.io/images/solutions/fuel_level_monitoring/fuel-monitoring-3.png" alt="Fuel level monitoring">
+<img src="https://img.thingsboard.io/solutions/fuel_level_monitoring/fuel-monitoring-3.png" alt="Fuel level monitoring">
 </div>
 
 #### Tank creation
@@ -43,7 +43,7 @@ The user can go to the Tank state in several ways: click on the line in the Tank
 As we have already said, we created nine tanks of different geometric shapes for our template. This will allow easy use of ready-made templates to calculate the volume of your tank.
 
 <div class="img-float" style="max-width:45%;margin: 10px auto">
-<img style="border: 1px solid #d7d7d7;" src="https://thingsboard.io/images/solutions/fuel_level_monitoring/tank-shapes.png" alt="Fuel level monitoring">
+<img style="border: 1px solid #d7d7d7;" src="https://img.thingsboard.io/solutions/fuel_level_monitoring/tank-shapes.png" alt="Fuel level monitoring">
 </div>
 
 To create a tank, the user needs to go through 3 main steps, namely:
@@ -67,7 +67,7 @@ Measurement fields like "length", "height", and so on will be automatically adju
 When all the necessary fields have been filled in, selecting "Capacity output" is essential, determining in what value the final volume calculation will be output. After selecting the appropriate parameter, the user can see the volume - "Capacity" of the given tank of the corresponding parameters.
 
 <div class="img-float" style="max-width:35%;margin: 20px auto">
-<img style="border: 1px solid #d7d7d7;" src="https://thingsboard.io/images/solutions/fuel_level_monitoring/2-2-1.png" alt="Fuel level monitoring">
+<img style="border: 1px solid #d7d7d7;" src="https://img.thingsboard.io/solutions/fuel_level_monitoring/2-2-1.png" alt="Fuel level monitoring">
 </div>
 
 
@@ -83,7 +83,7 @@ The measurement type has two parameters:
 
 
 <div class="img-float" style="max-width:35%; margin: 10px auto">
-<img style="border: 1px solid #d7d7d7;" src="https://thingsboard.io/images/solutions/fuel_level_monitoring/2-2-3.png" alt="Fuel level monitoring">
+<img style="border: 1px solid #d7d7d7;" src="https://img.thingsboard.io/solutions/fuel_level_monitoring/2-2-3.png" alt="Fuel level monitoring">
 </div>
 
 We also anticipated the possibility of a technical neck of the tank, which can affect the volume calculation. Therefore, when selecting the "Remaining space" parameter, an additional field - **"Sensor gap"** will be displayed. This field will help exclude the neck's height when calculating the volume tank.
@@ -99,7 +99,7 @@ After correctly filling in all the relevant fields of the "Tank Info" step, the 
 - **Set location** - the stage at which the user can choose the location of the tank. The interactive map allows you to select a point on the map manually.
 
 <div class="img-float" style="max-width:35%; margin: 10px auto">
-<img style="border: 1px solid #d7d7d7;" src="https://thingsboard.io/images/solutions/fuel_level_monitoring/2-3.png" alt="Fuel level monitoring">
+<img style="border: 1px solid #d7d7d7;" src="https://img.thingsboard.io/solutions/fuel_level_monitoring/2-3.png" alt="Fuel level monitoring">
 </div>
 
 After all, stages have been completed, the user can save all changes by pressing the "Save" button - this tank will be placed in the general list of tanks, and the corresponding marker will be displayed on the interactive map.
@@ -113,7 +113,7 @@ After all, stages have been completed, the user can save all changes by pressing
 The **"Fuel Monitoring"** rule chain is processing all incoming messages from tank sensors. This rule chain is responsible for counting alarms of all types (temperature, battery, fuel level, fuel height) and updating the status of the tank sensor based on alarms count and connectivity of device.
 
 <div class="img-float" style="max-width:35%; margin: 10px auto">
-<img style="border: 1px solid #d7d7d7;" src="https://thingsboard.io/images/solutions/fuel_level_monitoring/rule-chain.png" alt="Fuel level monitoring">
+<img style="border: 1px solid #d7d7d7;" src="https://img.thingsboard.io/solutions/fuel_level_monitoring/rule-chain.png" alt="Fuel level monitoring">
 </div>
 
 #### Device Profiles
@@ -186,7 +186,7 @@ As you can see on the screen (highlighted), we have alarms related to "High temp
 
 
 <div class="img-float" style="max-width:60%;margin: 20px auto">
-<img style="border: 1px solid #d7d7d7;" src="https://thingsboard.io/images/solutions/fuel_level_monitoring/ex-1-2.png" alt="Fuel level monitoring">
+<img style="border: 1px solid #d7d7d7;" src="https://img.thingsboard.io/solutions/fuel_level_monitoring/ex-1-2.png" alt="Fuel level monitoring">
 </div>
 
 In our case, we will consider a specific tank, namely "Tank 1273". Its current telemetry shows us that "Tank temperature" is 82 C, "Battery level" is 9%, and "Remaining" level is 5%(465 Gal from 9306).
@@ -195,7 +195,7 @@ Since our main task is to eliminate alarms, let's simulate sending data that wil
 
 
 <div class="img-float" style="max-width:60%;margin: 20px auto">
-<img style="border: 1px solid #d7d7d7;" src="https://thingsboard.io/images/solutions/fuel_level_monitoring/ex-1-1.png" alt="Fuel level monitoring">
+<img style="border: 1px solid #d7d7d7;" src="https://img.thingsboard.io/solutions/fuel_level_monitoring/ex-1-1.png" alt="Fuel level monitoring">
 </div>
 
 
@@ -208,7 +208,7 @@ As you can see, the rules define the conditions, namely:
 
 
 <div class="img-float" style="max-width:60%;margin: 10px auto">
-<img style="border: 1px solid #d7d7d7;" src="https://thingsboard.io/images/solutions/fuel_level_monitoring/fuel-monitoring-2.png" alt="Fuel level monitoring">
+<img style="border: 1px solid #d7d7d7;" src="https://img.thingsboard.io/solutions/fuel_level_monitoring/fuel-monitoring-2.png" alt="Fuel level monitoring">
 </div>
 
 <br>
@@ -231,7 +231,7 @@ Good job. The data was sent successfully, and as a result, the alarm was cleared
 
 
 <div class="img-float" style="max-width:60%;margin: 20px auto">
-<img style="border: 1px solid #d7d7d7;" src="https://thingsboard.io/images/solutions/fuel_level_monitoring/ex-1-3.png" alt="Fuel level monitoring">
+<img style="border: 1px solid #d7d7d7;" src="https://img.thingsboard.io/solutions/fuel_level_monitoring/ex-1-3.png" alt="Fuel level monitoring">
 </div>
 
 
@@ -251,7 +251,7 @@ As a basis, we will take the tank from the previous example, namely **"Tank 1273
 
 
 <div class="img-float" style="max-width:45%;margin: 20px auto">
-<img src="https://thingsboard.io/images/solutions/fuel_level_monitoring/ex-2-1.png" alt="Fuel level monitoring">
+<img src="https://img.thingsboard.io/solutions/fuel_level_monitoring/ex-2-1.png" alt="Fuel level monitoring">
 </div>
 
 Next, we need to specify the height value that the sensor will send us. As we can see, the "height" of the tank is 200 cm, and the total volume calculated based on all parameters is 1570.8 L. "Level measurement type" - "Fill height", "sensor reading units" - cm.
@@ -267,7 +267,7 @@ curl -v -X POST -d "{\"fuelHeight\":  100}" ${BASE_URL}/api/v1/${001273ACCESS_TO
 As you can see, the data has been sent successfully, and the tank volume is 50% (785 L).
 
 <div class="img-float" style="max-width:65%;margin: 20px auto">
-<img style="border: 1px solid #d7d7d7;" src="https://thingsboard.io/images/solutions/fuel_level_monitoring/ex-2-2.png" alt="Fuel level monitoring">
+<img style="border: 1px solid #d7d7d7;" src="https://img.thingsboard.io/solutions/fuel_level_monitoring/ex-2-2.png" alt="Fuel level monitoring">
 </div>
 
 <br>
@@ -279,7 +279,7 @@ In the following example, I will show you how to use the height of the **"remain
 We will also take **"Tank 1273"** as a basis. However, as you can see, we have an additional value, namely **"Sensor gap"**. Let me remind you that a "Sensor gap" in some instances will play the role of a deal that will not be taken into account in the height of the tank (for example, the neck of the tank) but will only be a "hint" to the system that this height should not be taken into account.
 
 <div class="img-float" style="max-width:45%;margin: 20px auto">
-<img style="border: 1px solid #d7d7d7;" src="https://thingsboard.io/images/solutions/fuel_level_monitoring/ex-2-1-1.png" alt="Fuel level monitoring">
+<img style="border: 1px solid #d7d7d7;" src="https://img.thingsboard.io/solutions/fuel_level_monitoring/ex-2-1-1.png" alt="Fuel level monitoring">
 </div>
 
 We repeat the same steps for height emulation, but do not forget about the "gap".
@@ -299,7 +299,7 @@ curl -v -X POST -d "{\"fuelHeight\":  110}" ${BASE_URL}/api/v1/${001273ACCESS_TO
 ```
 
 <div class="img-float" style="max-width:65%;margin: 20px auto">
-<img style="border: 1px solid #d7d7d7;" src="https://thingsboard.io/images/solutions/fuel_level_monitoring/ex-2-2.png" alt="Fuel level monitoring">
+<img style="border: 1px solid #d7d7d7;" src="https://img.thingsboard.io/solutions/fuel_level_monitoring/ex-2-2.png" alt="Fuel level monitoring">
 </div>
 
 Data was sent successfully. And we determined the volume using this method.

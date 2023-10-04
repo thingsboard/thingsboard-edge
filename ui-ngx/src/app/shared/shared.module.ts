@@ -224,8 +224,14 @@ import { ColorPickerComponent } from '@shared/components/color-picker/color-pick
 import { ThemeColorSelectComponent } from '@shared/components/theme-color-select.component';
 import { ResourceAutocompleteComponent } from '@shared/components/resource/resource-autocomplete.component';
 import { ShortNumberPipe } from '@shared/pipe/short-number.pipe';
-import { ToggleHeaderComponent } from '@shared/components/toggle-header.component';
+import { ToggleHeaderComponent, ToggleOption } from '@shared/components/toggle-header.component';
 import { RuleChainSelectComponent } from '@shared/components/rule-chain/rule-chain-select.component';
+import { ToggleSelectComponent } from '@shared/components/toggle-select.component';
+import { UnitInputComponent } from '@shared/components/unit-input.component';
+import { MaterialIconsComponent } from '@shared/components/material-icons.component';
+import { ColorPickerPanelComponent } from '@shared/components/color-picker/color-picker-panel.component';
+import { TbIconComponent } from '@shared/components/icon.component';
+import { HintTooltipIconComponent } from '@shared/components/hint-tooltip-icon.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -416,9 +422,16 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     GtMdLgShowHideDirective,
     ThemeColorSelectComponent,
     ColorPickerComponent,
+    ColorPickerPanelComponent,
     ResourceAutocompleteComponent,
     ToggleHeaderComponent,
-    RuleChainSelectComponent
+    ToggleOption,
+    ToggleSelectComponent,
+    UnitInputComponent,
+    MaterialIconsComponent,
+    RuleChainSelectComponent,
+    TbIconComponent,
+    HintTooltipIconComponent
   ],
   imports: [
     CommonModule,
@@ -663,9 +676,16 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     GtMdLgShowHideDirective,
     ThemeColorSelectComponent,
     ColorPickerComponent,
+    ColorPickerPanelComponent,
     ResourceAutocompleteComponent,
     ToggleHeaderComponent,
-    RuleChainSelectComponent
+    ToggleOption,
+    ToggleSelectComponent,
+    UnitInputComponent,
+    MaterialIconsComponent,
+    RuleChainSelectComponent,
+    TbIconComponent,
+    HintTooltipIconComponent
   ]
 })
 export class SharedModule { }

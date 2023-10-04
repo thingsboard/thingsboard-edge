@@ -549,7 +549,7 @@ public class DeviceProfileControllerTest extends AbstractControllerTest {
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new DeviceProfile(), new DeviceProfile(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, ActionType.ADDED, cntEntity, cntEntity, cntEntity);
+                ActionType.ADDED, cntEntity, cntEntity, cntEntity);
         Mockito.reset(tbClusterService, auditLogService);
 
         List<DeviceProfile> loadedDeviceProfiles = new ArrayList<>();
@@ -578,7 +578,7 @@ public class DeviceProfileControllerTest extends AbstractControllerTest {
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(loadedDeviceProfiles.get(0), loadedDeviceProfiles.get(0),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.DELETED, ActionType.DELETED, cntEntity, cntEntity, cntEntity, loadedDeviceProfiles.get(0).getId().getId().toString());
+                ActionType.DELETED, cntEntity, cntEntity, cntEntity, loadedDeviceProfiles.get(0).getId().getId().toString());
 
         pageLink = new PageLink(17);
         pageData = doGetTypedWithPageLink("/api/deviceProfiles?",
@@ -1161,6 +1161,22 @@ public class DeviceProfileControllerTest extends AbstractControllerTest {
     public void testDeleteDeviceProfileWithDeleteRelationsOk() throws Exception {
         DeviceProfileId deviceProfileId = savedDeviceProfile("DeviceProfile for Test WithRelationsOk").getId();
         testEntityDaoWithRelationsOk(savedTenant.getId(), deviceProfileId, "/api/deviceProfile/" + deviceProfileId);
+    }
+
+    @Test
+    public void testGetTimeseriesKeysByCustomerOk() throws Exception {
+        loginNewCustomerNewUser();
+        doGet("/api/deviceProfile/devices/keys/timeseries").andExpect(status().isOk());
+        loginCustomerUser();
+        doGet("/api/deviceProfile/devices/keys/timeseries").andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testGetAttributesKeysByCustomerOk() throws Exception {
+        loginNewCustomerNewUser();
+        doGet("/api/deviceProfile/devices/keys/attributes").andExpect(status().isOk());
+        loginCustomerUser();
+        doGet("/api/deviceProfile/devices/keys/attributes").andExpect(status().isForbidden());
     }
 
     @Ignore

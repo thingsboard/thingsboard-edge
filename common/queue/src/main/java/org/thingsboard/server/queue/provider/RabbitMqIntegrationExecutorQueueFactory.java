@@ -141,6 +141,7 @@ public class RabbitMqIntegrationExecutorQueueFactory implements TbIntegrationExe
     }
 
     @Override
+    @Bean
     public TbQueueRequestTemplate<TbProtoQueueMsg<IntegrationApiRequestMsg>, TbProtoQueueMsg<IntegrationApiResponseMsg>> createIntegrationApiRequestTemplate() {
         TbQueueProducer<TbProtoQueueMsg<IntegrationApiRequestMsg>> producer = new TbRabbitMqProducerTemplate<>(integrationApiAdmin, rabbitMqSettings, integrationApiSettings.getRequestsTopic());
         TbQueueConsumer<TbProtoQueueMsg<IntegrationApiResponseMsg>> consumer = new TbRabbitMqConsumerTemplate<>(integrationApiAdmin, rabbitMqSettings,

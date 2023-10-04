@@ -50,7 +50,7 @@
           (click)="clear()">
     <mat-icon class="material-icons">close</mat-icon>
   </button>
-  <button *ngIf="selectDeviceProfileFormGroup.get('deviceProfile').value && !disabled && editProfileEnabled &&
+  <button *ngIf="selectDeviceProfileFormGroup.get('deviceProfile').value?.id && !disabled && editProfileEnabled &&
                (resource.DEVICE_PROFILE | hasGenericPermission: operation.WRITE)"
           type="button"
           matSuffix mat-icon-button aria-label="Edit"
@@ -58,6 +58,12 @@
           matTooltipPosition="above"
           (click)="editDeviceProfile($event)">
     <mat-icon class="material-icons">edit</mat-icon>
+  </button>
+  <button mat-button color="primary" matSuffix
+          (click)="createDeviceProfile($event, '')"
+          *ngIf="!selectDeviceProfileFormGroup.get('deviceProfile').value && !disabled && addNewProfile &&
+                   (resource.DEVICE_PROFILE | hasGenericPermission: operation.CREATE)">
+    <span style="white-space: nowrap">{{ 'notification.create-new' | translate }}</span>
   </button>
   <mat-autocomplete
     class="tb-autocomplete"

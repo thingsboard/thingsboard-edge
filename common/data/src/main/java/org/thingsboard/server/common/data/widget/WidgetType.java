@@ -38,7 +38,7 @@ import org.thingsboard.server.common.data.id.WidgetTypeId;
 @Data
 public class WidgetType extends BaseWidgetType {
 
-    @Schema(description = "Complex JSON object that describes the widget type", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "Complex JSON object that describes the widget type")
     private transient JsonNode descriptor;
 
     public WidgetType() {

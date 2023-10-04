@@ -109,7 +109,8 @@ public abstract class RuleChainManagerActor extends ContextAwareActor {
                     } else {
                         return new RuleChainActor.ActorCreator(systemContext, tenantId, ruleChain);
                     }
-                });
+                },
+                () -> true);
     }
 
     protected TbActorRef getEntityActorRef(EntityId entityId) {

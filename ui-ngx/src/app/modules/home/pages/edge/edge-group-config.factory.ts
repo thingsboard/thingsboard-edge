@@ -49,7 +49,7 @@ import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
 import { Operation, Resource } from '@shared/models/security.models';
-import { EdgeInfo, EdgeInstallInstructions } from '@shared/models/edge.models';
+import { EdgeInfo } from '@shared/models/edge.models';
 import { EdgeService } from '@core/http/edge.service';
 import { EdgeComponent } from '@home/pages/edge/edge.component';
 import { Router } from '@angular/router';
@@ -61,7 +61,7 @@ import { Authority } from '@shared/models/authority.enum';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { WINDOW } from '@core/services/window.service';
 import {
-  EdgeInstructionsData,
+  EdgeInstructionsDialogData,
   EdgeInstructionsDialogComponent
 } from '@home/pages/edge/edge-instructions-dialog.component';
 
@@ -425,21 +425,19 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     );
   }
 
-  openInstructions($event, edge: EdgeInfo) {
+  openInstructions($event: Event, edge: EdgeInfo) {
     if ($event) {
       $event.stopPropagation();
     }
-    this.edgeService.getEdgeDockerInstallInstructions(edge.id.id).subscribe(
-      (edgeInstructionsTemplate: EdgeInstallInstructions) => {
-        this.dialog.open<EdgeInstructionsDialogComponent, EdgeInstructionsData>(EdgeInstructionsDialogComponent, {
-          disableClose: false,
-          panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
-          data: {
-            instructions: edgeInstructionsTemplate.dockerInstallInstructions
-          }
-        });
+    this.dialog.open<EdgeInstructionsDialogComponent, EdgeInstructionsDialogData>
+    (EdgeInstructionsDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        edge,
+        afterAdd: false
       }
-    );
+    }).afterClosed().subscribe();
   }
 
   manageOwnerAndGroups($event: Event, edge: EdgeInfo, config: GroupEntityTableConfig<EdgeInfo>) {

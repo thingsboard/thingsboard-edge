@@ -312,6 +312,6 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         edgeImitator.expectMessageAmount(1);
         doDelete("/api/integration/" + savedIntegration.getUuidId())
                 .andExpect(status().isOk());
-        Assert.assertFalse(edgeImitator.waitForMessages(1));
+        Assert.assertTrue(edgeImitator.waitForMessages(1));
     }
 }

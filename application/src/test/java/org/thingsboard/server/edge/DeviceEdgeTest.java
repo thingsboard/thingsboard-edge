@@ -95,6 +95,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DaoSqlTest
 public class DeviceEdgeTest extends AbstractEdgeTest {
 
+    private static final String DEFAULT_DEVICE_TYPE = "default";
+
     @Test
     public void testDevices() throws Exception {
         // create device entity group and assign to edge
@@ -172,6 +174,19 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(deviceEntityGroup2.getUuidId().getLeastSignificantBits(), deviceUpdateMsg.getEntityGroupIdLSB());
 
         unAssignEntityGroupFromEdge(deviceEntityGroup2);
+
+        // remove device from entity group 1
+        edgeImitator.expectMessageAmount(1);
+        deleteEntitiesFromEntityGroup(Collections.singletonList(savedDevice.getId()), deviceEntityGroup1.getId());
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof DeviceUpdateMsg);
+        deviceUpdateMsg = (DeviceUpdateMsg) latestMessage;
+        Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, deviceUpdateMsg.getMsgType());
+        Assert.assertEquals(deviceEntityGroup1.getUuidId().getMostSignificantBits(), deviceUpdateMsg.getEntityGroupIdMSB());
+        Assert.assertEquals(deviceEntityGroup1.getUuidId().getLeastSignificantBits(), deviceUpdateMsg.getEntityGroupIdLSB());
+
+        unAssignEntityGroupFromEdge(deviceEntityGroup1);
 
         // delete device
         edgeImitator.expectMessageAmount(1);
@@ -306,14 +321,16 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     public void testDeviceReachedMaximumAllowedOnCloud() throws Exception {
         // update tenant profile configuration
         loginSysAdmin();
-        TenantProfile tenantProfile = doGet("/api/tenantProfile/" + savedTenant.getTenantProfileId().getId(), TenantProfile.class);
+        TenantProfile tenantProfile = doGet("/api/tenantProfile/" + tenantProfileId.getId(), TenantProfile.class);
         DefaultTenantProfileConfiguration profileConfiguration =
                 (DefaultTenantProfileConfiguration) tenantProfile.getProfileData().getConfiguration();
         profileConfiguration.setMaxDevices(1);
         tenantProfile.getProfileData().setConfiguration(profileConfiguration);
         doPost("/api/tenantProfile", tenantProfile, TenantProfile.class);
 
+        edgeImitator.expectMessageAmount(2);
         loginTenantAdmin();
+        Assert.assertTrue(edgeImitator.waitForMessages());
 
         UUID uuid = Uuids.timeBased();
 
@@ -322,7 +339,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
         deviceUpdateMsgBuilder.setIdMSB(uuid.getMostSignificantBits());
         deviceUpdateMsgBuilder.setIdLSB(uuid.getLeastSignificantBits());
         deviceUpdateMsgBuilder.setName("Edge Device");
-        deviceUpdateMsgBuilder.setType("default");
+        deviceUpdateMsgBuilder.setType(DEFAULT_DEVICE_TYPE);
         deviceUpdateMsgBuilder.setMsgType(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE);
         uplinkMsgBuilder.addDeviceUpdateMsg(deviceUpdateMsgBuilder.build());
 
@@ -422,8 +439,10 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
                 "inactivityTimeout", "3600000");
         sendAttributesRequestAndVerify(device, DataConstants.SHARED_SCOPE, "{\"key2\":\"value2\"}",
                 "key2", "value2");
+        sendAttributesRequestAndVerify(device, DataConstants.SERVER_SCOPE, "{\"jsonKey\":{\"nestedJsonKey\":\"nestedJsonValue\"}}",
+                "jsonKey", "{\"nestedJsonKey\":\"nestedJsonValue\"}");
 
-        doDelete("/api/plugins/telemetry/DEVICE/" + device.getUuidId() + "/" + DataConstants.SERVER_SCOPE, "keys", "key1, inactivityTimeout");
+        doDelete("/api/plugins/telemetry/DEVICE/" + device.getUuidId() + "/" + DataConstants.SERVER_SCOPE, "keys", "key1, inactivityTimeout, jsonKey");
         doDelete("/api/plugins/telemetry/DEVICE/" + device.getUuidId() + "/" + DataConstants.SHARED_SCOPE, "keys", "key2");
     }
 
@@ -517,7 +536,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     @Test
     public void testSendDeviceToCloudWithNameThatAlreadyExistsOnCloud() throws Exception {
         String deviceOnCloudName = StringUtils.randomAlphanumeric(15);
-        Device deviceOnCloud = saveDevice(deviceOnCloudName, "Default");
+        Device deviceOnCloud = saveDevice(deviceOnCloudName, DEFAULT_DEVICE_TYPE);
 
         UUID uuid = Uuids.timeBased();
 
@@ -683,6 +702,9 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
                         break;
                     case LONG_V:
                         Assert.assertEquals(Long.parseLong(expectedValue), keyValueProto.getLongV());
+                        break;
+                    case JSON_V:
+                        Assert.assertEquals(JacksonUtil.toJsonNode(expectedValue), JacksonUtil.toJsonNode(keyValueProto.getJsonV()));
                         break;
                     default:
                         Assert.fail("Unexpected data type: " + keyValueProto.getType());

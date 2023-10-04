@@ -1,0 +1,78 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div fxLayout="row" fxLayout.lt-sm="column" class="command-form" fxLayoutGap="10px" [formGroup]="commandForm">
+  <ng-container *ngIf="!isConnector; else connectorForm">
+    <mat-form-field>
+      <mat-label>{{ 'gateway.statistics.command' | translate }}</mat-label>
+      <mat-select formControlName="command">
+        <mat-option *ngFor="let command of RPCCommands" [value]="command">
+          {{ command }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field fxFlex>
+      <mat-label>{{ 'gateway.statistics.timeout-ms' | translate }}</mat-label>
+      <input matInput formControlName="time" type="number" min="1"/>
+      <mat-error *ngIf="commandForm.get('time').hasError('min')">
+        {{ 'gateway.statistics.timeout-min' | translate }}
+      </mat-error>
+    </mat-form-field>
+  </ng-container>
+  <ng-template #connectorForm>
+    <mat-form-field>
+      <mat-label>{{ 'gateway.statistics.command' | translate }}</mat-label>
+      <input matInput formControlName="command" />
+    </mat-form-field>
+    <mat-form-field fxFlex>
+      <mat-label>{{ 'widget-config.datasource-parameters' | translate }}</mat-label>
+      <input matInput formControlName="params" type="JSON"/>
+      <mat-icon class="material-icons-outlined" aria-hidden="false" aria-label="help-icon"
+                matIconSuffix style="cursor:pointer;"
+                (click)="openEditJSONDialog($event)"
+                matTooltip="{{ 'gateway.rpc-command-edit-params' | translate }}">edit
+      </mat-icon>
+    </mat-form-field>
+  </ng-template>
+  <button mat-raised-button
+          color="primary"
+          (click)="sendCommand()"
+          [disabled]="commandForm.invalid">
+    {{ 'gateway.rpc-command-send' | translate }}
+  </button>
+</div>
+<section class="result-block" [formGroup]="commandForm">
+  <span>{{ 'gateway.rpc-command-result' | translate }}</span>
+  <mat-divider></mat-divider>
+  <tb-json-content [contentType]="contentTypes.JSON" readonly="true" formControlName="result"></tb-json-content>
+</section>
+

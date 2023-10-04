@@ -50,8 +50,8 @@ import { TranslateService } from '@ngx-translate/core';
 import { MatDialog } from '@angular/material/dialog';
 import { DialogService } from '@core/services/dialog.service';
 import { Direction, SortOrder } from '@shared/models/page/sort-order';
-import { forkJoin, fromEvent, merge, Observable } from 'rxjs';
-import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
+import { forkJoin, merge, Observable, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { Operation, Resource } from '@shared/models/security.models';
 import { EntityType } from '@shared/models/entity-type.models';
@@ -68,6 +68,7 @@ import {
 import { ViewRoleDialogComponent, ViewRoleDialogData } from '@home/components/role/view-role-dialog.component';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { hidePageSizePixelValue } from '@shared/models/constants';
+import { FormBuilder } from '@angular/forms';
 
 @Component({
   selector: 'tb-group-permissions',
@@ -99,8 +100,6 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
   registrationPermissionsValue: Array<GroupPermission>;
 
   viewsInited = false;
-
-  private widgetResize$: ResizeObserver;
 
   @Input()
   set active(active: boolean) {
@@ -169,6 +168,11 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
 
+  textSearch = this.fb.control('', {nonNullable: true});
+
+  private widgetResize$: ResizeObserver;
+  private destroy$ = new Subject<void>();
+
   constructor(protected store: Store<AppState>,
               private roleService: RoleService,
               public translate: TranslateService,
@@ -176,7 +180,8 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
               private userPermissionsService: UserPermissionsService,
               private dialogService: DialogService,
               private cd: ChangeDetectorRef,
-              private elementRef: ElementRef) {
+              private elementRef: ElementRef,
+              private fb: FormBuilder) {
     super(store);
     this.dirtyValue = !this.activeValue;
     const sortOrder: SortOrder = { property: 'roleName', direction: Direction.ASC };
@@ -199,6 +204,8 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
     if (this.widgetResize$) {
       this.widgetResize$.disconnect();
     }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private entityGroupUpdated(entityGroup: EntityGroupInfo) {
@@ -256,25 +263,21 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
   }
 
   ngAfterViewInit() {
+    this.textSearch.valueChanges.pipe(
+      debounceTime(150),
+      distinctUntilChanged((prev, current) => (this.pageLink.textSearch ?? '') === current.trim()),
+      takeUntil(this.destroy$)
+    ).subscribe(value => {
+      this.paginator.pageIndex = 0;
+      this.pageLink.textSearch = value.trim();
+      this.updateData();
+    });
 
-    fromEvent(this.searchInputField.nativeElement, 'keyup')
-      .pipe(
-        debounceTime(150),
-        distinctUntilChanged(),
-        tap(() => {
-          this.paginator.pageIndex = 0;
-          this.updateData();
-        })
-      )
-      .subscribe();
+    this.sort.sortChange.pipe(takeUntil(this.destroy$)).subscribe(() => this.paginator.pageIndex = 0);
 
-    this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
-
-    merge(this.sort.sortChange, this.paginator.page)
-      .pipe(
-        tap(() => this.updateData())
-      )
-      .subscribe();
+    merge(this.sort.sortChange, this.paginator.page).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.updateData());
 
     this.viewsInited = true;
     if (this.activeValue && (this.entityGroupValue || this.registrationPermissionsValue)) {
@@ -292,7 +295,6 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
 
   enterFilterMode() {
     this.textSearchMode = true;
-    this.pageLink.textSearch = '';
     setTimeout(() => {
       this.searchInputField.nativeElement.focus();
       this.searchInputField.nativeElement.setSelectionRange(0, 0);
@@ -301,13 +303,13 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
 
   exitFilterMode() {
     this.textSearchMode = false;
-    this.pageLink.textSearch = null;
-    this.paginator.pageIndex = 0;
-    this.updateData();
+    this.textSearch.reset();
   }
 
   resetSortAndFilter(update: boolean = true) {
+    this.textSearchMode = false;
     this.pageLink.textSearch = null;
+    this.textSearch.reset('', {emitEvent: false});
     this.paginator.pageIndex = 0;
     const sortable = this.sort.sortables.get('roleName');
     this.sort.active = sortable.id;

@@ -7,20 +7,28 @@
     "description": "",
     "widgets": {
       "13ab3ad2-6f50-a808-e2e0-aab3e28c34e8": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 7.5,
         "sizeY": 6.5,
         "config": {
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
+              "realtimeType": 1,
               "interval": 1000,
-              "timewindowMs": 86400000
+              "timewindowMs": 86400000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1694019264779,
+                "endTimeMs": 1694105664779
+              },
+              "quickInterval": "CURRENT_DAY"
             },
             "aggregation": {
               "type": "NONE",
@@ -174,23 +182,32 @@
         },
         "row": 0,
         "col": 0,
-        "id": "13ab3ad2-6f50-a808-e2e0-aab3e28c34e8"
+        "id": "13ab3ad2-6f50-a808-e2e0-aab3e28c34e8",
+        "typeFullFqn": "system.cards.entities_table"
       },
       "8e6746d7-6409-dadf-d771-305702ab8eb4": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 7.5,
         "sizeY": 6.5,
         "config": {
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
+              "realtimeType": 1,
               "interval": 1000,
-              "timewindowMs": 86400000
+              "timewindowMs": 86400000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1694019264779,
+                "endTimeMs": 1694105664779
+              },
+              "quickInterval": "CURRENT_DAY"
             },
             "aggregation": {
               "type": "NONE",
@@ -344,7 +361,8 @@
         },
         "row": 0,
         "col": 0,
-        "id": "8e6746d7-6409-dadf-d771-305702ab8eb4"
+        "id": "8e6746d7-6409-dadf-d771-305702ab8eb4",
+        "typeFullFqn": "system.cards.entities_table"
       }
     },
     "states": {
@@ -375,7 +393,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -487,5 +506,6 @@
       "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 8px;\n}\n\ngridster-item:not(.tb-noselect) > .tb-widget-container > .tb-widget {\n    cursor: default !important;\n}\n\n.tb-widget-container > .tb-widget .tb-table-widget .mat-row {\n    cursor: pointer;\n}\n\n.tb-widget-container > .tb-widget .tb-legend-keys {\n    cursor: pointer;\n}"
     }
   },
+  "externalId": null,
   "name": "Smart Supermarket User Management"
 }

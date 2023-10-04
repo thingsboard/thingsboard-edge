@@ -71,6 +71,7 @@ import org.thingsboard.server.common.data.query.EntityTypeFilter;
 import org.thingsboard.server.common.data.query.TsValue;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.common.stats.TbApiUsageStateClient;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
@@ -86,6 +87,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
@@ -296,7 +298,11 @@ public class HomePageApiTest extends AbstractControllerTest {
 
     @Test
     public void testGetFeaturesInfo() throws Exception {
-        adminSettingsService.deleteAdminSettingsByTenantIdAndKey(TenantId.SYS_TENANT_ID, "whiteLabelParams");
+        loginSysAdmin();
+
+        WhiteLabelingParams whiteLabelingParams = doGet("/api/whiteLabel/currentWhiteLabelParams", WhiteLabelingParams.class);
+        whiteLabelingParams.setAppTitle("App name");
+        doPost("/api/whiteLabel/whiteLabelParams", whiteLabelingParams, WhiteLabelingParams.class);
 
         String mail = "test@thingsboard.org";
         Mockito.doAnswer(invocation -> {
@@ -311,15 +317,13 @@ public class HomePageApiTest extends AbstractControllerTest {
         Mockito.when(smsService.isConfigured(TenantId.SYS_TENANT_ID))
                 .then(a -> adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "sms") != null);
 
-        loginSysAdmin();
-
         FeaturesInfo featuresInfo = doGet("/api/admin/featuresInfo", FeaturesInfo.class);
         Assert.assertNotNull(featuresInfo);
         Assert.assertFalse(featuresInfo.isEmailEnabled());
         Assert.assertFalse(featuresInfo.isSmsEnabled());
         Assert.assertFalse(featuresInfo.isTwoFaEnabled());
         Assert.assertFalse(featuresInfo.isNotificationEnabled());
-        Assert.assertFalse(featuresInfo.isWhiteLabelingEnabled());
+        Assert.assertTrue(featuresInfo.isWhiteLabelingEnabled());
         Assert.assertFalse(featuresInfo.isOauthEnabled());
 
         AdminSettings mailSettings = doGet("/api/admin/settings/mail", AdminSettings.class);
@@ -335,7 +339,7 @@ public class HomePageApiTest extends AbstractControllerTest {
         Assert.assertFalse(featuresInfo.isSmsEnabled());
         Assert.assertFalse(featuresInfo.isTwoFaEnabled());
         Assert.assertFalse(featuresInfo.isNotificationEnabled());
-        Assert.assertFalse(featuresInfo.isWhiteLabelingEnabled());
+        Assert.assertTrue(featuresInfo.isWhiteLabelingEnabled());
         Assert.assertFalse(featuresInfo.isOauthEnabled());
 
         AdminSettings smsSettings = new AdminSettings();
@@ -348,7 +352,7 @@ public class HomePageApiTest extends AbstractControllerTest {
         Assert.assertTrue(featuresInfo.isSmsEnabled());
         Assert.assertFalse(featuresInfo.isTwoFaEnabled());
         Assert.assertFalse(featuresInfo.isNotificationEnabled());
-        Assert.assertFalse(featuresInfo.isWhiteLabelingEnabled());
+        Assert.assertTrue(featuresInfo.isWhiteLabelingEnabled());
         Assert.assertFalse(featuresInfo.isOauthEnabled());
 
         AdminSettings twoFaSettingsSettings = new AdminSettings();
@@ -366,7 +370,7 @@ public class HomePageApiTest extends AbstractControllerTest {
         Assert.assertTrue(featuresInfo.isSmsEnabled());
         Assert.assertTrue(featuresInfo.isTwoFaEnabled());
         Assert.assertFalse(featuresInfo.isNotificationEnabled());
-        Assert.assertFalse(featuresInfo.isWhiteLabelingEnabled());
+        Assert.assertTrue(featuresInfo.isWhiteLabelingEnabled());
         Assert.assertFalse(featuresInfo.isOauthEnabled());
 
         AdminSettings notificationsSettings = new AdminSettings();
@@ -379,19 +383,6 @@ public class HomePageApiTest extends AbstractControllerTest {
 
         notificationsSettings.setJsonValue(notificationSettings);
         doPost("/api/admin/settings", notificationsSettings).andExpect(status().isOk());
-
-        featuresInfo = doGet("/api/admin/featuresInfo", FeaturesInfo.class);
-        Assert.assertTrue(featuresInfo.isEmailEnabled());
-        Assert.assertTrue(featuresInfo.isSmsEnabled());
-        Assert.assertTrue(featuresInfo.isTwoFaEnabled());
-        Assert.assertTrue(featuresInfo.isNotificationEnabled());
-        Assert.assertFalse(featuresInfo.isWhiteLabelingEnabled());
-        Assert.assertFalse(featuresInfo.isOauthEnabled());
-
-        AdminSettings whiteLabelParamsSettings = new AdminSettings();
-        whiteLabelParamsSettings.setKey("whiteLabelParams");
-        whiteLabelParamsSettings.setJsonValue(JacksonUtil.newObjectNode());
-        doPost("/api/admin/settings", whiteLabelParamsSettings).andExpect(status().isOk());
 
         featuresInfo = doGet("/api/admin/featuresInfo", FeaturesInfo.class);
         Assert.assertTrue(featuresInfo.isEmailEnabled());
@@ -441,7 +432,7 @@ public class HomePageApiTest extends AbstractControllerTest {
         Assert.assertEquals(1, usageInfo.getCustomers());
         Assert.assertEquals(configuration.getMaxCustomers(), usageInfo.getMaxCustomers());
 
-        Assert.assertEquals(2, usageInfo.getUsers());
+        Assert.assertEquals(3, usageInfo.getUsers());
         Assert.assertEquals(configuration.getMaxUsers(), usageInfo.getMaxUsers());
 
         Assert.assertEquals(0, usageInfo.getDashboards());
@@ -452,6 +443,9 @@ public class HomePageApiTest extends AbstractControllerTest {
 
         Assert.assertEquals(0, usageInfo.getJsExecutions());
         Assert.assertEquals(configuration.getMaxJSExecutions(), usageInfo.getMaxJsExecutions());
+
+        Assert.assertEquals(0, usageInfo.getTbelExecutions());
+        Assert.assertEquals(configuration.getMaxTbelExecutions(), usageInfo.getMaxTbelExecutions());
 
         Assert.assertEquals(0, usageInfo.getEmails());
         Assert.assertEquals(configuration.getMaxEmails(), usageInfo.getMaxEmails());
@@ -501,7 +495,7 @@ public class HomePageApiTest extends AbstractControllerTest {
         }
 
         usageInfo = doGet("/api/usage", UsageInfo.class);
-        Assert.assertEquals(users.size() + 2, usageInfo.getUsers());
+        Assert.assertEquals(users.size() + 3, usageInfo.getUsers());
 
         List<Dashboard> dashboards = new ArrayList<>();
         for (int i = 0; i < 97; i++) {

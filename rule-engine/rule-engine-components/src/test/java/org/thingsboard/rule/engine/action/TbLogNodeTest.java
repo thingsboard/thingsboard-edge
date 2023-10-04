@@ -39,6 +39,7 @@ import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -64,7 +65,7 @@ public class TbLogNodeTest {
         TbLogNode node = new TbLogNode();
         String data = "{\"key\": \"value\"}";
         TbMsgMetaData metaData = new TbMsgMetaData(Map.of("mdKey1", "mdValue1", "mdKey2", "23"));
-        TbMsg msg = TbMsg.newMsg("POST_TELEMETRY", TenantId.SYS_TENANT_ID, metaData, data);
+        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, TenantId.SYS_TENANT_ID, metaData, data);
 
         String logMessage = node.toLogMessage(msg);
         log.info(logMessage);
@@ -80,7 +81,7 @@ public class TbLogNodeTest {
     void givenEmptyDataMsg_whenToLog_thenReturnString() {
         TbLogNode node = new TbLogNode();
         TbMsgMetaData metaData = new TbMsgMetaData(Collections.emptyMap());
-        TbMsg msg = TbMsg.newMsg("POST_TELEMETRY", TenantId.SYS_TENANT_ID, metaData, "");
+        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, TenantId.SYS_TENANT_ID, metaData, "");
 
         String logMessage = node.toLogMessage(msg);
         log.info(logMessage);
@@ -96,7 +97,7 @@ public class TbLogNodeTest {
     void givenNullDataMsg_whenToLog_thenReturnString() {
         TbLogNode node = new TbLogNode();
         TbMsgMetaData metaData = new TbMsgMetaData(Collections.emptyMap());
-        TbMsg msg = TbMsg.newMsg("POST_TELEMETRY", TenantId.SYS_TENANT_ID, metaData, null);
+        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, TenantId.SYS_TENANT_ID, metaData, null);
 
         String logMessage = node.toLogMessage(msg);
         log.info(logMessage);

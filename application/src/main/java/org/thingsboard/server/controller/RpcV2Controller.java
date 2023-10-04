@@ -54,6 +54,7 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.RpcId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -68,7 +69,6 @@ import org.thingsboard.server.service.rpc.RemoveRpcActorMsg;
 
 import java.util.UUID;
 
-import static org.thingsboard.server.common.data.DataConstants.RPC_DELETED;
 import static org.thingsboard.server.controller.ControllerConstants.DEVICE_ID;
 import static org.thingsboard.server.controller.ControllerConstants.DEVICE_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_END;
@@ -243,7 +243,7 @@ public class RpcV2Controller extends AbstractRpcController {
         Rpc rpc = checkRpcId(rpcId);
 
         if (rpc != null) {
-            if (rpc.getStatus().equals(RpcStatus.QUEUED)) {
+            if (rpc.getStatus().isPushDeleteNotificationToCore()) {
                 RemoveRpcActorMsg removeMsg = new RemoveRpcActorMsg(getTenantId(), rpc.getDeviceId(), rpc.getUuidId());
                 log.trace("[{}] Forwarding msg {} to queue actor!", rpc.getDeviceId(), rpc);
                 tbClusterService.pushMsgToCore(removeMsg, null);
@@ -252,7 +252,7 @@ public class RpcV2Controller extends AbstractRpcController {
             rpcService.deleteRpc(getTenantId(), rpcId);
             rpc.setStatus(RpcStatus.DELETED);
 
-            TbMsg msg = TbMsg.newMsg(RPC_DELETED, rpc.getDeviceId(), TbMsgMetaData.EMPTY, JacksonUtil.toString(rpc));
+            TbMsg msg = TbMsg.newMsg(TbMsgType.RPC_DELETED, rpc.getDeviceId(), TbMsgMetaData.EMPTY, JacksonUtil.toString(rpc));
             tbClusterService.pushMsgToRuleEngine(getTenantId(), rpc.getDeviceId(), msg, null);
         }
     }

@@ -75,7 +75,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -444,6 +443,8 @@ public class DefaultMailService implements MailService {
                 return valueInM + " out of " + thresholdInM + " allowed messages";
             case JS_EXEC_COUNT:
                 return valueInM + " out of " + thresholdInM + " allowed JavaScript functions";
+            case TBEL_EXEC_COUNT:
+                return valueInM + " out of " + thresholdInM + " allowed Tbel functions";
             case RE_EXEC_COUNT:
                 return valueInM + " out of " + thresholdInM + " allowed Rule Engine messages";
             case EMAIL_EXEC_COUNT:
@@ -464,6 +465,8 @@ public class DefaultMailService implements MailService {
                 return recordState.getValueAsString() + " messages";
             case JS_EXEC_COUNT:
                 return "JavaScript functions " + recordState.getValueAsString() + " times";
+            case TBEL_EXEC_COUNT:
+                return "TBEL functions " + recordState.getValueAsString() + " times";
             case RE_EXEC_COUNT:
                 return recordState.getValueAsString() + " Rule Engine messages";
             case EMAIL_EXEC_COUNT:

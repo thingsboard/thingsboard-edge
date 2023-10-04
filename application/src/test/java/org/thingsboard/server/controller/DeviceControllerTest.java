@@ -51,6 +51,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ContextConfiguration;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntitySubtype;
@@ -64,6 +65,7 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceCredentialsId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -79,8 +81,8 @@ import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportReques
 import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportResult;
 import org.thingsboard.server.dao.device.DeviceDao;
 import org.thingsboard.server.dao.exception.DeviceCredentialsValidationException;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.service.gateway_device.GatewayNotificationsService;
 
 import java.util.ArrayList;
@@ -168,9 +170,8 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
         Device oldDevice = new Device(savedDevice);
 
-        testNotifyEntityOneTimeMsgToEdgeServiceNever(savedDevice, savedDevice.getId(), savedDevice.getId(),
-                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED);
+        testNotifyEntityEntityGroupNullAllOneTime(savedDevice, savedDevice.getId(), savedDevice.getId(), savedTenant.getId(),
+                tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED);
         testNotificationUpdateGatewayNever();
 
         Assert.assertNotNull(savedDevice);
@@ -197,7 +198,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(savedDevice, savedDevice,
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.UPDATED, ActionType.UPDATED, 1 , 1, 1);
+                ActionType.UPDATED, 1 , 1, 1);
         testNotificationUpdateGatewayOneTime(savedDevice, oldDevice);
 
         Device foundDevice = doGet("/api/device/" + savedDevice.getId().getId(), Device.class);
@@ -224,7 +225,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
         Device oldDevice = new Device(savedDevice);
 
-        testNotifyEntityOneTimeMsgToEdgeServiceNever(savedDevice, savedDevice.getId(), savedDevice.getId(),
+        testNotifyEntityEntityGroupNullAllOneTime(savedDevice, savedDevice.getId(), savedDevice.getId(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED);
         testNotificationUpdateGatewayNever();
@@ -253,8 +254,55 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(savedDevice, savedDevice,
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.UPDATED, ActionType.UPDATED, 1 , 1, 1);
+                ActionType.UPDATED, 1 , 1, 1);
         testNotificationUpdateGatewayOneTime(savedDevice, oldDevice);
+    }
+
+    @Test
+    public void testSaveDeviceWithCredentials_CredentialsIsNull() throws Exception {
+        Device device = new Device();
+        device.setName("My device");
+        device.setType("default");
+
+        SaveDeviceWithCredentialsRequest saveRequest = new SaveDeviceWithCredentialsRequest(device, null);
+        doPost("/api/device-with-credentials", saveRequest).andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString("Validation error: credentials must not be null")));
+    }
+
+    @Test
+    public void testSaveDeviceWithCredentials_DeviceIsNull() throws Exception {
+        String testToken = "TEST_TOKEN";
+
+        DeviceCredentials deviceCredentials = new DeviceCredentials();
+        deviceCredentials.setCredentialsType(DeviceCredentialsType.ACCESS_TOKEN);
+        deviceCredentials.setCredentialsId(testToken);
+
+        SaveDeviceWithCredentialsRequest saveRequest = new SaveDeviceWithCredentialsRequest(null, deviceCredentials);
+        doPost("/api/device-with-credentials", saveRequest).andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString("Validation error: device must not be null")));
+    }
+
+    @Test
+    public void testSaveDeviceWithCredentials_WithExistingName() throws Exception {
+        String testToken = "TEST_TOKEN";
+
+        Device device = new Device();
+        device.setName("My device");
+        device.setType("default");
+
+        DeviceCredentials deviceCredentials = new DeviceCredentials();
+        deviceCredentials.setCredentialsType(DeviceCredentialsType.ACCESS_TOKEN);
+        deviceCredentials.setCredentialsId(testToken);
+
+        SaveDeviceWithCredentialsRequest saveRequest = new SaveDeviceWithCredentialsRequest(device, deviceCredentials);
+
+        Mockito.reset(tbClusterService, auditLogService, gatewayNotificationsService);
+
+        Device savedDevice = readResponse(doPost("/api/device-with-credentials", saveRequest).andExpect(status().isOk()), Device.class);
+        Assert.assertNotNull(savedDevice);
+
+        doPost("/api/device-with-credentials", saveRequest).andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString("Device with such name already exists!")));
     }
 
     @Test
@@ -333,6 +381,45 @@ public class DeviceControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    public void testUpdateDeviceWithNewOwnerShouldBeProhibited() throws Exception {
+        Customer customer = new Customer();
+        customer.setTitle("Test customer");
+        Customer savedTestCustomer = doPost("/api/customer", customer, Customer.class);
+
+        Customer customer2 = new Customer();
+        customer2.setTitle("Test customer2");
+        Customer savedTestCustomer2 = doPost("/api/customer", customer2, Customer.class);
+
+        Device device = new Device();
+        device.setName("My device");
+        device.setType("default");
+        device.setCustomerId(savedTestCustomer.getId());
+
+        Device savedDevice = doPost("/api/device", device, Device.class);
+
+        Mockito.reset(tbClusterService, auditLogService, gatewayNotificationsService);
+
+        savedDevice.setCustomerId(savedTestCustomer2.getId());
+        doPost("/api/device", savedDevice)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString("Entity owner can`t be changed. Please use owner api to change owner")));
+
+        testNotifyEntityEqualsOneTimeServiceNeverError(savedDevice, savedTenant.getId(),
+                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.UPDATED,
+                new DataValidationException("Entity owner can`t be changed. Please use owner api to change owner"));
+
+        Mockito.reset(tbClusterService, auditLogService, gatewayNotificationsService);
+        savedDevice.setCustomerId(new CustomerId(EntityId.NULL_UUID));
+        doPost("/api/device", savedDevice)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString("Entity owner can`t be changed. Please use owner api to change owner")));
+
+        testNotifyEntityEqualsOneTimeServiceNeverError(savedDevice, savedTenant.getId(),
+                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.UPDATED,
+                new DataValidationException("Entity owner can`t be changed. Please use owner api to change owner"));
+    }
+
+    @Test
     public void testSaveDeviceWithProfileFromDifferentTenant() throws Exception {
         loginDifferentTenant();
         DeviceProfile differentProfile = createDeviceProfile("Different profile");
@@ -405,6 +492,9 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
     @Test
     public void testFindDeviceTypesByTenantId() throws Exception {
+        DeviceProfile deviceProfile = createDeviceProfile("typeB");
+        deviceProfile = doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
+
         List<Device> devices = new ArrayList<>();
 
         int cntEntity = 3;
@@ -415,12 +505,13 @@ public class DeviceControllerTest extends AbstractControllerTest {
             Device device = new Device();
             device.setName("My device B" + i);
             device.setType("typeB");
+            device.setDeviceProfileId(deviceProfile.getId());
             devices.add(doPost("/api/device", device, Device.class));
         }
 
-        testNotifyManyEntityManyTimeMsgToEdgeServiceNever(new Device(), new Device(),
+        testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new Device(), new Device(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, cntEntity);
+                ActionType.ADDED, cntEntity, cntEntity, cntEntity);
         testNotificationUpdateGatewayNever();
 
         for (int i = 0; i < 7; i++) {
@@ -460,7 +551,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
         doDelete("/api/device/" + savedDevice.getId().getId())
                 .andExpect(status().isOk());
 
-        testNotifyEntityOneTimeMsgToEdgeServiceNever(savedDevice, savedDevice.getId(), savedDevice.getId(), savedTenant.getId(),
+        testNotifyEntityEntityGroupNullAllOneTime(savedDevice, savedDevice.getId(), savedDevice.getId(), savedTenant.getId(),
                 tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.DELETED, savedDevice.getId().getId().toString());
         testNotificationDeleteGatewayOneTime(savedDevice);
 
@@ -480,7 +571,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
         Device savedDevice = doPost("/api/device", device, Device.class);
         Assert.assertEquals("default", savedDevice.getType());
 
-        testNotifyEntityOneTimeMsgToEdgeServiceNever(savedDevice, savedDevice.getId(), savedDevice.getId(),
+        testNotifyEntityEntityGroupNullAllOneTime(savedDevice, savedDevice.getId(), savedDevice.getId(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED);
         testNotificationUpdateGatewayNever();
@@ -667,9 +758,9 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
         List<Device> devices = Futures.allAsList(futures).get(TIMEOUT, TimeUnit.SECONDS);
 
-        testNotifyManyEntityManyTimeMsgToEdgeServiceNever(new Device(), new Device(),
+        testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new Device(), new Device(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, cntEntity);
+                ActionType.ADDED, cntEntity, cntEntity, cntEntity);
         testNotificationUpdateGatewayNever();
 
         List<Device> loadedDevices = new ArrayList<>(cntEntity);
@@ -690,9 +781,9 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
         deleteEntitiesAsync("/api/device/", loadedDevices, executor).get(TIMEOUT, TimeUnit.SECONDS);
 
-        testNotifyManyEntityManyTimeMsgToEdgeServiceNeverAdditionalInfoAny(new Device(), new Device(),
+        testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAnyAdditionalInfoAny(new Device(), new Device(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.DELETED, cntEntity, 1);
+                ActionType.DELETED, ActionType.DELETED, cntEntity, cntEntity,1);
         testNotificationUpdateGatewayNever();
     }
 

@@ -42,9 +42,6 @@ export const ThingsStartHostTypeTranslation = new Map<ThingsStartHostType, strin
   [ThingsStartHostType.Custom, 'Custom'],
 ]);
 
-export const mqttClientIdPatternValidator = Validators.pattern('[a-zA-Z0-9]*');
-export const mqttClientIdMaxLengthValidator = Validators.maxLength(23);
-
 const PRIVATE_NETWORK_REGEXP = /^((http|https|pulsar):\/\/)?(127\.|(10\.)|(172\.1[6-9]\.)|(172\.2[0-9]\.)|(172\.3[0-1]\.)|(192\.168\.)|localhost(:[0-9]+)?$)/;
 
 export enum ttnVersion {

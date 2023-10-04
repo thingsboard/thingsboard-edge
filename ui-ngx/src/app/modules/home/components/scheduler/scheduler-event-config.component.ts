@@ -47,6 +47,7 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { SchedulerEventConfiguration } from '@shared/models/scheduler-event.models';
 import { deepClone, isDefined } from '@core/utils';
 import { SchedulerEventConfigType } from '@home/components/scheduler/scheduler-event-config.models';
+import { jsonRequired } from '@shared/components/json-object-edit.component';
 
 @Component({
   selector: 'tb-scheduler-event-config',
@@ -100,7 +101,7 @@ export class SchedulerEventConfigComponent implements ControlValueAccessor, OnIn
       originatorId: [null],
       msgType: [null],
       configuration: [null, Validators.required],
-      msgBody: [null, Validators.required],
+      msgBody: [null, jsonRequired],
       metadata: [null]
     });
     this.schedulerEventConfigFormGroup.valueChanges.subscribe(() => {

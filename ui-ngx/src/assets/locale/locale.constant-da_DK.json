@@ -453,6 +453,7 @@
     "attributes": "Attributter",
     "latest-telemetry": "Seneste telemetri",
     "attributes-scope": "Omfang af entitetsattributter",
+    "scope-telemetry": "Telemetri",
     "scope-latest-telemetry": "Seneste telemetri",
     "scope-client": "Klientattributter",
     "scope-server": "Serverattributter",
@@ -1095,13 +1096,7 @@
     "device-configuration": "Enhedskonfiguration",
     "transport-configuration": "Transportkonfiguration",
     "wizard": {
-      "device-wizard": "Enhedsguide",
-      "device-details": "Enhedsoplysninger",
-      "new-device-profile": "Opret ny enhedsprofil",
-      "existing-device-profile": "Vælg eksisterende enhedsprofil",
-      "specific-configuration": "Specifik konfiguration",
-      "customer-to-assign-device": "Kunden skal tildele enheden",
-      "add-credential": "Tilføj brugeroplysninger"
+      "device-details": "Enhedsoplysninger"
     }
   },
   "device-profile": {
@@ -1120,8 +1115,6 @@
     "set-default": "Gør enhedsprofil standard",
     "delete": "Slet enhedsprofil",
     "copyId": "Kopiér enhedsprofil-id",
-    "new-device-profile-name": "Enhedsprofilnavn",
-    "new-device-profile-name-required": "Enhedsprofilnavn er påkrævet.",
     "name": "Navn",
     "name-required": "Navn er påkrævet.",
     "type": "Profiltype",
@@ -1305,7 +1298,6 @@
     "name-starts-with": "Navnet begynder med",
     "use-entity-name-filter": "Anvend filter",
     "entity-list-empty": "Ingen entiteter valgt.",
-    "entity-type-list-empty": "Ingen entitetstyper valgt.",
     "entity-name-filter-required": "Entitetsnavnfilter er påkrævet.",
     "entity-name-filter-no-entity-matched": "",
     "all-subtypes": "Alle",
@@ -2197,8 +2189,6 @@
     "connect-timeout-range": "Forbindelsestimeout skal ligge i området fra 1 til 200.",
     "client-id": "Klient-id",
     "client-id-required": "Klient-id er påkrævet.",
-    "client-id-range": "Klient-id skal ligge i et interval fra 1 til 23 tegn. [MQTT-3.1.3-5]",
-    "client-id-pattern": "Klient-id skal bestå af tal og store og små bogstaver. [MQTT-3.1.3-5]",
     "max-bytes-in-message": "Maksimum bytes i meddelelse",
     "max-bytes-in-message-range": "Maksimum bytes i meddelelsen skal ligge i området fra 1 til 256000000.",
     "device-id": "Enheds-id",
@@ -3520,7 +3510,6 @@
     "dark-foreground": "Mørk forgrund",
     "domain-name": "Domænenavn",
     "base-url": "Basis-URL",
-    "base-url-required": "Basis-URL er påkrævet.",
     "prohibit-different-url": "Det er ikke tilladt at bruge værtsnavn fra overskrifterne for klientanmodninger",
     "prohibit-different-url-hint": "Denne indstilling skal aktiveres for produktionsmiljøer. Kan forårsage sikkerhedsproblemer ved deaktivering",
     "help-link-base-url": "Basis-URL for hjælpelinks",

@@ -29,10 +29,10 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, ElementRef, Inject, OnInit, ViewChild } from '@angular/core';
-import { combineLatest, fromEvent, Observable } from 'rxjs';
+import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { combineLatest, Observable, Subject } from 'rxjs';
 import { Store } from '@ngrx/store';
-import { debounceTime, distinctUntilChanged, map, share, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, map, share, skip, startWith, takeUntil } from 'rxjs/operators';
 
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
 import { PageComponent } from '@shared/components/page.component';
@@ -46,6 +46,7 @@ import { WINDOW } from '@core/services/window.service';
 import { instanceOfSearchableComponent, ISearchableComponent } from '@home/models/searchable-component.models';
 import { ActiveComponentService } from '@core/services/active-component.service';
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
+import { FormBuilder } from '@angular/forms';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { TranslateService } from '@ngx-translate/core';
 
@@ -54,7 +55,7 @@ import { TranslateService } from '@ngx-translate/core';
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
-export class HomeComponent extends PageComponent implements AfterViewInit, OnInit {
+export class HomeComponent extends PageComponent implements AfterViewInit, OnInit, OnDestroy {
 
   authState: AuthState = getCurrentAuthState(this.store);
 
@@ -75,13 +76,16 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
 
   searchEnabled = false;
   showSearch = false;
-  searchText = '';
+  textSearch = this.fb.control('', {nonNullable: true});
 
   hideLoadingBar = false;
+
+  private destroy$ = new Subject<void>();
 
   constructor(protected store: Store<AppState>,
               @Inject(WINDOW) private window: Window,
               private activeComponentService: ActiveComponentService,
+              private fb: FormBuilder,
               public wl: WhiteLabelingService,
               public translate: TranslateService,
               public breakpointObserver: BreakpointObserver) {
@@ -96,6 +100,7 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
 
     this.breakpointObserver
       .observe(MediaBreakpoints['gt-sm'])
+      .pipe(takeUntil(this.destroy$))
       .subscribe((state: BreakpointState) => {
           if (state.matches) {
             this.sidenavMode = 'side';
@@ -108,16 +113,19 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
       );
   }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   ngAfterViewInit() {
-    fromEvent(this.searchInputField.nativeElement, 'keyup')
-      .pipe(
-        debounceTime(150),
-        distinctUntilChanged(),
-        tap(() => {
-          this.searchTextUpdated();
-        })
-      )
-      .subscribe();
+    this.textSearch.valueChanges.pipe(
+      debounceTime(150),
+      startWith(''),
+      distinctUntilChanged((a: string, b: string) => a.trim() === b.trim()),
+      skip(1),
+      takeUntil(this.destroy$)
+    ).subscribe(value => this.searchTextUpdated(value.trim()));
   }
 
   sidenavClicked() {
@@ -153,7 +161,7 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
 
   private updateActiveComponent(activeComponent: any) {
     this.showSearch = false;
-    this.searchText = '';
+    this.textSearch.reset('', {emitEvent: false});
     this.activeComponent = activeComponent;
     this.hideLoadingBar = activeComponent && activeComponent instanceof RouterTabsComponent;
     if (this.activeComponent && instanceOfSearchableComponent(this.activeComponent)) {
@@ -182,9 +190,8 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
   closeSearch() {
     if (this.searchEnabled) {
       this.showSearch = false;
-      if (this.searchText.length) {
-        this.searchText = '';
-        this.searchTextUpdated();
+      if (this.textSearch.value.length) {
+        this.textSearch.reset();
       }
     }
   }
@@ -196,9 +203,9 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
     );
   }
 
-  private searchTextUpdated() {
+  private searchTextUpdated(searchText: string) {
     if (this.searchableComponent) {
-      this.searchableComponent.onSearchTextUpdated(this.searchText);
+      this.searchableComponent.onSearchTextUpdated(searchText);
     }
   }
 }

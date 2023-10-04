@@ -1,0 +1,119 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+@import '../../../../../../../scss/constants';
+
+:host {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow-x: auto;
+  padding: 0;
+
+  .connector-container {
+    height: 100%;
+    width: 100%;
+    flex-direction: row;
+    @media #{$mat-lt-lg} {
+      flex-direction: column;
+    }
+
+    .table-section {
+      min-height: 35vh;
+      overflow: hidden;
+
+      .table-container {
+        overflow: auto;
+      }
+    }
+
+    .flex {
+      flex: 1;
+    }
+
+    .input-container {
+      height: auto;
+    }
+
+    .section-container {
+      background-color: #fff;
+    }
+  }
+
+  .mat-toolbar {
+    background: transparent;
+    color: rgba(0, 0, 0, .87) !important;
+  }
+
+  .mat-mdc-slide-toggle {
+    margin: 0 8px;
+  }
+
+  .status {
+    text-align: center;
+    border-radius: 16px;
+    font-weight: 500;
+    width: fit-content;
+    padding: 5px 15px;
+    &-sync {
+      background: rgba(25, 128, 56, .06);
+      color: rgb(25, 128, 56);
+    }
+    &-unsync {
+      background: rgba(203, 37, 48, .06);
+      color: rgb(203, 37, 48);
+    }
+  }
+
+  mat-row {
+    cursor: pointer;
+  }
+
+  .dot {
+    height: 12px;
+    width: 12px;
+    background-color: #bbb;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .hasErrors {
+    background-color: rgb(203, 37, 48);
+  }
+
+  .noErrors {
+    background-color: rgb(25, 128, 56);
+  }
+}
+
+:host ::ng-deep tb-json-object-edit > div {
+  flex-grow: 1;
+}
+

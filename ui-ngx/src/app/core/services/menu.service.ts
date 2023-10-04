@@ -170,8 +170,7 @@ export class MenuService {
         name: 'tenant-profile.tenant-profiles',
         type: 'link',
         path: '/tenantProfiles',
-        icon: 'mdi:alpha-t-box',
-        isMdiIcon: true
+        icon: 'mdi:alpha-t-box'
       },
       {
         id: 'resources',
@@ -184,16 +183,31 @@ export class MenuService {
             id: 'widget_library',
             name: 'widget.widget-library',
             type: 'link',
-            path: '/resources/widgets-bundles',
-            icon: 'now_widgets'
+            path: '/resources/widgets-library',
+            icon: 'now_widgets',
+            pages: [
+              {
+                id: 'widget_types',
+                name: 'widget.widgets',
+                type: 'link',
+                path: '/resources/widgets-library/widget-types',
+                icon: 'now_widgets'
+              },
+              {
+                id: 'widgets_bundles',
+                name: 'widgets-bundle.widgets-bundles',
+                type: 'link',
+                path: '/resources/widgets-library/widgets-bundles',
+                icon: 'now_widgets'
+              }
+            ]
           },
           {
             id: 'resources_library',
             name: 'resource.resources-library',
             type: 'link',
             path: '/resources/resources-library',
-            icon: 'mdi:rhombus-split',
-            isMdiIcon: true
+            icon: 'mdi:rhombus-split'
           }
         ]
       }
@@ -229,8 +243,7 @@ export class MenuService {
         fullName: 'notification.notification-templates',
         type: 'link',
         path: '/notification/templates',
-        icon: 'mdi:message-draw',
-        isMdiIcon: true
+        icon: 'mdi:message-draw'
       },
       {
         id: 'notification_rules',
@@ -238,8 +251,7 @@ export class MenuService {
         fullName: 'notification.notification-rules',
         type: 'link',
         path: '/notification/rules',
-        icon: 'mdi:message-cog',
-        isMdiIcon: true
+        icon: 'mdi:message-cog'
       }
     ];
     sections.push(
@@ -249,7 +261,6 @@ export class MenuService {
         type: 'link',
         path: '/notification',
         icon: 'mdi:message-badge',
-        isMdiIcon: true,
         pages: notificationPages
       }
     );
@@ -361,16 +372,14 @@ export class MenuService {
         name: 'admin.2fa.2fa',
         type: 'link',
         path: '/security-settings/2fa',
-        icon: 'mdi:two-factor-authentication',
-        isMdiIcon: true
+        icon: 'mdi:two-factor-authentication'
       },
       {
         id: 'oauth2',
         name: 'admin.oauth2.oauth2',
         type: 'link',
         path: '/security-settings/oauth2',
-        icon: 'mdi:shield-account',
-        isMdiIcon: true
+        icon: 'mdi:shield-account'
       }
     ];
 
@@ -402,7 +411,6 @@ export class MenuService {
           {
             name: 'tenant-profile.tenant-profiles',
             icon: 'mdi:alpha-t-box',
-            isMdiIcon: true,
             path: '/tenantProfiles',
             disabled: disabledItems.indexOf('tenant_profiles') > -1
           }
@@ -414,7 +422,7 @@ export class MenuService {
           {
             name: 'widget.widget-library',
             icon: 'now_widgets',
-            path: '/widgets-bundles',
+            path: '/resources/widgets-library',
             disabled: disabledItems.indexOf('widget_library') > -1
           }
         ]
@@ -455,7 +463,6 @@ export class MenuService {
           {
             name: 'admin.2fa.2fa',
             icon: 'mdi:two-factor-authentication',
-            isMdiIcon: true,
             path: '/settings/2fa',
             disabled: disabledItems.indexOf('2fa') > -1
           },
@@ -540,8 +547,7 @@ export class MenuService {
           name: 'alarm.alarms',
           type: 'link',
           path: '/alarms',
-          icon: 'mdi:alert-outline',
-          isMdiIcon: true
+          icon: 'mdi:alert-outline'
         }
       );
     }
@@ -778,8 +784,7 @@ export class MenuService {
           name: 'device-profile.device-profiles',
           type: 'link',
           path: '/profiles/deviceProfiles',
-          icon: 'mdi:alpha-d-box',
-          isMdiIcon: true
+          icon: 'mdi:alpha-d-box'
         }
       );
     }
@@ -790,8 +795,7 @@ export class MenuService {
           name: 'asset-profile.asset-profiles',
           type: 'link',
           path: '/profiles/assetProfiles',
-          icon: 'mdi:alpha-a-box',
-          isMdiIcon: true
+          icon: 'mdi:alpha-a-box'
         }
       );
     }
@@ -1103,25 +1107,49 @@ export class MenuService {
       );
     }
     const resourcesPages: Array<MenuSection> = [];
+    const widgetLibraryPages: Array<MenuSection> = [];
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.WIDGET_TYPE)) {
+      widgetLibraryPages.push(
+        {
+          id: 'widget_types',
+          name: 'widget.widgets',
+          type: 'link',
+          path: '/resources/widgets-library/widget-types',
+          icon: 'now_widgets'
+        }
+      );
+    }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.WIDGETS_BUNDLE)) {
+      widgetLibraryPages.push(
+        {
+          id: 'widgets_bundles',
+          name: 'widgets-bundle.widgets-bundles',
+          type: 'link',
+          path: '/resources/widgets-library/widgets-bundles',
+          icon: 'now_widgets'
+        }
+      );
+    }
+    if (widgetLibraryPages.length) {
       resourcesPages.push(
         {
           id: 'widget_library',
           name: 'widget.widget-library',
           type: 'link',
-          path: '/resources/widgets-bundles',
-          icon: 'now_widgets'
+          path: '/resources/widgets-library',
+          icon: 'now_widgets',
+          pages: widgetLibraryPages
         }
       );
     }
+
     if (this.userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)) {
       resourcesPages.push({
         id: 'resources_library',
         name: 'resource.resources-library',
         type: 'link',
         path: '/resources/resources-library',
-        icon: 'mdi:rhombus-split',
-        isMdiIcon: true
+        icon: 'mdi:rhombus-split'
       });
     }
     if (resourcesPages.length) {
@@ -1179,8 +1207,7 @@ export class MenuService {
           fullName: 'notification.notification-templates',
           type: 'link',
           path: '/notification/templates',
-          icon: 'mdi:message-draw',
-          isMdiIcon: true
+          icon: 'mdi:message-draw'
         }
       );
     }
@@ -1192,8 +1219,7 @@ export class MenuService {
           fullName: 'notification.notification-rules',
           type: 'link',
           path: '/notification/rules',
-          icon: 'mdi:message-cog',
-          isMdiIcon: true
+          icon: 'mdi:message-cog'
         }
       );
     }
@@ -1205,7 +1231,6 @@ export class MenuService {
           type: 'link',
           path: '/notification',
           icon: 'mdi:message-badge',
-          isMdiIcon: true,
           pages: notificationPages
         }
       );
@@ -1337,8 +1362,7 @@ export class MenuService {
         name: 'admin.2fa.2fa',
         type: 'link',
         path: '/security-settings/2fa',
-        icon: 'mdi:two-factor-authentication',
-        isMdiIcon: true
+        icon: 'mdi:two-factor-authentication'
       });
     }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.ROLE)) {
@@ -1523,7 +1547,6 @@ export class MenuService {
           {
             name: 'asset-profile.asset-profiles',
             icon: 'mdi:alpha-a-box',
-            isMdiIcon: true,
             path: '/profiles/assetProfiles',
             disabled: disabledItems.indexOf('asset_profiles') > -1
           }
@@ -1553,7 +1576,6 @@ export class MenuService {
           {
             name: 'device-profile.device-profiles',
             icon: 'mdi:alpha-d-box',
-            isMdiIcon: true,
             path: '/profiles/deviceProfiles',
             disabled: disabledItems.indexOf('device_profiles') > -1
           }
@@ -1642,7 +1664,7 @@ export class MenuService {
           {
             name: 'dashboard.dashboards',
             icon: 'dashboard',
-            path: '/dashboardGroups',
+            path: '/dashboards',
             disabled: disabledItems.indexOf('dashboard_groups') > -1
           }
         );
@@ -1803,7 +1825,6 @@ export class MenuService {
             name: 'admin.2fa.2fa',
             path: '/settings/2fa',
             icon: 'mdi:two-factor-authentication',
-            isMdiIcon: true,
             disabled: disabledItems.indexOf('2fa') > -1
           }
         );
@@ -1852,8 +1873,7 @@ export class MenuService {
           name: 'alarm.alarms',
           type: 'link',
           path: '/alarms',
-          icon: 'mdi:alert-outline',
-          isMdiIcon: true
+          icon: 'mdi:alert-outline'
         }
       );
     }
@@ -2243,7 +2263,6 @@ export class MenuService {
           type: 'link',
           path: '/notification',
           icon: 'mdi:message-badge',
-          isMdiIcon: true,
           pages: notificationPages
         }
       );
@@ -2482,7 +2501,7 @@ export class MenuService {
           {
             name: 'dashboard.dashboards',
             icon: 'dashboard',
-            path: '/dashboardGroups',
+            path: '/dashboards',
             disabled: disabledItems.indexOf('dashboard_groups') > -1
           }
         ]

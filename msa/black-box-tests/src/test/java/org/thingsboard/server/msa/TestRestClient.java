@@ -211,6 +211,16 @@ public class TestRestClient {
                 .statusCode(HTTP_OK);
     }
 
+    public List<JsonNode> getEntityAttributeByScopeAndKey(EntityId entityId, String scope, String key) {
+        return given().spec(requestSpec)
+                .get("/api/plugins/telemetry/{entityType}/{entityId}/values/attributes/{scope}?keys={key}", entityId.getEntityType(), entityId.getId(), scope, key)
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(new TypeRef<List<JsonNode>>() {
+                });
+    }
+
     public ValidatableResponse postAttribute(String accessToken, JsonNode attribute) {
         return given().spec(requestSpec).body(attribute)
                 .post("/api/v1/{accessToken}/attributes", accessToken)
@@ -475,6 +485,14 @@ public class TestRestClient {
                 .statusCode(HTTP_OK)
                 .extract()
                 .as(Integration.class);
+    }
+
+    public void checkConnection(Integration integration) {
+        given().spec(requestSpec)
+                .body(integration)
+                .post("/api/integration/check")
+                .then()
+                .statusCode(HTTP_OK);
     }
 
     public void saveEntityAttributes(String entityType, String entityId, String scope, JsonNode request) {

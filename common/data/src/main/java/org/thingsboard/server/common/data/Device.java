@@ -176,7 +176,7 @@ public class Device extends BaseDataWithAdditionalInfo<DeviceId> implements Grou
         this.name = name;
     }
 
-    @Schema(required = true, description = "Device Profile Name", example = "Temperature Sensor")
+    @Schema(description = "Device Profile Name", example = "Temperature Sensor")
     public String getType() {
         return type;
     }
@@ -185,7 +185,7 @@ public class Device extends BaseDataWithAdditionalInfo<DeviceId> implements Grou
         this.type = type;
     }
 
-    @Schema(required = true, description = "Label that may be used in widgets", example = "Room 234 Sensor")
+    @Schema(description = "Label that may be used in widgets", example = "Room 234 Sensor")
     public String getLabel() {
         return label;
     }

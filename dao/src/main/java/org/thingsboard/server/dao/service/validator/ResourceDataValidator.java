@@ -35,14 +35,21 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TbResource;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+import org.thingsboard.server.common.data.widget.BaseWidgetType;
+import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.resource.TbResourceDao;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.exception.DataValidationException;
+import org.thingsboard.server.dao.widget.WidgetTypeDao;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.EntityType.TB_RESOURCE;
 
@@ -51,6 +58,9 @@ public class ResourceDataValidator extends DataValidator<TbResource> {
 
     @Autowired
     private TbResourceDao resourceDao;
+
+    @Autowired
+    private WidgetTypeDao widgetTypeDao;
 
     @Autowired
     private TenantService tenantService;
@@ -71,9 +81,7 @@ public class ResourceDataValidator extends DataValidator<TbResource> {
 
     @Override
     protected void validateDataImpl(TenantId tenantId, TbResource resource) {
-        if (StringUtils.isEmpty(resource.getTitle())) {
-            throw new DataValidationException("Resource title should be specified!");
-        }
+        validateString("Resource title", resource.getTitle());
         if (resource.getResourceType() == null) {
             throw new DataValidationException("Resource type should be specified!");
         }
@@ -92,4 +100,15 @@ public class ResourceDataValidator extends DataValidator<TbResource> {
             }
         }
     }
+
+    @Override
+    public void validateDelete(TenantId tenantId, EntityId resourceId) {
+        List<WidgetTypeDetails> widgets = widgetTypeDao.findWidgetTypesInfosByTenantIdAndResourceId(tenantId.getId(),
+                resourceId.getId());
+        if (!widgets.isEmpty()) {
+            List<String> widgetNames = widgets.stream().map(BaseWidgetType::getName).collect(Collectors.toList());
+            throw new DataValidationException(String.format("Following widget types uses current resource: %s", widgetNames));
+        }
+    }
+
 }

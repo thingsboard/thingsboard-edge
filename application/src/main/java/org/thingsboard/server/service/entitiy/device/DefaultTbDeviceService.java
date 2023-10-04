@@ -46,7 +46,6 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.dao.device.ClaimDevicesService;
@@ -91,20 +90,25 @@ public class DefaultTbDeviceService extends AbstractTbEntityService implements T
         Device savedDevice = checkNotNull(deviceService.saveDeviceWithAccessToken(device, accessToken));
         autoCommit(user, savedDevice.getId());
         createOrUpdateGroupEntity(tenantId, savedDevice, entityGroups, actionType, user);
-        tbClusterService.onDeviceUpdated(savedDevice, oldDevice, false);
+        tbClusterService.onDeviceUpdated(savedDevice, oldDevice);
         return savedDevice;
     }
 
     @Override
     public Device saveDeviceWithCredentials(Device device, DeviceCredentials credentials, EntityGroup entityGroup, User user) throws ThingsboardException {
+        return saveDeviceWithCredentials(device, credentials, entityGroup != null ? Collections.singletonList(entityGroup) : null, user);
+    }
+
+    @Override
+    public Device saveDeviceWithCredentials(Device device, DeviceCredentials credentials, List<EntityGroup> entityGroups, User user) throws ThingsboardException {
         boolean isCreate = device.getId() == null;
         ActionType actionType = isCreate ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = device.getTenantId();
         try {
             Device oldDevice = isCreate ? null : deviceService.findDeviceById(tenantId, device.getId());
             Device savedDevice = checkNotNull(deviceService.saveDeviceWithCredentials(device, credentials));
-            createOrUpdateGroupEntity(tenantId, savedDevice, entityGroup != null ? Collections.singletonList(entityGroup) : null, actionType, user);
-            tbClusterService.onDeviceUpdated(savedDevice, oldDevice, false);
+            createOrUpdateGroupEntity(tenantId, savedDevice, entityGroups, actionType, user);
+            tbClusterService.onDeviceUpdated(savedDevice, oldDevice);
             return savedDevice;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.DEVICE), device, actionType, user, e);
@@ -117,10 +121,9 @@ public class DefaultTbDeviceService extends AbstractTbEntityService implements T
         TenantId tenantId = device.getTenantId();
         DeviceId deviceId = device.getId();
         try {
-            List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, deviceId);
             deviceService.deleteDevice(tenantId, deviceId);
             notificationEntityService.notifyDeleteDevice(tenantId, deviceId, device.getCustomerId(), device,
-                    relatedEdgeIds, user, deviceId.toString());
+                    user, deviceId.toString());
 
             return removeAlarmsByEntityId(tenantId, deviceId);
         } catch (Exception e) {

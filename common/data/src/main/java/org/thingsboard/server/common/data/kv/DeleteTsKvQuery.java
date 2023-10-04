@@ -34,4 +34,6 @@ public interface DeleteTsKvQuery extends TsKvQuery {
 
     Boolean getRewriteLatestIfDeleted();
 
+    Boolean getDeleteLatest();
+
 }

@@ -50,17 +50,16 @@ public class BaseWidgetType extends BaseData<WidgetTypeId> implements HasName, T
     @Schema(description = "JSON object with Tenant Id.", accessMode = Schema.AccessMode.READ_ONLY)
     private TenantId tenantId;
     @NoXss
-    @Length(fieldName = "bundleAlias")
-    @Schema(description = "Reference to widget bundle", accessMode = Schema.AccessMode.READ_ONLY)
-    private String bundleAlias;
-    @NoXss
-    @Length(fieldName = "alias")
-    @Schema(description = "Unique alias that is used in dashboards as a reference widget type", accessMode = Schema.AccessMode.READ_ONLY)
-    private String alias;
+    @Length(fieldName = "fqn")
+    @Schema(description = "Unique FQN that is used in dashboards as a reference widget type", accessMode = Schema.AccessMode.READ_ONLY)
+    private String fqn;
     @NoXss
     @Length(fieldName = "name")
     @Schema(description = "Widget name used in search and UI", accessMode = Schema.AccessMode.READ_ONLY)
     private String name;
+
+    @Schema(description = "Whether widget type is deprecated.", example = "true")
+    private boolean deprecated;
 
     public BaseWidgetType() {
         super();
@@ -73,9 +72,9 @@ public class BaseWidgetType extends BaseData<WidgetTypeId> implements HasName, T
     public BaseWidgetType(BaseWidgetType widgetType) {
         super(widgetType);
         this.tenantId = widgetType.getTenantId();
-        this.bundleAlias = widgetType.getBundleAlias();
-        this.alias = widgetType.getAlias();
+        this.fqn = widgetType.getFqn();
         this.name = widgetType.getName();
+        this.deprecated = widgetType.isDeprecated();
     }
 
     @Override

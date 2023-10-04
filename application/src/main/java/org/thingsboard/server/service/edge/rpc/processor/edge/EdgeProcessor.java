@@ -238,25 +238,17 @@ public class EdgeProcessor extends BaseEdgeProcessor {
                 }
             }
         } while (rolesData != null && rolesData.hasNext());
-        futures.addAll(assignCustomerAdministratorsAndUsersGroupToEdge(tenantId, edgeId, customer.getId(), customer.getParentCustomerId()));
+        assignCustomerAdministratorsAndUsersGroupToEdge(tenantId, edgeId, customer.getId(), customer.getParentCustomerId());
         return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
     }
 
-    private List<ListenableFuture<Void>> assignCustomerAdministratorsAndUsersGroupToEdge(TenantId tenantId,
-                                                                                         EdgeId edgeId,
-                                                                                         CustomerId customerId,
-                                                                                         CustomerId parentCustomerId) {
-        List<ListenableFuture<Void>> futures = new ArrayList<>();
-
+    private void assignCustomerAdministratorsAndUsersGroupToEdge(TenantId tenantId,
+                                                                 EdgeId edgeId,
+                                                                 CustomerId customerId,
+                                                                 CustomerId parentCustomerId) {
         EntityGroup customerAdmins = entityGroupService.findOrCreateCustomerAdminsGroup(tenantId, customerId, parentCustomerId);
         entityGroupService.assignEntityGroupToEdge(tenantId, customerAdmins.getId(), edgeId, customerAdmins.getType());
-        futures.add(saveEdgeEvent(tenantId, edgeId, EdgeEventType.ENTITY_GROUP, EdgeEventActionType.ASSIGNED_TO_EDGE,
-                customerAdmins.getId(), null, null));
-
         EntityGroup customerUsers = entityGroupService.findOrCreateCustomerUsersGroup(tenantId, customerId, parentCustomerId);
         entityGroupService.assignEntityGroupToEdge(tenantId, customerUsers.getId(), edgeId, customerUsers.getType());
-        futures.add(saveEdgeEvent(tenantId, edgeId, EdgeEventType.ENTITY_GROUP, EdgeEventActionType.ASSIGNED_TO_EDGE,
-                customerUsers.getId(), null, null));
-        return futures;
     }
 }

@@ -52,6 +52,7 @@ public class UplinkData {
     private final String groupName;
     private final PostTelemetryMsg telemetry;
     private final PostAttributeMsg attributesUpdate;
+    private final PostAttributeMsg constants;
     private final boolean isAsset;
 
 }

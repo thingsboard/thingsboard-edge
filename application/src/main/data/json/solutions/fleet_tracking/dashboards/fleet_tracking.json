@@ -1,13 +1,12 @@
 {
   "title": "Fleet tracking",
+  "image": null,
+  "mobileHide": false,
+  "mobileOrder": null,
   "configuration": {
     "widgets": {
       "80ccb4c6-14e5-e901-62fb-79fe8e492529": {
-        "isSystemType": true,
-        "bundleAlias": "maps_v2",
-        "typeAlias": "openstreetmap",
         "type": "latest",
-        "title": "Buses location",
         "sizeX": 28,
         "sizeY": 11,
         "config": {
@@ -62,13 +61,26 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
             "hideInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "selectedTab": 0,
             "realtime": {
+              "realtimeType": 1,
+              "interval": 5000,
               "timewindowMs": 300000,
-              "interval": 5000
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1693821252514,
+                "endTimeMs": 1693907652514
+              },
+              "quickInterval": "CURRENT_DAY"
             },
             "aggregation": {
               "type": "NONE",
@@ -155,14 +167,11 @@
           "titleTooltip": "",
           "enableDataExport": false
         },
-        "id": "80ccb4c6-14e5-e901-62fb-79fe8e492529"
+        "id": "80ccb4c6-14e5-e901-62fb-79fe8e492529",
+        "typeFullFqn": "system.maps_v2.openstreetmap"
       },
       "7973dcd9-4764-ffd4-4c55-d309b445ac7d": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
         "sizeX": 15,
         "sizeY": 9,
         "config": {
@@ -237,6 +246,16 @@
             "xaxisSecond": {
               "axisPosition": "top",
               "showLabels": true
+            },
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              "position": "right",
+              "sortDataKeys": null,
+              "showMin": false,
+              "showMax": false,
+              "showAvg": false,
+              "showTotal": false
             }
           },
           "title": "Speed tracking",
@@ -252,16 +271,6 @@
           "units": "MPH",
           "decimals": 0,
           "useDashboardTimewindow": true,
-          "showLegend": false,
-          "legendConfig": {
-            "direction": "column",
-            "position": "right",
-            "sortDataKeys": null,
-            "showMin": false,
-            "showMax": false,
-            "showAvg": false,
-            "showTotal": false
-          },
           "widgetStyle": {},
           "actions": {},
           "showTitleIcon": false,
@@ -272,14 +281,11 @@
         },
         "row": 11,
         "col": 20,
-        "id": "7973dcd9-4764-ffd4-4c55-d309b445ac7d"
+        "id": "7973dcd9-4764-ffd4-4c55-d309b445ac7d",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "64326076-c7cc-42c4-8f5a-284bb0c3d134": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
         "type": "timeseries",
-        "title": "New widget",
         "sizeX": 15,
         "sizeY": 9,
         "config": {
@@ -356,6 +362,14 @@
             "xaxisSecond": {
               "axisPosition": "top",
               "showLabels": true
+            },
+            "showLegend": false,
+            "legendConfig": {
+              "position": "bottom",
+              "showMin": true,
+              "showMax": true,
+              "showAvg": true,
+              "showTotal": false
             }
           },
           "title": "Fuel level tracking",
@@ -370,14 +384,6 @@
           "units": "%",
           "decimals": 1,
           "useDashboardTimewindow": true,
-          "showLegend": false,
-          "legendConfig": {
-            "position": "bottom",
-            "showMin": true,
-            "showMax": true,
-            "showAvg": true,
-            "showTotal": false
-          },
           "widgetStyle": {},
           "actions": {},
           "showTitleIcon": false,
@@ -388,14 +394,11 @@
         },
         "row": 11,
         "col": 35,
-        "id": "64326076-c7cc-42c4-8f5a-284bb0c3d134"
+        "id": "64326076-c7cc-42c4-8f5a-284bb0c3d134",
+        "typeFullFqn": "system.charts.basic_timeseries"
       },
       "8f99b7f9-7b9d-846a-176e-4d354f2f8df3": {
-        "isSystemType": true,
-        "bundleAlias": "analogue_gauges",
-        "typeAlias": "speed_gauge_canvas_gauges",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 5,
         "sizeY": 5,
         "config": {
@@ -423,8 +426,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1693821252514,
+                "endTimeMs": 1693907652514
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -518,14 +540,11 @@
         },
         "row": 11,
         "col": 0,
-        "id": "8f99b7f9-7b9d-846a-176e-4d354f2f8df3"
+        "id": "8f99b7f9-7b9d-846a-176e-4d354f2f8df3",
+        "typeFullFqn": "system.analogue_gauges.speed_gauge_canvas_gauges"
       },
       "ddd8ce66-4703-eccf-29d4-abb313654853": {
-        "isSystemType": true,
-        "bundleAlias": "analogue_gauges",
-        "typeAlias": "speed_gauge_canvas_gauges",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 5,
         "sizeY": 5,
         "config": {
@@ -548,8 +567,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1693821252514,
+                "endTimeMs": 1693907652514
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -651,14 +689,11 @@
         },
         "row": 16,
         "col": 0,
-        "id": "ddd8ce66-4703-eccf-29d4-abb313654853"
+        "id": "ddd8ce66-4703-eccf-29d4-abb313654853",
+        "typeFullFqn": "system.analogue_gauges.speed_gauge_canvas_gauges"
       },
       "67d92bc4-17e7-8b7b-b00d-9edd2d53ed3a": {
-        "isSystemType": true,
-        "bundleAlias": "maps_v2",
-        "typeAlias": "test",
         "type": "timeseries",
-        "title": "New widget",
         "sizeX": 10,
         "sizeY": 6.5,
         "config": {
@@ -794,14 +829,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "67d92bc4-17e7-8b7b-b00d-9edd2d53ed3a"
+        "id": "67d92bc4-17e7-8b7b-b00d-9edd2d53ed3a",
+        "typeFullFqn": "system.maps_v2.test"
       },
       "92e38733-9e2e-f558-63ac-8f4637a769e3": {
-        "isSystemType": true,
-        "bundleAlias": "maps_v2",
-        "typeAlias": "test",
         "type": "timeseries",
-        "title": "New widget",
         "sizeX": 10,
         "sizeY": 6.5,
         "config": {
@@ -936,21 +968,32 @@
         },
         "row": 0,
         "col": 0,
-        "id": "92e38733-9e2e-f558-63ac-8f4637a769e3"
+        "id": "92e38733-9e2e-f558-63ac-8f4637a769e3",
+        "typeFullFqn": "system.maps_v2.test"
       },
       "0bed6900-059c-85fc-e048-c04866449949": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
         "type": "latest",
-        "title": "New widget",
         "sizeX": 7.5,
         "sizeY": 6.5,
         "config": {
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
+              "realtimeType": 1,
               "interval": 1000,
-              "timewindowMs": 86400000
+              "timewindowMs": 86400000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1693821252514,
+                "endTimeMs": 1693907652514
+              },
+              "quickInterval": "CURRENT_DAY"
             },
             "aggregation": {
               "type": "NONE",
@@ -1104,14 +1147,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "0bed6900-059c-85fc-e048-c04866449949"
+        "id": "0bed6900-059c-85fc-e048-c04866449949",
+        "typeFullFqn": "system.cards.entities_table"
       },
       "5b3e5597-e406-2629-8654-d654243a9e86": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
         "type": "alarm",
-        "title": "New widget",
         "sizeX": 10.5,
         "sizeY": 6.5,
         "config": {
@@ -1254,7 +1294,6 @@
               }
             ]
           },
-          "alarmSearchStatus": "ANY",
           "alarmsPollingInterval": 5,
           "showTitleIcon": false,
           "titleIcon": "more_horiz",
@@ -1264,23 +1303,22 @@
           "widgetStyle": {},
           "displayTimewindow": true,
           "actions": {},
-          "alarmStatusList": [],
-          "alarmSeverityList": [],
-          "alarmTypeList": [],
-          "searchPropagatedAlarms": false,
           "datasources": [],
-          "enableDataExport": true
+          "enableDataExport": true,
+          "alarmFilterConfig": {
+            "statusList": [],
+            "severityList": [],
+            "typeList": [],
+            "searchPropagatedAlarms": false
+          }
         },
         "row": 0,
         "col": 0,
-        "id": "5b3e5597-e406-2629-8654-d654243a9e86"
+        "id": "5b3e5597-e406-2629-8654-d654243a9e86",
+        "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
       "0f9ee25b-08a4-f16e-d0fe-0f7641af877a": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
         "type": "alarm",
-        "title": "New widget",
         "sizeX": 10.5,
         "sizeY": 6.5,
         "config": {
@@ -1423,7 +1461,6 @@
               }
             ]
           },
-          "alarmSearchStatus": "ANY",
           "alarmsPollingInterval": 5,
           "showTitleIcon": false,
           "titleIcon": "more_horiz",
@@ -1433,16 +1470,19 @@
           "widgetStyle": {},
           "displayTimewindow": true,
           "actions": {},
-          "alarmStatusList": [],
-          "alarmSeverityList": [],
-          "alarmTypeList": [],
-          "searchPropagatedAlarms": false,
           "datasources": [],
-          "enableDataExport": true
+          "enableDataExport": true,
+          "alarmFilterConfig": {
+            "statusList": [],
+            "severityList": [],
+            "typeList": [],
+            "searchPropagatedAlarms": false
+          }
         },
         "row": 0,
         "col": 0,
-        "id": "0f9ee25b-08a4-f16e-d0fe-0f7641af877a"
+        "id": "0f9ee25b-08a4-f16e-d0fe-0f7641af877a",
+        "typeFullFqn": "system.alarm_widgets.alarms_table"
       }
     },
     "timewindow": {
@@ -1493,7 +1533,8 @@
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
               "backgroundSizeMode": "100%",
-              "margin": 5
+              "margin": 5,
+              "outerMargin": true
             }
           }
         }
@@ -1555,7 +1596,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -1582,7 +1624,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -1595,8 +1638,10 @@
         "filter": {
           "type": "deviceType",
           "resolveMultiple": true,
-          "deviceType": "bus",
-          "deviceNameFilter": ""
+          "deviceNameFilter": "",
+          "deviceTypes": [
+            "bus"
+          ]
         }
       },
       "302cf6c2-0d32-95ff-63f3-1bfa43b3b75e": {
@@ -1623,5 +1668,6 @@
     },
     "filters": {}
   },
+  "externalId": null,
   "name": "Fleet tracking"
 }

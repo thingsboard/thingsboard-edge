@@ -36,10 +36,16 @@ public interface NotificationRecipient {
 
     String getTitle();
 
-    String getFirstName();
+    default String getFirstName() {
+        return null;
+    }
 
-    String getLastName();
+    default String getLastName() {
+        return null;
+    }
 
-    String getEmail();
+    default String getEmail() {
+        return null;
+    }
 
 }

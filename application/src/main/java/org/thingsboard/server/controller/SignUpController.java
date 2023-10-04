@@ -208,7 +208,7 @@ public class SignUpController extends BaseController {
         objectNode.put("defaultDashboardFullscreen", selfRegistrationParams.isDefaultDashboardFullscreen());
         user.setAdditionalInfo(objectNode);
 
-        User savedUser = checkNotNull(userService.saveUser(user));
+        User savedUser = checkNotNull(userService.saveUser(tenantId, user));
 
         List<GroupPermission> permissions = selfRegistrationParams.getPermissions();
 
@@ -244,12 +244,12 @@ public class SignUpController extends BaseController {
         sendUserActivityNotification(tenantId, signUpRequest.getFirstName() + " " + signUpRequest.getLastName(),
                 signUpRequest.getEmail(), false, selfRegistrationParams.getNotificationEmail());
 
-        notificationEntityService.notifyCreateOrUpdateEntity(tenantId, savedCustomer.getId(), savedCustomer,
-                savedCustomer.getId(), ActionType.ADDED, null);
-        notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, savedUser.getCustomerId(), savedUser.getId(),
-                savedUser, null, ActionType.ADDED, true, null);
-        notificationEntityService.notifyAddToEntityGroup(tenantId, savedUser.getId(), savedUser, savedCustomer.getId(),
-                usersEntityGroup.getId(), null, usersEntityGroup.toString(), usersEntityGroup.getName());
+        notificationEntityService.logEntityAction(tenantId, savedCustomer.getId(), savedCustomer, savedCustomer.getId(),
+                ActionType.ADDED, null);
+        notificationEntityService.logEntityAction(tenantId, savedUser.getId(), savedUser, savedUser.getCustomerId(),
+                ActionType.ADDED, null);
+        notificationEntityService.logEntityAction(tenantId, savedUser.getId(), savedUser, savedCustomer.getId(),
+                ActionType.ADDED_TO_ENTITY_GROUP, null, usersEntityGroup.toString(), usersEntityGroup.getName());
 
         return SignUpResult.SUCCESS;
     }
@@ -412,7 +412,7 @@ public class SignUpController extends BaseController {
         User user = userService.findUserById(TenantId.SYS_TENANT_ID, credentials.getUserId());
         setPrivacyPolicyAccepted(user);
         setTermsOfUseAccepted(user);
-        user = userService.saveUser(user);
+        user = userService.saveUser(tenantId, user);
         UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
         SecurityUser securityUser = new SecurityUser(user, credentials.isEnabled(), principal, getMergedUserPermissions(user, false));
         String baseUrl = MiscUtils.constructBaseUrl(request);
@@ -433,7 +433,7 @@ public class SignUpController extends BaseController {
 
     private void setPrivacyPolicyAccepted(User user) {
         JsonNode additionalInfo = user.getAdditionalInfo();
-        if (additionalInfo == null || !(additionalInfo instanceof ObjectNode)) {
+        if (!(additionalInfo instanceof ObjectNode)) {
             additionalInfo = JacksonUtil.newObjectNode();
         }
         ((ObjectNode) additionalInfo).put(PRIVACY_POLICY_ACCEPTED, true);
@@ -469,7 +469,7 @@ public class SignUpController extends BaseController {
         SecurityUser securityUser = getCurrentUser();
         User user = userService.findUserById(securityUser.getTenantId(), securityUser.getId());
         setPrivacyPolicyAccepted(user);
-        user = userService.saveUser(user);
+        user = userService.saveUser(securityUser.getTenantId(), user);
         UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
         securityUser = new SecurityUser(user, true, principal, getMergedUserPermissions(user, false));
         JwtPair tokenPair = tokenFactory.createTokenPair(securityUser);
@@ -518,7 +518,7 @@ public class SignUpController extends BaseController {
         SecurityUser securityUser = getCurrentUser();
         User user = userService.findUserById(securityUser.getTenantId(), securityUser.getId());
         setTermsOfUseAccepted(user);
-        user = userService.saveUser(user);
+        user = userService.saveUser(securityUser.getTenantId(), user);
         UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
         securityUser = new SecurityUser(user, true, principal, getMergedUserPermissions(user, false));
         JwtPair tokenPair = tokenFactory.createTokenPair(securityUser);

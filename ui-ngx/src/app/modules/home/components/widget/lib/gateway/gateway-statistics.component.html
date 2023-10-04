@@ -1,0 +1,94 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+
+<div class="statistics-container" fxLayout="row" fxLayout.lt-md="column">
+  <mat-card [formGroup]="statisticForm" *ngIf="!general">
+    <mat-form-field class="mat-block">
+      <mat-label>{{ 'gateway.statistics.statistic' | translate }}</mat-label>
+      <mat-select formControlName="statisticKey">
+        <mat-option *ngFor="let key of statisticsKeys" [value]="key">
+          {{ key }}
+        </mat-option>
+        <mat-option *ngFor="let command of commands" [value]="command.attributeOnGateway">
+          {{ command.attributeOnGateway }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-error
+      *ngIf="!statisticsKeys.length && !commands.length">
+      {{'gateway.statistics.statistic-commands-empty' | translate }}
+    </mat-error>
+    <mat-form-field class="mat-block" *ngIf="commandObj">
+      <mat-label>{{ 'gateway.statistics.command' | translate }}</mat-label>
+      <input matInput [value]="commandObj.command" disabled>
+    </mat-form-field>
+  </mat-card>
+  <div class="chart-box" fxLayout="column">
+    <div class="chart-container" #statisticChart [fxShow]="isNumericData"></div>
+    <table [fxShow]="!isNumericData" mat-table [dataSource]="dataSource"
+           matSort [matSortActive]="pageLink.sortOrder.property" [matSortDirection]="pageLink.sortDirection()"
+           matSortDisableClear>
+      <ng-container matColumnDef="0">
+        <mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'widgets.gateway.created-time' | translate }}</mat-header-cell>
+        <mat-cell *matCellDef="let row; let rowIndex = index">
+          {{row[0]| date:'yyyy-MM-dd HH:mm:ss' }}
+        </mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="1">
+        <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 70%">{{ 'widgets.gateway.message' | translate }}</mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          {{ row[1] }}
+        </mat-cell>
+      </ng-container>
+      <mat-header-row class="mat-row-select"
+                      *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+      <mat-row class="mat-row-select"
+               *matRowDef="let row; columns: displayedColumns;"></mat-row>
+    </table>
+    <span [fxShow]="dataSource.data.length === 0 && !isNumericData"
+          fxLayoutAlign="center center"
+          class="no-data-found">{{ 'attribute.no-telemetry-text' | translate }}</span>
+    <div fxFlex class="legend" fxLayout="row" fxLayoutAlign="center center" [fxShow]="isNumericData">
+      <div class="legend-keys" *ngFor="let legendKey of legendData?.keys" fxLayout="row"
+           fxLayoutAlign="center center">
+        <span class="legend-line" [style.background-color]="legendKey.dataKey.color"></span>
+        <div class="legend-label"
+             (click)="onLegendKeyHiddenChange(legendKey.dataIndex)"
+             [class]="{ 'hidden-label': legendData.keys[legendKey.dataIndex].dataKey.hidden }"
+             [innerHTML]="legendKey.dataKey.label">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

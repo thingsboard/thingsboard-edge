@@ -29,8 +29,24 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, ElementRef, forwardRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { ControlValueAccessor, UntypedFormControl, NG_VALIDATORS, NG_VALUE_ACCESSOR, Validator } from '@angular/forms';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  forwardRef,
+  Input,
+  OnDestroy,
+  OnInit,
+  ViewChild
+} from '@angular/core';
+import {
+  ControlValueAccessor,
+  UntypedFormControl,
+  NG_VALIDATORS,
+  NG_VALUE_ACCESSOR,
+  Validator,
+  AbstractControl, ValidationErrors
+} from '@angular/forms';
 import { Ace } from 'ace-builds';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { ActionNotificationHide, ActionNotificationShow } from '@core/notification/notification.actions';
@@ -40,6 +56,9 @@ import { CancelAnimationFrame, RafService } from '@core/services/raf.service';
 import { guid, isDefinedAndNotNull, isObject, isUndefined } from '@core/utils';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { getAce } from '@shared/models/ace/ace.models';
+import { coerceBoolean } from '@shared/decorators/coercion';
+
+export const jsonRequired = (control: AbstractControl): ValidationErrors | null => !control.value ? {required: true} : null;
 
 @Component({
   selector: 'tb-json-object-edit',
@@ -79,27 +98,13 @@ export class JsonObjectEditComponent implements OnInit, ControlValueAccessor, Va
 
   @Input() sort: (key: string, value: any) => any;
 
-  private requiredValue: boolean;
-
-  get required(): boolean {
-    return this.requiredValue;
-  }
-
+  @coerceBoolean()
   @Input()
-  set required(value: boolean) {
-    this.requiredValue = coerceBooleanProperty(value);
-  }
+  jsonRequired: boolean;
 
-  private readonlyValue: boolean;
-
-  get readonly(): boolean {
-    return this.readonlyValue;
-  }
-
+  @coerceBoolean()
   @Input()
-  set readonly(value: boolean) {
-    this.readonlyValue = coerceBooleanProperty(value);
-  }
+  readonly: boolean;
 
   fullscreen = false;
 
@@ -119,7 +124,8 @@ export class JsonObjectEditComponent implements OnInit, ControlValueAccessor, Va
 
   constructor(public elementRef: ElementRef,
               protected store: Store<AppState>,
-              private raf: RafService) {
+              private raf: RafService,
+              private cd: ChangeDetectorRef) {
   }
 
   ngOnInit(): void {
@@ -250,12 +256,10 @@ export class JsonObjectEditComponent implements OnInit, ControlValueAccessor, Va
     try {
       if (isDefinedAndNotNull(this.modelValue)) {
         this.contentValue = JSON.stringify(this.modelValue, isUndefined(this.sort) ? undefined :
-          (key, objectValue) => {
-            return this.sort(key, objectValue);
-          }, 2);
+          (key, objectValue) => this.sort(key, objectValue), 2);
         this.objectValid = true;
       } else {
-        this.objectValid = !this.required;
+        this.objectValid = !this.jsonRequired;
         this.validationError = 'Json object is required.';
       }
     } catch (e) {
@@ -293,11 +297,12 @@ export class JsonObjectEditComponent implements OnInit, ControlValueAccessor, Va
           this.validationError = errorInfo;
         }
       } else {
-        this.objectValid = !this.required;
-        this.validationError = this.required ? 'Json object is required.' : '';
+        this.objectValid = !this.jsonRequired;
+        this.validationError = this.jsonRequired ? 'Json object is required.' : '';
       }
       this.modelValue = data;
       this.propagateChange(data);
+      this.cd.markForCheck();
     }
   }
 

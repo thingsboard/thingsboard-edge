@@ -46,7 +46,6 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -142,10 +141,9 @@ public class DefaultTbEntityViewService extends AbstractTbEntityService implemen
         TenantId tenantId = entityView.getTenantId();
         EntityViewId entityViewId = entityView.getId();
         try {
-            List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, entityViewId);
             entityViewService.deleteEntityView(tenantId, entityViewId);
-            notificationEntityService.notifyDeleteEntity(tenantId, entityViewId, entityView, entityView.getCustomerId(), ActionType.DELETED,
-                    relatedEdgeIds, user, entityViewId.toString());
+            notificationEntityService.logEntityAction(tenantId, entityViewId, entityView, entityView.getCustomerId(),
+                    ActionType.DELETED, user, entityViewId.toString());
 
             localCache.computeIfAbsent(tenantId, (k) -> new ConcurrentReferenceHashMap<>()).clear();
             tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityViewId, ComponentLifecycleEvent.DELETED);

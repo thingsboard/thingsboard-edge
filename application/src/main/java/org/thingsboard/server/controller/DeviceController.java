@@ -96,6 +96,8 @@ import org.thingsboard.server.service.entitiy.device.TbDeviceService;
 import org.thingsboard.server.service.gateway_device.GatewayNotificationsService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
+import jakarta.annotation.Nullable;
+import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -234,12 +236,13 @@ public class DeviceController extends BaseController {
     @RequestMapping(value = "/device-with-credentials", method = RequestMethod.POST)
     @ResponseBody
     public Device saveDeviceWithCredentials(@Parameter(description = "The JSON object with device and credentials. See method description above for example.")
-                                            @RequestBody SaveDeviceWithCredentialsRequest deviceAndCredentials,
-                                            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
+                                            @Valid @RequestBody SaveDeviceWithCredentialsRequest deviceAndCredentials,
+                                            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
+                                            @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws ThingsboardException {
         Device device = checkNotNull(deviceAndCredentials.getDevice());
         DeviceCredentials credentials = checkNotNull(deviceAndCredentials.getCredentials());
         SecurityUser user = getCurrentUser();
-        return saveGroupEntity(device, strEntityGroupId,
+        return saveGroupEntity(device, strEntityGroupId, strEntityGroupIds,
                 (device1, entityGroup) -> tbDeviceService.saveDeviceWithCredentials(device1, credentials, entityGroup, user));
     }
 

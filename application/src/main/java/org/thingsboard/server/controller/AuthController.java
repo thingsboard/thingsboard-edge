@@ -53,7 +53,6 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -141,8 +140,6 @@ public class AuthController extends BaseController {
         }
         userCredentials.setPassword(passwordEncoder.encode(newPassword));
         userService.replaceUserCredentials(securityUser.getTenantId(), userCredentials);
-
-        sendEntityNotificationMsg(getTenantId(), userCredentials.getUserId(), EdgeEventActionType.CREDENTIALS_UPDATED);
 
         eventPublisher.publishEvent(new UserCredentialsInvalidationEvent(securityUser.getId()));
         ObjectNode response = JacksonUtil.newObjectNode();
@@ -284,8 +281,6 @@ public class AuthController extends BaseController {
                 log.info("Unable to send account activation email [{}]", e.getMessage());
             }
         }
-
-        sendEntityNotificationMsg(user.getTenantId(), user.getId(), EdgeEventActionType.CREDENTIALS_UPDATED);
 
         return tokenFactory.createTokenPair(securityUser);
     }
