@@ -56,7 +56,7 @@ public class EntityView extends BaseDataWithAdditionalInfo<EntityViewId>
 
     private static final long serialVersionUID = 5582010124562018986L;
 
-    @Schema(description = "JSON object with the referenced Entity Id (Device or Asset).")
+    @Schema(required = true, description = "JSON object with the referenced Entity Id (Device or Asset).")
     private EntityId entityId;
     private TenantId tenantId;
     private CustomerId customerId;

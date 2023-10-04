@@ -130,7 +130,7 @@ public class Tenant extends ContactBased<TenantId> implements TenantEntity, HasT
         return super.getCreatedTime();
     }
 
-    @Schema(required = true, description = "Country", example = "US")
+    @Schema(description = "Country", example = "US")
     @Override
     public String getCountry() {
         return super.getCountry();

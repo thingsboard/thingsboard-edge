@@ -48,8 +48,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.RequestCacheConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
@@ -151,8 +151,8 @@ public class ThingsboardSecurityConfiguration {
         ShallowEtagHeaderFilter etagFilter = new ShallowEtagHeaderFilter();
         etagFilter.setWriteWeakETag(true);
         FilterRegistrationBean<ShallowEtagHeaderFilter> filterRegistrationBean
-                = new FilterRegistrationBean<>( etagFilter);
-        filterRegistrationBean.addUrlPatterns("*.js","*.css","*.ico","/assets/*","/static/*");
+                = new FilterRegistrationBean<>(etagFilter);
+        filterRegistrationBean.addUrlPatterns("*.js", "*.css", "*.ico", "/assets/*", "/static/*");
         filterRegistrationBean.setName("etagFilter");
         return filterRegistrationBean;
     }
@@ -215,8 +215,19 @@ public class ThingsboardSecurityConfiguration {
     private OAuth2AuthorizationRequestResolver oAuth2AuthorizationRequestResolver;
 
     @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring().requestMatchers("/*.js", "/*.css", "/*.ico", "/assets/**", "/static/**");
+    @Order(0)
+    SecurityFilterChain resources(HttpSecurity http) throws Exception {
+        http
+                .securityMatchers(matchers -> matchers
+                        .requestMatchers("/*.js", "/*.css", "/*.ico", "/assets/**", "/static/**"))
+                .headers(header -> header
+                        .defaultsDisabled()
+                        .addHeaderWriter(new StaticHeadersWriter(HttpHeaders.CACHE_CONTROL, "max-age=0, public")))
+                .authorizeHttpRequests((authorize) -> authorize.anyRequest().permitAll())
+                .requestCache(RequestCacheConfigurer::disable)
+                .securityContext(AbstractHttpConfigurer::disable)
+                .sessionManagement(AbstractHttpConfigurer::disable);
+        return http.build();
     }
 
     @Bean
