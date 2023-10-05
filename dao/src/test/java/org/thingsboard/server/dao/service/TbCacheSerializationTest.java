@@ -28,36 +28,38 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.notification;
+package org.thingsboard.server.dao.service;
 
-import org.thingsboard.server.common.data.id.NotificationId;
-import org.thingsboard.server.common.data.id.NotificationRequestId;
+import org.junit.Assert;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.server.cache.TbTransactionalCache;
+import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.notification.Notification;
-import org.thingsboard.server.common.data.notification.NotificationStatus;
 import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.Dao;
 
-public interface NotificationDao extends Dao<Notification> {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
-    PageData<Notification> findUnreadByRecipientIdAndPageLink(TenantId tenantId, UserId recipientId, PageLink pageLink);
+@DaoSqlTest
+public class TbCacheSerializationTest extends AbstractServiceTest {
 
-    PageData<Notification> findByRecipientIdAndPageLink(TenantId tenantId, UserId recipientId, PageLink pageLink);
+    @Autowired
+    TbTransactionalCache<TenantId, PageData<EntitySubtype>> alarmTypesCache;
 
-    boolean updateStatusByIdAndRecipientId(TenantId tenantId, UserId recipientId, NotificationId notificationId, NotificationStatus status);
-
-    int countUnreadByRecipientId(TenantId tenantId, UserId recipientId);
-
-    PageData<Notification> findByRequestId(TenantId tenantId, NotificationRequestId notificationRequestId, PageLink pageLink);
-
-    boolean deleteByIdAndRecipientId(TenantId tenantId, UserId recipientId, NotificationId notificationId);
-
-    int updateStatusByRecipientId(TenantId tenantId, UserId recipientId, NotificationStatus status);
-
-    void deleteByRequestId(TenantId tenantId, NotificationRequestId requestId);
-
-    void deleteByRecipientId(TenantId tenantId, UserId recipientId);
-
+    @Test
+    public void AlarmTypesSerializationTest() {
+        var typesCount = 13;
+        TenantId tenantId = new TenantId(UUID.randomUUID());
+        List<EntitySubtype> types = new ArrayList<>(typesCount);
+        for (int i = 0; i < typesCount; i++) {
+            types.add(new EntitySubtype(tenantId, EntityType.ALARM, "alarm_type_" + i));
+        }
+        PageData<EntitySubtype> alarmTypesPage = new PageData<>(types, 1, typesCount, false);
+        alarmTypesCache.put(tenantId, alarmTypesPage);
+        PageData<EntitySubtype> foundAlarmTypes = alarmTypesCache.get(tenantId).get();
+        Assert.assertEquals(alarmTypesPage, foundAlarmTypes);
+    }
 }
