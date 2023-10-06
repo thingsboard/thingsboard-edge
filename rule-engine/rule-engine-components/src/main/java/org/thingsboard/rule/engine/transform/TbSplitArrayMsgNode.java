@@ -40,8 +40,8 @@ import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
-import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.queue.RuleEngineException;
@@ -54,10 +54,10 @@ import java.util.concurrent.ExecutionException;
         type = ComponentType.TRANSFORMATION,
         name = "split array msg",
         configClazz = EmptyNodeConfiguration.class,
-        nodeDescription = "Split array message into several msgs",
-        nodeDetails = "Split the array fetched from the msg body. If the msg data is not a JSON array returns the "
-                + "incoming message as outbound message with <code>Failure</code> chain, otherwise returns "
-                + "inner objects of the extracted array as separate messages via <code>Success</code> chain.",
+        nodeDescription = "Split array message into several messages",
+        nodeDetails = "Split array message and returns inner objects as separate messages. " +
+                "Message metadata and type for each output message will be taken from original message.<br><br>" +
+                "Output connections: <code>Success</code>, <code>Failure</code>.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         icon = "content_copy",
         configDirective = "tbNodeEmptyConfig"
