@@ -65,6 +65,7 @@ export class AggregatedValueCardWidgetSettingsComponent extends WidgetSettingsCo
   protected onSettingsSet(settings: WidgetSettings) {
     this.aggregatedValueCardWidgetSettingsForm = this.fb.group({
 
+      autoScale: [settings.autoScale, []],
       showSubtitle: [settings.showSubtitle, []],
       subtitle: [settings.subtitle, []],
       subtitleFont: [settings.subtitleFont, []],
