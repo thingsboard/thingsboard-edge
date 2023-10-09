@@ -49,7 +49,7 @@ import java.util.List;
 @Slf4j
 @RuleNode(
         type = ComponentType.TRANSFORMATION,
-        name = "duplicate to specific group",
+        name = "duplicate to group",
         configClazz = TbDuplicateMsgToGroupNodeConfiguration.class,
         nodeDescription = "Duplicates message to all entities belonging to specific Entity Group",
         nodeDetails = "Entities are fetched from Entity Group detected according to the configuration. Entity Group can be specified directly or can be message originator entity itself. " +
@@ -65,8 +65,7 @@ public class TbDuplicateMsgToGroupNode extends TbAbstractDuplicateMsgNode<TbDupl
         var config = TbNodeUtils.convert(configuration, TbDuplicateMsgToGroupNodeConfiguration.class);
         if (!config.isEntityGroupIsMessageOriginator()) {
             if (config.getEntityGroupId() == null || config.getEntityGroupId().isNullUid()) {
-                log.error("TbDuplicateMsgToGroupNode configuration should have valid Entity Group Id");
-                throw new IllegalArgumentException("Wrong configuration for TbDuplicateMsgToGroupNode: Entity Group Id is missing.");
+                throw new IllegalArgumentException("EntityGroupId should be specified!");
             }
             ctx.checkTenantEntity(config.getEntityGroupId());
         }

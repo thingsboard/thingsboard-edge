@@ -32,15 +32,33 @@ package org.thingsboard.server.common.data;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class EntityTypeTest {
+
+    private static final List<EntityType> groupEntityTypes = List.of(
+            EntityType.DEVICE,
+            EntityType.ASSET,
+            EntityType.USER,
+            EntityType.CUSTOMER,
+            EntityType.ENTITY_VIEW,
+            EntityType.DASHBOARD,
+            EntityType.EDGE
+    );
+
 
     // backward-compatibility test
     @Test
     void getNormalNameTest() {
         assertThat(EntityType.ENTITY_VIEW.getNormalName()).isEqualTo("Entity View");
         assertThat(EntityType.ENTITY_GROUP.getNormalName()).isEqualTo("Entity Group");
+    }
+
+    @Test
+    void  getGroupEntityTypes() {
+        assertThat(groupEntityTypes).containsExactlyInAnyOrderElementsOf(EntityType.GROUP_ENTITY_TYPES);
     }
 
 }
