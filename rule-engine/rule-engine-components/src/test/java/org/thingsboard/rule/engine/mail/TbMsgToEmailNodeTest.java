@@ -149,41 +149,6 @@ public class TbMsgToEmailNodeTest {
         Assertions.assertEquals(expected, actual);
     }
 
-//<<<<<<< HEAD
-//    @Test
-//    public void msgCanBeConverted() {
-//        initWithScript();
-//        metaData.putValue("username", "oreo");
-//        metaData.putValue("userEmail", "user@email.io");
-//        metaData.putValue("name", "temp");
-//        metaData.putValue("passed", "5");
-//        metaData.putValue("count", "100");
-//        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, originator, metaData, TbMsgDataType.JSON, rawJson, ruleChainId, ruleNodeId);
-//
-//        emailNode.onMsg(ctx, msg);
-//
-//        ArgumentCaptor<TbMsg> msgCaptor = ArgumentCaptor.forClass(TbMsg.class);
-//        ArgumentCaptor<TbMsgType> typeCaptor = ArgumentCaptor.forClass(TbMsgType.class);
-//        ArgumentCaptor<EntityId> originatorCaptor = ArgumentCaptor.forClass(EntityId.class);
-//        ArgumentCaptor<TbMsgMetaData> metadataCaptor = ArgumentCaptor.forClass(TbMsgMetaData.class);
-//        ArgumentCaptor<String> dataCaptor = ArgumentCaptor.forClass(String.class);
-//        verify(ctx).transformMsg(msgCaptor.capture(), typeCaptor.capture(), originatorCaptor.capture(), metadataCaptor.capture(), dataCaptor.capture());
-//
-//
-//        assertEquals(TbMsgType.SEND_EMAIL, typeCaptor.getValue());
-//        assertEquals(originator, originatorCaptor.getValue());
-//        assertEquals("oreo", metadataCaptor.getValue().getValue("username"));
-//        assertNotSame(metaData, metadataCaptor.getValue());
-//
-//        TbEmail actual = JacksonUtil.fromBytes(dataCaptor.getValue().getBytes(), TbEmail.class);
-//
-//        TbEmail expected = TbEmail.builder()
-//                .from("test@mail.org")
-//                .to("user@email.io")
-//                .subject("Hi oreo there")
-//                .body("temp is to high. Current 5 and 100")
-//                .attachments(Collections.emptyList())
-//=======
     private TbEmail getExpectedTbEmail(boolean html) {
         return TbEmail.builder()
                 .from(config.getFromTemplate())
