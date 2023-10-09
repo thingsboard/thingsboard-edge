@@ -38,6 +38,7 @@ import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IdBased;
@@ -69,7 +70,11 @@ public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgNode<
     protected TbDuplicateMsgToGroupByNameNodeConfiguration loadNodeConfiguration(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         var config = TbNodeUtils.convert(configuration, TbDuplicateMsgToGroupByNameNodeConfiguration.class);
         if (Resource.groupResourceFromGroupType(config.getGroupType()) == null) {
-            throw new IllegalArgumentException("Wrong configuration. Specified Entity Type is not a group entity.");
+            throw new IllegalArgumentException("Entity Type :" + config.getGroupType() + " is not a group entity. " +
+                    "Only " + EntityType.GROUP_ENTITY_TYPES + " types are allowed!");
+        }
+        if (StringUtils.isEmpty(config.getGroupName())) {
+            throw new IllegalArgumentException("Group name should be specified!");
         }
         return config;
     }

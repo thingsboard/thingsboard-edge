@@ -42,11 +42,11 @@ import java.util.stream.Collectors;
  */
 public enum EntityType {
     TENANT,
-    CUSTOMER,
-    USER,
-    DASHBOARD,
-    ASSET,
-    DEVICE,
+    CUSTOMER(true),
+    USER(true),
+    DASHBOARD(true),
+    ASSET(true),
+    DEVICE(true),
     ALARM,
     ENTITY_GROUP {
         // backward compatibility for TbOriginatorTypeSwitchNode to return correct rule node connection.
@@ -67,6 +67,12 @@ public enum EntityType {
         public String getNormalName() {
             return "Entity View";
         }
+
+        @Override
+        public boolean isGroupEntityType() {
+            return true;
+        }
+
     },
     WIDGETS_BUNDLE,
     WIDGET_TYPE,
@@ -78,7 +84,7 @@ public enum EntityType {
     API_USAGE_STATE,
     TB_RESOURCE,
     OTA_PACKAGE,
-    EDGE,
+    EDGE(true),
     RPC,
     QUEUE,
     NOTIFICATION_TARGET,
@@ -87,11 +93,25 @@ public enum EntityType {
     NOTIFICATION,
     NOTIFICATION_RULE;
 
+    public static final List<EntityType> GROUP_ENTITY_TYPES = EnumSet.allOf(EntityType.class).stream()
+            .filter(EntityType::isGroupEntityType).collect(Collectors.toUnmodifiableList());
+
     public static final List<String> NORMAL_NAMES = EnumSet.allOf(EntityType.class).stream()
             .map(EntityType::getNormalName).collect(Collectors.toUnmodifiableList());
 
     @Getter
     private final String normalName = StringUtils.capitalize(StringUtils.removeStart(name(), "TB_")
             .toLowerCase().replaceAll("_", " "));
+
+    @Getter
+    private final boolean groupEntityType;
+
+    EntityType() {
+        this(false);
+    }
+
+    EntityType(boolean groupEntityType) {
+        this.groupEntityType = groupEntityType;
+    }
 
 }

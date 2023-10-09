@@ -31,6 +31,7 @@
 package org.thingsboard.rule.engine.transform;
 
 import com.google.common.util.concurrent.Futures;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -103,6 +104,56 @@ class TbDuplicateMsgToGroupByNameNodeTest {
         when(peCtxMock.getEntityGroupService()).thenReturn(entityGroupServiceMock);
 
         node = new TbDuplicateMsgToGroupByNameNode();
+    }
+
+    @AfterEach
+    void tearDown() {
+        node.destroy();
+    }
+
+    @Test
+    public void givenDefaultConfig_whenInit_thenOK() throws TbNodeException {
+        // GIVEN-WHEN
+        init();
+
+        // THEN
+        assertThat(config.getGroupType()).isEqualTo(EntityType.USER);
+        assertThat(config.getGroupName()).isEqualTo(EntityGroup.GROUP_ALL_NAME);
+        assertThat(config.isSearchEntityGroupForTenantOnly()).isEqualTo(false);
+    }
+
+    @Test
+    public void givenConfigWithUnsupportedGroupType_whenInit_thenThrowException() throws TbNodeException {
+        var configuration = new TbDuplicateMsgToGroupByNameNodeConfiguration().defaultConfiguration();
+        for (var groupType : EntityType.values()) {
+            if (groupType.isGroupEntityType()) {
+                configuration.setGroupType(groupType);
+                configuration.setGroupName(groupType.getNormalName());
+                initWithConfig(configuration);
+                assertThat(config.getGroupType()).isEqualTo(groupType);
+                assertThat(config.getGroupName()).isEqualTo(groupType.getNormalName());
+                assertThat(config.isSearchEntityGroupForTenantOnly()).isEqualTo(false);
+            } else {
+                var exception = assertThrows(IllegalArgumentException.class, () -> {
+                    configuration.setGroupType(groupType);
+                    configuration.setGroupName(groupType.getNormalName());
+                    initWithConfig(configuration);
+                });
+                assertThat(exception.getMessage())
+                        .isEqualTo("Entity Type :" + config.getGroupType() + " is not a group entity. " +
+                                "Only " + EntityType.GROUP_ENTITY_TYPES + " types are allowed!");
+            }
+        }
+    }
+
+    @Test
+    public void givenConfigWithEmptyName_whenInit_thenThrowException() {
+        // GIVEN-WHEN
+        var configuration = new TbDuplicateMsgToGroupByNameNodeConfiguration().defaultConfiguration();
+        configuration.setGroupName("");
+        var exception = assertThrows(IllegalArgumentException.class, () -> initWithConfig(configuration));
+        assertThat(exception.getMessage())
+                .isEqualTo("Group name should be specified!");
     }
 
     @Test
@@ -340,7 +391,9 @@ class TbDuplicateMsgToGroupByNameNodeTest {
     @Test
     public void givenSearchOnlyOnTenantLevel_whenOnMsg_thenDuplicateToGroupEntities() throws TbNodeException {
         // GIVEN
-        init(true);
+        var configuration = new TbDuplicateMsgToGroupByNameNodeConfiguration().defaultConfiguration();
+        configuration.setSearchEntityGroupForTenantOnly(true);
+        initWithConfig(configuration);
 
         var msg = getTbMsg();
 
@@ -410,14 +463,12 @@ class TbDuplicateMsgToGroupByNameNodeTest {
         });
     }
 
-
     private void init() throws TbNodeException {
-        init(false);
+        initWithConfig(new TbDuplicateMsgToGroupByNameNodeConfiguration().defaultConfiguration());
     }
 
-    private void init(boolean searchEntityGroupForTenantOnly) throws TbNodeException {
-        config = new TbDuplicateMsgToGroupByNameNodeConfiguration().defaultConfiguration();
-        config.setSearchEntityGroupForTenantOnly(searchEntityGroupForTenantOnly);
+    private void initWithConfig(TbDuplicateMsgToGroupByNameNodeConfiguration configuration) throws TbNodeException {
+        config = configuration;
         TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
         node.init(ctxMock, nodeConfiguration);
     }
