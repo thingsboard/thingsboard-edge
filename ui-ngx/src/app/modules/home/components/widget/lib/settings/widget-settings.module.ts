@@ -312,6 +312,9 @@ import {
 import {
   BatteryLevelWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/indicator/battery-level-widget-settings.component';
+import {
+  WindSpeedDirectionWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/weather/wind-speed-direction-widget-settings.component';
 
 @NgModule({
   declarations: [
@@ -419,6 +422,7 @@ import {
     AlarmCountWidgetSettingsComponent,
     EntityCountWidgetSettingsComponent,
     BatteryLevelWidgetSettingsComponent,
+    WindSpeedDirectionWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -534,6 +538,7 @@ import {
     AlarmCountWidgetSettingsComponent,
     EntityCountWidgetSettingsComponent,
     BatteryLevelWidgetSettingsComponent,
+    WindSpeedDirectionWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -614,6 +619,7 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-alarm-count-widget-settings': AlarmCountWidgetSettingsComponent,
   'tb-entity-count-widget-settings': EntityCountWidgetSettingsComponent,
   'tb-battery-level-widget-settings': BatteryLevelWidgetSettingsComponent,
+  'tb-wind-speed-direction-widget-settings': WindSpeedDirectionWidgetSettingsComponent,
   'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
   'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
 };

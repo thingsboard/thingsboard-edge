@@ -30,28 +30,11 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-battery-level-panel" [style]="backgroundStyle" [class.tb-battery-level-pointer]="hasCardClickAction" (click)="cardClick($event)">
-  <div class="tb-battery-level-overlay" [style]="overlayStyle"></div>
+<div class="tb-wind-speed-direction-panel" [style]="backgroundStyle" [class.tb-wind-speed-direction-pointer]="hasCardClickAction" (click)="cardClick($event)">
+  <div class="tb-wind-speed-direction-overlay" [style]="overlayStyle"></div>
   <ng-container *ngTemplateOutlet="widgetTitlePanel"></ng-container>
-  <div #batteryLevelContent class="tb-battery-level-content" [class]="layoutClass">
-    <div #batteryLevelBox class="tb-battery-level-box">
-      <div #batteryLevelRectangle class="tb-battery-level-rectangle" [class]="layoutClass" [class.solid]="solid" [class.divided]="!solid">
-        <div class="tb-battery-level-shape" [style.background]="batteryShapeColor.color"></div>
-        <div class="tb-battery-level-container">
-          <div *ngIf="solid; else dividedIndicator" class="tb-battery-level-indicator-box solid"
-               [style.background-image]="'linear-gradient(0deg, ' + batteryLevelColor.color + ' 0% 100%)'"
-               [style.background-size]="vertical ? '100% ' + (value + 1) + '%' : (value + 1) + '% 100%'">
-          </div>
-        </div>
-      </div>
-    </div>
-    <div *ngIf="showValue" #batteryLevelValueBox class="tb-battery-level-value-box">
-      <div #batteryLevelValue class="tb-battery-level-value" [style]="valueStyle" [style.color]="valueColor.color">{{ valueText }}</div>
+  <div class="tb-wind-speed-direction-content">
+    <div #windSpeedDirectionShape class="tb-wind-speed-direction-shape">
     </div>
   </div>
 </div>
-<ng-template #dividedIndicator>
-  <div *ngFor="let section of batterySections; trackBy: trackBySection" class="tb-battery-level-indicator-box divided"
-       [style.background]="batteryLevelColor.color"
-       [style.opacity]="section ? '1': '0'"></div>
-</ng-template>
