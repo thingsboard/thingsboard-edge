@@ -61,6 +61,8 @@ import { UtilsService } from '@core/services/utils.service';
 import cssjs from '@core/css/css';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { DOCUMENT } from '@angular/common';
+import {defaultHttpOptionsFromConfig, RequestConfig} from "@core/http/http-utils";
+import {MailTemplatesSettings} from "@shared/models/settings.models";
 
 const cssParser = new cssjs();
 cssParser.testMode = false;
@@ -413,6 +415,16 @@ export class WhiteLabelingService {
 
   public isCustomerWhiteLabelingAllowed(): Observable<boolean> {
     return this.http.get<boolean>('/api/whiteLabel/isCustomerWhiteLabelingAllowed');
+  }
+
+
+  public saveMailTemplates<MailTemplatesSettings>(mailTemplates: MailTemplatesSettings, config?: RequestConfig): Observable<MailTemplatesSettings> {
+    return this.http.post<MailTemplatesSettings>('/api/whiteLabel/mailTemplates', mailTemplates, defaultHttpOptionsFromConfig(config));
+  }
+
+  public getMailTemplates<MailTemplatesSettings>(systemByDefault?: boolean, config?: RequestConfig): Observable<MailTemplatesSettings> {
+    return this.http.get<MailTemplatesSettings>(`/api/whiteLabel/mailTemplates?systemByDefault=${systemByDefault ? 'true': 'false'}`,
+      defaultHttpOptionsFromConfig(config));
   }
 
   private wlChanged(): Observable<any> {

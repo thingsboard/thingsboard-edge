@@ -57,7 +57,6 @@ import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.ShortCustomerInfo;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.User;
@@ -104,6 +103,7 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileQueueConfiguration;
 import org.thingsboard.server.common.data.util.TbPair;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -132,6 +132,7 @@ import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
@@ -158,10 +159,7 @@ import static org.thingsboard.server.common.data.StringUtils.isBlank;
 public class DefaultDataUpdateService implements DataUpdateService {
 
     private static final int MAX_PENDING_SAVE_RULE_NODE_FUTURES = 100;
-
-    private static final String MAIL_TEMPLATES = "mailTemplates";
     private static final int DEFAULT_LIMIT = 100;
-    public static final String USE_SYSTEM_MAIL_SETTINGS = "useSystemMailSettings";
 
     @Autowired
     private TenantService tenantService;
@@ -186,6 +184,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     @Autowired
     private AdminSettingsService adminSettingsService;
+
+    @Autowired
+    private WhiteLabelingService whiteLabelingService;
 
     @Autowired
     private CustomerService customerService;
@@ -322,13 +323,12 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 tenantEntitiesGroupAllUpdater.updateEntities();
                 tenantIntegrationUpdater.updateEntities();
                 //for 2.4.0
-                AdminSettings mailTemplateSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mailTemplates");
-                if (mailTemplateSettings == null) {
+                JsonNode mailTemplatesSettings = whiteLabelingService.findMailTemplatesByTenantId(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID);
+                if (mailTemplatesSettings.isEmpty()) {
                     systemDataLoaderService.loadMailTemplates();
                 } else {
-                    systemDataLoaderService.updateMailTemplates(mailTemplateSettings.getId(), mailTemplateSettings.getJsonValue());
+                    systemDataLoaderService.updateMailTemplates(mailTemplatesSettings);
                 }
-
                 // todo: update TbDuplicateMsgToGroupNode to use TbVersionedNode interface.
                 updateDuplicateMsgRuleNode();
                 break;
@@ -1104,21 +1104,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
             }
             return Futures.immediateFuture(null);
         }, MoreExecutors.directExecutor());
-    }
-
-    private ListenableFuture<List<String>> updateTenantMailTemplates(TenantId tenantId) throws IOException {
-        String mailTemplatesJsonString = getEntityAttributeValue(tenantId, MAIL_TEMPLATES);
-        if (!StringUtils.isEmpty(mailTemplatesJsonString)) {
-            JsonNode oldMailTemplates = JacksonUtil.toJsonNode(mailTemplatesJsonString);
-            ObjectNode updatedMailTemplates = installScripts.updateMailTemplates(oldMailTemplates);
-
-            if (oldMailTemplates.has(USE_SYSTEM_MAIL_SETTINGS)) {
-                updatedMailTemplates.set(USE_SYSTEM_MAIL_SETTINGS, oldMailTemplates.get(USE_SYSTEM_MAIL_SETTINGS));
-            }
-
-            return saveEntityAttribute(tenantId, MAIL_TEMPLATES, updatedMailTemplates.toString());
-        }
-        return Futures.immediateFuture(Collections.emptyList());
     }
 
     private void updateTenantIntegrations(TenantId tenantId) {

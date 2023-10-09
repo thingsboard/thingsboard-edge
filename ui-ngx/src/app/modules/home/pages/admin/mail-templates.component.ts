@@ -42,12 +42,12 @@ import { AuthState } from '@core/auth/auth.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { AuthUser } from '@shared/models/user.model';
 import {
-  AdminSettings,
   MailTemplate,
   MailTemplatesSettings,
   mailTemplateTranslations
 } from '@shared/models/settings.models';
 import { Operation, Resource } from '@shared/models/security.models';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 @Component({
   selector: 'tb-mail-templates',
@@ -60,7 +60,7 @@ export class MailTemplatesComponent extends PageComponent implements OnInit, Has
 
   authUser: AuthUser = this.authState.authUser;
 
-  adminSettings: AdminSettings<MailTemplatesSettings>;
+  mailTemplatesSettings: MailTemplatesSettings;
 
   mailTemplateTypes = [];
   mailTemplateTranslationsMap = mailTemplateTranslations;
@@ -77,6 +77,7 @@ export class MailTemplatesComponent extends PageComponent implements OnInit, Has
   constructor(protected store: Store<AppState>,
               private route: ActivatedRoute,
               private adminService: AdminService,
+              private wl: WhiteLabelingService,
               private userPermissionsService: UserPermissionsService) {
     super(store);
   }
@@ -116,10 +117,10 @@ export class MailTemplatesComponent extends PageComponent implements OnInit, Has
       this.tinyMceOptions.autofocus = false;
       this.tinyMceOptions.branding = false;
     }
-    this.adminSettings = this.route.snapshot.data.adminSettings;
-    this.mailTemplateTypes = Object.keys(MailTemplate).filter(type => Object.keys(this.adminSettings.jsonValue).includes(type));
+    this.mailTemplatesSettings = this.route.snapshot.data.mailTemplatesSettings;
+    this.mailTemplateTypes = Object.keys(MailTemplate).filter(type => Object.keys(this.mailTemplatesSettings).includes(type));
     if (this.isTenantAdmin()) {
-      this.useSystemMailSettings = this.adminSettings.jsonValue.useSystemMailSettings;
+      this.useSystemMailSettings = this.mailTemplatesSettings.useSystemMailSettings;
     }
   }
 
@@ -129,11 +130,11 @@ export class MailTemplatesComponent extends PageComponent implements OnInit, Has
 
   save() {
     if (this.isTenantAdmin()) {
-      this.adminSettings.jsonValue.useSystemMailSettings = this.useSystemMailSettings;
+      this.mailTemplatesSettings.useSystemMailSettings = this.useSystemMailSettings;
     }
-    this.adminService.saveAdminSettings(this.adminSettings).subscribe(
+    this.wl.saveMailTemplates(this.mailTemplatesSettings).subscribe(
       (adminSettings) => {
-        this.adminSettings = adminSettings;
+        this.mailTemplatesSettings = adminSettings;
         this.isDirty = false;
       }
     );
