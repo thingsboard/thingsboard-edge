@@ -52,7 +52,7 @@ import java.util.concurrent.ExecutionException;
 @Slf4j
 @RuleNode(
         type = ComponentType.TRANSFORMATION,
-        name = "duplicate to group by group name",
+        name = "duplicate to group by name",
         configClazz = TbDuplicateMsgToGroupByNameNodeConfiguration.class,
         nodeDescription = "Duplicates message to all entities belonging to resolved Entity Group",
         nodeDetails = "Entities are fetched from Entity Group detected according to the configuration. Entity Group is dynamically resolved based on it's name and type." +
@@ -81,24 +81,16 @@ public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgNode<
 
     @Override
     protected ListenableFuture<List<EntityId>> getNewOriginators(TbContext ctx, EntityId original) {
-        try {
-            return ctx.getPeContext().getEntityGroupService().findAllEntityIdsAsync(ctx.getTenantId(), detectTargetEntityGroupId(ctx, original), new PageLink(Integer.MAX_VALUE));
-        } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        var entityGroupId = detectTargetEntityGroupId(ctx, original);
+        return ctx.getPeContext().getEntityGroupService().findAllEntityIdsAsync(ctx.getTenantId(), entityGroupId, new PageLink(Integer.MAX_VALUE));
     }
 
-    private EntityGroupId detectTargetEntityGroupId(TbContext ctx, EntityId originator) throws ExecutionException, InterruptedException {
-        EntityId ownerId;
-        if (config.isSearchEntityGroupForTenantOnly()) {
-            ownerId = ctx.getTenantId();
-        } else {
-            ownerId = ctx.getPeContext().getOwner(ctx.getTenantId(), originator);
-        }
+    private EntityGroupId detectTargetEntityGroupId(TbContext ctx, EntityId originator) {
+        EntityId ownerId = config.isSearchEntityGroupForTenantOnly() ? ctx.getTenantId() : ctx.getPeContext().getOwner(ctx.getTenantId(), originator);
         return tryFindGroupByOwnerId(ctx, ownerId);
     }
 
-    private EntityGroupId tryFindGroupByOwnerId(TbContext ctx, EntityId ownerId) throws ExecutionException, InterruptedException {
+    private EntityGroupId tryFindGroupByOwnerId(TbContext ctx, EntityId ownerId) {
         EntityGroupId entityGroupId = ctx.getPeContext().getEntityGroupService()
                 .findEntityGroupByTypeAndName(ctx.getTenantId(), ownerId, config.getGroupType(), config.getGroupName())
                 .map(IdBased::getId).orElse(null);
