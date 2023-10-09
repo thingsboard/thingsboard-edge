@@ -57,9 +57,9 @@ public interface TbDeviceService {
 
     Device saveDeviceWithCredentials(Device device, DeviceCredentials deviceCredentials, List<EntityGroup> entityGroups, User user) throws ThingsboardException;
 
-    ListenableFuture<Void> delete(Device device, User user);
+    void delete(Device device, User user);
 
-    ListenableFuture<Void> delete(DeviceId deviceId, User user);
+    void delete(DeviceId deviceId, User user);
 
     DeviceCredentials getDeviceCredentialsByDeviceId(Device device, User user) throws ThingsboardException;
 

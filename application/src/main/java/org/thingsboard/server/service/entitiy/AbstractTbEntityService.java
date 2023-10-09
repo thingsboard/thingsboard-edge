@@ -47,7 +47,6 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -67,7 +66,6 @@ import org.thingsboard.server.service.telemetry.AlarmSubscriptionService;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 public abstract class AbstractTbEntityService {
@@ -84,7 +82,8 @@ public abstract class AbstractTbEntityService {
     protected EdgeService edgeService;
     @Autowired
     protected AlarmService alarmService;
-    @Autowired @Lazy
+    @Autowired
+    @Lazy
     protected AlarmSubscriptionService alarmSubscriptionService;
     @Autowired
     protected CustomerService customerService;
@@ -92,20 +91,15 @@ public abstract class AbstractTbEntityService {
     protected TbClusterService tbClusterService;
     @Autowired
     protected EntityGroupService entityGroupService;
-    @Autowired(required = false) @Lazy
+    @Autowired(required = false)
+    @Lazy
     private EntitiesVersionControlService vcService;
 
-    protected ListenableFuture<Void> removeAlarmsByEntityId(TenantId tenantId, EntityId entityId) {
-        ListenableFuture<PageData<AlarmInfo>> alarmsFuture =
+    protected void removeAlarmsByEntityId(TenantId tenantId, EntityId entityId) {
+        PageData<AlarmInfo> alarms =
                 alarmService.findAlarms(tenantId, new AlarmQuery(entityId, new TimePageLink(Integer.MAX_VALUE), null, null, null, false));
 
-        ListenableFuture<List<AlarmId>> alarmIdsFuture = Futures.transform(alarmsFuture, page ->
-                page.getData().stream().map(AlarmInfo::getId).collect(Collectors.toList()), dbExecutor);
-
-        return Futures.transform(alarmIdsFuture, ids -> {
-            ids.stream().map(alarmId -> alarmService.deleteAlarm(tenantId, alarmId)).collect(Collectors.toList());
-            return null;
-        }, dbExecutor);
+        alarms.getData().stream().map(AlarmInfo::getId).forEach(alarmId -> alarmService.delAlarm(tenantId, alarmId));
     }
 
     protected <T> T checkNotNull(T reference) throws ThingsboardException {
