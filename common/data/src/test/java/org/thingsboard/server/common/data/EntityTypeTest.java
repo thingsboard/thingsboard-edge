@@ -57,7 +57,7 @@ class EntityTypeTest {
     }
 
     @Test
-    void  getGroupEntityTypes() {
+    void getGroupEntityTypesTest() {
         assertThat(groupEntityTypes).containsExactlyInAnyOrderElementsOf(EntityType.GROUP_ENTITY_TYPES);
     }
 
