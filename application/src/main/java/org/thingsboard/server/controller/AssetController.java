@@ -184,7 +184,7 @@ public class AssetController extends BaseController {
         checkParameter(ASSET_ID, strAssetId);
         AssetId assetId = new AssetId(toUUID(strAssetId));
         Asset asset = checkAssetId(assetId, Operation.DELETE);
-        tbAssetService.delete(asset, getCurrentUser()).get();
+        tbAssetService.delete(asset, getCurrentUser());
     }
 
     @ApiOperation(value = "Get Tenant Assets (getTenantAssets)",
