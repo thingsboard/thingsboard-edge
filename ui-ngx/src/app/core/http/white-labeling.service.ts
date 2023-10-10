@@ -57,12 +57,11 @@ import { environment as env } from '@env/environment';
 import { ActionSettingsChangeWhiteLabeling } from '@core/settings/settings.actions';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { UtilsService } from '@core/services/utils.service';
 import cssjs from '@core/css/css';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { DOCUMENT } from '@angular/common';
-import {defaultHttpOptionsFromConfig, RequestConfig} from "@core/http/http-utils";
-import {MailTemplatesSettings} from "@shared/models/settings.models";
+import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-utils';
+import { MailTemplatesSettings } from '@shared/models/settings.models';
 
 const cssParser = new cssjs();
 cssParser.testMode = false;
@@ -153,7 +152,6 @@ export class WhiteLabelingService {
   constructor(
     private http: HttpClient,
     private store: Store<AppState>,
-    private utils: UtilsService,
     private sanitizer: DomSanitizer,
     rendererFactory: RendererFactory2,
     @Inject(DOCUMENT) private document: Document
@@ -418,12 +416,12 @@ export class WhiteLabelingService {
   }
 
 
-  public saveMailTemplates<MailTemplatesSettings>(mailTemplates: MailTemplatesSettings, config?: RequestConfig): Observable<MailTemplatesSettings> {
+  public saveMailTemplates(mailTemplates: MailTemplatesSettings, config?: RequestConfig): Observable<MailTemplatesSettings> {
     return this.http.post<MailTemplatesSettings>('/api/whiteLabel/mailTemplates', mailTemplates, defaultHttpOptionsFromConfig(config));
   }
 
-  public getMailTemplates<MailTemplatesSettings>(systemByDefault?: boolean, config?: RequestConfig): Observable<MailTemplatesSettings> {
-    return this.http.get<MailTemplatesSettings>(`/api/whiteLabel/mailTemplates?systemByDefault=${systemByDefault ? 'true': 'false'}`,
+  public getMailTemplates(systemByDefault = false, config?: RequestConfig): Observable<MailTemplatesSettings> {
+    return this.http.get<MailTemplatesSettings>(`/api/whiteLabel/mailTemplates?systemByDefault=${systemByDefault}`,
       defaultHttpOptionsFromConfig(config));
   }
 

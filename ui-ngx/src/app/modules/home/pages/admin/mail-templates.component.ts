@@ -35,7 +35,6 @@ import { HasDirtyFlag } from '@core/guards/confirm-on-exit.guard';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { ActivatedRoute } from '@angular/router';
-import { AdminService } from '@core/http/admin.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Authority } from '@shared/models/authority.enum';
 import { AuthState } from '@core/auth/auth.models';
@@ -76,7 +75,6 @@ export class MailTemplatesComponent extends PageComponent implements OnInit, Has
 
   constructor(protected store: Store<AppState>,
               private route: ActivatedRoute,
-              private adminService: AdminService,
               private wl: WhiteLabelingService,
               private userPermissionsService: UserPermissionsService) {
     super(store);
