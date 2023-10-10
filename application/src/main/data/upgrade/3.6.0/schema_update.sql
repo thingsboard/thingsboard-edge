@@ -40,3 +40,21 @@ ALTER TABLE notification DROP CONSTRAINT IF EXISTS fk_notification_recipient_id;
 CREATE INDEX IF NOT EXISTS idx_notification_notification_request_id ON notification(request_id);
 CREATE INDEX IF NOT EXISTS idx_notification_request_tenant_id ON notification_request(tenant_id);
 
+
+-- MAIL TEMPLATES MIGRATION START
+-- move system settings
+INSERT INTO white_labeling(entity_type, entity_id, type, settings)
+    (SELECT 'TENANT', tenant_id, 'MAIL_TEMPLATES', json_value FROM admin_settings
+     WHERE key = 'mailTemplates') ON CONFLICT DO NOTHING;
+
+-- move mailTemplates attributes
+INSERT INTO white_labeling(entity_type, entity_id, type, settings)
+    (SELECT entity_type, entity_id, 'MAIL_TEMPLATES', str_v FROM attribute_kv
+     WHERE entity_type = 'TENANT' AND entity_id IN (SELECT id FROM tenant) AND attribute_type = 'SERVER_SCOPE'
+       AND  attribute_key = 'mailTemplates') ON CONFLICT DO NOTHING;
+
+DELETE FROM admin_settings WHERE key = 'mailTemplates';
+
+DELETE FROM attribute_kv WHERE entity_type = 'TENANT' AND entity_id IN (SELECT id FROM TENANT)
+                           AND attribute_type = 'SERVER_SCOPE' AND  attribute_key = 'mailTemplates';
+-- MAIL TEMPLATES MIGRATION END

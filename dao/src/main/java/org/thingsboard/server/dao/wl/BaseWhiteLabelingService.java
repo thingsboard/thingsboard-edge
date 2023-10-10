@@ -44,6 +44,8 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -446,6 +448,55 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     @Override
     public boolean isWhiteLabelingConfigured(TenantId tenantId) {
         return findById(tenantId, TenantId.SYS_TENANT_ID, WhiteLabelingType.GENERAL) != null;
+    }
+
+    @Override
+    public JsonNode saveMailTemplates(TenantId tenantId, JsonNode mailTemplates) {
+        WhiteLabeling whiteLabeling = new WhiteLabeling();
+        whiteLabeling.setEntityId(tenantId);
+        whiteLabeling.setType(WhiteLabelingType.MAIL_TEMPLATES);
+        whiteLabeling.setSettings(mailTemplates);
+
+        return whiteLabelingDao.save(tenantId, whiteLabeling).getSettings();
+    }
+
+    @Override
+    public JsonNode getCurrentTenantMailTemplates(TenantId tenantId, boolean systemByDefault) {
+        JsonNode mailTemplatesSettings = findMailTemplatesByTenantId(tenantId, tenantId);
+        if (mailTemplatesSettings.isEmpty()) {
+            if (systemByDefault) {
+                mailTemplatesSettings = findMailTemplatesByTenantId(tenantId, TenantId.SYS_TENANT_ID);
+            }
+        }
+        return mailTemplatesSettings;
+    }
+
+    @Override
+    public JsonNode findMailTemplatesByTenantId(TenantId tenantId, TenantId settingsTenantId) {
+        WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey();
+        key.setEntityId(settingsTenantId.getId());
+        key.setEntityType(settingsTenantId.getEntityType().name());
+        key.setType(WhiteLabelingType.MAIL_TEMPLATES);
+
+        WhiteLabeling mailTemplates = whiteLabelingDao.findById(tenantId, key);
+        return mailTemplates == null ? JacksonUtil.newObjectNode() : mailTemplates.getSettings();
+    }
+
+    @Override
+    public JsonNode getMergedTenantMailTemplates(TenantId tenantId) throws ThingsboardException {
+        JsonNode mailTemplatesSettings = getCurrentTenantMailTemplates(tenantId, true);
+        if (mailTemplatesSettings.isEmpty()) {
+            throw new ThingsboardException("Failed to get tenant mail templates configuration. Settings not found!", ThingsboardErrorCode.GENERAL);
+        }
+        JsonNode useSystemMailSettingsNode = mailTemplatesSettings.get("useSystemMailSettings");
+        if (useSystemMailSettingsNode == null || useSystemMailSettingsNode.asBoolean()) {
+            JsonNode systemMailTemplates = findMailTemplatesByTenantId(tenantId, TenantId.SYS_TENANT_ID);
+            if (systemMailTemplates.isEmpty()) {
+                throw new ThingsboardException("Failed to get system mail templates configuration. Settings not found!", ThingsboardErrorCode.GENERAL);
+            }
+            mailTemplatesSettings = systemMailTemplates;
+        }
+        return mailTemplatesSettings;
     }
 
     private void saveLoginWhiteLabelParams(TenantId tenantId, EntityId entityId, LoginWhiteLabelingParams whiteLabelingParams) {

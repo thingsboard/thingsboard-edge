@@ -317,8 +317,8 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
     }
 
     @Override
-    public void updateMailTemplates(AdminSettingsId adminSettingsId, JsonNode value) throws Exception {
-        installScripts.updateMailTemplates(adminSettingsId, value);
+    public void updateMailTemplates(JsonNode value) throws Exception {
+        installScripts.updateMailTemplates(value);
     }
 
     @Override

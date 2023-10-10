@@ -65,6 +65,7 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 
 import javax.activation.DataSource;
@@ -106,6 +107,9 @@ public class DefaultMailService implements MailService {
     private PasswordResetExecutorService passwordResetExecutorService;
 
     @Autowired
+    private WhiteLabelingService whiteLabelingService;
+
+    @Autowired
     private TbMailContextComponent ctx;
 
     public DefaultMailService(AdminSettingsService adminSettingsService, AttributesService attributesService, BlobEntityService blobEntityService, TbApiUsageReportClient apiUsageClient) {
@@ -125,7 +129,7 @@ public class DefaultMailService implements MailService {
         TbMailSender testMailSender = new TbMailSender(ctx, tenantId, jsonConfig);
         String mailFrom = getStringValue(jsonConfig, "mailFrom");
 
-        JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
+        JsonNode mailTemplates = whiteLabelingService.getMergedTenantMailTemplates(tenantId);
         String subject = MailTemplates.subject(mailTemplates, MailTemplates.TEST);
 
         Map<String, Object> model = new HashMap<>();
@@ -139,7 +143,7 @@ public class DefaultMailService implements MailService {
     @Override
     public void sendActivationEmail(TenantId tenantId, String activationLink, String email) throws ThingsboardException {
 
-        JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
+        JsonNode mailTemplates = whiteLabelingService.getMergedTenantMailTemplates(tenantId);
         String subject = MailTemplates.subject(mailTemplates, MailTemplates.ACTIVATION);
 
         Map<String, Object> model = new HashMap<>();
@@ -154,7 +158,7 @@ public class DefaultMailService implements MailService {
     @Override
     public void sendAccountActivatedEmail(TenantId tenantId, String loginLink, String email) throws ThingsboardException {
 
-        JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
+        JsonNode mailTemplates = whiteLabelingService.getMergedTenantMailTemplates(tenantId);
         String subject = MailTemplates.subject(mailTemplates, MailTemplates.ACCOUNT_ACTIVATED);
 
         Map<String, Object> model = new HashMap<>();
@@ -169,7 +173,7 @@ public class DefaultMailService implements MailService {
     @Override
     public void sendResetPasswordEmail(TenantId tenantId, String passwordResetLink, String email) throws ThingsboardException {
 
-        JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
+        JsonNode mailTemplates = whiteLabelingService.getMergedTenantMailTemplates(tenantId);
         String subject = MailTemplates.subject(mailTemplates, MailTemplates.RESET_PASSWORD);
 
         Map<String, Object> model = new HashMap<>();
@@ -195,7 +199,7 @@ public class DefaultMailService implements MailService {
     @Override
     public void sendPasswordWasResetEmail(TenantId tenantId, String loginLink, String email) throws ThingsboardException {
 
-        JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
+        JsonNode mailTemplates = whiteLabelingService.getMergedTenantMailTemplates(tenantId);
         String subject = MailTemplates.subject(mailTemplates, MailTemplates.PASSWORD_WAS_RESET);
 
         Map<String, Object> model = new HashMap<>();
@@ -209,7 +213,7 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void sendUserActivatedEmail(TenantId tenantId, String userFullName, String userEmail, String targetEmail) throws ThingsboardException {
-        JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
+        JsonNode mailTemplates = whiteLabelingService.getMergedTenantMailTemplates(tenantId);
         String subject = MailTemplates.subject(mailTemplates, MailTemplates.USER_ACTIVATED);
 
         Map<String, Object> model = new HashMap<>();
@@ -224,7 +228,7 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void sendUserRegisteredEmail(TenantId tenantId, String userFullName, String userEmail, String targetEmail) throws ThingsboardException {
-        JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
+        JsonNode mailTemplates = whiteLabelingService.getMergedTenantMailTemplates(tenantId);
         String subject = MailTemplates.subject(mailTemplates, MailTemplates.USER_REGISTERED);
 
         Map<String, Object> model = new HashMap<>();
@@ -313,7 +317,7 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void sendAccountLockoutEmail(TenantId tenantId, String lockoutEmail, String email, Integer maxFailedLoginAttempts) throws ThingsboardException {
-        JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
+        JsonNode mailTemplates = whiteLabelingService.getMergedTenantMailTemplates(tenantId);
         String subject = MailTemplates.subject(mailTemplates, MailTemplates.ACCOUNT_LOCKOUT);
 
         Map<String, Object> model = new HashMap<>();
@@ -337,7 +341,7 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void sendApiFeatureStateEmail(TenantId tenantId, ApiFeature apiFeature, ApiUsageStateValue stateValue, String email, ApiUsageRecordState recordState) throws ThingsboardException {
-        JsonNode mailTemplates = getConfig(null, "mailTemplates");
+        JsonNode mailTemplates = whiteLabelingService.getMergedTenantMailTemplates(TenantId.SYS_TENANT_ID);
         String subject = null;
 
         Map<String, Object> model = new HashMap<>();
@@ -386,7 +390,7 @@ public class DefaultMailService implements MailService {
     }
 
     private void sendTemplateEmail(TenantId tenantId, String email, String template, Map<String, Object> templateModel) throws ThingsboardException {
-        JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
+        JsonNode mailTemplates = whiteLabelingService.getMergedTenantMailTemplates(tenantId);
         String subject = MailTemplates.subject(mailTemplates, template);
         String message = body(mailTemplates, template, templateModel);
         sendMail(tenantId, email, subject, message);
