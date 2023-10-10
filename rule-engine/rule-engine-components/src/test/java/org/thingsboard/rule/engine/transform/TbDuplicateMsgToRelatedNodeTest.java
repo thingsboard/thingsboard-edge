@@ -42,19 +42,23 @@ import org.thingsboard.rule.engine.TestDbCallbackExecutor;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
-import org.thingsboard.rule.engine.api.TbPeContext;
+import org.thingsboard.rule.engine.data.RelationsQuery;
+import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
+import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
+import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.relation.RelationService;
 
 import java.util.Collections;
 import java.util.List;
@@ -76,31 +80,28 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class TbDuplicateMsgToGroupNodeTest {
+class TbDuplicateMsgToRelatedNodeTest {
 
     private static final DeviceId ORIGINATOR_ID = new DeviceId(UUID.randomUUID());
     private static final TenantId TENANT_ID = new TenantId(UUID.randomUUID());
 
     private static final ListeningExecutor dbCallbackExecutor = new TestDbCallbackExecutor();
 
-    private TbDuplicateMsgToGroupNode node;
-    private TbDuplicateMsgToGroupNodeConfiguration config;
+    private TbDuplicateMsgToRelatedNode node;
+    private TbDuplicateMsgToRelatedNodeConfiguration config;
 
     private TbContext ctxMock;
-    private TbPeContext peCtxMock;
-    private EntityGroupService entityGroupServiceMock;
+    private RelationService relationServiceMock;
 
     @BeforeEach
     void setUp() {
         ctxMock = mock(TbContext.class);
-        peCtxMock = mock(TbPeContext.class);
-        entityGroupServiceMock = mock(EntityGroupService.class);
+        relationServiceMock = mock(RelationService.class);
         when(ctxMock.getDbCallbackExecutor()).thenReturn(dbCallbackExecutor);
         when(ctxMock.getTenantId()).thenReturn(TENANT_ID);
-        when(ctxMock.getPeContext()).thenReturn(peCtxMock);
-        when(peCtxMock.getEntityGroupService()).thenReturn(entityGroupServiceMock);
+        when(ctxMock.getRelationService()).thenReturn(relationServiceMock);
 
-        node = new TbDuplicateMsgToGroupNode();
+        node = new TbDuplicateMsgToRelatedNode();
     }
 
     @AfterEach
@@ -114,36 +115,45 @@ class TbDuplicateMsgToGroupNodeTest {
         init();
 
         // THEN
-        assertThat(config.isEntityGroupIsMessageOriginator()).isEqualTo(true);
-        assertThat(config.getEntityGroupId()).isEqualTo(null);
-        assertThat(config.getGroupOwnerId()).isEqualTo(null);
+        assertThat(config.getRelationsQuery()).isEqualTo(getDefaultRelationQuery());
     }
 
     @Test
-    public void givenConfigWithUnspecifiedEntityGroupId_whenInit_thenThrowException() {
+    public void givenConfigWithUnspecifiedRelationQuery_whenInit_thenThrowException() {
         // GIVEN-WHEN
-        var configuration = new TbDuplicateMsgToGroupNodeConfiguration().defaultConfiguration();
-        configuration.setEntityGroupIsMessageOriginator(false);
+        var configuration = new TbDuplicateMsgToRelatedNodeConfiguration().defaultConfiguration();
+        configuration.setRelationsQuery(null);
         var exception = assertThrows(IllegalArgumentException.class, () -> initWithConfig(configuration));
         assertThat(exception.getMessage())
-                .isEqualTo("EntityGroupId should be specified!");
+                .isEqualTo("Relation query should be specified!");
     }
 
     @Test
-    public void givenDefaultConfig_whenOnMsg_thenDuplicateToGroupEntities() throws TbNodeException {
+    public void givenDefaultConfig_whenOnMsg_thenDuplicateToRelatedEntities() throws TbNodeException {
         // GIVEN
         init();
 
-        var originator = new EntityGroupId(UUID.randomUUID());
-        var msg = getTbMsg(originator);
+        var msg = getTbMsg();
 
-        EntityId firstUserId = new UserId(UUID.randomUUID());
-        EntityId secondUserId = new UserId(UUID.randomUUID());
-        var groupUserIdsList = List.of(firstUserId, secondUserId);
+        EntityId firstRelatedEntityId = new AssetId(UUID.randomUUID());
+        var firstRelation = new EntityRelation();
+        firstRelation.setFrom(ORIGINATOR_ID);
+        firstRelation.setTo(firstRelatedEntityId);
+        firstRelation.setTypeGroup(RelationTypeGroup.COMMON);
+        firstRelation.setType(EntityRelation.CONTAINS_TYPE);
 
-        when(entityGroupServiceMock.findAllEntityIdsAsync(
-                eq(TENANT_ID), eq(originator), eq(new PageLink(Integer.MAX_VALUE))))
-                .thenReturn(Futures.immediateFuture(groupUserIdsList));
+        EntityId secondRelatedEntityId = new AssetId(UUID.randomUUID());
+        var secondRelation = new EntityRelation();
+        firstRelation.setFrom(ORIGINATOR_ID);
+        firstRelation.setTo(secondRelatedEntityId);
+        firstRelation.setTypeGroup(RelationTypeGroup.COMMON);
+        firstRelation.setType(EntityRelation.CONTAINS_TYPE);
+
+        var relationList = List.of(firstRelation, secondRelation);
+
+        when(relationServiceMock.findByQuery(
+                eq(TENANT_ID), eq(buildQuery(config.getRelationsQuery()))))
+                .thenReturn(Futures.immediateFuture(relationList));
 
         doAnswer((Answer<TbMsg>) invocationOnMock -> {
             String queueName = (String) (invocationOnMock.getArguments())[0];
@@ -166,15 +176,15 @@ class TbDuplicateMsgToGroupNodeTest {
         node.onMsg(ctxMock, msg);
 
         // THEN
-        verify(entityGroupServiceMock, times(1))
-                .findAllEntityIdsAsync(any(TenantId.class), eq(originator), eq(new PageLink(Integer.MAX_VALUE)));
+        verify(relationServiceMock, times(1))
+                .findByQuery(any(TenantId.class), any(EntityRelationsQuery.class));
         verify(ctxMock, never()).transformMsgOriginator(any(TbMsg.class), any(EntityId.class));
         verify(ctxMock, never()).tellFailure(any(), any(Throwable.class));
 
         ArgumentCaptor<TbMsg> newMsgCaptor = ArgumentCaptor.forClass(TbMsg.class);
         ArgumentCaptor<Runnable> onSuccessCaptor = ArgumentCaptor.forClass(Runnable.class);
         ArgumentCaptor<Consumer<Throwable>> onFailureCaptor = ArgumentCaptor.forClass(Consumer.class);
-        verify(ctxMock, times(groupUserIdsList.size())).enqueueForTellNext(newMsgCaptor.capture(), eq(TbNodeConnectionType.SUCCESS), onSuccessCaptor.capture(), onFailureCaptor.capture());
+        verify(ctxMock, times(relationList.size())).enqueueForTellNext(newMsgCaptor.capture(), eq(TbNodeConnectionType.SUCCESS), onSuccessCaptor.capture(), onFailureCaptor.capture());
         for (Runnable successCaptor : onSuccessCaptor.getAllValues()) {
             successCaptor.run();
         }
@@ -187,49 +197,26 @@ class TbDuplicateMsgToGroupNodeTest {
             assertThat(newMsg.getType()).isSameAs(msg.getType());
             assertThat(newMsg.getData()).isSameAs(msg.getData());
             assertThat(newMsg.getMetaData()).isEqualTo(msg.getMetaData());
-            assertThat(newMsg.getOriginator()).isSameAs(groupUserIdsList.get(i));
+            assertThat(newMsg.getOriginator()).isSameAs(relationList.get(i).getTo());
         });
     }
 
     @Test
-    public void givenDefaultConfig_whenOnMsg_thenMsgOriginatorIsNotAnEntityGroup() throws TbNodeException {
-        // GIVEN
+    public void givenDefaultConfig_whenOnMsg_thenOneRelatedEntityFound() throws TbNodeException {
         init();
-
-        var originator = new DeviceId(UUID.randomUUID());
-        var msg = getTbMsg(originator);
-
-        // WHEN
-        var exception = assertThrows(RuntimeException.class, () -> node.onMsg(ctxMock, msg));
-
-        // THEN
-        verify(entityGroupServiceMock, never())
-                .findAllEntityIdsAsync(any(TenantId.class), any(), eq(new PageLink(Integer.MAX_VALUE)));
-        verify(ctxMock, never()).ack(any());
-        verify(ctxMock, never()).tellFailure(any(), any(Throwable.class));
-        verify(ctxMock, never()).tellSuccess(any());
-        verify(ctxMock, never()).enqueueForTellNext(any(), eq(TbNodeConnectionType.SUCCESS), any(), any());
-        assertThat(exception.getMessage())
-                .isEqualTo("Message originator is not an entity group!");
-    }
-
-    @Test
-    public void givenEntityGroupIdSpecifiedInConfig_whenOnMsg_thenGroupIsFoundWithOneEntity() throws TbNodeException {
-        // GIVEN
-        var entityGroupId = new EntityGroupId(UUID.randomUUID());
-
-        var configuration = new TbDuplicateMsgToGroupNodeConfiguration().defaultConfiguration();
-        configuration.setEntityGroupIsMessageOriginator(false);
-        configuration.setEntityGroupId(entityGroupId);
-        initWithConfig(configuration);
 
         var msg = getTbMsg();
 
-        EntityId userId = new UserId(UUID.randomUUID());
+        EntityId relatedEntityId = new AssetId(UUID.randomUUID());
+        var relation = new EntityRelation();
+        relation.setFrom(ORIGINATOR_ID);
+        relation.setTo(relatedEntityId);
+        relation.setTypeGroup(RelationTypeGroup.COMMON);
+        relation.setType(EntityRelation.CONTAINS_TYPE);
 
-        when(entityGroupServiceMock.findAllEntityIdsAsync(
-                eq(TENANT_ID), eq(entityGroupId), eq(new PageLink(Integer.MAX_VALUE))))
-                .thenReturn(Futures.immediateFuture(List.of(userId)));
+        when(relationServiceMock.findByQuery(
+                eq(TENANT_ID), eq(buildQuery(config.getRelationsQuery()))))
+                .thenReturn(Futures.immediateFuture(List.of(relation)));
 
         doAnswer((Answer<TbMsg>) invocationOnMock -> {
             TbMsg tbMsg = (TbMsg) (invocationOnMock.getArguments())[0];
@@ -237,14 +224,14 @@ class TbDuplicateMsgToGroupNodeTest {
             return TbMsg.transformMsgOriginator(tbMsg, originator);
         }).when(ctxMock).transformMsgOriginator(
                 eq(msg),
-                eq(userId));
+                eq(relatedEntityId));
 
         // WHEN
         node.onMsg(ctxMock, msg);
 
         // THEN
-        verify(entityGroupServiceMock, times(1))
-                .findAllEntityIdsAsync(any(TenantId.class), eq(entityGroupId), eq(new PageLink(Integer.MAX_VALUE)));
+        verify(relationServiceMock, times(1))
+                .findByQuery(any(TenantId.class), any(EntityRelationsQuery.class));
         verify(ctxMock, never()).newMsg(anyString(),
                 anyString(),
                 any(EntityId.class),
@@ -262,26 +249,25 @@ class TbDuplicateMsgToGroupNodeTest {
         assertThat(actualMsg.getType()).isSameAs(msg.getType());
         assertThat(actualMsg.getData()).isSameAs(msg.getData());
         assertThat(actualMsg.getMetaData()).isEqualTo(msg.getMetaData());
-        assertThat(actualMsg.getOriginator()).isSameAs(userId);
+        assertThat(actualMsg.getOriginator()).isSameAs(relatedEntityId);
     }
 
     @Test
-    public void givenDefaultConfig_whenOnMsg_thenGroupIsFoundWithNoEntitiesInside() throws TbNodeException {
-        // GIVEN
+    public void givenDefaultConfig_whenOnMsg_thenNoRelatedEntitiesFound() throws TbNodeException {
         init();
 
-        var originator = new EntityGroupId(UUID.randomUUID());
-        var msg = getTbMsg(originator);
+        var msg = getTbMsg();
 
-        when(entityGroupServiceMock.findAllEntityIdsAsync(
-                eq(TENANT_ID), eq(originator), eq(new PageLink(Integer.MAX_VALUE))))
+        when(relationServiceMock.findByQuery(
+                eq(TENANT_ID), eq(buildQuery(config.getRelationsQuery()))))
                 .thenReturn(Futures.immediateFuture(Collections.emptyList()));
+
         // WHEN
         node.onMsg(ctxMock, msg);
 
         // THEN
-        verify(entityGroupServiceMock, times(1))
-                .findAllEntityIdsAsync(any(TenantId.class), eq(originator), eq(new PageLink(Integer.MAX_VALUE)));
+        verify(relationServiceMock, times(1))
+                .findByQuery(any(TenantId.class), any(EntityRelationsQuery.class));
         verify(ctxMock, never()).newMsg(anyString(),
                 anyString(),
                 any(EntityId.class),
@@ -308,22 +294,40 @@ class TbDuplicateMsgToGroupNodeTest {
 
 
     private void init() throws TbNodeException {
-        initWithConfig(new TbDuplicateMsgToGroupNodeConfiguration().defaultConfiguration());
+        initWithConfig(new TbDuplicateMsgToRelatedNodeConfiguration().defaultConfiguration());
     }
 
-    private void initWithConfig(TbDuplicateMsgToGroupNodeConfiguration configuration) throws TbNodeException {
+    private void initWithConfig(TbDuplicateMsgToRelatedNodeConfiguration configuration) throws TbNodeException {
         config = configuration;
         TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
         node.init(ctxMock, nodeConfiguration);
     }
 
     private static TbMsg getTbMsg() {
-        return getTbMsg(ORIGINATOR_ID);
+        return TbMsg.newMsg(
+                TbMsgType.POST_TELEMETRY_REQUEST, ORIGINATOR_ID, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
     }
 
-    private static TbMsg getTbMsg(EntityId originator) {
-        return TbMsg.newMsg(
-                TbMsgType.POST_TELEMETRY_REQUEST, originator, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
+    private RelationsQuery getDefaultRelationQuery() {
+        var relationsQuery = new RelationsQuery();
+        relationsQuery.setDirection(EntitySearchDirection.FROM);
+        relationsQuery.setMaxLevel(1);
+        var entityTypeFilter = new RelationEntityTypeFilter(EntityRelation.CONTAINS_TYPE, Collections.emptyList());
+        relationsQuery.setFilters(Collections.singletonList(entityTypeFilter));
+        return relationsQuery;
+    }
+
+    private static EntityRelationsQuery buildQuery(RelationsQuery relationsQuery) {
+        var query = new EntityRelationsQuery();
+        var parameters = new RelationsSearchParameters(
+                TbDuplicateMsgToRelatedNodeTest.ORIGINATOR_ID,
+                relationsQuery.getDirection(),
+                relationsQuery.getMaxLevel(),
+                relationsQuery.isFetchLastLevelOnly()
+        );
+        query.setParameters(parameters);
+        query.setFilters(relationsQuery.getFilters());
+        return query;
     }
 
 }

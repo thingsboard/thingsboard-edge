@@ -62,8 +62,7 @@ public class TbDuplicateMsgToRelatedNode extends TbAbstractDuplicateMsgNode<TbDu
     protected TbDuplicateMsgToRelatedNodeConfiguration loadNodeConfiguration(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         var config = TbNodeUtils.convert(configuration, TbDuplicateMsgToRelatedNodeConfiguration.class);
         if (config.getRelationsQuery() == null) {
-            log.error("TbDuplicateMsgToRelatedNode configuration should have relations query");
-            throw new IllegalArgumentException("Wrong configuration for TbDuplicateMsgToRelatedNode: relation query is missing.");
+            throw new IllegalArgumentException("Relation query should be specified!");
         }
         return config;
     }

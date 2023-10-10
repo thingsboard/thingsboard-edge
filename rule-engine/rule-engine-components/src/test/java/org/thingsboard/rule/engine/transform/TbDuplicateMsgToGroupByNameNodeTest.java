@@ -319,6 +319,7 @@ class TbDuplicateMsgToGroupByNameNodeTest {
                 anyString());
         verify(ctxMock, never()).tellFailure(any(), any(Throwable.class));
         verify(ctxMock, never()).enqueueForTellNext(any(), eq(TbNodeConnectionType.SUCCESS), any(), any());
+        verify(ctxMock, never()).ack(any());
         ArgumentCaptor<TbMsg> newMsgCaptor = ArgumentCaptor.forClass(TbMsg.class);
         verify(ctxMock, times(1)).tellSuccess(newMsgCaptor.capture());
         var actualMsg = newMsgCaptor.getValue();
