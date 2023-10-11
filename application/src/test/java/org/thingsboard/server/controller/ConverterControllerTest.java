@@ -553,7 +553,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
                 "\"applicationName\":\"Chirpstack application\",\"deviceProfileId\":\"605d08d4-65f5-4d2c-8a5a-3d2457662f79\"," +
                 "\"deviceProfileName\":\"Chirpstack default device profile\",\"devEui\":\"1000000000000001\",\"devAddr\":\"20000001\",\"fPort\":85," +
                 "\"frequency\":868500000,\"bandwidth\":125000,\"spreadingFactor\":7,\"codeRate\":\"CR_4_5\"},\"telemetry\":{\"ts\":1684741625404," +
-                "\"values\":{\"HEX_bytes\":\"01755D030001040000\",\"battery\":94,\"pir\":\"trigger\",\"daylight\":\"light\",\"dr\":5,\"fCnt\":4,\"confirmed\":false,\"gatewayId\":\"6a7e111a10000000\"," +
+                "\"values\":{\"HEX_bytes\":\"01755D030001040000\",\"battery\":93,\"pir\":\"trigger\",\"daylight\":\"dark\",\"dr\":5,\"fCnt\":4,\"confirmed\":false,\"gatewayId\":\"6a7e111a10000000\"," +
                 "\"uplinkId\":24022,\"rssi\":-35,\"snr\":11.5,\"channel\":2,\"rfChain\":1,\"context\":\"EFwMtA==\",\"crcStatus\":\"CRC_OK\"}}}";
         testDecoder("tbel-chirpstack-decoder.raw", DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE, expectedDecodedMessage);
     }
