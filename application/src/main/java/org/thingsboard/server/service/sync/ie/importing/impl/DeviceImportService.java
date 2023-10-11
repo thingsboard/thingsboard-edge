@@ -109,7 +109,6 @@ public class DeviceImportService extends BaseGroupEntityImportService<DeviceId, 
     @Override
     protected void onEntitySaved(User user, Device savedDevice, Device oldDevice) throws ThingsboardException {
         super.onEntitySaved(user, savedDevice, oldDevice);
-        clusterService.onDeviceUpdated(savedDevice, oldDevice);
     }
 
     @Override

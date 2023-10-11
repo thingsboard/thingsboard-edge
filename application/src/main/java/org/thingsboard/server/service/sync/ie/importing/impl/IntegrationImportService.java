@@ -99,8 +99,6 @@ public class IntegrationImportService extends BaseEntityImportService<Integratio
     @Override
     protected void onEntitySaved(User user, Integration savedIntegration, Integration oldIntegration) throws ThingsboardException {
         super.onEntitySaved(user, savedIntegration, oldIntegration);
-        clusterService.broadcastEntityStateChangeEvent(user.getTenantId(), savedIntegration.getId(),
-                oldIntegration == null ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
     }
 
     @Override

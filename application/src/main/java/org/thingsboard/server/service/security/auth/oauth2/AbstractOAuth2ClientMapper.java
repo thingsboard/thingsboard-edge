@@ -40,12 +40,12 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -62,11 +62,12 @@ import org.thingsboard.server.common.data.oauth2.OAuth2Registration;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
+import org.thingsboard.server.dao.entity.EntityStateSyncManager;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.oauth2.OAuth2User;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
@@ -124,7 +125,10 @@ public abstract class AbstractOAuth2ClientMapper {
     protected TbTenantProfileCache tenantProfileCache;
 
     @Autowired
-    protected TbClusterService tbClusterService;
+    private ApplicationEventPublisher eventPublisher;
+
+    @Autowired
+    private EntityStateSyncManager entityStateSyncManager;
 
     @Value("${edges.enabled}")
     @Getter
@@ -295,15 +299,17 @@ public abstract class AbstractOAuth2ClientMapper {
         List<Tenant> tenants = tenantService.findTenants(new PageLink(1, 0, tenantName)).getData();
         Tenant tenant;
         if (tenants == null || tenants.isEmpty()) {
+            entityStateSyncManager.getSync().set(true);
+
             tenant = new Tenant();
             tenant.setTitle(tenantName);
             tenant = tenantService.saveTenant(tenant);
             installScripts.createDefaultRuleChains(tenant.getId());
             installScripts.createDefaultEdgeRuleChains(tenant.getId());
             tenantProfileCache.evict(tenant.getId());
-            tbClusterService.onTenantChange(tenant, null);
-            tbClusterService.broadcastEntityStateChangeEvent(tenant.getId(), tenant.getId(),
-                    ComponentLifecycleEvent.CREATED);
+
+            entityStateSyncManager.getSync().remove();
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(tenant.getId()).entity(tenant).added(true).build());
         } else {
             tenant = tenants.get(0);
         }

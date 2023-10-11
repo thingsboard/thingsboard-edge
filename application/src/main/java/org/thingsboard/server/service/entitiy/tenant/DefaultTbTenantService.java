@@ -31,11 +31,13 @@
 package org.thingsboard.server.service.entitiy.tenant;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.dao.entity.EntityStateSyncManager;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -59,19 +61,29 @@ public class DefaultTbTenantService extends AbstractTbEntityService implements T
     private final TbQueueService tbQueueService;
     private final TenantProfileService tenantProfileService;
     private final EntitiesVersionControlService versionControlService;
+    private final ApplicationEventPublisher eventPublisher;
+    private final EntityStateSyncManager entityStateSyncManager;
 
     @Override
     public Tenant save(Tenant tenant) throws Exception {
         boolean created = tenant.getId() == null;
         Tenant oldTenant = !created ? tenantService.findTenantById(tenant.getId()) : null;
+
+        if (created) {
+            entityStateSyncManager.getSync().set(true);
+        }
+
         Tenant savedTenant = checkNotNull(tenantService.saveTenant(tenant));
         if (created) {
             installScripts.createDefaultRuleChains(savedTenant.getId());
             installScripts.createDefaultEdgeRuleChains(savedTenant.getId());
         }
         tenantProfileCache.evict(savedTenant.getId());
-        notificationEntityService.notifyCreateOrUpdateTenant(savedTenant, created ?
-                ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+
+        if (created) {
+            entityStateSyncManager.getSync().remove();
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(savedTenant.getId()).entity(savedTenant).added(true).build());
+        }
 
         TenantProfile oldTenantProfile = oldTenant != null ? tenantProfileService.findTenantProfileById(TenantId.SYS_TENANT_ID, oldTenant.getTenantProfileId()) : null;
         TenantProfile newTenantProfile = tenantProfileService.findTenantProfileById(TenantId.SYS_TENANT_ID, savedTenant.getTenantProfileId());
@@ -84,7 +96,6 @@ public class DefaultTbTenantService extends AbstractTbEntityService implements T
         TenantId tenantId = tenant.getId();
         tenantService.deleteTenant(tenantId);
         tenantProfileCache.evict(tenantId);
-        notificationEntityService.notifyDeleteTenant(tenant);
         versionControlService.deleteVersionControlSettings(tenantId).get(1, TimeUnit.MINUTES);
     }
 }

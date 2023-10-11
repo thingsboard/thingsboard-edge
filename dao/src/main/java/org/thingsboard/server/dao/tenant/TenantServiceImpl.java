@@ -253,7 +253,6 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         boolean create = tenant.getId() == null;
         Tenant savedTenant = tenantDao.save(tenant.getId(), tenant);
         publishEvictEvent(new TenantEvictEvent(savedTenant.getId(), create));
-        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(savedTenant.getId()).added(create).build());
         if (tenant.getId() == null) {
             deviceProfileService.createDefaultDeviceProfile(savedTenant.getId());
             assetProfileService.createDefaultAssetProfile(savedTenant.getId());
@@ -275,6 +274,8 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
                 log.error("Failed to create default notification configs for tenant {}", savedTenant.getId(), e);
             }
         }
+        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID)
+                .entityId(savedTenant.getId()).entity(savedTenant).added(create).build());
         return savedTenant;
     }
 
@@ -286,6 +287,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     @Override
     public void deleteTenant(TenantId tenantId) {
         log.trace("Executing deleteTenant [{}]", tenantId);
+        Tenant tenant = findTenantById(tenantId);
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         whiteLabelingService.deleteDomainWhiteLabelingByEntityId(tenantId, tenantId);
         entityViewService.deleteEntityViewsByTenantId(tenantId);
@@ -319,7 +321,8 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         adminSettingsService.deleteAdminSettingsByTenantId(tenantId);
         tenantDao.removeById(tenantId, tenantId.getId());
         publishEvictEvent(new TenantEvictEvent(tenantId, true));
-        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(tenantId).build());
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID)
+                .entity(tenant).entityId(tenantId).build());
         relationService.deleteEntityRelations(tenantId, tenantId);
         alarmService.deleteEntityAlarmRecordsByTenantId(tenantId);
     }

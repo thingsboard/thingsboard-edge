@@ -43,7 +43,6 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
@@ -86,11 +85,9 @@ public class DefaultTbAssetService extends AbstractTbEntityService implements Tb
             Asset savedAsset = checkNotNull(assetService.saveAsset(asset));
             autoCommit(user, savedAsset.getId());
             createOrUpdateGroupEntity(tenantId, savedAsset, entityGroups, actionType, user);
-            tbClusterService.broadcastEntityStateChangeEvent(tenantId, savedAsset.getId(),
-                    asset.getId() == null ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
             return savedAsset;
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.ASSET), asset, actionType, user, e);
+            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.ASSET), asset, actionType, user, e);
             throw e;
         }
     }
@@ -104,10 +101,9 @@ public class DefaultTbAssetService extends AbstractTbEntityService implements Tb
         try {
             removeAlarmsByEntityId(tenantId, assetId);
             assetService.deleteAsset(tenantId, assetId);
-            notificationEntityService.logEntityAction(tenantId, assetId, asset, asset.getCustomerId(), actionType, user, assetId.toString());
-            tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetId, ComponentLifecycleEvent.DELETED);
+            logEntityActionService.logEntityAction(tenantId, assetId, asset, asset.getCustomerId(), actionType, user, assetId.toString());
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.ASSET), actionType, user, e,
+            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.ASSET), actionType, user, e,
                     assetId.toString());
             throw e;
         }

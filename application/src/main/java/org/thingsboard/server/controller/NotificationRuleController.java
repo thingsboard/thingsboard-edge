@@ -53,7 +53,6 @@ import org.thingsboard.server.common.data.notification.rule.trigger.config.Notif
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.dao.notification.NotificationRuleService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -140,11 +139,7 @@ public class NotificationRuleController extends BaseController {
             throw new IllegalArgumentException("Trigger type " + triggerType + " is not available");
         }
 
-        boolean created = notificationRule.getId() == null;
-        notificationRule = doSaveAndLog(EntityType.NOTIFICATION_RULE, notificationRule, notificationRuleService::saveNotificationRule);
-        tbClusterService.broadcastEntityStateChangeEvent(user.getTenantId(), notificationRule.getId(), created ?
-                ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
-        return notificationRule;
+        return doSaveAndLog(EntityType.NOTIFICATION_RULE, notificationRule, notificationRuleService::saveNotificationRule);
     }
 
     @ApiOperation(value = "Get notification rule by id (getNotificationRuleById)",
@@ -192,7 +187,6 @@ public class NotificationRuleController extends BaseController {
         NotificationRuleId notificationRuleId = new NotificationRuleId(id);
         NotificationRule notificationRule = checkEntityId(notificationRuleId, notificationRuleService::findNotificationRuleById, Operation.DELETE);
         doDeleteAndLog(EntityType.NOTIFICATION_RULE, notificationRule, notificationRuleService::deleteNotificationRuleById);
-        tbClusterService.broadcastEntityStateChangeEvent(user.getTenantId(), notificationRuleId, ComponentLifecycleEvent.DELETED);
     }
 
 }

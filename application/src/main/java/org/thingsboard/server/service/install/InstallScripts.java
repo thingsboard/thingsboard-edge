@@ -214,11 +214,11 @@ public class InstallScripts {
         return paths;
     }
 
-    public RuleChain createDefaultRuleChain(TenantId tenantId, String ruleChainName) throws IOException {
+    public RuleChain createDefaultRuleChain(TenantId tenantId, String ruleChainName) {
         return createRuleChainFromFile(tenantId, getDeviceProfileDefaultRuleChainTemplateFilePath(), ruleChainName);
     }
 
-    public RuleChain createRuleChainFromFile(TenantId tenantId, Path templateFilePath, String newRuleChainName) throws IOException {
+    public RuleChain createRuleChainFromFile(TenantId tenantId, Path templateFilePath, String newRuleChainName) {
         JsonNode ruleChainJson = JacksonUtil.toJsonNode(templateFilePath.toFile());
         return this.loadRuleChain(templateFilePath, ruleChainJson, tenantId, newRuleChainName);
     }

@@ -157,12 +157,12 @@ public class GroupPermissionController extends BaseController {
 
             userPermissionsService.onGroupPermissionUpdated(savedGroupPermission);
 
-            notificationEntityService.logEntityAction(getTenantId(), savedGroupPermission.getId(), savedGroupPermission,
+            logEntityActionService.logEntityAction(getTenantId(), savedGroupPermission.getId(), savedGroupPermission,
                     groupPermission.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser());
 
             return savedGroupPermission;
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.GROUP_PERMISSION), groupPermission,
+            logEntityActionService.logEntityAction(getTenantId(), emptyId(EntityType.GROUP_PERMISSION), groupPermission,
                     groupPermission.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser(), e);
             throw e;
         }
@@ -195,10 +195,10 @@ public class GroupPermissionController extends BaseController {
             groupPermissionService.deleteGroupPermission(getTenantId(), groupPermissionId);
             userPermissionsService.onGroupPermissionDeleted(groupPermission);
 
-            notificationEntityService.logEntityAction(getTenantId(), groupPermissionId, groupPermission,
+            logEntityActionService.logEntityAction(getTenantId(), groupPermissionId, groupPermission,
                     ActionType.DELETED, getCurrentUser(), strGroupPermissionId);
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.GROUP_PERMISSION),
+            logEntityActionService.logEntityAction(getTenantId(), emptyId(EntityType.GROUP_PERMISSION),
                     ActionType.DELETED, getCurrentUser(), e, strGroupPermissionId);
             throw e;
         }

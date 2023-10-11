@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.notification;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -46,6 +47,7 @@ import org.thingsboard.server.common.data.notification.NotificationRequestStatus
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.entity.EntityDaoService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
 
 import java.util.List;
@@ -58,6 +60,8 @@ public class DefaultNotificationRequestService implements NotificationRequestSer
 
     private final NotificationRequestDao notificationRequestDao;
     private final NotificationDao notificationDao;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     private final NotificationRequestValidator notificationRequestValidator = new NotificationRequestValidator();
 
@@ -98,9 +102,12 @@ public class DefaultNotificationRequestService implements NotificationRequestSer
     }
 
     @Override
-    public void deleteNotificationRequest(TenantId tenantId, NotificationRequestId requestId) {
-        notificationRequestDao.removeById(tenantId, requestId.getId());
-        notificationDao.deleteByRequestId(tenantId, requestId);
+    public void deleteNotificationRequest(TenantId tenantId, NotificationRequest request) {
+        notificationRequestDao.removeById(tenantId, request.getUuidId());
+        notificationDao.deleteByRequestId(tenantId, request.getId());
+        if (request.isScheduled()) {
+            eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(request.getId()).build());
+        }
     }
 
     @Override
@@ -128,7 +135,6 @@ public class DefaultNotificationRequestService implements NotificationRequestSer
     public EntityType getEntityType() {
         return EntityType.NOTIFICATION_REQUEST;
     }
-
 
     private static class NotificationRequestValidator extends DataValidator<NotificationRequest> {
 

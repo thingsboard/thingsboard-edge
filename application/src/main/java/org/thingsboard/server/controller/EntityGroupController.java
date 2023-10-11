@@ -766,7 +766,7 @@ public class EntityGroupController extends AutoCommitController {
             }
 
             for (EntityId entityId : entityIds) {
-                notificationEntityService.logEntityAction(getTenantId(), entityId, null,
+                logEntityActionService.logEntityAction(getTenantId(), entityId, null,
                         actionType, getCurrentUser(), entityId.toString(), strEntityGroupId, entityGroup.getName());
             }
         } catch (Exception e) {
@@ -774,7 +774,7 @@ public class EntityGroupController extends AutoCommitController {
                 EntityType entityType = entityGroup.getType();
                 String groupName = entityGroup.getName();
                 for (String strEntityId : strEntityIds) {
-                    notificationEntityService.logEntityAction(getTenantId(), emptyId(entityType),
+                    logEntityActionService.logEntityAction(getTenantId(), emptyId(entityType),
                             actionType, getCurrentUser(), e, strEntityId, strEntityGroupId, groupName);
                 }
             }
@@ -826,7 +826,7 @@ public class EntityGroupController extends AutoCommitController {
             }
 
             for (EntityId entityId : entityIds) {
-                notificationEntityService.logEntityAction(getTenantId(), entityId, null,
+                logEntityActionService.logEntityAction(getTenantId(), entityId, null,
                         ActionType.REMOVED_FROM_ENTITY_GROUP, getCurrentUser(), entityId.toString(), strEntityGroupId, entityGroup.getName());
             }
         } catch (Exception e) {
@@ -834,7 +834,7 @@ public class EntityGroupController extends AutoCommitController {
                 EntityType entityType = entityGroup.getType();
                 String groupName = entityGroup.getName();
                 for (String strEntityId : strEntityIds) {
-                    notificationEntityService.logEntityAction(getTenantId(), emptyId(entityType),
+                    logEntityActionService.logEntityAction(getTenantId(), emptyId(entityType),
                             ActionType.REMOVED_FROM_ENTITY_GROUP, getCurrentUser(), e, strEntityId, strEntityGroupId, groupName);
                 }
             }
@@ -1100,7 +1100,7 @@ public class EntityGroupController extends AutoCommitController {
             tbEntityGroupService.makePublic(getTenantId(), entityGroup, getCurrentUser());
         } catch (Exception e) {
             if (entityGroup != null) {
-                notificationEntityService.logEntityAction(getTenantId(), entityGroup.getId(), ActionType.MADE_PUBLIC,
+                logEntityActionService.logEntityAction(getTenantId(), entityGroup.getId(), ActionType.MADE_PUBLIC,
                         getCurrentUser(), e, strEntityGroupId, entityGroup.getName());
             }
             throw e;
@@ -1131,7 +1131,7 @@ public class EntityGroupController extends AutoCommitController {
             tbEntityGroupService.makePrivate(getTenantId(), entityGroup, getCurrentUser());
         } catch (Exception e) {
             if (entityGroup != null) {
-                notificationEntityService.logEntityAction(getTenantId(), entityGroup.getId(), ActionType.MADE_PRIVATE,
+                logEntityActionService.logEntityAction(getTenantId(), entityGroup.getId(), ActionType.MADE_PRIVATE,
                         getCurrentUser(), e, strEntityGroupId, entityGroup.getName());
             }
             throw e;
@@ -1195,12 +1195,12 @@ public class EntityGroupController extends AutoCommitController {
 
                 GroupPermission savedGroupPermission = checkNotNull(groupPermissionService.saveGroupPermission(getTenantId(), groupPermission));
                 userPermissionsService.onGroupPermissionUpdated(savedGroupPermission);
-                notificationEntityService.logEntityAction(getTenantId(), savedGroupPermission.getId(), savedGroupPermission,
+                logEntityActionService.logEntityAction(getTenantId(), savedGroupPermission.getId(), savedGroupPermission,
                         ActionType.ADDED, getCurrentUser());
             }
 
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.GROUP_PERMISSION),
+            logEntityActionService.logEntityAction(getTenantId(), emptyId(EntityType.GROUP_PERMISSION),
                     ActionType.ADDED, getCurrentUser(), e);
             throw e;
         }
@@ -1300,12 +1300,12 @@ public class EntityGroupController extends AutoCommitController {
 
             EntityGroup savedEntityGroup = checkNotNull(entityGroupService.assignEntityGroupToEdge(getCurrentUser().getTenantId(), entityGroupId, edgeId, groupType));
 
-            notificationEntityService.logEntityAction(getTenantId(), entityGroupId, savedEntityGroup,
+            logEntityActionService.logEntityAction(getTenantId(), entityGroupId, savedEntityGroup,
                     actionType, getCurrentUser(), strEntityGroupId, savedEntityGroup.getName(), strEdgeId, edge.getName());
 
             return savedEntityGroup;
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.ENTITY_GROUP),
+            logEntityActionService.logEntityAction(getTenantId(), emptyId(EntityType.ENTITY_GROUP),
                     actionType, getCurrentUser(), e, strEntityGroupId, strEdgeId);
 
             throw e;
@@ -1341,12 +1341,12 @@ public class EntityGroupController extends AutoCommitController {
 
             EntityGroup savedEntityGroup = checkNotNull(entityGroupService.unassignEntityGroupFromEdge(getCurrentUser().getTenantId(), entityGroupId, edgeId, groupType));
 
-            notificationEntityService.logEntityAction(getTenantId(), entityGroupId, entityGroup,
+            logEntityActionService.logEntityAction(getTenantId(), entityGroupId, entityGroup,
                     actionType, getCurrentUser(), strEntityGroupId, savedEntityGroup.getName(), strEdgeId, edge.getName());
 
             return savedEntityGroup;
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.ENTITY_GROUP),
+            logEntityActionService.logEntityAction(getTenantId(), emptyId(EntityType.ENTITY_GROUP),
                     actionType, getCurrentUser(), e, strEntityGroupId);
 
             throw e;

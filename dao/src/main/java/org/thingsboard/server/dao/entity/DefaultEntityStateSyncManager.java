@@ -28,13 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue;
+package org.thingsboard.server.dao.entity;
 
-import org.thingsboard.server.common.data.queue.Queue;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
-public interface TbQueueClusterService {
+@Component
+@Slf4j
+public class DefaultEntityStateSyncManager implements EntityStateSyncManager {
 
-    void onQueueChange(Queue queue);
+    @Getter
+    private final ThreadLocal<Boolean> sync = new ThreadLocal<>();
 
-    void onQueueDelete(Queue queue);
+    @Override
+    public boolean isSync() {
+        Boolean sync = this.sync.get();
+        return sync != null && sync;
+    }
 }

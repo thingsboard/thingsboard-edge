@@ -75,7 +75,6 @@ public class TelemetryEdgeTest extends AbstractEdgeTest {
             EdgeEvent edgeEvent = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.TIMESERIES_UPDATED,
                     device.getId().getId(), EdgeEventType.DEVICE, timeseriesEntityData);
             edgeEventService.saveAsync(edgeEvent).get();
-            clusterService.onEdgeEventUpdate(tenantId, edge.getId());
         }
 
         Assert.assertTrue(edgeImitator.waitForMessages(120));
@@ -105,7 +104,6 @@ public class TelemetryEdgeTest extends AbstractEdgeTest {
         EdgeEvent edgeEvent = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.POST_ATTRIBUTES, device.getId().getId(), EdgeEventType.DEVICE, postAttributesEntityData);
         edgeImitator.expectMessageAmount(1);
         edgeEventService.saveAsync(edgeEvent).get();
-        clusterService.onEdgeEventUpdate(tenantId, edge.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
 
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
@@ -130,7 +128,6 @@ public class TelemetryEdgeTest extends AbstractEdgeTest {
         EdgeEvent edgeEvent = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.ATTRIBUTES_DELETED, device.getId().getId(), EdgeEventType.DEVICE, deleteAttributesEntityData);
         edgeImitator.expectMessageAmount(1);
         edgeEventService.saveAsync(edgeEvent).get();
-        clusterService.onEdgeEventUpdate(tenantId, edge.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
 
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
@@ -158,7 +155,6 @@ public class TelemetryEdgeTest extends AbstractEdgeTest {
         edgeImitator.expectMessageAmount(1);
         EdgeEvent edgeEvent = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.TIMESERIES_UPDATED, device.getId().getId(), EdgeEventType.DEVICE, timeseriesEntityData);
         edgeEventService.saveAsync(edgeEvent).get();
-        clusterService.onEdgeEventUpdate(tenantId, edge.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
 
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
@@ -214,8 +210,6 @@ public class TelemetryEdgeTest extends AbstractEdgeTest {
             EdgeEvent successEdgeEvent = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.UPDATED,
                     device.getId().getId(), EdgeEventType.DEVICE, null);
             edgeEventService.saveAsync(successEdgeEvent).get();
-
-            clusterService.onEdgeEventUpdate(tenantId, edge.getId());
         }
 
         Assert.assertTrue(edgeImitator.waitForMessages(120));
@@ -240,7 +234,6 @@ public class TelemetryEdgeTest extends AbstractEdgeTest {
         EdgeEvent edgeEvent1 = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.ATTRIBUTES_UPDATED, entityId.getId(), EdgeEventType.valueOf(entityId.getEntityType().name()), attributesEntityData);
         edgeImitator.expectMessageAmount(1);
         edgeEventService.saveAsync(edgeEvent1).get();
-        clusterService.onEdgeEventUpdate(tenantId, edge.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
 
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();

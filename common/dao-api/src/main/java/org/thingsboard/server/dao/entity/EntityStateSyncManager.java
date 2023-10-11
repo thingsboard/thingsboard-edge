@@ -28,13 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue;
+package org.thingsboard.server.dao.entity;
 
-import org.thingsboard.server.common.data.queue.Queue;
+public interface EntityStateSyncManager {
 
-public interface TbQueueClusterService {
+    ThreadLocal<Boolean> getSync();
 
-    void onQueueChange(Queue queue);
-
-    void onQueueDelete(Queue queue);
+    boolean isSync();
 }

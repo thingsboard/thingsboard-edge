@@ -96,11 +96,9 @@ public class DefaultTbEntityViewService extends AbstractTbEntityService implemen
             createOrUpdateGroupEntity(tenantId, savedEntityView, entityGroups, actionType, user);
             autoCommit(user, savedEntityView.getId());
             localCache.computeIfAbsent(savedEntityView.getTenantId(), (k) -> new ConcurrentReferenceHashMap<>()).clear();
-            tbClusterService.broadcastEntityStateChangeEvent(savedEntityView.getTenantId(), savedEntityView.getId(),
-                    entityView.getId() == null ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
             return savedEntityView;
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(user.getTenantId(), emptyId(EntityType.ENTITY_VIEW), entityView, null, actionType, user, e);
+            logEntityActionService.logEntityAction(user.getTenantId(), emptyId(EntityType.ENTITY_VIEW), entityView, null, actionType, user, e);
             throw e;
         }
     }
@@ -142,13 +140,12 @@ public class DefaultTbEntityViewService extends AbstractTbEntityService implemen
         EntityViewId entityViewId = entityView.getId();
         try {
             entityViewService.deleteEntityView(tenantId, entityViewId);
-            notificationEntityService.logEntityAction(tenantId, entityViewId, entityView, entityView.getCustomerId(),
+            logEntityActionService.logEntityAction(tenantId, entityViewId, entityView, entityView.getCustomerId(),
                     ActionType.DELETED, user, entityViewId.toString());
 
             localCache.computeIfAbsent(tenantId, (k) -> new ConcurrentReferenceHashMap<>()).clear();
-            tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityViewId, ComponentLifecycleEvent.DELETED);
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.ENTITY_VIEW),
+            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.ENTITY_VIEW),
                     ActionType.DELETED, user, e, entityViewId.toString());
             throw e;
         }
@@ -369,15 +366,15 @@ public class DefaultTbEntityViewService extends AbstractTbEntityService implemen
     }
 
     private void logAttributesUpdated(TenantId tenantId, User user, EntityId entityId, String scope, List<AttributeKvEntry> attributes, Throwable e) throws ThingsboardException {
-        notificationEntityService.logEntityAction(tenantId, entityId, ActionType.ATTRIBUTES_UPDATED, user, toException(e), scope, attributes);
+        logEntityActionService.logEntityAction(tenantId, entityId, ActionType.ATTRIBUTES_UPDATED, user, toException(e), scope, attributes);
     }
 
     private void logAttributesDeleted(TenantId tenantId, User user, EntityId entityId, String scope, List<String> keys, Throwable e) throws ThingsboardException {
-        notificationEntityService.logEntityAction(tenantId, entityId, ActionType.ATTRIBUTES_DELETED, user, toException(e), scope, keys);
+        logEntityActionService.logEntityAction(tenantId, entityId, ActionType.ATTRIBUTES_DELETED, user, toException(e), scope, keys);
     }
 
     private void logTimeseriesDeleted(TenantId tenantId, User user, EntityId entityId, List<String> keys, Throwable e) throws ThingsboardException {
-        notificationEntityService.logEntityAction(tenantId, entityId, ActionType.TIMESERIES_DELETED, user, toException(e), keys);
+        logEntityActionService.logEntityAction(tenantId, entityId, ActionType.TIMESERIES_DELETED, user, toException(e), keys);
     }
 
     public static Exception toException(Throwable error) {

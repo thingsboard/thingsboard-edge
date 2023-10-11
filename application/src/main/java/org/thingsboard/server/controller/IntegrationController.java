@@ -171,19 +171,14 @@ public class IntegrationController extends AutoCommitController {
 
             autoCommit(currentUser, result.getId());
 
-            if (!result.isEdgeTemplate()) {
-                tbClusterService.broadcastEntityStateChangeEvent(result.getTenantId(), result.getId(),
-                        created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
-            }
-
-            notificationEntityService.logEntityAction(getTenantId(), result.getId(), result,
+            logEntityActionService.logEntityAction(getTenantId(), result.getId(), result,
                     created ? ActionType.ADDED : ActionType.UPDATED, currentUser);
 
             return result;
         } catch (TimeoutException e) {
             throw new ThingsboardRuntimeException("Timeout to validate the configuration!", ThingsboardErrorCode.GENERAL);
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.INTEGRATION), integration,
+            logEntityActionService.logEntityAction(getTenantId(), emptyId(EntityType.INTEGRATION), integration,
                     integration.getId() == null ? ActionType.ADDED : ActionType.UPDATED, currentUser, e);
             throw e;
         }
@@ -280,15 +275,11 @@ public class IntegrationController extends AutoCommitController {
 
             integrationService.deleteIntegration(getTenantId(), integrationId);
 
-            if (!integration.isEdgeTemplate()) {
-                tbClusterService.broadcastEntityStateChangeEvent(integration.getTenantId(), integration.getId(), ComponentLifecycleEvent.DELETED);
-            }
-
-            notificationEntityService.logEntityAction(getTenantId(), integrationId, integration, ActionType.DELETED,
+            logEntityActionService.logEntityAction(getTenantId(), integrationId, integration, ActionType.DELETED,
                     getCurrentUser(), strIntegrationId);
 
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.INTEGRATION), ActionType.DELETED,
+            logEntityActionService.logEntityAction(getTenantId(), emptyId(EntityType.INTEGRATION), ActionType.DELETED,
                     getCurrentUser(), e, strIntegrationId);
 
             throw e;
@@ -356,12 +347,12 @@ public class IntegrationController extends AutoCommitController {
 
             Integration savedIntegration = checkNotNull(integrationService.assignIntegrationToEdge(getCurrentUser().getTenantId(), integrationId, edgeId));
 
-            notificationEntityService.logEntityAction(getTenantId(), integrationId, savedIntegration,
+            logEntityActionService.logEntityAction(getTenantId(), integrationId, savedIntegration,
                     ActionType.ASSIGNED_TO_EDGE, getCurrentUser(), strIntegrationId, strEdgeId, edge.getName());
 
             return savedIntegration;
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.INTEGRATION),
+            logEntityActionService.logEntityAction(getTenantId(), emptyId(EntityType.INTEGRATION),
                     ActionType.ASSIGNED_TO_EDGE, getCurrentUser(), e, strIntegrationId, strEdgeId);
 
             throw e;
@@ -390,12 +381,12 @@ public class IntegrationController extends AutoCommitController {
 
             Integration savedIntegration = checkNotNull(integrationService.unassignIntegrationFromEdge(getCurrentUser().getTenantId(), integrationId, edgeId, false));
 
-            notificationEntityService.logEntityAction(getTenantId(), integrationId, integration,
+            logEntityActionService.logEntityAction(getTenantId(), integrationId, integration,
                     ActionType.UNASSIGNED_FROM_EDGE, getCurrentUser(), strIntegrationId, strEdgeId, edge.getName());
 
             return savedIntegration;
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.INTEGRATION),
+            logEntityActionService.logEntityAction(getTenantId(), emptyId(EntityType.INTEGRATION),
                     ActionType.UNASSIGNED_FROM_EDGE, getCurrentUser(), e, strIntegrationId, strEdgeId);
 
             throw e;

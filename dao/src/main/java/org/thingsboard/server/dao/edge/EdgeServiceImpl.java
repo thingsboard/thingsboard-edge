@@ -79,6 +79,8 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -202,9 +204,11 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         Edge oldEdge = edgeValidator.validate(edge, Edge::getTenantId);
         EdgeCacheEvictEvent evictEvent = new EdgeCacheEvictEvent(edge.getTenantId(), edge.getName(), oldEdge != null ? oldEdge.getName() : null);
         try {
-            var savedEdge = edgeDao.save(edge.getTenantId(), edge);
+            Edge savedEdge = edgeDao.save(edge.getTenantId(), edge);
             publishEvictEvent(evictEvent);
             entityGroupService.addEntityToEntityGroupAll(savedEdge.getTenantId(), savedEdge.getOwnerId(), savedEdge.getId());
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedEdge.getTenantId())
+                    .entityId(savedEdge.getId()).entity(savedEdge).added(edge.getId() == null).build());
             return savedEdge;
         } catch (Exception t) {
             handleEvictEvent(evictEvent);
@@ -230,6 +234,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
 
         edgeDao.removeById(tenantId, edgeId.getId());
 
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(edgeId).build());
         publishEvictEvent(new EdgeCacheEvictEvent(edge.getTenantId(), edge.getName(), null));
     }
 

@@ -72,10 +72,10 @@ public class DefaultEntityGroupService extends AbstractTbEntityService implement
             EntityGroup savedEntityGroup = checkNotNull(entityGroupService.saveEntityGroup(tenantId, parentEntityId, entityGroup));
             autoCommit(user, savedEntityGroup.getType(), savedEntityGroup.getId());
 
-            notificationEntityService.logEntityAction(tenantId, savedEntityGroup.getId(), savedEntityGroup, null, actionType, user);
+            logEntityActionService.logEntityAction(tenantId, savedEntityGroup.getId(), savedEntityGroup, null, actionType, user);
             return checkNotNull(entityGroupService.findEntityGroupInfoById(tenantId, savedEntityGroup.getId()));
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.ENTITY_GROUP), entityGroup, null, actionType, user, e);
+            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.ENTITY_GROUP), entityGroup, null, actionType, user, e);
             throw e;
         }
     }
@@ -86,10 +86,10 @@ public class DefaultEntityGroupService extends AbstractTbEntityService implement
         EntityGroupId entityGroupId = entityGroup.getId();
         try {
             entityGroupService.deleteEntityGroup(tenantId, entityGroupId);
-            notificationEntityService.logEntityAction(tenantId, entityGroupId, entityGroup, null,
+            logEntityActionService.logEntityAction(tenantId, entityGroupId, entityGroup, null,
                     actionType, user, entityGroupId.getId().toString());
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.ENTITY_GROUP), entityGroup,
+            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.ENTITY_GROUP), entityGroup,
                     null, actionType, user, e, entityGroupId.getId().toString());
             throw e;
         }
@@ -129,7 +129,7 @@ public class DefaultEntityGroupService extends AbstractTbEntityService implement
         entityGroupService.saveEntityGroup(tenantId, entityGroup.getOwnerId(), entityGroup);
         userPermissionsService.onGroupPermissionUpdated(savedGroupPermission);
 
-        notificationEntityService.logEntityAction(tenantId, entityGroup.getId(), null,
+        logEntityActionService.logEntityAction(tenantId, entityGroup.getId(), null,
                 ActionType.MADE_PUBLIC, user, entityGroup.getId().toString(), entityGroup.getName());
         return publicCustomerId;
     }
@@ -158,7 +158,7 @@ public class DefaultEntityGroupService extends AbstractTbEntityService implement
 
         entityGroupService.saveEntityGroup(tenantId, entityGroup.getOwnerId(), entityGroup);
 
-        notificationEntityService.logEntityAction(tenantId, entityGroup.getId(), null,
+        logEntityActionService.logEntityAction(tenantId, entityGroup.getId(), null,
                 ActionType.MADE_PRIVATE, user, entityGroup.getId().toString(), entityGroup.getName());
     }
 

@@ -77,7 +77,7 @@ public abstract class AbstractTbEntityService {
     @Autowired
     protected DbCallbackExecutorService dbExecutor;
     @Autowired(required = false)
-    protected TbNotificationEntityService notificationEntityService;
+    protected TbLogEntityActionService logEntityActionService;
     @Autowired(required = false)
     protected EdgeService edgeService;
     @Autowired
@@ -137,11 +137,11 @@ public abstract class AbstractTbEntityService {
             for (EntityGroup entityGroup : entityGroups) {
                 EntityGroupId entityGroupId = entityGroup.getId();
                 entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, entityId);
-                notificationEntityService.logEntityAction(tenantId, entityId, entity, customerId, ActionType.ADDED_TO_ENTITY_GROUP,
+                logEntityActionService.logEntityAction(tenantId, entityId, entity, customerId, ActionType.ADDED_TO_ENTITY_GROUP,
                         user, entityId.toString(), entityGroupId.toString(), entityGroup.getName());
             }
         }
-        notificationEntityService.logEntityAction(tenantId, entityId, entity, customerId, actionType, user);
+        logEntityActionService.logEntityAction(tenantId, entityId, entity, customerId, actionType, user);
     }
 
     protected ListenableFuture<UUID> autoCommit(User user, EntityId entityId) throws Exception {

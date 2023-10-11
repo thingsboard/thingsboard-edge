@@ -66,7 +66,7 @@ import org.thingsboard.server.common.data.sync.ie.EntityImportResult;
 import org.thingsboard.server.dao.relation.RelationDao;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.service.action.EntityActionService;
-import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
+import org.thingsboard.server.service.entitiy.TbLogEntityActionService;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.service.sync.ie.exporting.ExportableEntitiesService;
 import org.thingsboard.server.service.sync.ie.importing.EntityImportService;
@@ -106,7 +106,7 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
     @Autowired
     protected TbClusterService clusterService;
     @Autowired
-    protected TbNotificationEntityService entityNotificationService;
+    protected TbLogEntityActionService logEntityActionService;
 
     @Override
     public EntityImportResult<E> importEntity(EntitiesImportCtx ctx, D exportData) throws ThingsboardException {
@@ -145,9 +145,8 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
             }
             E savedEntity = saveOrUpdate(ctx, prepared, exportData, idProvider);
             if (changeOwner) {
-                importResult.addSendEventsCallback(() -> {
-                    entityNotificationService.logEntityAction(ctx.getTenantId(), savedEntity.getId(), entity, ActionType.CHANGE_OWNER, ctx.getUser(), ((HasOwnerId) savedEntity).getOwnerId());
-                });
+                importResult.addSendEventsCallback(() ->
+                        logEntityActionService.logEntityAction(ctx.getTenantId(), savedEntity.getId(), entity, ActionType.CHANGE_OWNER, ctx.getUser(), ((HasOwnerId) savedEntity).getOwnerId()));
             }
             boolean created = existingEntity == null;
             importResult.setCreated(created);
@@ -245,10 +244,9 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
                     if (relation == null) {
                         importResult.setUpdatedRelatedEntities(true);
                         relationService.deleteRelation(ctx.getTenantId(), existingRelation.getFrom(), existingRelation.getTo(), existingRelation.getType(), existingRelation.getTypeGroup());
-                        importResult.addSendEventsCallback(() -> {
-                            entityNotificationService.logEntityRelationAction(tenantId, null,
-                                    existingRelation, ctx.getUser(), ActionType.RELATION_DELETED, null, existingRelation);
-                        });
+                        importResult.addSendEventsCallback(() ->
+                                logEntityActionService.logEntityRelationAction(tenantId, null,
+                                existingRelation, ctx.getUser(), ActionType.RELATION_DELETED, null, existingRelation));
                     } else if (Objects.equal(relation.getAdditionalInfo(), existingRelation.getAdditionalInfo())) {
                         relationsMap.remove(relation);
                     }
@@ -301,7 +299,7 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
     }
 
     protected void onEntitySaved(User user, E savedEntity, E oldEntity) throws ThingsboardException {
-        entityNotificationService.logEntityAction(user.getTenantId(), savedEntity.getId(), savedEntity, null,
+        logEntityActionService.logEntityAction(user.getTenantId(), savedEntity.getId(), savedEntity, null,
                 oldEntity == null ? ActionType.ADDED : ActionType.UPDATED, user);
     }
 

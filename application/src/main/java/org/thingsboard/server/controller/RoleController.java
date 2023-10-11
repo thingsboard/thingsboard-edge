@@ -177,12 +177,12 @@ public class RoleController extends AutoCommitController {
 
             userPermissionsService.onRoleUpdated(savedRole);
 
-            notificationEntityService.logEntityAction(getTenantId(), savedRole.getId(), savedRole,
+            logEntityActionService.logEntityAction(getTenantId(), savedRole.getId(), savedRole,
                     role.getId() == null ? ActionType.ADDED : ActionType.UPDATED, currentUser);
 
             return savedRole;
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.ROLE), role,
+            logEntityActionService.logEntityAction(getTenantId(), emptyId(EntityType.ROLE), role,
                     role.getId() == null ? ActionType.ADDED : ActionType.UPDATED, currentUser, e);
             throw e;
         }
@@ -205,10 +205,10 @@ public class RoleController extends AutoCommitController {
                 throw new ThingsboardException("Role can't be deleted because it used by user group permissions!", ThingsboardErrorCode.INVALID_ARGUMENTS);
             }
             roleService.deleteRole(getTenantId(), roleId);
-            notificationEntityService.logEntityAction(getTenantId(), roleId, role, ActionType.DELETED, getCurrentUser(), strRoleId);
+            logEntityActionService.logEntityAction(getTenantId(), roleId, role, ActionType.DELETED, getCurrentUser(), strRoleId);
 
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.ROLE), ActionType.DELETED, getCurrentUser(), e, strRoleId);
+            logEntityActionService.logEntityAction(getTenantId(), emptyId(EntityType.ROLE), ActionType.DELETED, getCurrentUser(), e, strRoleId);
             throw e;
         }
     }

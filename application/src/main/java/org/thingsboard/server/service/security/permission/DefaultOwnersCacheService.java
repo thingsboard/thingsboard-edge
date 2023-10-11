@@ -211,10 +211,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
 
     @Override
     public void changeDeviceOwner(TenantId tenantId, EntityId targetOwnerId, Device device) throws ThingsboardException {
-        changeEntityOwner(tenantId, targetOwnerId, device.getId(), device, d -> {
-            Device savedDevice = deviceService.saveDevice(d);
-            clusterService.onDeviceUpdated(savedDevice, device);
-        });
+        changeEntityOwner(tenantId, targetOwnerId, device.getId(), device, d -> deviceService.saveDevice(d));
     }
 
     @Override
@@ -290,7 +287,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
     private List<EntityGroupId> getAllowedEntityGroupIds(TenantId tenantId,
                                                          SecurityUser securityUser,
                                                          EntityType entityType,
-                                                         Operation operation) throws Exception {
+                                                         Operation operation) {
         MergedGroupTypePermissionInfo groupTypePermissionInfo = null;
         if (operation == Operation.READ) {
             groupTypePermissionInfo = securityUser.getUserPermissions().getReadGroupPermissions().get(entityType);
@@ -305,9 +302,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
                 for (EntityId ownerId : ownerIds) {
                     Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, ownerId,
                             entityType, EntityGroup.GROUP_ALL_NAME);
-                    if (entityGroup.isPresent()) {
-                        groupIds.add(entityGroup.get().getId());
-                    }
+                    entityGroup.ifPresent(group -> groupIds.add(group.getId()));
                 }
             }
             if (groupTypePermissionInfo != null && !groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {

@@ -57,7 +57,7 @@ public class DefaultTbCustomerService extends AbstractTbEntityService implements
             createOrUpdateGroupEntity(tenantId, savedCustomer, entityGroups, actionType, user);
             return savedCustomer;
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.CUSTOMER), customer, actionType, user, e);
+            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.CUSTOMER), customer, actionType, user, e);
             throw e;
         }
     }
@@ -69,10 +69,10 @@ public class DefaultTbCustomerService extends AbstractTbEntityService implements
         CustomerId customerId = customer.getId();
         try {
             customerService.deleteCustomer(tenantId, customerId);
-            notificationEntityService.logEntityAction(tenantId, customerId, customer, customerId,
+            logEntityActionService.logEntityAction(tenantId, customerId, customer, customerId,
                     actionType, user, customerId.toString());
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.CUSTOMER), actionType,
+            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.CUSTOMER), actionType,
                     user, e, customerId.toString());
             throw e;
         }

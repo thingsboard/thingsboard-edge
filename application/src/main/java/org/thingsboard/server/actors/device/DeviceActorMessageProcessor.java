@@ -931,10 +931,7 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
 
         EdgeEvent edgeEvent = EdgeUtils.constructEdgeEvent(tenantId, edgeId, EdgeEventType.DEVICE, EdgeEventActionType.RPC_CALL, deviceId, body);
 
-        return Futures.transform(systemContext.getEdgeEventService().saveAsync(edgeEvent), unused -> {
-            systemContext.getClusterService().onEdgeEventUpdate(tenantId, edgeId);
-            return null;
-        }, systemContext.getDbCallbackExecutor());
+        return systemContext.getEdgeEventService().saveAsync(edgeEvent);
     }
 
     void restoreSessions() {

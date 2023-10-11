@@ -307,6 +307,4 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
         log.error("[{}] Can't push to edge updates, edgeNotificationMsg [{}]", tenantId, edgeNotificationMsg, throwable);
         callback.onFailure(throwable);
     }
-
 }
-

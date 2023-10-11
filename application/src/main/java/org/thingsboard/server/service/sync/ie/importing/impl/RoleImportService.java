@@ -91,7 +91,7 @@ public class RoleImportService extends BaseEntityImportService<RoleId, Role, Ent
 
     @Override
     protected void onEntitySaved(User user, Role savedRole, Role oldRole) throws ThingsboardException {
-        entityNotificationService.logEntityAction(savedRole.getTenantId(), savedRole.getId(), savedRole, null,
+        logEntityActionService.logEntityAction(savedRole.getTenantId(), savedRole.getId(), savedRole, null,
                 oldRole == null ? ActionType.ADDED : ActionType.UPDATED, user);
         userPermissionsService.onRoleUpdated(savedRole);
     }

@@ -107,6 +107,7 @@ import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -312,8 +313,17 @@ public class DefaultTbClusterService implements TbClusterService {
     }
 
     @Override
-    public void onDeviceProfileChange(DeviceProfile deviceProfile, TbQueueCallback callback) {
+    public void onDeviceProfileChange(DeviceProfile deviceProfile, DeviceProfile oldDeviceProfile, TbQueueCallback callback) {
+        boolean isFirmwareChanged = false;
+        boolean isSoftwareChanged = false;
+        if (oldDeviceProfile != null) {
+            isFirmwareChanged = !Objects.equals(deviceProfile.getFirmwareId(), oldDeviceProfile.getFirmwareId());
+            isSoftwareChanged = !Objects.equals(deviceProfile.getSoftwareId(), oldDeviceProfile.getSoftwareId());
+        }
         broadcastEntityChangeToTransport(deviceProfile.getTenantId(), deviceProfile.getId(), deviceProfile, callback);
+        broadcastEntityStateChangeEvent(deviceProfile.getTenantId(), deviceProfile.getId(),
+                oldDeviceProfile == null ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+        otaPackageStateService.update(deviceProfile, isFirmwareChanged, isSoftwareChanged);
     }
 
     @Override
@@ -349,6 +359,7 @@ public class DefaultTbClusterService implements TbClusterService {
 
     @Override
     public void onDeviceDeleted(Device device, TbQueueCallback callback) {
+        gatewayNotificationsService.onDeviceDeleted(device);
         broadcastEntityDeleteToTransport(device.getTenantId(), device.getId(), device.getName(), callback);
         sendDeviceStateServiceEvent(device.getTenantId(), device.getId(), false, false, true);
         broadcastEntityStateChangeEvent(device.getTenantId(), device.getId(), ComponentLifecycleEvent.DELETED);
@@ -381,7 +392,7 @@ public class DefaultTbClusterService implements TbClusterService {
         broadcast(transportMsg, callback);
     }
 
-    public <T> void broadcastEntityChangeToTransport(TenantId tenantId, EntityId entityid, T entity, TbQueueCallback callback) {
+    private <T> void broadcastEntityChangeToTransport(TenantId tenantId, EntityId entityid, T entity, TbQueueCallback callback) {
         String entityName = (entity instanceof HasName) ? ((HasName) entity).getName() : entity.getClass().getName();
         log.trace("[{}][{}][{}] Processing [{}] change event", tenantId, entityid.getEntityType(), entityid.getId(), entityName);
         TransportProtos.EntityUpdateMsg entityUpdateMsg = TransportProtos.EntityUpdateMsg.newBuilder()

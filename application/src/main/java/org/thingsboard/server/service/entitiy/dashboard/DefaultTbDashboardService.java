@@ -62,7 +62,7 @@ public class DefaultTbDashboardService extends AbstractTbEntityService implement
             createOrUpdateGroupEntity(tenantId, savedDashboard, entityGroups, actionType, user);
             return savedDashboard;
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.DASHBOARD), dashboard, actionType, user, e);
+            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.DASHBOARD), dashboard, actionType, user, e);
             throw e;
         }
     }
@@ -74,9 +74,9 @@ public class DefaultTbDashboardService extends AbstractTbEntityService implement
         TenantId tenantId = dashboard.getTenantId();
         try {
             dashboardService.deleteDashboard(tenantId, dashboardId);
-            notificationEntityService.logEntityAction(tenantId, dashboardId, dashboard, null, actionType, user, dashboardId.toString());
+            logEntityActionService.logEntityAction(tenantId, dashboardId, dashboard, null, actionType, user, dashboardId.toString());
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.DASHBOARD), actionType, user, e, dashboardId.toString());
+            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.DASHBOARD), actionType, user, e, dashboardId.toString());
             throw e;
         }
     }

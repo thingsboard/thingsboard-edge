@@ -139,9 +139,9 @@ public class ConverterControllerTest extends AbstractControllerTest {
         Assert.assertEquals(savedTenant.getId(), savedConverter.getTenantId());
         Assert.assertEquals(converter.getName(), savedConverter.getName());
 
-        testNotifyEntityBroadcastEntityStateChangeEventOneTimeMsgToEdgeServiceNever(savedConverter, savedConverter.getId(), savedConverter.getId(),
+        testNotifyEntityBroadcastEntityStateChangeEventManyTimeMsgToEdgeServiceNever(savedConverter, savedConverter.getId(), savedConverter.getId(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED);
+                ActionType.ADDED, 1);
 
         savedConverter.setName("My new converter");
         doPost("/api/converter", savedConverter, Converter.class);
@@ -149,9 +149,9 @@ public class ConverterControllerTest extends AbstractControllerTest {
         Converter foundConverter = doGet("/api/converter/" + savedConverter.getId().getId().toString(), Converter.class);
         Assert.assertEquals(foundConverter.getName(), savedConverter.getName());
 
-        testNotifyEntityBroadcastEntityStateChangeEventOneTimeMsgToEdgeServiceNever(savedConverter, savedConverter.getId(), savedConverter.getId(),
+        testNotifyEntityBroadcastEntityStateChangeEventManyTimeMsgToEdgeServiceNever(savedConverter, savedConverter.getId(), savedConverter.getId(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.UPDATED);
+                ActionType.UPDATED, 1);
     }
 
     @Test

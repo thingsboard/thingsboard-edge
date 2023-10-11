@@ -352,7 +352,7 @@ public class DefaultTransportApiService implements TransportApiService {
                     ObjectNode additionalInfo = JacksonUtil.newObjectNode();
                     additionalInfo.put(DataConstants.LAST_CONNECTED_GATEWAY, gatewayId.toString());
                     device.setAdditionalInfo(additionalInfo);
-                    Device savedDevice = deviceService.saveDevice(device);
+                    device = deviceService.saveDevice(device);
 
                     if (StringUtils.isNotBlank(requestMsg.getEntityGroup())) {
                         Customer customer = customerService.findCustomerById(tenantId, gateway.getCustomerId());
@@ -363,11 +363,8 @@ public class DefaultTransportApiService implements TransportApiService {
                         } else {
                              groupSparkplugDevice = entityGroupService.findOrCreateEntityGroup(tenantId, tenantId, EntityType.DEVICE, requestMsg.getEntityGroup(), description, null);
                         }
-                        entityGroupService.addEntityToEntityGroup(tenantId, groupSparkplugDevice.getId(), savedDevice.getId());
+                        entityGroupService.addEntityToEntityGroup(tenantId, groupSparkplugDevice.getId(), device.getId());
                     }
-
-                    tbClusterService.onDeviceUpdated(savedDevice, null);
-                    device = savedDevice;
 
                     relationService.saveRelation(TenantId.SYS_TENANT_ID, new EntityRelation(gateway.getId(), device.getId(), "Created"));
 
@@ -393,7 +390,6 @@ public class DefaultTransportApiService implements TransportApiService {
                         ObjectNode newDeviceAdditionalInfo = (ObjectNode) deviceAdditionalInfo;
                         newDeviceAdditionalInfo.put(DataConstants.LAST_CONNECTED_GATEWAY, gatewayId.toString());
                         Device savedDevice = deviceService.saveDevice(device);
-                        tbClusterService.onDeviceUpdated(savedDevice, device);
                     }
                 }
                 GetOrCreateDeviceFromGatewayResponseMsg.Builder builder = GetOrCreateDeviceFromGatewayResponseMsg.newBuilder()
@@ -689,7 +685,6 @@ public class DefaultTransportApiService implements TransportApiService {
                 device.setName(deviceName);
                 device.setType("LwM2M");
                 device = deviceService.saveDevice(device);
-                tbClusterService.onDeviceUpdated(device, null);
             }
             TransportProtos.LwM2MRegistrationResponseMsg registrationResponseMsg =
                     TransportProtos.LwM2MRegistrationResponseMsg.newBuilder()

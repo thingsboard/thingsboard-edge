@@ -78,7 +78,7 @@ public class DefaultTbEdgeService extends AbstractTbEntityService implements TbE
                     oldEdgeName = edgeById.getName();
                 }
             }
-            if (actionType == ActionType.ADDED && edge.getRootRuleChainId() == null) {
+            if (ActionType.ADDED.equals(actionType) && edge.getRootRuleChainId() == null) {
                 edge.setRootRuleChainId(edgeTemplateRootRuleChain.getId());
             }
             Edge savedEdge = checkNotNull(edgeService.saveEdge(edge));
@@ -90,8 +90,8 @@ public class DefaultTbEdgeService extends AbstractTbEntityService implements TbE
                 }
             }
 
-            if (actionType == ActionType.ADDED) {
-                ruleChainService.assignRuleChainToEdge(tenantId, edgeTemplateRootRuleChain.getId(), savedEdge.getId());
+            if (ActionType.ADDED.equals(actionType)) {
+                ruleChainService.assignRuleChainToEdge(tenantId, edgeTemplateRootRuleChain.getId(), edgeId);
                 edgeNotificationService.setEdgeRootRuleChain(tenantId, savedEdge, edgeTemplateRootRuleChain.getId());
                 edgeService.assignDefaultRuleChainsToEdge(tenantId, savedEdge.getId());
                 edgeService.assignTenantAdministratorsAndUsersGroupToEdge(tenantId, savedEdge.getId());
@@ -105,11 +105,11 @@ public class DefaultTbEdgeService extends AbstractTbEntityService implements TbE
                 edgeService.renameEdgeAllGroups(tenantId, savedEdge, oldEdgeName);
             }
 
-            notificationEntityService.notifyCreateOrUpdateOrDeleteEdge(tenantId, edgeId, savedEdge.getCustomerId(), savedEdge, actionType, user);
+            logEntityActionService.logEntityAction(tenantId, edgeId, savedEdge, savedEdge.getCustomerId(), actionType, user);
 
             return savedEdge;
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.EDGE), edge, actionType, user, e);
+            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.EDGE), edge, actionType, user, e);
             throw e;
         }
     }
@@ -122,13 +122,14 @@ public class DefaultTbEdgeService extends AbstractTbEntityService implements TbE
 
     @Override
     public void delete(Edge edge, User user) {
+        ActionType actionType = ActionType.DELETED;
         EdgeId edgeId = edge.getId();
         TenantId tenantId = edge.getTenantId();
         try {
             edgeService.deleteEdge(tenantId, edgeId);
-            notificationEntityService.notifyCreateOrUpdateOrDeleteEdge(tenantId, edgeId, edge.getCustomerId(), edge, ActionType.DELETED, user, edgeId.toString());
+            logEntityActionService.logEntityAction(tenantId, edgeId, edge, edge.getCustomerId(), actionType, user, edgeId.toString());
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.EDGE), ActionType.DELETED,
+            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.EDGE), actionType,
                     user, e, edgeId.toString());
             throw e;
         }
@@ -140,10 +141,10 @@ public class DefaultTbEdgeService extends AbstractTbEntityService implements TbE
         EdgeId edgeId = edge.getId();
         try {
             Edge updatedEdge = edgeNotificationService.setEdgeRootRuleChain(tenantId, edge, ruleChainId);
-            notificationEntityService.logEntityAction(tenantId, edgeId, edge, null, ActionType.UPDATED, user);
+            logEntityActionService.logEntityAction(tenantId, edgeId, edge, null, ActionType.UPDATED, user);
             return updatedEdge;
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.EDGE),
+            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.EDGE),
                     ActionType.UPDATED, user, e, edgeId.toString());
             throw e;
         }

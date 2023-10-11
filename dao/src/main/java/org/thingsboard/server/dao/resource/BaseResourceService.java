@@ -36,10 +36,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionalEventListener;
-import org.thingsboard.server.cache.device.DeviceCacheKey;
+import org.thingsboard.server.cache.resourceInfo.ResourceInfoCacheKey;
 import org.thingsboard.server.cache.resourceInfo.ResourceInfoEvictEvent;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.cache.resourceInfo.ResourceInfoCacheKey;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TbResourceInfo;
@@ -52,6 +51,8 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
@@ -79,6 +80,8 @@ public class BaseResourceService extends AbstractCachedEntityService<ResourceInf
         try {
             TbResource saved = resourceDao.save(resource.getTenantId(), resource);
             publishEvictEvent(new ResourceInfoEvictEvent(resource.getTenantId(), resource.getId()));
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(saved.getTenantId()).entityId(saved.getId())
+                    .entity(saved).added(resource.getId() == null).build());
             return saved;
         } catch (Exception t) {
             publishEvictEvent(new ResourceInfoEvictEvent(resource.getTenantId(), resource.getId()));
@@ -122,11 +125,13 @@ public class BaseResourceService extends AbstractCachedEntityService<ResourceInf
     }
 
     @Override
-    public void deleteResource(TenantId tenantId, TbResourceId resourceId) {
+    public void deleteResource(TenantId tenantId, TbResource resource) {
+        TbResourceId resourceId = resource.getId();
         log.trace("Executing deleteResource [{}] [{}]", tenantId, resourceId);
         Validator.validateId(resourceId, INCORRECT_RESOURCE_ID + resourceId);
         resourceValidator.validateDelete(tenantId, resourceId);
         resourceDao.removeById(tenantId, resourceId.getId());
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entity(resource).entityId(resourceId).build());
     }
 
     @Override
@@ -191,7 +196,7 @@ public class BaseResourceService extends AbstractCachedEntityService<ResourceInf
 
                 @Override
                 protected void removeEntity(TenantId tenantId, TbResource entity) {
-                    deleteResource(tenantId, new TbResourceId(entity.getUuidId()));
+                    deleteResource(tenantId, entity);
                 }
             };
 

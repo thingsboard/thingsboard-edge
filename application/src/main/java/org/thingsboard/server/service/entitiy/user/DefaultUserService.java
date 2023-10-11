@@ -87,12 +87,12 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
                 if (tbUser.getId() == null && authority == Authority.SYS_ADMIN) {
                     EntityGroup admins = entityGroupService.findOrCreateTenantAdminsGroup(savedUser.getTenantId());
                     entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), savedUser.getId());
-                    notificationEntityService.logEntityAction(tenantId, savedUser.getId(), savedUser, customerId,
+                    logEntityActionService.logEntityAction(tenantId, savedUser.getId(), savedUser, customerId,
                             ActionType.ADDED_TO_ENTITY_GROUP, user);
                 } else if (!CollectionUtils.isEmpty(entityGroups) && tbUser.getId() == null) {
                     for (EntityGroup entityGroup : entityGroups) {
                         entityGroupService.addEntityToEntityGroup(tenantId, entityGroup.getId(), savedUser.getId());
-                        notificationEntityService.logEntityAction(tenantId, savedUser.getId(), savedUser, customerId,
+                        logEntityActionService.logEntityAction(tenantId, savedUser.getId(), savedUser, customerId,
                                 ActionType.ADDED_TO_ENTITY_GROUP, user, savedUser.getId().toString(), entityGroup.getId().toString(), entityGroup.getName());
                     }
                 }
@@ -111,10 +111,10 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
                     throw e;
                 }
             }
-            notificationEntityService.logEntityAction(tenantId, savedUser.getId(), savedUser, customerId, actionType, user);
+            logEntityActionService.logEntityAction(tenantId, savedUser.getId(), savedUser, customerId, actionType, user);
             return savedUser;
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.USER), tbUser, actionType, user, e);
+            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.USER), tbUser, actionType, user, e);
             throw e;
         }
     }
@@ -126,9 +126,9 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
 
         try {
             userService.deleteUser(tenantId, user);
-            notificationEntityService.logEntityAction(tenantId, userId, user, customerId, actionType, responsibleUser, customerId.toString());
+            logEntityActionService.logEntityAction(tenantId, userId, user, customerId, actionType, responsibleUser, customerId.toString());
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.USER),
+            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.USER),
                     actionType, responsibleUser, e, userId.toString());
             throw e;
         }

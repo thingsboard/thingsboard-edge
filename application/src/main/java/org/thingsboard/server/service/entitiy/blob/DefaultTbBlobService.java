@@ -54,11 +54,11 @@ public class DefaultTbBlobService extends AbstractTbEntityService implements TbB
         try {
             blobEntityService.deleteBlobEntity(tenantId, blobEntityId);
 
-            notificationEntityService.logEntityAction(tenantId, blobEntityId, blobEntityInfo,
+            logEntityActionService.logEntityAction(tenantId, blobEntityId, blobEntityInfo,
                     blobEntityInfo.getCustomerId(), ActionType.DELETED, user, blobEntityId.getId().toString());
 
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.BLOB_ENTITY),
+            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.BLOB_ENTITY),
                     ActionType.DELETED, user, e, blobEntityId.getId().toString());
             throw e;
         }
