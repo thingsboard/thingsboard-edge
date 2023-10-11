@@ -97,6 +97,7 @@ cloud:
   routingKey: "${CLOUD_ROUTING_KEY:}"
   secret: "${CLOUD_ROUTING_SECRET:}"
   reconnect_timeout: "${CLOUD_RECONNECT_TIMEOUT:3000}" # in milliseconds
+  uplink_pack_timeout_sec: "${CLOUD_UPLINK_PACK_TIMEOUT_SEC:60}" # in seconds
   rpc:
     host: "${CLOUD_RPC_HOST:localhost}"
     port: "${CLOUD_RPC_PORT:7070}"
