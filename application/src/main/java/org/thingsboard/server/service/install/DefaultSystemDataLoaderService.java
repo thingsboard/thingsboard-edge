@@ -570,6 +570,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         this.deleteSystemWidgetBundle("tables");
         this.deleteSystemWidgetBundle("count_widgets");
         this.deleteSystemWidgetBundle("weather_widgets");
+        this.deleteSystemWidgetBundle("status_indicators");
         installScripts.loadSystemWidgets();
     }
 
