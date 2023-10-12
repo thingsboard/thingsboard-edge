@@ -37,6 +37,8 @@ public interface AlarmModificationRequest {
 
     TenantId getTenantId();
 
+    AlarmSeverity getSeverity();
+
     long getStartTs();
 
     long getEndTs();

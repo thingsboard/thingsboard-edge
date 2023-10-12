@@ -38,6 +38,7 @@ import { PageData } from '@shared/models/page/page-data';
 import { WidgetsBundle } from '@shared/models/widgets-bundle.model';
 import {
   BaseWidgetType,
+  DeprecatedFilter,
   fullWidgetTypeFqn,
   WidgetType,
   widgetType,
@@ -64,11 +65,9 @@ export class WidgetService {
   private systemWidgetsBundles: Array<WidgetsBundle>;
   private tenantWidgetsBundles: Array<WidgetsBundle>;
 
-  private widgetsBundleCacheSubject: ReplaySubject<any> = null;
-
-  private widgetTypeInfosCache = new Map<string, Array<WidgetTypeInfo>>();
-
   private widgetsInfoInMemoryCache = new Map<string, WidgetInfo>();
+
+  private widgetsBundleCacheSubject: ReplaySubject<any> = null;
 
   constructor(
     private http: HttpClient,
@@ -105,8 +104,8 @@ export class WidgetService {
     );
   }
 
-  public getWidgetBundles(pageLink: PageLink, config?: RequestConfig): Observable<PageData<WidgetsBundle>> {
-    return this.http.get<PageData<WidgetsBundle>>(`/api/widgetsBundles${pageLink.toQuery()}`,
+  public getWidgetBundles(pageLink: PageLink, fullSearch = false, config?: RequestConfig): Observable<PageData<WidgetsBundle>> {
+    return this.http.get<PageData<WidgetsBundle>>(`/api/widgetsBundles${pageLink.toQuery()}&fullSearch=${fullSearch}`,
       defaultHttpOptionsFromConfig(config));
   }
 
@@ -135,21 +134,13 @@ export class WidgetService {
   public updateWidgetsBundleWidgetTypes(widgetsBundleId: string, widgetTypeIds: Array<string>,
                                         config?: RequestConfig): Observable<void> {
     return this.http.post<void>(`/api/widgetsBundle/${widgetsBundleId}/widgetTypes`, widgetTypeIds,
-      defaultHttpOptionsFromConfig(config)).pipe(
-      tap(() => {
-        this.widgetTypeInfosCache.delete(widgetsBundleId);
-      })
-    );
+      defaultHttpOptionsFromConfig(config));
   }
 
   public updateWidgetsBundleWidgetFqns(widgetsBundleId: string, widgetTypeFqns: Array<string>,
                                        config?: RequestConfig): Observable<void> {
     return this.http.post<void>(`/api/widgetsBundle/${widgetsBundleId}/widgetTypeFqns`, widgetTypeFqns,
-      defaultHttpOptionsFromConfig(config)).pipe(
-      tap(() => {
-        this.widgetTypeInfosCache.delete(widgetsBundleId);
-      })
-    );
+      defaultHttpOptionsFromConfig(config));
   }
 
   public deleteWidgetsBundle(widgetsBundleId: string, config?: RequestConfig) {
@@ -181,16 +172,27 @@ export class WidgetService {
       defaultHttpOptionsFromConfig(config));
   }
 
-  public getBundleWidgetTypeInfos(widgetsBundleId: string,
-                                  config?: RequestConfig): Observable<Array<WidgetTypeInfo>> {
-    if (this.widgetTypeInfosCache.has(widgetsBundleId)) {
-      return of(this.widgetTypeInfosCache.get(widgetsBundleId));
-    } else {
-      return this.http.get<Array<WidgetTypeInfo>>(`/api/widgetTypesInfos?widgetsBundleId=${widgetsBundleId}`,
-        defaultHttpOptionsFromConfig(config)).pipe(
-          tap((res) => this.widgetTypeInfosCache.set(widgetsBundleId, res) )
-      );
+  public getBundleWidgetTypeInfosList(widgetsBundleId: string,
+                                      config?: RequestConfig): Observable<Array<WidgetTypeInfo>> {
+    return this.getBundleWidgetTypeInfos(new PageLink(1024), widgetsBundleId, false, DeprecatedFilter.ALL, null, config).pipe(
+      map((data) => data.data)
+    );
+  }
+
+  public getBundleWidgetTypeInfos(pageLink: PageLink,
+                                  widgetsBundleId: string,
+                                  fullSearch = false,
+                                  deprecatedFilter = DeprecatedFilter.ALL,
+                                  widgetTypes: Array<widgetType> = null,
+                                  config?: RequestConfig): Observable<PageData<WidgetTypeInfo>> {
+
+    let url =
+      `/api/widgetTypesInfos${pageLink.toQuery()}&widgetsBundleId=${widgetsBundleId}` +
+      `&fullSearch=${fullSearch}&deprecatedFilter=${deprecatedFilter}`;
+    if (widgetTypes && widgetTypes.length) {
+      url += `&widgetTypeList=${widgetTypes.join(',')}`;
     }
+    return this.http.get<PageData<WidgetTypeInfo>>(url, defaultHttpOptionsFromConfig(config));
   }
 
   public getWidgetType(fullFqn: string, config?: RequestConfig): Observable<WidgetType> {
@@ -233,7 +235,7 @@ export class WidgetService {
 
   public saveWidgetType(widgetTypeDetails: WidgetTypeDetails,
                         config?: RequestConfig): Observable<WidgetTypeDetails> {
-    return this.http.post<WidgetTypeDetails>(`/api/widgetType`,
+    return this.http.post<WidgetTypeDetails>(`/api/widgetType`, widgetTypeDetails,
       defaultHttpOptionsFromConfig(config));
   }
 
@@ -250,10 +252,14 @@ export class WidgetService {
   }
 
   public getWidgetTypes(pageLink: PageLink, tenantOnly = false,
-                        fullSearch = false, config?: RequestConfig): Observable<PageData<WidgetTypeInfo>> {
-    return this.http.get<PageData<WidgetTypeInfo>>(
-        `/api/widgetTypes${pageLink.toQuery()}&tenantOnly=${tenantOnly}&fullSearch=${fullSearch}`,
-      defaultHttpOptionsFromConfig(config));
+                        fullSearch = false, deprecatedFilter = DeprecatedFilter.ALL, widgetTypes: Array<widgetType> = null,
+                        config?: RequestConfig): Observable<PageData<WidgetTypeInfo>> {
+    let url =
+      `/api/widgetTypes${pageLink.toQuery()}&tenantOnly=${tenantOnly}&fullSearch=${fullSearch}&deprecatedFilter=${deprecatedFilter}`;
+    if (widgetTypes && widgetTypes.length) {
+      url += `&widgetTypeList=${widgetTypes.join(',')}`;
+    }
+    return this.http.get<PageData<WidgetTypeInfo>>(url, defaultHttpOptionsFromConfig(config));
   }
 
   public getWidgetTemplate(widgetTypeParam: widgetType,
@@ -345,6 +351,5 @@ export class WidgetService {
     this.systemWidgetsBundles = undefined;
     this.tenantWidgetsBundles = undefined;
     this.widgetsBundleCacheSubject = undefined;
-    this.widgetTypeInfosCache.clear();
   }
 }

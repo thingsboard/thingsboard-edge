@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
@@ -59,6 +60,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
@@ -300,7 +302,7 @@ public class AlarmController extends BaseController {
         UserId assigneeUserId = checkAssigneeId(assigneeId);
         TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
 
-        return checkNotNull(alarmService.findAlarms(getCurrentUser().getTenantId(), new AlarmQuery(entityId, pageLink, alarmSearchStatus, alarmStatus, assigneeUserId, fetchOriginator)).get());
+        return checkNotNull(alarmService.findAlarms(getCurrentUser().getTenantId(), new AlarmQuery(entityId, pageLink, alarmSearchStatus, alarmStatus, assigneeUserId, fetchOriginator)));
     }
 
     @ApiOperation(value = "Get All Alarms (getAllAlarms)",
@@ -347,9 +349,9 @@ public class AlarmController extends BaseController {
 
         accessControlService.checkPermission(getCurrentUser(), Resource.ALARM, Operation.READ);
         if (getCurrentUser().isCustomerUser()) {
-            return checkNotNull(alarmService.findCustomerAlarms(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId(), new AlarmQuery(null, pageLink, alarmSearchStatus, alarmStatus, assigneeUserId, fetchOriginator)).get());
+            return checkNotNull(alarmService.findCustomerAlarms(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId(), new AlarmQuery(null, pageLink, alarmSearchStatus, alarmStatus, assigneeUserId, fetchOriginator)));
         } else {
-            return checkNotNull(alarmService.findAlarms(getCurrentUser().getTenantId(), new AlarmQuery(null, pageLink, alarmSearchStatus, alarmStatus, assigneeUserId, fetchOriginator)).get());
+            return checkNotNull(alarmService.findAlarms(getCurrentUser().getTenantId(), new AlarmQuery(null, pageLink, alarmSearchStatus, alarmStatus, assigneeUserId, fetchOriginator)));
         }
     }
 
@@ -412,7 +414,7 @@ public class AlarmController extends BaseController {
         checkEntityId(entityId, Operation.READ);
         UserId assigneeUserId = checkAssigneeId(assigneeId);
         TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
-        return checkNotNull(alarmService.findAlarmsV2(getCurrentUser().getTenantId(), new AlarmQueryV2(entityId, pageLink, alarmTypeList, alarmStatusList, alarmSeverityList, assigneeUserId)).get());
+        return checkNotNull(alarmService.findAlarmsV2(getCurrentUser().getTenantId(), new AlarmQueryV2(entityId, pageLink, alarmTypeList, alarmStatusList, alarmSeverityList, assigneeUserId)));
     }
 
     @ApiOperation(value = "Get All Alarms (getAllAlarmsV2)",
@@ -469,9 +471,9 @@ public class AlarmController extends BaseController {
         TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
 
         if (getCurrentUser().isCustomerUser()) {
-            return checkNotNull(alarmService.findCustomerAlarmsV2(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId(), new AlarmQueryV2(null, pageLink, alarmTypeList, alarmStatusList, alarmSeverityList, assigneeUserId)).get());
+            return checkNotNull(alarmService.findCustomerAlarmsV2(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId(), new AlarmQueryV2(null, pageLink, alarmTypeList, alarmStatusList, alarmSeverityList, assigneeUserId)));
         } else {
-            return checkNotNull(alarmService.findAlarmsV2(getCurrentUser().getTenantId(), new AlarmQueryV2(null, pageLink, alarmTypeList, alarmStatusList, alarmSeverityList, assigneeUserId)).get());
+            return checkNotNull(alarmService.findAlarmsV2(getCurrentUser().getTenantId(), new AlarmQueryV2(null, pageLink, alarmTypeList, alarmStatusList, alarmSeverityList, assigneeUserId)));
         }
     }
 
@@ -507,6 +509,23 @@ public class AlarmController extends BaseController {
         checkEntityId(entityId, Operation.READ);
         return alarmService.findHighestAlarmSeverity(getCurrentUser().getTenantId(), entityId, alarmSearchStatus,
                 alarmStatus, assigneeId);
+    }
+
+    @ApiOperation(value = "Get Alarm Types (getAlarmTypes)",
+            notes = "Returns a set of unique alarm types based on alarms that are either owned by the tenant or assigned to the customer which user is performing the request.", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/alarm/types", method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<EntitySubtype> getAlarmTypes(@ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
+                                                 @RequestParam int pageSize,
+                                                 @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
+                                                 @RequestParam int page,
+                                                 @ApiParam(value = ALARM_QUERY_TEXT_SEARCH_DESCRIPTION)
+                                                 @RequestParam(required = false) String textSearch,
+                                                 @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+                                                 @RequestParam(required = false) String sortOrder) throws ThingsboardException, ExecutionException, InterruptedException {
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, "type", sortOrder);
+        return checkNotNull(alarmService.findAlarmTypesByTenantId(getTenantId(), pageLink));
     }
 
 }

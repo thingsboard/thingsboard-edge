@@ -74,6 +74,7 @@ import org.thingsboard.server.exception.DataValidationException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.thingsboard.server.common.data.StringUtils.generateSafeToken;
@@ -301,18 +302,28 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     @Override
     @Transactional
     public void deleteUser(TenantId tenantId, UserId userId) {
-        log.trace("Executing deleteUser [{}]", userId);
+        User user = findUserById(tenantId, userId);
+        deleteUser(tenantId, user);
+    }
+
+    @Override
+    @Transactional
+    public void deleteUser(TenantId tenantId, User user) {
+        Objects.requireNonNull(user, "User is null");
+        UserId userId = user.getId();
+        log.trace("[{}] Executing deleteUser [{}]", tenantId, userId);
         validateId(userId, INCORRECT_USER_ID + userId);
-        UserCredentials userCredentials = userCredentialsDao.findByUserId(tenantId, userId.getId());
-        userCredentialsDao.removeById(tenantId, userCredentials.getUuidId());
+        userCredentialsDao.removeByUserId(tenantId, userId);
         userAuthSettingsDao.removeByUserId(userId);
         deleteEntityRelations(tenantId, userId);
+
         userDao.removeById(tenantId, userId.getId());
         eventPublisher.publishEvent(new UserCredentialsInvalidationEvent(userId));
         countService.publishCountEntityEvictEvent(tenantId, EntityType.USER);
         eventPublisher.publishEvent(DeleteEntityEvent.builder()
                 .tenantId(tenantId)
-                .entityId(userId).build());
+                .entityId(userId)
+                .entity(user).build());
     }
 
     @Override
@@ -416,6 +427,21 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     @Override
     public PageData<User> findUsersByTenantIdAndRoles(TenantId tenantId, List<RoleId> roles, PageLink pageLink) {
         return userDao.findUsersByTenantIdAndRolesIds(tenantId, roles, pageLink);
+    }
+
+    @Override
+    public PageData<User> findUsersByTenantsIdsAndRoleId(List<TenantId> tenantsIds, RoleId roleId, PageLink pageLink) {
+        return userDao.findUsersByTenantsIdsAndRoleId(tenantsIds, roleId, pageLink);
+    }
+
+    @Override
+    public PageData<User> findUsersByTenantProfilesIdsAndRoleId(List<TenantProfileId> tenantProfilesIds, RoleId roleId, PageLink pageLink) {
+        return userDao.findUsersByTenantProfilesIdsAndRoleId(tenantProfilesIds, roleId, pageLink);
+    }
+
+    @Override
+    public PageData<User> findAllUsersByRoleId(RoleId roleId, PageLink pageLink) {
+        return userDao.findAllUsersByRoleId(roleId, pageLink);
     }
 
     @Override
@@ -559,8 +585,8 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         }
 
         @Override
-        protected void removeEntity(TenantId tenantId, User entity) {
-            deleteUser(tenantId, new UserId(entity.getUuidId()));
+        protected void removeEntity(TenantId tenantId, User user) {
+            deleteUser(tenantId, user);
         }
     };
 
@@ -573,7 +599,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
 
         @Override
         protected void removeEntity(TenantId tenantId, User entity) {
-            deleteUser(tenantId, new UserId(entity.getUuidId()));
+            deleteUser(tenantId, entity);
         }
     };
 

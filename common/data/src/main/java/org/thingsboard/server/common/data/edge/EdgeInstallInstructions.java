@@ -42,6 +42,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class EdgeInstallInstructions {
 
-    @ApiModelProperty(position = 1, value = "Markdown with docker install instructions")
-    private String dockerInstallInstructions;
+    @ApiModelProperty(position = 1, value = "Markdown with install instructions")
+    private String installInstructions;
 }

@@ -42,7 +42,10 @@ import {
 } from '@home/components/widget/lib/settings/common/image-cards-select.component';
 import { FontSettingsComponent } from '@home/components/widget/lib/settings/common/font-settings.component';
 import { FontSettingsPanelComponent } from '@home/components/widget/lib/settings/common/font-settings-panel.component';
-import { ColorSettingsComponent } from '@home/components/widget/lib/settings/common/color-settings.component';
+import {
+  ColorSettingsComponent,
+  ColorSettingsComponentService
+} from '@home/components/widget/lib/settings/common/color-settings.component';
 import {
   ColorSettingsPanelComponent
 } from '@home/components/widget/lib/settings/common/color-settings-panel.component';
@@ -55,6 +58,9 @@ import { BackgroundSettingsComponent } from '@home/components/widget/lib/setting
 import {
   BackgroundSettingsPanelComponent
 } from '@home/components/widget/lib/settings/common/background-settings-panel.component';
+import {
+  CountWidgetSettingsComponent
+} from "@home/components/widget/lib/settings/common/count-widget-settings.component";
 
 @NgModule({
   declarations: [
@@ -71,7 +77,8 @@ import {
     BackgroundSettingsPanelComponent,
     ValueSourceComponent,
     LegendConfigComponent,
-    WidgetFontComponent
+    WidgetFontComponent,
+    CountWidgetSettingsComponent
   ],
   imports: [
     CommonModule,
@@ -92,7 +99,11 @@ import {
     BackgroundSettingsPanelComponent,
     ValueSourceComponent,
     LegendConfigComponent,
-    WidgetFontComponent
+    WidgetFontComponent,
+    CountWidgetSettingsComponent
+  ],
+  providers: [
+    ColorSettingsComponentService
   ]
 })
 export class WidgetSettingsCommonModule {

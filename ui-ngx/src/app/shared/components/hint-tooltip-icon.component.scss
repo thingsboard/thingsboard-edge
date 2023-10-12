@@ -28,12 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
+:host(.tb-hint-tooltip) {
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 8px;
+}
 
+:host {
   .tb-hint-tooltip-icon {
     color: #E0E0E0;
     overflow: visible;

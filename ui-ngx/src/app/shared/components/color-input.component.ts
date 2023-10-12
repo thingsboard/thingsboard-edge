@@ -29,7 +29,16 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, forwardRef, Input, OnInit, Renderer2, ViewContainerRef } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  forwardRef,
+  Input,
+  OnInit,
+  Renderer2,
+  ViewContainerRef
+} from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -103,6 +112,10 @@ export class ColorInputComponent extends PageComponent implements OnInit, Contro
   @Input()
   disabled: boolean;
 
+  @Input()
+  @coerceBoolean()
+  readonly = false;
+
   private modelValue: string;
 
   private propagateChange = null;
@@ -170,44 +183,48 @@ export class ColorInputComponent extends PageComponent implements OnInit, Contro
 
   showColorPicker($event: MouseEvent) {
     $event.stopPropagation();
-    this.dialogs.colorPicker(this.colorFormGroup.get('color').value,
-      this.colorClearButton, this.useThemePalette).subscribe(
-      (result) => {
-        if (!result?.canceled) {
-          this.colorFormGroup.patchValue(
-            {color: result?.color}, {emitEvent: true}
-          );
-          this.cd.markForCheck();
+    if (!this.disabled && !this.readonly) {
+      this.dialogs.colorPicker(this.colorFormGroup.get('color').value,
+        this.colorClearButton, this.useThemePalette).subscribe(
+        (result) => {
+          if (!result?.canceled) {
+            this.colorFormGroup.patchValue(
+              {color: result?.color}, {emitEvent: true}
+            );
+            this.cd.markForCheck();
+          }
         }
-      }
-    );
+      );
+    }
   }
 
-  openColorPickerPopup($event: Event, matButton: MatButton) {
+  openColorPickerPopup($event: Event, element?: ElementRef) {
     if ($event) {
       $event.stopPropagation();
     }
-    const trigger = matButton._elementRef.nativeElement;
-    if (this.popoverService.hasPopover(trigger)) {
-      this.popoverService.hidePopover(trigger);
-    } else {
-      const colorPickerPopover = this.popoverService.displayPopover(trigger, this.renderer,
-        this.viewContainerRef, ColorPickerPanelComponent, 'left', true, null,
-        {
-          color: this.colorFormGroup.get('color').value,
-          colorClearButton: this.colorClearButton,
-          useThemePalette: this.useThemePalette
-        },
-        {},
-        {}, {}, true);
-      colorPickerPopover.tbComponentRef.instance.popover = colorPickerPopover;
-      colorPickerPopover.tbComponentRef.instance.colorSelected.subscribe((color) => {
-        colorPickerPopover.hide();
-        this.colorFormGroup.patchValue(
-          {color}, {emitEvent: true}
-        );
-        this.cd.markForCheck();
-      });
+    if (!this.disabled && !this.readonly) {
+      const trigger = element ? element.nativeElement : $event.target;
+      if (this.popoverService.hasPopover(trigger)) {
+        this.popoverService.hidePopover(trigger);
+      } else {
+        const colorPickerPopover = this.popoverService.displayPopover(trigger, this.renderer,
+          this.viewContainerRef, ColorPickerPanelComponent, 'left', true, null,
+          {
+            color: this.colorFormGroup.get('color').value,
+            colorClearButton: this.colorClearButton,
+            useThemePalette: this.useThemePalette
+          },
+          {},
+          {}, {}, true);
+        colorPickerPopover.tbComponentRef.instance.popover = colorPickerPopover;
+        colorPickerPopover.tbComponentRef.instance.colorSelected.subscribe((color) => {
+          colorPickerPopover.hide();
+          this.colorFormGroup.patchValue(
+            {color}, {emitEvent: true}
+          );
+          this.cd.markForCheck();
+        });
+      }
     }
   }
 

@@ -73,7 +73,6 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
 
     protected MqttClientConfiguration mqttClientConfiguration;
     protected MqttClient mqttClient;
-    protected IntegrationContext ctx;
 
     public void setMqttClient(MqttClient mqttClient) {
         this.mqttClient = mqttClient;
@@ -82,7 +81,6 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        this.ctx = params.getContext();
         mqttClientConfiguration = getClientConfiguration(configuration, MqttClientConfiguration.class);
         setupConfiguration(mqttClientConfiguration);
         if (mqttClientConfiguration.getConnectTimeoutSec() < 1) {
@@ -242,7 +240,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
 
         configuration.getCredentials().configure(config);
 
-        ListeningExecutorService listeningExecutorService = MoreExecutors.listeningDecorator(ctx.getExecutorService());
+        ListeningExecutorService listeningExecutorService = MoreExecutors.listeningDecorator(context.getExecutorService());
         ListeningExecutor handlerExecutor = new ListeningExecutor() {
             @Override
             public <T> ListenableFuture<T> executeAsync(Callable<T> task) {

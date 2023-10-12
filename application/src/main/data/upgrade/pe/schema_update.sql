@@ -184,6 +184,13 @@ CREATE TABLE IF NOT EXISTS raw_data_event (
     e_message varchar
 ) PARTITION BY RANGE (ts);
 
+CREATE TABLE IF NOT EXISTS white_labeling (
+    entity_type varchar(255),
+    entity_id uuid,
+    type VARCHAR(16),
+    settings VARCHAR(10000000),
+    domain_name VARCHAR(255) UNIQUE,
+    CONSTRAINT white_labeling_pkey PRIMARY KEY (entity_type, entity_id, type));
 
 CREATE INDEX IF NOT EXISTS idx_entity_group_by_type_name_and_owner_id ON entity_group(type, name, owner_id);
 

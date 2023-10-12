@@ -395,7 +395,7 @@ public class TbAlarmsCountNodeTest {
             alarms.add(alarm);
         }
         PageData<AlarmInfo> pageData = new PageData<>(alarms, 1, alarms.size(), false);
-        when(alarmService.findAlarms(ArgumentMatchers.any(), argThat(query -> query != null && query.getAffectedEntityId().equals(entityId)))).thenReturn(Futures.immediateFuture(pageData));
+        when(alarmService.findAlarms(ArgumentMatchers.any(), argThat(query -> query != null && query.getAffectedEntityId().equals(entityId)))).thenReturn(pageData);
         alarms.addAll(childAlarms);
         return alarms;
     }
@@ -458,19 +458,14 @@ public class TbAlarmsCountNodeTest {
         }
         PageData<AlarmInfo> alarms;
         do {
-            try {
-                alarms = service.findAlarms(TenantId.SYS_TENANT_ID, query).get();
-                for (int i = 0; i < filters.size(); i++) {
-                    Predicate<AlarmInfo> filter = matchAlarmFilter(filters.get(i));
-                    long count = alarms.getData().stream().filter(filter).map(AlarmInfo::getId).distinct().count() + alarmCounts.get(i);
-                    alarmCounts.set(i, count);
-                }
-                if (alarms.hasNext()) {
-                    query = new AlarmQuery(query.getAffectedEntityId(), query.getPageLink(), query.getSearchStatus(), query.getStatus(), null, false);
-                }
-            } catch (ExecutionException | InterruptedException e) {
-                log.warn("Failed to find alarms by query. Query: [{}]", query);
-                throw new RuntimeException(e);
+            alarms = service.findAlarms(TenantId.SYS_TENANT_ID, query);
+            for (int i = 0; i < filters.size(); i++) {
+                Predicate<AlarmInfo> filter = matchAlarmFilter(filters.get(i));
+                long count = alarms.getData().stream().filter(filter).map(AlarmInfo::getId).distinct().count() + alarmCounts.get(i);
+                alarmCounts.set(i, count);
+            }
+            if (alarms.hasNext()) {
+                query = new AlarmQuery(query.getAffectedEntityId(), query.getPageLink(), query.getSearchStatus(), query.getStatus(), null, false);
             }
         } while (alarms.hasNext());
         return alarmCounts;

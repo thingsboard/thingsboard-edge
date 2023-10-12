@@ -38,7 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ResourceType;
@@ -46,11 +45,9 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.AdminSettingsId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.oauth2.OAuth2ClientRegistrationTemplate;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
@@ -64,6 +61,7 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.io.IOException;
@@ -134,7 +132,7 @@ public class InstallScripts {
     private WidgetsBundleService widgetsBundleService;
 
     @Autowired
-    private AdminSettingsService adminSettingsService;
+    private WhiteLabelingService whiteLabelingService;
 
     @Autowired
     private EntityGroupService entityGroupService;
@@ -145,7 +143,7 @@ public class InstallScripts {
     @Autowired
     private ResourceService resourceService;
 
-    private Path getTenantRuleChainsDir() {
+    Path getTenantRuleChainsDir() {
         return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, RULE_CHAINS_DIR);
     }
 
@@ -153,11 +151,11 @@ public class InstallScripts {
         return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, ROOT_RULE_CHAIN_DIR, ROOT_RULE_CHAIN_JSON);
     }
 
-    private Path getDeviceProfileDefaultRuleChainTemplateFilePath() {
+    Path getDeviceProfileDefaultRuleChainTemplateFilePath() {
         return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, DEVICE_PROFILE_DIR, "rule_chain_template.json");
     }
 
-    private Path getEdgeRuleChainsDir() {
+    Path getEdgeRuleChainsDir() {
         return Paths.get(getDataDir(), JSON_DIR, EDGE_DIR, RULE_CHAINS_DIR);
     }
 
@@ -206,6 +204,14 @@ public class InstallScripts {
             log.error("Unable to load rule chain from json: [{}]", path.toString());
             throw new RuntimeException("Unable to load rule chain from json", e);
         }
+    }
+
+    List<Path> findRuleChainsFromPath(Path ruleChainsPath) throws IOException {
+        List<Path> paths = new ArrayList<>();
+        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(ruleChainsPath, path -> path.toString().endsWith(InstallScripts.JSON_EXT))) {
+            dirStream.forEach(paths::add);
+        }
+        return paths;
     }
 
     public RuleChain createDefaultRuleChain(TenantId tenantId, String ruleChainName) throws IOException {
@@ -305,22 +311,11 @@ public class InstallScripts {
     }
 
     public void loadMailTemplates() throws Exception {
-        AdminSettings mailTemplateSettings = new AdminSettings();
-        mailTemplateSettings.setKey("mailTemplates");
         JsonNode mailTemplatesJson = readMailTemplates();
-        mailTemplateSettings.setJsonValue(mailTemplatesJson);
-        adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, mailTemplateSettings);
+        whiteLabelingService.saveMailTemplates(TenantId.SYS_TENANT_ID, mailTemplatesJson);
     }
 
-    public void updateMailTemplates(AdminSettingsId adminSettingsId, JsonNode oldTemplates) throws Exception {
-        AdminSettings mailTemplateSettings = new AdminSettings();
-        mailTemplateSettings.setId(adminSettingsId);
-        mailTemplateSettings.setKey("mailTemplates");
-        mailTemplateSettings.setJsonValue(updateMailTemplates(oldTemplates));
-        adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, mailTemplateSettings);
-    }
-
-    public ObjectNode updateMailTemplates(JsonNode oldTemplates) throws IOException {
+    public void updateMailTemplates(JsonNode oldTemplates) throws IOException {
         JsonNode newTemplates = readMailTemplates();
 
         ObjectNode result = JacksonUtil.newObjectNode();
@@ -337,7 +332,8 @@ public class InstallScripts {
         if (updated.isPresent()) {
             result = (ObjectNode) JacksonUtil.toJsonNode(updated.get());
         }
-        return result;
+
+        whiteLabelingService.saveMailTemplates(TenantId.SYS_TENANT_ID, result);
     }
 
     public Optional<String> updateMailTemplatesFromVelocityToFreeMarker(String mailTemplatesJsonString) {
@@ -421,7 +417,7 @@ public class InstallScripts {
     }
 
     public void loadSystemLwm2mResources() {
-        Path resourceLwm2mPath = Paths.get(dataDir, MODELS_LWM2M_DIR);
+        Path resourceLwm2mPath = Paths.get(getDataDir(), MODELS_LWM2M_DIR);
         try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(resourceLwm2mPath, path -> path.toString().endsWith(InstallScripts.XML_EXT))) {
             dirStream.forEach(
                     path -> {

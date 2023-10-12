@@ -45,7 +45,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
-import org.springframework.util.CollectionUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EdgeUtils;
@@ -345,24 +344,30 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     }
 
     @Override
-    public void renameDeviceEdgeAllGroup(TenantId tenantId, Edge edge, String oldEdgeName) {
+    public void renameEdgeAllGroups(TenantId tenantId, Edge edge, String oldEdgeName) {
         log.trace("Executing renameDeviceEdgeAllGroup tenantId [{}], edge [{}], previousEdgeName [{}]", tenantId, edge, oldEdgeName);
-        ListenableFuture<EntityGroup> deviceEdgeAllGroupFuture = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, oldEdgeName, EntityType.DEVICE);
-        Futures.addCallback(deviceEdgeAllGroupFuture, new FutureCallback<EntityGroup>() {
-            @Override
-            public void onSuccess(@Nullable EntityGroup deviceEdgeAllGroup) {
-                if (deviceEdgeAllGroup != null) {
-                    String newEntityGroupName = String.format(EntityGroup.GROUP_EDGE_ALL_NAME_PATTERN, edge.getName());
-                    deviceEdgeAllGroup.setName(newEntityGroupName);
-                    entityGroupService.saveEntityGroup(tenantId, deviceEdgeAllGroup.getOwnerId(), deviceEdgeAllGroup);
+        String oldEntityGroupName = EdgeUtils.getEdgeGroupAllName(oldEdgeName);
+        String newEntityGroupName = EdgeUtils.getEdgeGroupAllName(edge.getName());
+        List<EntityType> groupTypesToRename = List.of(EntityType.DEVICE, EntityType.ASSET, EntityType.ENTITY_VIEW, EntityType.DASHBOARD);
+        for (EntityType groupType : groupTypesToRename) {
+            ListenableFuture<Optional<EntityGroup>> future =
+                    entityGroupService.findEntityGroupByTypeAndNameAsync(tenantId, edge.getOwnerId(), groupType, oldEntityGroupName);
+            Futures.addCallback(future, new FutureCallback<>() {
+                @Override
+                public void onSuccess(Optional<EntityGroup> edgeAllGroupOpt) {
+                    if (edgeAllGroupOpt.isPresent()) {
+                        EntityGroup edgeAllGroup = edgeAllGroupOpt.get();
+                        edgeAllGroup.setName(newEntityGroupName);
+                        entityGroupService.saveEntityGroup(tenantId, edgeAllGroup.getOwnerId(), edgeAllGroup);
+                    }
                 }
-            }
 
-            @Override
-            public void onFailure(Throwable t) {
-                log.error("[{}] Failed to find edge all group [{}]", tenantId, edge, t);
-            }
-        }, MoreExecutors.directExecutor());
+                @Override
+                public void onFailure(Throwable t) {
+                    log.error("[{}] Failed to find edge 'All' group [{}]", tenantId, edge, t);
+                }
+            }, MoreExecutors.directExecutor());
+        }
     }
 
     @Override
@@ -427,7 +432,15 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         Validator.validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
         validatePageLink(pageLink);
         List<UUID> entityGroupUuids = entityGroupIds.stream().map(UUIDBased::getId).collect(Collectors.toList());
-        return edgeDao.findEdgeIdsByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupUuids, groupType, pageLink);
+        return edgeDao.findEdgeIdsByTenantIdAndEntityGroupIds(tenantId.getId(), entityGroupUuids, groupType, pageLink);
+    }
+
+    @Override
+    public PageData<EdgeId> findEdgeIdsByTenantIdAndGroupEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink) {
+        log.trace("Executing findEdgeIdsByTenantIdAndGroupEntityId, tenantId [{}], entityId [{}]", tenantId, entityId);
+        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
+        validatePageLink(pageLink);
+        return edgeDao.findEdgeIdsByTenantIdAndGroupEntityId(tenantId.getId(), entityId.getId(), entityId.getEntityType(), pageLink);
     }
 
     public PageData<Edge> findEdgesByTenantProfileId(TenantProfileId tenantProfileId, PageLink pageLink) {
@@ -505,16 +518,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
             case ASSET:
             case ENTITY_VIEW:
             case DASHBOARD:
-                List<EntityGroupId> entityGroupsForEntity = null;
-                try {
-                    entityGroupsForEntity = entityGroupService.findEntityGroupsForEntityAsync(tenantId, entityId).get();
-                } catch (Exception e) {
-                    log.error("[{}] Can't find entity group for entity {}", tenantId, entityId, e);
-                }
-                if (CollectionUtils.isEmpty(entityGroupsForEntity)) {
-                    return createEmptyEdgeIdPageData();
-                }
-                return findEdgeIdsByTenantIdAndEntityGroupIds(tenantId, entityGroupsForEntity, entityId.getEntityType(), pageLink);
+                return findEdgeIdsByTenantIdAndGroupEntityId(tenantId, entityId, pageLink);
             case ENTITY_GROUP:
                 EntityGroupId entityGroupId = new EntityGroupId(entityId.getId());
                 if (groupType == null) {

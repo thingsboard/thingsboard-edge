@@ -249,12 +249,12 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                     do {
                         tenantsIds = tenantService.findTenantsIds(pageLink);
                         for (TenantId tenantId1 : tenantsIds.getData()) {
-                            futures.addAll(processActionForAllEdgesByTenantId(tenantId1, type, actionType, null, JacksonUtil.valueToTree(entityId), sourceEdgeId));
+                            futures.addAll(processActionForAllEdgesByTenantId(tenantId1, type, actionType, null, JacksonUtil.valueToTree(entityId), sourceEdgeId, null));
                         }
                         pageLink = pageLink.nextPageLink();
                     } while (tenantsIds.hasNext());
                 } else {
-                    futures = processActionForAllEdgesByTenantId(tenantId, type, actionType, null, JacksonUtil.valueToTree(entityId), sourceEdgeId);
+                    futures = processActionForAllEdgesByTenantId(tenantId, type, actionType, null, JacksonUtil.valueToTree(entityId), sourceEdgeId, null);
                 }
                 return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
             case CUSTOMER:

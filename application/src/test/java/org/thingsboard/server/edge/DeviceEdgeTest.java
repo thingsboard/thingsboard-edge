@@ -175,6 +175,19 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
 
         unAssignEntityGroupFromEdge(deviceEntityGroup2);
 
+        // remove device from entity group 1
+        edgeImitator.expectMessageAmount(1);
+        deleteEntitiesFromEntityGroup(Collections.singletonList(savedDevice.getId()), deviceEntityGroup1.getId());
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof DeviceUpdateMsg);
+        deviceUpdateMsg = (DeviceUpdateMsg) latestMessage;
+        Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, deviceUpdateMsg.getMsgType());
+        Assert.assertEquals(deviceEntityGroup1.getUuidId().getMostSignificantBits(), deviceUpdateMsg.getEntityGroupIdMSB());
+        Assert.assertEquals(deviceEntityGroup1.getUuidId().getLeastSignificantBits(), deviceUpdateMsg.getEntityGroupIdLSB());
+
+        unAssignEntityGroupFromEdge(deviceEntityGroup1);
+
         // delete device
         edgeImitator.expectMessageAmount(1);
         doDelete("/api/device/" + savedDevice.getUuidId())

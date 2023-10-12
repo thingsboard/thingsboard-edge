@@ -481,8 +481,8 @@ public final class IntegrationGrpcSession implements Closeable {
                 .setRoutingKey(configuration.getRoutingKey())
                 .setType(configuration.getType().toString())
                 .setDebugMode(configuration.isDebugMode())
-                .setConfiguration(JacksonUtil.toString(configuration.getConfiguration()))
-                .setAdditionalInfo(JacksonUtil.toString(configuration.getAdditionalInfo()))
+                .setConfiguration(JacksonUtil.writeValueAsString(configuration.getConfiguration()))
+                .setAdditionalInfo(JacksonUtil.writeValueAsString(configuration.getAdditionalInfo()))
                 .setEnabled(configuration.isEnabled())
                 .build();
     }

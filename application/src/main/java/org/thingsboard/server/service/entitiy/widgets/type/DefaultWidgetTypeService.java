@@ -33,6 +33,7 @@ package org.thingsboard.server.service.entitiy.widgets.type;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -52,7 +53,7 @@ public class DefaultWidgetTypeService extends AbstractTbEntityService implements
     @Override
     public WidgetTypeDetails save(WidgetTypeDetails widgetTypeDetails, boolean updateExistingByFqn, User user) throws Exception {
         TenantId tenantId = widgetTypeDetails.getTenantId();
-        if (widgetTypeDetails.getId() == null && updateExistingByFqn) {
+        if (widgetTypeDetails.getId() == null && StringUtils.isNotEmpty(widgetTypeDetails.getFqn()) && updateExistingByFqn) {
             WidgetType widgetType = widgetTypeService.findWidgetTypeByTenantIdAndFqn(tenantId, widgetTypeDetails.getFqn());
             if (widgetType != null) {
                 widgetTypeDetails.setId(widgetType.getId());

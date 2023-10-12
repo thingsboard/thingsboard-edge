@@ -7,13 +7,7 @@
     "description": "",
     "widgets": {
       "a4855683-5408-a263-eaac-67a08f7e3776": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 7.5,
         "sizeY": 6.5,
         "config": {
@@ -417,16 +411,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "a4855683-5408-a263-eaac-67a08f7e3776"
+        "id": "a4855683-5408-a263-eaac-67a08f7e3776",
+        "typeFullFqn": "system.cards.entities_table"
       },
       "bd47533e-1ef8-bea5-e982-728322a17536": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
         "type": "alarm",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 10.5,
         "sizeY": 6.5,
         "config": {
@@ -621,16 +610,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "bd47533e-1ef8-bea5-e982-728322a17536"
+        "id": "bd47533e-1ef8-bea5-e982-728322a17536",
+        "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
       "09402650-e84b-171f-cd11-e608d8f89bfb": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -781,7 +765,7 @@
           },
           "showLegend": false,
           "enableDataExport": false,
-          "widgetCss": "\n.tank-layout .tb-widget-container .tb-widget .tb-multiple-input {\n    /*background-color: rgba(0, 0, 0, 0.04);*/\n    border-radius: 4px;\n}\n\n.tank-layout .tb-widget-container .tb-widget .tb-multiple-input .tb-multiple-input-container {\n    padding-right: 0;\n}\n\n.tank-layout .tb-widget-container .tb-widget .tb-multiple-input .tb-multiple-input-container .label-wrapper {\n    text-overflow: ellipsis;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n.tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle {\n    margin-top: 15px;\n    margin-bottom: 15px;\n}\n\n/*.tb-widget-container .tb-widget .tb-multiple-input .mdc-form-field > label {*/\n/*    min-width: 160px;*/\n/*}*/\n\n.tb-widget-container .tb-widget .tb-multiple-input .mat-mdc-slide-toggle .mdc-form-field > label .mat-icon {\n    margin-left: 0;\n}\n\n/*.tb-widget-container .tb-widget .tb-multiple-input .mat-mdc-slide-toggle .mdc-form-field .label-wrapper {*/\n/*    font-weight: bold;*/\n/*}*/\n\n.tb-widget-container .tb-widget .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch {\n    width: 42px;\n    margin-left: 8px;\n}\n\n.tb-widget-container .tb-widget .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__track {\n    border-radius: 16px;\n    height: 24px;\n}\n\n.tb-widget-container .tb-widget .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__handle-track {\n    width: calc(100% - 24px);\n    left: 2px;\n}\n\n.tb-widget-container .tb-widget .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__handle {\n    border-radius: 10px;\n    width: 20px;\n    height: 20px;\n}\n\n.tb-widget-container .tb-widget .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__ripple {\n    width: 40px;\n    height: 40px;\n}\n\n.tb-widget-container .tb-widget .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__icons {\n    display: none;\n}\n\n.tb-widget-container .tb-widget .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch.mdc-switch--unselected:enabled .mdc-switch__handle::after {\n    background: #fafafa;\n}\n\n.tb-widget-container .tb-widget .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch.mdc-switch--selected:enabled .mdc-switch__handle::after {\n    background: #fafafa;\n}\n\n.tb-widget-container .tb-widget .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__track::after {\n    background: #9699FF !important;\n}\n\n.mat-content.mat-content-hide-toggle {\n    height: 100%;\n    margin: 0;\n}\n\n.tank-layout .mat-expansion-panel-body {\n    padding: 0;\n}\n\n.tank-layout .mdc-button {\n    color: #474BD2 !important;\n}\n\n\n.tank-layout .panel-buttons {\n    width: 100%;\n    padding-right: 1px !important;\n}\n\n.tank-layout .mat-mdc-slide-toggle .mdc-switch {\n    margin-left: 0 !important;\n}\n",
+          "widgetCss": "\n.tank-layout .tb-widget-container .tb-widget .tb-multiple-input {\n    /*background-color: rgba(0, 0, 0, 0.04);*/\n    border-radius: 4px;\n}\n\n.tank-layout .tb-widget-container .tb-widget .tb-multiple-input .tb-multiple-input-container .label-wrapper {\n    text-overflow: ellipsis;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n/*.tb-widget-container .tb-widget .tb-multiple-input .mdc-form-field > label {*/\n/*    min-width: 160px;*/\n/*}*/\n\n.tb-widget-container .tb-widget .tb-multiple-input .mat-mdc-slide-toggle .mdc-form-field > label .mat-icon {\n    margin-left: 0;\n}\n\n/*.tb-widget-container .tb-widget .tb-multiple-input .mat-mdc-slide-toggle .mdc-form-field .label-wrapper {*/\n/*    font-weight: bold;*/\n/*}*/\n\n.tb-widget-container .tb-widget .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch {\n    width: 42px;\n    margin-left: 8px;\n}\n\n.tb-widget-container .tb-widget .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__track {\n    border-radius: 16px;\n    height: 24px;\n}\n\n.tb-widget-container .tb-widget .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__handle-track {\n    width: calc(100% - 24px);\n    left: 2px;\n}\n\n.tb-widget-container .tb-widget .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__handle {\n    border-radius: 10px;\n    width: 20px;\n    height: 20px;\n}\n\n.tb-widget-container .tb-widget .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__ripple {\n    width: 40px;\n    height: 40px;\n}\n\n.tb-widget-container .tb-widget .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__icons {\n    display: none;\n}\n\n.tb-widget-container .tb-widget .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch.mdc-switch--unselected:enabled .mdc-switch__handle::after {\n    background: #fafafa;\n}\n\n.tb-widget-container .tb-widget .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch.mdc-switch--selected:enabled .mdc-switch__handle::after {\n    background: #fafafa;\n}\n\n.tb-widget-container .tb-widget .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__track::after {\n    background: #9699FF !important;\n}\n\n.mat-content.mat-content-hide-toggle {\n    height: 100%;\n    margin: 0;\n}\n\n.tank-layout .mat-expansion-panel-body {\n    padding: 0;\n}\n\n.tank-layout .mdc-button {\n    color: #474BD2 !important;\n}\n\n\n.tank-layout .panel-buttons {\n    width: 100%;\n    padding-right: 1px !important;\n}\n\n.tank-layout .mat-mdc-slide-toggle .mdc-switch {\n    margin-left: 0 !important;\n}\n",
           "noDataDisplayMessage": "",
           "useDashboardTimewindow": true,
           "pageSize": 1024,
@@ -803,16 +787,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "09402650-e84b-171f-cd11-e608d8f89bfb"
+        "id": "09402650-e84b-171f-cd11-e608d8f89bfb",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "ad8020a2-53fd-8334-c94e-2a7af3774780": {
-        "isSystemType": true,
-        "bundleAlias": "maps_v2",
-        "typeAlias": "openstreetmap",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8.5,
         "sizeY": 6,
         "config": {
@@ -1140,16 +1119,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "ad8020a2-53fd-8334-c94e-2a7af3774780"
+        "id": "ad8020a2-53fd-8334-c94e-2a7af3774780",
+        "typeFullFqn": "system.maps_v2.openstreetmap"
       },
       "50496c24-028d-33f9-2a34-60b9b5b467ce": {
-        "isSystemType": true,
-        "bundleAlias": "input_widgets",
-        "typeAlias": "update_multiple_attributes",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 7.5,
         "sizeY": 3,
         "config": {
@@ -1277,8 +1251,10 @@
             "showActionButtons": false,
             "showGroupTitle": false,
             "fieldsAlignment": "column",
+            "rowGap": 10,
             "groupTitle": "${entityName}",
-            "fieldsInRow": 2
+            "fieldsInRow": 2,
+            "columnGap": 10
           },
           "title": "Filter",
           "dropShadow": false,
@@ -1304,16 +1280,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "50496c24-028d-33f9-2a34-60b9b5b467ce"
+        "id": "50496c24-028d-33f9-2a34-60b9b5b467ce",
+        "typeFullFqn": "system.input_widgets.update_multiple_attributes"
       },
       "374e55b3-38a3-0a7c-7a1f-701959ed0ca9": {
-        "isSystemType": true,
-        "bundleAlias": "input_widgets",
-        "typeAlias": "update_multiple_attributes",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 7.5,
         "sizeY": 3,
         "config": {
@@ -1441,8 +1412,10 @@
             "showActionButtons": false,
             "showGroupTitle": false,
             "fieldsAlignment": "column",
+            "rowGap": 10,
             "groupTitle": "${entityName}",
-            "fieldsInRow": 2
+            "fieldsInRow": 2,
+            "columnGap": 10
           },
           "title": "Filter",
           "dropShadow": false,
@@ -1468,16 +1441,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "374e55b3-38a3-0a7c-7a1f-701959ed0ca9"
+        "id": "374e55b3-38a3-0a7c-7a1f-701959ed0ca9",
+        "typeFullFqn": "system.input_widgets.update_multiple_attributes"
       },
       "b89177ac-8f67-3ae5-dfc8-945d995ced41": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -1716,16 +1684,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "b89177ac-8f67-3ae5-dfc8-945d995ced41"
+        "id": "b89177ac-8f67-3ae5-dfc8-945d995ced41",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "03d839be-999a-b952-07f5-d157d6da78aa": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
         "type": "alarm",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 10.5,
         "sizeY": 6.5,
         "config": {
@@ -1903,16 +1866,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "03d839be-999a-b952-07f5-d157d6da78aa"
+        "id": "03d839be-999a-b952-07f5-d157d6da78aa",
+        "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
       "758b7a23-7296-5310-ee42-923302022cf9": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "timeseries_table",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 6.5,
         "config": {
@@ -2081,16 +2039,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "758b7a23-7296-5310-ee42-923302022cf9"
+        "id": "758b7a23-7296-5310-ee42-923302022cf9",
+        "typeFullFqn": "system.cards.timeseries_table"
       },
       "79b3975f-b3ed-f839-8209-b17d2e7a2601": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -2184,16 +2137,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "79b3975f-b3ed-f839-8209-b17d2e7a2601"
+        "id": "79b3975f-b3ed-f839-8209-b17d2e7a2601",
+        "typeFullFqn": "system.cards.markdown_card"
       },
       "b52a62ff-7409-332f-6e41-3ed879a77892": {
-        "isSystemType": true,
-        "bundleAlias": "maps_v2",
-        "typeAlias": "openstreetmap",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8.5,
         "sizeY": 6,
         "config": {
@@ -2525,16 +2473,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "b52a62ff-7409-332f-6e41-3ed879a77892"
+        "id": "b52a62ff-7409-332f-6e41-3ed879a77892",
+        "typeFullFqn": "system.maps_v2.openstreetmap"
       },
       "02cc3bba-799b-1372-295f-8d2148a3c91a": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "state_chart",
         "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 8,
         "sizeY": 5,
         "config": {
@@ -2656,7 +2599,16 @@
               "showLabels": true
             },
             "customLegendEnabled": false,
-            "dataKeysListForLabels": []
+            "dataKeysListForLabels": [],
+            "showLegend": false,
+            "legendConfig": {
+              "direction": "column",
+              ",position": "bottom",
+              "showMin": false,
+              "showMax": false,
+              "showAvg": false,
+              "showTotal": false
+            }
           },
           "title": "Remaining Chart",
           "dropShadow": false,
@@ -2670,16 +2622,7 @@
           },
           "widgetStyle": {},
           "useDashboardTimewindow": true,
-          "showLegend": false,
           "actions": {},
-          "legendConfig": {
-            "direction": "column",
-            ",position": "bottom",
-            "showMin": false,
-            "showMax": false,
-            "showAvg": false,
-            "showTotal": false
-          },
           "showTitleIcon": false,
           "titleTooltip": "",
           "enableDataExport": true,
@@ -2689,16 +2632,11 @@
         },
         "row": 0,
         "col": 0,
-        "id": "02cc3bba-799b-1372-295f-8d2148a3c91a"
+        "id": "02cc3bba-799b-1372-295f-8d2148a3c91a",
+        "typeFullFqn": "system.charts.state_chart"
       },
       "290ae79a-ff7a-9c39-6c78-21fbc85335cb": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
         "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
@@ -2803,7 +2741,8 @@
         },
         "row": 0,
         "col": 0,
-        "id": "290ae79a-ff7a-9c39-6c78-21fbc85335cb"
+        "id": "290ae79a-ff7a-9c39-6c78-21fbc85335cb",
+        "typeFullFqn": "system.cards.markdown_card"
       }
     },
     "states": {
@@ -3241,7 +3180,7 @@
       "hideToolbar": false,
       "showFilters": false,
       "showUpdateDashboardImage": false,
-      "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 8px;\n    box-shadow: 0px 2px 8px rgba(222, 223, 224, 0.25);\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget {\n    color: #4B535B !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-markdown-view {\n    overflow: hidden !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-header-cell {\n    color: rgba(0, 0, 0, 0.38) !important;\n    font-weight: 500;\n    font-size: 12px;\n    line-height: 16px;\n    letter-spacing: 0.25px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-cell {\n    color: #4B535B;\n    border-bottom-color: transparent;\n    font-size: 14px;\n    line-height: 20px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .no-data-found {\n    font-weight: 500;\n    font-size: 14px;\n    letter-spacing: 0.25px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-row:hover:not(.tb-current-entity),\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-row:hover:not(.tb-current-entity) .mat-cell.mat-table-sticky {\n    background-color: #F9F9FB !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-header-cell .mat-sort-header-arrow {\n    color: rgba(0, 0, 0, 0.38) !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::placeholder,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::-moz-placeholder,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::-webkit-input-placeholder,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element:-ms-input-placeholder {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-cell .mat-checkbox-frame,.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-header-cell .mat-checkbox-frame {\n    border-color : #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-cell button.mat-mdc-icon-button mat-icon,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-widget-actions mat-icon {\n    color: #00000061 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator button.mat-icon-button,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator .mat-select-value {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-in,\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-out {\n    color: #4B535B;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-in {\n    border-radius: 6px 6px 0 0;\n    border-bottom: 1px solid transparent; \n}\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-out {\n    border-radius: 0 0 6px 6px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control,\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-buttons-control-button{\n    border: none;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-popup a.tb-custom-action {\n    font-family: 'Roboto';\n    font-weight: 500;\n    font-size: 14px;\n    line-height: 20px;\n    letter-spacing: 0.25px;\n    border-bottom: none;\n    color: #9699FF;\n}\n\nmat-cell {\n    border: none !important;\n}\n\n@media (max-width: 1130px) {\n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch {\n       width: 32px;\n    }\n    \n    .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__track {\n        height: 20px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__handle {\n        width: 16px;\n        height: 16px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__handle-track {\n        width: calc(100% - 24px);\n        left: 6px;\n    }\n    \n    .tank-layout .mat-mdc-slide-toggle .label-wrapper {\n       font-size: 12px !important;\n       width: 100px;\n    }\n    \n    .tank-layout .tb-multiple-input-container {\n        padding: 0 3px !important;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle {\n        margin: 8px 0;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .mat-expansion-panel-body .tank-filter-toggles {\n       height: 133px;\n    }\n}\n\n@media (max-width: 959px) {\n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch {\n       width: 42px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__track {\n        height: 24px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__handle {\n        width: 20px;\n        height: 20px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__handle-track {\n        width: calc(100% - 24px);\n        left: 2px;\n    }\n    \n    .tank-layout .mat-mdc-slide-toggle .label-wrapper {\n       font-size: 14px !important;\n       width: 100%;\n    }\n    \n    .tank-layout .tb-multiple-input-container {\n        padding: 0 8px !important;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .mat-expansion-panel-body .tank-filter-toggles {\n       height: 265px;\n    }\n}"
+      "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 8px;\n    box-shadow: 0px 2px 8px rgba(222, 223, 224, 0.25);\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget {\n    color: #4B535B !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-markdown-view {\n    overflow: hidden !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-header-cell {\n    color: rgba(0, 0, 0, 0.38) !important;\n    font-weight: 500;\n    font-size: 12px;\n    line-height: 16px;\n    letter-spacing: 0.25px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-cell {\n    color: #4B535B;\n    border-bottom-color: transparent;\n    font-size: 14px;\n    line-height: 20px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .no-data-found {\n    font-weight: 500;\n    font-size: 14px;\n    letter-spacing: 0.25px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-row:hover:not(.tb-current-entity),\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-row:hover:not(.tb-current-entity) .mat-cell.mat-table-sticky {\n    background-color: #F9F9FB !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-header-cell .mat-sort-header-arrow {\n    color: rgba(0, 0, 0, 0.38) !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::placeholder,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::-moz-placeholder,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::-webkit-input-placeholder,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element:-ms-input-placeholder {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-cell .mat-checkbox-frame,.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-header-cell .mat-checkbox-frame {\n    border-color : #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-cell button.mat-mdc-icon-button .mat-icon,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-widget-actions .mat-icon {\n    color: #00000061 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator button.mat-icon-button,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator .mat-select-value {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-in,\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-out {\n    color: #4B535B;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-in {\n    border-radius: 6px 6px 0 0;\n    border-bottom: 1px solid transparent; \n}\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-out {\n    border-radius: 0 0 6px 6px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control,\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-buttons-control-button{\n    border: none;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-popup a.tb-custom-action {\n    font-family: 'Roboto';\n    font-weight: 500;\n    font-size: 14px;\n    line-height: 20px;\n    letter-spacing: 0.25px;\n    border-bottom: none;\n    color: #9699FF;\n}\n\nmat-cell {\n    border: none !important;\n}\n\n@media (max-width: 1130px) {\n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch {\n       width: 32px;\n    }\n    \n    .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__track {\n        height: 20px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__handle {\n        width: 16px;\n        height: 16px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__handle-track {\n        width: calc(100% - 24px);\n        left: 6px;\n    }\n    \n    .tank-layout .mat-mdc-slide-toggle .label-wrapper {\n       font-size: 12px !important;\n       width: 100px;\n    }\n    \n    .tank-layout .tb-multiple-input-container {\n        padding: 0 3px !important;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle {\n        margin: 8px 0;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .mat-expansion-panel-body .tank-filter-toggles {\n       height: 133px;\n    }\n}\n\n@media (max-width: 959px) {\n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch {\n       width: 42px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__track {\n        height: 24px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__handle {\n        width: 20px;\n        height: 20px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__handle-track {\n        width: calc(100% - 24px);\n        left: 2px;\n    }\n    \n    .tank-layout .mat-mdc-slide-toggle .label-wrapper {\n       font-size: 14px !important;\n       width: 100%;\n    }\n    \n    .tank-layout .tb-multiple-input-container {\n        padding: 0 8px !important;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .mat-expansion-panel-body .tank-filter-toggles {\n       height: 265px;\n    }\n}"
     }
   },
   "externalId": null,

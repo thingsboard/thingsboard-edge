@@ -30,17 +30,12 @@
  */
 package org.thingsboard.server.service.edge.rpc.processor.asset;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -53,18 +48,17 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
-import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.TbMsgDataType;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.asset.BaseAssetService;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
-import org.thingsboard.server.queue.TbQueueCallback;
-import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.UUID;
@@ -117,8 +111,8 @@ public class AssetEdgeProcessor extends BaseAssetProcessor {
         if (created) {
             createRelationFromEdge(tenantId, edge.getId(), assetId);
             pushAssetCreatedEventToRuleEngine(tenantId, edge, assetId);
-            addAssetToEdgeAllAssetGroup(tenantId, edge, assetId);
         }
+        addAssetToEdgeAllAssetGroup(tenantId, edge, assetId);
         Boolean assetNameUpdated = resultPair.getSecond();
         if (assetNameUpdated) {
             saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.ASSET, EdgeEventActionType.UPDATED, assetId, null);
@@ -128,50 +122,34 @@ public class AssetEdgeProcessor extends BaseAssetProcessor {
     private void pushAssetCreatedEventToRuleEngine(TenantId tenantId, Edge edge, AssetId assetId) {
         try {
             Asset asset = assetService.findAssetById(tenantId, assetId);
-            ObjectNode entityNode = JacksonUtil.OBJECT_MAPPER.valueToTree(asset);
-            TbMsg tbMsg = TbMsg.newMsg(TbMsgType.ENTITY_CREATED, assetId, asset.getCustomerId(),
-                    getActionTbMsgMetaData(edge, asset.getCustomerId()), TbMsgDataType.JSON, JacksonUtil.OBJECT_MAPPER.writeValueAsString(entityNode));
-            tbClusterService.pushMsgToRuleEngine(tenantId, assetId, tbMsg, new TbQueueCallback() {
-                @Override
-                public void onSuccess(TbQueueMsgMetadata metadata) {
-                    log.debug("Successfully send ENTITY_CREATED EVENT to rule engine [{}]", asset);
-                }
-
-                @Override
-                public void onFailure(Throwable t) {
-                    log.warn("Failed to send ENTITY_CREATED EVENT to rule engine [{}]", asset, t);
-                }
-            });
-        } catch (JsonProcessingException | IllegalArgumentException e) {
-            log.warn("[{}] Failed to push asset action to rule engine: {}", assetId, DataConstants.ENTITY_CREATED, e);
+            String assetAsString = JacksonUtil.toString(asset);
+            TbMsgMetaData msgMetaData = getEdgeActionTbMsgMetaData(edge, asset.getCustomerId());
+            pushEntityEventToRuleEngine(tenantId, assetId, asset.getCustomerId(), TbMsgType.ENTITY_CREATED, assetAsString, msgMetaData);
+        } catch (Exception e) {
+            log.warn("[{}][{}] Failed to push asset action to rule engine: {}", tenantId, assetId, TbMsgType.ENTITY_CREATED.name(), e);
         }
     }
 
     private void removeAssetFromEdgeAllAssetGroup(TenantId tenantId, Edge edge, AssetId assetId) {
         Asset assetToDelete = assetService.findAssetById(tenantId, assetId);
         if (assetToDelete != null) {
-            ListenableFuture<EntityGroup> edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.ASSET);
-            Futures.addCallback(edgeDeviceGroup, new FutureCallback<>() {
-                @Override
-                public void onSuccess(EntityGroup entityGroup) {
-                    if (entityGroup != null) {
-                        entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroup.getId(), assetToDelete.getId());
-                    }
+            try {
+                EntityGroup edgeAssetGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.ASSET).get();
+                if (edgeAssetGroup != null) {
+                    entityGroupService.removeEntityFromEntityGroup(tenantId, edgeAssetGroup.getId(), assetToDelete.getId());
                 }
-
-                @Override
-                public void onFailure(@NotNull Throwable t) {
-                    log.warn("Can't remove from edge asset group, asset id [{}]", assetId, t);
-                }
-            }, dbCallbackExecutorService);
+            } catch (Exception e) {
+                log.warn("[{}] Can't delete asset from edge asset 'All' group, asset id [{}]", tenantId, assetId, e);
+                throw new RuntimeException(e);
+            }
         }
     }
 
     private void addAssetToEdgeAllAssetGroup(TenantId tenantId, Edge edge, AssetId assetId) {
         try {
-            EntityGroup edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.ASSET).get();
-            if (edgeDeviceGroup != null) {
-                entityGroupService.addEntityToEntityGroup(tenantId, edgeDeviceGroup.getId(), assetId);
+            EntityGroup edgeAssetGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.ASSET).get();
+            if (edgeAssetGroup != null) {
+                entityGroupService.addEntityToEntityGroup(tenantId, edgeAssetGroup.getId(), assetId);
             }
         } catch (Exception e) {
             log.warn("Can't add asset to edge asset group, asset id [{}]", assetId, e);
@@ -179,7 +157,7 @@ public class AssetEdgeProcessor extends BaseAssetProcessor {
         }
     }
 
-    public DownlinkMsg convertAssetEventToDownlink(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertAssetEventToDownlink(EdgeEvent edgeEvent, EdgeId edgeId, EdgeVersion edgeVersion) {
         AssetId assetId = new AssetId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
         EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
@@ -198,6 +176,7 @@ public class AssetEdgeProcessor extends BaseAssetProcessor {
                             .addAssetUpdateMsg(assetUpdateMsg);
                     if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(msgType)) {
                         AssetProfile assetProfile = assetProfileService.findAssetProfileById(edgeEvent.getTenantId(), asset.getAssetProfileId());
+                        assetProfile = checkIfAssetProfileDefaultFieldsAssignedToEdge(edgeEvent.getTenantId(), edgeId, assetProfile, edgeVersion);
                         builder.addAssetProfileUpdateMsg(assetProfileMsgConstructor.constructAssetProfileUpdatedMsg(msgType, assetProfile));
                     }
                     downlinkMsg = builder.build();

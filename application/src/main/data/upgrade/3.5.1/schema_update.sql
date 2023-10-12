@@ -101,6 +101,7 @@ CREATE TABLE IF NOT EXISTS edge_event (
     edge_event_action varchar(255),
     body varchar(10000000),
     tenant_id uuid,
+    entity_group_id uuid,
     ts bigint NOT NULL
 ) PARTITION BY RANGE (created_time);
 CREATE INDEX IF NOT EXISTS idx_edge_event_tenant_id_and_created_time ON edge_event(tenant_id, created_time DESC);
@@ -123,8 +124,8 @@ BEGIN
                 EXECUTE format('CREATE TABLE IF NOT EXISTS edge_event_%s PARTITION OF edge_event ' ||
                                'FOR VALUES FROM ( %s ) TO ( %s )', p.partition_ts, p.partition_ts, partition_end_ts);
             END LOOP;
-        INSERT INTO edge_event (id, created_time, edge_id, edge_event_type, edge_event_uid, entity_id, edge_event_action, body, tenant_id, ts)
-        SELECT id, created_time, edge_id, edge_event_type, edge_event_uid, entity_id, edge_event_action, body, tenant_id, ts
+        INSERT INTO edge_event (id, created_time, edge_id, edge_event_type, edge_event_uid, entity_id, edge_event_action, body, tenant_id, entity_group_id, ts)
+        SELECT id, created_time, edge_id, edge_event_type, edge_event_uid, entity_id, edge_event_action, body, tenant_id, entity_group_id, ts
         FROM old_edge_event
         WHERE created_time >= start_time_ms AND created_time < end_time_ms;
     ELSE
@@ -141,6 +142,20 @@ UPDATE resource
     SET etag = encode(sha256(decode(resource.data, 'base64')),'hex') WHERE resource.data is not null;
 
 ALTER TABLE notification_request ALTER COLUMN info SET DATA TYPE varchar(1000000);
+
+DELETE FROM alarm WHERE tenant_id NOT IN (SELECT id FROM tenant);
+
+CREATE TABLE IF NOT EXISTS alarm_types (
+    tenant_id uuid NOT NULL,
+    type varchar(255) NOT NULL,
+    CONSTRAINT tenant_id_type_unq_key UNIQUE (tenant_id, type),
+    CONSTRAINT fk_entity_tenant_id FOREIGN KEY (tenant_id) REFERENCES tenant(id) ON DELETE CASCADE
+);
+
+INSERT INTO alarm_types (tenant_id, type) SELECT DISTINCT tenant_id, type FROM alarm ON CONFLICT (tenant_id, type) DO NOTHING;
+
+ALTER TABLE widgets_bundle ALTER COLUMN description SET DATA TYPE varchar(1024);
+ALTER TABLE widget_type ALTER COLUMN description SET DATA TYPE varchar(1024);
 
 ALTER TABLE widget_type
     ADD COLUMN IF NOT EXISTS fqn varchar(512);
@@ -209,29 +224,29 @@ CREATE TABLE IF NOT EXISTS white_labeling (
 -- move system settings
 INSERT INTO white_labeling(entity_type, entity_id, type, settings)
     (SELECT 'TENANT', tenant_id, 'GENERAL', trim('"' FROM json_value::json ->> 'value') FROM admin_settings
-        WHERE key = 'whiteLabelParams');
+        WHERE key = 'whiteLabelParams') ON CONFLICT DO NOTHING;
 
 INSERT INTO white_labeling(entity_type, entity_id, type, settings)
     (SELECT 'TENANT', tenant_id, 'LOGIN', trim('"' FROM json_value::json ->> 'value') FROM admin_settings
-       WHERE key = 'loginWhiteLabelParams');
+       WHERE key = 'loginWhiteLabelParams') ON CONFLICT DO NOTHING;
 
 -- move loginWhiteLabelParams attributes
 INSERT INTO white_labeling(entity_type, entity_id, type, settings, domain_name)
     (SELECT entity_type, entity_id, 'LOGIN', str_v, str_v::json ->> 'domainName' FROM attribute_kv
             WHERE (entity_type, entity_id::text, attribute_type, attribute_key) in
                 (SELECT trim('"' FROM json_value::json ->> 'entityType'), trim('"' FROM json_value::json ->> 'entityId'), 'SERVER_SCOPE', 'loginWhiteLabelParams'
-            FROM admin_settings WHERE key LIKE 'loginWhiteLabelDomainNamePrefix_%'));
+            FROM admin_settings WHERE key LIKE 'loginWhiteLabelDomainNamePrefix_%')) ON CONFLICT DO NOTHING;
 
 -- move whiteLabelParams attributes
 INSERT INTO white_labeling(entity_type, entity_id, type, settings)
     (SELECT entity_type, entity_id, 'GENERAL', str_v FROM attribute_kv
      WHERE entity_type = 'TENANT' AND entity_id IN (SELECT id FROM TENANT) AND attribute_type = 'SERVER_SCOPE'
-       AND  attribute_key = 'whiteLabelParams');
+       AND  attribute_key = 'whiteLabelParams') ON CONFLICT DO NOTHING;
 
 INSERT INTO white_labeling(entity_type, entity_id, type, settings)
     (SELECT entity_type, entity_id, 'GENERAL', str_v FROM attribute_kv
      WHERE entity_type = 'CUSTOMER' AND entity_id IN (SELECT id FROM CUSTOMER) AND attribute_type = 'SERVER_SCOPE'
-       AND  attribute_key = 'whiteLabelParams');
+       AND  attribute_key = 'whiteLabelParams') ON CONFLICT DO NOTHING;
 
 -- delete attributes
 DELETE FROM attribute_kv WHERE entity_type = 'TENANT' AND entity_id IN (SELECT id FROM TENANT)

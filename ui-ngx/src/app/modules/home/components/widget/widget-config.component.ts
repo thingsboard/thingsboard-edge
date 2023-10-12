@@ -454,6 +454,7 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
         this.basicModeComponentChangeSubscription = this.basicModeComponent.widgetConfigChanged.subscribe((data) => {
           this.modelValue = data;
           this.propagateChange(this.modelValue);
+          this.cd.markForCheck();
         });
         this.cd.markForCheck();
       }, 0);
@@ -741,7 +742,7 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
   }
 
   public get displayAppearanceDataSettings(): boolean {
-    return this.displayUnitsConfig || this.displayNoDataDisplayMessageConfig;
+    return !this.modelValue?.typeParameters?.hideDataSettings && (this.displayUnitsConfig || this.displayNoDataDisplayMessageConfig);
   }
 
   public get displayUnitsConfig(): boolean {

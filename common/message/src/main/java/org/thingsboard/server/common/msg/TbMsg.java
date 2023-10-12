@@ -88,7 +88,7 @@ public final class TbMsg implements Serializable {
         return ctx.getAndIncrementRuleNodeCounter();
     }
 
-    @Deprecated(since = "3.5.2", forRemoval = true)
+    @Deprecated(since = "3.6.0", forRemoval = true)
     public static TbMsg newMsg(String queueName, String type, EntityId originator, TbMsgMetaData metaData, String data, RuleChainId ruleChainId, RuleNodeId ruleNodeId) {
         return newMsg(queueName, type, originator, null, metaData, data, ruleChainId, ruleNodeId);
     }
@@ -96,7 +96,7 @@ public final class TbMsg implements Serializable {
     /**
      * Creates a new TbMsg instance with the specified parameters.
      *
-     * <p><strong>Deprecated:</strong> This method is deprecated since version 3.5.2 and should only be used when you need to
+     * <p><strong>Deprecated:</strong> This method is deprecated since version 3.6.0 and should only be used when you need to
      * specify a custom message type that doesn't exist in the {@link TbMsgType} enum. For standard message types,
      * it is recommended to use the {@link #newMsg(String, TbMsgType, EntityId, CustomerId, TbMsgMetaData, String, RuleChainId, RuleNodeId)}
      * method instead.</p>
@@ -111,7 +111,7 @@ public final class TbMsg implements Serializable {
      * @param ruleNodeId  the ID of the rule node associated with the message
      * @return new TbMsg instance
      */
-    @Deprecated(since = "3.5.2")
+    @Deprecated(since = "3.6.0")
     public static TbMsg newMsg(String queueName, String type, EntityId originator, CustomerId customerId, TbMsgMetaData metaData, String data, RuleChainId ruleChainId, RuleNodeId ruleNodeId) {
         return new TbMsg(queueName, UUID.randomUUID(), System.currentTimeMillis(), null, type, originator, customerId,
                 metaData.copy(), TbMsgDataType.JSON, data, ruleChainId, ruleNodeId, null, TbMsgCallback.EMPTY);
@@ -120,7 +120,7 @@ public final class TbMsg implements Serializable {
     /**
      * Creates a new TbMsg instance with the specified parameters.
      *
-     * <p><strong>Deprecated:</strong> This method is deprecated since version 3.5.2 and should only be used when you need to
+     * <p><strong>Deprecated:</strong> This method is deprecated since version 3.6.0 and should only be used when you need to
      * specify a custom message type that doesn't exist in the {@link TbMsgType} enum. For standard message types,
      * it is recommended to use the {@link #newMsg(TbMsgType, EntityId, TbMsgMetaData, String)}
      * method instead.</p>
@@ -131,12 +131,12 @@ public final class TbMsg implements Serializable {
      * @param data        the data of the message
      * @return new TbMsg instance
      */
-    @Deprecated(since = "3.5.2")
+    @Deprecated(since = "3.6.0")
     public static TbMsg newMsg(String type, EntityId originator, TbMsgMetaData metaData, String data) {
         return newMsg(type, originator, null, metaData, data);
     }
 
-    @Deprecated(since = "3.5.2", forRemoval = true)
+    @Deprecated(since = "3.6.0", forRemoval = true)
     public static TbMsg newMsg(String type, EntityId originator, CustomerId customerId, TbMsgMetaData metaData, String data) {
         return new TbMsg(null, UUID.randomUUID(), System.currentTimeMillis(), null, type, originator, customerId,
                 metaData.copy(), TbMsgDataType.JSON, data, null, null, null, TbMsgCallback.EMPTY);
@@ -165,7 +165,7 @@ public final class TbMsg implements Serializable {
     /**
      * Creates a new TbMsg instance with the specified parameters.
      *
-     * <p><strong>Deprecated:</strong> This method is deprecated since version 3.5.2 and should only be used when you need to
+     * <p><strong>Deprecated:</strong> This method is deprecated since version 3.6.0 and should only be used when you need to
      * specify a custom message type that doesn't exist in the {@link TbMsgType} enum. For standard message types,
      * it is recommended to use the {@link #newMsg(String, TbMsgType, EntityId, TbMsgMetaData, String)}
      * method instead.</p>
@@ -177,7 +177,7 @@ public final class TbMsg implements Serializable {
      * @param data        the data of the message
      * @return new TbMsg instance
      */
-    @Deprecated(since = "3.5.2")
+    @Deprecated(since = "3.6.0")
     public static TbMsg newMsg(String queueName, String type, EntityId originator, TbMsgMetaData metaData, String data) {
         return newMsg(queueName, type, originator, null, metaData, data);
     }
@@ -185,7 +185,7 @@ public final class TbMsg implements Serializable {
     /**
      * Creates a new TbMsg instance with the specified parameters.
      *
-     * <p><strong>Deprecated:</strong> This method is deprecated since version 3.5.2 and should only be used when you need to
+     * <p><strong>Deprecated:</strong> This method is deprecated since version 3.6.0 and should only be used when you need to
      * specify a custom message type that doesn't exist in the {@link TbMsgType} enum. For standard message types,
      * it is recommended to use the {@link #newMsg(String, TbMsgType, EntityId, CustomerId, TbMsgMetaData, String)}
      * method instead.</p>
@@ -198,13 +198,13 @@ public final class TbMsg implements Serializable {
      * @param data        the data of the message
      * @return new TbMsg instance
      */
-    @Deprecated(since = "3.5.2")
+    @Deprecated(since = "3.6.0")
     public static TbMsg newMsg(String queueName, String type, EntityId originator, CustomerId customerId, TbMsgMetaData metaData, String data) {
         return new TbMsg(queueName, UUID.randomUUID(), System.currentTimeMillis(), null, type, originator, customerId,
                 metaData.copy(), TbMsgDataType.JSON, data, null, null, null, TbMsgCallback.EMPTY);
     }
 
-    @Deprecated(since = "3.5.2", forRemoval = true)
+    @Deprecated(since = "3.6.0", forRemoval = true)
     public static TbMsg newMsg(String type, EntityId originator, CustomerId customerId, TbMsgMetaData metaData, TbMsgDataType dataType, String data) {
         return new TbMsg(null, UUID.randomUUID(), System.currentTimeMillis(), null, type, originator, customerId,
                 metaData.copy(), dataType, data, null, null, null, TbMsgCallback.EMPTY);
@@ -213,7 +213,7 @@ public final class TbMsg implements Serializable {
     /**
      * Creates a new TbMsg instance with the specified parameters.
      *
-     * <p><strong>Deprecated:</strong> This method is deprecated since version 3.5.2 and should only be used when you need to
+     * <p><strong>Deprecated:</strong> This method is deprecated since version 3.6.0 and should only be used when you need to
      * specify a custom message type that doesn't exist in the {@link TbMsgType} enum. For standard message types,
      * it is recommended to use the {@link #newMsg(TbMsgType, EntityId, TbMsgMetaData, TbMsgDataType, String)}
      * method instead.</p>
@@ -225,12 +225,12 @@ public final class TbMsg implements Serializable {
      * @param data        the data of the message
      * @return new TbMsg instance
      */
-    @Deprecated(since = "3.5.2")
+    @Deprecated(since = "3.6.0")
     public static TbMsg newMsg(String type, EntityId originator, TbMsgMetaData metaData, TbMsgDataType dataType, String data) {
         return newMsg(type, originator, null, metaData, dataType, data);
     }
 
-    @Deprecated(since = "3.5.2", forRemoval = true)
+    @Deprecated(since = "3.6.0", forRemoval = true)
     public static TbMsg newMsg(String queueName, String type, EntityId originator, TbMsgMetaData metaData, TbMsgDataType dataType, String data) {
         return new TbMsg(queueName, UUID.randomUUID(), System.currentTimeMillis(), null, type, originator, null, metaData.copy(), dataType, data, null, null, null, TbMsgCallback.EMPTY);
     }
@@ -255,13 +255,13 @@ public final class TbMsg implements Serializable {
 
     // For Tests only
 
-    @Deprecated(since = "3.5.2", forRemoval = true)
+    @Deprecated(since = "3.6.0", forRemoval = true)
     public static TbMsg newMsg(String type, EntityId originator, TbMsgMetaData metaData, TbMsgDataType dataType, String data, RuleChainId ruleChainId, RuleNodeId ruleNodeId) {
         return new TbMsg(null, UUID.randomUUID(), System.currentTimeMillis(), null, type, originator, null,
                 metaData.copy(), dataType, data, ruleChainId, ruleNodeId, null, TbMsgCallback.EMPTY);
     }
 
-    @Deprecated(since = "3.5.2", forRemoval = true)
+    @Deprecated(since = "3.6.0", forRemoval = true)
     public static TbMsg newMsg(String type, EntityId originator, TbMsgMetaData metaData, String data, TbMsgCallback callback) {
         return new TbMsg(null, UUID.randomUUID(), System.currentTimeMillis(), null, type, originator, null,
                 metaData.copy(), TbMsgDataType.JSON, data, null, null, null, callback);
@@ -270,7 +270,7 @@ public final class TbMsg implements Serializable {
     /**
      * Transforms an existing TbMsg instance by changing its message type, originator, metadata, and data.
      *
-     * <p><strong>Deprecated:</strong> This method is deprecated since version 3.5.2 and should only be used when you need to
+     * <p><strong>Deprecated:</strong> This method is deprecated since version 3.6.0 and should only be used when you need to
      * specify a custom message type that doesn't exist in the {@link TbMsgType} enum. For standard message types,
      * it is recommended to use the {@link #transformMsg(TbMsg, TbMsgType, EntityId, TbMsgMetaData, String)}
      * method instead.</p>
@@ -283,7 +283,7 @@ public final class TbMsg implements Serializable {
      * @param data       the new data
      * @return the transformed TbMsg instance
      */
-    @Deprecated(since = "3.5.2")
+    @Deprecated(since = "3.6.0")
     public static TbMsg transformMsg(TbMsg tbMsg, String type, EntityId originator, TbMsgMetaData metaData, String data) {
         return new TbMsg(tbMsg.queueName, tbMsg.id, tbMsg.ts, null, type, originator, tbMsg.customerId, metaData.copy(), tbMsg.dataType,
                 data, tbMsg.ruleChainId, tbMsg.ruleNodeId, tbMsg.ctx.copy(), tbMsg.callback);

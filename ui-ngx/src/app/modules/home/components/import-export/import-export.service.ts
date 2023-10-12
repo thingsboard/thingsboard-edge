@@ -36,7 +36,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Dashboard, DashboardLayoutId } from '@shared/models/dashboard.models';
-import { deepClone, isDefined, isNumber, isObject, isString, isUndefined } from '@core/utils';
+import { deepClone, guid, isDefined, isNumber, isObject, isString, isUndefined } from '@core/utils';
 import { WINDOW } from '@core/services/window.service';
 import { DOCUMENT } from '@angular/common';
 import {
@@ -212,6 +212,7 @@ export class ImportExportService {
         } else {
           let widget = widgetItem.widget;
           widget = this.dashboardUtils.validateAndUpdateWidget(widget);
+          widget.id = guid();
           const aliasesInfo = this.prepareAliasesInfo(widgetItem.aliasesInfo);
           const filtersInfo: FiltersInfo = widgetItem.filtersInfo || {
             datasourceFilters: {}
@@ -425,7 +426,9 @@ export class ImportExportService {
                   const widgetTypesDetails = widgetsBundleItem.widgetTypes;
                   const saveWidgetTypesObservables: Array<Observable<WidgetTypeDetails>> = [];
                   for (const widgetTypeDetails of widgetTypesDetails) {
-                    saveWidgetTypesObservables.push(this.widgetService.saveImportedWidgetTypeDetails(widgetTypeDetails));
+                    saveWidgetTypesObservables.push(
+                      this.widgetService.saveImportedWidgetTypeDetails(this.prepareWidgetType(widgetTypeDetails, savedWidgetsBundle))
+                    );
                   }
                   widgetTypesObservable = forkJoin(saveWidgetTypesObservables);
                 } else {
@@ -457,6 +460,15 @@ export class ImportExportService {
         return of(null);
       })
     );
+  }
+
+  private prepareWidgetType(widgetType: WidgetTypeDetails & {alias?: string}, widgetsBundle: WidgetsBundle): WidgetTypeDetails {
+    if (!widgetType.fqn) {
+      widgetType.fqn = `${widgetsBundle.alias}.${widgetType.alias
+                                                  ? widgetType.alias
+                                                  : widgetType.name.toLowerCase().replace(/\W/g, '_')}`;
+    }
+    return widgetType;
   }
 
   public bulkImportEntities(entitiesData: BulkImportRequest, entityType: EntityType, config?: RequestConfig): Observable<BulkImportResult> {

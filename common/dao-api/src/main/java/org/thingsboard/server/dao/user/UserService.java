@@ -70,7 +70,7 @@ public interface UserService extends EntityDaoService {
 
 	UserCredentials findUserCredentialsByActivateToken(TenantId tenantId, String activateToken);
 
-	UserCredentials findUserCredentialsByResetToken(TenantId tenantId, String resetToken);
+    UserCredentials findUserCredentialsByResetToken(TenantId tenantId, String resetToken);
 
 	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials);
 
@@ -83,6 +83,8 @@ public interface UserService extends EntityDaoService {
     UserCredentials replaceUserCredentials(TenantId tenantId, UserCredentials userCredentials);
 
     void deleteUser(TenantId tenantId, UserId userId);
+
+    void deleteUser(TenantId tenantId, User user);
 
 	PageData<User> findTenantAdmins(TenantId tenantId, PageLink pageLink);
 
@@ -114,7 +116,13 @@ public interface UserService extends EntityDaoService {
 
     PageData<User> findUsersByTenantIdAndRoles(TenantId tenantId, List<RoleId> roles, PageLink pageLink);
 
-	void setUserCredentialsEnabled(TenantId tenantId, UserId userId, boolean enabled);
+    PageData<User> findUsersByTenantsIdsAndRoleId(List<TenantId> tenantsIds, RoleId roleId, PageLink pageLink);
+
+    PageData<User> findUsersByTenantProfilesIdsAndRoleId(List<TenantProfileId> tenantProfilesIds, RoleId roleId, PageLink pageLink);
+
+    PageData<User> findAllUsersByRoleId(RoleId roleId, PageLink pageLink);
+
+    void setUserCredentialsEnabled(TenantId tenantId, UserId userId, boolean enabled);
 
     void resetFailedLoginAttempts(TenantId tenantId, UserId userId);
 
