@@ -246,7 +246,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             }
             if (downlinkMsg.getRelationUpdateMsgCount() > 0) {
                 for (RelationUpdateMsg relationUpdateMsg : downlinkMsg.getRelationUpdateMsgList()) {
-                    result.add(relationProcessor.processRelationMsg(tenantId, relationUpdateMsg));
+                    result.add(relationProcessor.processRelationMsgFromCloud(tenantId, relationUpdateMsg));
                 }
             }
             if (downlinkMsg.getWidgetsBundleUpdateMsgCount() > 0) {

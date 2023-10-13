@@ -15,6 +15,7 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
@@ -22,6 +23,7 @@ import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.gen.edge.v1.RelationRequestMsg;
 import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
@@ -32,6 +34,17 @@ import org.thingsboard.server.service.edge.rpc.processor.relation.BaseRelationPr
 @Component
 @Slf4j
 public class RelationCloudProcessor extends BaseRelationProcessor {
+
+    public ListenableFuture<Void> processRelationMsgFromCloud(TenantId tenantId, RelationUpdateMsg relationUpdateMsg) {
+        log.trace("[{}] executing processRelationMsgFromEdge [{}]", tenantId, relationUpdateMsg);
+        try {
+            cloudSynchronizationManager.getSync().set(true);
+
+            return processRelationMsg(tenantId, relationUpdateMsg);
+        } finally {
+            cloudSynchronizationManager.getSync().remove();
+        }
+    }
 
     public UplinkMsg convertRelationRequestEventToUplink(CloudEvent cloudEvent) {
         EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getType(), cloudEvent.getEntityId());
