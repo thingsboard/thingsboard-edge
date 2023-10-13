@@ -60,7 +60,7 @@ public class WidgetTypeCloudProcessor extends BaseEdgeProcessor {
                         widgetTypeDetails.setImage(widgetTypeUpdateMsg.hasImage() ? widgetTypeUpdateMsg.getImage() : null);
                         widgetTypeDetails.setDescription(widgetTypeUpdateMsg.hasDescription() ? widgetTypeUpdateMsg.getDescription() : null);
                         widgetTypeDetails.setDeprecated(widgetTypeUpdateMsg.getDeprecated());
-                        widgetTypeDetails.setTags(widgetTypeUpdateMsg.getTagsList().toArray(new String[0]));
+                        widgetTypeDetails.setTags(widgetTypeUpdateMsg.getTagsList().isEmpty() ? null : widgetTypeUpdateMsg.getTagsList().toArray(new String[0]));
                         widgetTypeService.saveWidgetType(widgetTypeDetails, false);
                     } finally {
                         widgetCreationLock.unlock();
