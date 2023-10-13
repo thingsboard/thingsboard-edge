@@ -15,10 +15,12 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.service.edge.rpc.processor.alarm.BaseAlarmProcessor;
@@ -26,6 +28,16 @@ import org.thingsboard.server.service.edge.rpc.processor.alarm.BaseAlarmProcesso
 @Component
 @Slf4j
 public class AlarmCloudProcessor extends BaseAlarmProcessor {
+
+    public ListenableFuture<Void> processAlarmMsgFromCloud(TenantId tenantId, AlarmUpdateMsg alarmUpdateMsg) {
+        log.trace("[{}] processAlarmMsgFromCloud [{}]", tenantId, alarmUpdateMsg);
+        try {
+            cloudSynchronizationManager.getSync().set(true);
+            return processAlarmMsg(tenantId, alarmUpdateMsg);
+        } finally {
+            cloudSynchronizationManager.getSync().remove();
+        }
+    }
 
     public UplinkMsg convertAlarmEventToUplink(CloudEvent cloudEvent) {
         AlarmUpdateMsg alarmUpdateMsg =
