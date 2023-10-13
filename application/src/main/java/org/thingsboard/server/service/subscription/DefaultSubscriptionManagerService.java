@@ -281,7 +281,7 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
         if (entityId.getEntityType() == EntityType.EDGE) {
             try {
                 EdgeId edgeId = new EdgeId(entityId.getId());
-                String body = JacksonUtil.OBJECT_MAPPER.writeValueAsString(attributes);
+                String body = JacksonUtil.writeValueAsString(attributes);
                 clusterService.sendNotificationMsgToEdge(tenantId,
                         edgeId,
                         edgeId,
