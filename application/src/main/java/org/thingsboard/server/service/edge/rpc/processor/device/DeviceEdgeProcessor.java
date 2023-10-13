@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
+import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -65,10 +66,10 @@ import java.util.UUID;
 public class DeviceEdgeProcessor extends BaseDeviceProcessor {
 
     public ListenableFuture<Void> processDeviceMsgFromEdge(TenantId tenantId, Edge edge, DeviceUpdateMsg deviceUpdateMsg) {
-        log.trace("[{}] executing processDeviceMsgFromEdge [{}] from edge [{}]", tenantId, deviceUpdateMsg, edge.getName());
+        log.trace("[{}] executing processDeviceMsgFromEdge [{}] from edge [{}]", tenantId, deviceUpdateMsg, edge.getId());
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
         try {
-            edgeSynchronizationManager.getSync().set(true);
+            edgeSynchronizationManager.getEdgeId().set(edge.getId());
 
             switch (deviceUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
@@ -93,8 +94,20 @@ public class DeviceEdgeProcessor extends BaseDeviceProcessor {
                 return Futures.immediateFailedFuture(e);
             }
         } finally {
-            edgeSynchronizationManager.getSync().remove();
+            edgeSynchronizationManager.getEdgeId().remove();
         }
+    }
+
+    public ListenableFuture<Void> processDeviceCredentialsMsgFromEdge(TenantId tenantId, EdgeId edgeId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {
+        log.debug("[{}] Executing processDeviceCredentialsMsgFromEdge, deviceCredentialsUpdateMsg [{}]", tenantId, deviceCredentialsUpdateMsg);
+        try {
+            edgeSynchronizationManager.getEdgeId().set(edgeId);
+
+            updateDeviceCredentials(tenantId, deviceCredentialsUpdateMsg);
+        } finally {
+            edgeSynchronizationManager.getEdgeId().remove();
+        }
+        return Futures.immediateFuture(null);
     }
 
     private void saveOrUpdateDevice(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg, Edge edge) {

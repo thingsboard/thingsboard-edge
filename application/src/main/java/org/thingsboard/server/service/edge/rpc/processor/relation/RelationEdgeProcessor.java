@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
@@ -45,8 +46,19 @@ import java.util.Set;
 @TbCoreComponent
 public class RelationEdgeProcessor extends BaseRelationProcessor {
 
+    public ListenableFuture<Void> processRelationMsgFromEdge(TenantId tenantId, Edge edge, RelationUpdateMsg relationUpdateMsg) {
+        log.trace("[{}] executing processRelationMsgFromEdge [{}] from edge [{}]", tenantId, relationUpdateMsg, edge.getId());
+        try {
+            edgeSynchronizationManager.getEdgeId().set(edge.getId());
+
+            return processRelationMsg(tenantId, relationUpdateMsg);
+        } finally {
+            edgeSynchronizationManager.getEdgeId().remove();
+        }
+    }
+
     public DownlinkMsg convertRelationEventToDownlink(EdgeEvent edgeEvent) {
-        EntityRelation entityRelation = JacksonUtil.OBJECT_MAPPER.convertValue(edgeEvent.getBody(), EntityRelation.class);
+        EntityRelation entityRelation = JacksonUtil.convertValue(edgeEvent.getBody(), EntityRelation.class);
         UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
         RelationUpdateMsg relationUpdateMsg = relationMsgConstructor.constructRelationUpdatedMsg(msgType, entityRelation);
         return DownlinkMsg.newBuilder()
@@ -75,7 +87,7 @@ public class RelationEdgeProcessor extends BaseRelationProcessor {
                     EdgeEventType.RELATION,
                     EdgeEventActionType.valueOf(edgeNotificationMsg.getAction()),
                     null,
-                    JacksonUtil.OBJECT_MAPPER.valueToTree(relation)));
+                    JacksonUtil.valueToTree(relation)));
         }
         return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
     }
