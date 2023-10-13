@@ -58,7 +58,7 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     userCreationLock.lock();
                     try {
-                        User user = JacksonUtil.fromEdgeString(userUpdateMsg.getEntity(), User.class);
+                        User user = JacksonUtil.fromStringIgnoreUnknownProperties(userUpdateMsg.getEntity(), User.class);
                         if (user == null) {
                             throw new RuntimeException("[{" + tenantId + "}] userUpdateMsg {" + userUpdateMsg + "} cannot be converted to user");
                         }
@@ -93,7 +93,7 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
     public ListenableFuture<Void> processUserCredentialsMsgFromCloud(TenantId tenantId, UserCredentialsUpdateMsg userCredentialsUpdateMsg) {
         try {
             edgeSynchronizationManager.getSync().set(true);
-            UserCredentials userCredentialsMsg = JacksonUtil.fromEdgeString(userCredentialsUpdateMsg.getEntity(), UserCredentials.class);
+            UserCredentials userCredentialsMsg = JacksonUtil.fromStringIgnoreUnknownProperties(userCredentialsUpdateMsg.getEntity(), UserCredentials.class);
             if (userCredentialsMsg == null) {
                 throw new RuntimeException("[{" + tenantId + "}] userCredentialsUpdateMsg {" + userCredentialsUpdateMsg + "} cannot be converted to user credentials");
             }

@@ -66,7 +66,7 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     deviceCreationLock.lock();
                     try {
-                        DeviceProfile deviceProfileMsg = JacksonUtil.fromEdgeString(deviceProfileUpdateMsg.getEntity(), DeviceProfile.class);
+                        DeviceProfile deviceProfileMsg = JacksonUtil.fromStringIgnoreUnknownProperties(deviceProfileUpdateMsg.getEntity(), DeviceProfile.class);
                         if (deviceProfileMsg == null) {
                             throw new RuntimeException("[{" + tenantId + "}] deviceProfileUpdateMsg {" + deviceProfileUpdateMsg + "} cannot be converted to device profile");
                         }
@@ -192,7 +192,7 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
     }
 
     @Override
-    protected void setDefaultRuleChainId(TenantId tenantId, DeviceProfile deviceProfile) {
+    protected void setDefaultRuleChainId(TenantId tenantId, DeviceProfile deviceProfile, RuleChainId ruleChainId) {
         RuleChainId defaultRuleChainId = deviceProfile.getDefaultEdgeRuleChainId();
         RuleChain ruleChain = null;
         if (defaultRuleChainId != null) {

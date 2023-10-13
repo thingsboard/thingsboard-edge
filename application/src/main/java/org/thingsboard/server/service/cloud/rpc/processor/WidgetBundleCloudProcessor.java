@@ -50,7 +50,7 @@ public class WidgetBundleCloudProcessor extends BaseEdgeProcessor {
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     widgetCreationLock.lock();
                     try {
-                        WidgetsBundle widgetsBundle = JacksonUtil.fromEdgeString(widgetsBundleUpdateMsg.getEntity(), WidgetsBundle.class);
+                        WidgetsBundle widgetsBundle = JacksonUtil.fromStringIgnoreUnknownProperties(widgetsBundleUpdateMsg.getEntity(), WidgetsBundle.class);
                         if (widgetsBundle == null) {
                             throw new RuntimeException("[{" + tenantId + "}] widgetsBundleUpdateMsg {" + widgetsBundleUpdateMsg + "} cannot be converted to widget bundle");
                         }
