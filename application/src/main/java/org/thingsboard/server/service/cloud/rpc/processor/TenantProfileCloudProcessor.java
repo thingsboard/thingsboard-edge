@@ -47,7 +47,7 @@ public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
     public ListenableFuture<Void> processTenantProfileMsgFromCloud(TenantId tenantId, TenantProfileUpdateMsg tenantProfileUpdateMsg) {
         TenantProfileId tenantProfileId = new TenantProfileId(new UUID(tenantProfileUpdateMsg.getIdMSB(), tenantProfileUpdateMsg.getIdLSB()));
         try {
-            edgeSynchronizationManager.getSync().set(true);
+            cloudSynchronizationManager.getSync().set(true);
 
             switch (tenantProfileUpdateMsg.getMsgType()) {
                 case ENTITY_UPDATED_RPC_MESSAGE:
@@ -88,7 +88,7 @@ public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
                     return handleUnsupportedMsgType(tenantProfileUpdateMsg.getMsgType());
             }
         } finally {
-            edgeSynchronizationManager.getSync().remove();
+            cloudSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
     }
