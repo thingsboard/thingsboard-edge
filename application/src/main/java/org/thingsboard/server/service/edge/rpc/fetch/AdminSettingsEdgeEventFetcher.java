@@ -76,7 +76,7 @@ public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
             AdminSettings sysAdminMainSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key);
             if (sysAdminMainSettings != null) {
                 result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
-                        EdgeEventActionType.UPDATED, null, JacksonUtil.OBJECT_MAPPER.valueToTree(sysAdminMainSettings)));
+                        EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(sysAdminMainSettings)));
             }
             Optional<AttributeKvEntry> tenantMailSettingsAttr = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, key).get();
             if (tenantMailSettingsAttr.isPresent()) {
@@ -84,9 +84,9 @@ public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
                 tenantMailSettings.setTenantId(tenantId);
                 tenantMailSettings.setKey(key);
                 String value = tenantMailSettingsAttr.get().getValueAsString();
-                tenantMailSettings.setJsonValue(JacksonUtil.OBJECT_MAPPER.readTree(value));
+                tenantMailSettings.setJsonValue(JacksonUtil.toJsonNode(value));
                 result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
-                        EdgeEventActionType.UPDATED, null, JacksonUtil.OBJECT_MAPPER.valueToTree(tenantMailSettings)));
+                        EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(tenantMailSettings)));
             }
         }
         //mailTemplates
@@ -97,7 +97,7 @@ public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
             systemAdminSettings.setKey("mailTemplates");
             systemAdminSettings.setJsonValue(systemMailTemplates);
             result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
-                    EdgeEventActionType.UPDATED, null, JacksonUtil.OBJECT_MAPPER.valueToTree(systemAdminSettings)));
+                    EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(systemAdminSettings)));
         }
         JsonNode tenantMailTemplates = whiteLabelingService.findMailTemplatesByTenantId(TenantId.SYS_TENANT_ID, tenantId);
         if (!tenantMailTemplates.isEmpty()) {
@@ -106,7 +106,7 @@ public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
             tenantAdminSettings.setKey("mailTemplates");
             tenantAdminSettings.setJsonValue(tenantMailTemplates);
             result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
-                    EdgeEventActionType.UPDATED, null, JacksonUtil.OBJECT_MAPPER.valueToTree(tenantMailTemplates)));
+                    EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(tenantMailTemplates)));
         }
 
         // @voba - returns PageData object to be in sync with other fetchers

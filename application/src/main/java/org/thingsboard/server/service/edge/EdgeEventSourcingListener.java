@@ -98,7 +98,7 @@ public class EdgeEventSourcingListener {
             log.trace("[{}] SaveEntityEvent called: {}", event.getTenantId(), event);
             EdgeEventActionType action = Boolean.TRUE.equals(event.getAdded()) ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED;
             tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), null, event.getEntityId(),
-                    null, null, action, edgeSynchronizationManager.getEdgeId());
+                    null, null, action, edgeSynchronizationManager.getEdgeId().get());
         } catch (Exception e) {
             log.error("[{}] failed to process SaveEntityEvent: {}", event.getTenantId(), event);
         }
@@ -110,7 +110,7 @@ public class EdgeEventSourcingListener {
             log.trace("[{}] DeleteEntityEvent called: {}", event.getTenantId(), event);
             tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), null, event.getEntityId(),
                     JacksonUtil.toString(event.getEntity()), null, EdgeEventActionType.DELETED,
-                    edgeSynchronizationManager.getEdgeId());
+                    edgeSynchronizationManager.getEdgeId().get());
         } catch (Exception e) {
             log.error("[{}] failed to process DeleteEntityEvent: {}", event.getTenantId(), event);
         }
@@ -134,7 +134,7 @@ public class EdgeEventSourcingListener {
             log.trace("[{}] ActionEntityEvent called: {}", event.getTenantId(), event);
             tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), event.getEdgeId(), event.getEntityId(),
                     event.getBody(), event.getEdgeEventType(), edgeTypeByActionType(event.getActionType()),
-                    entityGroupType, entityGroupId, edgeSynchronizationManager.getEdgeId());
+                    entityGroupType, entityGroupId, edgeSynchronizationManager.getEdgeId().get());
         } catch (Exception e) {
             log.error("[{}] failed to process ActionEntityEvent: {}", event.getTenantId(), event);
         }
@@ -155,7 +155,7 @@ public class EdgeEventSourcingListener {
             log.trace("[{}] RelationActionEvent called: {}", event.getTenantId(), event);
             tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), null, null,
                     JacksonUtil.toString(relation), EdgeEventType.RELATION, edgeTypeByActionType(event.getActionType()),
-                    edgeSynchronizationManager.getEdgeId());
+                    edgeSynchronizationManager.getEdgeId().get());
         } catch (Exception e) {
             log.error("[{}] failed to process RelationActionEvent: {}", event.getTenantId(), event);
         }

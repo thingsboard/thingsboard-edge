@@ -546,6 +546,8 @@ public abstract class BaseEdgeProcessor {
                                 return Futures.immediateFuture(null);
                             }
                         }, dbCallbackExecutorService);
+                    } else {
+                        return Futures.immediateFuture(null);
                     }
                 case CHANGE_OWNER:
                     if (edgeId != null) {

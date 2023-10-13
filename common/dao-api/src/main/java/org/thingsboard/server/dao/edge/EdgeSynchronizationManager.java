@@ -34,7 +34,5 @@ import org.thingsboard.server.common.data.id.EdgeId;
 
 public interface EdgeSynchronizationManager {
 
-    ThreadLocal<EdgeId> getSync();
-
-    EdgeId getEdgeId();
+    ThreadLocal<EdgeId> getEdgeId();
 }
