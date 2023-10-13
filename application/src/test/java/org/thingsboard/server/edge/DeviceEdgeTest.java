@@ -120,7 +120,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
         Optional<DeviceUpdateMsg> deviceUpdateMsgOpt = edgeImitator.findMessageByType(DeviceUpdateMsg.class);
         Assert.assertTrue(deviceUpdateMsgOpt.isPresent());
         deviceUpdateMsg = deviceUpdateMsgOpt.get();
-        Device deviceFromMsg = JacksonUtil.fromEdgeString(deviceUpdateMsg.getEntity(), Device.class);
+        Device deviceFromMsg = JacksonUtil.fromStringIgnoreUnknownProperties(deviceUpdateMsg.getEntity(), Device.class);
         Assert.assertNotNull(deviceFromMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, deviceUpdateMsg.getMsgType());
         Assert.assertEquals(savedDevice, deviceFromMsg);
@@ -151,7 +151,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
         latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof DeviceUpdateMsg);
         deviceUpdateMsg = (DeviceUpdateMsg) latestMessage;
-        deviceFromMsg = JacksonUtil.fromEdgeString(deviceUpdateMsg.getEntity(), Device.class);
+        deviceFromMsg = JacksonUtil.fromStringIgnoreUnknownProperties(deviceUpdateMsg.getEntity(), Device.class);
         Assert.assertNotNull(deviceFromMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, deviceUpdateMsg.getMsgType());
         Assert.assertEquals(savedCustomer.getId(), deviceFromMsg.getCustomerId());
@@ -163,7 +163,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
         latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof DeviceUpdateMsg);
         deviceUpdateMsg = (DeviceUpdateMsg) latestMessage;
-        deviceFromMsg = JacksonUtil.fromEdgeString(deviceUpdateMsg.getEntity(), Device.class);
+        deviceFromMsg = JacksonUtil.fromStringIgnoreUnknownProperties(deviceUpdateMsg.getEntity(), Device.class);
         Assert.assertNotNull(deviceFromMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, deviceUpdateMsg.getMsgType());
         Assert.assertEquals(
@@ -205,7 +205,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof DeviceCredentialsUpdateMsg);
         DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg = (DeviceCredentialsUpdateMsg) latestMessage;
-        DeviceCredentials deviceCredentialsMsg = JacksonUtil.fromEdgeString(deviceCredentialsUpdateMsg.getEntity(), DeviceCredentials.class);
+        DeviceCredentials deviceCredentialsMsg = JacksonUtil.fromStringIgnoreUnknownProperties(deviceCredentialsUpdateMsg.getEntity(), DeviceCredentials.class);
         Assert.assertEquals(deviceCredentials, deviceCredentialsMsg);
 
         // update device credentials - X509_CERTIFICATE
@@ -219,7 +219,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
         latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof DeviceCredentialsUpdateMsg);
         deviceCredentialsUpdateMsg = (DeviceCredentialsUpdateMsg) latestMessage;
-        deviceCredentialsMsg = JacksonUtil.fromEdgeString(deviceCredentialsUpdateMsg.getEntity(), DeviceCredentials.class);
+        deviceCredentialsMsg = JacksonUtil.fromStringIgnoreUnknownProperties(deviceCredentialsUpdateMsg.getEntity(), DeviceCredentials.class);
         Assert.assertNotNull(deviceCredentialsMsg);
         Assert.assertEquals(deviceCredentials.getCredentialsType(), deviceCredentialsMsg.getCredentialsType());
         Assert.assertFalse(deviceCredentialsMsg.getCredentialsId().isEmpty());
@@ -254,7 +254,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof DeviceUpdateMsg);
         DeviceUpdateMsg deviceUpdateMsg = (DeviceUpdateMsg) latestMessage;
-        Device deviceMsg = JacksonUtil.fromEdgeString(deviceUpdateMsg.getEntity(), Device.class);
+        Device deviceMsg = JacksonUtil.fromStringIgnoreUnknownProperties(deviceUpdateMsg.getEntity(), Device.class);
         Assert.assertNotNull(deviceMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, deviceUpdateMsg.getMsgType());
         Assert.assertEquals(savedDevice, deviceMsg);
@@ -375,7 +375,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof DeviceCredentialsUpdateMsg);
         DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg = (DeviceCredentialsUpdateMsg) latestMessage;
-        DeviceCredentials deviceCredentialsMsg = JacksonUtil.fromEdgeString(deviceCredentialsUpdateMsg.getEntity(), DeviceCredentials.class);
+        DeviceCredentials deviceCredentialsMsg = JacksonUtil.fromStringIgnoreUnknownProperties(deviceCredentialsUpdateMsg.getEntity(), DeviceCredentials.class);
         Assert.assertNotNull(deviceCredentialsMsg);
         Assert.assertEquals(device.getId(), deviceCredentialsMsg.getDeviceId());
         Assert.assertEquals(deviceCredentials, deviceCredentialsMsg);
@@ -520,7 +520,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
         Optional<DeviceUpdateMsg> deviceUpdateMsgOpt = edgeImitator.findMessageByType(DeviceUpdateMsg.class);
         Assert.assertTrue(deviceUpdateMsgOpt.isPresent());
         DeviceUpdateMsg latestDeviceUpdateMsg = deviceUpdateMsgOpt.get();
-        Device deviceLatestMsg = JacksonUtil.fromEdgeString(latestDeviceUpdateMsg.getEntity(), Device.class);
+        Device deviceLatestMsg = JacksonUtil.fromStringIgnoreUnknownProperties(latestDeviceUpdateMsg.getEntity(), Device.class);
         Assert.assertNotNull(deviceLatestMsg);
         Assert.assertNotEquals(deviceOnCloudName, deviceLatestMsg.getName());
 

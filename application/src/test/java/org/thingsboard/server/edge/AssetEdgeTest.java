@@ -22,7 +22,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetInfo;
@@ -60,7 +59,7 @@ public class AssetEdgeTest extends AbstractEdgeTest {
         Optional<AssetUpdateMsg> assetUpdateMsgOpt = edgeImitator.findMessageByType(AssetUpdateMsg.class);
         Assert.assertTrue(assetUpdateMsgOpt.isPresent());
         AssetUpdateMsg assetUpdateMsg = assetUpdateMsgOpt.get();
-        Asset assetMsg = JacksonUtil.fromEdgeString(assetUpdateMsg.getEntity(), Asset.class);
+        Asset assetMsg = JacksonUtil.fromStringIgnoreUnknownProperties(assetUpdateMsg.getEntity(), Asset.class);
         Assert.assertNotNull(assetMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, assetUpdateMsg.getMsgType());
         Assert.assertEquals(savedAsset, assetMsg);
@@ -79,7 +78,7 @@ public class AssetEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof AssetUpdateMsg);
         assetUpdateMsg = (AssetUpdateMsg) latestMessage;
-        assetMsg = JacksonUtil.fromEdgeString(assetUpdateMsg.getEntity(), Asset.class);
+        assetMsg = JacksonUtil.fromStringIgnoreUnknownProperties(assetUpdateMsg.getEntity(), Asset.class);
         Assert.assertNotNull(assetMsg);
         Assert.assertEquals(savedAsset.getName(), assetMsg.getName());
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, assetUpdateMsg.getMsgType());
@@ -111,7 +110,7 @@ public class AssetEdgeTest extends AbstractEdgeTest {
         assetUpdateMsgOpt = edgeImitator.findMessageByType(AssetUpdateMsg.class);
         Assert.assertTrue(assetUpdateMsgOpt.isPresent());
         assetUpdateMsg = assetUpdateMsgOpt.get();
-        assetMsg = JacksonUtil.fromEdgeString(assetUpdateMsg.getEntity(), Asset.class);
+        assetMsg = JacksonUtil.fromStringIgnoreUnknownProperties(assetUpdateMsg.getEntity(), Asset.class);
         Assert.assertNotNull(assetMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, assetUpdateMsg.getMsgType());
         Assert.assertEquals(savedAsset, assetMsg);
@@ -138,7 +137,7 @@ public class AssetEdgeTest extends AbstractEdgeTest {
         latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof AssetUpdateMsg);
         assetUpdateMsg = (AssetUpdateMsg) latestMessage;
-        assetMsg = JacksonUtil.fromEdgeString(assetUpdateMsg.getEntity(), Asset.class);
+        assetMsg = JacksonUtil.fromStringIgnoreUnknownProperties(assetUpdateMsg.getEntity(), Asset.class);
         Assert.assertNotNull(assetMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, assetUpdateMsg.getMsgType());
         Assert.assertEquals(savedCustomer.getId(), assetMsg.getCustomerId());
@@ -150,7 +149,7 @@ public class AssetEdgeTest extends AbstractEdgeTest {
         latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof AssetUpdateMsg);
         assetUpdateMsg = (AssetUpdateMsg) latestMessage;
-        assetMsg = JacksonUtil.fromEdgeString(assetUpdateMsg.getEntity(), Asset.class);
+        assetMsg = JacksonUtil.fromStringIgnoreUnknownProperties(assetUpdateMsg.getEntity(), Asset.class);
         Assert.assertNotNull(assetMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, assetUpdateMsg.getMsgType());
         Assert.assertEquals(new CustomerId(EntityId.NULL_UUID), assetMsg.getCustomerId());
@@ -225,7 +224,7 @@ public class AssetEdgeTest extends AbstractEdgeTest {
         Optional<AssetUpdateMsg> assetUpdateMsgOpt = edgeImitator.findMessageByType(AssetUpdateMsg.class);
         Assert.assertTrue(assetUpdateMsgOpt.isPresent());
         AssetUpdateMsg latestAssetUpdateMsg = assetUpdateMsgOpt.get();
-        Asset assetMsg = JacksonUtil.fromEdgeString(latestAssetUpdateMsg.getEntity(), Asset.class);
+        Asset assetMsg = JacksonUtil.fromStringIgnoreUnknownProperties(latestAssetUpdateMsg.getEntity(), Asset.class);
         Assert.assertNotNull(assetMsg);
         Assert.assertNotEquals(assetOnCloudName, assetMsg.getName());
 
