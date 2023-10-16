@@ -1827,9 +1827,10 @@
         "condition-duration-value-required": "Duration value is required.",
         "condition-duration-time-unit-required": "Time unit is required.",
         "advanced-settings": "Advanced settings",
-        "alarm-rule-details": "Details",
-        "alarm-rule-details-hint": "Hint: use <code><span style=\"color: #000;\">$&#123;</span>keyName<span style=\"color: #000;\">&#125;</span></code> to substitute values of the attribute or telemetry keys that are used in alarm rule condition.",
-        "add-alarm-rule-details": "Add details",
+        "alarm-rule-additional-info": "Additional info",
+        "edit-alarm-rule-additional-info": "Edit additional info",
+        "alarm-rule-additional-info-placeholder": "Please provide your comments and adjustments here to display them within Alarm details under Additional info",
+        "alarm-rule-additional-info-hint": "Hint: use <code><span style=\"color: #000;\">$&#123;</span>keyName<span style=\"color: #000;\">&#125;</span></code> to substitute values of the attribute or telemetry keys that are used in alarm rule condition.",
         "alarm-rule-mobile-dashboard": "Mobile dashboard",
         "alarm-rule-mobile-dashboard-hint": "Used by mobile application as an alarm details dashboard",
         "alarm-rule-no-mobile-dashboard": "No dashboard selected",
@@ -1839,7 +1840,6 @@
         "propagate-alarm-to-owner": "Propagate alarm to entity owner (Customer or Tenant)",
         "propagate-alarm-to-owner-hierarchy": "Propagate alarm to entity owners hierarchy",
         "propagate-alarm-to-tenant": "Propagate alarm to Tenant",
-        "alarm-details": "Alarm details",
         "alarm-rule-condition": "Alarm rule condition",
         "enter-alarm-rule-condition-prompt": "Please add alarm rule condition",
         "edit-alarm-rule-condition": "Edit alarm rule condition",
@@ -3087,7 +3087,10 @@
            "attribute": "Attribute",
            "timeseries": "Timeseries",
            "entity-field": "Entity field",
-           "constant": "Constant"
+           "constant": "Constant",
+           "client-attribute": "Client attribute",
+           "server-attribute": "Server attribute",
+           "shared-attribute": "Shared attribute"
          },
          "value-type": {
            "value-type": "Value type",
@@ -3275,6 +3278,7 @@
             "attribute-name-required": "Attribute name is required",
             "command": "Command",
             "command-required": "Command is required",
+            "command-pattern": "Command is not valid",
             "remove": "Remove command"
         },
         "storage": "Storage",
@@ -6531,6 +6535,22 @@
             "battery-shape-color": "Battery shape color",
             "battery-level-card-style": "Battery level card style",
             "sections-count": "Sections count"
+        },
+        "signal-strength": {
+            "value": "Value",
+            "last-update": "Last update",
+            "no-signal": "No signal",
+            "layout": "Layout",
+            "layout-wifi": "Wi-Fi",
+            "layout-cellular-bar": "Cellular bar",
+            "icon": "Icon",
+            "date": "Date",
+            "active-bars-color": "Active signal bars color",
+            "inactive-bars-color": "Inactive signal bars color",
+            "tooltip": "Tooltip",
+            "background-color": "Background color",
+            "background-blur": "Background blur",
+            "signal-strength-card-style": "Signal strength card style"
         },
         "chart": {
             "common-settings": "Common settings",

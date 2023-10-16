@@ -30,40 +30,26 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form [formGroup]="editDetailsFormGroup" (ngSubmit)="save()" style="width: 800px;">
-  <mat-toolbar color="primary">
-    <h2>{{ 'device-profile.edit-alarm-rule-additional-info' | translate }}</h2>
-    <span fxFlex></span>
-    <button mat-icon-button
-            (click)="cancel()"
-            type="button">
-      <mat-icon class="material-icons">close</mat-icon>
-    </button>
-  </mat-toolbar>
-  <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">
-  </mat-progress-bar>
-  <div mat-dialog-content>
-    <fieldset [disabled]="isLoading$ | async">
-      <div fxFlex fxLayout="column">
-        <mat-form-field class="mat-block">
-          <textarea matInput formControlName="alarmDetails" rows="5"
-            placeholder="{{ 'device-profile.alarm-rule-additional-info-placeholder' | translate }}"></textarea>
-          <mat-hint [innerHTML]="'device-profile.alarm-rule-additional-info-hint' | translate | safe: 'html'"></mat-hint>
-        </mat-form-field>
-      </div>
-    </fieldset>
-  </div>
-  <div mat-dialog-actions fxLayoutAlign="end center">
-    <button mat-button color="primary"
-            type="button"
-            [disabled]="(isLoading$ | async)"
-            (click)="cancel()" cdkFocusInitial>
-      {{ 'action.cancel' | translate }}
-    </button>
-    <button *ngIf="!data.readonly" mat-raised-button color="primary"
-            type="submit"
-            [disabled]="(isLoading$ | async) || editDetailsFormGroup.invalid || !editDetailsFormGroup.dirty">
-      {{ 'action.save' | translate }}
-    </button>
-  </div>
-</form>
+<div class="tb-signal-strength-panel" [style]="backgroundStyle" [class.tb-signal-strength-pointer]="hasCardClickAction" (click)="cardClick($event)">
+    <div class="tb-signal-strength-overlay" [style]="overlayStyle"></div>
+    <div *ngIf="widgetComponent.dashboardWidget.showWidgetTitlePanel || showDate" class="tb-signal-strength-title-panel">
+        <ng-container *ngTemplateOutlet="widgetTitlePanel"></ng-container>
+        <div *ngIf="showDate" [style]="dateStyle" [innerHTML]="dateFormat.formatted"></div>
+    </div>
+    <div class="tb-signal-strength-content">
+        <div #signalStrengthShape class="tb-signal-strength-shape">
+        </div>
+        <div *ngIf="showTooltip" class="tb-signal-strength-tooltip-container">
+            <div #signalStrengthTooltip [style]="tooltipStyle" class="tb-signal-strength-tooltip">
+                <div *ngIf="showTooltipValue" class="tb-signal-strength-tooltip-row">
+                    <div [style]="tooltipValueLabelStyle" translate>widgets.signal-strength.value</div>
+                    <div [style]="tooltipValueStyle">{{ tooltipValueText }}</div>
+                </div>
+                <div *ngIf="showTooltipDate" class="tb-signal-strength-tooltip-row">
+                    <div [style]="tooltipDateLabelStyle" translate>widgets.signal-strength.last-update</div>
+                    <div [style]="tooltipDateStyle" [innerHTML]="tooltipDateFormat.formatted"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

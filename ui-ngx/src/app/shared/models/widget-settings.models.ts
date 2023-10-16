@@ -246,6 +246,7 @@ export interface DateFormatSettings {
   format?: string;
   lastUpdateAgo?: boolean;
   custom?: boolean;
+  hideLastUpdatePrefix?: boolean;
 }
 
 export const simpleDateFormat = (format: string): DateFormatSettings => ({
@@ -334,8 +335,13 @@ export class LastUpdateAgoDateFormatProcessor extends DateFormatProcessor {
   }
 
   update(ts: string| number | Date): void {
-    this.formatted = this.translate.instant('date.last-update-n-ago-text',
-      {agoText: this.dateAgoPipe.transform(ts, {applyAgo: true, short: true, textPart: true})});
+    const agoText = this.dateAgoPipe.transform(ts, {applyAgo: true, short: true, textPart: true});
+    if (this.settings.hideLastUpdatePrefix) {
+      this.formatted = agoText;
+    } else {
+      this.formatted = this.translate.instant('date.last-update-n-ago-text',
+        {agoText});
+    }
   }
 
 }

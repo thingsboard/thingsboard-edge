@@ -315,6 +315,9 @@ import {
 import {
   WindSpeedDirectionWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/weather/wind-speed-direction-widget-settings.component';
+import {
+  SignalStrengthWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/indicator/signal-strength-widget-settings.component';
 
 @NgModule({
   declarations: [
@@ -423,6 +426,7 @@ import {
     EntityCountWidgetSettingsComponent,
     BatteryLevelWidgetSettingsComponent,
     WindSpeedDirectionWidgetSettingsComponent,
+    SignalStrengthWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -539,6 +543,7 @@ import {
     EntityCountWidgetSettingsComponent,
     BatteryLevelWidgetSettingsComponent,
     WindSpeedDirectionWidgetSettingsComponent,
+    SignalStrengthWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -620,6 +625,7 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-entity-count-widget-settings': EntityCountWidgetSettingsComponent,
   'tb-battery-level-widget-settings': BatteryLevelWidgetSettingsComponent,
   'tb-wind-speed-direction-widget-settings': WindSpeedDirectionWidgetSettingsComponent,
+  'tb-signal-strength-widget-settings': SignalStrengthWidgetSettingsComponent,
   'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
   'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
 };
