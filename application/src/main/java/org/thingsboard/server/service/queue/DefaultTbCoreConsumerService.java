@@ -433,7 +433,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             callback.onSuccess();
         }
         if (statsEnabled) {
-            stats.logToCoreNotification();
+            stats.log(toCoreNotification);
         }
     }
 
@@ -704,24 +704,15 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     }
 
     private void forwardToDownlinkService(IntegrationDownlinkMsgProto integrationDownlinkMsg, TbCallback callback) {
-        if (statsEnabled) {
-            stats.logToCoreNotification();
-        }
         downlinkService.onDownlinkToRemoteIntegrationMsg(integrationDownlinkMsg, callback);
     }
 
     private void forwardToIntegrationManagerService(IntegrationValidationResponseProto integrationDownlinkMsg, TbCallback callback) {
-        if (statsEnabled) {
-            stats.logToCoreNotification();
-        }
         integrationManagerService.handleValidationResponse(integrationDownlinkMsg, callback);
     }
 
 
     private void forwardToRuleEngineCallService(RestApiCallResponseMsgProto restApiCallResponseMsg, TbCallback callback) {
-        if (statsEnabled) {
-            stats.logToCoreNotification();
-        }
         ruleEngineCallService.onQueueMsg(restApiCallResponseMsg, callback);
     }
 
