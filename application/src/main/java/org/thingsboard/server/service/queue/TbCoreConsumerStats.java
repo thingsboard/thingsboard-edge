@@ -55,6 +55,12 @@ public class TbCoreConsumerStats {
     public static final String EDGE_NOTIFICATIONS = "edgeNfs";
     public static final String DEVICE_ACTIVITIES = "deviceActivity";
 
+    // PE
+    public static final String TO_CORE_NF_INTEGRATION_DOWNLINK = "coreNfIntDlnk";
+    public static final String TO_CORE_NF_INTEGRATION_VALIDATION_RESPONSE = "coreNfIntValRsp";
+    public static final String TO_CORE_NF_REST_API_CALL_RESPONSE = "coreNfRestRsp";
+    // ...PE
+
     public static final String TO_CORE_NF_OTHER = "coreNfOther"; // normally, there is no messages when codebase is fine
     public static final String TO_CORE_NF_COMPONENT_LIFECYCLE = "coreNfCompLfcl";
     public static final String TO_CORE_NF_DEVICE_RPC_RESPONSE = "coreNfDevRpcRsp";
@@ -77,11 +83,17 @@ public class TbCoreConsumerStats {
     private final StatsCounter subscriptionInfoCounter;
     private final StatsCounter claimDeviceCounter;
 
-    private final StatsCounter schedulerMsgCounter;
     private final StatsCounter deviceStateCounter;
     private final StatsCounter subscriptionMsgCounter;
     private final StatsCounter edgeNotificationsCounter;
     private final StatsCounter deviceActivitiesCounter;
+
+    // PE
+    private final StatsCounter schedulerMsgCounter;
+    private final StatsCounter integrationDownlinkCounter;
+    private final StatsCounter IntegartionValidationCounter;
+    private final StatsCounter RestApiCallResponseCounter;
+    // ...PE
 
     private final StatsCounter toCoreNfOtherCounter;
     private final StatsCounter toCoreNfComponentLifecycleCounter;
@@ -96,7 +108,7 @@ public class TbCoreConsumerStats {
     private final StatsCounter toCoreNfSubscriptionManagerCounter;
     private final StatsCounter toCoreNfVersionControlResponseCounter;
 
-    private final List<StatsCounter> counters = new ArrayList<>(25);
+    private final List<StatsCounter> counters = new ArrayList<>(24 + 4); //CE + PE
 
     public TbCoreConsumerStats(StatsFactory statsFactory) {
         String statsKey = StatsType.CORE.getName();
@@ -111,9 +123,15 @@ public class TbCoreConsumerStats {
         this.claimDeviceCounter = register(statsFactory.createStatsCounter(statsKey, DEVICE_CLAIMS));
         this.deviceStateCounter = register(statsFactory.createStatsCounter(statsKey, DEVICE_STATES));
         this.subscriptionMsgCounter = register(statsFactory.createStatsCounter(statsKey, SUBSCRIPTION_MSGS));
-        this.schedulerMsgCounter = register(statsFactory.createStatsCounter(statsKey, SCHEDULER));
         this.edgeNotificationsCounter = register(statsFactory.createStatsCounter(statsKey, EDGE_NOTIFICATIONS));
         this.deviceActivitiesCounter = register(statsFactory.createStatsCounter(statsKey, DEVICE_ACTIVITIES));
+
+        // PE
+        this.schedulerMsgCounter = register(statsFactory.createStatsCounter(statsKey, SCHEDULER));
+        this.integrationDownlinkCounter = register(statsFactory.createStatsCounter(statsKey, TO_CORE_NF_INTEGRATION_DOWNLINK));
+        this.IntegartionValidationCounter = register(statsFactory.createStatsCounter(statsKey, TO_CORE_NF_INTEGRATION_VALIDATION_RESPONSE));
+        this.RestApiCallResponseCounter = register(statsFactory.createStatsCounter(statsKey, TO_CORE_NF_REST_API_CALL_RESPONSE));
+        // ...PE
 
         // Core notification counters
         this.toCoreNfOtherCounter = register(statsFactory.createStatsCounter(statsKey, TO_CORE_NF_OTHER));
@@ -192,6 +210,16 @@ public class TbCoreConsumerStats {
             toCoreNfSubscriptionServiceCounter.increment();
         } else if (msg.hasFromDeviceRpcResponse()) {
             toCoreNfDeviceRpcResponseCounter.increment();
+
+            // PE
+        } else if (msg.hasIntegrationDownlinkMsg()) {
+            this.integrationDownlinkCounter.increment();
+        } else if (msg.hasIntegrationValidationResponseMsg()) {
+            this.IntegartionValidationCounter.increment();
+        } else if (msg.hasRestApiCallResponseMsg()) {
+            this.RestApiCallResponseCounter.increment();
+            // ...PE
+
         } else if (!msg.getComponentLifecycleMsg().isEmpty()) {
             toCoreNfComponentLifecycleCounter.increment();
         } else if (!msg.getEdgeEventUpdateMsg().isEmpty()) {
