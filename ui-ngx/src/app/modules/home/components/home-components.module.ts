@@ -233,6 +233,7 @@ import { DeleteTimeseriesPanelComponent } from '@home/components/attribute/delet
 import {
   ExportWidgetsBundleDialogComponent
 } from '@home/components/import-export/export-widgets-bundle-dialog.component';
+import { ScrollGridComponent } from '@home/components/grid/scroll-grid.component';
 
 @NgModule({
   declarations:
@@ -408,7 +409,8 @@ import {
       IntegrationWizardDialogComponent,
       ConverterComponent,
       ConverterTestDialogComponent,
-      SendNotificationButtonComponent
+      SendNotificationButtonComponent,
+      ScrollGridComponent
     ],
   imports: [
     CommonModule,
@@ -577,7 +579,8 @@ import {
     RateLimitsListComponent,
     RateLimitsTextComponent,
     IntegrationWizardDialogComponent,
-    SendNotificationButtonComponent
+    SendNotificationButtonComponent,
+    ScrollGridComponent
   ],
   providers: [
     WidgetComponentService,

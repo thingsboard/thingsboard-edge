@@ -37,7 +37,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
@@ -51,7 +50,6 @@ import org.thingsboard.rule.engine.profile.TbDeviceProfileNode;
 import org.thingsboard.rule.engine.profile.TbDeviceProfileNodeConfiguration;
 import org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNode;
 import org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNodeConfiguration;
-import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
@@ -138,11 +136,11 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -164,10 +162,7 @@ import static org.thingsboard.server.common.data.StringUtils.isBlank;
 public class DefaultDataUpdateService implements DataUpdateService {
 
     private static final int MAX_PENDING_SAVE_RULE_NODE_FUTURES = 100;
-
-    private static final String MAIL_TEMPLATES = "mailTemplates";
     private static final int DEFAULT_LIMIT = 100;
-    public static final String USE_SYSTEM_MAIL_SETTINGS = "useSystemMailSettings";
 
     @Autowired
     private TenantService tenantService;
@@ -192,6 +187,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     @Autowired
     private AdminSettingsService adminSettingsService;
+
+    @Autowired
+    private WhiteLabelingService whiteLabelingService;
 
     @Autowired
     private CustomerService customerService;
@@ -360,13 +358,12 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 // tenantIntegrationUpdater.updateEntities();
 
                 //for 2.4.0
-                AdminSettings mailTemplateSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mailTemplates");
-                if (mailTemplateSettings == null) {
+                JsonNode mailTemplatesSettings = whiteLabelingService.findMailTemplatesByTenantId(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID);
+                if (mailTemplatesSettings.isEmpty()) {
                     systemDataLoaderService.loadMailTemplates();
                 } else {
-                    systemDataLoaderService.updateMailTemplates(mailTemplateSettings.getId(), mailTemplateSettings.getJsonValue());
+                    systemDataLoaderService.updateMailTemplates(mailTemplatesSettings);
                 }
-
                 // todo: update TbDuplicateMsgToGroupNode to use TbVersionedNode interface.
                 updateDuplicateMsgRuleNode();
                 break;
@@ -1182,21 +1179,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
             }
             return Futures.immediateFuture(null);
         }, MoreExecutors.directExecutor());
-    }
-
-    private ListenableFuture<List<String>> updateTenantMailTemplates(TenantId tenantId) throws IOException {
-        String mailTemplatesJsonString = getEntityAttributeValue(tenantId, MAIL_TEMPLATES);
-        if (!StringUtils.isEmpty(mailTemplatesJsonString)) {
-            JsonNode oldMailTemplates = JacksonUtil.toJsonNode(mailTemplatesJsonString);
-            ObjectNode updatedMailTemplates = installScripts.updateMailTemplates(oldMailTemplates);
-
-            if (oldMailTemplates.has(USE_SYSTEM_MAIL_SETTINGS)) {
-                updatedMailTemplates.set(USE_SYSTEM_MAIL_SETTINGS, oldMailTemplates.get(USE_SYSTEM_MAIL_SETTINGS));
-            }
-
-            return saveEntityAttribute(tenantId, MAIL_TEMPLATES, updatedMailTemplates.toString());
-        }
-        return Futures.immediateFuture(Collections.emptyList());
     }
 
     private void updateTenantIntegrations(TenantId tenantId) {

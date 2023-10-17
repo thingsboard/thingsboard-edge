@@ -48,10 +48,8 @@ import java.util.UUID;
 @Slf4j
 public abstract class BaseRelationProcessor extends BaseEdgeProcessor {
 
-    public ListenableFuture<Void> processRelationMsg(TenantId tenantId, RelationUpdateMsg relationUpdateMsg) {
-        log.trace("[{}] processRelationMsg [{}]", tenantId, relationUpdateMsg);
+    protected ListenableFuture<Void> processRelationMsg(TenantId tenantId, RelationUpdateMsg relationUpdateMsg) {
         try {
-            edgeSynchronizationManager.getSync().set(true);
             EntityRelation entityRelation = new EntityRelation();
 
             UUID fromUUID = new UUID(relationUpdateMsg.getFromIdMSB(), relationUpdateMsg.getFromIdLSB());
@@ -87,8 +85,6 @@ public abstract class BaseRelationProcessor extends BaseEdgeProcessor {
         } catch (Exception e) {
             log.error("[{}] Failed to process relation update msg [{}]", tenantId, relationUpdateMsg, e);
             return Futures.immediateFailedFuture(e);
-        } finally {
-            edgeSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
     }

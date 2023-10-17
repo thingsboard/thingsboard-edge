@@ -317,7 +317,6 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         schedulerEventService.deleteSchedulerEventsByTenantId(tenantId);
         blobEntityService.deleteBlobEntitiesByTenantId(tenantId);
         deleteEntityGroups(tenantId, tenantId);
-        deleteEntityRelations(tenantId, tenantId);
         groupPermissionService.deleteGroupPermissionsByTenantId(tenantId);
         roleService.deleteRolesByTenantId(tenantId);
         apiUsageStateService.deleteApiUsageStateByTenantId(tenantId);
@@ -333,7 +332,8 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         tenantDao.removeById(tenantId, tenantId.getId());
         publishEvictEvent(new TenantEvictEvent(tenantId, true));
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(tenantId).build());
-        deleteEntityRelations(tenantId, tenantId);
+        relationService.deleteEntityRelations(tenantId, tenantId);
+        alarmService.deleteEntityAlarmRecordsByTenantId(tenantId);
     }
 
     @Override

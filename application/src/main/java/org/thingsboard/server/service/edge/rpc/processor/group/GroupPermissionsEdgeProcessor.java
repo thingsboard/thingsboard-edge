@@ -94,6 +94,7 @@ public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
         EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());
         EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(type,
                 new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
+        EdgeId sourceEdgeId = safeGetEdgeId(edgeNotificationMsg.getSourceEdgeIdMSB(), edgeNotificationMsg.getSourceEdgeIdLSB());
         switch (actionType) {
             case ADDED:
             case UPDATED:
@@ -127,7 +128,7 @@ public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
                     return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
                 }, dbCallbackExecutorService);
             case DELETED:
-                return processActionForAllEdges(tenantId, type, actionType, entityId);
+                return processActionForAllEdges(tenantId, type, actionType, entityId, sourceEdgeId);
             default:
                 return Futures.immediateFuture(null);
         }

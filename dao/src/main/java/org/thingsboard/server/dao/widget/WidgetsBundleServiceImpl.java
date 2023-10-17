@@ -131,10 +131,10 @@ public class WidgetsBundleServiceImpl implements WidgetsBundleService {
     }
 
     @Override
-    public PageData<WidgetsBundle> findSystemWidgetsBundlesByPageLink(TenantId tenantId, PageLink pageLink) {
-        log.trace("Executing findSystemWidgetsBundles, pageLink [{}]", pageLink);
+    public PageData<WidgetsBundle> findSystemWidgetsBundlesByPageLink(TenantId tenantId, boolean fullSearch, PageLink pageLink) {
+        log.trace("Executing findSystemWidgetsBundles, fullSearch [{}], pageLink [{}]", fullSearch, pageLink);
         Validator.validatePageLink(pageLink);
-        return widgetsBundleDao.findSystemWidgetsBundles(tenantId, pageLink);
+        return widgetsBundleDao.findSystemWidgetsBundles(tenantId, fullSearch, pageLink);
     }
 
     @Override
@@ -144,7 +144,7 @@ public class WidgetsBundleServiceImpl implements WidgetsBundleService {
         PageLink pageLink = new PageLink(DEFAULT_WIDGETS_BUNDLE_LIMIT);
         PageData<WidgetsBundle> pageData;
         do {
-            pageData = findSystemWidgetsBundlesByPageLink(tenantId, pageLink);
+            pageData = findSystemWidgetsBundlesByPageLink(tenantId, false, pageLink);
             widgetsBundles.addAll(pageData.getData());
             if (pageData.hasNext()) {
                 pageLink = pageLink.nextPageLink();
@@ -162,11 +162,11 @@ public class WidgetsBundleServiceImpl implements WidgetsBundleService {
     }
 
     @Override
-    public PageData<WidgetsBundle> findAllTenantWidgetsBundlesByTenantIdAndPageLink(TenantId tenantId, PageLink pageLink) {
-        log.trace("Executing findAllTenantWidgetsBundlesByTenantIdAndPageLink, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+    public PageData<WidgetsBundle> findAllTenantWidgetsBundlesByTenantIdAndPageLink(TenantId tenantId, boolean fullSearch, PageLink pageLink) {
+        log.trace("Executing findAllTenantWidgetsBundlesByTenantIdAndPageLink, tenantId [{}], fullSearch [{}], pageLink [{}]", tenantId, fullSearch, pageLink);
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         Validator.validatePageLink(pageLink);
-        return widgetsBundleDao.findAllTenantWidgetsBundlesByTenantId(tenantId.getId(), pageLink);
+        return widgetsBundleDao.findAllTenantWidgetsBundlesByTenantId(tenantId.getId(), fullSearch, pageLink);
     }
 
     @Override
@@ -177,7 +177,7 @@ public class WidgetsBundleServiceImpl implements WidgetsBundleService {
         PageLink pageLink = new PageLink(DEFAULT_WIDGETS_BUNDLE_LIMIT);
         PageData<WidgetsBundle> pageData;
         do {
-            pageData = findAllTenantWidgetsBundlesByTenantIdAndPageLink(tenantId, pageLink);
+            pageData = findAllTenantWidgetsBundlesByTenantIdAndPageLink(tenantId, false, pageLink);
             widgetsBundles.addAll(pageData.getData());
             if (pageData.hasNext()) {
                 pageLink = pageLink.nextPageLink();

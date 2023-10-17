@@ -48,31 +48,12 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.AdminSettings;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.DeviceProfile;
-import org.thingsboard.server.common.data.DeviceProfileProvisionType;
-import org.thingsboard.server.common.data.DeviceProfileType;
-import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.alarm.AlarmSeverity;
-import org.thingsboard.server.common.data.device.profile.AlarmCondition;
-import org.thingsboard.server.common.data.device.profile.AlarmConditionFilter;
-import org.thingsboard.server.common.data.device.profile.AlarmConditionFilterKey;
-import org.thingsboard.server.common.data.device.profile.AlarmConditionKeyType;
-import org.thingsboard.server.common.data.device.profile.AlarmRule;
-import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileConfiguration;
-import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileTransportConfiguration;
-import org.thingsboard.server.common.data.device.profile.DeviceProfileAlarm;
-import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
-import org.thingsboard.server.common.data.device.profile.DisabledDeviceProfileProvisionConfiguration;
-import org.thingsboard.server.common.data.device.profile.SimpleAlarmConditionSpec;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.AdminSettingsId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
@@ -80,28 +61,22 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.BooleanDataEntry;
-import org.thingsboard.server.common.data.kv.DoubleDataEntry;
-import org.thingsboard.server.common.data.kv.LongDataEntry;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.query.BooleanFilterPredicate;
-import org.thingsboard.server.common.data.query.DynamicValue;
-import org.thingsboard.server.common.data.query.DynamicValueSourceType;
-import org.thingsboard.server.common.data.query.EntityKeyValueType;
-import org.thingsboard.server.common.data.query.FilterPredicateValue;
-import org.thingsboard.server.common.data.query.NumericFilterPredicate;
 import org.thingsboard.server.common.data.queue.ProcessingStrategy;
 import org.thingsboard.server.common.data.queue.ProcessingStrategyType;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.queue.SubmitStrategy;
 import org.thingsboard.server.common.data.queue.SubmitStrategyType;
-import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileData;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileQueueConfiguration;
+import org.thingsboard.server.common.data.widget.DeprecatedFilter;
+import org.thingsboard.server.common.data.widget.WidgetTypeInfo;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -126,16 +101,12 @@ import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsServ
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.thingsboard.server.common.data.DataConstants.DEFAULT_DEVICE_TYPE;
 
 @Service
 @Profile("install")
@@ -314,7 +285,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
     }
 
     @Override
-    public void updateMailTemplates(AdminSettingsId adminSettingsId, JsonNode value) throws Exception {
+    public void updateMailTemplates(JsonNode value) throws Exception {
         // TODO: @voba merge comment
         // installScripts.updateMailTemplates(adminSettingsId, value);
     }
@@ -528,10 +499,15 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
     public void deleteSystemWidgetBundle(String bundleAlias) throws Exception {
         WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleByTenantIdAndAlias(TenantId.SYS_TENANT_ID, bundleAlias);
         if (widgetsBundle != null) {
-            var widgetTypes = widgetTypeService.findWidgetTypesInfosByWidgetsBundleId(TenantId.SYS_TENANT_ID, widgetsBundle.getId());
-            for (var widgetType : widgetTypes) {
-                widgetTypeService.deleteWidgetType(TenantId.SYS_TENANT_ID, widgetType.getId());
-            }
+            PageData<WidgetTypeInfo> widgetTypes;
+            var pageLink = new PageLink(1024);
+            do {
+                widgetTypes = widgetTypeService.findWidgetTypesInfosByWidgetsBundleId(TenantId.SYS_TENANT_ID, widgetsBundle.getId(), false, DeprecatedFilter.ALL, null, pageLink);
+                for (var widgetType : widgetTypes.getData()) {
+                    widgetTypeService.deleteWidgetType(TenantId.SYS_TENANT_ID, widgetType.getId());
+                }
+                pageLink.nextPageLink();
+            } while (widgetTypes.hasNext());
             widgetsBundleService.deleteWidgetsBundle(TenantId.SYS_TENANT_ID, widgetsBundle.getId());
         }
     }
@@ -565,6 +541,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         this.deleteSystemWidgetBundle("html_widgets");
         this.deleteSystemWidgetBundle("tables");
         this.deleteSystemWidgetBundle("count_widgets");
+        this.deleteSystemWidgetBundle("weather_widgets");
         installScripts.loadSystemWidgets();
     }
 

@@ -128,6 +128,8 @@ public interface EntityViewDao extends Dao<EntityView>, ExportableCustomerEntity
 
     PageData<EntityView> findEntityViewsByEntityGroupIdsAndType(List<UUID> groupIds, String type, PageLink pageLink);
 
+    boolean existsByTenantIdAndEntityId(UUID tenantId, UUID entityId);
+
     /**
      * Find tenants entity view types.
      *
