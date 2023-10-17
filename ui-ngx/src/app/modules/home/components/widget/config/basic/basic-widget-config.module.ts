@@ -82,6 +82,9 @@ import {
 import {
   ValueChartCardBasicConfigComponent
 } from '@home/components/widget/config/basic/cards/value-chart-card-basic-config.component';
+import {
+  ProgressBarBasicConfigComponent
+} from '@home/components/widget/config/basic/cards/progress-bar-basic-config.component';
 
 @NgModule({
   declarations: [
@@ -102,7 +105,8 @@ import {
     BatteryLevelBasicConfigComponent,
     WindSpeedDirectionBasicConfigComponent,
     SignalStrengthBasicConfigComponent,
-    ValueChartCardBasicConfigComponent
+    ValueChartCardBasicConfigComponent,
+    ProgressBarBasicConfigComponent
   ],
   imports: [
     CommonModule,
@@ -127,7 +131,8 @@ import {
     BatteryLevelBasicConfigComponent,
     WindSpeedDirectionBasicConfigComponent,
     SignalStrengthBasicConfigComponent,
-    ValueChartCardBasicConfigComponent
+    ValueChartCardBasicConfigComponent,
+    ProgressBarBasicConfigComponent
   ]
 })
 export class BasicWidgetConfigModule {
@@ -146,5 +151,6 @@ export const basicWidgetConfigComponentsMap: {[key: string]: Type<IBasicWidgetCo
   'tb-battery-level-basic-config': BatteryLevelBasicConfigComponent,
   'tb-wind-speed-direction-basic-config': WindSpeedDirectionBasicConfigComponent,
   'tb-signal-strength-basic-config': SignalStrengthBasicConfigComponent,
-  'tb-value-chart-card-basic-config': ValueChartCardBasicConfigComponent
+  'tb-value-chart-card-basic-config': ValueChartCardBasicConfigComponent,
+  'tb-progress-bar-basic-config': ProgressBarBasicConfigComponent
 };

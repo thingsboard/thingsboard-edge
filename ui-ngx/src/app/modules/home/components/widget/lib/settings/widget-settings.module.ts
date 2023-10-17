@@ -321,6 +321,9 @@ import {
 import {
   ValueChartCardWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/cards/value-chart-card-widget-settings.component';
+import {
+  ProgressBarWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/cards/progress-bar-widget-settings.component';
 
 @NgModule({
   declarations: [
@@ -431,6 +434,7 @@ import {
     WindSpeedDirectionWidgetSettingsComponent,
     SignalStrengthWidgetSettingsComponent,
     ValueChartCardWidgetSettingsComponent,
+    ProgressBarWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -549,6 +553,7 @@ import {
     WindSpeedDirectionWidgetSettingsComponent,
     SignalStrengthWidgetSettingsComponent,
     ValueChartCardWidgetSettingsComponent,
+    ProgressBarWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -632,6 +637,7 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-wind-speed-direction-widget-settings': WindSpeedDirectionWidgetSettingsComponent,
   'tb-signal-strength-widget-settings': SignalStrengthWidgetSettingsComponent,
   'tb-value-chart-card-widget-settings': ValueChartCardWidgetSettingsComponent,
+  'tb-progress-bar-widget-settings': ProgressBarWidgetSettingsComponent,
   'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
   'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
 };

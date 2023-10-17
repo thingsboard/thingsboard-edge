@@ -28,21 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-.tb-wind-speed-direction-panel {
+.tb-progress-bar-panel {
   width: 100%;
   height: 100%;
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  align-items: center;
+  justify-content: center;
   padding: 20px 24px 24px 24px;
-  &.tb-wind-speed-direction-pointer {
-    cursor: pointer;
-  }
-  > div:not(.tb-wind-speed-direction-overlay) {
+  > div:not(.tb-progress-bar-overlay) {
     z-index: 1;
   }
-  .tb-wind-speed-direction-overlay {
+  .tb-progress-bar-overlay {
     position: absolute;
     top: 12px;
     left: 12px;
@@ -52,16 +50,50 @@
   div.tb-widget-title {
     padding: 0;
   }
-  .tb-wind-speed-direction-content {
-    flex: 1;
-    min-width: 0;
-    min-height: 0;
-    .tb-wind-speed-direction-shape {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
+  .tb-progress-bar-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    &.simplified {
       justify-content: center;
+    }
+  }
+  .tb-progress-bar-content {
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    gap: 4px;
+    .tb-progress-bar-title-value-row {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      &.flex-end {
+        justify-content: flex-end;
+      }
+      .tb-progress-bar-value {
+        white-space: nowrap;
+      }
+    }
+    .tb-progress-bar {
+      display: flex;
+      flex-direction: column;
+      .tb-progress-bar-background {
+        border-radius: 12px;
+        .tb-progress-bar-progress {
+          height: 5px;
+          border-radius: 8px;
+          transition: background-color .2s, width .2s;
+        }
+      }
+      .tb-progress-bar-ticks {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+      }
     }
   }
 }
