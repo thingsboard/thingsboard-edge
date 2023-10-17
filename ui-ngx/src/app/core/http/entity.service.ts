@@ -123,6 +123,7 @@ import { NotificationService } from '@core/http/notification.service';
 import { TenantProfileService } from '@core/http/tenant-profile.service';
 import { NotificationType } from '@shared/models/notification.models';
 import { UserId } from '@shared/models/id/user-id';
+import { AlarmService } from '@core/http/alarm.service';
 
 @Injectable({
   providedIn: 'root'
@@ -157,7 +158,8 @@ export class EntityService {
     private userPermissionsService: UserPermissionsService,
     private utils: UtilsService,
     private queueService: QueueService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private alarmService: AlarmService
   ) { }
 
   private getEntityObservable(entityType: EntityType, entityId: string,
@@ -197,7 +199,7 @@ export class EntityService {
         observable = this.ruleChainService.getRuleChain(entityId, config);
         break;
       case EntityType.ALARM:
-        console.error('Get Alarm Entity is not implemented!');
+        observable = this.alarmService.getAlarm(entityId, config);
         break;
       case EntityType.CONVERTER:
         observable = this.converterService.getConverter(entityId, config);
@@ -398,7 +400,9 @@ export class EntityService {
         observable = this.userService.getUsers(entityIds, config);
         break;
       case EntityType.ALARM:
-        console.error('Get Alarm Entity is not implemented!');
+        observable = this.getEntitiesByIdsObservable(
+          (id) => this.alarmService.getAlarm(id, config),
+          entityIds);
         break;
       case EntityType.DEVICE_PROFILE:
         observable = this.deviceProfileService.getDeviceProfilesByIds(entityIds, config);
