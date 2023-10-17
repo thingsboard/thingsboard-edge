@@ -79,6 +79,9 @@ import {
 import {
   SignalStrengthBasicConfigComponent
 } from '@home/components/widget/config/basic/indicator/signal-strength-basic-config.component';
+import {
+  ValueChartCardBasicConfigComponent
+} from '@home/components/widget/config/basic/cards/value-chart-card-basic-config.component';
 
 @NgModule({
   declarations: [
@@ -98,7 +101,8 @@ import {
     EntityCountBasicConfigComponent,
     BatteryLevelBasicConfigComponent,
     WindSpeedDirectionBasicConfigComponent,
-    SignalStrengthBasicConfigComponent
+    SignalStrengthBasicConfigComponent,
+    ValueChartCardBasicConfigComponent
   ],
   imports: [
     CommonModule,
@@ -122,7 +126,8 @@ import {
     EntityCountBasicConfigComponent,
     BatteryLevelBasicConfigComponent,
     WindSpeedDirectionBasicConfigComponent,
-    SignalStrengthBasicConfigComponent
+    SignalStrengthBasicConfigComponent,
+    ValueChartCardBasicConfigComponent
   ]
 })
 export class BasicWidgetConfigModule {
@@ -140,5 +145,6 @@ export const basicWidgetConfigComponentsMap: {[key: string]: Type<IBasicWidgetCo
   'tb-entity-count-basic-config': EntityCountBasicConfigComponent,
   'tb-battery-level-basic-config': BatteryLevelBasicConfigComponent,
   'tb-wind-speed-direction-basic-config': WindSpeedDirectionBasicConfigComponent,
-  'tb-signal-strength-basic-config': SignalStrengthBasicConfigComponent
+  'tb-signal-strength-basic-config': SignalStrengthBasicConfigComponent,
+  'tb-value-chart-card-basic-config': ValueChartCardBasicConfigComponent
 };
