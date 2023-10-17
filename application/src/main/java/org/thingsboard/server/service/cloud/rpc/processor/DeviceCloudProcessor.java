@@ -59,7 +59,6 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                                                             CustomerId edgeCustomerId,
                                                             DeviceUpdateMsg deviceUpdateMsg,
                                                             Long queueStartTs) {
-        log.trace("[{}] executing processDeviceMsgFromCloud [{}]", tenantId, deviceUpdateMsg);
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
@@ -118,7 +117,6 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
     }
 
     public ListenableFuture<Void> processDeviceCredentialsMsgFromCloud(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {
-        log.debug("[{}] Executing processDeviceCredentialsMsgFromCloud, deviceCredentialsUpdateMsg [{}]", tenantId, deviceCredentialsUpdateMsg);
         try {
             cloudSynchronizationManager.getSync().set(true);
 
@@ -132,14 +130,14 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
     public ListenableFuture<Void> processDeviceRpcCallFromCloud(TenantId tenantId, DeviceRpcCallMsg deviceRpcCallMsg) {
         log.trace("[{}] processDeviceRpcCallFromCloud [{}]", tenantId, deviceRpcCallMsg);
         if (deviceRpcCallMsg.hasResponseMsg()) {
-            return processDeviceRpcResponseFromCloud(tenantId, deviceRpcCallMsg);
+            return processDeviceRpcResponseFromCloud(deviceRpcCallMsg);
         } else if (deviceRpcCallMsg.hasRequestMsg()) {
             return processDeviceRpcRequestFromCloud(tenantId, deviceRpcCallMsg);
         }
         return Futures.immediateFuture(null);
     }
 
-    private ListenableFuture<Void> processDeviceRpcResponseFromCloud(TenantId tenantId, DeviceRpcCallMsg deviceRpcCallMsg) {
+    private ListenableFuture<Void> processDeviceRpcResponseFromCloud(DeviceRpcCallMsg deviceRpcCallMsg) {
         UUID sessionId = UUID.fromString(deviceRpcCallMsg.getSessionId());
         String serviceId = deviceRpcCallMsg.getServiceId();
         int requestId = deviceRpcCallMsg.getRequestId();
@@ -265,5 +263,4 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         }
         return msg;
     }
-
 }

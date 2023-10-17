@@ -30,7 +30,6 @@ import org.thingsboard.server.service.edge.rpc.processor.alarm.BaseAlarmProcesso
 public class AlarmCloudProcessor extends BaseAlarmProcessor {
 
     public ListenableFuture<Void> processAlarmMsgFromCloud(TenantId tenantId, AlarmUpdateMsg alarmUpdateMsg) {
-        log.trace("[{}] processAlarmMsgFromCloud [{}]", tenantId, alarmUpdateMsg);
         try {
             cloudSynchronizationManager.getSync().set(true);
             return processAlarmMsg(tenantId, alarmUpdateMsg);
