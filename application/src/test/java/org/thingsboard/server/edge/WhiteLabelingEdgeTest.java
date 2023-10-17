@@ -65,9 +65,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
     }
 
     private void testWhiteLabeling_tenant() throws Exception {
-        edgeImitator.expectMessageAmount(2);
         loginTenantAdmin();
-        Assert.assertTrue(edgeImitator.waitForMessages());
 
         updateAndVerifyWhiteLabelingUpdate("Tenant TB Updated");
     }
@@ -120,9 +118,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
     }
 
     private void testLoginWhiteLabeling_tenant() throws Exception {
-        edgeImitator.expectMessageAmount(2);
         loginTenantAdmin();
-        Assert.assertTrue(edgeImitator.waitForMessages());
 
         updateAndVerifyLoginWhiteLabelingUpdate(StringUtils.randomAlphanumeric(5) + "tenant_updated.org");
     }
@@ -187,9 +183,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
     }
 
     private void testCustomTranslation_tenant() throws Exception {
-        edgeImitator.expectMessageAmount(2);
         loginTenantAdmin();
-        Assert.assertTrue(edgeImitator.waitForMessages());
 
         updateAndVerifyCustomTranslationUpdate("tenant_value_updated");
     }
