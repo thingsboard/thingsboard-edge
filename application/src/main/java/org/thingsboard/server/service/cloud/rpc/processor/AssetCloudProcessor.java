@@ -66,7 +66,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
                                                            Long queueStartTs) throws ThingsboardException {
         AssetId assetId = new AssetId(new UUID(assetUpdateMsg.getIdMSB(), assetUpdateMsg.getIdLSB()));
         try {
-            edgeSynchronizationManager.getSync().set(true);
+            cloudSynchronizationManager.getSync().set(true);
 
             switch (assetUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
@@ -93,7 +93,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
                     return handleUnsupportedMsgType(assetUpdateMsg.getMsgType());
             }
         } finally {
-            edgeSynchronizationManager.getSync().remove();
+            cloudSynchronizationManager.getSync().remove();
         }
     }
 

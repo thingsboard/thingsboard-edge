@@ -78,7 +78,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         log.trace("[{}] executing processDeviceMsgFromCloud [{}]", tenantId, deviceUpdateMsg);
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
         try {
-            edgeSynchronizationManager.getSync().set(true);
+            cloudSynchronizationManager.getSync().set(true);
             switch (deviceUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
@@ -105,7 +105,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                 return handleUnsupportedMsgType(deviceUpdateMsg.getMsgType());
             }
         } finally {
-            edgeSynchronizationManager.getSync().remove();
+            cloudSynchronizationManager.getSync().remove();
         }
     }
 
@@ -138,6 +138,18 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         } catch (Exception e) {
             log.warn("[{}][{}] Failed to push device action to rule engine: {}", tenantId, device.getId(), msgType.name(), e);
         }
+    }
+
+    public ListenableFuture<Void> processDeviceCredentialsMsgFromCloud(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {
+        log.debug("[{}] Executing processDeviceCredentialsMsgFromCloud, deviceCredentialsUpdateMsg [{}]", tenantId, deviceCredentialsUpdateMsg);
+        try {
+            cloudSynchronizationManager.getSync().set(true);
+
+            updateDeviceCredentials(tenantId, deviceCredentialsUpdateMsg);
+        } finally {
+            cloudSynchronizationManager.getSync().remove();
+        }
+        return Futures.immediateFuture(null);
     }
 
     public ListenableFuture<Void> processDeviceRpcCallFromCloud(TenantId tenantId, DeviceRpcCallMsg deviceRpcCallMsg) {
