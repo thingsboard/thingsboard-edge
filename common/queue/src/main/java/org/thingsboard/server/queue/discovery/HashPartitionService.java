@@ -92,6 +92,7 @@ public class HashPartitionService implements PartitionService {
     private final TenantRoutingInfoService tenantRoutingInfoService;
     private final QueueRoutingInfoService queueRoutingInfoService;
     private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
+    private final TopicService topicService;
 
     protected volatile ConcurrentMap<QueueKey, List<Integer>> myPartitions = new ConcurrentHashMap<>();
 
@@ -110,12 +111,14 @@ public class HashPartitionService implements PartitionService {
                                 TenantRoutingInfoService tenantRoutingInfoService,
                                 ApplicationEventPublisher applicationEventPublisher,
                                 QueueRoutingInfoService queueRoutingInfoService,
-                                TbQueueIntegrationExecutorSettings integrationExecutorSettings) {
+                                TbQueueIntegrationExecutorSettings integrationExecutorSettings,
+                                TopicService topicService) {
         this.serviceInfoProvider = serviceInfoProvider;
         this.tenantRoutingInfoService = tenantRoutingInfoService;
         this.applicationEventPublisher = applicationEventPublisher;
         this.queueRoutingInfoService = queueRoutingInfoService;
         this.integrationExecutorSettings = integrationExecutorSettings;
+        this.topicService = topicService;
     }
 
     @PostConstruct
@@ -123,14 +126,14 @@ public class HashPartitionService implements PartitionService {
         this.hashFunction = forName(hashFunctionName);
         QueueKey coreKey = new QueueKey(ServiceType.TB_CORE);
         partitionSizesMap.put(coreKey, corePartitions);
-        partitionTopicsMap.put(coreKey, coreTopic);
+        partitionTopicsMap.put(coreKey, topicService.buildTopicName(coreTopic));
 
         QueueKey vcKey = new QueueKey(ServiceType.TB_VC_EXECUTOR);
         partitionSizesMap.put(vcKey, vcPartitions);
-        partitionTopicsMap.put(vcKey, vcTopic);
+        partitionTopicsMap.put(vcKey, topicService.buildTopicName(vcTopic));
 
         Arrays.asList(IntegrationType.values()).forEach(it -> {
-            partitionTopicsMap.put(new QueueKey(ServiceType.TB_INTEGRATION_EXECUTOR, it.name()), integrationExecutorSettings.getIntegrationDownlinkTopic(it));
+            partitionTopicsMap.put(new QueueKey(ServiceType.TB_INTEGRATION_EXECUTOR, it.name()), topicService.buildTopicName(integrationExecutorSettings.getIntegrationDownlinkTopic(it)));
             partitionSizesMap.put(new QueueKey(ServiceType.TB_INTEGRATION_EXECUTOR, it.name()), integrationPartitions);
         });
 
@@ -154,7 +157,7 @@ public class HashPartitionService implements PartitionService {
         List<QueueRoutingInfo> queueRoutingInfoList = getQueueRoutingInfos();
         queueRoutingInfoList.forEach(queue -> {
             QueueKey queueKey = new QueueKey(ServiceType.TB_RULE_ENGINE, queue);
-            partitionTopicsMap.put(queueKey, queue.getQueueTopic());
+            partitionTopicsMap.put(queueKey, topicService.buildTopicName(queue.getQueueTopic()));
             partitionSizesMap.put(queueKey, queue.getPartitions());
         });
     }

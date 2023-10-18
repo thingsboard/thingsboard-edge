@@ -69,7 +69,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.TbSubscriptionUpdate
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.NotificationsTopicService;
+import org.thingsboard.server.queue.discovery.TopicService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
@@ -108,7 +108,7 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
 
     private final AttributesService attrService;
     private final TimeseriesService tsService;
-    private final NotificationsTopicService notificationsTopicService;
+    private final TopicService topicService;
     private final PartitionService partitionService;
     private final TbServiceInfoProvider serviceInfoProvider;
     private final TbQueueProducerProvider producerProvider;
@@ -389,7 +389,7 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
         } else {
             log.trace("[{}][{}][{}] Subscription session is not managed by current service (update: {})",
                     subscription.getServiceId(), subscription.getEntityId(), subscription.getSessionId(), subscriptionUpdate);
-            TopicPartitionInfo tpi = notificationsTopicService.getNotificationsTopic(ServiceType.TB_CORE, subscription.getServiceId());
+            TopicPartitionInfo tpi = topicService.getNotificationsTopic(ServiceType.TB_CORE, subscription.getServiceId());
             ToCoreNotificationMsg updateProto = TbSubscriptionUtils.notificationsSubUpdateToProto(subscription, subscriptionUpdate);
             TbProtoQueueMsg<ToCoreNotificationMsg> queueMsg = new TbProtoQueueMsg<>(subscription.getEntityId().getId(), updateProto);
             toCoreNotificationsProducer.send(tpi, queueMsg, null);
@@ -472,7 +472,7 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
                         TelemetrySubscriptionUpdate update = new TelemetrySubscriptionUpdate(s.getSubscriptionId(), subscriptionUpdate);
                         localSubscriptionService.onSubscriptionUpdate(s.getSessionId(), update, TbCallback.EMPTY);
                     } else {
-                        TopicPartitionInfo tpi = notificationsTopicService.getNotificationsTopic(ServiceType.TB_CORE, s.getServiceId());
+                        TopicPartitionInfo tpi = topicService.getNotificationsTopic(ServiceType.TB_CORE, s.getServiceId());
                         toCoreNotificationsProducer.send(tpi, toProto(s, subscriptionUpdate, ignoreEmptyUpdates), null);
                     }
                 }
@@ -497,7 +497,7 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
                     AlarmSubscriptionUpdate update = new AlarmSubscriptionUpdate(s.getSubscriptionId(), alarm, deleted);
                     localSubscriptionService.onSubscriptionUpdate(s.getSessionId(), update, TbCallback.EMPTY);
                 } else {
-                    TopicPartitionInfo tpi = notificationsTopicService.getNotificationsTopic(ServiceType.TB_CORE, s.getServiceId());
+                    TopicPartitionInfo tpi = topicService.getNotificationsTopic(ServiceType.TB_CORE, s.getServiceId());
                     toCoreNotificationsProducer.send(tpi, toProto(s, alarm, deleted), null);
                 }
             });
@@ -537,7 +537,7 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
                         }
                     });
                     if (!missedUpdates.isEmpty()) {
-                        TopicPartitionInfo tpi = notificationsTopicService.getNotificationsTopic(ServiceType.TB_CORE, subscription.getServiceId());
+                        TopicPartitionInfo tpi = topicService.getNotificationsTopic(ServiceType.TB_CORE, subscription.getServiceId());
                         toCoreNotificationsProducer.send(tpi, toProto(subscription, missedUpdates), null);
                     }
                 },
@@ -560,7 +560,7 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
             DonAsynchron.withCallback(tsService.findLatest(subscription.getTenantId(), subscription.getEntityId(), subscription.getKeyStates().keySet()),
                     missedUpdates -> {
                         if (missedUpdates != null && !missedUpdates.isEmpty()) {
-                            TopicPartitionInfo tpi = notificationsTopicService.getNotificationsTopic(ServiceType.TB_CORE, subscription.getServiceId());
+                            TopicPartitionInfo tpi = topicService.getNotificationsTopic(ServiceType.TB_CORE, subscription.getServiceId());
                             toCoreNotificationsProducer.send(tpi, toProto(subscription, missedUpdates), null);
                         }
                     },
@@ -579,7 +579,7 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
                 DonAsynchron.withCallback(tsService.findAll(subscription.getTenantId(), subscription.getEntityId(), queries),
                         missedUpdates -> {
                             if (missedUpdates != null && !missedUpdates.isEmpty()) {
-                                TopicPartitionInfo tpi = notificationsTopicService.getNotificationsTopic(ServiceType.TB_CORE, subscription.getServiceId());
+                                TopicPartitionInfo tpi = topicService.getNotificationsTopic(ServiceType.TB_CORE, subscription.getServiceId());
                                 toCoreNotificationsProducer.send(tpi, toProto(subscription, missedUpdates), null);
                             }
                         },

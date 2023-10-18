@@ -51,8 +51,8 @@ import org.thingsboard.server.queue.TbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.DefaultTbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.NotificationsTopicService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+import org.thingsboard.server.queue.discovery.TopicService;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
@@ -71,7 +71,7 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 public class AwsSqsIntegrationExecutorQueueFactory implements TbIntegrationExecutorQueueFactory {
 
-    private final NotificationsTopicService notificationsTopicService;
+    private final TopicService topicService;
     private final TbAwsSqsSettings sqsSettings;
     private final TbServiceInfoProvider serviceInfoProvider;
     private final TbQueueCoreSettings coreSettings;
@@ -85,7 +85,7 @@ public class AwsSqsIntegrationExecutorQueueFactory implements TbIntegrationExecu
     private final TbQueueAdmin integrationAdmin;
     private final TbQueueAdmin notificationAdmin;
 
-    public AwsSqsIntegrationExecutorQueueFactory(NotificationsTopicService notificationsTopicService,
+    public AwsSqsIntegrationExecutorQueueFactory(TopicService topicService,
                                                  TbAwsSqsSettings sqsSettings,
                                                  TbServiceInfoProvider serviceInfoProvider,
                                                  TbQueueCoreSettings coreSettings,
@@ -93,7 +93,7 @@ public class AwsSqsIntegrationExecutorQueueFactory implements TbIntegrationExecu
                                                  TbQueueRemoteJsInvokeSettings jsInvokeSettings,
                                                  TbAwsSqsQueueAttributes sqsQueueAttributes,
                                                  TbQueueIntegrationExecutorSettings integrationExecutorSettings) {
-        this.notificationsTopicService = notificationsTopicService;
+        this.topicService = topicService;
         this.sqsSettings = sqsSettings;
         this.serviceInfoProvider = serviceInfoProvider;
         this.coreSettings = coreSettings;
@@ -110,24 +110,24 @@ public class AwsSqsIntegrationExecutorQueueFactory implements TbIntegrationExecu
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createTbCoreIntegrationMsgProducer() {
-        return new TbAwsSqsProducerTemplate<>(coreAdmin, sqsSettings, integrationExecutorSettings.getUplinkTopic());
+        return new TbAwsSqsProducerTemplate<>(coreAdmin, sqsSettings, topicService.buildTopicName(integrationExecutorSettings.getUplinkTopic()));
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToCoreNotificationMsg>> createTbCoreNotificationMsgProducer() {
-        return new TbAwsSqsProducerTemplate<>(notificationAdmin, sqsSettings, coreSettings.getTopic());
+        return new TbAwsSqsProducerTemplate<>(notificationAdmin, sqsSettings, topicService.buildTopicName(coreSettings.getTopic()));
     }
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> createToIntegrationExecutorNotificationsMsgConsumer() {
         return new TbAwsSqsConsumerTemplate<>(notificationAdmin, sqsSettings,
-                notificationsTopicService.getNotificationsTopic(ServiceType.TB_INTEGRATION_EXECUTOR, serviceInfoProvider.getServiceId()).getFullTopicName(),
+                topicService.getNotificationsTopic(ServiceType.TB_INTEGRATION_EXECUTOR, serviceInfoProvider.getServiceId()).getFullTopicName(),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorNotificationMsg.parseFrom(msg.getData()), msg.getHeaders()));
     }
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createToIntegrationExecutorDownlinkMsgConsumer(IntegrationType integrationType) {
-        return new TbAwsSqsConsumerTemplate<>(ruleEngineAdmin, sqsSettings, integrationExecutorSettings.getIntegrationDownlinkTopic(integrationType),
+        return new TbAwsSqsConsumerTemplate<>(ruleEngineAdmin, sqsSettings, topicService.buildTopicName(integrationExecutorSettings.getIntegrationDownlinkTopic(integrationType)),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorDownlinkMsg.parseFrom(msg.getData()), msg.getHeaders()));
     }
 
@@ -158,10 +158,10 @@ public class AwsSqsIntegrationExecutorQueueFactory implements TbIntegrationExecu
     @Bean
     public TbQueueRequestTemplate<TbProtoQueueMsg<IntegrationApiRequestMsg>, TbProtoQueueMsg<IntegrationApiResponseMsg>> createIntegrationApiRequestTemplate() {
         TbQueueProducer<TbProtoQueueMsg<IntegrationApiRequestMsg>> producer =
-                new TbAwsSqsProducerTemplate<>(integrationAdmin, sqsSettings, integrationApiSettings.getRequestsTopic());
+                new TbAwsSqsProducerTemplate<>(integrationAdmin, sqsSettings, topicService.buildTopicName(integrationApiSettings.getRequestsTopic()));
         TbQueueConsumer<TbProtoQueueMsg<IntegrationApiResponseMsg>> consumer =
                 new TbAwsSqsConsumerTemplate<>(integrationAdmin, sqsSettings,
-                integrationApiSettings.getResponsesTopic() + "_" + serviceInfoProvider.getServiceId(),
+                topicService.buildTopicName(integrationApiSettings.getResponsesTopic() + "_" + serviceInfoProvider.getServiceId()),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), IntegrationApiResponseMsg.parseFrom(msg.getData()), msg.getHeaders()));
 
         DefaultTbQueueRequestTemplate.DefaultTbQueueRequestTemplateBuilder
