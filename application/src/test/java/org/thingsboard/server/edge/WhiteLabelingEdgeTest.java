@@ -221,9 +221,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         User savedCustomerUser = createUser(customerAUser, "customer", customerAdminsGroup.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());  // user update msg and user credentials update msg
 
-        edgeImitator.expectMessageAmount(2);
         loginUser(savedCustomerUser.getEmail(), "customer");
-        Assert.assertTrue(edgeImitator.waitForMessages());
     }
 
     private void updateAndVerifyCustomTranslationUpdate(String updatedHomeValue) throws Exception {

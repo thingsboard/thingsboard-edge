@@ -422,7 +422,8 @@ public abstract class BaseEdgeProcessor {
                                                    EntityId entityId,
                                                    JsonNode body,
                                                    EntityGroupId entityGroupId) {
-        ListenableFuture<Optional<AttributeKvEntry>> future = attributesService.find(tenantId, edgeId, DataConstants.SERVER_SCOPE, DefaultDeviceStateService.ACTIVITY_STATE);
+        ListenableFuture<Optional<AttributeKvEntry>> future =
+                attributesService.find(tenantId, edgeId, DataConstants.SERVER_SCOPE, DefaultDeviceStateService.ACTIVITY_STATE);
         return Futures.transformAsync(future, activeOpt -> {
             if (activeOpt.isEmpty()) {
                 log.trace("Edge is not activated. Skipping event. tenantId [{}], edgeId [{}], type[{}], " +
