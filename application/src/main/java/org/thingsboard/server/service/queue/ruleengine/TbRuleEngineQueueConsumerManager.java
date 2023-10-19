@@ -252,7 +252,11 @@ public class TbRuleEngineQueueConsumerManager {
         log.info("[{}] Launching consumer", consumerTask.getKey());
         Future<?> consumerLoop = ctx.getConsumersExecutor().submit(() -> {
             ThingsBoardThreadFactory.updateCurrentThreadName(consumerTask.getKey().toString());
-            consumerLoop(consumerTask.getConsumer());
+            try {
+                consumerLoop(consumerTask.getConsumer());
+            } catch (Throwable e) {
+                log.error("Failure in consumer loop", e);
+            }
             consumerTask.finished();
         });
         consumerTask.setTask(consumerLoop);
@@ -277,7 +281,7 @@ public class TbRuleEngineQueueConsumerManager {
                 }
             }
         }
-        if (consumer.isStopped()) {
+        if (Thread.interrupted() || consumer.isStopped()) {
             consumer.unsubscribe();
         }
         log.info("Rule Engine consumer stopped");

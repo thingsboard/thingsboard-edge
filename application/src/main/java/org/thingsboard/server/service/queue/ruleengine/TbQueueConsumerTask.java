@@ -56,8 +56,8 @@ public class TbQueueConsumerTask {
     private CountDownLatch completionLatch;
 
     public void setTask(Future<?> task) {
-        this.task = task;
         this.completionLatch = new CountDownLatch(1);
+        this.task = task;
     }
 
     public void subscribe(Set<TopicPartitionInfo> partitions) {
@@ -78,14 +78,14 @@ public class TbQueueConsumerTask {
         if (isRunning()) {
             try {
                 if (!completionLatch.await(30, TimeUnit.SECONDS)) {
+                    task = null;
                     throw new IllegalStateException("timeout of 30 seconds expired");
                 }
+                log.trace("[{}] Awaited finish", key);
             } catch (Exception e) {
                 log.warn("[{}] Failed to await for consumer to stop", key, e);
             }
-            task = null;
         }
-        log.trace("[{}] Awaited finish", key);
     }
 
     public boolean isRunning() {
@@ -94,6 +94,7 @@ public class TbQueueConsumerTask {
 
     public void finished() {
         completionLatch.countDown();
+        task = null;
     }
 
 }
