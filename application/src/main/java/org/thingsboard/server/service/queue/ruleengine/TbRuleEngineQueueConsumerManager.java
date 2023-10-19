@@ -257,7 +257,6 @@ public class TbRuleEngineQueueConsumerManager {
             } catch (Throwable e) {
                 log.error("Failure in consumer loop", e);
             }
-            consumerTask.finished();
         });
         consumerTask.setTask(consumerLoop);
     }
@@ -281,7 +280,7 @@ public class TbRuleEngineQueueConsumerManager {
                 }
             }
         }
-        if (Thread.interrupted() || consumer.isStopped()) {
+        if (consumer.isStopped()) {
             consumer.unsubscribe();
         }
         log.info("Rule Engine consumer stopped");
@@ -297,7 +296,7 @@ public class TbRuleEngineQueueConsumerManager {
             TbMsgPackProcessingContext packCtx = new TbMsgPackProcessingContext(queue.getName(), submitStrategy, ackStrategy.isSkipTimeoutMsgs());
             submitStrategy.submitAttempt((id, msg) -> submitMessage(packCtx, id, msg));
 
-            final boolean timeout = !awaitPackProcessing(packCtx, queue.getPackProcessingTimeout(), true);
+            final boolean timeout = !packCtx.await(queue.getPackProcessingTimeout(), TimeUnit.MILLISECONDS);
 
             TbRuleEngineProcessingResult result = new TbRuleEngineProcessingResult(queue.getName(), timeout, packCtx);
             if (timeout) {
@@ -321,19 +320,6 @@ public class TbRuleEngineQueueConsumerManager {
                 break;
             } else {
                 submitStrategy.update(decision.getReprocessMap());
-            }
-        }
-    }
-
-    private boolean awaitPackProcessing(TbMsgPackProcessingContext packCtx, long processingTimeout, boolean ignoreInterrupt) throws InterruptedException {
-        try {
-            return packCtx.await(processingTimeout, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            if (ignoreInterrupt) {
-                log.debug("Interrupt happened while waiting for pack processing, trying to await one more time");
-                return awaitPackProcessing(packCtx, processingTimeout, false);
-            } else {
-                throw new RuntimeException("Failed to await pack processing due to thread interrupt", e);
             }
         }
     }
