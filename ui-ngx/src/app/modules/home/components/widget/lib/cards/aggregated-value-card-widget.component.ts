@@ -63,7 +63,7 @@ import {
 import { TbFlot } from '@home/components/widget/lib/flot-widget';
 import { TbFlotKeySettings, TbFlotSettings } from '@home/components/widget/lib/flot-widget.models';
 import { DataKey } from '@shared/models/widget.models';
-import { formatNumberValue, formatValue, isDefined } from '@core/utils';
+import { formatNumberValue, formatValue, isDefined, isDefinedAndNotNull, isNumeric } from '@core/utils';
 import { map } from 'rxjs/operators';
 import { ResizeObserver } from '@juggle/resize-observer';
 
@@ -134,7 +134,7 @@ export class AggregatedValueCardWidgetComponent implements OnInit, AfterViewInit
     this.showSubtitle = this.settings.showSubtitle;
     const subtitle = this.settings.subtitle;
     this.subtitle$ = this.ctx.registerLabelPattern(subtitle, this.subtitle$);
-    this.subtitleStyle = textStyle(this.settings.subtitleFont, '0.25px');
+    this.subtitleStyle = textStyle(this.settings.subtitleFont);
     this.subtitleColor =  this.settings.subtitleColor;
 
     const dataKey = getDataKey(this.ctx.defaultSubscription.datasources);
@@ -163,7 +163,7 @@ export class AggregatedValueCardWidgetComponent implements OnInit, AfterViewInit
 
     this.showDate = this.settings.showDate;
     this.dateFormat = DateFormatProcessor.fromSettings(this.ctx.$injector, this.settings.dateFormat);
-    this.dateStyle = textStyle(this.settings.dateFont,  '0.25px');
+    this.dateStyle = textStyle(this.settings.dateFont);
     this.dateColor = this.settings.dateColor;
 
     this.backgroundStyle = backgroundStyle(this.settings.background);
@@ -245,7 +245,7 @@ export class AggregatedValueCardWidgetComponent implements OnInit, AfterViewInit
         const tsValue = getTsValueByLatestDataKey(this.ctx.latestData, aggValue.key);
         let ts;
         let value;
-        if (tsValue) {
+        if (tsValue && isDefinedAndNotNull(tsValue[1]) && isNumeric(tsValue[1])) {
           ts = tsValue[0];
           value = tsValue[1];
           aggValue.value = formatValue(value, (aggValue.key.decimals || this.ctx.decimals), null, false);
