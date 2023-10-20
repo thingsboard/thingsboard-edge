@@ -179,7 +179,6 @@ public class EdgeEventControllerTest extends AbstractControllerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     List<EdgeEvent> edgeEvents = findEdgeEvents(edgeId);
-                    System.out.println("@@@ " + edgeEvents.size());
                     return edgeEvents.size() == expectedNumber;
                 });
     }
