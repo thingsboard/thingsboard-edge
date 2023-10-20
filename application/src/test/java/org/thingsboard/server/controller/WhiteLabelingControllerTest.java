@@ -135,6 +135,40 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
         assertThat(mergedLoginWhiteLabelParams.isDarkForeground()).isTrue();
     }
 
+    @Test
+    public void updateLoginWhiteLabelParamsForCustomerByTenant() throws Exception {
+        loginCustomerAdminUser();
+        LoginWhiteLabelingParams loginWhiteLabelingParams = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
+
+        String domainName = "customer-domain.com";
+        loginWhiteLabelingParams.setDomainName(domainName);
+
+        loginTenantAdmin();
+        doPost("/api/whiteLabel/loginWhiteLabelParams?customerId=" + customerId, loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
+
+        loginCustomerAdminUser();
+        Awaitility.await("Waiting while login whitelabel params is updated")
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> domainName.equals(doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class).getDomainName()));
+    }
+
+    @Test
+    public void updateWhiteLabelParamsForCustomerByTenant() throws Exception {
+        loginCustomerAdminUser();
+        WhiteLabelingParams whiteLabelingParams = doGet("/api/whiteLabel/currentWhiteLabelParams", WhiteLabelingParams.class);
+
+        loginTenantAdmin();
+
+        String appTile = "customer title";
+        whiteLabelingParams.setAppTitle(appTile);
+        doPost("/api/whiteLabel/whiteLabelParams?customerId=" + customerId, whiteLabelingParams, WhiteLabelingParams.class);
+
+        loginCustomerAdminUser();
+        Awaitility.await("Waiting while whitelabel params is updated")
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> appTile.equals(doGet("/api/whiteLabel/currentWhiteLabelParams", WhiteLabelingParams.class).getAppTitle()));
+    }
+
     private void updateAppTitleAndVerify(String appTile) throws Exception {
 
         WhiteLabelingParams whiteLabelingParams = doGet("/api/whiteLabel/currentWhiteLabelParams", WhiteLabelingParams.class);
