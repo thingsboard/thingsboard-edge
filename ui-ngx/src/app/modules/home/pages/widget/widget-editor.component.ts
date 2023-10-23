@@ -137,7 +137,19 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
   widget: WidgetInfo;
   origWidget: WidgetInfo;
 
-  isDirty = false;
+  private isEditModeWidget = false;
+  private _isDirty = false;
+
+  get isDirty(): boolean {
+    return this._isDirty || this.isEditModeWidget;
+  }
+
+  set isDirty(value: boolean) {
+    if (!value) {
+      this.isEditModeWidget = false;
+    }
+    this._isDirty = value;
+  }
 
   fullscreen = false;
   htmlFullscreen = false;
@@ -465,6 +477,10 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
           break;
         case 'widgetEditUpdated':
           this.onWidgetEditUpdated(message.data);
+          this.onWidgetEditModeToggled(false);
+          break;
+        case 'widgetEditModeToggle':
+          this.onWidgetEditModeToggled(message.data);
           break;
       }
     }
@@ -499,6 +515,10 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
     this.widget.defaultConfig = JSON.stringify(widget.config);
     this.iframe.attr('data-widget', JSON.stringify(this.widget));
     this.isDirty = true;
+  }
+
+  private onWidgetEditModeToggled(mode: boolean) {
+    this.isEditModeWidget = mode;
   }
 
   private onWidgetException(details: ExceptionData) {
@@ -654,7 +674,7 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
   }
 
   undoDisabled(): boolean {
-    return !this.isDirty
+    return !this._isDirty
     || !this.iframeWidgetEditModeInited
     || this.saveWidgetPending
     || this.saveWidgetAsPending;
@@ -662,7 +682,7 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
 
   saveDisabled(): boolean {
     return this.isReadOnly
-      || !this.isDirty
+      || !this._isDirty
       || !this.iframeWidgetEditModeInited
       || this.saveWidgetPending
       || this.saveWidgetAsPending;
@@ -813,5 +833,12 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
     }
     this.widget.defaultConfig = JSON.stringify(config);
     this.isDirty = true;
+  }
+
+  get confirmOnExitMessage(): string {
+    if (this.isEditModeWidget && !this._isDirty) {
+      return this.translate.instant('widget.confirm-to-exit-editor-html');
+    }
+    return '';
   }
 }
