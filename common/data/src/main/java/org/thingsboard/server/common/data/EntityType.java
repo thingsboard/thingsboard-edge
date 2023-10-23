@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
  * @author Andrew Shvayka
  */
 public enum EntityType {
+    // In sync with EntityType proto
     TENANT,
     CUSTOMER,
     USER,
