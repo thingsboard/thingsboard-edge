@@ -46,25 +46,38 @@ enum EntityType {
   ASSET                 = 4;
   DEVICE                = 5;
   ALARM                 = 6;
-  RULE_CHAIN            = 7;
-  RULE_NODE             = 8;
-  ENTITY_VIEW           = 9;
-  WIDGETS_BUNDLE        = 10;
-  WIDGET_TYPE           = 11;
-  TENANT_PROFILE        = 12;
-  DEVICE_PROFILE        = 13;
-  ASSET_PROFILE         = 14;
-  API_USAGE_STATE       = 15;
-  TB_RESOURCE           = 16;
-  OTA_PACKAGE           = 17;
-  EDGE                  = 18;
-  RPC                   = 19;
-  QUEUE                 = 20;
-  NOTIFICATION_TARGET   = 21;
-  NOTIFICATION_TEMPLATE = 22;
-  NOTIFICATION_REQUEST  = 23;
-  NOTIFICATION          = 24;
-  NOTIFICATION_RULE     = 25;
+  // PE
+  ENTITY_GROUP          = 7;
+  CONVERTER             = 8;
+  INTEGRATION           = 9;
+  // ...PE
+  RULE_CHAIN            = 10;
+  RULE_NODE             = 11;
+  // PE
+  SCHEDULER_EVENT       = 12;
+  BLOB_ENTITY           = 13;
+  // ...PE
+  ENTITY_VIEW           = 14;
+  WIDGETS_BUNDLE        = 15;
+  WIDGET_TYPE           = 16;
+  // PE
+  ROLE                  = 17;
+  GROUP_PERMISSION      = 18;
+  // ...PE
+  TENANT_PROFILE        = 19;
+  DEVICE_PROFILE        = 20;
+  ASSET_PROFILE         = 21;
+  API_USAGE_STATE       = 22;
+  TB_RESOURCE           = 23;
+  OTA_PACKAGE           = 24;
+  EDGE                  = 25;
+  RPC                   = 26;
+  QUEUE                 = 27;
+  NOTIFICATION_TARGET   = 28;
+  NOTIFICATION_TEMPLATE = 29;
+  NOTIFICATION_REQUEST  = 30;
+  NOTIFICATION          = 31;
+  NOTIFICATION_RULE     = 32;
 }
 
 /**
@@ -840,6 +853,7 @@ enum ComponentLifecycleEvent {
     UPDATED   = 4;
     STOPPED   = 5;
     DELETED   = 6;
+    FAILED    = 7;
 }
 
 message ComponentLifecycleMsgProto {
