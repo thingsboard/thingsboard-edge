@@ -133,7 +133,7 @@ public class HashPartitionService implements PartitionService {
         partitionTopicsMap.put(vcKey, vcTopic);
 
         Arrays.asList(IntegrationType.values()).forEach(it -> {
-            partitionTopicsMap.put(new QueueKey(ServiceType.TB_INTEGRATION_EXECUTOR, it.name()), topicService.buildTopicName(integrationExecutorSettings.getIntegrationDownlinkTopic(it)));
+            partitionTopicsMap.put(new QueueKey(ServiceType.TB_INTEGRATION_EXECUTOR, it.name()), integrationExecutorSettings.getIntegrationDownlinkTopic(it));
             partitionSizesMap.put(new QueueKey(ServiceType.TB_INTEGRATION_EXECUTOR, it.name()), integrationPartitions);
         });
 

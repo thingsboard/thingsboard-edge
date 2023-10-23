@@ -195,7 +195,7 @@ public class KafkaTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory {
         TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
         requestBuilder.settings(kafkaSettings);
         requestBuilder.clientId("tb-rule-engine-to-ie-downlinks-" + serviceInfoProvider.getServiceId());
-        requestBuilder.defaultTopic(integrationExecutorSettings.getDownlinkTopic());
+        requestBuilder.defaultTopic(topicService.buildTopicName(integrationExecutorSettings.getDownlinkTopic()));
         requestBuilder.admin(notificationAdmin);
         return requestBuilder.build();
     }
