@@ -80,6 +80,7 @@ import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
+import org.thingsboard.server.common.util.ProtoUtils;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
@@ -462,7 +463,7 @@ public class DefaultTbClusterService implements TbClusterService {
             tbIeServices.addAll(partitionService.getAllServiceIds(ServiceType.TB_CORE));
             for (String serviceId : tbIeServices) {
                 TopicPartitionInfo tpi = notificationsTopicService.getNotificationsTopic(ServiceType.TB_INTEGRATION_EXECUTOR, serviceId);
-                ToIntegrationExecutorNotificationMsg toIeMsg = ToIntegrationExecutorNotificationMsg.newBuilder().setComponentLifecycleMsg(ByteString.copyFrom(msgBytes)).build();
+                ToIntegrationExecutorNotificationMsg toIeMsg = ToIntegrationExecutorNotificationMsg.newBuilder().setComponentLifecycle(componentLifecycleMsgProto).build();
                 toIeNfProducer.send(tpi, new TbProtoQueueMsg<>(msg.getEntityId().getId(), toIeMsg), null);
                 toIntegrationExecutorNfs.incrementAndGet();
             }
