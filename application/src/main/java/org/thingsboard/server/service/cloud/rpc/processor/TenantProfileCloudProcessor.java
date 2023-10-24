@@ -39,6 +39,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.page.PageDataIterable;
@@ -84,10 +85,14 @@ public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
                     tenantProfile.setDefault(tenantProfileUpdateMsg.getDefault());
                     tenantProfile.setDescription(tenantProfileUpdateMsg.getDescription());
                     tenantProfile.setIsolatedTbRuleEngine(tenantProfileUpdateMsg.getIsolatedRuleChain());
-                    tenantProfile.setProfileDataBytes(tenantProfile.getProfileDataBytes());
-                    Optional<TenantProfileData> profileDataOpt =
-                            dataDecodingEncodingService.decode(tenantProfileUpdateMsg.getProfileDataBytes().toByteArray());
-                    tenantProfile.setProfileData(profileDataOpt.orElse(null));
+
+                    try {
+                        Optional<TenantProfileData> profileDataOpt =
+                                dataDecodingEncodingService.decode(tenantProfileUpdateMsg.getProfileDataBytes().toByteArray());
+                        tenantProfile.setProfileData(profileDataOpt.orElse(null));
+                    } catch (Exception e) {
+                        log.warn("[{}] Failed to decode tenant profile data bytes {}", tenantId, tenantProfileUpdateMsg.getProfileDataBytes(), e);
+                    }
 
                     TenantProfile savedTenantProfile = tenantProfileService.saveTenantProfile(tenantId, tenantProfile, false);
                     notifyCluster(tenantId, savedTenantProfile);

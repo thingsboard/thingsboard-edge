@@ -91,9 +91,13 @@ public abstract class BaseDeviceProfileProcessor extends BaseEdgeProcessor {
                     ? deviceProfileUpdateMsg.getProvisionDeviceKey() : null);
             deviceProfile.setDefaultQueueName(deviceProfileUpdateMsg.getDefaultQueueName());
 
-            Optional<DeviceProfileData> profileDataOpt =
-                    dataDecodingEncodingService.decode(deviceProfileUpdateMsg.getProfileDataBytes().toByteArray());
-            deviceProfile.setProfileData(profileDataOpt.orElse(null));
+            try {
+                Optional<DeviceProfileData> profileDataOpt =
+                        dataDecodingEncodingService.decode(deviceProfileUpdateMsg.getProfileDataBytes().toByteArray());
+                deviceProfile.setProfileData(profileDataOpt.orElse(null));
+            } catch (Exception e) {
+                log.warn("[{}] Failed to decode device profile data bytes {}", tenantId, deviceProfileUpdateMsg.getProfileDataBytes(), e);
+            }
 
             setDefaultRuleChainId(tenantId, deviceProfile, deviceProfileUpdateMsg);
             setDefaultEdgeRuleChainId(tenantId, deviceProfile, deviceProfileUpdateMsg);
