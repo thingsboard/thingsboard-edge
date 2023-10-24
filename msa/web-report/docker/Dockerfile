@@ -29,7 +29,7 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-FROM thingsboard/node:16.17.0-bullseye-slim
+FROM thingsboard/node:16.20.2-bookworm-slim
 
 ARG TARGETPLATFORM
 ARG DEBIAN_FRONTEND=noninteractive
