@@ -224,11 +224,11 @@ public class TbCoreConsumerStats {
             toCoreNfComponentLifecycleCounter.increment();
         } else if (!msg.getComponentLifecycleMsg().isEmpty()) {
             toCoreNfComponentLifecycleCounter.increment();
-        } else if (!msg.getEdgeEventUpdateMsg().isEmpty()) {
+        } else if (msg.hasEdgeEventUpdate()) {
             toCoreNfEdgeEventUpdateCounter.increment();
-        } else if (!msg.getToEdgeSyncRequestMsg().isEmpty()) {
+        } else if (msg.hasToEdgeSyncRequest()) {
             toCoreNfEdgeSyncRequestCounter.increment();
-        } else if (!msg.getFromEdgeSyncResponseMsg().isEmpty()) {
+        } else if (msg.hasFromEdgeSyncResponse()) {
             toCoreNfEdgeSyncResponseCounter.increment();
         } else if (msg.hasQueueUpdateMsg()) {
             toCoreNfQueueUpdateCounter.increment();
