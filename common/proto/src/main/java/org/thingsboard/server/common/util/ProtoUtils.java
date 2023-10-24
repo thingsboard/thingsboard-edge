@@ -28,71 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.common.util;
 
-import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
+import org.thingsboard.server.gen.transport.TransportProtos;
 
-import java.util.EnumSet;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
-/**
- * @author Andrew Shvayka
- */
-public enum EntityType {
-    // In sync with EntityType proto
-    TENANT,
-    CUSTOMER,
-    USER,
-    DASHBOARD,
-    ASSET,
-    DEVICE,
-    ALARM,
-    ENTITY_GROUP {
-        // backward compatibility for TbOriginatorTypeSwitchNode to return correct rule node connection.
-        @Override
-        public String getNormalName() {
-            return "Entity Group";
-        }
-    },
-    CONVERTER,
-    INTEGRATION,
-    RULE_CHAIN,
-    RULE_NODE,
-    SCHEDULER_EVENT,
-    BLOB_ENTITY,
-    ENTITY_VIEW {
-        // backward compatibility for TbOriginatorTypeSwitchNode to return correct rule node connection.
-        @Override
-        public String getNormalName() {
-            return "Entity View";
-        }
-    },
-    WIDGETS_BUNDLE,
-    WIDGET_TYPE,
-    ROLE,
-    GROUP_PERMISSION,
-    TENANT_PROFILE,
-    DEVICE_PROFILE,
-    ASSET_PROFILE,
-    API_USAGE_STATE,
-    TB_RESOURCE,
-    OTA_PACKAGE,
-    EDGE,
-    RPC,
-    QUEUE,
-    NOTIFICATION_TARGET,
-    NOTIFICATION_TEMPLATE,
-    NOTIFICATION_REQUEST,
-    NOTIFICATION,
-    NOTIFICATION_RULE;
+public class ProtoUtils {
 
-    public static final List<String> NORMAL_NAMES = EnumSet.allOf(EntityType.class).stream()
-            .map(EntityType::getNormalName).collect(Collectors.toUnmodifiableList());
+    public static TransportProtos.ComponentLifecycleMsgProto toProto(ComponentLifecycleMsg msg) {
+        return TransportProtos.ComponentLifecycleMsgProto.newBuilder()
+                .setTenantIdMSB(msg.getTenantId().getId().getMostSignificantBits())
+                .setTenantIdLSB(msg.getTenantId().getId().getLeastSignificantBits())
+                .setEntityType(TransportProtos.EntityType.forNumber(msg.getEntityId().getEntityType().ordinal()))
+                .setEntityIdMSB(msg.getEntityId().getId().getMostSignificantBits())
+                .setEntityIdLSB(msg.getEntityId().getId().getLeastSignificantBits())
+                .setEvent(TransportProtos.ComponentLifecycleEvent.forNumber(msg.getEvent().ordinal()))
+                .build();
+    }
 
-    @Getter
-    private final String normalName = StringUtils.capitalize(StringUtils.removeStart(name(), "TB_")
-            .toLowerCase().replaceAll("_", " "));
+    public static ComponentLifecycleMsg fromProto(TransportProtos.ComponentLifecycleMsgProto proto) {
+        return new ComponentLifecycleMsg(
+                TenantId.fromUUID(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB())),
+                EntityIdFactory.getByTypeAndUuid(proto.getEntityTypeValue(), new UUID(proto.getEntityIdMSB(), proto.getEntityIdLSB())),
+                ComponentLifecycleEvent.values()[proto.getEventValue()]
+        );
+    }
 
 }
