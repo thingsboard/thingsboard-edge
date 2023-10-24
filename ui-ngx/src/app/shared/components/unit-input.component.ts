@@ -77,9 +77,9 @@ export class UnitInputComponent implements ControlValueAccessor, OnInit {
   @Input()
   disabled: boolean;
 
-  @coerceBoolean()
   @Input()
-  required: boolean = false;
+  @coerceBoolean()
+  required = false;
 
   @Input()
   tagFilter: UnitsType;
