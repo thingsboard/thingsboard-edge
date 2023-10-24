@@ -28,31 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue;
+package org.thingsboard.server.service.queue.ruleengine;
 
-import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import java.io.Serializable;
 
-import java.util.List;
-import java.util.Set;
+public enum QueueEvent implements Serializable {
 
-public interface TbQueueConsumer<T extends TbQueueMsg> {
-
-    String getTopic();
-
-    void subscribe();
-
-    void subscribe(Set<TopicPartitionInfo> partitions);
-
-    void stop();
-
-    void unsubscribe();
-
-    List<T> poll(long durationInMillis);
-
-    void commit();
-
-    boolean isStopped();
-
-    List<String> getFullTopicNames();
+    PARTITION_CHANGE, CONFIG_UPDATE, DELETE
 
 }
