@@ -55,6 +55,7 @@ import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.common.stats.StatsFactory;
+import org.thingsboard.server.common.util.ProtoUtils;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.gen.transport.TransportProtos;
@@ -427,7 +428,11 @@ public class DefaultTbRuleEngineConsumerService extends AbstractConsumerService<
     @Override
     protected void handleNotification(UUID id, TbProtoQueueMsg<ToRuleEngineNotificationMsg> msg, TbCallback callback) throws Exception {
         ToRuleEngineNotificationMsg nfMsg = msg.getValue();
-        if (nfMsg.getComponentLifecycleMsg() != null && !nfMsg.getComponentLifecycleMsg().isEmpty()) {
+        if (nfMsg.hasComponentLifecycle()) {
+            handleComponentLifecycleMsg(id, ProtoUtils.fromProto(nfMsg.getComponentLifecycle()));
+            callback.onSuccess();
+        } else if (nfMsg.getComponentLifecycleMsg() != null && !nfMsg.getComponentLifecycleMsg().isEmpty()) {
+            //will be removed in 3.6.1 in favour of hasComponentLifecycle()
             handleComponentLifecycleMsg(id, nfMsg.getComponentLifecycleMsg());
             callback.onSuccess();
         } else if (nfMsg.hasFromDeviceRpcResponse()) {

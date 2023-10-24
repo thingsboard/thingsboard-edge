@@ -61,6 +61,7 @@ import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.util.KvProtoUtil;
+import org.thingsboard.server.common.util.ProtoUtils;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
@@ -404,7 +405,11 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         } else if (toCoreNotification.hasRestApiCallResponseMsg()) {
             log.trace("[{}] Forwarding message to RuleEngineCallService service {}", id, toCoreNotification.getRestApiCallResponseMsg());
             forwardToRuleEngineCallService(toCoreNotification.getRestApiCallResponseMsg(), callback);
+        } else if (toCoreNotification.hasComponentLifecycle()) {
+            handleComponentLifecycleMsg(id, ProtoUtils.fromProto(toCoreNotification.getComponentLifecycle()));
+            callback.onSuccess();
         } else if (toCoreNotification.getComponentLifecycleMsg() != null && !toCoreNotification.getComponentLifecycleMsg().isEmpty()) {
+            //will be removed in 3.6.1 in favour of hasComponentLifecycle()
             handleComponentLifecycleMsg(id, toCoreNotification.getComponentLifecycleMsg());
             callback.onSuccess();
         } else if (!toCoreNotification.getEdgeEventUpdateMsg().isEmpty()) {

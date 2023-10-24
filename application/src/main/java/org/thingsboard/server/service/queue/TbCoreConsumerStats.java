@@ -220,6 +220,8 @@ public class TbCoreConsumerStats {
             this.RestApiCallResponseCounter.increment();
             // ...PE
 
+        } else if (msg.hasComponentLifecycle()) {
+            toCoreNfComponentLifecycleCounter.increment();
         } else if (!msg.getComponentLifecycleMsg().isEmpty()) {
             toCoreNfComponentLifecycleCounter.increment();
         } else if (!msg.getEdgeEventUpdateMsg().isEmpty()) {

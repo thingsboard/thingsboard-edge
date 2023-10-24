@@ -36,6 +36,51 @@ option java_package = "org.thingsboard.server.gen.transport";
 option java_outer_classname = "TransportProtos";
 
 /**
+ * Common data structures
+ */
+enum EntityType {
+  TENANT                = 0;
+  CUSTOMER              = 1;
+  USER                  = 2;
+  DASHBOARD             = 3;
+  ASSET                 = 4;
+  DEVICE                = 5;
+  ALARM                 = 6;
+  // PE
+  ENTITY_GROUP          = 7;
+  CONVERTER             = 8;
+  INTEGRATION           = 9;
+  // ...PE
+  RULE_CHAIN            = 10;
+  RULE_NODE             = 11;
+  // PE
+  SCHEDULER_EVENT       = 12;
+  BLOB_ENTITY           = 13;
+  // ...PE
+  ENTITY_VIEW           = 14;
+  WIDGETS_BUNDLE        = 15;
+  WIDGET_TYPE           = 16;
+  // PE
+  ROLE                  = 17;
+  GROUP_PERMISSION      = 18;
+  // ...PE
+  TENANT_PROFILE        = 19;
+  DEVICE_PROFILE        = 20;
+  ASSET_PROFILE         = 21;
+  API_USAGE_STATE       = 22;
+  TB_RESOURCE           = 23;
+  OTA_PACKAGE           = 24;
+  EDGE                  = 25;
+  RPC                   = 26;
+  QUEUE                 = 27;
+  NOTIFICATION_TARGET   = 28;
+  NOTIFICATION_TEMPLATE = 29;
+  NOTIFICATION_REQUEST  = 30;
+  NOTIFICATION          = 31;
+  NOTIFICATION_RULE     = 32;
+}
+
+/**
  * Service Discovery Data Structures;
  */
 message ServiceInfo {
@@ -800,6 +845,26 @@ message FromDeviceRPCResponseProto {
   int32 error = 4;
 }
 
+enum ComponentLifecycleEvent {
+    CREATED   = 0;
+    STARTED   = 1;
+    ACTIVATED = 2;
+    SUSPENDED = 3;
+    UPDATED   = 4;
+    STOPPED   = 5;
+    DELETED   = 6;
+    FAILED    = 7;
+}
+
+message ComponentLifecycleMsgProto {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  EntityType entityType = 3;
+  int64 entityIdMSB = 4;
+  int64 entityIdLSB = 5;
+  ComponentLifecycleEvent event = 6;
+}
+
 message EdgeNotificationMsgProto {
   int64 tenantIdMSB = 1;
   int64 tenantIdLSB = 2;
@@ -1067,10 +1132,11 @@ message ToCoreMsg {
 }
 
 /* High priority messages with low latency are handled by ThingsBoard Core Service separately */
+/* Please, adjust the TbCoreConsumerStats when modifying the ToCoreNotificationMsg */
 message ToCoreNotificationMsg {
   LocalSubscriptionServiceMsgProto toLocalSubscriptionServiceMsg = 1;
   FromDeviceRPCResponseProto fromDeviceRpcResponse = 2;
-  bytes componentLifecycleMsg = 3;
+  bytes componentLifecycleMsg = 3; //will be removed in 3.6.1 in favour of ComponentLifecycleMsgProto
   bytes edgeEventUpdateMsg = 4;
   QueueUpdateMsg queueUpdateMsg = 5;
   QueueDeleteMsg queueDeleteMsg = 6;
@@ -1082,6 +1148,7 @@ message ToCoreNotificationMsg {
   bytes fromEdgeSyncResponseMsg = 12;
   SubscriptionMgrMsgProto toSubscriptionMgrMsg = 13;
   NotificationRuleProcessorMsg notificationRuleProcessorMsg = 14;
+  ComponentLifecycleMsgProto componentLifecycle = 15;
 }
 
 /* Messages that are handled by ThingsBoard RuleEngine Service */
@@ -1094,10 +1161,11 @@ message ToRuleEngineMsg {
 }
 
 message ToRuleEngineNotificationMsg {
-  bytes componentLifecycleMsg = 1;
+  bytes componentLifecycleMsg = 1; // will be removed in 3.6.1 in favour of ComponentLifecycleMsgProto
   FromDeviceRPCResponseProto fromDeviceRpcResponse = 2;
   QueueUpdateMsg queueUpdateMsg = 3;
   QueueDeleteMsg queueDeleteMsg = 4;
+  ComponentLifecycleMsgProto componentLifecycle = 5;
 }
 
 /* Messages that are handled by ThingsBoard Transport Service */
