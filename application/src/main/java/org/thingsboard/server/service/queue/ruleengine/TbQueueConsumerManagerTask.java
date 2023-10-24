@@ -28,31 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue;
+package org.thingsboard.server.service.queue.ruleengine;
 
+import lombok.Getter;
+import lombok.ToString;
+import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 
-import java.util.List;
 import java.util.Set;
 
-public interface TbQueueConsumer<T extends TbQueueMsg> {
+@Getter
+@ToString
+public class TbQueueConsumerManagerTask {
 
-    String getTopic();
+    private final QueueEvent event;
+    private Queue queue;
+    private Set<TopicPartitionInfo> partitions;
 
-    void subscribe();
+    public TbQueueConsumerManagerTask(QueueEvent event) {
+        this.event = event;
+    }
 
-    void subscribe(Set<TopicPartitionInfo> partitions);
+    public TbQueueConsumerManagerTask(QueueEvent event, Queue queue) {
+        this.event = event;
+        this.queue = queue;
+    }
 
-    void stop();
-
-    void unsubscribe();
-
-    List<T> poll(long durationInMillis);
-
-    void commit();
-
-    boolean isStopped();
-
-    List<String> getFullTopicNames();
+    public TbQueueConsumerManagerTask(QueueEvent event, Set<TopicPartitionInfo> partitions) {
+        this.event = event;
+        this.partitions = partitions;
+    }
 
 }

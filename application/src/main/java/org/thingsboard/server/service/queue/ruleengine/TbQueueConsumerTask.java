@@ -28,31 +28,58 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue;
+package org.thingsboard.server.service.queue.ruleengine;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.queue.TbQueueConsumer;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 
-import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
-public interface TbQueueConsumer<T extends TbQueueMsg> {
+@RequiredArgsConstructor
+@Slf4j
+public class TbQueueConsumerTask {
 
-    String getTopic();
+    @Getter
+    private final Object key;
+    @Getter
+    private final TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg>> consumer;
 
-    void subscribe();
+    @Setter
+    private Future<?> task;
 
-    void subscribe(Set<TopicPartitionInfo> partitions);
+    public void subscribe(Set<TopicPartitionInfo> partitions) {
+        log.trace("[{}] Subscribing to partitions: {}", key, partitions);
+        consumer.subscribe(partitions);
+    }
 
-    void stop();
+    public void initiateStop() {
+        log.debug("[{}] Initiating stop", key);
+        consumer.stop();
+    }
 
-    void unsubscribe();
+    public void awaitCompletion() {
+        log.trace("[{}] Awaiting finish", key);
+        if (isRunning()) {
+            try {
+                task.get(30, TimeUnit.SECONDS);
+                log.trace("[{}] Awaited finish", key);
+            } catch (Exception e) {
+                log.warn("[{}] Failed to await for consumer to stop", key, e);
+            }
+            task = null;
+        }
+    }
 
-    List<T> poll(long durationInMillis);
-
-    void commit();
-
-    boolean isStopped();
-
-    List<String> getFullTopicNames();
+    public boolean isRunning() {
+        return task != null;
+    }
 
 }
