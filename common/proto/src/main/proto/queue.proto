@@ -38,46 +38,41 @@ option java_outer_classname = "TransportProtos";
 /**
  * Common data structures
  */
-enum EntityType {
-  TENANT                = 0;
-  CUSTOMER              = 1;
-  USER                  = 2;
-  DASHBOARD             = 3;
-  ASSET                 = 4;
-  DEVICE                = 5;
-  ALARM                 = 6;
-  // PE
-  ENTITY_GROUP          = 7;
-  CONVERTER             = 8;
-  INTEGRATION           = 9;
-  // ...PE
-  RULE_CHAIN            = 10;
-  RULE_NODE             = 11;
-  // PE
-  SCHEDULER_EVENT       = 12;
-  BLOB_ENTITY           = 13;
-  // ...PE
-  ENTITY_VIEW           = 14;
-  WIDGETS_BUNDLE        = 15;
-  WIDGET_TYPE           = 16;
-  // PE
-  ROLE                  = 17;
-  GROUP_PERMISSION      = 18;
-  // ...PE
-  TENANT_PROFILE        = 19;
-  DEVICE_PROFILE        = 20;
-  ASSET_PROFILE         = 21;
-  API_USAGE_STATE       = 22;
-  TB_RESOURCE           = 23;
-  OTA_PACKAGE           = 24;
-  EDGE                  = 25;
-  RPC                   = 26;
-  QUEUE                 = 27;
-  NOTIFICATION_TARGET   = 28;
-  NOTIFICATION_TEMPLATE = 29;
-  NOTIFICATION_REQUEST  = 30;
-  NOTIFICATION          = 31;
-  NOTIFICATION_RULE     = 32;
+enum EntityTypeProto {
+  UNSPECIFIED           = 0;
+  TENANT                = 1;
+  CUSTOMER              = 2;
+  USER                  = 3;
+  DASHBOARD             = 4;
+  ASSET                 = 5;
+  DEVICE                = 6;
+  ALARM                 = 7;
+  ENTITY_GROUP          = 8;
+  CONVERTER             = 9;
+  INTEGRATION           = 10;
+  RULE_CHAIN            = 11;
+  RULE_NODE             = 12;
+  SCHEDULER_EVENT       = 13;
+  BLOB_ENTITY           = 14;
+  ENTITY_VIEW           = 15;
+  WIDGETS_BUNDLE        = 16;
+  WIDGET_TYPE           = 17;
+  ROLE                  = 18;
+  GROUP_PERMISSION      = 19;
+  TENANT_PROFILE        = 20;
+  DEVICE_PROFILE        = 21;
+  ASSET_PROFILE         = 22;
+  API_USAGE_STATE       = 23;
+  TB_RESOURCE           = 24;
+  OTA_PACKAGE           = 25;
+  EDGE                  = 26;
+  RPC                   = 27;
+  QUEUE                 = 28;
+  NOTIFICATION_TARGET   = 29;
+  NOTIFICATION_TEMPLATE = 30;
+  NOTIFICATION_REQUEST  = 31;
+  NOTIFICATION          = 32;
+  NOTIFICATION_RULE     = 33;
 }
 
 /**
@@ -859,7 +854,7 @@ enum ComponentLifecycleEvent {
 message ComponentLifecycleMsgProto {
   int64 tenantIdMSB = 1;
   int64 tenantIdLSB = 2;
-  EntityType entityType = 3;
+  EntityTypeProto entityType = 3;
   int64 entityIdMSB = 4;
   int64 entityIdLSB = 5;
   ComponentLifecycleEvent event = 6;
