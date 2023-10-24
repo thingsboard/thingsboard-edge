@@ -28,34 +28,38 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api.msg;
+package org.thingsboard.server.common.msg;
 
 import lombok.Data;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.msg.MsgType;
 import org.thingsboard.server.common.msg.ToDeviceActorNotificationMsg;
+import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
 
 /**
- * @author Andrew Shvayka
+ * Created by ashvayka on 16.04.18.
  */
 @Data
-public class DeviceCredentialsUpdateNotificationMsg implements ToDeviceActorNotificationMsg {
+public class ToDeviceRpcRequestActorMsg implements ToDeviceActorNotificationMsg {
 
-    private static final long serialVersionUID = -3956907402411126990L;
+    private static final long serialVersionUID = -8592877558138716589L;
 
-    private final TenantId tenantId;
-    private final DeviceId deviceId;
+    private final String serviceId;
+    private final ToDeviceRpcRequest msg;
 
-    /**
-     * LwM2M
-     * @return
-     */
-    private final DeviceCredentials deviceCredentials;
+    @Override
+    public DeviceId getDeviceId() {
+        return msg.getDeviceId();
+    }
+
+    @Override
+    public TenantId getTenantId() {
+        return msg.getTenantId();
+    }
 
     @Override
     public MsgType getMsgType() {
-        return MsgType.DEVICE_CREDENTIALS_UPDATE_TO_DEVICE_ACTOR_MSG;
+        return MsgType.DEVICE_RPC_REQUEST_TO_DEVICE_ACTOR_MSG;
     }
 }

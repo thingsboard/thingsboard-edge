@@ -28,38 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.rpc;
+package org.thingsboard.server.common.msg.rule.engine;
 
 import lombok.Data;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.msg.MsgType;
-import org.thingsboard.server.common.msg.ToDeviceActorNotificationMsg;
-import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
 
 /**
- * Created by ashvayka on 16.04.18.
+ * Contains basic device metadata;
+ *
+ * @author ashvayka
  */
 @Data
-public class ToDeviceRpcRequestActorMsg implements ToDeviceActorNotificationMsg {
+public final class DeviceMetaData {
 
-    private static final long serialVersionUID = -8592877558138716589L;
+    final DeviceId deviceId;
+    final String deviceName;
+    final String deviceType;
+    final DeviceAttributes deviceAttributes;
 
-    private final String serviceId;
-    private final ToDeviceRpcRequest msg;
-
-    @Override
-    public DeviceId getDeviceId() {
-        return msg.getDeviceId();
-    }
-
-    @Override
-    public TenantId getTenantId() {
-        return msg.getTenantId();
-    }
-
-    @Override
-    public MsgType getMsgType() {
-        return MsgType.DEVICE_RPC_REQUEST_TO_DEVICE_ACTOR_MSG;
-    }
 }

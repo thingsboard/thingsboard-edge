@@ -28,26 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api.msg;
+package org.thingsboard.server.common.msg;
 
 import lombok.Data;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.MsgType;
 import org.thingsboard.server.common.msg.ToDeviceActorNotificationMsg;
+import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 
 @Data
-public class DeviceNameOrTypeUpdateMsg implements ToDeviceActorNotificationMsg {
+public class FromDeviceRpcResponseActorMsg implements ToDeviceActorNotificationMsg {
 
-    private static final long serialVersionUID = -5738949227650536685L;
+    private static final long serialVersionUID = -6648120137236354987L;
 
+    private final Integer requestId;
     private final TenantId tenantId;
     private final DeviceId deviceId;
-    private final String deviceName;
-    private final String deviceType;
+    private final FromDeviceRpcResponse msg;
 
     @Override
     public MsgType getMsgType() {
-        return MsgType.DEVICE_NAME_OR_TYPE_UPDATE_TO_DEVICE_ACTOR_MSG;
+        return MsgType.DEVICE_RPC_RESPONSE_TO_DEVICE_ACTOR_MSG;
     }
 }

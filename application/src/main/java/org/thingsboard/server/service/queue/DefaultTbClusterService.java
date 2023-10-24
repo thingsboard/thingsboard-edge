@@ -43,8 +43,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
-import org.thingsboard.rule.engine.api.msg.DeviceEdgeUpdateMsg;
-import org.thingsboard.rule.engine.api.msg.DeviceNameOrTypeUpdateMsg;
+import org.thingsboard.server.common.msg.rule.engine.DeviceEdgeUpdateMsg;
+import org.thingsboard.server.common.msg.rule.engine.DeviceNameOrTypeUpdateMsg;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.ApiUsageState;
 import org.thingsboard.server.common.data.Device;
@@ -167,7 +167,7 @@ public class DefaultTbClusterService implements TbClusterService {
     public void pushMsgToCore(ToDeviceActorNotificationMsg msg, TbQueueCallback callback) {
         TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, msg.getTenantId(), msg.getDeviceId());
         log.trace("PUSHING msg: {} to:{}", msg, tpi);
-        TransportProtos.ToDeviceActorNotificationMsgProto proto = org.thingsboard.server.service.queue.ProtoUtils.toProto(msg);
+        TransportProtos.ToDeviceActorNotificationMsgProto proto = ProtoUtils.toProto(msg);
         ToCoreMsg toCoreMsg = ToCoreMsg.newBuilder().setToDeviceActorNotification(proto).build();
         producerProvider.getTbCoreMsgProducer().send(tpi, new TbProtoQueueMsg<>(msg.getDeviceId().getId(), toCoreMsg), callback);
         toCoreMsgs.incrementAndGet();
@@ -417,7 +417,7 @@ public class DefaultTbClusterService implements TbClusterService {
     @Override
     public void onEdgeEventUpdate(TenantId tenantId, EdgeId edgeId) {
         log.trace("[{}] Processing edge {} event update ", tenantId, edgeId);
-        TransportProtos.EdgeEventUpdateMsgProto edgeEventUpdateMsgProto = org.thingsboard.server.service.queue.ProtoUtils.toProto(new EdgeEventUpdateMsg(tenantId, edgeId));
+        TransportProtos.EdgeEventUpdateMsgProto edgeEventUpdateMsgProto = ProtoUtils.toProto(new EdgeEventUpdateMsg(tenantId, edgeId));
         ToCoreNotificationMsg toCoreMsg = ToCoreNotificationMsg.newBuilder().setEdgeEventUpdate(edgeEventUpdateMsgProto).build();
         pushEdgeSyncMsgToCore(edgeId, toCoreMsg);
     }
@@ -425,7 +425,7 @@ public class DefaultTbClusterService implements TbClusterService {
     @Override
     public void pushEdgeSyncRequestToCore(ToEdgeSyncRequest toEdgeSyncRequest) {
         log.trace("[{}] Processing edge sync request {} ", toEdgeSyncRequest.getTenantId(), toEdgeSyncRequest);
-        TransportProtos.ToEdgeSyncRequestMsgProto toEdgeSyncRequestMsgProto = org.thingsboard.server.service.queue.ProtoUtils.toProto(toEdgeSyncRequest);
+        TransportProtos.ToEdgeSyncRequestMsgProto toEdgeSyncRequestMsgProto = ProtoUtils.toProto(toEdgeSyncRequest);
         ToCoreNotificationMsg toCoreMsg = ToCoreNotificationMsg.newBuilder().setToEdgeSyncRequest(toEdgeSyncRequestMsgProto).build();
         pushEdgeSyncMsgToCore(toEdgeSyncRequest.getEdgeId(), toCoreMsg);
     }
@@ -433,7 +433,7 @@ public class DefaultTbClusterService implements TbClusterService {
     @Override
     public void pushEdgeSyncResponseToCore(FromEdgeSyncResponse fromEdgeSyncResponse) {
         log.trace("[{}] Processing edge sync response {}", fromEdgeSyncResponse.getTenantId(), fromEdgeSyncResponse);
-        TransportProtos.FromEdgeSyncResponseMsgProto fromEdgeSyncResponseMsgProto = org.thingsboard.server.service.queue.ProtoUtils.toProto(fromEdgeSyncResponse);
+        TransportProtos.FromEdgeSyncResponseMsgProto fromEdgeSyncResponseMsgProto = ProtoUtils.toProto(fromEdgeSyncResponse);
         ToCoreNotificationMsg toCoreMsg = ToCoreNotificationMsg.newBuilder().setFromEdgeSyncResponse(fromEdgeSyncResponseMsgProto).build();
         pushEdgeSyncMsgToCore(fromEdgeSyncResponse.getEdgeId(), toCoreMsg);
     }

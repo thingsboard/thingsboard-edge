@@ -28,22 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api.msg;
+package org.thingsboard.server.common.msg.rule.engine;
 
 import lombok.Data;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.msg.MsgType;
+import org.thingsboard.server.common.msg.ToDeviceActorNotificationMsg;
 
-/**
- * Contains basic device metadata;
- *
- * @author ashvayka
- */
 @Data
-public final class DeviceMetaData {
+public class DeviceEdgeUpdateMsg implements ToDeviceActorNotificationMsg {
 
-    final DeviceId deviceId;
-    final String deviceName;
-    final String deviceType;
-    final DeviceAttributes deviceAttributes;
+    private static final long serialVersionUID = 4679029228395462172L;
 
+    private final TenantId tenantId;
+    private final DeviceId deviceId;
+    private final EdgeId edgeId;
+
+    @Override
+    public MsgType getMsgType() {
+        return MsgType.DEVICE_EDGE_UPDATE_TO_DEVICE_ACTOR_MSG;
+    }
 }

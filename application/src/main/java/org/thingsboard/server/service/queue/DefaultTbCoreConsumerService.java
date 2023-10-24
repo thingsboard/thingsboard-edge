@@ -110,7 +110,7 @@ import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.queue.processing.AbstractConsumerService;
 import org.thingsboard.server.service.queue.processing.IdMsgPair;
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
-import org.thingsboard.server.service.rpc.ToDeviceRpcRequestActorMsg;
+import org.thingsboard.server.common.msg.ToDeviceRpcRequestActorMsg;
 import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
 import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
@@ -318,7 +318,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                     log.trace("[{}] Forwarding message to device state service {}", id, toCoreMsg.getDeviceActivityMsg());
                                     forwardToStateService(toCoreMsg.getDeviceActivityMsg(), callback);
                                 } else if (toCoreMsg.hasToDeviceActorNotification()) {
-                                    TbActorMsg actorMsg = org.thingsboard.server.service.queue.ProtoUtils.fromProto(toCoreMsg.getToDeviceActorNotification());
+                                    TbActorMsg actorMsg = ProtoUtils.fromProto(toCoreMsg.getToDeviceActorNotification());
                                     if (actorMsg != null) {
                                         if (actorMsg.getMsgType().equals(MsgType.DEVICE_RPC_REQUEST_TO_DEVICE_ACTOR_MSG)) {
                                             tbCoreDeviceRpcService.forwardRpcRequestToDeviceActor((ToDeviceRpcRequestActorMsg) actorMsg);
@@ -417,13 +417,13 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             handleComponentLifecycleMsg(id, toCoreNotification.getComponentLifecycleMsg());
             callback.onSuccess();
         } else if (toCoreNotification.hasEdgeEventUpdate()) {
-            forwardToAppActor(id, org.thingsboard.server.service.queue.ProtoUtils.fromProto(toCoreNotification.getEdgeEventUpdate()));
+            forwardToAppActor(id, ProtoUtils.fromProto(toCoreNotification.getEdgeEventUpdate()));
             callback.onSuccess();
         } else if (toCoreNotification.hasToEdgeSyncRequest()) {
-            forwardToAppActor(id, org.thingsboard.server.service.queue.ProtoUtils.fromProto(toCoreNotification.getToEdgeSyncRequest()));
+            forwardToAppActor(id, ProtoUtils.fromProto(toCoreNotification.getToEdgeSyncRequest()));
             callback.onSuccess();
         } else if (toCoreNotification.hasFromEdgeSyncResponse()) {
-            forwardToAppActor(id, org.thingsboard.server.service.queue.ProtoUtils.fromProto(toCoreNotification.getFromEdgeSyncResponse()));
+            forwardToAppActor(id, ProtoUtils.fromProto(toCoreNotification.getFromEdgeSyncResponse()));
             callback.onSuccess();
         } else if (toCoreNotification.hasQueueUpdateMsg()) {
             TransportProtos.QueueUpdateMsg queue = toCoreNotification.getQueueUpdateMsg();

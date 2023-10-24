@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.rpc;
+package org.thingsboard.server.common.msg.rule.engine;
 
 import lombok.Data;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -36,19 +36,18 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.MsgType;
 import org.thingsboard.server.common.msg.ToDeviceActorNotificationMsg;
 
-import java.util.UUID;
-
 @Data
-public class RemoveRpcActorMsg implements ToDeviceActorNotificationMsg {
+public class DeviceNameOrTypeUpdateMsg implements ToDeviceActorNotificationMsg {
 
-    private static final long serialVersionUID = -6112720854949677477L;
+    private static final long serialVersionUID = -5738949227650536685L;
 
     private final TenantId tenantId;
     private final DeviceId deviceId;
-    private final UUID requestId;
+    private final String deviceName;
+    private final String deviceType;
 
     @Override
     public MsgType getMsgType() {
-        return MsgType.REMOVE_RPC_TO_DEVICE_ACTOR_MSG;
+        return MsgType.DEVICE_NAME_OR_TYPE_UPDATE_TO_DEVICE_ACTOR_MSG;
     }
 }
