@@ -214,7 +214,7 @@ public class AlarmControllerTest extends AbstractControllerTest {
         Assert.assertEquals(AlarmSeverity.MAJOR, updatedAlarm.getSeverity());
 
         AlarmInfo foundAlarm = doGet("/api/alarm/info/" + updatedAlarm.getId(), AlarmInfo.class);
-        testNotifyEntityEntityGroupNullAllOneTime(foundAlarm, updatedAlarm.getId(), updatedAlarm.getOriginator(),
+        testNotifyEntityOneTimeMsgToEdgeServiceNever(foundAlarm, updatedAlarm.getId(), updatedAlarm.getOriginator(),
                 tenantId, customerId, customerAdminUserId, CUSTOMER_ADMIN_EMAIL, ActionType.UPDATED);
 
     }
@@ -240,7 +240,7 @@ public class AlarmControllerTest extends AbstractControllerTest {
         Assert.assertEquals(AlarmSeverity.MAJOR, updatedAlarm.getSeverity());
 
         AlarmInfo foundAlarm = doGet("/api/alarm/info/" + updatedAlarm.getId(), AlarmInfo.class);
-        testNotifyEntityEntityGroupNullAllOneTime(foundAlarm, foundAlarm.getId(), foundAlarm.getOriginator(),
+        testNotifyEntityOneTimeMsgToEdgeServiceNever(foundAlarm, foundAlarm.getId(), foundAlarm.getOriginator(),
                 tenantId, customerId, tenantAdminUserId, TENANT_ADMIN_EMAIL, ActionType.UPDATED);
 
         alarm = updatedAlarm;

@@ -103,7 +103,7 @@ public class TenantProfileEdgeTest extends AbstractEdgeTest {
 
         loginTenantAdmin();
 
-        edgeImitator.expectMessageAmount(24);
+        edgeImitator.expectMessageAmount(22);
         doPost("/api/edge/sync/" + edge.getId());
         assertThat(edgeImitator.waitForMessages()).as("await for messages after edge sync rest api call").isTrue();
 
