@@ -33,6 +33,7 @@ import org.thingsboard.server.dao.eventsourcing.RelationActionEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -60,14 +61,19 @@ public class CloudEventSourcingListener {
     private final TbClusterService tbClusterService;
     private final EdgeSynchronizationManager edgeSynchronizationManager;
 
-    private final List<EntityType> supportableEntityTypes = Arrays.asList(
+    private static final List<EntityType> COMMON_ENTITY_TYPES = Arrays.asList(
             EntityType.DEVICE,
             EntityType.DEVICE_PROFILE,
-            EntityType.ALARM,
             EntityType.ENTITY_VIEW,
             EntityType.ASSET,
             EntityType.ASSET_PROFILE,
             EntityType.DASHBOARD);
+
+    private final List<EntityType> supportableEntityTypes = new ArrayList<>(COMMON_ENTITY_TYPES) {{
+        add(EntityType.ALARM);
+    }};
+
+    private final List<EntityType> saveEventSupportableEntityTypes = new ArrayList<>(COMMON_ENTITY_TYPES);
 
     @PostConstruct
     public void init() {
@@ -80,7 +86,7 @@ public class CloudEventSourcingListener {
             return;
         }
         try {
-            if (event.getEntityId() != null && !supportableEntityTypes.contains(event.getEntityId().getEntityType())) {
+            if (event.getEntityId() != null && !saveEventSupportableEntityTypes.contains(event.getEntityId().getEntityType())) {
                 return;
             }
             log.trace("SaveEntityEvent called: {}", event);
