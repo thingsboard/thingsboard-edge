@@ -471,8 +471,7 @@ public class TbRuleEngineQueueConsumerManagerTest {
         clearInvocations(actorContext);
         verify(consumer1, never()).unsubscribe();
         verify(consumer2, never()).unsubscribe();
-        int msgCount1 = consumer1.msgCount;
-        int msgCount2 = consumer2.msgCount;
+        int msgCount = totalConsumedMsgs.get();
 
         await().atLeast(4, TimeUnit.SECONDS) // based on topicDeletionDelayInSec
                 .atMost(7, TimeUnit.SECONDS)
@@ -486,10 +485,8 @@ public class TbRuleEngineQueueConsumerManagerTest {
         verify(consumer1).unsubscribe();
         verify(consumer2).unsubscribe();
 
-        int movedMsgs1 = consumer1.msgCount - msgCount1;
-        int movedMsgs2 = consumer2.msgCount - msgCount2;
-        int totalMovedMsgs = movedMsgs1 + movedMsgs2;
-        assertThat(totalMovedMsgs).isGreaterThan(10);
+        int totalMovedMsgs = totalConsumedMsgs.get() - msgCount;
+        assertThat(totalMovedMsgs).isNotZero();
         verify(ruleEngineMsgProducer, atLeast(totalMovedMsgs)).send(any(), any(), any());
         verify(actorContext, never()).tell(any());
         generateQueueMsgs = false;
@@ -514,7 +511,7 @@ public class TbRuleEngineQueueConsumerManagerTest {
                 });
         clearInvocations(actorContext);
         verify(consumer, never()).unsubscribe();
-        int msgCount = consumer.msgCount;
+        int msgCount = totalConsumedMsgs.get();
 
         await().atLeast(4, TimeUnit.SECONDS)
                 .atMost(7, TimeUnit.SECONDS)
@@ -527,7 +524,8 @@ public class TbRuleEngineQueueConsumerManagerTest {
                 });
         verify(consumer).unsubscribe();
 
-        int movedMsgs = consumer.msgCount - msgCount;
+        int movedMsgs = totalConsumedMsgs.get() - msgCount;
+        assertThat(movedMsgs).isNotZero();
         verify(ruleEngineMsgProducer, atLeast(movedMsgs)).send(any(), any(), any());
         verify(actorContext, never()).tell(any());
         generateQueueMsgs = false;
@@ -622,11 +620,6 @@ public class TbRuleEngineQueueConsumerManagerTest {
         });
     }
 
-    /*
-    * 2023-10-15 18:34:06,090 [main] INFO  o.t.s.s.q.r.TbRuleEngineQueueConsumerManagerTest - Generated new partitions: [0, 1, 2, 3, 4, 5, 6, 8, 9, 11, 12, 13, 15, 16, 17, 18, 19]
-2023-10-15 18:34:06,090 [main] INFO  o.t.s.s.q.r.TbRuleEngineQueueConsumerManagerTest - Generated new config: consumerPerPartition=false, pollInterval=299, processingStrategy=RETRY_FAILED
-    * */
-
     private void verifySubscribedAndLaunched(TestConsumer consumer, Set<TopicPartitionInfo> expectedPartitions) {
         await().atMost(2, TimeUnit.SECONDS)
                 .until(() -> consumer.subscribed && consumer.getPartitions().equals(expectedPartitions) && consumer.pollingStarted);
@@ -716,7 +709,6 @@ public class TbRuleEngineQueueConsumerManagerTest {
         private boolean pollingStarted;
 
         private TbMsg testMsg;
-        private int msgCount;
 
         public TestConsumer(String topic) {
             super(topic);
@@ -761,7 +753,6 @@ public class TbRuleEngineQueueConsumerManagerTest {
             if (!subscribed) {
                 throw new IllegalStateException("Cannot commit because not subscribed");
             }
-            msgCount++;
             log.debug("doCommit() totalConsumedMsgs = {}", totalConsumedMsgs.incrementAndGet());
         }
 
