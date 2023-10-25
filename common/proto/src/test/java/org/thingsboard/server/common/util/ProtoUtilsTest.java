@@ -56,10 +56,10 @@ import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.common.msg.rpc.RemoveRpcActorMsg;
 import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
-import org.thingsboard.server.common.msg.rule.engine.DeviceAttributesEventNotificationMsg;
-import org.thingsboard.server.common.msg.rule.engine.DeviceCredentialsUpdateNotificationMsg;
-import org.thingsboard.server.common.msg.rule.engine.DeviceEdgeUpdateMsg;
-import org.thingsboard.server.common.msg.rule.engine.DeviceNameOrTypeUpdateMsg;
+import org.thingsboard.server.common.msg.ruleengine.DeviceAttributesEventNotificationMsg;
+import org.thingsboard.server.common.msg.ruleengine.DeviceCredentialsUpdateNotificationMsg;
+import org.thingsboard.server.common.msg.ruleengine.DeviceEdgeUpdateMsg;
+import org.thingsboard.server.common.msg.ruleengine.DeviceNameOrTypeUpdateMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 
 import java.util.List;
