@@ -162,7 +162,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         installation();
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.expectMessageAmount(25);
+        edgeImitator.expectMessageAmount(22);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();
@@ -195,9 +195,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     @After
     public void teardownEdgeTest() {
         try {
-            edgeImitator.expectMessageAmount(2);
             loginTenantAdmin();
-            Assert.assertTrue(edgeImitator.waitForMessages());
 
             doDelete("/api/edge/" + edge.getId().toString())
                     .andExpect(status().isOk());
@@ -257,13 +255,13 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         // 1 message from queue fetcher
         validateQueues();
 
-        // 2 messages  1 from rule chain fetcher and 1 from rule chain controller
+        // 1 from rule chain fetcher
         UUID ruleChainUUID = validateRuleChains();
 
         // 1 from request message
         validateRuleChainMetadataUpdates(ruleChainUUID);
 
-        // 2 messages - 2 messages from fetcher (general', 'mail')
+        // 2 messages from fetcher (general', 'mail')
         validateAdminSettings();
 
         // 3 messages
@@ -285,10 +283,9 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         // - 1 message from public customer role
         validateRoles();
 
-        // 5 messages
+        // 3 messages
         // - 2 messages from fetcher
         // - 1 message from public customer user group
-        // - 2 messages from edge queue - added during edge creation
         validateEntityGroups();
 
         // 1 from tenant fetcher
@@ -334,7 +331,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         List<DeviceProfileUpdateMsg> deviceProfileUpdateMsgList = edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class);
         // default msg default device profile from fetcher
         // default msg
-        // thermostat msg from fetcher
+        // thermostat msg from device profile fetcher
         Assert.assertEquals(3, deviceProfileUpdateMsgList.size());
         Optional<DeviceProfileUpdateMsg> thermostatProfileUpdateMsgOpt =
                 deviceProfileUpdateMsgList.stream().filter(dfum -> THERMOSTAT_DEVICE_PROFILE_NAME.equals(dfum.getName())).findAny();
@@ -352,12 +349,10 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     private UUID validateRuleChains() throws Exception {
-        List<RuleChainUpdateMsg> ruleChainUpdateMsgs = edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class);
-        Assert.assertEquals(2, ruleChainUpdateMsgs.size());
-        RuleChainUpdateMsg ruleChainCreateMsg = ruleChainUpdateMsgs.get(0);
-        RuleChainUpdateMsg ruleChainUpdateMsg = ruleChainUpdateMsgs.get(1);
-        validateRuleChain(ruleChainCreateMsg, UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE);
-        validateRuleChain(ruleChainUpdateMsg, UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE);
+        Optional<RuleChainUpdateMsg> ruleChainUpdateMsgOpt = edgeImitator.findMessageByType(RuleChainUpdateMsg.class);
+        Assert.assertTrue(ruleChainUpdateMsgOpt.isPresent());
+        RuleChainUpdateMsg ruleChainUpdateMsg = ruleChainUpdateMsgOpt.get();
+        validateRuleChain(ruleChainUpdateMsg, UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE);
         return new UUID(ruleChainUpdateMsg.getIdMSB(), ruleChainUpdateMsg.getIdLSB());
     }
 
@@ -439,7 +434,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
     private void validateEntityGroups() {
         List<EntityGroupUpdateMsg> entityGroupUpdateMsgList = edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class);
-        Assert.assertEquals(5, entityGroupUpdateMsgList.size());
+        Assert.assertEquals(3, entityGroupUpdateMsgList.size());
     }
 
     private void validateRoles() {
