@@ -49,16 +49,16 @@ import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
-import org.thingsboard.server.common.msg.FromDeviceRpcResponseActorMsg;
 import org.thingsboard.server.common.msg.ToDeviceActorNotificationMsg;
-import org.thingsboard.server.common.msg.ToDeviceRpcRequestActorMsg;
 import org.thingsboard.server.common.msg.edge.EdgeEventUpdateMsg;
 import org.thingsboard.server.common.msg.edge.FromEdgeSyncResponse;
 import org.thingsboard.server.common.msg.edge.ToEdgeSyncRequest;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
+import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponseActorMsg;
 import org.thingsboard.server.common.msg.rpc.RemoveRpcActorMsg;
 import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
+import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequestActorMsg;
 import org.thingsboard.server.common.msg.ruleengine.DeviceAttributesEventNotificationMsg;
 import org.thingsboard.server.common.msg.ruleengine.DeviceCredentialsUpdateNotificationMsg;
 import org.thingsboard.server.common.msg.ruleengine.DeviceEdgeUpdateMsg;
@@ -481,5 +481,4 @@ public class ProtoUtils {
         }
         return result;
     }
-
 }

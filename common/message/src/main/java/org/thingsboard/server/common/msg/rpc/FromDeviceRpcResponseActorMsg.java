@@ -28,38 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg;
+package org.thingsboard.server.common.msg.rpc;
 
 import lombok.Data;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.MsgType;
 import org.thingsboard.server.common.msg.ToDeviceActorNotificationMsg;
-import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
 
-/**
- * Created by ashvayka on 16.04.18.
- */
 @Data
-public class ToDeviceRpcRequestActorMsg implements ToDeviceActorNotificationMsg {
+public class FromDeviceRpcResponseActorMsg implements ToDeviceActorNotificationMsg {
 
-    private static final long serialVersionUID = -8592877558138716589L;
+    private static final long serialVersionUID = -6648120137236354987L;
 
-    private final String serviceId;
-    private final ToDeviceRpcRequest msg;
-
-    @Override
-    public DeviceId getDeviceId() {
-        return msg.getDeviceId();
-    }
-
-    @Override
-    public TenantId getTenantId() {
-        return msg.getTenantId();
-    }
+    private final Integer requestId;
+    private final TenantId tenantId;
+    private final DeviceId deviceId;
+    private final FromDeviceRpcResponse msg;
 
     @Override
     public MsgType getMsgType() {
-        return MsgType.DEVICE_RPC_REQUEST_TO_DEVICE_ACTOR_MSG;
+        return MsgType.DEVICE_RPC_RESPONSE_TO_DEVICE_ACTOR_MSG;
     }
 }

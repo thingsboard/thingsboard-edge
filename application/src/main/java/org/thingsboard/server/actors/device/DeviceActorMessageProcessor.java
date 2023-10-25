@@ -40,10 +40,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.LinkedHashMapRemoveEldest;
-import org.thingsboard.server.common.msg.ruleengine.DeviceAttributesEventNotificationMsg;
-import org.thingsboard.server.common.msg.ruleengine.DeviceCredentialsUpdateNotificationMsg;
-import org.thingsboard.server.common.msg.ruleengine.DeviceEdgeUpdateMsg;
-import org.thingsboard.server.common.msg.ruleengine.DeviceNameOrTypeUpdateMsg;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.actors.TbActorCtx;
 import org.thingsboard.server.actors.shared.AbstractContextAwareMsgProcessor;
@@ -75,10 +71,16 @@ import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
+import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponseActorMsg;
+import org.thingsboard.server.common.msg.rpc.RemoveRpcActorMsg;
 import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
+import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequestActorMsg;
+import org.thingsboard.server.common.msg.ruleengine.DeviceAttributesEventNotificationMsg;
+import org.thingsboard.server.common.msg.ruleengine.DeviceCredentialsUpdateNotificationMsg;
+import org.thingsboard.server.common.msg.ruleengine.DeviceEdgeUpdateMsg;
+import org.thingsboard.server.common.msg.ruleengine.DeviceNameOrTypeUpdateMsg;
 import org.thingsboard.server.common.msg.timeout.DeviceActorServerSideRpcTimeoutMsg;
 import org.thingsboard.server.common.util.KvProtoUtil;
-import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.AttributeUpdateNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ClaimDeviceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceSessionsCacheEntry;
@@ -100,10 +102,8 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToTransportMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToTransportUpdateCredentialsProto;
 import org.thingsboard.server.gen.transport.TransportProtos.TransportToDeviceActorMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.TsKvProto;
-import org.thingsboard.server.common.msg.FromDeviceRpcResponseActorMsg;
-import org.thingsboard.server.common.msg.rpc.RemoveRpcActorMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.UplinkNotificationMsg;
 import org.thingsboard.server.service.rpc.RpcSubmitStrategy;
-import org.thingsboard.server.common.msg.ToDeviceRpcRequestActorMsg;
 import org.thingsboard.server.service.transport.msg.TransportToDeviceActorMsgWrapper;
 
 import javax.annotation.Nullable;
@@ -487,7 +487,7 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
         callback.onSuccess();
     }
 
-    private void processUplinkNotificationMsg(SessionInfoProto sessionInfo, TransportProtos.UplinkNotificationMsg uplinkNotificationMsg) {
+    private void processUplinkNotificationMsg(SessionInfoProto sessionInfo, UplinkNotificationMsg uplinkNotificationMsg) {
         String nodeId = sessionInfo.getNodeId();
         sessions.entrySet().stream()
                 .filter(kv -> kv.getValue().getSessionInfo().getNodeId().equals(nodeId) && (kv.getValue().isSubscribedToAttributes() || kv.getValue().isSubscribedToRPC()))

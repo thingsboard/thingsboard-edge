@@ -33,7 +33,7 @@ package org.thingsboard.server.service.rpc;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.common.msg.rpc.RemoveRpcActorMsg;
 import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
-import org.thingsboard.server.common.msg.ToDeviceRpcRequestActorMsg;
+import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequestActorMsg;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.function.Consumer;
