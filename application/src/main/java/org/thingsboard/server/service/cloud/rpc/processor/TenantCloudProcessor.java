@@ -119,6 +119,7 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
             log.debug("Starting clean up procedure");
             PageData<Tenant> tenants = tenantService.findTenants(new PageLink(Integer.MAX_VALUE));
             for (Tenant tenant : tenants.getData()) {
+                removeTenantAttributes(tenant.getId());
                 tenantService.deleteTenant(tenant.getId());
             }
 
@@ -130,21 +131,25 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
     }
 
     private void cleanUpSystemTenant() {
+        adminSettingsService.deleteAdminSettingsByTenantId(TenantId.SYS_TENANT_ID);
+        queueService.deleteQueuesByTenantId(TenantId.SYS_TENANT_ID);
+        widgetTypeService.deleteWidgetTypesByTenantId(TenantId.SYS_TENANT_ID);
+        widgetsBundleService.deleteWidgetsBundlesByTenantId(TenantId.SYS_TENANT_ID);
+        removeTenantAttributes(TenantId.SYS_TENANT_ID);
+        roleService.deleteRolesByTenantId(TenantId.SYS_TENANT_ID);
+        whiteLabelingService.saveSystemLoginWhiteLabelingParams(new LoginWhiteLabelingParams());
+        whiteLabelingService.saveSystemWhiteLabelingParams(new WhiteLabelingParams());
+        customTranslationService.saveSystemCustomTranslation(new CustomTranslation());
+    }
+
+    private void removeTenantAttributes(TenantId tenantId) {
         try {
-            adminSettingsService.deleteAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mailTemplates");
-            adminSettingsService.deleteAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mail");
-            queueService.deleteQueuesByTenantId(TenantId.SYS_TENANT_ID);
-            widgetsBundleService.deleteWidgetsBundlesByTenantId(TenantId.SYS_TENANT_ID);
             List<AttributeKvEntry> attributeKvEntries =
-                    attributesService.findAll(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID, DataConstants.SERVER_SCOPE).get();
+                    attributesService.findAll(tenantId, tenantId, DataConstants.SERVER_SCOPE).get();
             List<String> attrKeys = attributeKvEntries.stream().map(KvEntry::getKey).collect(Collectors.toList());
-            attributesService.removeAll(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID, DataConstants.SERVER_SCOPE, attrKeys);
-            roleService.deleteRolesByTenantId(TenantId.SYS_TENANT_ID);
-            whiteLabelingService.saveSystemLoginWhiteLabelingParams(new LoginWhiteLabelingParams());
-            whiteLabelingService.saveSystemWhiteLabelingParams(new WhiteLabelingParams());
-            customTranslationService.saveSystemCustomTranslation(new CustomTranslation());
+            attributesService.removeAll(tenantId, tenantId, DataConstants.SERVER_SCOPE, attrKeys);
         } catch (Exception e) {
-            log.error("Unable to clean up sysadmin tenant", e);
+            log.error("Unable to remove tenant attributes", e);
         }
     }
 

@@ -86,13 +86,13 @@ public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
                     tenantProfile.setDescription(tenantProfileUpdateMsg.getDescription());
                     tenantProfile.setIsolatedTbRuleEngine(tenantProfileUpdateMsg.getIsolatedRuleChain());
 
+                    Optional<TenantProfileData> profileDataOpt = Optional.empty();
                     try {
-                        Optional<TenantProfileData> profileDataOpt =
-                                dataDecodingEncodingService.decode(tenantProfileUpdateMsg.getProfileDataBytes().toByteArray());
-                        tenantProfile.setProfileData(profileDataOpt.orElse(null));
+                        profileDataOpt = dataDecodingEncodingService.decode(tenantProfileUpdateMsg.getProfileDataBytes().toByteArray());
                     } catch (Exception e) {
                         log.warn("[{}] Failed to decode tenant profile data bytes {}", tenantId, tenantProfileUpdateMsg.getProfileDataBytes(), e);
                     }
+                    tenantProfile.setProfileData(profileDataOpt.orElse(new TenantProfile().createDefaultTenantProfileData()));
 
                     TenantProfile savedTenantProfile = tenantProfileService.saveTenantProfile(tenantId, tenantProfile, false);
                     notifyCluster(tenantId, savedTenantProfile);
