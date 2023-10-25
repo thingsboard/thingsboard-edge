@@ -246,6 +246,16 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
         MvcResult mvcResult = doPost("/api/admin/settings/testMail", adminSettings).andExpect(status().is5xxServerError())
                 .andReturn();
         assertThat(mvcResult.getResponse().getContentAsString()).contains("Unable to send mail: Instantiating freemarker.template.utility.Execute is not allowed in the template for security reasons");
+
+        //update templates
+        badTemplate = JacksonUtil.toJsonNode("{\"subject\":\"Test message from ThingsBoard tenant\",\"body\":\"<#assign uri=object?api.class.getResource(\\\"/\\\").toURI()>\"}");
+        ((ObjectNode) mailTemplates).set("test", badTemplate);
+        doPost("/api/whiteLabel/mailTemplates", mailTemplates, JsonNode.class);
+
+        //send test mail
+        mvcResult = doPost("/api/admin/settings/testMail", adminSettings).andExpect(status().is5xxServerError())
+                .andReturn();
+        assertThat(mvcResult.getResponse().getContentAsString()).contains("Unable to send mail: Can't use ?api, because the \\\"api_builtin_enabled\\\" configuration setting is false.");
     }
 
     private void updateAppTitleAndVerify(String appTile) throws Exception {
