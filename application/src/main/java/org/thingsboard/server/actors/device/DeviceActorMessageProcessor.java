@@ -75,10 +75,10 @@ import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponseActorMsg;
 import org.thingsboard.server.common.msg.rpc.RemoveRpcActorMsg;
 import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
 import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequestActorMsg;
-import org.thingsboard.server.common.msg.ruleengine.DeviceAttributesEventNotificationMsg;
-import org.thingsboard.server.common.msg.ruleengine.DeviceCredentialsUpdateNotificationMsg;
-import org.thingsboard.server.common.msg.ruleengine.DeviceEdgeUpdateMsg;
-import org.thingsboard.server.common.msg.ruleengine.DeviceNameOrTypeUpdateMsg;
+import org.thingsboard.server.common.msg.rule.engine.DeviceAttributesEventNotificationMsg;
+import org.thingsboard.server.common.msg.rule.engine.DeviceCredentialsUpdateNotificationMsg;
+import org.thingsboard.server.common.msg.rule.engine.DeviceEdgeUpdateMsg;
+import org.thingsboard.server.common.msg.rule.engine.DeviceNameOrTypeUpdateMsg;
 import org.thingsboard.server.common.msg.timeout.DeviceActorServerSideRpcTimeoutMsg;
 import org.thingsboard.server.common.util.KvProtoUtil;
 import org.thingsboard.server.gen.transport.TransportProtos.AttributeUpdateNotificationMsg;
@@ -284,13 +284,9 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
     }
 
     private ToDeviceRpcRequestMsg createToDeviceRpcRequestMsg(ToDeviceRpcRequest request) {
-        return createToDeviceRpcRequestMsg(request, rpcSeq++);
-    }
-
-    private ToDeviceRpcRequestMsg createToDeviceRpcRequestMsg(ToDeviceRpcRequest request, int rpcSeq) {
         ToDeviceRpcRequestBody body = request.getBody();
         return ToDeviceRpcRequestMsg.newBuilder()
-                .setRequestId(rpcSeq)
+                .setRequestId(rpcSeq++)
                 .setMethodName(body.getMethod())
                 .setParams(body.getParams())
                 .setExpirationTime(request.getExpirationTime())
