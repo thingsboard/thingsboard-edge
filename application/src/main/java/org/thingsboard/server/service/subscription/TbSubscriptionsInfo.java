@@ -30,47 +30,42 @@
  */
 package org.thingsboard.server.service.subscription;
 
-import lombok.Builder;
-import lombok.Getter;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.service.ws.telemetry.sub.TelemetrySubscriptionUpdate;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
-import java.util.Map;
-import java.util.function.BiConsumer;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class TbTimeseriesSubscription extends TbSubscription<TelemetrySubscriptionUpdate> {
+/**
+ * Information about the local websocket subscriptions.
+ */
+@RequiredArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(exclude = {"seqNumber"})
+@ToString
+public class TbSubscriptionsInfo {
 
-    @Getter
-    private final boolean allKeys;
-    @Getter
-    private final Map<String, Long> keyStates;
-    @Getter
-    private final long startTime;
-    @Getter
-    private final long endTime;
-    @Getter
-    private final boolean latestValues;
+    protected boolean notifications;
+    protected boolean alarms;
+    protected boolean tsAllKeys;
+    protected Set<String> tsKeys;
+    protected boolean attrAllKeys;
+    protected Set<String> attrKeys;
+    protected int seqNumber;
 
-    @Builder
-    public TbTimeseriesSubscription(String serviceId, String sessionId, int subscriptionId, TenantId tenantId, EntityId entityId,
-                                    BiConsumer<TbSubscription<TelemetrySubscriptionUpdate>, TelemetrySubscriptionUpdate> updateProcessor,
-                                    boolean allKeys, Map<String, Long> keyStates, long startTime, long endTime, boolean latestValues) {
-        super(serviceId, sessionId, subscriptionId, tenantId, entityId, TbSubscriptionType.TIMESERIES, updateProcessor);
-        this.allKeys = allKeys;
-        this.keyStates = keyStates;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.latestValues = latestValues;
+    public boolean isEmpty() {
+        return !notifications && !alarms && !tsAllKeys && !attrAllKeys && tsKeys == null && attrKeys == null;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        return super.equals(o);
+    protected TbSubscriptionsInfo copy() {
+        return copy(0);
     }
 
-    @Override
-    public int hashCode() {
-        return super.hashCode();
+    protected TbSubscriptionsInfo copy(int seqNumber) {
+        return new TbSubscriptionsInfo(notifications, alarms, tsAllKeys, tsKeys, attrAllKeys, attrKeys, seqNumber);
     }
+
 }

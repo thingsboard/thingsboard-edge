@@ -174,6 +174,18 @@ public class DefaultTbClusterService implements TbClusterService {
     }
 
     @Override
+    public void broadcastToCore(ToCoreNotificationMsg toCoreMsg) {
+        UUID msgId = UUID.randomUUID();
+        TbQueueProducer<TbProtoQueueMsg<ToCoreNotificationMsg>> toCoreNfProducer = producerProvider.getTbCoreNotificationsMsgProducer();
+        Set<String> tbCoreServices = partitionService.getAllServiceIds(ServiceType.TB_CORE);
+        for (String serviceId : tbCoreServices) {
+            TopicPartitionInfo tpi = notificationsTopicService.getNotificationsTopic(ServiceType.TB_CORE, serviceId);
+            toCoreNfProducer.send(tpi, new TbProtoQueueMsg<>(msgId, toCoreMsg), null);
+            toCoreNfs.incrementAndGet();
+        }
+    }
+
+    @Override
     public void pushMsgToVersionControl(TenantId tenantId, TransportProtos.ToVersionControlServiceMsg msg, TbQueueCallback callback) {
         TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_VC_EXECUTOR, tenantId, tenantId);
         log.trace("PUSHING msg: {} to:{}", msg, tpi);

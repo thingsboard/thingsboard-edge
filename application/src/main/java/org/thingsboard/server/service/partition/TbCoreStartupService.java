@@ -28,42 +28,40 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.subscription;
+package org.thingsboard.server.service.partition;
 
-import lombok.Builder;
-import lombok.Getter;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.service.ws.telemetry.sub.TelemetrySubscriptionUpdate;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.discovery.QueueKey;
+import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+import org.thingsboard.server.queue.util.AfterStartUp;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.Map;
-import java.util.function.BiConsumer;
+@Slf4j
+@TbCoreComponent
+@Service
+@RequiredArgsConstructor
+public class TbCoreStartupService {
 
-public class TbAttributeSubscription extends TbSubscription<TelemetrySubscriptionUpdate> {
+    private final PartitionService partitionService;
+    private final TbServiceInfoProvider serviceInfoProvider;
+    private final TbClusterService clusterService;
 
-    @Getter private final long queryTs;
-    @Getter private final boolean allKeys;
-    @Getter private final Map<String, Long> keyStates;
-    @Getter private final TbAttributeSubscriptionScope scope;
-
-    @Builder
-    public TbAttributeSubscription(String serviceId, String sessionId, int subscriptionId, TenantId tenantId, EntityId entityId,
-                                   BiConsumer<TbSubscription<TelemetrySubscriptionUpdate>, TelemetrySubscriptionUpdate> updateProcessor,
-                                   long queryTs, boolean allKeys, Map<String, Long> keyStates, TbAttributeSubscriptionScope scope) {
-        super(serviceId, sessionId, subscriptionId, tenantId, entityId, TbSubscriptionType.ATTRIBUTES, updateProcessor);
-        this.queryTs = queryTs;
-        this.allKeys = allKeys;
-        this.keyStates = keyStates;
-        this.scope = scope;
+    @AfterStartUp(order = AfterStartUp.STARTUP_SERVICE)
+    public void onApplicationEvent(ApplicationReadyEvent event) {
+        var myPartitions = partitionService.getMyPartitions(new QueueKey(ServiceType.TB_CORE));
+        if (myPartitions != null && !myPartitions.isEmpty()) {
+            TransportProtos.ToCoreNotificationMsg toCoreMsg = TransportProtos.ToCoreNotificationMsg.newBuilder()
+                    .setCoreStartupMsg(TransportProtos.CoreStartupMsg.newBuilder()
+                            .setServiceId(serviceInfoProvider.getServiceId()).addAllPartitions(myPartitions).build()).build();
+            clusterService.broadcastToCore(toCoreMsg);
+        }
     }
 
-    @Override
-    public boolean equals(Object o) {
-        return super.equals(o);
-    }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
-    }
 }
