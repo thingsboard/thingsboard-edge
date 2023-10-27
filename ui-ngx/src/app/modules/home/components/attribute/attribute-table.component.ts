@@ -39,7 +39,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { MatDialog } from '@angular/material/dialog';
 import { DialogService } from '@core/services/dialog.service';
 import { Direction, SortOrder } from '@shared/models/page/sort-order';
-import { merge, Subject } from 'rxjs';
+import { forkJoin, merge, Observable, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { EntityId } from '@shared/models/id/entity-id';
 import {
@@ -84,15 +84,11 @@ import {
   AddWidgetToDashboardDialogComponent,
   AddWidgetToDashboardDialogData
 } from '@home/components/attribute/add-widget-to-dashboard-dialog.component';
-import { deepClone, isUndefinedOrNull } from '@core/utils';
+import { deepClone } from '@core/utils';
 import { Filters } from '@shared/models/query/query.models';
 import { hidePageSizePixelValue } from '@shared/models/constants';
 import { ResizeObserver } from '@juggle/resize-observer';
-import {
-  DELETE_TIMESERIES_PANEL_DATA,
-  DeleteTimeseriesPanelComponent,
-  DeleteTimeseriesPanelData
-} from '@home/components/attribute/delete-timeseries-panel.component';
+import { DeleteTimeseriesPanelComponent } from '@home/components/attribute/delete-timeseries-panel.component';
 import { FormBuilder } from '@angular/forms';
 
 
@@ -403,7 +399,6 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
     if ($event) {
       $event.stopPropagation();
     }
-    const isMultipleDeletion = isUndefinedOrNull(telemetry) && this.dataSource.selection.selected.length > 1;
     const target = $event.target || $event.srcElement || $event.currentTarget;
     const config = new OverlayConfig({
       panelClass: 'tb-filter-panel',
@@ -427,12 +422,6 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
 
     const providers: StaticProvider[] = [
       {
-        provide: DELETE_TIMESERIES_PANEL_DATA,
-        useValue: {
-          isMultipleDeletion
-        } as DeleteTimeseriesPanelData
-      },
-      {
         provide: OverlayRef,
         useValue: overlayRef
       }
@@ -444,6 +433,7 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
       if (componentRef.instance.result !== null) {
         const result = componentRef.instance.result;
         const deleteTimeseries = telemetry ? [telemetry]: this.dataSource.selection.selected;
+        const tasks: Observable<any>[] = [];
         let deleteAllDataForKeys = false;
         let rewriteLatestIfDeleted = false;
         let startTs = null;
@@ -459,8 +449,12 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
             break;
           case TimeseriesDeleteStrategy.DELETE_LATEST_VALUE:
             rewriteLatestIfDeleted = result.rewriteLatest;
-            startTs = deleteTimeseries[0].lastUpdateTs;
-            endTs = startTs + 1;
+            for (const ts of deleteTimeseries) {
+              startTs = ts.lastUpdateTs;
+              endTs = startTs + 1;
+              tasks.push(this.attributeService.deleteEntityTimeseries(this.entityIdValue, [ts],
+                deleteAllDataForKeys, startTs, endTs, rewriteLatestIfDeleted, deleteLatest));
+            }
             break;
           case TimeseriesDeleteStrategy.DELETE_ALL_DATA_FOR_TIME_PERIOD:
             startTs = result.startDateTime.getTime();
@@ -468,9 +462,13 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
             rewriteLatestIfDeleted = result.rewriteLatest;
             break;
         }
-        this.attributeService.deleteEntityTimeseries(this.entityIdValue, deleteTimeseries, deleteAllDataForKeys,
-                                                      startTs, endTs, rewriteLatestIfDeleted, deleteLatest)
-          .subscribe(() => this.reloadAttributes());
+        if (tasks.length) {
+          forkJoin(tasks).subscribe(() => this.reloadAttributes());
+        } else {
+          this.attributeService.deleteEntityTimeseries(this.entityIdValue, deleteTimeseries, deleteAllDataForKeys,
+                                                        startTs, endTs, rewriteLatestIfDeleted, deleteLatest)
+            .subscribe(() => this.reloadAttributes());
+        }
       }
     });
   }
@@ -514,7 +512,7 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
     this.widgetsLoaded = false;
     this.widgetBundleSet = false;
     this.widgetsCarouselIndex = 0;
-    this.selectedWidgetsBundleAlias = 'cards';
+    this.selectedWidgetsBundleAlias = 'tables';
 
     const entityAlias: EntityAlias = {
       id: this.utils.guid(),
