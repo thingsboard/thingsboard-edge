@@ -28,27 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.scheduler;
+package org.thingsboard.server.dao;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.thingsboard.server.dao.model.sql.SchedulerEventEntity;
+import org.hibernate.dialect.function.SQLFunctionTemplate;
+import org.hibernate.type.BooleanType;
 
-import java.util.UUID;
-
-public interface SchedulerEventRepository extends JpaRepository<SchedulerEventEntity, UUID> {
-
-    Long countByTenantId(UUID tenantId);
-
-    @Query("SELECT se FROM SchedulerEventEntity se, RelationEntity re WHERE se.tenantId = :tenantId " +
-            "AND se.id = re.toId AND re.toType = 'SCHEDULER_EVENT' AND re.relationTypeGroup = 'EDGE' " +
-            "AND re.relationType = 'Contains' AND re.fromId = :edgeId AND re.fromType = 'EDGE' " +
-            "AND (:searchText IS NULL OR ilike(se.name, CONCAT('%', :searchText, '%')) = true)")
-    Page<SchedulerEventEntity> findByTenantIdAndEdgeId(@Param("tenantId") UUID tenantId,
-                                                      @Param("edgeId") UUID edgeId,
-                                                      @Param("searchText") String searchText,
-                                                      Pageable pageable);
+public class ThingsboardPostgreSQLDialect extends org.hibernate.dialect.PostgreSQL10Dialect {
+    public ThingsboardPostgreSQLDialect() {
+        super();
+        registerFunction("ilike", new SQLFunctionTemplate(BooleanType.INSTANCE, "(?1 ILIKE ?2)"));
+    }
 }

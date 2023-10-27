@@ -68,7 +68,7 @@ public class JpaOwnerInfoDao extends JpaAbstractDao<OwnerInfoEntity, EntityInfo>
         return DaoUtil.toPageData(ownerInfoRepository
                 .findTenantOwnerByTenantId(
                         tenantId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -77,7 +77,7 @@ public class JpaOwnerInfoDao extends JpaAbstractDao<OwnerInfoEntity, EntityInfo>
         return DaoUtil.toPageData(ownerInfoRepository
                 .findCustomerOwnersByTenantIdIncludingTenant(
                         tenantId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -86,7 +86,7 @@ public class JpaOwnerInfoDao extends JpaAbstractDao<OwnerInfoEntity, EntityInfo>
         return DaoUtil.toPageData(ownerInfoRepository
                 .findCustomerOwnersByTenantId(
                         tenantId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -96,7 +96,7 @@ public class JpaOwnerInfoDao extends JpaAbstractDao<OwnerInfoEntity, EntityInfo>
                 .findCustomerOwnersByIdsAndTenantId(
                         tenantId,
                         ownerIds,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 }

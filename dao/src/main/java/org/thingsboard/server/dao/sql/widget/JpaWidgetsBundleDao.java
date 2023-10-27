@@ -85,14 +85,14 @@ public class JpaWidgetsBundleDao extends JpaAbstractDao<WidgetsBundleEntity, Wid
                     widgetsBundleRepository
                             .findSystemWidgetsBundlesFullSearch(
                                     NULL_UUID,
-                                    Objects.toString(pageLink.getTextSearch(), ""),
+                                    pageLink.getTextSearch(),
                                     DaoUtil.toPageable(pageLink)));
         } else {
             return DaoUtil.toPageData(
                     widgetsBundleRepository
                             .findSystemWidgetsBundles(
                                     NULL_UUID,
-                                    Objects.toString(pageLink.getTextSearch(), ""),
+                                    pageLink.getTextSearch(),
                                     DaoUtil.toPageable(pageLink)));
         }
     }
@@ -103,7 +103,7 @@ public class JpaWidgetsBundleDao extends JpaAbstractDao<WidgetsBundleEntity, Wid
                 widgetsBundleRepository
                         .findTenantWidgetsBundlesByTenantId(
                                 tenantId,
-                                Objects.toString(pageLink.getTextSearch(), ""),
+                                pageLink.getTextSearch(),
                                 DaoUtil.toPageable(pageLink)));
     }
 
@@ -115,7 +115,7 @@ public class JpaWidgetsBundleDao extends JpaAbstractDao<WidgetsBundleEntity, Wid
                             .findAllTenantWidgetsBundlesByTenantIdFullSearch(
                                     tenantId,
                                     NULL_UUID,
-                                    Objects.toString(pageLink.getTextSearch(), ""),
+                                    pageLink.getTextSearch(),
                                     DaoUtil.toPageable(pageLink)));
         } else {
             return DaoUtil.toPageData(
@@ -123,7 +123,7 @@ public class JpaWidgetsBundleDao extends JpaAbstractDao<WidgetsBundleEntity, Wid
                             .findAllTenantWidgetsBundlesByTenantId(
                                     tenantId,
                                     NULL_UUID,
-                                    Objects.toString(pageLink.getTextSearch(), ""),
+                                    pageLink.getTextSearch(),
                                     DaoUtil.toPageable(pageLink)));
         }
     }
