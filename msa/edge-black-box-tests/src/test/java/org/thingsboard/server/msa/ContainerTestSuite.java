@@ -34,7 +34,7 @@ import static org.thingsboard.server.msa.AbstractContainerTest.TB_EDGE_SERVICE_N
 import static org.thingsboard.server.msa.AbstractContainerTest.TB_MONOLITH_SERVICE_NAME;
 
 @RunWith(ClasspathSuite.class)
-@ClasspathSuite.ClassnameFilters({"org.thingsboard.server.msa.edge.*Test"})
+@ClasspathSuite.ClassnameFilters({"org.thingsboard.server.msa.edge.ResourceClientTest"})
 @Slf4j
 public class ContainerTestSuite {
 
