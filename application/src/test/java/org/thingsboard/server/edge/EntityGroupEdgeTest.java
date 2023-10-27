@@ -31,6 +31,7 @@
 package org.thingsboard.server.edge;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
+import org.awaitility.Awaitility;
 import org.junit.Assert;
 import org.junit.Test;
 import org.thingsboard.server.common.data.EntityType;
@@ -48,6 +49,7 @@ import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @DaoSqlTest
 public class EntityGroupEdgeTest extends AbstractEdgeTest {
@@ -77,43 +79,37 @@ public class EntityGroupEdgeTest extends AbstractEdgeTest {
 
         String currentEdgeName = edge.getName();
 
-        EntityGroup edgeAllDeviceGroup = findEdgeAllGroup(EntityType.DEVICE);
-        EntityGroup edgeAllAssetGroup = findEdgeAllGroup(EntityType.ASSET);
-        EntityGroup edgeAllEntityViewGroup = findEdgeAllGroup(EntityType.ENTITY_VIEW);
-        EntityGroup edgeAllDashboardGroup = findEdgeAllGroup(EntityType.DASHBOARD);
-
-        Assert.assertTrue(edgeAllDeviceGroup.getName().contains(currentEdgeName));
-        Assert.assertTrue(edgeAllAssetGroup.getName().contains(currentEdgeName));
-        Assert.assertTrue(edgeAllEntityViewGroup.getName().contains(currentEdgeName));
-        Assert.assertTrue(edgeAllDashboardGroup.getName().contains(currentEdgeName));
+        verifyEdgeAllGroupNamingConvention(EntityType.DEVICE, currentEdgeName);
+        verifyEdgeAllGroupNamingConvention(EntityType.ASSET, currentEdgeName);
+        verifyEdgeAllGroupNamingConvention(EntityType.ENTITY_VIEW, currentEdgeName);
+        verifyEdgeAllGroupNamingConvention(EntityType.DASHBOARD, currentEdgeName);
 
         String newEdgeName = "New Edge Name for rename test";
         edge.setName(newEdgeName);
         edge = doPost("/api/edge", edge, Edge.class);
 
-        edgeAllDeviceGroup = findEdgeAllGroup(EntityType.DEVICE);
-        edgeAllAssetGroup = findEdgeAllGroup(EntityType.ASSET);
-        edgeAllEntityViewGroup = findEdgeAllGroup(EntityType.ENTITY_VIEW);
-        edgeAllDashboardGroup = findEdgeAllGroup(EntityType.DASHBOARD);
-
-        Assert.assertTrue(edgeAllDeviceGroup.getName().contains(newEdgeName));
-        Assert.assertTrue(edgeAllAssetGroup.getName().contains(newEdgeName));
-        Assert.assertTrue(edgeAllEntityViewGroup.getName().contains(newEdgeName));
-        Assert.assertTrue(edgeAllDashboardGroup.getName().contains(newEdgeName));
+        verifyEdgeAllGroupNamingConvention(EntityType.DEVICE, newEdgeName);
+        verifyEdgeAllGroupNamingConvention(EntityType.ASSET, newEdgeName);
+        verifyEdgeAllGroupNamingConvention(EntityType.ENTITY_VIEW, newEdgeName);
+        verifyEdgeAllGroupNamingConvention(EntityType.DASHBOARD, newEdgeName);
 
         // rollback
         edge.setName(currentEdgeName);
         edge = doPost("/api/edge", edge, Edge.class);
 
-        edgeAllDeviceGroup = findEdgeAllGroup(EntityType.DEVICE);
-        edgeAllAssetGroup = findEdgeAllGroup(EntityType.ASSET);
-        edgeAllEntityViewGroup = findEdgeAllGroup(EntityType.ENTITY_VIEW);
-        edgeAllDashboardGroup = findEdgeAllGroup(EntityType.DASHBOARD);
+        verifyEdgeAllGroupNamingConvention(EntityType.DEVICE, currentEdgeName);
+        verifyEdgeAllGroupNamingConvention(EntityType.ASSET, currentEdgeName);
+        verifyEdgeAllGroupNamingConvention(EntityType.ENTITY_VIEW, currentEdgeName);
+        verifyEdgeAllGroupNamingConvention(EntityType.DASHBOARD, currentEdgeName);
+    }
 
-        Assert.assertTrue(edgeAllDeviceGroup.getName().contains(currentEdgeName));
-        Assert.assertTrue(edgeAllAssetGroup.getName().contains(currentEdgeName));
-        Assert.assertTrue(edgeAllEntityViewGroup.getName().contains(currentEdgeName));
-        Assert.assertTrue(edgeAllDashboardGroup.getName().contains(currentEdgeName));
+    private void verifyEdgeAllGroupNamingConvention(EntityType entityType, String edgeName) {
+        Awaitility.await()
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> {
+                    EntityGroup edgeAllGroup = findEdgeAllGroup(entityType);
+                    return edgeAllGroup.getName().contains(edgeName);
+                });
     }
 
     private void sendDeviceCreateMsgToCloud(String deviceName, UUID uuid) throws Exception {
