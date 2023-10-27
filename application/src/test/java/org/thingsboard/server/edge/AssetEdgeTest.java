@@ -98,7 +98,7 @@ public class AssetEdgeTest extends AbstractEdgeTest {
         edgeImitator.expectMessageAmount(1);
         doDelete("/api/asset/" + savedAsset.getUuidId())
                 .andExpect(status().isOk());
-        Assert.assertTrue(edgeImitator.waitForMessages(1));
+        Assert.assertTrue(edgeImitator.waitForMessages(5));
 
         // create asset #2 and assign to edge
         edgeImitator.expectMessageAmount(2);
@@ -267,9 +267,9 @@ public class AssetEdgeTest extends AbstractEdgeTest {
     private Asset saveAssetOnCloudAndVerifyDeliveryToEdge() throws Exception {
         // create asset and assign to edge
         Asset savedAsset = saveAsset(StringUtils.randomAlphanumeric(15));
-        edgeImitator.expectMessageAmount(1); // asset message
+        edgeImitator.expectMessageAmount(2); // asset and asset profile messages
         doPost("/api/edge/" + edge.getUuidId()
-                + "/asset/" + savedAsset.getUuidId(), Device.class);
+                + "/asset/" + savedAsset.getUuidId(), Asset.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
         Optional<AssetUpdateMsg> assetUpdateMsgOpt = edgeImitator.findMessageByType(AssetUpdateMsg.class);
         Assert.assertTrue(assetUpdateMsgOpt.isPresent());

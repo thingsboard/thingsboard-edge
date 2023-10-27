@@ -46,13 +46,13 @@
           [fxShow]="!isEdit">
     {{ ((deviceScope === 'customer_user' || deviceScope === 'edge_customer_user') ? 'device.view-credentials' : 'device.manage-credentials') | translate }}
   </button>
-  <!-- <button mat-raised-button color="primary"
+  <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'checkConnectivity')"
           [fxShow]="!isEdit">
     {{ 'device.connectivity.check-connectivity' | translate }}
   </button>
-  <button mat-raised-button color="primary"
+  <!-- <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'unassignFromEdge')"
           [fxShow]="!isEdit && deviceScope === 'edge'">

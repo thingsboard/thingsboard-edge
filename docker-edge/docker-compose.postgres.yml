@@ -28,6 +28,7 @@ services:
     volumes:
       - ./tb-node/postgres:/var/lib/postgresql/data
       - ./docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
+      - ./custom-sql:/custom-sql
   tb-monolith:
     env_file:
       - tb-node.env
