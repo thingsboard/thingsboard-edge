@@ -88,7 +88,6 @@ server:
       # Limit that prohibits resetting the password for the user too often. The value of the rate limit. By default, no more than 5 requests per hour
       reset_password_per_user: "${RESET_PASSWORD_PER_USER_RATE_LIMIT_CONFIGURATION:5:3600}"
 
-<<<<<<< HEAD:application/src/main/resources/tb-edge.yml
 # Cloud configuration
 cloud:
   routingKey: "${CLOUD_ROUTING_KEY:}"
