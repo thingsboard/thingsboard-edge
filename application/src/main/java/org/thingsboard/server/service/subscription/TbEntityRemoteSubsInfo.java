@@ -30,40 +30,65 @@
  */
 package org.thingsboard.server.service.subscription;
 
-import lombok.Builder;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.util.Pair;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.service.ws.telemetry.sub.TelemetrySubscriptionUpdate;
 
 import java.util.Map;
-import java.util.function.BiConsumer;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class TbAttributeSubscription extends TbSubscription<TelemetrySubscriptionUpdate> {
+/**
+ * Information about the local websocket subscriptions.
+ */
+@RequiredArgsConstructor
+@Slf4j
+public class TbEntityRemoteSubsInfo {
+    @Getter
+    private final TenantId tenantId;
+    @Getter
+    private final EntityId entityId;
+    @Getter
+    private final Map<String, TbSubscriptionsInfo> subs = new ConcurrentHashMap<>(); // By service ID
 
-    @Getter private final long queryTs;
-    @Getter private final boolean allKeys;
-    @Getter private final Map<String, Long> keyStates;
-    @Getter private final TbAttributeSubscriptionScope scope;
-
-    @Builder
-    public TbAttributeSubscription(String serviceId, String sessionId, int subscriptionId, TenantId tenantId, EntityId entityId,
-                                   BiConsumer<TbSubscription<TelemetrySubscriptionUpdate>, TelemetrySubscriptionUpdate> updateProcessor,
-                                   long queryTs, boolean allKeys, Map<String, Long> keyStates, TbAttributeSubscriptionScope scope) {
-        super(serviceId, sessionId, subscriptionId, tenantId, entityId, TbSubscriptionType.ATTRIBUTES, updateProcessor);
-        this.queryTs = queryTs;
-        this.allKeys = allKeys;
-        this.keyStates = keyStates;
-        this.scope = scope;
+    public boolean updateAndCheckIsEmpty(String serviceId, TbEntitySubEvent event) {
+        var current = subs.get(serviceId);
+        if (current != null && current.seqNumber > event.getSeqNumber()) {
+            log.warn("[{}][{}] Duplicate subscription event received. Current: {}, Event: {}",
+                    tenantId, entityId, current, event.getInfo());
+            return false;
+        }
+        switch (event.getType()) {
+            case CREATED:
+                subs.put(serviceId, event.getInfo());
+                break;
+            case UPDATED:
+                var newSubInfo = event.getInfo();
+                if (newSubInfo.isEmpty()) {
+                    subs.remove(serviceId);
+                    return isEmpty();
+                } else {
+                    subs.put(serviceId, newSubInfo);
+                }
+                break;
+            case DELETED:
+                subs.remove(serviceId);
+                return isEmpty();
+        }
+        return false;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        return super.equals(o);
+    public boolean removeAndCheckIsEmpty(String serviceId) {
+        if (subs.remove(serviceId) != null) {
+            return subs.isEmpty();
+        } else {
+            return false;
+        }
     }
 
-    @Override
-    public int hashCode() {
-        return super.hashCode();
+    public boolean isEmpty() {
+        return subs.isEmpty();
     }
 }

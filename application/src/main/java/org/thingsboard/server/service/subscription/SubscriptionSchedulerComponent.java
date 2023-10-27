@@ -30,40 +30,38 @@
  */
 package org.thingsboard.server.service.subscription;
 
-import lombok.Builder;
 import lombok.Getter;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.service.ws.telemetry.sub.TelemetrySubscriptionUpdate;
+import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.Map;
-import java.util.function.BiConsumer;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
-public class TbAttributeSubscription extends TbSubscription<TelemetrySubscriptionUpdate> {
+@TbCoreComponent
+@Service
+public class SubscriptionSchedulerComponent {
 
-    @Getter private final long queryTs;
-    @Getter private final boolean allKeys;
-    @Getter private final Map<String, Long> keyStates;
-    @Getter private final TbAttributeSubscriptionScope scope;
+    @Getter
+    private ScheduledExecutorService scheduler;
 
-    @Builder
-    public TbAttributeSubscription(String serviceId, String sessionId, int subscriptionId, TenantId tenantId, EntityId entityId,
-                                   BiConsumer<TbSubscription<TelemetrySubscriptionUpdate>, TelemetrySubscriptionUpdate> updateProcessor,
-                                   long queryTs, boolean allKeys, Map<String, Long> keyStates, TbAttributeSubscriptionScope scope) {
-        super(serviceId, sessionId, subscriptionId, tenantId, entityId, TbSubscriptionType.ATTRIBUTES, updateProcessor);
-        this.queryTs = queryTs;
-        this.allKeys = allKeys;
-        this.keyStates = keyStates;
-        this.scope = scope;
+    @PostConstruct
+    public void initExecutor() {
+        scheduler = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("subscription-scheduler"));
     }
 
-    @Override
-    public boolean equals(Object o) {
-        return super.equals(o);
+    @PreDestroy
+    public void shutdownExecutor() {
+        if (scheduler != null) {
+            scheduler.shutdownNow();
+        }
     }
 
-    @Override
-    public int hashCode() {
-        return super.hashCode();
+    public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
+        return scheduler.scheduleWithFixedDelay(command, initialDelay, delay, unit);
     }
 }

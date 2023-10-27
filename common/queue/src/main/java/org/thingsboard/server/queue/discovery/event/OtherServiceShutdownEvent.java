@@ -28,42 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.subscription;
+package org.thingsboard.server.queue.discovery.event;
 
-import lombok.Builder;
+import com.google.protobuf.ProtocolStringList;
 import lombok.Getter;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.service.ws.telemetry.sub.TelemetrySubscriptionUpdate;
+import org.thingsboard.server.common.msg.queue.ServiceType;
 
-import java.util.Map;
-import java.util.function.BiConsumer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-public class TbAttributeSubscription extends TbSubscription<TelemetrySubscriptionUpdate> {
+public class OtherServiceShutdownEvent extends TbApplicationEvent {
 
-    @Getter private final long queryTs;
-    @Getter private final boolean allKeys;
-    @Getter private final Map<String, Long> keyStates;
-    @Getter private final TbAttributeSubscriptionScope scope;
+    private static final long serialVersionUID = -2441739930040282254L;
 
-    @Builder
-    public TbAttributeSubscription(String serviceId, String sessionId, int subscriptionId, TenantId tenantId, EntityId entityId,
-                                   BiConsumer<TbSubscription<TelemetrySubscriptionUpdate>, TelemetrySubscriptionUpdate> updateProcessor,
-                                   long queryTs, boolean allKeys, Map<String, Long> keyStates, TbAttributeSubscriptionScope scope) {
-        super(serviceId, sessionId, subscriptionId, tenantId, entityId, TbSubscriptionType.ATTRIBUTES, updateProcessor);
-        this.queryTs = queryTs;
-        this.allKeys = allKeys;
-        this.keyStates = keyStates;
-        this.scope = scope;
-    }
+    @Getter
+    private final String serviceId;
+    @Getter
+    private final Set<ServiceType> serviceTypes;
 
-    @Override
-    public boolean equals(Object o) {
-        return super.equals(o);
-    }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
+    public OtherServiceShutdownEvent(Object source, String serviceId, List<String> serviceTypes) {
+        super(source);
+        this.serviceId = serviceId;
+        this.serviceTypes = serviceTypes.stream().map(ServiceType::valueOf).collect(Collectors.toSet());
     }
 }
