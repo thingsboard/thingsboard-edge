@@ -45,8 +45,8 @@ public interface EdgeInfoRepository extends JpaRepository<EdgeInfoEntity, UUID> 
 
     @Query("SELECT ei FROM EdgeInfoEntity ei " +
             "WHERE ei.tenantId = :tenantId " +
-            "AND (LOWER(ei.name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-            "OR LOWER(ei.ownerName) LIKE LOWER(CONCAT('%', :searchText, '%')))")
+            "AND (:searchText IS NULL OR ilike(ei.name, CONCAT('%', :searchText, '%')) = true " +
+            "OR ilike(ei.ownerName, CONCAT('%', :searchText, '%')) = true)")
     Page<EdgeInfoEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                         @Param("searchText") String searchText,
                                         Pageable pageable);
@@ -54,8 +54,8 @@ public interface EdgeInfoRepository extends JpaRepository<EdgeInfoEntity, UUID> 
     @Query("SELECT ei FROM EdgeInfoEntity ei " +
             "WHERE ei.tenantId = :tenantId " +
             "AND ei.type = :type " +
-            "AND (LOWER(ei.name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-            "OR LOWER(ei.ownerName) LIKE LOWER(CONCAT('%', :searchText, '%')))")
+            "AND (:searchText IS NULL OR ilike(ei.name, CONCAT('%', :searchText, '%')) = true " +
+            "OR ilike(ei.ownerName, CONCAT('%', :searchText, '%')) = true)")
     Page<EdgeInfoEntity> findByTenantIdAndType(@Param("tenantId") UUID tenantId,
                                                @Param("type") String type,
                                                @Param("searchText") String searchText,
@@ -63,7 +63,7 @@ public interface EdgeInfoRepository extends JpaRepository<EdgeInfoEntity, UUID> 
 
     @Query("SELECT ei FROM EdgeInfoEntity ei " +
             "WHERE ei.tenantId = :tenantId AND (ei.customerId IS NULL OR ei.customerId = '13814000-1dd2-11b2-8080-808080808080') " +
-            "AND LOWER(ei.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND (:searchText IS NULL OR ilike(ei.name, CONCAT('%', :searchText, '%')) = true)")
     Page<EdgeInfoEntity> findTenantEdgesByTenantId(@Param("tenantId") UUID tenantId,
                                                    @Param("searchText") String searchText,
                                                    Pageable pageable);
@@ -71,14 +71,14 @@ public interface EdgeInfoRepository extends JpaRepository<EdgeInfoEntity, UUID> 
     @Query("SELECT ei FROM EdgeInfoEntity ei " +
             "WHERE ei.tenantId = :tenantId AND (ei.customerId IS NULL OR ei.customerId = '13814000-1dd2-11b2-8080-808080808080') " +
             "AND ei.type = :type " +
-            "AND LOWER(ei.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND (:searchText IS NULL OR ilike(ei.name, CONCAT('%', :searchText, '%')) = true)")
     Page<EdgeInfoEntity> findTenantEdgesByTenantIdAndType(@Param("tenantId") UUID tenantId,
                                                           @Param("type") String type,
                                                           @Param("searchText") String searchText,
                                                           Pageable pageable);
 
     @Query("SELECT ei FROM EdgeInfoEntity ei WHERE ei.tenantId = :tenantId AND ei.customerId = :customerId " +
-            "AND LOWER(ei.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND (:searchText IS NULL OR ilike(ei.name, CONCAT('%', :searchText, '%')) = true)")
     Page<EdgeInfoEntity> findByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
                                                      @Param("customerId") UUID customerId,
                                                      @Param("searchText") String searchText,
@@ -86,7 +86,7 @@ public interface EdgeInfoRepository extends JpaRepository<EdgeInfoEntity, UUID> 
 
     @Query("SELECT ei FROM EdgeInfoEntity ei WHERE ei.tenantId = :tenantId AND ei.customerId = :customerId " +
             "AND ei.type = :type " +
-            "AND LOWER(ei.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND (:searchText IS NULL OR ilike(ei.name, CONCAT('%', :searchText, '%')) = true)")
     Page<EdgeInfoEntity> findByTenantIdAndCustomerIdAndType(@Param("tenantId") UUID tenantId,
                                                             @Param("customerId") UUID customerId,
                                                             @Param("type") String type,
@@ -100,13 +100,13 @@ public interface EdgeInfoRepository extends JpaRepository<EdgeInfoEntity, UUID> 
             "c.title as owner_name from edge_info_view e " +
             "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +
-            "AND (LOWER(e.name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-            "OR LOWER(e.owner_name) LIKE LOWER(CONCAT('%', :searchText, '%')))",
+            "AND (:searchText IS NULL OR e.name ILIKE CONCAT('%', :searchText, '%') " +
+            "OR e.owner_name ILIKE CONCAT('%', :searchText, '%'))",
             countQuery = "SELECT count(e.id) FROM edge e " +
                     "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId " +
                     "WHERE" + SUB_CUSTOMERS_QUERY +
-                    "AND (LOWER(e.name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-                    "OR LOWER(c.title) LIKE LOWER(CONCAT('%', :searchText, '%')))",
+                    "AND (:searchText IS NULL OR e.name ILIKE CONCAT('%', :searchText, '%') " +
+                    "OR c.title ILIKE CONCAT('%', :searchText, '%'))",
             nativeQuery = true)
     Page<EdgeInfoEntity> findByTenantIdAndCustomerIdIncludingSubCustomers(@Param("tenantId") UUID tenantId,
                                                                           @Param("customerId") UUID customerId,
@@ -121,14 +121,14 @@ public interface EdgeInfoRepository extends JpaRepository<EdgeInfoEntity, UUID> 
             "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +
             "AND e.type = :type " +
-            "AND (LOWER(e.name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-            "OR LOWER(e.owner_name) LIKE LOWER(CONCAT('%', :searchText, '%')))",
+            "AND (:searchText IS NULL OR ilike(e.name, CONCAT('%', :searchText, '%')) = true " +
+            "OR ilike(e.owner_name, CONCAT('%', :searchText, '%')) = true)",
             countQuery = "SELECT count(e.id) FROM edge e " +
                     "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId " +
                     "WHERE" + SUB_CUSTOMERS_QUERY +
                     "AND e.type = :type " +
-                    "AND (LOWER(e.name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-                    "OR LOWER(c.title) LIKE LOWER(CONCAT('%', :searchText, '%')))",
+                    "AND (:searchText IS NULL OR ilike(e.name, CONCAT('%', :searchText, '%')) = true " +
+                    "OR ilike(c.title, CONCAT('%', :searchText, '%')) = true)",
             nativeQuery = true)
     Page<EdgeInfoEntity> findByTenantIdAndCustomerIdAndTypeIncludingSubCustomers(@Param("tenantId") UUID tenantId,
                                                                                  @Param("customerId") UUID customerId,

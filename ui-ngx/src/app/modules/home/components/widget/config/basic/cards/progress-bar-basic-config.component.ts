@@ -36,6 +36,7 @@ import { AppState } from '@core/core.state';
 import { BasicWidgetConfigComponent } from '@home/components/widget/config/widget-config.component.models';
 import { WidgetConfigComponentData } from '@home/models/widget-component.models';
 import {
+  DataKey,
   datasourcesHasAggregation,
   datasourcesHasOnlyComparisonAggregation,
   WidgetConfig,
@@ -95,8 +96,8 @@ export class ProgressBarBasicConfigComponent extends BasicWidgetConfigComponent 
     return this.progressBarWidgetConfigForm;
   }
 
-  protected setupDefaults(configData: WidgetConfigComponentData) {
-    this.setupDefaultDatasource(configData, [{ name: 'humidity', label: 'humidity', type: DataKeyType.timeseries }]);
+  protected defaultDataKeys(configData: WidgetConfigComponentData): DataKey[] {
+    return [{ name: 'humidity', label: 'humidity', type: DataKeyType.timeseries }];
   }
 
   protected onConfigSet(configData: WidgetConfigComponentData) {

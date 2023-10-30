@@ -86,7 +86,7 @@ public class JpaTbResourceInfoDao extends JpaAbstractDao<TbResourceInfoEntity, T
                 .findTenantResourcesByTenantId(
                         filter.getTenantId().getId(),
                         resourceType == null ? null : resourceType.name(),
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 

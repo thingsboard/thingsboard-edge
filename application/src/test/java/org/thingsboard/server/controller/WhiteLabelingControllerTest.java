@@ -34,8 +34,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.After;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.wl.Favicon;
@@ -49,6 +54,8 @@ import org.thingsboard.server.dao.wl.WhiteLabelingDao;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.thingsboard.server.common.data.id.TenantId.SYS_TENANT_ID;
 
@@ -209,6 +216,46 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
         loginTenantAdmin();
         JsonNode tenantMailTemplates = doGet("/api/whiteLabel/mailTemplates?systemByDefault=true", JsonNode.class);
         assertThat(tenantMailTemplates.get("subject")).isEqualTo(systemMailTemplates.get("subject"));
+    }
+
+    @Test
+    public void shouldNotSendMailIfMailTemplateContainsVulnerableCodeExecution() throws Exception {
+        loginTenantAdmin();
+        JsonNode mailTemplates = doGet("/api/whiteLabel/mailTemplates", JsonNode.class);
+
+        JsonNode badTemplate = JacksonUtil.toJsonNode("{\"subject\":\"Test message from ThingsBoard tenant\",\"body\":\"<#assign ex=\\\"freemarker.template.utility.Execute\\\"?new()> ${ex(\\\"id\\\")}\"}");
+        ((ObjectNode) mailTemplates).set("test", badTemplate);
+        ((ObjectNode) mailTemplates).put("useSystemMailSettings", false);
+        doPost("/api/whiteLabel/mailTemplates", mailTemplates, JsonNode.class);
+
+        mailTemplates = doGet("/api/whiteLabel/mailTemplates", JsonNode.class);
+        assertThat(mailTemplates.get("test")).isEqualTo(badTemplate);
+
+        AdminSettings adminSettings = doGet("/api/admin/settings/mail", AdminSettings.class);
+        ObjectNode objectNode = JacksonUtil.fromString(adminSettings.getJsonValue().toString(), ObjectNode.class);
+        objectNode.put("smtpHost", "smtp.gmail.com");
+        objectNode.put("smtpPort", "465");
+        objectNode.put("smtpProtocol", "smtps");
+        objectNode.put("mailFrom", "testMail@gmail.com");
+        objectNode.put("timeout", 1_000);
+        objectNode.put("username", "username");
+        objectNode.put("password", "password");
+        adminSettings.setJsonValue(objectNode);
+
+        //send test mail
+        MvcResult mvcResult = doPost("/api/admin/settings/testMail", adminSettings).andExpect(status().is5xxServerError())
+                .andReturn();
+        assertThat(mvcResult.getResponse().getContentAsString()).contains("Unable to send mail: Instantiating freemarker.template.utility.Execute is not allowed in the template for security reasons");
+
+        //update templates
+        badTemplate = JacksonUtil.toJsonNode("{\"subject\":\"Test message from ThingsBoard tenant\",\"body\":\"<#assign uri=object?api.class.getResource(\\\"/\\\").toURI()>\"}");
+        ((ObjectNode) mailTemplates).set("test", badTemplate);
+        doPost("/api/whiteLabel/mailTemplates", mailTemplates, JsonNode.class);
+
+        //send test mail
+        mvcResult = doPost("/api/admin/settings/testMail", adminSettings).andExpect(status().is5xxServerError())
+                .andReturn();
+        assertThat(mvcResult.getResponse().getContentAsString()).contains("Unable to send mail: Can't use ?api, because the \\\"api_builtin_enabled\\\" configuration setting is false.");
     }
 
     private void updateAppTitleAndVerify(String appTile) throws Exception {

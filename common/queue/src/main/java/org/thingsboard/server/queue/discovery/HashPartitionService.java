@@ -149,6 +149,11 @@ public class HashPartitionService implements PartitionService {
         }
     }
 
+    @Override
+    public List<Integer> getMyPartitions(QueueKey queueKey) {
+        return myPartitions.get(queueKey);
+    }
+
     public ConcurrentMap<QueueKey, String> getPartitionTopicsMap() {
         return partitionTopicsMap;
     }

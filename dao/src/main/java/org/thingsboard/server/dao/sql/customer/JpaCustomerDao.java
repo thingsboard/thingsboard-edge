@@ -97,7 +97,7 @@ public class JpaCustomerDao extends JpaAbstractDao<CustomerEntity, Customer> imp
         return DaoUtil.toPageData(customerRepository
                 .findByEntityGroupId(
                         groupId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink, CustomerEntity.customerColumnMap)));
     }
 
@@ -107,7 +107,7 @@ public class JpaCustomerDao extends JpaAbstractDao<CustomerEntity, Customer> imp
                 .findByEntityGroupIds(
                         groupIds,
                         additionalCustomerIds != null && !additionalCustomerIds.isEmpty() ? additionalCustomerIds : null,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink, CustomerEntity.customerColumnMap)));
     }
 

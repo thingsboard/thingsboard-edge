@@ -1006,8 +1006,8 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             }
 
             if (!StringUtils.isEmpty(pageLink.getTextSearch())) {
-                ctx.addStringParameter("textSearch", "%" + pageLink.getTextSearch().toLowerCase() + "%");
-                fromClause.append(" AND LOWER(e.").append(entityNameColumns.get(entityType)).append(") LIKE :textSearch");
+                ctx.addStringParameter("textSearch", "%" + pageLink.getTextSearch() + "%");
+                fromClause.append(" AND e.").append(entityNameColumns.get(entityType)).append(" ILIKE :textSearch");
             }
 
             int totalElements = jdbcTemplate.queryForObject(String.format("select count(*) %s", fromClause), ctx, Integer.class);
@@ -1691,7 +1691,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 " FROM entity_group WHERE type = :entity_group_type";
         ctx.addStringParameter("entity_group_type", entityType.name());
         if (StringUtils.isNotEmpty(entityFilter.getEntityGroupNameFilter())) {
-            select = select + " and LOWER(name) LIKE LOWER(concat(:entity_group_name_prefix, '%%'))";
+            select = select + " and name ILIKE concat(:entity_group_name_prefix, '%%')";
             ctx.addStringParameter("entity_group_name_prefix", entityFilter.getEntityGroupNameFilter());
         }
         return "(" + select + ")";
@@ -1932,8 +1932,8 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
 
     private String buildTextSearchQuery(QueryContext ctx, List<EntityKeyMapping> selectionMapping, String searchText) {
         if (!StringUtils.isEmpty(searchText) && !selectionMapping.isEmpty()) {
-            String lowerSearchText = "%" + searchText.toLowerCase() + "%";
-            ctx.addStringParameter("lowerSearchTextParam", lowerSearchText);
+            String sqlSearchText = "%" + searchText + "%";
+            ctx.addStringParameter("lowerSearchTextParam", sqlSearchText);
             List<String> searchAliases = selectionMapping.stream().filter(EntityKeyMapping::isSearchable).map(EntityKeyMapping::getValueAlias).collect(Collectors.toList());
             String searchAliasesExpression;
             if (searchAliases.size() > 1) {
@@ -1941,7 +1941,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             } else {
                 searchAliasesExpression = searchAliases.get(0);
             }
-            return String.format(" WHERE LOWER(%s) LIKE :%s", searchAliasesExpression, "lowerSearchTextParam");
+            return String.format(" WHERE %s ILIKE :%s", searchAliasesExpression, "lowerSearchTextParam");
         } else {
             return "";
         }
@@ -1966,18 +1966,18 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         ctx.addStringParameter("entity_filter_name_filter", filter.getEntityNameFilter());
         String nameColumn = getNameColumn(filter.getEntityType());
         if (filter.getEntityNameFilter().startsWith("%") || filter.getEntityNameFilter().endsWith("%")) {
-            return String.format("lower(e.%s) like lower(:entity_filter_name_filter)", nameColumn);
+            return String.format("e.%s ILIKE :entity_filter_name_filter", nameColumn);
         }
 
-        return String.format("lower(e.%s) like lower(concat(:entity_filter_name_filter, '%%'))", nameColumn);
+        return String.format("e.%s ILIKE concat(:entity_filter_name_filter, '%%')", nameColumn);
     }
 
     private String entityGroupNameQuery(QueryContext ctx, EntityGroupNameFilter filter) {
         ctx.addStringParameter("entity_filter_group_name_filter", filter.getEntityGroupNameFilter());
         if (filter.getEntityGroupNameFilter().startsWith("%") || filter.getEntityGroupNameFilter().endsWith("%")) {
-            return "lower(e.name) like lower(:entity_filter_group_name_filter)";
+            return "e.name ILIKE :entity_filter_group_name_filter";
         }
-        return "lower(e.name) like lower(concat(:entity_filter_group_name_filter, '%%'))";
+        return "e.name ILIKE concat(:entity_filter_group_name_filter, '%%')";
     }
 
     private String typeQuery(QueryContext ctx, EntityFilter filter) {
@@ -2013,9 +2013,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         if (!StringUtils.isEmpty(name)) {
             ctx.addStringParameter("entity_filter_type_query_name", name);
             if (name.startsWith("%") || name.endsWith("%")) {
-                return typesFilter + " and lower(e." + nameColumn + ") like lower(:entity_filter_type_query_name)";
+                return typesFilter + " and e." + nameColumn + " ILIKE :entity_filter_type_query_name";
             }
-            return typesFilter + " and lower(e." + nameColumn + ") like lower(concat(:entity_filter_type_query_name, '%%'))";
+            return typesFilter + " and e." + nameColumn + " ILIKE concat(:entity_filter_type_query_name, '%%')";
         } else {
             return typesFilter;
         }

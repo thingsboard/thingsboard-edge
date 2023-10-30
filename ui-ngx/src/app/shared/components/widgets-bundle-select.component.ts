@@ -35,12 +35,12 @@ import { Observable } from 'rxjs';
 import { map, share, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
-import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { WidgetsBundle } from '@shared/models/widgets-bundle.model';
 import { WidgetService } from '@core/http/widget.service';
 import { isDefined } from '@core/utils';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-widgets-bundle-select',
@@ -59,19 +59,15 @@ export class WidgetsBundleSelectComponent implements ControlValueAccessor, OnIni
   bundlesScope: 'system' | 'tenant';
 
   @Input()
+  @coerceBoolean()
   selectFirstBundle: boolean;
 
   @Input()
   selectBundleAlias: string;
 
-  private requiredValue: boolean;
-  get required(): boolean {
-    return this.requiredValue;
-  }
   @Input()
-  set required(value: boolean) {
-    this.requiredValue = coerceBooleanProperty(value);
-  }
+  @coerceBoolean()
+  required: boolean;
 
   @Input()
   disabled: boolean;
@@ -85,7 +81,8 @@ export class WidgetsBundleSelectComponent implements ControlValueAccessor, OnIni
 
   widgetsBundle: WidgetsBundle | null;
 
-  private propagateChange = (v: any) => { };
+  onTouched = () => {};
+  private propagateChange: (value: any) => void = () => {};
 
   constructor(private store: Store<AppState>,
               private widgetService: WidgetService) {
@@ -96,6 +93,7 @@ export class WidgetsBundleSelectComponent implements ControlValueAccessor, OnIni
   }
 
   registerOnTouched(fn: any): void {
+    this.onTouched = fn;
   }
 
   ngOnInit() {

@@ -28,49 +28,58 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.subscription;
+package org.thingsboard.server.service.queue.ruleengine;
 
-import lombok.Builder;
 import lombok.Getter;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.service.ws.telemetry.sub.TelemetrySubscriptionUpdate;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.queue.TbQueueConsumer;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 
-import java.util.Map;
-import java.util.function.BiConsumer;
+import java.util.Set;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
-public class TbTimeseriesSubscription extends TbSubscription<TelemetrySubscriptionUpdate> {
+@RequiredArgsConstructor
+@Slf4j
+public class TbQueueConsumerTask {
 
     @Getter
-    private final boolean allKeys;
+    private final Object key;
     @Getter
-    private final Map<String, Long> keyStates;
-    @Getter
-    private final long startTime;
-    @Getter
-    private final long endTime;
-    @Getter
-    private final boolean latestValues;
+    private final TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg>> consumer;
 
-    @Builder
-    public TbTimeseriesSubscription(String serviceId, String sessionId, int subscriptionId, TenantId tenantId, EntityId entityId,
-                                    BiConsumer<TbSubscription<TelemetrySubscriptionUpdate>, TelemetrySubscriptionUpdate> updateProcessor,
-                                    boolean allKeys, Map<String, Long> keyStates, long startTime, long endTime, boolean latestValues) {
-        super(serviceId, sessionId, subscriptionId, tenantId, entityId, TbSubscriptionType.TIMESERIES, updateProcessor);
-        this.allKeys = allKeys;
-        this.keyStates = keyStates;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.latestValues = latestValues;
+    @Setter
+    private Future<?> task;
+
+    public void subscribe(Set<TopicPartitionInfo> partitions) {
+        log.trace("[{}] Subscribing to partitions: {}", key, partitions);
+        consumer.subscribe(partitions);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        return super.equals(o);
+    public void initiateStop() {
+        log.debug("[{}] Initiating stop", key);
+        consumer.stop();
     }
 
-    @Override
-    public int hashCode() {
-        return super.hashCode();
+    public void awaitCompletion() {
+        log.trace("[{}] Awaiting finish", key);
+        if (isRunning()) {
+            try {
+                task.get(30, TimeUnit.SECONDS);
+                log.trace("[{}] Awaited finish", key);
+            } catch (Exception e) {
+                log.warn("[{}] Failed to await for consumer to stop", key, e);
+            }
+            task = null;
+        }
     }
+
+    public boolean isRunning() {
+        return task != null;
+    }
+
 }
