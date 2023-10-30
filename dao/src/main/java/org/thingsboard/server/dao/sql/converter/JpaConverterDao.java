@@ -64,7 +64,7 @@ public class JpaConverterDao extends JpaAbstractDao<ConverterEntity, Converter> 
         return DaoUtil.toPageData(
                 converterRepository.findByTenantId(
                         tenantId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -73,7 +73,7 @@ public class JpaConverterDao extends JpaAbstractDao<ConverterEntity, Converter> 
         return DaoUtil.toPageData(
                 converterRepository.findByTenantIdAndIsEdgeTemplate(
                         tenantId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         false,
                         DaoUtil.toPageable(pageLink)));
     }
@@ -83,7 +83,7 @@ public class JpaConverterDao extends JpaAbstractDao<ConverterEntity, Converter> 
         return DaoUtil.toPageData(
                 converterRepository.findByTenantIdAndIsEdgeTemplate(
                         tenantId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         true,
                         DaoUtil.toPageable(pageLink)));
     }
