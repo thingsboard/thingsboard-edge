@@ -359,7 +359,7 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
 
     private void sendCoreNotification(String targetServiceId, EntityId entityId, ToCoreNotificationMsg msg) {
         log.trace("[{}] Forwarding to remote service [{}]: {}", entityId, targetServiceId, msg);
-        TopicPartitionInfo tpi = notificationsTopicService.getNotificationsTopic(ServiceType.TB_CORE, targetServiceId);
+        TopicPartitionInfo tpi = topicService.getNotificationsTopic(ServiceType.TB_CORE, targetServiceId);
         TbProtoQueueMsg<ToCoreNotificationMsg> queueMsg = new TbProtoQueueMsg<>(entityId.getId(), msg);
         toCoreNotificationsProducer.send(tpi, queueMsg, null);
     }
