@@ -30,29 +30,15 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-image-cards-select tb-form-panel stroked no-padding">
-  <mat-expansion-panel class="tb-settings" [expanded]="expanded" disabled>
-    <mat-expansion-panel-header fxLayout="row wrap">
-      <div fxFlex class="tb-form-row no-border"  [class.expanded]="expanded">
-        <div class="fixed-title-width">{{ label }}</div>
-        <mat-form-field class="tb-image-cards-value-field" fxFlex appearance="outline" subscriptSizing="dynamic" (click)="toggleSelectPanel($event)">
-          <input readonly matInput [formControl]="valueFormControl" placeholder="{{ 'widget-config.set' | translate }}">
-          <mat-icon matSuffix>{{ expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
-        </mat-form-field>
+<div class="tb-liquid-level-panel" [style]="backgroundStyle" [class.tb-liquid-level-pointer]="hasCardClickAction" (click)="cardClick($event)">
+  <div class="tb-liquid-level-overlay" [style]="overlayStyle"></div>
+  <ng-container *ngTemplateOutlet="widgetTitlePanel"></ng-container>
+  <div #liquidLevelContent class="tb-liquid-level-content"></div>
+  <div *ngIf="errorsMsg.length" class="tb-liquid-level-error">
+    <div class="tb-liquid-level-error-container">
+      <div *ngFor="let error of errorsMsg">
+        {{ error }}
       </div>
-    </mat-expansion-panel-header>
-    <ng-template matExpansionPanelContent>
-      <mat-grid-list class="tb-image-cards-options" [cols]="cols$ | async" [rowHeight]="rowHeight" gutterSize="8">
-        <mat-grid-tile *ngFor="let option of options" (click)="updateModel(option.value)">
-          <div class="tb-image-cards-option" [class.selected]="modelValue === option.value">
-            <div class="tb-image-cards-option-background"></div>
-            <div class="tb-image-cards-option-title">{{ option.name }}</div>
-            <div class="tb-image-cards-option-image-container">
-              <img class="tb-image-cards-option-image" [src]="option.image"/>
-            </div>
-          </div>
-        </mat-grid-tile>
-      </mat-grid-list>
-    </ng-template>
-  </mat-expansion-panel>
+    </div>
+  </div>
 </div>

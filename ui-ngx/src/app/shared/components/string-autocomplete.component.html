@@ -30,29 +30,37 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-image-cards-select tb-form-panel stroked no-padding">
-  <mat-expansion-panel class="tb-settings" [expanded]="expanded" disabled>
-    <mat-expansion-panel-header fxLayout="row wrap">
-      <div fxFlex class="tb-form-row no-border"  [class.expanded]="expanded">
-        <div class="fixed-title-width">{{ label }}</div>
-        <mat-form-field class="tb-image-cards-value-field" fxFlex appearance="outline" subscriptSizing="dynamic" (click)="toggleSelectPanel($event)">
-          <input readonly matInput [formControl]="valueFormControl" placeholder="{{ 'widget-config.set' | translate }}">
-          <mat-icon matSuffix>{{ expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
-        </mat-form-field>
-      </div>
-    </mat-expansion-panel-header>
-    <ng-template matExpansionPanelContent>
-      <mat-grid-list class="tb-image-cards-options" [cols]="cols$ | async" [rowHeight]="rowHeight" gutterSize="8">
-        <mat-grid-tile *ngFor="let option of options" (click)="updateModel(option.value)">
-          <div class="tb-image-cards-option" [class.selected]="modelValue === option.value">
-            <div class="tb-image-cards-option-background"></div>
-            <div class="tb-image-cards-option-title">{{ option.name }}</div>
-            <div class="tb-image-cards-option-image-container">
-              <img class="tb-image-cards-option-image" [src]="option.image"/>
-            </div>
-          </div>
-        </mat-grid-tile>
-      </mat-grid-list>
-    </ng-template>
-  </mat-expansion-panel>
-</div>
+<mat-form-field [appearance]="appearance" [class]="additionalClass"
+                [subscriptSizing]="subscriptSizing" style="width: 100%">
+  <mat-label *ngIf="label">{{label}}</mat-label>
+  <input matInput #nameInput [formControl]="selectionFormControl"
+         [placeholder]="placeholderText"
+         (focusin)="onFocus()"
+         [matAutocomplete]="optionsAutocomplete">
+  <button *ngIf="selectionFormControl.value && !disabled"
+          type="button"
+          class="tb-icon-24"
+          matSuffix mat-icon-button aria-label="Clear"
+          (click)="clear()">
+    <mat-icon class="material-icons">close</mat-icon>
+  </button>
+  <mat-icon *ngIf="selectionFormControl.hasError('required') && !showInlineError"
+            matIconSuffix
+            [matTooltip]="errorText"
+            matTooltipPosition="above"
+            [matTooltipClass]="tooltipClass"
+            class="material-icons tb-suffix-show-always tb-error">
+    warning
+  </mat-icon>
+  <mat-error *ngIf="selectionFormControl.hasError('required') && showInlineError">
+    {{errorText}}
+  </mat-error>
+  <mat-autocomplete
+    #optionsAutocomplete="matAutocomplete"
+    class="tb-autocomplete tb-options-input-autocomplete"
+    panelWidth="fit-content">
+    <mat-option *ngFor="let option of filteredOptions$ | async" [value]="option">
+      <span class="tb-option-name" fxFlex [innerHTML]="option | highlight:searchText:true:'ig'"></span>
+    </mat-option>
+  </mat-autocomplete>
+</mat-form-field>
