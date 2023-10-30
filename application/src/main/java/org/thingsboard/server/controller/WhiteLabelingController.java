@@ -123,14 +123,21 @@ public class WhiteLabelingController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/whiteLabel/currentWhiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
-    public WhiteLabelingParams getCurrentWhiteLabelParams() throws ThingsboardException, ExecutionException, InterruptedException {
+    public WhiteLabelingParams getCurrentWhiteLabelParams(@ApiParam(value = CUSTOMER_ID_PARAM_DESCRIPTION)
+                                                              @RequestParam(value = "customerId", required = false) String strCustomerId) throws ThingsboardException, ExecutionException, InterruptedException {
         Authority authority = getCurrentUser().getAuthority();
         checkWhiteLabelingPermissions(Operation.READ);
         WhiteLabelingParams whiteLabelingParams = null;
         if (Authority.SYS_ADMIN.equals(authority)) {
             whiteLabelingParams = whiteLabelingService.getSystemWhiteLabelingParams(TenantId.SYS_TENANT_ID);
         } else if (Authority.TENANT_ADMIN.equals(authority)) {
-            whiteLabelingParams = whiteLabelingService.getTenantWhiteLabelingParams(getCurrentUser().getTenantId());
+            if (StringUtils.isEmpty(strCustomerId)) {
+                whiteLabelingParams = whiteLabelingService.getTenantWhiteLabelingParams(getCurrentUser().getTenantId());
+            } else {
+                CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+                checkCustomerId(customerId, Operation.READ);
+                whiteLabelingParams = whiteLabelingService.getCustomerWhiteLabelingParams(getTenantId(), customerId);
+            }
         } else if (Authority.CUSTOMER_USER.equals(authority)) {
             whiteLabelingParams = whiteLabelingService.getCustomerWhiteLabelingParams(getTenantId(), getCurrentUser().getCustomerId());
         }
@@ -149,14 +156,21 @@ public class WhiteLabelingController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/whiteLabel/currentLoginWhiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
-    public LoginWhiteLabelingParams getCurrentLoginWhiteLabelParams() throws Exception {
+    public LoginWhiteLabelingParams getCurrentLoginWhiteLabelParams(@ApiParam(value = CUSTOMER_ID_PARAM_DESCRIPTION)
+                                                                        @RequestParam(value = "customerId", required = false) String strCustomerId) throws Exception {
         Authority authority = getCurrentUser().getAuthority();
         checkWhiteLabelingPermissions(Operation.READ);
         LoginWhiteLabelingParams loginWhiteLabelingParams = null;
         if (Authority.SYS_ADMIN.equals(authority)) {
             loginWhiteLabelingParams = whiteLabelingService.getSystemLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID);
         } else if (Authority.TENANT_ADMIN.equals(authority)) {
-            loginWhiteLabelingParams = whiteLabelingService.getTenantLoginWhiteLabelingParams(getCurrentUser().getTenantId());
+            if (StringUtils.isEmpty(strCustomerId)) {
+                loginWhiteLabelingParams = whiteLabelingService.getTenantLoginWhiteLabelingParams(getCurrentUser().getTenantId());
+            } else {
+                CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+                checkCustomerId(customerId, Operation.READ);
+                loginWhiteLabelingParams = whiteLabelingService.getCustomerLoginWhiteLabelingParams(getTenantId(), customerId);
+            }
         } else if (Authority.CUSTOMER_USER.equals(authority)) {
             loginWhiteLabelingParams = whiteLabelingService.getCustomerLoginWhiteLabelingParams(getTenantId(), getCurrentUser().getCustomerId());
         }

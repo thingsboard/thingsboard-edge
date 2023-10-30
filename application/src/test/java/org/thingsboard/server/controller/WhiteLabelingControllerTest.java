@@ -137,36 +137,56 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
 
     @Test
     public void updateLoginWhiteLabelParamsForCustomerByTenant() throws Exception {
-        loginCustomerAdminUser();
-        LoginWhiteLabelingParams loginWhiteLabelingParams = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
+        loginTenantAdmin();
+        LoginWhiteLabelingParams loginWhiteLabelingParams = doGet("/api/whiteLabel/currentLoginWhiteLabelParams?customerId=" + customerId, LoginWhiteLabelingParams.class);
 
         String domainName = "customer-domain.com";
         loginWhiteLabelingParams.setDomainName(domainName);
 
-        loginTenantAdmin();
         doPost("/api/whiteLabel/loginWhiteLabelParams?customerId=" + customerId, loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
 
+        LoginWhiteLabelingParams updated = doGet("/api/whiteLabel/currentLoginWhiteLabelParams?customerId=" + customerId, LoginWhiteLabelingParams.class);
+        assertThat(updated).isEqualTo(loginWhiteLabelingParams);
+
         loginCustomerAdminUser();
-        Awaitility.await("Waiting while login whitelabel params is updated")
-                .atMost(10, TimeUnit.SECONDS)
-                .until(() -> domainName.equals(doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class).getDomainName()));
+        LoginWhiteLabelingParams updated2 = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
+        assertThat(updated2).isEqualTo(loginWhiteLabelingParams);
+    }
+
+    @Test
+    public void shouldNotUpdateLoginWhiteLabelParamsForAnotherCustomerByTenant() throws Exception {
+        loginTenantAdmin();
+        doGet("/api/whiteLabel/currentLoginWhiteLabelParams?customerId=" + differentTenantCustomerId);
+
+        LoginWhiteLabelingParams loginWhiteLabelingParams = new LoginWhiteLabelingParams();
+        doPost("/api/whiteLabel/loginWhiteLabelParams?customerId=" + differentTenantCustomerId, loginWhiteLabelingParams);
     }
 
     @Test
     public void updateWhiteLabelParamsForCustomerByTenant() throws Exception {
-        loginCustomerAdminUser();
-        WhiteLabelingParams whiteLabelingParams = doGet("/api/whiteLabel/currentWhiteLabelParams", WhiteLabelingParams.class);
-
         loginTenantAdmin();
+        WhiteLabelingParams whiteLabelingParams = doGet("/api/whiteLabel/currentWhiteLabelParams?customerId=" + customerId, WhiteLabelingParams.class);
 
         String appTile = "customer title";
         whiteLabelingParams.setAppTitle(appTile);
+
         doPost("/api/whiteLabel/whiteLabelParams?customerId=" + customerId, whiteLabelingParams, WhiteLabelingParams.class);
 
+        WhiteLabelingParams updated = doGet("/api/whiteLabel/currentWhiteLabelParams?customerId=" + customerId, WhiteLabelingParams.class);
+        assertThat(updated).isEqualTo(whiteLabelingParams);
+
         loginCustomerAdminUser();
-        Awaitility.await("Waiting while whitelabel params is updated")
-                .atMost(10, TimeUnit.SECONDS)
-                .until(() -> appTile.equals(doGet("/api/whiteLabel/currentWhiteLabelParams", WhiteLabelingParams.class).getAppTitle()));
+        WhiteLabelingParams updated2 = doGet("/api/whiteLabel/currentWhiteLabelParams", WhiteLabelingParams.class);
+        assertThat(updated2).isEqualTo(whiteLabelingParams);
+    }
+
+    @Test
+    public void shouldNotUpdateWhiteLabelParamsForAnotherCustomerByTenant() throws Exception {
+        loginTenantAdmin();
+        doGet("/api/whiteLabel/currentWhiteLabelParams?customerId=" + differentTenantCustomerId);
+
+        LoginWhiteLabelingParams loginWhiteLabelingParams = new LoginWhiteLabelingParams();
+        doPost("/api/whiteLabel/currentWhiteLabelParams?customerId=" + differentTenantCustomerId, loginWhiteLabelingParams);
     }
 
     private void updateAppTitleAndVerify(String appTile) throws Exception {
