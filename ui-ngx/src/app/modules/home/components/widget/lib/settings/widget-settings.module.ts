@@ -73,7 +73,6 @@ import {
 import {
   AlarmsTableKeySettingsComponent
 } from '@home/components/widget/lib/settings/alarm/alarms-table-key-settings.component';
-import { GaugeHighlightComponent } from '@home/components/widget/lib/settings/gauge/gauge-highlight.component';
 import {
   AnalogueRadialGaugeWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/gauge/analogue-radial-gauge-widget-settings.component';
@@ -345,7 +344,6 @@ import {
     EntitiesTableKeySettingsComponent,
     AlarmsTableWidgetSettingsComponent,
     AlarmsTableKeySettingsComponent,
-    GaugeHighlightComponent,
     AnalogueRadialGaugeWidgetSettingsComponent,
     AnalogueLinearGaugeWidgetSettingsComponent,
     AnalogueCompassWidgetSettingsComponent,
@@ -465,7 +463,6 @@ import {
     EntitiesTableKeySettingsComponent,
     AlarmsTableWidgetSettingsComponent,
     AlarmsTableKeySettingsComponent,
-    GaugeHighlightComponent,
     AnalogueRadialGaugeWidgetSettingsComponent,
     AnalogueLinearGaugeWidgetSettingsComponent,
     AnalogueCompassWidgetSettingsComponent,

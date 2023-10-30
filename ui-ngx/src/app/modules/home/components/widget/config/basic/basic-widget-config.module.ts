@@ -86,6 +86,15 @@ import {
   ProgressBarBasicConfigComponent
 } from '@home/components/widget/config/basic/cards/progress-bar-basic-config.component';
 import {
+  RadialGaugeBasicConfigComponent
+} from '@home/components/widget/config/basic/gauge/radial-gauge-basic-config.component';
+import {
+  ThermometerScaleGaugeBasicConfigComponent
+} from '@home/components/widget/config/basic/gauge/thermometer-scale-gauge-basic-config.component';
+import {
+  CompassGaugeBasicConfigComponent
+} from '@home/components/widget/config/basic/gauge/compass-gauge-basic-config.component';
+import {
   LiquidLevelCardBasicConfigComponent
 } from '@home/components/widget/config/basic/indicator/liquid-level-card-basic-config.component';
 
@@ -110,6 +119,9 @@ import {
     SignalStrengthBasicConfigComponent,
     ValueChartCardBasicConfigComponent,
     ProgressBarBasicConfigComponent,
+    RadialGaugeBasicConfigComponent,
+    ThermometerScaleGaugeBasicConfigComponent,
+    CompassGaugeBasicConfigComponent,
     LiquidLevelCardBasicConfigComponent
   ],
   imports: [
@@ -137,6 +149,9 @@ import {
     SignalStrengthBasicConfigComponent,
     ValueChartCardBasicConfigComponent,
     ProgressBarBasicConfigComponent,
+    RadialGaugeBasicConfigComponent,
+    ThermometerScaleGaugeBasicConfigComponent,
+    CompassGaugeBasicConfigComponent,
     LiquidLevelCardBasicConfigComponent
   ]
 })
@@ -158,5 +173,8 @@ export const basicWidgetConfigComponentsMap: {[key: string]: Type<IBasicWidgetCo
   'tb-signal-strength-basic-config': SignalStrengthBasicConfigComponent,
   'tb-value-chart-card-basic-config': ValueChartCardBasicConfigComponent,
   'tb-progress-bar-basic-config': ProgressBarBasicConfigComponent,
+  'tb-radial-gauge-basic-config': RadialGaugeBasicConfigComponent,
+  'tb-thermometer-scale-gauge-basic-config': ThermometerScaleGaugeBasicConfigComponent,
+  'tb-compass-gauge-basic-config': CompassGaugeBasicConfigComponent,
   'tb-liquid-level-card-basic-config': LiquidLevelCardBasicConfigComponent
 };
