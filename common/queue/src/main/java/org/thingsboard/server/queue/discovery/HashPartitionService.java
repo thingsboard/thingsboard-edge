@@ -92,6 +92,7 @@ public class HashPartitionService implements PartitionService {
     private final TenantRoutingInfoService tenantRoutingInfoService;
     private final QueueRoutingInfoService queueRoutingInfoService;
     private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
+    private final TopicService topicService;
 
     protected volatile ConcurrentMap<QueueKey, List<Integer>> myPartitions = new ConcurrentHashMap<>();
 
@@ -110,12 +111,14 @@ public class HashPartitionService implements PartitionService {
                                 TenantRoutingInfoService tenantRoutingInfoService,
                                 ApplicationEventPublisher applicationEventPublisher,
                                 QueueRoutingInfoService queueRoutingInfoService,
-                                TbQueueIntegrationExecutorSettings integrationExecutorSettings) {
+                                TbQueueIntegrationExecutorSettings integrationExecutorSettings,
+                                TopicService topicService) {
         this.serviceInfoProvider = serviceInfoProvider;
         this.tenantRoutingInfoService = tenantRoutingInfoService;
         this.applicationEventPublisher = applicationEventPublisher;
         this.queueRoutingInfoService = queueRoutingInfoService;
         this.integrationExecutorSettings = integrationExecutorSettings;
+        this.topicService = topicService;
     }
 
     @PostConstruct
@@ -144,6 +147,11 @@ public class HashPartitionService implements PartitionService {
         if (isTransport(serviceInfoProvider.getServiceType())) {
             doInitRuleEnginePartitions();
         }
+    }
+
+    @Override
+    public List<Integer> getMyPartitions(QueueKey queueKey) {
+        return myPartitions.get(queueKey);
     }
 
     public ConcurrentMap<QueueKey, String> getPartitionTopicsMap() {
@@ -456,7 +464,7 @@ public class HashPartitionService implements PartitionService {
 
     private TopicPartitionInfo buildTopicPartitionInfo(QueueKey queueKey, int partition) {
         TopicPartitionInfo.TopicPartitionInfoBuilder tpi = TopicPartitionInfo.builder();
-        tpi.topic(partitionTopicsMap.get(queueKey));
+        tpi.topic(topicService.buildTopicName(partitionTopicsMap.get(queueKey)));
         tpi.partition(partition);
         tpi.tenantId(queueKey.getTenantId());
 

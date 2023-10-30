@@ -79,6 +79,7 @@ import {
 import { SignalStrengthWidgetComponent } from '@home/components/widget/lib/indicator/signal-strength-widget.component';
 import { ValueChartCardWidgetComponent } from '@home/components/widget/lib/cards/value-chart-card-widget.component';
 import { ProgressBarWidgetComponent } from '@home/components/widget/lib/cards/progress-bar-widget.component';
+import { LiquidLevelWidgetComponent } from '@home/components/widget/lib/indicator/liquid-level-widget.component';
 
 @NgModule({
   declarations:
@@ -117,7 +118,8 @@ import { ProgressBarWidgetComponent } from '@home/components/widget/lib/cards/pr
       WindSpeedDirectionWidgetComponent,
       SignalStrengthWidgetComponent,
       ValueChartCardWidgetComponent,
-      ProgressBarWidgetComponent
+      ProgressBarWidgetComponent,
+      LiquidLevelWidgetComponent
     ],
   imports: [
     CommonModule,
@@ -161,7 +163,8 @@ import { ProgressBarWidgetComponent } from '@home/components/widget/lib/cards/pr
         WindSpeedDirectionWidgetComponent,
         SignalStrengthWidgetComponent,
         ValueChartCardWidgetComponent,
-        ProgressBarWidgetComponent
+        ProgressBarWidgetComponent,
+        LiquidLevelWidgetComponent
     ],
   providers: [
     {provide: WIDGET_COMPONENTS_MODULE_TOKEN, useValue: WidgetComponentsModule }

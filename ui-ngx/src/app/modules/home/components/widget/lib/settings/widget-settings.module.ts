@@ -323,6 +323,9 @@ import {
 import {
   ProgressBarWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/cards/progress-bar-widget-settings.component';
+import {
+  LiquidLevelCardWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/indicator/liquid-level-card-widget-settings.component';
 
 @NgModule({
   declarations: [
@@ -435,7 +438,8 @@ import {
     ProgressBarWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
-    SchedulerEventsWidgetSettingsComponent
+    SchedulerEventsWidgetSettingsComponent,
+    LiquidLevelCardWidgetSettingsComponent
   ],
   imports: [
     CommonModule,
@@ -553,7 +557,8 @@ import {
     ProgressBarWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
-    SchedulerEventsWidgetSettingsComponent
+    SchedulerEventsWidgetSettingsComponent,
+    LiquidLevelCardWidgetSettingsComponent
   ]
 })
 export class WidgetSettingsModule {
@@ -636,5 +641,6 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-value-chart-card-widget-settings': ValueChartCardWidgetSettingsComponent,
   'tb-progress-bar-widget-settings': ProgressBarWidgetSettingsComponent,
   'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
-  'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
+  'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent,
+  'tb-liquid-level-card-widget-settings': LiquidLevelCardWidgetSettingsComponent
 };

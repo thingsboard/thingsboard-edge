@@ -56,28 +56,28 @@ public interface DashboardInfoRepository extends JpaRepository<DashboardInfoEnti
 
     @Query("SELECT di FROM DashboardInfoEntity di " +
             "WHERE di.tenantId = :tenantId " +
-            "AND (LOWER(di.title) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-            "OR LOWER(di.ownerName) LIKE LOWER(CONCAT('%', :searchText, '%')))")
+            "AND (:searchText IS NULL OR ilike(di.title, CONCAT('%', :searchText, '%')) = true " +
+            "OR ilike(di.ownerName, CONCAT('%', :searchText, '%')) = true)")
     Page<DashboardInfoEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                              @Param("searchText") String searchText,
                                              Pageable pageable);
 
     @Query("SELECT di FROM DashboardInfoEntity di " +
             "WHERE di.tenantId = :tenantId AND (di.customerId IS NULL OR di.customerId = '13814000-1dd2-11b2-8080-808080808080') " +
-            "AND LOWER(di.title) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND (:searchText IS NULL OR ilike(di.title, CONCAT('%', :searchText, '%')) = true)")
     Page<DashboardInfoEntity> findTenantDashboardsByTenantId(@Param("tenantId") UUID tenantId,
                                                              @Param("searchText") String searchText,
                                                              Pageable pageable);
 
     @Query("SELECT di FROM DashboardInfoEntity di WHERE di.tenantId = :tenantId " +
             "AND di.mobileHide = false " +
-            "AND LOWER(di.title) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND (:searchText IS NULL OR ilike(di.title, CONCAT('%', :searchText, '%')) = true)")
     Page<DashboardInfoEntity> findMobileByTenantId(@Param("tenantId") UUID tenantId,
                                                    @Param("searchText") String searchText,
                                                    Pageable pageable);
 
     @Query("SELECT di FROM DashboardInfoEntity di WHERE di.tenantId = :tenantId AND di.customerId = :customerId " +
-            "AND LOWER(di.title) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND (:searchText IS NULL OR ilike(di.title, CONCAT('%', :searchText, '%')) = true)")
     Page<DashboardInfoEntity> findByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
                                                           @Param("customerId") UUID customerId,
                                                           @Param("searchText") String searchText,
@@ -89,13 +89,13 @@ public interface DashboardInfoRepository extends JpaRepository<DashboardInfoEnti
             "c.title as owner_name FROM dashboard_info_view d " +
             "LEFT JOIN customer c on c.id = d.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +
-            "AND (LOWER(e.title) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-            "OR LOWER(e.owner_name) LIKE LOWER(CONCAT('%', :searchText, '%')))",
+            "AND (:searchText IS NULL OR e.title ILIKE CONCAT('%', :searchText, '%') " +
+            "OR e.owner_name ILIKE CONCAT('%', :searchText, '%'))",
             countQuery = "SELECT count(e.id) FROM dashboard e " +
                     "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId " +
                     "WHERE" + SUB_CUSTOMERS_QUERY +
-                    "AND (LOWER(e.title) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-                    "OR LOWER(c.title) LIKE LOWER(CONCAT('%', :searchText, '%')))",
+                    "AND (:searchText IS NULL OR e.title ILIKE CONCAT('%', :searchText, '%') " +
+                    "OR c.title ILIKE CONCAT('%', :searchText, '%'))",
             nativeQuery = true)
     Page<DashboardInfoEntity> findByTenantIdAndCustomerIdIncludingSubCustomers(@Param("tenantId") UUID tenantId,
                                                                                @Param("customerId") UUID customerId,
@@ -106,7 +106,7 @@ public interface DashboardInfoRepository extends JpaRepository<DashboardInfoEnti
             "AND di.mobileHide = false " +
             "AND di.id = re.toId AND re.toType = 'DASHBOARD' AND re.relationTypeGroup = 'DASHBOARD' " +
             "AND re.relationType = 'Contains' AND re.fromId = :customerId AND re.fromType = 'CUSTOMER' " +
-            "AND LOWER(di.title) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND (:searchText IS NULL OR ilike(di.title, CONCAT('%', :searchText, '%')) = true)")
     Page<DashboardInfoEntity> findMobileByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
                                                                 @Param("customerId") UUID customerId,
                                                                 @Param("searchText") String searchText,
@@ -118,7 +118,7 @@ public interface DashboardInfoRepository extends JpaRepository<DashboardInfoEnti
             "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
             "AND re.relationType = 'Contains' " +
             "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
-            "AND LOWER(di.title) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND (:searchText IS NULL OR ilike(di.title, CONCAT('%', :searchText, '%')) = true)")
     Page<DashboardInfoEntity> findByEntityGroupId(@Param("groupId") UUID groupId,
                                                   @Param("searchText") String searchText,
                                                   Pageable pageable);
@@ -129,7 +129,7 @@ public interface DashboardInfoRepository extends JpaRepository<DashboardInfoEnti
             "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
             "AND re.relationType = 'Contains' " +
             "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
-            "AND LOWER(di.title) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND (:searchText IS NULL OR ilike(di.title, CONCAT('%', :searchText, '%')) = true)")
     Page<DashboardInfoEntity> findByEntityGroupIds(@Param("groupIds") List<UUID> groupIds,
                                                    @Param("searchText") String searchText,
                                                    Pageable pageable);
@@ -140,7 +140,7 @@ public interface DashboardInfoRepository extends JpaRepository<DashboardInfoEnti
             "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
             "AND re.relationType = 'Contains' " +
             "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
-            "AND LOWER(di.title) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND (:searchText IS NULL OR ilike(di.title, CONCAT('%', :searchText, '%')) = true)")
     Page<DashboardInfoEntity> findMobileByEntityGroupIds(@Param("groupIds") List<UUID> groupIds,
                                                          @Param("searchText") String searchText,
                                                          Pageable pageable);
@@ -150,7 +150,7 @@ public interface DashboardInfoRepository extends JpaRepository<DashboardInfoEnti
     @Query("SELECT di FROM DashboardInfoEntity di, RelationEntity re WHERE di.tenantId = :tenantId " +
             "AND di.id = re.toId AND re.toType = 'DASHBOARD' AND re.relationTypeGroup = 'EDGE' " +
             "AND re.relationType = 'Contains' AND re.fromId = :edgeId AND re.fromType = 'EDGE' " +
-            "AND LOWER(di.title) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND (:searchText IS NULL OR ilike(di.title, CONCAT('%', :searchText, '%')) = true)")
     Page<DashboardInfoEntity> findByTenantIdAndEdgeId(@Param("tenantId") UUID tenantId,
                                                       @Param("edgeId") UUID edgeId,
                                                       @Param("searchText") String searchText,
