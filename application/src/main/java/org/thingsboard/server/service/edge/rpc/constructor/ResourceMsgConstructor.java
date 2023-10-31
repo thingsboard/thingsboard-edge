@@ -28,48 +28,45 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.resource;
+package org.thingsboard.server.service.edge.rpc.constructor;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.ResourceType;
+import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.TbResource;
-import org.thingsboard.server.common.data.TbResourceInfo;
-import org.thingsboard.server.common.data.TbResourceInfoFilter;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.entity.EntityDaoService;
+import org.thingsboard.server.gen.edge.v1.ResourceUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.List;
+@Component
+@TbCoreComponent
+public class ResourceMsgConstructor {
 
-public interface ResourceService extends EntityDaoService {
+    public ResourceUpdateMsg constructResourceUpdatedMsg(UpdateMsgType msgType, TbResource tbResource) {
+        ResourceUpdateMsg.Builder builder = ResourceUpdateMsg.newBuilder()
+                .setMsgType(msgType)
+                .setIdMSB(tbResource.getId().getId().getMostSignificantBits())
+                .setIdLSB(tbResource.getId().getId().getLeastSignificantBits())
+                .setTitle(tbResource.getTitle())
+                .setResourceKey(tbResource.getResourceKey())
+                .setResourceType(tbResource.getResourceType().name())
+                .setFileName(tbResource.getFileName());
+        if (tbResource.getData() != null) {
+            builder.setData(tbResource.getData());
+        }
+        if (tbResource.getEtag() != null) {
+            builder.setEtag(tbResource.getEtag());
+        }
+        if (tbResource.getTenantId().equals(TenantId.SYS_TENANT_ID)) {
+            builder.setIsSystem(true);
+        }
+        return builder.build();
+    }
 
-    TbResource saveResource(TbResource resource);
-
-    TbResource saveResource(TbResource resource, boolean doValidate);
-
-    TbResource getResource(TenantId tenantId, ResourceType resourceType, String resourceId);
-
-    TbResource findResourceById(TenantId tenantId, TbResourceId resourceId);
-
-    TbResourceInfo findResourceInfoById(TenantId tenantId, TbResourceId resourceId);
-
-    PageData<TbResource> findAllTenantResources(TenantId tenantId, PageLink pageLink);
-
-    ListenableFuture<TbResourceInfo> findResourceInfoByIdAsync(TenantId tenantId, TbResourceId resourceId);
-
-    PageData<TbResourceInfo> findAllTenantResourcesByTenantId(TbResourceInfoFilter filter, PageLink pageLink);
-
-    PageData<TbResourceInfo> findTenantResourcesByTenantId(TbResourceInfoFilter filter, PageLink pageLink);
-
-    List<TbResource> findTenantResourcesByResourceTypeAndObjectIds(TenantId tenantId, ResourceType lwm2mModel, String[] objectIds);
-
-    PageData<TbResource> findTenantResourcesByResourceTypeAndPageLink(TenantId tenantId, ResourceType lwm2mModel, PageLink pageLink);
-
-    void deleteResource(TenantId tenantId, TbResourceId resourceId);
-
-    void deleteResourcesByTenantId(TenantId tenantId);
-
-    long sumDataSizeByTenantId(TenantId tenantId);
+    public ResourceUpdateMsg constructResourceDeleteMsg(TbResourceId tbResourceId) {
+        return ResourceUpdateMsg.newBuilder()
+                .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
+                .setIdMSB(tbResourceId.getId().getMostSignificantBits())
+                .setIdLSB(tbResourceId.getId().getLeastSignificantBits()).build();
+    }
 }

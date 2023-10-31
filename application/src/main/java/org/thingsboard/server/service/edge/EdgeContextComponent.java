@@ -51,6 +51,7 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
+import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
@@ -81,6 +82,7 @@ import org.thingsboard.server.service.edge.rpc.processor.integration.Integration
 import org.thingsboard.server.service.edge.rpc.processor.ota.OtaPackageEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.queue.QueueEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.relation.RelationEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.resource.ResourceEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.role.RoleEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.rule.RuleChainEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.scheduler.SchedulerEventEdgeProcessor;
@@ -172,6 +174,9 @@ public class EdgeContextComponent {
     private QueueService queueService;
 
     @Autowired
+    private ResourceService resourceService;
+
+    @Autowired
     private AlarmEdgeProcessor alarmProcessor;
 
     @Autowired
@@ -230,6 +235,9 @@ public class EdgeContextComponent {
 
     @Autowired
     private TenantProfileEdgeProcessor tenantProfileEdgeProcessor;
+
+    @Autowired
+    private ResourceEdgeProcessor resourceEdgeProcessor;
 
     @Autowired
     private EdgeMsgConstructor edgeMsgConstructor;

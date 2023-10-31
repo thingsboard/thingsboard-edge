@@ -28,32 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.processor.device;
+package org.thingsboard.server.service.edge.rpc.fetch;
 
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
+import org.thingsboard.server.common.data.TbResource;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.resource.ResourceService;
 
+public class SystemResourcesEdgeEventFetcher extends BaseResourceEdgeEventFetcher {
 
-@SpringBootTest(classes = {DeviceProfileEdgeProcessor.class})
-class DeviceProfileEdgeProcessorTest extends AbstractDeviceProcessorTest {
+    public SystemResourcesEdgeEventFetcher(ResourceService resourceService) {
+        super(resourceService);
+    }
 
-    @SpyBean
-    DeviceProfileEdgeProcessor deviceProfileEdgeProcessor;
-
-    @ParameterizedTest
-    @MethodSource("provideParameters")
-    public void testDeviceProfileDefaultFields_notSendToEdgeOlder3_6_0IfNotAssigned(EdgeVersion edgeVersion, long expectedDashboardIdMSB, long expectedDashboardIdLSB,
-                                                                                    long expectedRuleChainIdMSB, long expectedRuleChainIdLSB) {
-        updateDeviceProfileDefaultFields(expectedDashboardIdMSB, expectedDashboardIdLSB, expectedRuleChainIdMSB, expectedRuleChainIdLSB);
-
-        edgeEvent.setEntityId(deviceProfileId.getId());
-
-        DownlinkMsg downlinkMsg = deviceProfileEdgeProcessor.convertDeviceProfileEventToDownlink(edgeEvent, edgeId, edgeVersion);
-
-        verify(downlinkMsg, expectedDashboardIdMSB, expectedDashboardIdLSB, expectedRuleChainIdMSB, expectedRuleChainIdLSB);
+    @Override
+    protected PageData<TbResource> findTenantResources(TenantId tenantId, PageLink pageLink) {
+        return resourceService.findAllTenantResources(TenantId.SYS_TENANT_ID, pageLink);
     }
 }

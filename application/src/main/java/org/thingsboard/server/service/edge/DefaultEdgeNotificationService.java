@@ -64,6 +64,7 @@ import org.thingsboard.server.service.edge.rpc.processor.integration.Integration
 import org.thingsboard.server.service.edge.rpc.processor.ota.OtaPackageEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.queue.QueueEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.relation.RelationEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.resource.ResourceEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.role.RoleEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.rule.RuleChainEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.scheduler.SchedulerEventEdgeProcessor;
@@ -143,6 +144,9 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
 
     @Autowired
     private RelationEdgeProcessor relationProcessor;
+
+    @Autowired
+    private ResourceEdgeProcessor resourceEdgeProcessor;
 
     @Autowired
     protected ApplicationEventPublisher eventPublisher;
@@ -288,6 +292,9 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                             break;
                         case TENANT_PROFILE:
                             tenantProfileEdgeProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
+                            break;
+                        case TB_RESOURCE:
+                            resourceEdgeProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                             break;
                         default:
                             log.warn("[{}] Edge event type [{}] is not designed to be pushed to edge", tenantId, type);
