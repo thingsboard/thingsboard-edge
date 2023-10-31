@@ -74,7 +74,7 @@ public class CustomerEdgeTest extends AbstractEdgeTest {
         updateCustomerAndValidate_NO_ChangesOnEdge(savedCustomerB, "Edge Customer B Updated");
 
         // change edge owner from sub customer A to tenant
-        changeEdgeOwnerFromSubCustomerToTenant(savedCustomerA, savedSubCustomerA, 2);
+        changeEdgeOwnerFromSubCustomerToTenant(savedCustomerA, savedSubCustomerA, 4);
 
         // delete customers
         doDelete("/api/customer/" + savedCustomerA.getUuidId())

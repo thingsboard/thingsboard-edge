@@ -61,6 +61,7 @@ import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.util.KvProtoUtil;
+import org.thingsboard.server.common.util.ProtoUtils;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
@@ -175,6 +176,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     private final TbQueueConsumer<TbProtoQueueMsg<ToOtaPackageStateServiceMsg>> firmwareStatesConsumer;
     private final TbQueueConsumer<TbProtoQueueMsg<ToCoreIntegrationMsg>> integrationApiConsumer;
 
+    protected volatile ExecutorService consumersExecutor;
     protected volatile ExecutorService usageStatsExecutor;
     private volatile ExecutorService firmwareStatesExecutor;
     private volatile ExecutorService integrationApiExecutor;
@@ -219,7 +221,8 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
 
     @PostConstruct
     public void init() {
-        super.init("tb-core-consumer", "tb-core-notifications-consumer");
+        super.init("tb-core-notifications-consumer");
+        this.consumersExecutor = Executors.newCachedThreadPool(ThingsBoardThreadFactory.forName("tb-core-consumer"));
         this.usageStatsExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("tb-core-usage-stats-consumer"));
         this.firmwareStatesExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("tb-core-firmware-notifications-consumer"));
         this.integrationApiExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("tb-core-integrations-consumer"));
@@ -228,6 +231,9 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     @PreDestroy
     public void destroy() {
         super.destroy();
+        if (consumersExecutor != null) {
+            consumersExecutor.shutdownNow();
+        }
         if (usageStatsExecutor != null) {
             usageStatsExecutor.shutdownNow();
         }
@@ -404,7 +410,11 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         } else if (toCoreNotification.hasRestApiCallResponseMsg()) {
             log.trace("[{}] Forwarding message to RuleEngineCallService service {}", id, toCoreNotification.getRestApiCallResponseMsg());
             forwardToRuleEngineCallService(toCoreNotification.getRestApiCallResponseMsg(), callback);
+        } else if (toCoreNotification.hasComponentLifecycle()) {
+            handleComponentLifecycleMsg(id, ProtoUtils.fromProto(toCoreNotification.getComponentLifecycle()));
+            callback.onSuccess();
         } else if (toCoreNotification.getComponentLifecycleMsg() != null && !toCoreNotification.getComponentLifecycleMsg().isEmpty()) {
+            //will be removed in 3.6.1 in favour of hasComponentLifecycle()
             handleComponentLifecycleMsg(id, toCoreNotification.getComponentLifecycleMsg());
             callback.onSuccess();
         } else if (!toCoreNotification.getEdgeEventUpdateMsg().isEmpty()) {
@@ -791,7 +801,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     }
 
     @Override
-    protected void stopMainConsumers() {
+    protected void stopConsumers() {
         if (mainConsumer != null) {
             mainConsumer.unsubscribe();
         }
