@@ -83,7 +83,8 @@ export class ResourcesService {
     }
     const subject = new ReplaySubject<any>();
     this.loadedJsonResources[url] = subject;
-    const req$ = (url.endsWith('.raw') ? this.http.get(url, {responseType: 'text'}) : this.http.get<T>(url)) as Observable<T>;
+    const req$ = (url.endsWith('.raw') || url.endsWith('.svg') ?
+      this.http.get(url, {responseType: 'text'}) : this.http.get<T>(url)) as Observable<T>;
     req$.subscribe(
       {
         next: (o) => {

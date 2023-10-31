@@ -73,7 +73,6 @@ import {
 import {
   AlarmsTableKeySettingsComponent
 } from '@home/components/widget/lib/settings/alarm/alarms-table-key-settings.component';
-import { GaugeHighlightComponent } from '@home/components/widget/lib/settings/gauge/gauge-highlight.component';
 import {
   AnalogueRadialGaugeWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/gauge/analogue-radial-gauge-widget-settings.component';
@@ -324,6 +323,9 @@ import {
 import {
   ProgressBarWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/cards/progress-bar-widget-settings.component';
+import {
+  LiquidLevelCardWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/indicator/liquid-level-card-widget-settings.component';
 
 @NgModule({
   declarations: [
@@ -342,7 +344,6 @@ import {
     EntitiesTableKeySettingsComponent,
     AlarmsTableWidgetSettingsComponent,
     AlarmsTableKeySettingsComponent,
-    GaugeHighlightComponent,
     AnalogueRadialGaugeWidgetSettingsComponent,
     AnalogueLinearGaugeWidgetSettingsComponent,
     AnalogueCompassWidgetSettingsComponent,
@@ -437,7 +438,8 @@ import {
     ProgressBarWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
-    SchedulerEventsWidgetSettingsComponent
+    SchedulerEventsWidgetSettingsComponent,
+    LiquidLevelCardWidgetSettingsComponent
   ],
   imports: [
     CommonModule,
@@ -461,7 +463,6 @@ import {
     EntitiesTableKeySettingsComponent,
     AlarmsTableWidgetSettingsComponent,
     AlarmsTableKeySettingsComponent,
-    GaugeHighlightComponent,
     AnalogueRadialGaugeWidgetSettingsComponent,
     AnalogueLinearGaugeWidgetSettingsComponent,
     AnalogueCompassWidgetSettingsComponent,
@@ -556,7 +557,8 @@ import {
     ProgressBarWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
-    SchedulerEventsWidgetSettingsComponent
+    SchedulerEventsWidgetSettingsComponent,
+    LiquidLevelCardWidgetSettingsComponent
   ]
 })
 export class WidgetSettingsModule {
@@ -639,5 +641,6 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-value-chart-card-widget-settings': ValueChartCardWidgetSettingsComponent,
   'tb-progress-bar-widget-settings': ProgressBarWidgetSettingsComponent,
   'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
-  'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
+  'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent,
+  'tb-liquid-level-card-widget-settings': LiquidLevelCardWidgetSettingsComponent
 };
