@@ -43,16 +43,13 @@ import static java.util.List.of;
 public enum Table {
     TENANT("tenant", "id"),
     CUSTOMER("customer"),
-    ADMIN_SETTINGS("admin_settings", tenantId -> {
-        return "SELECT * FROM admin_settings WHERE (key LIKE 'loginWhiteLabelDomainNamePrefix%' AND json_value LIKE '%" + tenantId + "%') OR ";
-    }),
+    ADMIN_SETTINGS("admin_settings"),
     QUEUE("queue"),
     RPC("rpc"),
     RULE_CHAIN("rule_chain"),
     DEVICE_PROFILE("device_profile"),
     OTA_PACKAGE("ota_package"),
     RESOURCE("resource"),
-    API_USAGE_STATE("api_usage_state"),
     ROLE("role"),
     ENTITY_GROUP("entity_group", Pair.of(
             "owner_id", of(TENANT, CUSTOMER)
@@ -114,21 +111,31 @@ public enum Table {
             "entity_id", of(DEVICE)
     )),
     AUDIT_LOG("audit_log", true, "created_time", "audit_log"),
+    USER_SETTINGS("user_settings", Pair.of(
+            "user_id", of(USER)
+    ), of("user_id")),
+    NOTIFICATION_TARGET("notification_target"),
+    NOTIFICATION_TEMPLATE("notification_template"),
+    NOTIFICATION_RULE("notification_rule"),
+    WHITE_LABELING("white_labeling", Pair.of(
+            "entity_id", of(TENANT, CUSTOMER)
+    ), of("entity_id")),
+    ALARM_TYPES("alarm_types", null, of("type")),
 
     /*
-    * data from tables below is exported for each entity separately
-    * */
+     * data from tables below is exported for each entity separately
+     * */
     RELATION("relation", Pair.of(
             "from_id", of(TENANT, CUSTOMER, RULE_CHAIN, DEVICE_PROFILE, ROLE, ENTITY_GROUP, RULE_NODE, CONVERTER,
                     INTEGRATION, USER, EDGE, DASHBOARD, DEVICE, ASSET_PROFILE, ASSET, ENTITY_VIEW)
     ), List.of("to_id")),
     ATTRIBUTE("attribute_kv", Pair.of(
             "entity_id", of(TENANT, CUSTOMER, RULE_CHAIN, DEVICE_PROFILE, ROLE, ENTITY_GROUP, RULE_NODE, CONVERTER, OTA_PACKAGE,
-                    INTEGRATION, USER, EDGE, DASHBOARD, DEVICE, ASSET_PROFILE, ASSET, ENTITY_VIEW, ALARM, SCHEDULER_EVENT, GROUP_PERMISSION, API_USAGE_STATE)
+                    INTEGRATION, USER, EDGE, DASHBOARD, DEVICE, ASSET_PROFILE, ASSET, ENTITY_VIEW, ALARM, SCHEDULER_EVENT, GROUP_PERMISSION)
     ), List.of("last_update_ts", "attribute_key")),
     LATEST_KV("ts_kv_latest", Pair.of(
             "entity_id", of(TENANT, CUSTOMER, RULE_CHAIN, DEVICE_PROFILE, ROLE, ENTITY_GROUP, RULE_NODE, CONVERTER, OTA_PACKAGE,
-                    INTEGRATION, USER, EDGE, DASHBOARD, DEVICE, ASSET_PROFILE, ASSET, ENTITY_VIEW, ALARM, SCHEDULER_EVENT, GROUP_PERMISSION, API_USAGE_STATE)
+                    INTEGRATION, USER, EDGE, DASHBOARD, DEVICE, ASSET_PROFILE, ASSET, ENTITY_VIEW, ALARM, SCHEDULER_EVENT, GROUP_PERMISSION)
     ), List.of("key", "ts"), tenantId -> {
         return "SELECT ts_kv_latest.*, dict.key as key_name FROM ts_kv_latest " +
                 "INNER JOIN ts_kv_dictionary dict ON ts_kv_latest.key = dict.key_id WHERE ";

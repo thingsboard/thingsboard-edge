@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.migrator.importing;
+package org.thingsboard.migrator.service.latest_kv;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +39,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.thingsboard.migrator.BaseMigrationService;
 import org.thingsboard.migrator.config.Modes;
-import org.thingsboard.migrator.exporting.CassandraLatestKvExporter;
 import org.thingsboard.migrator.utils.Storage;
 
 import java.io.IOException;

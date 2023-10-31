@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.migrator.importing;
+package org.thingsboard.migrator.service.ts_kv;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +38,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.thingsboard.migrator.BaseMigrationService;
 import org.thingsboard.migrator.config.Modes;
-import org.thingsboard.migrator.exporting.CassandraTenantDataExporter;
 import org.thingsboard.migrator.utils.CassandraService;
 import org.thingsboard.migrator.utils.Storage;
 
@@ -50,13 +49,13 @@ import java.util.WeakHashMap;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
-import static org.thingsboard.migrator.exporting.CassandraTenantDataExporter.TS_KV_PARTITIONS_TABLE;
-import static org.thingsboard.migrator.exporting.CassandraTenantDataExporter.TS_KV_TABLE;
+import static org.thingsboard.migrator.service.ts_kv.CassandraTsKvExporter.TS_KV_PARTITIONS_TABLE;
+import static org.thingsboard.migrator.service.ts_kv.CassandraTsKvExporter.TS_KV_TABLE;
 
 @Service
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "mode", havingValue = Modes.CASSANDRA_TENANT_DATA_IMPORT)
-public class CassandraTenantDataImporter extends BaseMigrationService {
+public class CassandraTsKvImporter extends BaseMigrationService {
 
     private final Storage storage;
     private final CassandraService cassandraService;
@@ -68,7 +67,7 @@ public class CassandraTenantDataImporter extends BaseMigrationService {
 
     @Override
     protected void start() throws Exception {
-        storage.readAndProcess(CassandraTenantDataExporter.TS_KV_FILE, true, row -> {
+        storage.readAndProcess(CassandraTsKvExporter.TS_KV_FILE, true, row -> {
             try {
                 saveTsKv(row);
             } catch (Exception e) {
