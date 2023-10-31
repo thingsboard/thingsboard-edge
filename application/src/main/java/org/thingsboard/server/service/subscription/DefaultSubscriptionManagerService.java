@@ -245,13 +245,14 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
         if (entityId.getEntityType() == EntityType.EDGE) {
             try {
                 EdgeId edgeId = new EdgeId(entityId.getId());
-                String body = JacksonUtil.OBJECT_MAPPER.writeValueAsString(attributes);
+                String body = JacksonUtil.writeValueAsString(attributes);
                 clusterService.sendNotificationMsgToEdge(tenantId,
                         edgeId,
                         edgeId,
                         body,
                         EdgeEventType.EDGE,
-                        EdgeEventActionType.ATTRIBUTES_UPDATED);
+                        EdgeEventActionType.ATTRIBUTES_UPDATED,
+                        null);
             } catch (Exception e) {
                 log.warn("[{}][{}] Can't send edge attributes updated event [{}]", tenantId, entityId.getId(), attributes, e);
             }
