@@ -876,6 +876,8 @@ message EdgeNotificationMsgProto {
   int64 entityGroupIdMSB = 13;
   int64 entityGroupIdLSB = 14;
   string entityGroupType = 15;
+  int64 sourceEdgeIdMSB = 17;
+  int64 sourceEdgeIdLSB = 18;
 }
 
 message IntegrationValidationResponseProto {
