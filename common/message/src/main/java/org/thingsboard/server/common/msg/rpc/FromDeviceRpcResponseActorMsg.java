@@ -28,54 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api.msg;
+package org.thingsboard.server.common.msg.rpc;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.Data;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.kv.AttributeKey;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.msg.MsgType;
 import org.thingsboard.server.common.msg.ToDeviceActorNotificationMsg;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+@Data
+public class FromDeviceRpcResponseActorMsg implements ToDeviceActorNotificationMsg {
 
-/**
- * @author Andrew Shvayka
- */
-@ToString
-@AllArgsConstructor
-public class DeviceAttributesEventNotificationMsg implements ToDeviceActorNotificationMsg {
+    private static final long serialVersionUID = -6648120137236354987L;
 
-    @Getter
+    private final Integer requestId;
     private final TenantId tenantId;
-    @Getter
     private final DeviceId deviceId;
-    @Getter
-    private final Set<AttributeKey> deletedKeys;
-    @Getter
-    private final String scope;
-    @Getter
-    private final List<AttributeKvEntry> values;
-    @Getter
-    private final boolean deleted;
-
-    public static DeviceAttributesEventNotificationMsg onUpdate(TenantId tenantId, DeviceId deviceId, String scope, List<AttributeKvEntry> values) {
-        return new DeviceAttributesEventNotificationMsg(tenantId, deviceId, null, scope, values, false);
-    }
-
-    public static DeviceAttributesEventNotificationMsg onDelete(TenantId tenantId, DeviceId deviceId, String scope, List<String> keys) {
-        Set<AttributeKey> keysToNotify = new HashSet<>();
-        keys.forEach(key -> keysToNotify.add(new AttributeKey(scope, key)));
-        return new DeviceAttributesEventNotificationMsg(tenantId, deviceId, keysToNotify, null, null, true);
-    }
+    private final FromDeviceRpcResponse msg;
 
     @Override
     public MsgType getMsgType() {
-        return MsgType.DEVICE_ATTRIBUTES_UPDATE_TO_DEVICE_ACTOR_MSG;
+        return MsgType.DEVICE_RPC_RESPONSE_TO_DEVICE_ACTOR_MSG;
     }
 }

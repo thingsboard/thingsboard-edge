@@ -28,33 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.rpc;
+package org.thingsboard.server.common.msg.rule.engine;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+import lombok.Data;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.msg.MsgType;
-import org.thingsboard.server.common.msg.ToDeviceActorNotificationMsg;
-import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 
-@ToString
-@RequiredArgsConstructor
-public class FromDeviceRpcResponseActorMsg implements ToDeviceActorNotificationMsg {
+/**
+ * Contains basic device metadata;
+ *
+ * @author ashvayka
+ */
+@Data
+public final class DeviceMetaData {
 
-    @Getter
-    private final Integer requestId;
-    @Getter
-    private final TenantId tenantId;
-    @Getter
-    private final DeviceId deviceId;
+    final DeviceId deviceId;
+    final String deviceName;
+    final String deviceType;
+    final DeviceAttributes deviceAttributes;
 
-    @Getter
-    private final FromDeviceRpcResponse msg;
-
-    @Override
-    public MsgType getMsgType() {
-        return MsgType.DEVICE_RPC_RESPONSE_TO_DEVICE_ACTOR_MSG;
-    }
 }
