@@ -52,6 +52,7 @@ import org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNodeConfigurat
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
+import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
@@ -111,6 +112,7 @@ import org.thingsboard.server.dao.blob.BlobEntityDao;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.device.DeviceConnectivityConfiguration;
 import org.thingsboard.server.dao.edge.EdgeEventDao;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.EntityService;
@@ -253,6 +255,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     JpaExecutorService jpaExecutorService;
 
+    @Autowired
+    DeviceConnectivityConfiguration connectivityConfiguration;
+
     @Override
     public void updateData(String fromVersion) throws Exception {
 
@@ -315,6 +320,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 log.info("Updating data from version 3.5.1 to 3.6.0 ...");
                 integrationRateLimitsUpdater.updateEntities();
                 migrateEdgeEvents("Starting edge events migration - adding seq_id column. ");
+                migrateDeviceConnectivity();
+                break;
+            case "3.6.0":
+                log.info("Updating data from version 3.6.0 to 3.6.1 ...");
+                migrateDeviceConnectivity();
                 break;
             case "ce":
                 log.info("Updating data ...");
@@ -344,6 +354,14 @@ public class DefaultDataUpdateService implements DataUpdateService {
         } else {
             log.info("Skipping edge events migration");
         }
+    }
+
+    private void migrateDeviceConnectivity() {
+        AdminSettings connectivitySettings = new AdminSettings();
+        connectivitySettings.setTenantId(TenantId.SYS_TENANT_ID);
+        connectivitySettings.setKey("connectivity");
+        connectivitySettings.setJsonValue(JacksonUtil.valueToTree(connectivityConfiguration.getConnectivity()));
+        adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, connectivitySettings);
     }
 
     @Override
