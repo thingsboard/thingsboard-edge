@@ -48,19 +48,19 @@ public enum EntityType {
     ASSET(5),
     DEVICE(6),
     ALARM (7),
-    ENTITY_GROUP(8) {
+    ENTITY_GROUP(100) {
         // backward compatibility for TbOriginatorTypeSwitchNode to return correct rule node connection.
         @Override
         public String getNormalName() {
             return "Entity Group";
         }
     },
-    CONVERTER(9),
-    INTEGRATION(10),
+    CONVERTER(101),
+    INTEGRATION(102),
     RULE_CHAIN (11),
     RULE_NODE (12),
-    SCHEDULER_EVENT(13),
-    BLOB_ENTITY(14),
+    SCHEDULER_EVENT(103),
+    BLOB_ENTITY(104),
     ENTITY_VIEW(15) {
         // backward compatibility for TbOriginatorTypeSwitchNode to return correct rule node connection.
         @Override
@@ -70,8 +70,8 @@ public enum EntityType {
     },
     WIDGETS_BUNDLE (16),
     WIDGET_TYPE (17),
-    ROLE(18),
-    GROUP_PERMISSION(19),
+    ROLE(105),
+    GROUP_PERMISSION(106),
     TENANT_PROFILE (20),
     DEVICE_PROFILE (21),
     ASSET_PROFILE (22),
