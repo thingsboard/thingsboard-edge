@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.sql.device;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
@@ -48,6 +49,7 @@ import java.util.UUID;
 /**
  * Created by Valerii Sosliuk on 5/6/2017.
  */
+@Slf4j
 @Component
 @SqlDao
 public class JpaDeviceCredentialsDao extends JpaAbstractDao<DeviceCredentialsEntity, DeviceCredentials> implements DeviceCredentialsDao {
@@ -80,6 +82,7 @@ public class JpaDeviceCredentialsDao extends JpaAbstractDao<DeviceCredentialsEnt
 
     @Override
     public DeviceCredentials findByCredentialsId(TenantId tenantId, String credentialsId) {
+        log.trace("[{}] findByCredentialsId [{}]", tenantId, credentialsId);
         return DaoUtil.getData(deviceCredentialsRepository.findByCredentialsId(credentialsId));
     }
 
