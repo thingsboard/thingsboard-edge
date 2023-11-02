@@ -41,5 +41,4 @@ class AssetEdgeProcessorTest extends AbstractAssetProcessorTest {
 
         verify(downlinkMsg, expectedDashboardIdMSB, expectedDashboardIdLSB, expectedRuleChainIdMSB, expectedRuleChainIdLSB);
     }
-
 }

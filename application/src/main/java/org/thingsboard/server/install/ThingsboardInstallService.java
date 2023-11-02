@@ -265,6 +265,12 @@ public class ThingsboardInstallService {
                             databaseEntitiesUpgradeService.upgradeDatabase("3.5.1");
                             dataUpdateService.updateData("3.5.1");
                             systemDataLoaderService.updateDefaultNotificationConfigs();
+                        case "3.6.0":
+                            log.info("Upgrading ThingsBoard from version 3.6.0 to 3.6.1 ...");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.6.0");
+                            dataUpdateService.updateData("3.6.0");
+
+                            //TODO DON'T FORGET to update switch statement in the CacheCleanupService if you need to clear the cache
 
                             // reset full sync required - to upload the latest widgets from cloud
                             // fromVersion must be updated per release
@@ -272,7 +278,6 @@ public class ThingsboardInstallService {
                             // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to 'edge' version
                             dataUpdateService.updateData("edge");
 
-                            //TODO DON'T FORGET to update switch statement in the CacheCleanupService if you need to clear the cache
                             break;
                         default:
                             throw new RuntimeException("Unable to upgrade ThingsBoard Edge, unsupported fromVersion: " + upgradeFromVersion);
