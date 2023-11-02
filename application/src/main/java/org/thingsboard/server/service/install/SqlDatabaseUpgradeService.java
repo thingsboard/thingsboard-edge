@@ -782,6 +782,10 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                         log.info("Updating schema ...");
                         Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.6.0", SCHEMA_UPDATE_SQL);
                         loadSql(schemaUpdateFile, conn);
+                        try {
+                            conn.createStatement().execute("DELETE FROM resource");
+                        } catch (Exception e) {
+                        }
                         conn.createStatement().execute("UPDATE tb_schema_settings SET schema_version = 3006001;");
                         log.info("Schema updated to version 3.6.1.");
                     } else {

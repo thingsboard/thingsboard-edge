@@ -996,21 +996,6 @@ message IntegrationValidationResponseProto {
   bytes error = 3;
 }
 
-message CloudNotificationMsgProto {
-  int64 tenantIdMSB = 1;
-  int64 tenantIdLSB = 2;
-  string cloudEventType = 3;
-  string cloudEventAction = 4;
-  int64 entityIdMSB = 5;
-  int64 entityIdLSB = 6;
-  string entityType = 7;
-  string entityBody = 8;
-  PostTelemetryMsg postTelemetryMsg = 9;
-  PostAttributeMsg postAttributesMsg = 10;
-  int64 entityGroupIdMSB = 11;
-  int64 entityGroupIdLSB = 12;
-}
-
 message EdgeEventUpdateMsgProto {
   int64 tenantIdMSB = 1;
   int64 tenantIdLSB = 2;
@@ -1109,6 +1094,21 @@ message ToDeviceActorNotificationMsgProto {
   ToDeviceRpcRequestActorMsgProto toDeviceRpcRequestMsg = 5;
   FromDeviceRpcResponseActorMsgProto fromDeviceRpcResponseMsg = 6;
   RemoveRpcActorMsgProto removeRpcActorMsg = 7;
+}
+
+message CloudNotificationMsgProto {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  string cloudEventType = 3;
+  string cloudEventAction = 4;
+  int64 entityIdMSB = 5;
+  int64 entityIdLSB = 6;
+  string entityType = 7;
+  string entityBody = 8;
+  PostTelemetryMsg postTelemetryMsg = 9;
+  PostAttributeMsg postAttributesMsg = 10;
+  int64 entityGroupIdMSB = 11;
+  int64 entityGroupIdLSB = 12;
 }
 
 /**

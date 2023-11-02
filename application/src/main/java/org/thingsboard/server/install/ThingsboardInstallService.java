@@ -315,7 +315,7 @@ public class ThingsboardInstallService {
                     // log.info("Updating system data...");
                     // dataUpdateService.upgradeRuleNodes();
                     // systemDataLoaderService.updateSystemWidgets();
-                    installScripts.loadSystemLwm2mResources();
+                    // installScripts.loadSystemLwm2mResources();
                 }
 
                 log.info("Upgrade finished successfully!");
@@ -356,9 +356,9 @@ public class ThingsboardInstallService {
                 // systemDataLoaderService.createQueues();
                 // systemDataLoaderService.createDefaultNotificationConfigs();
 
-//                systemDataLoaderService.loadSystemPlugins();
-//                systemDataLoaderService.loadSystemRules();
-                installScripts.loadSystemLwm2mResources();
+                // systemDataLoaderService.loadSystemPlugins();
+                // systemDataLoaderService.loadSystemRules();
+                // installScripts.loadSystemLwm2mResources();
 
                 if (loadDemo) {
                     // log.info("Loading demo data...");

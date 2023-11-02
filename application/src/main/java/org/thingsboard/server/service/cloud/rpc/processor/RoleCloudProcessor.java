@@ -82,7 +82,7 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
             Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY, Operation.RPC_CALL,
             Operation.READ_CREDENTIALS, Operation.WRITE_ATTRIBUTES, Operation.WRITE_TELEMETRY));
 
-    private final Set<Operation> allowedProfileOperations = new HashSet<>(Arrays.asList(Operation.READ, Operation.WRITE,
+    private final Set<Operation> allowedAllOperationsExceptDelete = new HashSet<>(Arrays.asList(Operation.READ, Operation.WRITE,
             Operation.CREATE, Operation.READ_ATTRIBUTES, Operation.WRITE_ATTRIBUTES, Operation.READ_TELEMETRY,
             Operation.WRITE_TELEMETRY, Operation.CHANGE_OWNER));
 
@@ -177,7 +177,7 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
                         newOperations = entry.getValue();
                         break;
                     case PROFILE:
-                        newPermissions.put(Resource.PROFILE, new ArrayList<>(allowedProfileOperations));
+                        newPermissions.put(Resource.PROFILE, new ArrayList<>(allowedAllOperationsExceptDelete));
                         newOperations = new ArrayList<>(allowedGenericOperations);
                         break;
                     case ALL:
@@ -191,8 +191,9 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
                             newPermissions.put(Resource.ENTITY_VIEW_GROUP, Arrays.asList(Operation.ADD_TO_GROUP, Operation.REMOVE_FROM_GROUP));
                             newPermissions.put(Resource.DASHBOARD, Collections.singletonList(Operation.ALL));
                             newPermissions.put(Resource.DASHBOARD_GROUP, Arrays.asList(Operation.ADD_TO_GROUP, Operation.REMOVE_FROM_GROUP));
-                            newPermissions.put(Resource.DEVICE_PROFILE, new ArrayList<>(allowedProfileOperations));
-                            newPermissions.put(Resource.ASSET_PROFILE, new ArrayList<>(allowedProfileOperations));
+                            newPermissions.put(Resource.DEVICE_PROFILE, new ArrayList<>(allowedAllOperationsExceptDelete));
+                            newPermissions.put(Resource.ASSET_PROFILE, new ArrayList<>(allowedAllOperationsExceptDelete));
+                            newPermissions.put(Resource.TB_RESOURCE, new ArrayList<>(allowedAllOperationsExceptDelete));
                             newOperations = new ArrayList<>(allowedGenericOperations);
                         } else {
                             newOperations = originOperations.stream()
@@ -201,7 +202,6 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
                         }
                         break;
                     case VERSION_CONTROL:
-                    case TB_RESOURCE:
                         newOperations = new ArrayList<>();
                         break;
                     default:

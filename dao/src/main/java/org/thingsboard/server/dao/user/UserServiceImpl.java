@@ -188,7 +188,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         log.trace("Executing saveUser [{}]", user);
         User oldUser = null;
         if (doValidate) {
-            userValidator.validate(user, User::getTenantId);
+            oldUser = userValidator.validate(user, User::getTenantId);
         } else if (user.getId() != null) {
             oldUser = findUserById(user.getTenantId(), user.getId());
         }

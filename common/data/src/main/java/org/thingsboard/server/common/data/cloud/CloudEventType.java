@@ -48,6 +48,7 @@ public enum CloudEventType {
     ENTITY_GROUP,
     WIDGETS_BUNDLE,
     WIDGET_TYPE,
+    TB_RESOURCE,
     SCHEDULER_EVENT,
     ROLE,
     GROUP_PERMISSION,

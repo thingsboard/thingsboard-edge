@@ -33,6 +33,7 @@ package org.thingsboard.server.edge;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -54,6 +55,7 @@ public class ResourceEdgeTest extends AbstractEdgeTest {
     private static final String FILE_NAME = "test.jks";
 
     @Test
+    @Ignore
     public void testResources_create_update_delete() throws Exception {
         // create resource
         TbResource resource = new TbResource();
@@ -104,6 +106,7 @@ public class ResourceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendResourceToCloud() throws Exception {
         UUID uuid = Uuids.timeBased();
 

@@ -68,7 +68,7 @@ public class WidgetBundleCloudProcessor extends BaseEdgeProcessor {
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     widgetCreationLock.lock();
                     try {
-                        deleteSystemWidgetBundleIfAlreadyExists(tenantId, widgetsBundleUpdateMsg.getAlias(), widgetsBundleId);
+                        deleteSystemWidgetBundleIfAlreadyExists(widgetsBundleUpdateMsg.getAlias(), widgetsBundleId);
                         WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
                         if (widgetsBundle == null) {
                             widgetsBundle = new WidgetsBundle();
@@ -110,7 +110,7 @@ public class WidgetBundleCloudProcessor extends BaseEdgeProcessor {
         return Futures.immediateFuture(null);
     }
 
-    private void deleteSystemWidgetBundleIfAlreadyExists(TenantId tenantId, String bundleAlias, WidgetsBundleId widgetsBundleId) {
+    private void deleteSystemWidgetBundleIfAlreadyExists(String bundleAlias, WidgetsBundleId widgetsBundleId) {
         try {
             WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleByTenantIdAndAlias(TenantId.SYS_TENANT_ID, bundleAlias);
             if (widgetsBundle != null && !widgetsBundleId.equals(widgetsBundle.getId())) {
