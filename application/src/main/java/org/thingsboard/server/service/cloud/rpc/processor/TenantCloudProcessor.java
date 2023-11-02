@@ -43,7 +43,7 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
 
     public void createTenantIfNotExists(TenantId tenantId, Long queueStartTs) throws Exception {
         try {
-            edgeSynchronizationManager.getSync().set(true);
+            cloudSynchronizationManager.getSync().set(true);
             Tenant tenant = tenantService.findTenantById(tenantId);
             if (tenant != null) {
                 return;
@@ -57,7 +57,7 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
 
             requestForAdditionalData(tenantId, tenantId, queueStartTs).get();
         } finally {
-            edgeSynchronizationManager.getSync().remove();
+            cloudSynchronizationManager.getSync().remove();
         }
     }
 
@@ -88,7 +88,7 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
 
     public void cleanUp() {
         try {
-            edgeSynchronizationManager.getSync().set(true);
+            cloudSynchronizationManager.getSync().set(true);
             log.debug("Starting clean up procedure");
             PageData<Tenant> tenants = tenantService.findTenants(new PageLink(Integer.MAX_VALUE));
             for (Tenant tenant : tenants.getData()) {
@@ -99,7 +99,7 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
             cleanUpSystemTenant();
             log.debug("Clean up procedure successfully finished!");
         } finally {
-            edgeSynchronizationManager.getSync().remove();
+            cloudSynchronizationManager.getSync().remove();
         }
     }
 

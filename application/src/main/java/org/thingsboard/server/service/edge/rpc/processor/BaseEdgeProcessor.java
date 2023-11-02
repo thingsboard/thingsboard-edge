@@ -67,6 +67,7 @@ import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.cloud.CloudEventService;
+import org.thingsboard.server.dao.cloud.CloudSynchronizationManager;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
@@ -342,6 +343,9 @@ public abstract class BaseEdgeProcessor {
 
     @Autowired
     protected EdgeSynchronizationManager edgeSynchronizationManager;
+
+    @Autowired
+    protected CloudSynchronizationManager cloudSynchronizationManager;
 
     @Autowired
     protected DbCallbackExecutorService dbCallbackExecutorService;

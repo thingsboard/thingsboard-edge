@@ -44,7 +44,7 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                                                               Long queueStartTs) {
         CustomerId customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
         try {
-            edgeSynchronizationManager.getSync().set(true);
+            cloudSynchronizationManager.getSync().set(true);
 
             switch (customerUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
@@ -84,7 +84,7 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                     return handleUnsupportedMsgType(customerUpdateMsg.getMsgType());
             }
         } finally {
-            edgeSynchronizationManager.getSync().remove();
+            cloudSynchronizationManager.getSync().remove();
         }
     }
 
