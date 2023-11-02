@@ -44,7 +44,6 @@ import org.thingsboard.common.util.JacksonUtil;
 
 import java.time.DateTimeException;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -55,6 +54,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
@@ -497,6 +497,12 @@ class TbDateTest {
         tbDateTest = new TbDateTestEntity(23, 9, date, hrs + localOffsetHrs - tz);
         expected = String.format(pattern, tbDateTest.geDateStr(), tbDateTest.geHoursStr());
         Assert.assertEquals(expected, d.toLocaleString());
+    }
+
+    @Test
+    public void TestNow() {
+        assertTrue(TbDate.now() > 0);
+        assertNotNull(TbDate.nowToString());
     }
 
     @Test
