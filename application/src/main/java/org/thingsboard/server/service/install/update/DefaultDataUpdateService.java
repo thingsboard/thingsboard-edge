@@ -74,12 +74,9 @@ import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
 import org.thingsboard.server.dao.audit.AuditLogDao;
-<<<<<<< HEAD
 import org.thingsboard.server.dao.cloud.CloudEventDao;
 import org.thingsboard.server.dao.cloud.CloudEventService;
-=======
 import org.thingsboard.server.dao.device.DeviceConnectivityConfiguration;
->>>>>>> ce/master
 import org.thingsboard.server.dao.edge.EdgeEventDao;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
