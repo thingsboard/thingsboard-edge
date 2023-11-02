@@ -40,7 +40,7 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
     public ListenableFuture<Void> processResourceMsgFromCloud(TenantId tenantId, ResourceUpdateMsg resourceUpdateMsg) {
         TbResourceId tbResourceId = new TbResourceId(new UUID(resourceUpdateMsg.getIdMSB(), resourceUpdateMsg.getIdLSB()));
         try {
-            edgeSynchronizationManager.getSync().set(true);
+            cloudSynchronizationManager.getSync().set(true);
             switch (resourceUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
@@ -57,7 +57,7 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
                     return handleUnsupportedMsgType(resourceUpdateMsg.getMsgType());
             }
         } finally {
-            edgeSynchronizationManager.getSync().remove();
+            cloudSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
     }
