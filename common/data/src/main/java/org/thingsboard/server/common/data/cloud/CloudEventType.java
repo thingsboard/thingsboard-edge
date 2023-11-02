@@ -33,5 +33,6 @@ public enum CloudEventType {
     ENTITY_GROUP,
     WIDGETS_BUNDLE,
     WIDGET_TYPE,
-    EDGE
+    EDGE,
+    TB_RESOURCE
 }
