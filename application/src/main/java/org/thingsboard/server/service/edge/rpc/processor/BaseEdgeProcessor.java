@@ -112,8 +112,8 @@ import org.thingsboard.server.service.edge.rpc.constructor.EntityViewMsgConstruc
 import org.thingsboard.server.service.edge.rpc.constructor.OtaPackageMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.QueueMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.RelationMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.RuleChainMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.ResourceMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.RuleChainMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.TenantMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.TenantProfileMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.UserMsgConstructor;
