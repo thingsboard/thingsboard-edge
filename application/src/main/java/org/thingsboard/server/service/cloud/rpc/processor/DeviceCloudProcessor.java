@@ -78,7 +78,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         log.trace("[{}] executing processDeviceMsgFromCloud [{}]", tenantId, deviceUpdateMsg);
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
         try {
-            edgeSynchronizationManager.getSync().set(true);
+            cloudSynchronizationManager.getSync().set(true);
             switch (deviceUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
@@ -105,7 +105,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                 return handleUnsupportedMsgType(deviceUpdateMsg.getMsgType());
             }
         } finally {
-            edgeSynchronizationManager.getSync().remove();
+            cloudSynchronizationManager.getSync().remove();
         }
     }
 
@@ -140,17 +140,28 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         }
     }
 
+    public ListenableFuture<Void> processDeviceCredentialsMsgFromCloud(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {
+        try {
+            cloudSynchronizationManager.getSync().set(true);
+
+            updateDeviceCredentials(tenantId, deviceCredentialsUpdateMsg);
+        } finally {
+            cloudSynchronizationManager.getSync().remove();
+        }
+        return Futures.immediateFuture(null);
+    }
+
     public ListenableFuture<Void> processDeviceRpcCallFromCloud(TenantId tenantId, DeviceRpcCallMsg deviceRpcCallMsg) {
         log.trace("[{}] processDeviceRpcCallFromCloud [{}]", tenantId, deviceRpcCallMsg);
         if (deviceRpcCallMsg.hasResponseMsg()) {
-            return processDeviceRpcResponseFromCloud(tenantId, deviceRpcCallMsg);
+            return processDeviceRpcResponseFromCloud(deviceRpcCallMsg);
         } else if (deviceRpcCallMsg.hasRequestMsg()) {
             return processDeviceRpcRequestFromCloud(tenantId, deviceRpcCallMsg);
         }
         return Futures.immediateFuture(null);
     }
 
-    private ListenableFuture<Void> processDeviceRpcResponseFromCloud(TenantId tenantId, DeviceRpcCallMsg deviceRpcCallMsg) {
+    private ListenableFuture<Void> processDeviceRpcResponseFromCloud(DeviceRpcCallMsg deviceRpcCallMsg) {
         UUID sessionId = UUID.fromString(deviceRpcCallMsg.getSessionId());
         String serviceId = deviceRpcCallMsg.getServiceId();
         int requestId = deviceRpcCallMsg.getRequestId();
@@ -277,5 +288,4 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         }
         return msg;
     }
-
 }

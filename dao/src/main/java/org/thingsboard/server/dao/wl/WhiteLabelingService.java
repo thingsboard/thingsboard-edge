@@ -30,14 +30,16 @@
  */
 package org.thingsboard.server.dao.wl;
 
+<<<<<<< HEAD
 import org.thingsboard.server.common.data.AdminSettings;
+=======
+>>>>>>> andriilandiak-edge-pe/feature/edge-sync-improvement
 import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
-import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 
 public interface WhiteLabelingService {

@@ -66,7 +66,7 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
                                                                Long queueStartTs) throws ThingsboardException {
         DashboardId dashboardId = new DashboardId(new UUID(dashboardUpdateMsg.getIdMSB(), dashboardUpdateMsg.getIdLSB()));
         try {
-            edgeSynchronizationManager.getSync().set(true);
+            cloudSynchronizationManager.getSync().set(true);
             switch (dashboardUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
@@ -92,7 +92,7 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
                     return handleUnsupportedMsgType(dashboardUpdateMsg.getMsgType());
             }
         } finally {
-            edgeSynchronizationManager.getSync().remove();
+            cloudSynchronizationManager.getSync().remove();
         }
     }
 

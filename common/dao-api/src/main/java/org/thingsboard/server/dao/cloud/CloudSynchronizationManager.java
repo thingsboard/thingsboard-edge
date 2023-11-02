@@ -28,40 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.cloud.rpc.processor;
+package org.thingsboard.server.dao.cloud;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.cloud.CloudEvent;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.UplinkMsg;
-import org.thingsboard.server.service.edge.rpc.processor.alarm.BaseAlarmProcessor;
+public interface CloudSynchronizationManager {
 
-@Component
-@Slf4j
-public class AlarmCloudProcessor extends BaseAlarmProcessor {
+    ThreadLocal<Boolean> getSync();
 
-    public ListenableFuture<Void> processAlarmMsgFromCloud(TenantId tenantId, AlarmUpdateMsg alarmUpdateMsg) {
-        try {
-            cloudSynchronizationManager.getSync().set(true);
-            return processAlarmMsg(tenantId, alarmUpdateMsg);
-        } finally {
-            cloudSynchronizationManager.getSync().remove();
-        }
-    }
-
-    public UplinkMsg convertAlarmEventToUplink(CloudEvent cloudEvent) {
-        AlarmUpdateMsg alarmUpdateMsg =
-                convertAlarmEventToAlarmMsg(cloudEvent.getTenantId(), cloudEvent.getEntityId(), cloudEvent.getAction(), cloudEvent.getEntityBody());
-        if (alarmUpdateMsg != null) {
-            return UplinkMsg.newBuilder()
-                    .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                    .addAlarmUpdateMsg(alarmUpdateMsg)
-                    .build();
-        }
-        return null;
-    }
+    boolean isSync();
 }
