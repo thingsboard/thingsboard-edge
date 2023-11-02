@@ -196,7 +196,7 @@ public class RestClient implements Closeable {
     private String password;
     private String mainToken;
     private String refreshToken;
-    private volatile long mainTokenExpTs;
+    private long mainTokenExpTs;
     private long refreshTokenExpTs;
     private long clientServerTimeDiff;
 
