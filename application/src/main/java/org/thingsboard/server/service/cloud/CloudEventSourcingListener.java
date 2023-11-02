@@ -24,9 +24,9 @@ import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
-import org.thingsboard.server.dao.cloud.CloudSynchronizationManager;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.RelationActionEvent;
@@ -59,7 +59,6 @@ import static org.thingsboard.server.service.entitiy.DefaultTbNotificationEntity
 public class CloudEventSourcingListener {
 
     private final TbClusterService tbClusterService;
-    private final CloudSynchronizationManager cloudSynchronizationManager;
 
     private static final List<EntityType> COMMON_ENTITY_TYPES = Arrays.asList(
             EntityType.DEVICE,
@@ -82,7 +81,7 @@ public class CloudEventSourcingListener {
 
     @TransactionalEventListener(fallbackExecution = true)
     public void handleEvent(SaveEntityEvent<?> event) {
-        if (cloudSynchronizationManager.isSync()) {
+        if (event.getOriginatorEdgeId().getId().equals(EdgeId.NULL_UUID)) {
             return;
         }
         try {
@@ -100,7 +99,7 @@ public class CloudEventSourcingListener {
 
     @TransactionalEventListener(fallbackExecution = true)
     public void handleEvent(DeleteEntityEvent<?> event) {
-        if (cloudSynchronizationManager.isSync()) {
+        if (event.getOriginatorEdgeId().getId().equals(EdgeId.NULL_UUID)) {
             return;
         }
         try {
@@ -117,7 +116,7 @@ public class CloudEventSourcingListener {
 
     @TransactionalEventListener(fallbackExecution = true)
     public void handleEvent(ActionEntityEvent event) {
-        if (cloudSynchronizationManager.isSync()) {
+        if (event.getOriginatorEdgeId().getId().equals(EdgeId.NULL_UUID)) {
             return;
         }
         try {
@@ -134,7 +133,7 @@ public class CloudEventSourcingListener {
 
     @TransactionalEventListener(fallbackExecution = true)
     public void handleEvent(RelationActionEvent event) {
-        if (cloudSynchronizationManager.isSync()) {
+        if (event.getOriginatorEdgeId().getId().equals(EdgeId.NULL_UUID)) {
             return;
         }
         try {

@@ -42,23 +42,18 @@ import java.util.stream.Collectors;
 public class TenantCloudProcessor extends BaseEdgeProcessor {
 
     public void createTenantIfNotExists(TenantId tenantId, Long queueStartTs) throws Exception {
-        try {
-            cloudSynchronizationManager.getSync().set(true);
-            Tenant tenant = tenantService.findTenantById(tenantId);
-            if (tenant != null) {
-                return;
-            }
-            tenant = new Tenant();
-            tenant.setTitle("Tenant");
-            tenant.setId(tenantId);
-            tenant.setCreatedTime(Uuids.unixTimestamp(tenantId.getId()));
-            Tenant savedTenant = tenantService.saveTenant(tenant, false);
-            apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
-
-            requestForAdditionalData(tenantId, tenantId, queueStartTs).get();
-        } finally {
-            cloudSynchronizationManager.getSync().remove();
+        Tenant tenant = tenantService.findTenantById(tenantId);
+        if (tenant != null) {
+            return;
         }
+        tenant = new Tenant();
+        tenant.setTitle("Tenant");
+        tenant.setId(tenantId);
+        tenant.setCreatedTime(Uuids.unixTimestamp(tenantId.getId()));
+        Tenant savedTenant = tenantService.saveTenant(tenant, false);
+        apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
+
+        requestForAdditionalData(tenantId, tenantId, queueStartTs).get();
     }
 
     public ListenableFuture<Void> processTenantMsgFromCloud(TenantUpdateMsg tenantUpdateMsg) {
@@ -87,20 +82,15 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
     }
 
     public void cleanUp() {
-        try {
-            cloudSynchronizationManager.getSync().set(true);
-            log.debug("Starting clean up procedure");
-            PageData<Tenant> tenants = tenantService.findTenants(new PageLink(Integer.MAX_VALUE));
-            for (Tenant tenant : tenants.getData()) {
-                removeTenantAttributes(tenant.getId());
-                tenantService.deleteTenant(tenant.getId());
-            }
-
-            cleanUpSystemTenant();
-            log.debug("Clean up procedure successfully finished!");
-        } finally {
-            cloudSynchronizationManager.getSync().remove();
+        log.debug("Starting clean up procedure");
+        PageData<Tenant> tenants = tenantService.findTenants(new PageLink(Integer.MAX_VALUE));
+        for (Tenant tenant : tenants.getData()) {
+            removeTenantAttributes(tenant.getId());
+            tenantService.deleteTenant(tenant.getId());
         }
+
+        cleanUpSystemTenant();
+        log.debug("Clean up procedure successfully finished!");
     }
 
     private void cleanUpSystemTenant() {

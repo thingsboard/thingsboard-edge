@@ -64,13 +64,21 @@ public abstract class AbstractEntityService {
     protected EdgeService edgeService;
 
     protected void createRelation(TenantId tenantId, EntityRelation relation) {
+        createRelation(tenantId, relation, null);
+    }
+
+    protected void createRelation(TenantId tenantId, EntityRelation relation, EdgeId originatorEdgeId) {
         log.debug("Creating relation: {}", relation);
-        relationService.saveRelation(tenantId, relation);
+        relationService.saveRelation(tenantId, relation, originatorEdgeId);
     }
 
     protected void deleteRelation(TenantId tenantId, EntityRelation relation) {
+        deleteRelation(tenantId, relation, null);
+    }
+
+    protected void deleteRelation(TenantId tenantId, EntityRelation relation, EdgeId originatorEdgeId) {
         log.debug("Deleting relation: {}", relation);
-        relationService.deleteRelation(tenantId, relation);
+        relationService.deleteRelation(tenantId, relation, originatorEdgeId);
     }
 
     protected void deleteEntityRelations(TenantId tenantId, EntityId entityId) {

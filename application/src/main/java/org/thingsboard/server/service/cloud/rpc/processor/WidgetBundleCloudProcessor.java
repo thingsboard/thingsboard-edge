@@ -46,51 +46,46 @@ public class WidgetBundleCloudProcessor extends BaseEdgeProcessor {
     public ListenableFuture<Void> processWidgetsBundleMsgFromCloud(TenantId tenantId,
                                                                    WidgetsBundleUpdateMsg widgetsBundleUpdateMsg) {
         WidgetsBundleId widgetsBundleId = new WidgetsBundleId(new UUID(widgetsBundleUpdateMsg.getIdMSB(), widgetsBundleUpdateMsg.getIdLSB()));
-        try {
-            cloudSynchronizationManager.getSync().set(true);
-            switch (widgetsBundleUpdateMsg.getMsgType()) {
-                case ENTITY_CREATED_RPC_MESSAGE:
-                case ENTITY_UPDATED_RPC_MESSAGE:
-                    widgetCreationLock.lock();
-                    try {
-                        deleteSystemWidgetBundleIfAlreadyExists(tenantId, widgetsBundleUpdateMsg.getAlias(), widgetsBundleId);
-                        WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
-                        if (widgetsBundle == null) {
-                            widgetsBundle = new WidgetsBundle();
-                            if (widgetsBundleUpdateMsg.getIsSystem()) {
-                                widgetsBundle.setTenantId(TenantId.SYS_TENANT_ID);
-                            } else {
-                                widgetsBundle.setTenantId(tenantId);
-                            }
-                            widgetsBundle.setId(widgetsBundleId);
-                            widgetsBundle.setCreatedTime(Uuids.unixTimestamp(widgetsBundleId.getId()));
-                        }
-                        widgetsBundle.setTitle(widgetsBundleUpdateMsg.getTitle());
-                        widgetsBundle.setAlias(widgetsBundleUpdateMsg.getAlias());
-                        widgetsBundle.setImage(widgetsBundleUpdateMsg.hasImage()
-                                ? new String(widgetsBundleUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8) : null);
-                        widgetsBundle.setDescription(widgetsBundleUpdateMsg.hasDescription() ? widgetsBundleUpdateMsg.getDescription() : null);
-                        widgetsBundleService.saveWidgetsBundle(widgetsBundle, false);
-
-                        String[] widgetFqns = JacksonUtil.fromString(widgetsBundleUpdateMsg.getWidgets(), String[].class);
-                        if (widgetFqns != null && widgetFqns.length > 0) {
-                            widgetTypeService.updateWidgetsBundleWidgetFqns(widgetsBundle.getTenantId(), widgetsBundleId, Arrays.asList(widgetFqns));
-                        }
-                    } finally {
-                        widgetCreationLock.unlock();
-                    }
-                    break;
-                case ENTITY_DELETED_RPC_MESSAGE:
+        switch (widgetsBundleUpdateMsg.getMsgType()) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                widgetCreationLock.lock();
+                try {
+                    deleteSystemWidgetBundleIfAlreadyExists(tenantId, widgetsBundleUpdateMsg.getAlias(), widgetsBundleId);
                     WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
-                    if (widgetsBundle != null) {
-                        widgetsBundleService.deleteWidgetsBundle(tenantId, widgetsBundle.getId());
+                    if (widgetsBundle == null) {
+                        widgetsBundle = new WidgetsBundle();
+                        if (widgetsBundleUpdateMsg.getIsSystem()) {
+                            widgetsBundle.setTenantId(TenantId.SYS_TENANT_ID);
+                        } else {
+                            widgetsBundle.setTenantId(tenantId);
+                        }
+                        widgetsBundle.setId(widgetsBundleId);
+                        widgetsBundle.setCreatedTime(Uuids.unixTimestamp(widgetsBundleId.getId()));
                     }
-                    break;
-                case UNRECOGNIZED:
-                    return handleUnsupportedMsgType(widgetsBundleUpdateMsg.getMsgType());
-            }
-        } finally {
-            cloudSynchronizationManager.getSync().remove();
+                    widgetsBundle.setTitle(widgetsBundleUpdateMsg.getTitle());
+                    widgetsBundle.setAlias(widgetsBundleUpdateMsg.getAlias());
+                    widgetsBundle.setImage(widgetsBundleUpdateMsg.hasImage()
+                            ? new String(widgetsBundleUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8) : null);
+                    widgetsBundle.setDescription(widgetsBundleUpdateMsg.hasDescription() ? widgetsBundleUpdateMsg.getDescription() : null);
+                    widgetsBundleService.saveWidgetsBundle(widgetsBundle, false);
+
+                    String[] widgetFqns = JacksonUtil.fromString(widgetsBundleUpdateMsg.getWidgets(), String[].class);
+                    if (widgetFqns != null && widgetFqns.length > 0) {
+                        widgetTypeService.updateWidgetsBundleWidgetFqns(widgetsBundle.getTenantId(), widgetsBundleId, Arrays.asList(widgetFqns));
+                    }
+                } finally {
+                    widgetCreationLock.unlock();
+                }
+                break;
+            case ENTITY_DELETED_RPC_MESSAGE:
+                WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
+                if (widgetsBundle != null) {
+                    widgetsBundleService.deleteWidgetsBundle(tenantId, widgetsBundle.getId());
+                }
+                break;
+            case UNRECOGNIZED:
+                return handleUnsupportedMsgType(widgetsBundleUpdateMsg.getMsgType());
         }
         return Futures.immediateFuture(null);
     }

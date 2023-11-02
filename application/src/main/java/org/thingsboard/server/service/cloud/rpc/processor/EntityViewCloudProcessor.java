@@ -27,6 +27,7 @@ import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
@@ -51,34 +52,29 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
                                                                 EntityViewUpdateMsg entityViewUpdateMsg,
                                                                 Long queueStartTs) {
         EntityViewId entityViewId = new EntityViewId(new UUID(entityViewUpdateMsg.getIdMSB(), entityViewUpdateMsg.getIdLSB()));
-        try {
-            cloudSynchronizationManager.getSync().set(true);
 
-            switch (entityViewUpdateMsg.getMsgType()) {
-                case ENTITY_CREATED_RPC_MESSAGE:
-                case ENTITY_UPDATED_RPC_MESSAGE:
-                    saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg, edgeCustomerId, queueStartTs);
-                    return requestForAdditionalData(tenantId, entityViewId, queueStartTs);
-                case ENTITY_DELETED_RPC_MESSAGE:
-                    EntityView entityViewById = entityViewService.findEntityViewById(tenantId, entityViewId);
-                    if (entityViewById != null) {
-                        entityViewService.deleteEntityView(tenantId, entityViewId);
-                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityViewId, ComponentLifecycleEvent.DELETED);
-                        pushEntityViewDeletedEventToRuleEngine(tenantId, entityViewById);
-                    }
-                    return Futures.immediateFuture(null);
-                case UNRECOGNIZED:
-                default:
-                    return handleUnsupportedMsgType(entityViewUpdateMsg.getMsgType());
-            }
-        } finally {
-            cloudSynchronizationManager.getSync().remove();
+        switch (entityViewUpdateMsg.getMsgType()) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg, edgeCustomerId, queueStartTs);
+                return requestForAdditionalData(tenantId, entityViewId, queueStartTs);
+            case ENTITY_DELETED_RPC_MESSAGE:
+                EntityView entityViewById = entityViewService.findEntityViewById(tenantId, entityViewId);
+                if (entityViewById != null) {
+                    entityViewService.deleteEntityView(tenantId, entityViewId);
+                    tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityViewId, ComponentLifecycleEvent.DELETED);
+                    pushEntityViewDeletedEventToRuleEngine(tenantId, entityViewById);
+                }
+                return Futures.immediateFuture(null);
+            case UNRECOGNIZED:
+            default:
+                return handleUnsupportedMsgType(entityViewUpdateMsg.getMsgType());
         }
     }
 
     private void saveOrUpdateEntityView(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg, CustomerId edgeCustomerId, Long queueStartTs) {
         CustomerId customerId = safeGetCustomerId(entityViewUpdateMsg.getCustomerIdMSB(), entityViewUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId);
-        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg, customerId);
+        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg, new EdgeId(EdgeId.NULL_UUID), customerId);
         Boolean created = resultPair.getFirst();
         tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityViewId,
                 created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);

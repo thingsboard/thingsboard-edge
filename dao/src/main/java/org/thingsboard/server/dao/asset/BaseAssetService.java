@@ -132,19 +132,10 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
     }
 
     @Override
-    public Asset saveAsset(Asset asset, boolean doValidate) {
-        return doSaveAsset(asset, doValidate);
-    }
-
-    @Override
-    public Asset saveAsset(Asset asset) {
-        return doSaveAsset(asset, true);
-    }
-
-    private Asset doSaveAsset(Asset asset, boolean doValidate) {
+    public Asset saveAsset(Asset asset, EdgeId originatorEdgeId) {
         log.trace("Executing saveAsset [{}]", asset);
         Asset oldAsset = null;
-        if (doValidate) {
+        if (originatorEdgeId == null) {
             oldAsset = assetValidator.validate(asset, Asset::getTenantId);
         } else if (asset.getId() != null) {
             oldAsset = findAssetById(asset.getTenantId(), asset.getId());
@@ -173,7 +164,7 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
             savedAsset = assetDao.saveAndFlush(asset.getTenantId(), asset);
             publishEvictEvent(evictEvent);
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedAsset.getTenantId())
-                    .entityId(savedAsset.getId()).added(asset.getId() == null).build());
+                    .entityId(savedAsset.getId()).added(asset.getId() == null).originatorEdgeId(originatorEdgeId).build());
             if (asset.getId() == null) {
                 countService.publishCountEntityEvictEvent(savedAsset.getTenantId(), EntityType.ASSET);
             }
@@ -185,6 +176,11 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
             throw t;
         }
         return savedAsset;
+    }
+
+    @Override
+    public Asset saveAsset(Asset asset) {
+        return saveAsset(asset, null);
     }
 
     @Override
@@ -381,7 +377,7 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
     }
 
     @Override
-    public Asset assignAssetToEdge(TenantId tenantId, AssetId assetId, EdgeId edgeId) {
+    public Asset assignAssetToEdge(TenantId tenantId, AssetId assetId, EdgeId edgeId, EdgeId originatorEdgeId) {
         Asset asset = findAssetById(tenantId, assetId);
         Edge edge = edgeService.findEdgeById(tenantId, edgeId);
         if (edge == null) {
@@ -391,18 +387,18 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
             throw new DataValidationException("Can't assign asset to edge from different tenant!");
         }
         try {
-            createRelation(tenantId, new EntityRelation(edgeId, assetId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE));
+            createRelation(tenantId, new EntityRelation(edgeId, assetId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE), originatorEdgeId);
         } catch (Exception e) {
             log.warn("[{}] Failed to create asset relation. Edge Id: [{}]", assetId, edgeId);
             throw new RuntimeException(e);
         }
         eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(assetId)
-                .actionType(ActionType.ASSIGNED_TO_EDGE).build());
+                .actionType(ActionType.ASSIGNED_TO_EDGE).originatorEdgeId(originatorEdgeId).build());
         return asset;
     }
 
     @Override
-    public Asset unassignAssetFromEdge(TenantId tenantId, AssetId assetId, EdgeId edgeId) {
+    public Asset unassignAssetFromEdge(TenantId tenantId, AssetId assetId, EdgeId edgeId, EdgeId originatorEdgeId) {
         Asset asset = findAssetById(tenantId, assetId);
         Edge edge = edgeService.findEdgeById(tenantId, edgeId);
         if (edge == null) {
@@ -412,13 +408,13 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
         checkAssignedEntityViewsToEdge(tenantId, assetId, edgeId);
 
         try {
-            deleteRelation(tenantId, new EntityRelation(edgeId, assetId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE));
+            deleteRelation(tenantId, new EntityRelation(edgeId, assetId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE), originatorEdgeId);
         } catch (Exception e) {
             log.warn("[{}] Failed to delete asset relation. Edge Id: [{}]", assetId, edgeId);
             throw new RuntimeException(e);
         }
         eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(assetId)
-                .actionType(ActionType.UNASSIGNED_FROM_EDGE).build());
+                .actionType(ActionType.UNASSIGNED_FROM_EDGE).originatorEdgeId(originatorEdgeId).build());
         return asset;
     }
 

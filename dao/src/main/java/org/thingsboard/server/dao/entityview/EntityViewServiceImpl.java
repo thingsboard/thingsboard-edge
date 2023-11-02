@@ -102,19 +102,10 @@ public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityVie
     }
 
     @Override
-    public EntityView saveEntityView(EntityView entityView, boolean doValidate) {
-        return doSaveEntityView(entityView, doValidate);
-    }
-
-    @Override
-    public EntityView saveEntityView(EntityView entityView) {
-        return doSaveEntityView(entityView, true);
-    }
-
-    private EntityView doSaveEntityView(EntityView entityView, boolean doValidate) {
+    public EntityView saveEntityView(EntityView entityView, EdgeId originatorEdgeId) {
         log.trace("Executing save entity view [{}]", entityView);
         EntityView old = null;
-        if (doValidate) {
+        if (originatorEdgeId == null) {
             old = entityViewValidator.validate(entityView, EntityView::getTenantId);
         } else if (entityView.getId() != null) {
             old = findEntityViewById(entityView.getTenantId(), entityView.getId());
@@ -130,6 +121,11 @@ public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityVie
                     "entity_view_external_id_unq_key", "Entity View with such external id already exists!");
             throw t;
         }
+    }
+
+    @Override
+    public EntityView saveEntityView(EntityView entityView) {
+        return saveEntityView(entityView, null);
     }
 
     @Override
@@ -353,7 +349,7 @@ public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityVie
     }
 
     @Override
-    public EntityView assignEntityViewToEdge(TenantId tenantId, EntityViewId entityViewId, EdgeId edgeId) {
+    public EntityView assignEntityViewToEdge(TenantId tenantId, EntityViewId entityViewId, EdgeId edgeId, EdgeId originatorEdgeId) {
         EntityView entityView = findEntityViewById(tenantId, entityViewId);
         Edge edge = edgeService.findEdgeById(tenantId, edgeId);
         if (edge == null) {
@@ -370,31 +366,31 @@ public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityVie
         }
 
         try {
-            createRelation(tenantId, new EntityRelation(edgeId, entityViewId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE));
+            createRelation(tenantId, new EntityRelation(edgeId, entityViewId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE), originatorEdgeId);
         } catch (Exception e) {
             log.warn("[{}] Failed to create entityView relation. Edge Id: [{}]", entityViewId, edgeId);
             throw new RuntimeException(e);
         }
         eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(entityViewId)
-                .actionType(ActionType.ASSIGNED_TO_EDGE).build());
+                .actionType(ActionType.ASSIGNED_TO_EDGE).originatorEdgeId(originatorEdgeId).build());
         return entityView;
     }
 
     @Override
-    public EntityView unassignEntityViewFromEdge(TenantId tenantId, EntityViewId entityViewId, EdgeId edgeId) {
+    public EntityView unassignEntityViewFromEdge(TenantId tenantId, EntityViewId entityViewId, EdgeId edgeId, EdgeId originatorEdgeId) {
         EntityView entityView = findEntityViewById(tenantId, entityViewId);
         Edge edge = edgeService.findEdgeById(tenantId, edgeId);
         if (edge == null) {
             throw new DataValidationException("Can't unassign entityView from non-existent edge!");
         }
         try {
-            deleteRelation(tenantId, new EntityRelation(edgeId, entityViewId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE));
+            deleteRelation(tenantId, new EntityRelation(edgeId, entityViewId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE), originatorEdgeId);
         } catch (Exception e) {
             log.warn("[{}] Failed to delete entityView relation. Edge Id: [{}]", entityViewId, edgeId);
             throw new RuntimeException(e);
         }
         eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(entityViewId)
-                .actionType(ActionType.UNASSIGNED_FROM_EDGE).build());
+                .actionType(ActionType.UNASSIGNED_FROM_EDGE).originatorEdgeId(originatorEdgeId).build());
         return entityView;
     }
 

@@ -42,57 +42,52 @@ public class QueueCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processQueueMsgFromCloud(TenantId tenantId, QueueUpdateMsg queueUpdateMsg) {
         QueueId queueId = new QueueId(new UUID(queueUpdateMsg.getIdMSB(), queueUpdateMsg.getIdLSB()));
-        try {
-            cloudSynchronizationManager.getSync().set(true);
-            switch (queueUpdateMsg.getMsgType()) {
-                case ENTITY_CREATED_RPC_MESSAGE:
-                case ENTITY_UPDATED_RPC_MESSAGE:
-                    queueCreationLock.lock();
-                    try {
-                        Queue queue = queueService.findQueueById(tenantId, queueId);
-                        boolean create = false;
-                        if (queue == null) {
-                            queue = new Queue();
-                            queue.setId(queueId);
-                            queue.setCreatedTime(Uuids.unixTimestamp(queueId.getId()));
-                            TenantId queueTenantId = new TenantId(new UUID(queueUpdateMsg.getTenantIdMSB(), queueUpdateMsg.getTenantIdLSB()));
-                            queue.setTenantId(queueTenantId);
-                            create = true;
-                        }
-                        queue.setName(queueUpdateMsg.getName());
-                        queue.setTopic(queueUpdateMsg.getTopic());
-                        queue.setPollInterval(queueUpdateMsg.getPollInterval());
-                        queue.setPartitions(queueUpdateMsg.getPartitions());
-                        queue.setConsumerPerPartition(queueUpdateMsg.getConsumerPerPartition());
-                        queue.setPackProcessingTimeout(queueUpdateMsg.getPackProcessingTimeout());
-                        SubmitStrategy submitStrategy = new SubmitStrategy();
-                        submitStrategy.setType(SubmitStrategyType.valueOf(queueUpdateMsg.getSubmitStrategy().getType()));
-                        submitStrategy.setBatchSize(queueUpdateMsg.getSubmitStrategy().getBatchSize());
-                        queue.setSubmitStrategy(submitStrategy);
-                        ProcessingStrategy processingStrategy = new ProcessingStrategy();
-                        processingStrategy.setType(ProcessingStrategyType.valueOf(queueUpdateMsg.getProcessingStrategy().getType()));
-                        processingStrategy.setRetries(queueUpdateMsg.getProcessingStrategy().getRetries());
-                        processingStrategy.setPauseBetweenRetries(queueUpdateMsg.getProcessingStrategy().getPauseBetweenRetries());
-                        processingStrategy.setMaxPauseBetweenRetries(queueUpdateMsg.getProcessingStrategy().getMaxPauseBetweenRetries());
-                        processingStrategy.setFailurePercentage(queueUpdateMsg.getProcessingStrategy().getFailurePercentage());
-                        queue.setProcessingStrategy(processingStrategy);
-                        queueService.saveQueue(queue, false);
-                        tbQueueService.saveQueue(queue, create);
-                    } finally {
-                        queueCreationLock.unlock();
-                    }
-                    break;
-                case ENTITY_DELETED_RPC_MESSAGE:
+        switch (queueUpdateMsg.getMsgType()) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                queueCreationLock.lock();
+                try {
                     Queue queue = queueService.findQueueById(tenantId, queueId);
-                    if (queue != null) {
-                        tbQueueService.deleteQueue(tenantId, queueId);
+                    boolean create = false;
+                    if (queue == null) {
+                        queue = new Queue();
+                        queue.setId(queueId);
+                        queue.setCreatedTime(Uuids.unixTimestamp(queueId.getId()));
+                        TenantId queueTenantId = new TenantId(new UUID(queueUpdateMsg.getTenantIdMSB(), queueUpdateMsg.getTenantIdLSB()));
+                        queue.setTenantId(queueTenantId);
+                        create = true;
                     }
-                    break;
-                case UNRECOGNIZED:
-                    return handleUnsupportedMsgType(queueUpdateMsg.getMsgType());
-            }
-        } finally {
-            cloudSynchronizationManager.getSync().remove();
+                    queue.setName(queueUpdateMsg.getName());
+                    queue.setTopic(queueUpdateMsg.getTopic());
+                    queue.setPollInterval(queueUpdateMsg.getPollInterval());
+                    queue.setPartitions(queueUpdateMsg.getPartitions());
+                    queue.setConsumerPerPartition(queueUpdateMsg.getConsumerPerPartition());
+                    queue.setPackProcessingTimeout(queueUpdateMsg.getPackProcessingTimeout());
+                    SubmitStrategy submitStrategy = new SubmitStrategy();
+                    submitStrategy.setType(SubmitStrategyType.valueOf(queueUpdateMsg.getSubmitStrategy().getType()));
+                    submitStrategy.setBatchSize(queueUpdateMsg.getSubmitStrategy().getBatchSize());
+                    queue.setSubmitStrategy(submitStrategy);
+                    ProcessingStrategy processingStrategy = new ProcessingStrategy();
+                    processingStrategy.setType(ProcessingStrategyType.valueOf(queueUpdateMsg.getProcessingStrategy().getType()));
+                    processingStrategy.setRetries(queueUpdateMsg.getProcessingStrategy().getRetries());
+                    processingStrategy.setPauseBetweenRetries(queueUpdateMsg.getProcessingStrategy().getPauseBetweenRetries());
+                    processingStrategy.setMaxPauseBetweenRetries(queueUpdateMsg.getProcessingStrategy().getMaxPauseBetweenRetries());
+                    processingStrategy.setFailurePercentage(queueUpdateMsg.getProcessingStrategy().getFailurePercentage());
+                    queue.setProcessingStrategy(processingStrategy);
+                    queueService.saveQueue(queue, false);
+                    tbQueueService.saveQueue(queue, create);
+                } finally {
+                    queueCreationLock.unlock();
+                }
+                break;
+            case ENTITY_DELETED_RPC_MESSAGE:
+                Queue queue = queueService.findQueueById(tenantId, queueId);
+                if (queue != null) {
+                    tbQueueService.deleteQueue(tenantId, queueId);
+                }
+                break;
+            case UNRECOGNIZED:
+                return handleUnsupportedMsgType(queueUpdateMsg.getMsgType());
         }
         return Futures.immediateFuture(null);
     }

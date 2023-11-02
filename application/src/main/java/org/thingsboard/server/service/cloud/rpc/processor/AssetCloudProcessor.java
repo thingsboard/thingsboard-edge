@@ -29,6 +29,7 @@ import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -49,33 +50,28 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
                                                            AssetUpdateMsg assetUpdateMsg,
                                                            Long queueStartTs) {
         AssetId assetId = new AssetId(new UUID(assetUpdateMsg.getIdMSB(), assetUpdateMsg.getIdLSB()));
-        try {
-            cloudSynchronizationManager.getSync().set(true);
 
-            switch (assetUpdateMsg.getMsgType()) {
-                case ENTITY_CREATED_RPC_MESSAGE:
-                case ENTITY_UPDATED_RPC_MESSAGE:
-                    saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, edgeCustomerId, queueStartTs);
-                    return requestForAdditionalData(tenantId, assetId, queueStartTs);
-                case ENTITY_DELETED_RPC_MESSAGE:
-                    Asset assetById = assetService.findAssetById(tenantId, assetId);
-                    if (assetById != null) {
-                        assetService.deleteAsset(tenantId, assetId);
-                        pushAssetDeletedEventToRuleEngine(tenantId, assetById);
-                    }
-                    return Futures.immediateFuture(null);
-                case UNRECOGNIZED:
-                default:
-                    return handleUnsupportedMsgType(assetUpdateMsg.getMsgType());
-            }
-        } finally {
-            cloudSynchronizationManager.getSync().remove();
+        switch (assetUpdateMsg.getMsgType()) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, edgeCustomerId, queueStartTs);
+                return requestForAdditionalData(tenantId, assetId, queueStartTs);
+            case ENTITY_DELETED_RPC_MESSAGE:
+                Asset assetById = assetService.findAssetById(tenantId, assetId);
+                if (assetById != null) {
+                    assetService.deleteAsset(tenantId, assetId);
+                    pushAssetDeletedEventToRuleEngine(tenantId, assetById);
+                }
+                return Futures.immediateFuture(null);
+            case UNRECOGNIZED:
+            default:
+                return handleUnsupportedMsgType(assetUpdateMsg.getMsgType());
         }
     }
 
     private void saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, CustomerId edgeCustomerId, Long queueStartTs) {
         CustomerId customerId = safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId);
-        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, customerId);
+        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, new EdgeId(EdgeId.NULL_UUID), customerId);
         Boolean created = resultPair.getFirst();
         if (created) {
             pushAssetCreatedEventToRuleEngine(tenantId, assetId);

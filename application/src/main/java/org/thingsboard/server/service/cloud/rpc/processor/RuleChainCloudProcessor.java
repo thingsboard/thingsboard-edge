@@ -64,7 +64,6 @@ public class RuleChainCloudProcessor extends BaseEdgeProcessor {
     public ListenableFuture<Void> processRuleChainMsgFromCloud(TenantId tenantId, RuleChainUpdateMsg ruleChainUpdateMsg,
                                                                Long queueStartTs) {
         try {
-            cloudSynchronizationManager.getSync().set(true);
             RuleChainId ruleChainId = new RuleChainId(new UUID(ruleChainUpdateMsg.getIdMSB(), ruleChainUpdateMsg.getIdLSB()));
             switch (ruleChainUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
@@ -123,8 +122,6 @@ public class RuleChainCloudProcessor extends BaseEdgeProcessor {
             String errMsg = String.format("Can't process rule chain update msg %s", ruleChainUpdateMsg);
             log.error(errMsg, e);
             return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
-        } finally {
-            cloudSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
     }

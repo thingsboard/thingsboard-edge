@@ -40,13 +40,17 @@ public interface DashboardService extends EntityDaoService {
 
     ListenableFuture<DashboardInfo> findDashboardInfoByIdAsync(TenantId tenantId, DashboardId dashboardId);
 
-    Dashboard saveDashboard(Dashboard dashboard, boolean doValidate);
+    Dashboard saveDashboard(Dashboard dashboard, EdgeId originatorEdgeId);
 
     Dashboard saveDashboard(Dashboard dashboard);
 
     Dashboard assignDashboardToCustomer(TenantId tenantId, DashboardId dashboardId, CustomerId customerId);
 
+    Dashboard assignDashboardToCustomer(TenantId tenantId, DashboardId dashboardId, CustomerId customerId, EdgeId originatorEdgeId);
+
     Dashboard unassignDashboardFromCustomer(TenantId tenantId, DashboardId dashboardId, CustomerId customerId);
+
+    Dashboard unassignDashboardFromCustomer(TenantId tenantId, DashboardId dashboardId, CustomerId customerId, EdgeId originatorEdgeId);
 
     void deleteDashboard(TenantId tenantId, DashboardId dashboardId);
 
@@ -64,9 +68,9 @@ public interface DashboardService extends EntityDaoService {
 
     void updateCustomerDashboards(TenantId tenantId, CustomerId customerId);
 
-    Dashboard assignDashboardToEdge(TenantId tenantId, DashboardId dashboardId, EdgeId edgeId);
+    Dashboard assignDashboardToEdge(TenantId tenantId, DashboardId dashboardId, EdgeId edgeId, EdgeId originatorEdgeId);
 
-    Dashboard unassignDashboardFromEdge(TenantId tenantId, DashboardId dashboardId, EdgeId edgeId);
+    Dashboard unassignDashboardFromEdge(TenantId tenantId, DashboardId dashboardId, EdgeId edgeId, EdgeId originatorEdgeId);
 
     PageData<DashboardInfo> findDashboardsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, PageLink pageLink);
 

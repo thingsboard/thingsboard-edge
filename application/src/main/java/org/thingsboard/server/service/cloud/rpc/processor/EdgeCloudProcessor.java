@@ -42,7 +42,6 @@ public class EdgeCloudProcessor extends BaseEdgeProcessor {
         EdgeId edgeId = new EdgeId(new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB()));
         edgeCreationLock.lock();
         try {
-            cloudSynchronizationManager.getSync().set(true);
             Edge edge = edgeService.findEdgeById(tenantId, edgeId);
             if (edge == null) {
                 edge = new Edge();
@@ -59,7 +58,6 @@ public class EdgeCloudProcessor extends BaseEdgeProcessor {
             edge.setAdditionalInfo(JacksonUtil.toJsonNode(edgeConfiguration.getAdditionalInfo()));
             edgeService.saveEdge(edge, false);
         } finally {
-            cloudSynchronizationManager.getSync().remove();
             edgeCreationLock.unlock();
         }
         return Futures.immediateFuture(null);

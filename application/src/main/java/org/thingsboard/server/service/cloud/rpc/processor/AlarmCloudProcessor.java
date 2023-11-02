@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
@@ -30,12 +31,7 @@ import org.thingsboard.server.service.edge.rpc.processor.alarm.BaseAlarmProcesso
 public class AlarmCloudProcessor extends BaseAlarmProcessor {
 
     public ListenableFuture<Void> processAlarmMsgFromCloud(TenantId tenantId, AlarmUpdateMsg alarmUpdateMsg) {
-        try {
-            cloudSynchronizationManager.getSync().set(true);
-            return processAlarmMsg(tenantId, alarmUpdateMsg);
-        } finally {
-            cloudSynchronizationManager.getSync().remove();
-        }
+        return processAlarmMsg(tenantId, new EdgeId(EdgeId.NULL_UUID), alarmUpdateMsg);
     }
 
     public UplinkMsg convertAlarmEventToUplink(CloudEvent cloudEvent) {

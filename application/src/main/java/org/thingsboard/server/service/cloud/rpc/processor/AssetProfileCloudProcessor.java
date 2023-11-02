@@ -31,6 +31,7 @@ import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
@@ -58,55 +59,50 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
     @Autowired
     private AssetService assetService;
 
-    public ListenableFuture<Void> processAssetProfileMsgFromCloud(TenantId tenantId, AssetProfileUpdateMsg assetProfileUpdateMsg, Long queueStartTs) {
+    public ListenableFuture<Void> processAssetProfileMsgFromCloud(TenantId tenantId, AssetProfileUpdateMsg assetProfileUpdateMsg) {
         AssetProfileId assetProfileId = new AssetProfileId(new UUID(assetProfileUpdateMsg.getIdMSB(), assetProfileUpdateMsg.getIdLSB()));
-        try {
-            cloudSynchronizationManager.getSync().set(true);
 
-            switch (assetProfileUpdateMsg.getMsgType()) {
-                case ENTITY_CREATED_RPC_MESSAGE:
-                case ENTITY_UPDATED_RPC_MESSAGE:
-                    assetCreationLock.lock();
-                    try {
-                        AssetProfile assetProfileByName = assetProfileService.findAssetProfileByName(tenantId, assetProfileUpdateMsg.getName());
-                        boolean removePreviousProfile = false;
-                        if (assetProfileByName != null && !assetProfileByName.getId().equals(assetProfileId)) {
-                            renamePreviousAssetProfile(assetProfileByName);
-                            removePreviousProfile = true;
-                        }
-                        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAssetProfile(tenantId, assetProfileId, assetProfileUpdateMsg);
-                        boolean created = resultPair.getFirst();
-                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileId,
-                                created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
-                        AssetProfile assetProfile = assetProfileService.findAssetProfileById(tenantId, assetProfileId);
-                        if (!assetProfile.isDefault() && assetProfileUpdateMsg.getDefault()) {
-                            assetProfileService.setDefaultAssetProfile(tenantId, assetProfileId);
-                        }
-                        if (removePreviousProfile) {
-                            updateAssets(tenantId, assetProfileId, assetProfileByName.getId());
-                            assetProfileService.deleteAssetProfile(tenantId, assetProfileByName.getId());
-                            tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileByName.getId(), ComponentLifecycleEvent.DELETED);
-                        }
-                        if (created) {
-                            pushAssetProfileCreatedEventToRuleEngine(tenantId, assetProfileId);
-                        }
-                    } finally {
-                        assetCreationLock.unlock();
+        switch (assetProfileUpdateMsg.getMsgType()) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                assetCreationLock.lock();
+                try {
+                    AssetProfile assetProfileByName = assetProfileService.findAssetProfileByName(tenantId, assetProfileUpdateMsg.getName());
+                    boolean removePreviousProfile = false;
+                    if (assetProfileByName != null && !assetProfileByName.getId().equals(assetProfileId)) {
+                        renamePreviousAssetProfile(assetProfileByName);
+                        removePreviousProfile = true;
                     }
-                    break;
-                case ENTITY_DELETED_RPC_MESSAGE:
+                    Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAssetProfile(tenantId, assetProfileId, assetProfileUpdateMsg, new EdgeId(EdgeId.NULL_UUID));
+                    boolean created = resultPair.getFirst();
+                    tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileId,
+                            created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
                     AssetProfile assetProfile = assetProfileService.findAssetProfileById(tenantId, assetProfileId);
-                    if (assetProfile != null) {
-                        assetProfileService.deleteAssetProfile(tenantId, assetProfileId);
-                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileId, ComponentLifecycleEvent.DELETED);
-                        pushAssetProfileDeletedEventToRuleEngine(tenantId, assetProfile);
+                    if (!assetProfile.isDefault() && assetProfileUpdateMsg.getDefault()) {
+                        assetProfileService.setDefaultAssetProfile(tenantId, assetProfileId);
                     }
-                    break;
-                case UNRECOGNIZED:
-                    return handleUnsupportedMsgType(assetProfileUpdateMsg.getMsgType());
-            }
-        } finally {
-            cloudSynchronizationManager.getSync().remove();
+                    if (removePreviousProfile) {
+                        updateAssets(tenantId, assetProfileId, assetProfileByName.getId());
+                        assetProfileService.deleteAssetProfile(tenantId, assetProfileByName.getId());
+                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileByName.getId(), ComponentLifecycleEvent.DELETED);
+                    }
+                    if (created) {
+                        pushAssetProfileCreatedEventToRuleEngine(tenantId, assetProfileId);
+                    }
+                } finally {
+                    assetCreationLock.unlock();
+                }
+                break;
+            case ENTITY_DELETED_RPC_MESSAGE:
+                AssetProfile assetProfile = assetProfileService.findAssetProfileById(tenantId, assetProfileId);
+                if (assetProfile != null) {
+                    assetProfileService.deleteAssetProfile(tenantId, assetProfileId);
+                    tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileId, ComponentLifecycleEvent.DELETED);
+                    pushAssetProfileDeletedEventToRuleEngine(tenantId, assetProfile);
+                }
+                break;
+            case UNRECOGNIZED:
+                return handleUnsupportedMsgType(assetProfileUpdateMsg.getMsgType());
         }
         return Futures.immediateFuture(null);
     }

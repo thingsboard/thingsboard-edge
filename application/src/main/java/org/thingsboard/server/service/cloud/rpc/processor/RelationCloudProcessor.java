@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -36,13 +37,7 @@ import org.thingsboard.server.service.edge.rpc.processor.relation.BaseRelationPr
 public class RelationCloudProcessor extends BaseRelationProcessor {
 
     public ListenableFuture<Void> processRelationMsgFromCloud(TenantId tenantId, RelationUpdateMsg relationUpdateMsg) {
-        try {
-            cloudSynchronizationManager.getSync().set(true);
-
-            return processRelationMsg(tenantId, relationUpdateMsg);
-        } finally {
-            cloudSynchronizationManager.getSync().remove();
-        }
+        return processRelationMsg(tenantId, relationUpdateMsg, new EdgeId(EdgeId.NULL_UUID));
     }
 
     public UplinkMsg convertRelationRequestEventToUplink(CloudEvent cloudEvent) {

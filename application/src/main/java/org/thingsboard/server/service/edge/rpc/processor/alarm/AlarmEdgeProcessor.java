@@ -48,12 +48,7 @@ public class AlarmEdgeProcessor extends BaseAlarmProcessor {
 
     public ListenableFuture<Void> processAlarmMsgFromEdge(TenantId tenantId, EdgeId edgeId, AlarmUpdateMsg alarmUpdateMsg) {
         log.trace("[{}] processAlarmMsgFromEdge [{}]", tenantId, alarmUpdateMsg);
-        try {
-            edgeSynchronizationManager.getEdgeId().set(edgeId);
-            return processAlarmMsg(tenantId, alarmUpdateMsg);
-        } finally {
-            edgeSynchronizationManager.getEdgeId().remove();
-        }
+        return processAlarmMsg(tenantId, edgeId, alarmUpdateMsg);
     }
 
     public DownlinkMsg convertAlarmEventToDownlink(EdgeEvent edgeEvent) {
@@ -71,7 +66,7 @@ public class AlarmEdgeProcessor extends BaseAlarmProcessor {
     public ListenableFuture<Void> processAlarmNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
         EdgeEventActionType actionType = EdgeEventActionType.valueOf(edgeNotificationMsg.getAction());
         AlarmId alarmId = new AlarmId(new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
-        EdgeId sourceEdgeId = safeGetEdgeId(edgeNotificationMsg.getSourceEdgeIdMSB(), edgeNotificationMsg.getSourceEdgeIdLSB());
+        EdgeId sourceEdgeId = safeGetEdgeId(edgeNotificationMsg.getOriginatorEdgeIdMSB(), edgeNotificationMsg.getOriginatorEdgeIdLSB());
         switch (actionType) {
             case DELETED:
                 Alarm deletedAlarm = JacksonUtil.fromString(edgeNotificationMsg.getBody(), Alarm.class);

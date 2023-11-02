@@ -61,7 +61,7 @@ public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
                     }
                     TenantProfile tenantProfile = tenantProfileService.findTenantProfileById(tenantId, tenantProfileId);
                     if (tenantProfile == null) {
-                        tenantProfile = createTenantProfile(tenantProfileId, tenantProfileMsgName, tenantProfileByName != null && tenantProfileByName.isDefault());
+                        tenantProfile = createTenantProfile(tenantProfileId, tenantProfileMsgName);
                     }
                     if (!tenantProfile.isDefault() && tenantProfileUpdateMsg.getDefault()) {
                         tenantProfileService.setDefaultTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile.getId());
@@ -126,7 +126,7 @@ public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
         }
     }
 
-    private TenantProfile createTenantProfile(TenantProfileId tenantProfileId, String name, boolean isDefaultPreviousProfile) {
+    private TenantProfile createTenantProfile(TenantProfileId tenantProfileId, String name) {
         TenantProfile tenantProfile = new TenantProfile();
         tenantProfile.setId(tenantProfileId);
         tenantProfile.setCreatedTime(Uuids.unixTimestamp(tenantProfileId.getId()));

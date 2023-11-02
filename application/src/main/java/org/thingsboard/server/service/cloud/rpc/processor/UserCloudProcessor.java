@@ -56,72 +56,62 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                                                           Long queueStartTs) {
         UserId userId = new UserId(new UUID(userUpdateMsg.getIdMSB(), userUpdateMsg.getIdLSB()));
         CustomerId customerId = safeGetCustomerId(userUpdateMsg.getCustomerIdMSB(), userUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId);
-        try {
-            cloudSynchronizationManager.getSync().set(true);
-            switch (userUpdateMsg.getMsgType()) {
-                case ENTITY_CREATED_RPC_MESSAGE:
-                case ENTITY_UPDATED_RPC_MESSAGE:
-                    userCreationLock.lock();
-                    try {
-                        boolean created = false;
-                        User user = userService.findUserById(tenantId, userId);
-                        if (user == null) {
-                            user = new User();
-                            user.setTenantId(tenantId);
-                            user.setId(userId);
-                            user.setCreatedTime(Uuids.unixTimestamp(userId.getId()));
-                            created = true;
-                        }
-                        user.setEmail(userUpdateMsg.getEmail());
-                        user.setAuthority(Authority.valueOf(userUpdateMsg.getAuthority()));
-                        user.setFirstName(userUpdateMsg.hasFirstName() ? userUpdateMsg.getFirstName() : null);
-                        user.setLastName(userUpdateMsg.hasLastName() ? userUpdateMsg.getLastName() : null);
-                        user.setAdditionalInfo(userUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(userUpdateMsg.getAdditionalInfo()) : null);
-                        user.setCustomerId(customerId);
-                        User savedUser = userService.saveUser(tenantId, user, false);
-                        if (created) {
-                            createDefaultUserCredentials(savedUser.getTenantId(), savedUser.getId());
-                        }
-                    } finally {
-                        userCreationLock.unlock();
+        switch (userUpdateMsg.getMsgType()) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                userCreationLock.lock();
+                try {
+                    boolean created = false;
+                    User user = userService.findUserById(tenantId, userId);
+                    if (user == null) {
+                        user = new User();
+                        user.setTenantId(tenantId);
+                        user.setId(userId);
+                        user.setCreatedTime(Uuids.unixTimestamp(userId.getId()));
+                        created = true;
                     }
-                    return Futures.transformAsync(requestForAdditionalData(tenantId, userId, queueStartTs),
-                            ignored -> cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.USER, EdgeEventActionType.CREDENTIALS_REQUEST,
-                                    userId, null, queueStartTs),
-                            dbCallbackExecutorService);
-                case ENTITY_DELETED_RPC_MESSAGE:
-                    User userToDelete = userService.findUserById(tenantId, userId);
-                    if (userToDelete != null) {
-                        userService.deleteUser(tenantId, userToDelete);
+                    user.setEmail(userUpdateMsg.getEmail());
+                    user.setAuthority(Authority.valueOf(userUpdateMsg.getAuthority()));
+                    user.setFirstName(userUpdateMsg.hasFirstName() ? userUpdateMsg.getFirstName() : null);
+                    user.setLastName(userUpdateMsg.hasLastName() ? userUpdateMsg.getLastName() : null);
+                    user.setAdditionalInfo(userUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(userUpdateMsg.getAdditionalInfo()) : null);
+                    user.setCustomerId(customerId);
+                    User savedUser = userService.saveUser(tenantId, user, false);
+                    if (created) {
+                        createDefaultUserCredentials(savedUser.getTenantId(), savedUser.getId());
                     }
-                    return Futures.immediateFuture(null);
-                case UNRECOGNIZED:
-                default:
-                    return handleUnsupportedMsgType(userUpdateMsg.getMsgType());
-            }
-        } finally {
-            cloudSynchronizationManager.getSync().remove();
+                } finally {
+                    userCreationLock.unlock();
+                }
+                return Futures.transformAsync(requestForAdditionalData(tenantId, userId, queueStartTs),
+                        ignored -> cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.USER, EdgeEventActionType.CREDENTIALS_REQUEST,
+                                userId, null, queueStartTs),
+                        dbCallbackExecutorService);
+            case ENTITY_DELETED_RPC_MESSAGE:
+                User userToDelete = userService.findUserById(tenantId, userId);
+                if (userToDelete != null) {
+                    userService.deleteUser(tenantId, userToDelete);
+                }
+                return Futures.immediateFuture(null);
+            case UNRECOGNIZED:
+            default:
+                return handleUnsupportedMsgType(userUpdateMsg.getMsgType());
         }
     }
 
     public ListenableFuture<Void> processUserCredentialsMsgFromCloud(TenantId tenantId, UserCredentialsUpdateMsg userCredentialsUpdateMsg) {
-        try {
-            cloudSynchronizationManager.getSync().set(true);
-            UserId userId = new UserId(new UUID(userCredentialsUpdateMsg.getUserIdMSB(), userCredentialsUpdateMsg.getUserIdLSB()));
-            User user = userService.findUserById(tenantId, userId);
-            if (user != null) {
-                UserCredentials userCredentials = userService.findUserCredentialsByUserId(tenantId, user.getId());
-                if (userCredentials == null) {
-                    userCredentials = createDefaultUserCredentials(tenantId, userId);
-                }
-                userCredentials.setEnabled(userCredentialsUpdateMsg.getEnabled());
-                userCredentials.setPassword(userCredentialsUpdateMsg.getPassword());
-                userCredentials.setActivateToken(null);
-                userCredentials.setResetToken(null);
-                userService.saveUserCredentials(tenantId, userCredentials);
+        UserId userId = new UserId(new UUID(userCredentialsUpdateMsg.getUserIdMSB(), userCredentialsUpdateMsg.getUserIdLSB()));
+        User user = userService.findUserById(tenantId, userId);
+        if (user != null) {
+            UserCredentials userCredentials = userService.findUserCredentialsByUserId(tenantId, user.getId());
+            if (userCredentials == null) {
+                userCredentials = createDefaultUserCredentials(tenantId, userId);
             }
-        } finally {
-            cloudSynchronizationManager.getSync().remove();
+            userCredentials.setEnabled(userCredentialsUpdateMsg.getEnabled());
+            userCredentials.setPassword(userCredentialsUpdateMsg.getPassword());
+            userCredentials.setActivateToken(null);
+            userCredentials.setResetToken(null);
+            userService.saveUserCredentials(tenantId, userCredentials);
         }
         return Futures.immediateFuture(null);
     }

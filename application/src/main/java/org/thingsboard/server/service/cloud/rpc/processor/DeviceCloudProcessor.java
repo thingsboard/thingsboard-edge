@@ -31,6 +31,7 @@ import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.rpc.RpcError;
@@ -60,34 +61,29 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                                                             DeviceUpdateMsg deviceUpdateMsg,
                                                             Long queueStartTs) {
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
-        try {
-            cloudSynchronizationManager.getSync().set(true);
-            switch (deviceUpdateMsg.getMsgType()) {
-                case ENTITY_CREATED_RPC_MESSAGE:
-                case ENTITY_UPDATED_RPC_MESSAGE:
-                    saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, edgeCustomerId, queueStartTs);
-                    return Futures.transformAsync(requestForAdditionalData(tenantId, deviceId, queueStartTs),
-                            ignored -> cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_REQUEST,
-                            deviceId, null, queueStartTs), dbCallbackExecutorService);
-                case ENTITY_DELETED_RPC_MESSAGE:
-                    Device deviceById = deviceService.findDeviceById(tenantId, deviceId);
-                    if (deviceById != null) {
-                        deviceService.deleteDevice(tenantId, deviceId);
-                        pushDeviceDeletedEventToRuleEngine(tenantId, deviceById);
-                    }
-                    return Futures.immediateFuture(null);
-                case UNRECOGNIZED:
-                default:
-                    return handleUnsupportedMsgType(deviceUpdateMsg.getMsgType());
-            }
-        } finally {
-            cloudSynchronizationManager.getSync().remove();
+        switch (deviceUpdateMsg.getMsgType()) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, edgeCustomerId, queueStartTs);
+                return Futures.transformAsync(requestForAdditionalData(tenantId, deviceId, queueStartTs),
+                        ignored -> cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_REQUEST,
+                                deviceId, null, queueStartTs), dbCallbackExecutorService);
+            case ENTITY_DELETED_RPC_MESSAGE:
+                Device deviceById = deviceService.findDeviceById(tenantId, deviceId);
+                if (deviceById != null) {
+                    deviceService.deleteDevice(tenantId, deviceId);
+                    pushDeviceDeletedEventToRuleEngine(tenantId, deviceById);
+                }
+                return Futures.immediateFuture(null);
+            case UNRECOGNIZED:
+            default:
+                return handleUnsupportedMsgType(deviceUpdateMsg.getMsgType());
         }
     }
 
     private void saveOrUpdateDevice(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg, CustomerId edgeCustomerId, Long queueStartTs) {
         CustomerId customerId = safeGetCustomerId(deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId);
-        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, customerId);
+        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, new EdgeId(EdgeId.NULL_UUID), customerId);
         Boolean created = resultPair.getFirst();
         if (created) {
             pushDeviceCreatedEventToRuleEngine(tenantId, deviceId);
@@ -117,13 +113,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
     }
 
     public ListenableFuture<Void> processDeviceCredentialsMsgFromCloud(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {
-        try {
-            cloudSynchronizationManager.getSync().set(true);
-
-            updateDeviceCredentials(tenantId, deviceCredentialsUpdateMsg);
-        } finally {
-            cloudSynchronizationManager.getSync().remove();
-        }
+        updateDeviceCredentials(tenantId, deviceCredentialsUpdateMsg, new EdgeId(EdgeId.NULL_UUID));
         return Futures.immediateFuture(null);
     }
 

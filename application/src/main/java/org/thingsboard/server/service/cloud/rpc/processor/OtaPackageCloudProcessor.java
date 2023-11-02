@@ -44,67 +44,62 @@ public class OtaPackageCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processOtaPackageMsgFromCloud(TenantId tenantId, OtaPackageUpdateMsg otaPackageUpdateMsg) {
         OtaPackageId otaPackageId = new OtaPackageId(new UUID(otaPackageUpdateMsg.getIdMSB(), otaPackageUpdateMsg.getIdLSB()));
-        try {
-            cloudSynchronizationManager.getSync().set(true);
-            switch (otaPackageUpdateMsg.getMsgType()) {
-                case ENTITY_CREATED_RPC_MESSAGE:
-                case ENTITY_UPDATED_RPC_MESSAGE:
-                    otaPackageCreationLock.lock();
-                    try {
-                        OtaPackageInfo otaPackageInfo = otaPackageService.findOtaPackageInfoById(tenantId, otaPackageId);
-                        if (otaPackageInfo == null) {
-                            otaPackageInfo = new OtaPackageInfo();
-                            otaPackageInfo.setId(otaPackageId);
-                            otaPackageInfo.setCreatedTime(Uuids.unixTimestamp(otaPackageId.getId()));
-                            otaPackageInfo.setTenantId(tenantId);
-                        }
-                        otaPackageInfo.setDeviceProfileId(new DeviceProfileId(new UUID(otaPackageUpdateMsg.getDeviceProfileIdMSB(), otaPackageUpdateMsg.getDeviceProfileIdLSB())));
-                        otaPackageInfo.setType(OtaPackageType.valueOf(otaPackageUpdateMsg.getType()));
-                        otaPackageInfo.setTitle(otaPackageUpdateMsg.getTitle());
-                        otaPackageInfo.setVersion(otaPackageUpdateMsg.getVersion());
-                        otaPackageInfo.setTag(otaPackageUpdateMsg.getTag());
-                        if (otaPackageUpdateMsg.hasUrl()) {
-                            otaPackageInfo.setUrl(otaPackageUpdateMsg.getUrl());
-                        }
-                        if (otaPackageUpdateMsg.hasFileName()) {
-                            otaPackageInfo.setFileName(otaPackageUpdateMsg.getFileName());
-                        }
-                        if (otaPackageUpdateMsg.hasContentType()) {
-                            otaPackageInfo.setContentType(otaPackageUpdateMsg.getContentType());
-                        }
-                        if (otaPackageUpdateMsg.hasChecksumAlgorithm()) {
-                            otaPackageInfo.setChecksumAlgorithm(ChecksumAlgorithm.valueOf(otaPackageUpdateMsg.getChecksumAlgorithm()));
-                        }
-                        if (otaPackageUpdateMsg.hasChecksum()) {
-                            otaPackageInfo.setChecksum(otaPackageUpdateMsg.getChecksum());
-                        }
-                        if (otaPackageUpdateMsg.hasDataSize()) {
-                            otaPackageInfo.setDataSize(otaPackageUpdateMsg.getDataSize());
-                        }
-                        if (otaPackageUpdateMsg.hasAdditionalInfo()) {
-                            otaPackageInfo.setAdditionalInfo(JacksonUtil.toJsonNode(otaPackageUpdateMsg.getAdditionalInfo()));
-                        }
-                        otaPackageService.saveOtaPackageInfo(otaPackageInfo, otaPackageUpdateMsg.hasUrl(), false);
-                        if (otaPackageUpdateMsg.hasData()) {
-                            OtaPackage otaPackage = otaPackageService.findOtaPackageById(tenantId, otaPackageId);
-                            otaPackage.setData(ByteBuffer.wrap(otaPackageUpdateMsg.getData().toByteArray()));
-                            otaPackageService.saveOtaPackage(otaPackage, false);
-                        }
-                    } finally {
-                        otaPackageCreationLock.unlock();
+        switch (otaPackageUpdateMsg.getMsgType()) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                otaPackageCreationLock.lock();
+                try {
+                    OtaPackageInfo otaPackageInfo = otaPackageService.findOtaPackageInfoById(tenantId, otaPackageId);
+                    if (otaPackageInfo == null) {
+                        otaPackageInfo = new OtaPackageInfo();
+                        otaPackageInfo.setId(otaPackageId);
+                        otaPackageInfo.setCreatedTime(Uuids.unixTimestamp(otaPackageId.getId()));
+                        otaPackageInfo.setTenantId(tenantId);
                     }
-                    break;
-                case ENTITY_DELETED_RPC_MESSAGE:
-                    OtaPackage otaPackage = otaPackageService.findOtaPackageById(tenantId, otaPackageId);
-                    if (otaPackage != null) {
-                        otaPackageService.deleteOtaPackage(tenantId, otaPackageId);
+                    otaPackageInfo.setDeviceProfileId(new DeviceProfileId(new UUID(otaPackageUpdateMsg.getDeviceProfileIdMSB(), otaPackageUpdateMsg.getDeviceProfileIdLSB())));
+                    otaPackageInfo.setType(OtaPackageType.valueOf(otaPackageUpdateMsg.getType()));
+                    otaPackageInfo.setTitle(otaPackageUpdateMsg.getTitle());
+                    otaPackageInfo.setVersion(otaPackageUpdateMsg.getVersion());
+                    otaPackageInfo.setTag(otaPackageUpdateMsg.getTag());
+                    if (otaPackageUpdateMsg.hasUrl()) {
+                        otaPackageInfo.setUrl(otaPackageUpdateMsg.getUrl());
                     }
-                    break;
-                case UNRECOGNIZED:
-                    return handleUnsupportedMsgType(otaPackageUpdateMsg.getMsgType());
-            }
-        } finally {
-            cloudSynchronizationManager.getSync().remove();
+                    if (otaPackageUpdateMsg.hasFileName()) {
+                        otaPackageInfo.setFileName(otaPackageUpdateMsg.getFileName());
+                    }
+                    if (otaPackageUpdateMsg.hasContentType()) {
+                        otaPackageInfo.setContentType(otaPackageUpdateMsg.getContentType());
+                    }
+                    if (otaPackageUpdateMsg.hasChecksumAlgorithm()) {
+                        otaPackageInfo.setChecksumAlgorithm(ChecksumAlgorithm.valueOf(otaPackageUpdateMsg.getChecksumAlgorithm()));
+                    }
+                    if (otaPackageUpdateMsg.hasChecksum()) {
+                        otaPackageInfo.setChecksum(otaPackageUpdateMsg.getChecksum());
+                    }
+                    if (otaPackageUpdateMsg.hasDataSize()) {
+                        otaPackageInfo.setDataSize(otaPackageUpdateMsg.getDataSize());
+                    }
+                    if (otaPackageUpdateMsg.hasAdditionalInfo()) {
+                        otaPackageInfo.setAdditionalInfo(JacksonUtil.toJsonNode(otaPackageUpdateMsg.getAdditionalInfo()));
+                    }
+                    otaPackageService.saveOtaPackageInfo(otaPackageInfo, otaPackageUpdateMsg.hasUrl(), false);
+                    if (otaPackageUpdateMsg.hasData()) {
+                        OtaPackage otaPackage = otaPackageService.findOtaPackageById(tenantId, otaPackageId);
+                        otaPackage.setData(ByteBuffer.wrap(otaPackageUpdateMsg.getData().toByteArray()));
+                        otaPackageService.saveOtaPackage(otaPackage, false);
+                    }
+                } finally {
+                    otaPackageCreationLock.unlock();
+                }
+                break;
+            case ENTITY_DELETED_RPC_MESSAGE:
+                OtaPackage otaPackage = otaPackageService.findOtaPackageById(tenantId, otaPackageId);
+                if (otaPackage != null) {
+                    otaPackageService.deleteOtaPackage(tenantId, otaPackageId);
+                }
+                break;
+            case UNRECOGNIZED:
+                return handleUnsupportedMsgType(otaPackageUpdateMsg.getMsgType());
         }
         return Futures.immediateFuture(null);
     }
