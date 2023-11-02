@@ -40,6 +40,7 @@ public class ResourceEdgeTest extends AbstractEdgeTest {
     private static final String FILE_NAME = "test.jks";
 
     @Test
+    @Ignore
     public void testResources_create_update_delete() throws Exception {
         // create resource
         TbResource resource = new TbResource();

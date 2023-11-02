@@ -265,17 +265,16 @@ public class ThingsboardInstallService {
                             databaseEntitiesUpgradeService.upgradeDatabase("3.5.1");
                             dataUpdateService.updateData("3.5.1");
                             systemDataLoaderService.updateDefaultNotificationConfigs();
+                        case "3.6.0":
+                            log.info("Upgrading ThingsBoard from version 3.6.0 to 3.6.1 ...");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.6.0");
+                            //TODO DON'T FORGET to update switch statement in the CacheCleanupService if you need to clear the cache
 
                             // reset full sync required - to upload the latest widgets from cloud
                             // fromVersion must be updated per release
                             // DefaultDataUpdateService must be updated as well
                             // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to 'edge' version
                             dataUpdateService.updateData("edge");
-
-                        case "3.6.0":
-                            log.info("Upgrading ThingsBoard from version 3.6.0 to 3.6.1 ...");
-                            databaseEntitiesUpgradeService.upgradeDatabase("3.6.0");
-                            //TODO DON'T FORGET to update switch statement in the CacheCleanupService if you need to clear the cache
                             break;
                         default:
                             throw new RuntimeException("Unable to upgrade ThingsBoard Edge, unsupported fromVersion: " + upgradeFromVersion);
@@ -287,7 +286,7 @@ public class ThingsboardInstallService {
                     // log.info("Updating system data...");
                     // dataUpdateService.upgradeRuleNodes();
                     // systemDataLoaderService.updateSystemWidgets();
-                    installScripts.loadSystemLwm2mResources();
+                    // installScripts.loadSystemLwm2mResources();
                 }
 
                 log.info("Upgrade finished successfully!");
@@ -328,9 +327,9 @@ public class ThingsboardInstallService {
                 // systemDataLoaderService.createQueues();
                 // systemDataLoaderService.createDefaultNotificationConfigs();
 
-//                systemDataLoaderService.loadSystemPlugins();
-//                systemDataLoaderService.loadSystemRules();
-                installScripts.loadSystemLwm2mResources();
+                // systemDataLoaderService.loadSystemPlugins();
+                // systemDataLoaderService.loadSystemRules();
+                // installScripts.loadSystemLwm2mResources();
 
                 if (loadDemo) {
                     // log.info("Loading demo data...");
