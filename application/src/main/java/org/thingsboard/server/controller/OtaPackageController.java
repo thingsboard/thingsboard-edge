@@ -290,3 +290,4 @@ public class OtaPackageController extends BaseController {
         return checkNotNull(otaPackageService.findOtaPackageInfosByGroupIdAndHasData(groupId, OtaPackageType.valueOf(strType), pageLink));
     }
 }
+
