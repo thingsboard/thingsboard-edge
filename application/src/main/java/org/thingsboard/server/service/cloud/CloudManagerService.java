@@ -114,6 +114,9 @@ public class CloudManagerService {
     @Value("${cloud.reconnect_timeout}")
     private long reconnectTimeoutMs;
 
+    @Value("${cloud.uplink_pack_timeout_sec:60}")
+    private long uplinkPackTimeoutSec;
+
     @Autowired
     private EdgeService edgeService;
 
@@ -362,7 +365,7 @@ public class CloudManagerService {
                         edgeRpcClient.sendUplinkMsg(uplinkMsg);
                     }
                 }
-                success = latch.await(10, TimeUnit.SECONDS);
+                success = latch.await(uplinkPackTimeoutSec, TimeUnit.SECONDS);
                 success = success && pendingMsgsMap.isEmpty();
                 if (!success) {
                     log.warn("Failed to deliver the batch: {}, attempt: {}", pendingMsgsMap.values(), attempt);

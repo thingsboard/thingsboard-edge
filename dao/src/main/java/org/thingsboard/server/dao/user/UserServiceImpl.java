@@ -138,6 +138,8 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         User oldUser = null;
         if (doValidate) {
             oldUser = userValidator.validate(user, User::getTenantId);
+        } else if (user.getId() != null) {
+            oldUser = findUserById(user.getTenantId(), user.getId());
         }
         if (!userLoginCaseSensitive) {
             user.setEmail(user.getEmail().toLowerCase());

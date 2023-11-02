@@ -24,7 +24,10 @@ import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileConfiguration;
+import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
+import org.thingsboard.server.common.data.device.profile.DisabledDeviceProfileProvisionConfiguration;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -75,9 +78,14 @@ public abstract class BaseDeviceProfileProcessor extends BaseEdgeProcessor {
                     ? deviceProfileUpdateMsg.getProvisionDeviceKey() : null);
             deviceProfile.setDefaultQueueName(deviceProfileUpdateMsg.getDefaultQueueName());
 
-            Optional<DeviceProfileData> profileDataOpt =
-                    dataDecodingEncodingService.decode(deviceProfileUpdateMsg.getProfileDataBytes().toByteArray());
-            deviceProfile.setProfileData(profileDataOpt.orElse(null));
+            Optional<DeviceProfileData> profileDataOpt = Optional.empty();
+            try {
+                profileDataOpt =
+                        dataDecodingEncodingService.decode(deviceProfileUpdateMsg.getProfileDataBytes().toByteArray());
+            } catch (Exception e) {
+                log.warn("[{}] Failed to decode device profile data bytes {}", tenantId, deviceProfileUpdateMsg.getProfileDataBytes(), e);
+            }
+            deviceProfile.setProfileData(profileDataOpt.orElse(createDefaultDeviceProfileData()));
 
             setDefaultRuleChainId(tenantId, deviceProfile, deviceProfileUpdateMsg);
             setDefaultEdgeRuleChainId(tenantId, deviceProfile, deviceProfileUpdateMsg);
@@ -105,6 +113,17 @@ public abstract class BaseDeviceProfileProcessor extends BaseEdgeProcessor {
             deviceCreationLock.unlock();
         }
         return Pair.of(created, deviceProfileNameUpdated);
+    }
+
+    private DeviceProfileData createDefaultDeviceProfileData() {
+        DeviceProfileData deviceProfileData = new DeviceProfileData();
+        DefaultDeviceProfileConfiguration configuration = new DefaultDeviceProfileConfiguration();
+        DefaultDeviceProfileTransportConfiguration transportConfiguration = new DefaultDeviceProfileTransportConfiguration();
+        DisabledDeviceProfileProvisionConfiguration provisionConfiguration = new DisabledDeviceProfileProvisionConfiguration(null);
+        deviceProfileData.setConfiguration(configuration);
+        deviceProfileData.setTransportConfiguration(transportConfiguration);
+        deviceProfileData.setProvisionConfiguration(provisionConfiguration);
+        return deviceProfileData;
     }
 
     protected abstract void setDefaultRuleChainId(TenantId tenantId, DeviceProfile deviceProfile, DeviceProfileUpdateMsg deviceProfileUpdateMsg);

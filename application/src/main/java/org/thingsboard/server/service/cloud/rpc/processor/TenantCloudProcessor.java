@@ -43,7 +43,7 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
 
     public void createTenantIfNotExists(TenantId tenantId, Long queueStartTs) throws Exception {
         try {
-            edgeSynchronizationManager.getSync().set(true);
+            cloudSynchronizationManager.getSync().set(true);
             Tenant tenant = tenantService.findTenantById(tenantId);
             if (tenant != null) {
                 return;
@@ -57,7 +57,7 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
 
             requestForAdditionalData(tenantId, tenantId, queueStartTs).get();
         } finally {
-            edgeSynchronizationManager.getSync().remove();
+            cloudSynchronizationManager.getSync().remove();
         }
     }
 
@@ -88,32 +88,37 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
 
     public void cleanUp() {
         try {
-            edgeSynchronizationManager.getSync().set(true);
+            cloudSynchronizationManager.getSync().set(true);
             log.debug("Starting clean up procedure");
             PageData<Tenant> tenants = tenantService.findTenants(new PageLink(Integer.MAX_VALUE));
             for (Tenant tenant : tenants.getData()) {
+                removeTenantAttributes(tenant.getId());
                 tenantService.deleteTenant(tenant.getId());
             }
 
             cleanUpSystemTenant();
             log.debug("Clean up procedure successfully finished!");
         } finally {
-            edgeSynchronizationManager.getSync().remove();
+            cloudSynchronizationManager.getSync().remove();
         }
     }
 
     private void cleanUpSystemTenant() {
+        adminSettingsService.deleteAdminSettingsByTenantId(TenantId.SYS_TENANT_ID);
+        queueService.deleteQueuesByTenantId(TenantId.SYS_TENANT_ID);
+        widgetTypeService.deleteWidgetTypesByTenantId(TenantId.SYS_TENANT_ID);
+        widgetsBundleService.deleteWidgetsBundlesByTenantId(TenantId.SYS_TENANT_ID);
+        removeTenantAttributes(TenantId.SYS_TENANT_ID);
+    }
+
+    private void removeTenantAttributes(TenantId tenantId) {
         try {
-            adminSettingsService.deleteAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mailTemplates");
-            adminSettingsService.deleteAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mail");
-            queueService.deleteQueuesByTenantId(TenantId.SYS_TENANT_ID);
-            widgetsBundleService.deleteWidgetsBundlesByTenantId(TenantId.SYS_TENANT_ID);
             List<AttributeKvEntry> attributeKvEntries =
-                    attributesService.findAll(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID, DataConstants.SERVER_SCOPE).get();
+                    attributesService.findAll(tenantId, tenantId, DataConstants.SERVER_SCOPE).get();
             List<String> attrKeys = attributeKvEntries.stream().map(KvEntry::getKey).collect(Collectors.toList());
-            attributesService.removeAll(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID, DataConstants.SERVER_SCOPE, attrKeys);
+            attributesService.removeAll(tenantId, tenantId, DataConstants.SERVER_SCOPE, attrKeys);
         } catch (Exception e) {
-            log.error("Unable to clean up sysadmin tenant", e);
+            log.error("Unable to remove tenant attributes", e);
         }
     }
 

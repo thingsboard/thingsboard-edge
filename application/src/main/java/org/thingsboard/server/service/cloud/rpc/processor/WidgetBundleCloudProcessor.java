@@ -47,7 +47,7 @@ public class WidgetBundleCloudProcessor extends BaseEdgeProcessor {
                                                                    WidgetsBundleUpdateMsg widgetsBundleUpdateMsg) {
         WidgetsBundleId widgetsBundleId = new WidgetsBundleId(new UUID(widgetsBundleUpdateMsg.getIdMSB(), widgetsBundleUpdateMsg.getIdLSB()));
         try {
-            edgeSynchronizationManager.getSync().set(true);
+            cloudSynchronizationManager.getSync().set(true);
             switch (widgetsBundleUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
@@ -90,7 +90,7 @@ public class WidgetBundleCloudProcessor extends BaseEdgeProcessor {
                     return handleUnsupportedMsgType(widgetsBundleUpdateMsg.getMsgType());
             }
         } finally {
-            edgeSynchronizationManager.getSync().remove();
+            cloudSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
     }
