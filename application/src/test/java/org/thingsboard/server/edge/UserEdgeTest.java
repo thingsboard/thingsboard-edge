@@ -123,9 +123,7 @@ public class UserEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(edgeUserGroup.getUuidId().getLeastSignificantBits(), userUpdateMsg.getEntityGroupIdLSB());
 
         // update user credentials
-        edgeImitator.expectMessageAmount(2);
         login(savedTenantAdmin.getEmail(), "tenant");
-        Assert.assertTrue(edgeImitator.waitForMessages());
 
         edgeImitator.expectMessageAmount(1);
         ChangePasswordRequest changePasswordRequest = new ChangePasswordRequest();
@@ -140,9 +138,7 @@ public class UserEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(savedTenantAdmin.getUuidId().getLeastSignificantBits(), userCredentialsUpdateMsg.getUserIdLSB());
         Assert.assertTrue(passwordEncoder.matches(changePasswordRequest.getNewPassword(), userCredentialsUpdateMsg.getPassword()));
 
-        edgeImitator.expectMessageAmount(2);
         loginTenantAdmin();
-        Assert.assertTrue(edgeImitator.waitForMessages());
 
         // delete user
         edgeImitator.expectMessageAmount(1);
@@ -232,9 +228,7 @@ public class UserEdgeTest extends AbstractEdgeTest {
         unAssignEntityGroupFromEdge(customUserGroup);
 
         // update user credentials
-        edgeImitator.expectMessageAmount(2);
         login(savedCustomerUser.getEmail(), "customer");
-        Assert.assertTrue(edgeImitator.waitForMessages());
 
         edgeImitator.expectMessageAmount(1);
         ChangePasswordRequest changePasswordRequest = new ChangePasswordRequest();
@@ -249,9 +243,7 @@ public class UserEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(savedCustomerUser.getUuidId().getLeastSignificantBits(), userCredentialsUpdateMsg.getUserIdLSB());
         Assert.assertTrue(passwordEncoder.matches(changePasswordRequest.getNewPassword(), userCredentialsUpdateMsg.getPassword()));
 
-        edgeImitator.expectMessageAmount(2);
         loginTenantAdmin();
-        Assert.assertTrue(edgeImitator.waitForMessages());
 
         // delete user
         edgeImitator.expectMessageAmount(1);

@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.edge.rpc.fetch;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
@@ -46,6 +47,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,6 +60,7 @@ import java.util.Optional;
 public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
 
     private final AdminSettingsService adminSettingsService;
+    private final WhiteLabelingService whiteLabelingService;
     private final AttributesService attributesService;
 
     @Override
@@ -68,12 +71,12 @@ public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
     @Override
     public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) throws Exception {
         List<EdgeEvent> result = new ArrayList<>();
-        List<String> adminSettingsKeys = Arrays.asList("general", "mail", "mailTemplates");
+        List<String> adminSettingsKeys = Arrays.asList("general", "mail");
         for (String key : adminSettingsKeys) {
             AdminSettings sysAdminMainSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key);
             if (sysAdminMainSettings != null) {
                 result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
-                        EdgeEventActionType.UPDATED, null, JacksonUtil.OBJECT_MAPPER.valueToTree(sysAdminMainSettings)));
+                        EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(sysAdminMainSettings)));
             }
             Optional<AttributeKvEntry> tenantMailSettingsAttr = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, key).get();
             if (tenantMailSettingsAttr.isPresent()) {
@@ -81,11 +84,31 @@ public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
                 tenantMailSettings.setTenantId(tenantId);
                 tenantMailSettings.setKey(key);
                 String value = tenantMailSettingsAttr.get().getValueAsString();
-                tenantMailSettings.setJsonValue(JacksonUtil.OBJECT_MAPPER.readTree(value));
+                tenantMailSettings.setJsonValue(JacksonUtil.toJsonNode(value));
                 result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
-                        EdgeEventActionType.UPDATED, null, JacksonUtil.OBJECT_MAPPER.valueToTree(tenantMailSettings)));
+                        EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(tenantMailSettings)));
             }
         }
+        //mailTemplates
+        JsonNode systemMailTemplates = whiteLabelingService.findMailTemplatesByTenantId(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID);
+        if (!systemMailTemplates.isEmpty()) {
+            AdminSettings systemAdminSettings = new AdminSettings();
+            systemAdminSettings.setTenantId(tenantId);
+            systemAdminSettings.setKey("mailTemplates");
+            systemAdminSettings.setJsonValue(systemMailTemplates);
+            result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
+                    EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(systemAdminSettings)));
+        }
+        JsonNode tenantMailTemplates = whiteLabelingService.findMailTemplatesByTenantId(TenantId.SYS_TENANT_ID, tenantId);
+        if (!tenantMailTemplates.isEmpty()) {
+            AdminSettings tenantAdminSettings = new AdminSettings();
+            tenantAdminSettings.setTenantId(tenantId);
+            tenantAdminSettings.setKey("mailTemplates");
+            tenantAdminSettings.setJsonValue(tenantMailTemplates);
+            result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
+                    EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(tenantMailTemplates)));
+        }
+
         // @voba - returns PageData object to be in sync with other fetchers
         return new PageData<>(result, 1, result.size(), false);
     }

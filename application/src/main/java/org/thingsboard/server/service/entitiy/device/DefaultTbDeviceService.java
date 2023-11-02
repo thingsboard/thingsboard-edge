@@ -36,6 +36,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
@@ -117,15 +118,15 @@ public class DefaultTbDeviceService extends AbstractTbEntityService implements T
     }
 
     @Override
-    public ListenableFuture<Void> delete(Device device, User user) {
+    @Transactional
+    public void delete(Device device, User user) {
         TenantId tenantId = device.getTenantId();
         DeviceId deviceId = device.getId();
         try {
+            removeAlarmsByEntityId(tenantId, deviceId);
             deviceService.deleteDevice(tenantId, deviceId);
             notificationEntityService.notifyDeleteDevice(tenantId, deviceId, device.getCustomerId(), device,
                     user, deviceId.toString());
-
-            return removeAlarmsByEntityId(tenantId, deviceId);
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.DEVICE), ActionType.DELETED,
                     user, e, deviceId.toString());
@@ -134,9 +135,9 @@ public class DefaultTbDeviceService extends AbstractTbEntityService implements T
     }
 
     @Override
-    public ListenableFuture<Void> delete(DeviceId deviceId, User user) {
+    public void delete(DeviceId deviceId, User user) {
         Device device = deviceService.findDeviceById(user.getTenantId(), deviceId);
-        return delete(device, user);
+        delete(device, user);
     }
 
     @Override

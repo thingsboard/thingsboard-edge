@@ -58,11 +58,11 @@ public enum IntegrationType {
     TCP(false, true),
     KAFKA(true),
     AZURE_IOT_HUB(true),
-    APACHE_PULSAR(false),
+    APACHE_PULSAR(true),
     RABBITMQ(false),
     LORIOT(false),
     COAP(false),
-    TUYA(false),
+    TUYA(true),
     AZURE_SERVICE_BUS(true);
 
     IntegrationType(boolean singleton) {

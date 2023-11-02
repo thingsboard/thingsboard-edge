@@ -45,8 +45,8 @@ public interface EntityViewInfoRepository extends JpaRepository<EntityViewInfoEn
 
     @Query("SELECT evi FROM EntityViewInfoEntity evi " +
             "WHERE evi.tenantId = :tenantId " +
-            "AND (LOWER(evi.name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-            "OR LOWER(evi.ownerName) LIKE LOWER(CONCAT('%', :searchText, '%')))")
+            "AND (:searchText IS NULL OR ilike(evi.name, CONCAT('%', :searchText, '%')) = true " +
+            "OR ilike(evi.ownerName, CONCAT('%', :searchText, '%')) = true)")
     Page<EntityViewInfoEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                               @Param("searchText") String searchText,
                                               Pageable pageable);
@@ -54,8 +54,8 @@ public interface EntityViewInfoRepository extends JpaRepository<EntityViewInfoEn
     @Query("SELECT evi FROM EntityViewInfoEntity evi " +
             "WHERE evi.tenantId = :tenantId " +
             "AND evi.type = :type " +
-            "AND (LOWER(evi.name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-            "OR LOWER(evi.ownerName) LIKE LOWER(CONCAT('%', :searchText, '%')))")
+            "AND (:searchText IS NULL OR ilike(evi.name, CONCAT('%', :searchText, '%')) = true " +
+            "OR ilike(evi.ownerName, CONCAT('%', :searchText, '%')) = true)")
     Page<EntityViewInfoEntity> findByTenantIdAndType(@Param("tenantId") UUID tenantId,
                                                      @Param("type") String type,
                                                      @Param("searchText") String searchText,
@@ -63,7 +63,7 @@ public interface EntityViewInfoRepository extends JpaRepository<EntityViewInfoEn
 
     @Query("SELECT evi FROM EntityViewInfoEntity evi " +
             "WHERE evi.tenantId = :tenantId AND (evi.customerId IS NULL OR evi.customerId = '13814000-1dd2-11b2-8080-808080808080') " +
-            "AND LOWER(evi.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND (:searchText IS NULL OR ilike(evi.name, CONCAT('%', :searchText, '%')) = true)")
     Page<EntityViewInfoEntity> findTenantEntityViewsByTenantId(@Param("tenantId") UUID tenantId,
                                                                @Param("searchText") String searchText,
                                                                Pageable pageable);
@@ -71,14 +71,14 @@ public interface EntityViewInfoRepository extends JpaRepository<EntityViewInfoEn
     @Query("SELECT evi FROM EntityViewInfoEntity evi " +
             "WHERE evi.tenantId = :tenantId AND (evi.customerId IS NULL OR evi.customerId = '13814000-1dd2-11b2-8080-808080808080') " +
             "AND evi.type = :type " +
-            "AND LOWER(evi.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND (:searchText IS NULL OR ilike(evi.name, CONCAT('%', :searchText, '%')) = true)")
     Page<EntityViewInfoEntity> findTenantEntityViewsByTenantIdAndType(@Param("tenantId") UUID tenantId,
                                                                       @Param("type") String type,
                                                                       @Param("searchText") String searchText,
                                                                       Pageable pageable);
 
     @Query("SELECT evi FROM EntityViewInfoEntity evi WHERE evi.tenantId = :tenantId AND evi.customerId = :customerId " +
-            "AND LOWER(evi.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND (:searchText IS NULL OR ilike(evi.name, CONCAT('%', :searchText, '%')) = true)")
     Page<EntityViewInfoEntity> findByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
                                                            @Param("customerId") UUID customerId,
                                                            @Param("searchText") String searchText,
@@ -86,7 +86,7 @@ public interface EntityViewInfoRepository extends JpaRepository<EntityViewInfoEn
 
     @Query("SELECT evi FROM EntityViewInfoEntity evi WHERE evi.tenantId = :tenantId AND evi.customerId = :customerId " +
             "AND evi.type = :type " +
-            "AND LOWER(evi.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND (:searchText IS NULL OR ilike(evi.name, CONCAT('%', :searchText, '%')) = true)")
     Page<EntityViewInfoEntity> findByTenantIdAndCustomerIdAndType(@Param("tenantId") UUID tenantId,
                                                                   @Param("customerId") UUID customerId,
                                                                   @Param("type") String type,
@@ -99,13 +99,13 @@ public interface EntityViewInfoRepository extends JpaRepository<EntityViewInfoEn
             "c.title as owner_name from entity_view_info_view ev " +
             "LEFT JOIN customer c on c.id = ev.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +
-            "AND (LOWER(e.name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-            "OR LOWER(e.owner_name) LIKE LOWER(CONCAT('%', :searchText, '%')))",
+            "AND (:searchText IS NULL OR e.name ILIKE CONCAT('%', :searchText, '%') " +
+            "OR e.owner_name ILIKE CONCAT('%', :searchText, '%'))",
             countQuery = "SELECT count(e.id) FROM entity_view e " +
                     "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId " +
                     "WHERE" + SUB_CUSTOMERS_QUERY +
-                    "AND (LOWER(e.name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-                    "OR LOWER(c.title) LIKE LOWER(CONCAT('%', :searchText, '%')))",
+                    "AND (:searchText IS NULL OR e.name ILIKE CONCAT('%', :searchText, '%') " +
+                    "OR c.title ILIKE CONCAT('%', :searchText, '%'))",
             nativeQuery = true)
     Page<EntityViewInfoEntity> findByTenantIdAndCustomerIdIncludingSubCustomers(@Param("tenantId") UUID tenantId,
                                                                                 @Param("customerId") UUID customerId,
@@ -119,14 +119,14 @@ public interface EntityViewInfoRepository extends JpaRepository<EntityViewInfoEn
             "LEFT JOIN customer c on c.id = ev.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +
             "AND e.type = :type " +
-            "AND (LOWER(e.name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-            "OR LOWER(e.owner_name) LIKE LOWER(CONCAT('%', :searchText, '%')))",
+            "AND (:searchText IS NULL OR e.name ILIKE CONCAT('%', :searchText, '%') " +
+            "OR e.owner_name ILIKE CONCAT('%', :searchText, '%'))",
             countQuery = "SELECT count(e.id) FROM entity_view e " +
                     "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId " +
                     "WHERE" + SUB_CUSTOMERS_QUERY +
                     "AND e.type = :type " +
-                    "AND (LOWER(e.name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-                    "OR LOWER(c.title) LIKE LOWER(CONCAT('%', :searchText, '%')))",
+                    "AND (:searchText IS NULL OR e.name ILIKE CONCAT('%', :searchText, '%') " +
+                    "OR c.title ILIKE CONCAT('%', :searchText, '%'))",
             nativeQuery = true)
     Page<EntityViewInfoEntity> findByTenantIdAndCustomerIdAndTypeIncludingSubCustomers(@Param("tenantId") UUID tenantId,
                                                                                        @Param("customerId") UUID customerId,

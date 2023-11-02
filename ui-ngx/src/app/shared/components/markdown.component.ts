@@ -194,6 +194,7 @@ export class TbMarkdownComponent implements OnChanges {
             this.error = null;
           } catch (error) {
             readyObservable = this.handleError(template, error, styles);
+            this.cd.detectChanges();
           }
           readyObservable.subscribe(() => {
             this.ready.emit();

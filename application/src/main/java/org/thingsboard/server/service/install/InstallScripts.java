@@ -38,7 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ResourceType;
@@ -46,7 +45,6 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.AdminSettingsId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -63,6 +61,7 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.io.IOException;
@@ -133,7 +132,7 @@ public class InstallScripts {
     private WidgetsBundleService widgetsBundleService;
 
     @Autowired
-    private AdminSettingsService adminSettingsService;
+    private WhiteLabelingService whiteLabelingService;
 
     @Autowired
     private EntityGroupService entityGroupService;
@@ -313,22 +312,11 @@ public class InstallScripts {
     }
 
     public void loadMailTemplates() throws Exception {
-        AdminSettings mailTemplateSettings = new AdminSettings();
-        mailTemplateSettings.setKey("mailTemplates");
         JsonNode mailTemplatesJson = readMailTemplates();
-        mailTemplateSettings.setJsonValue(mailTemplatesJson);
-        adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, mailTemplateSettings);
+        whiteLabelingService.saveMailTemplates(TenantId.SYS_TENANT_ID, mailTemplatesJson);
     }
 
-    public void updateMailTemplates(AdminSettingsId adminSettingsId, JsonNode oldTemplates) throws Exception {
-        AdminSettings mailTemplateSettings = new AdminSettings();
-        mailTemplateSettings.setId(adminSettingsId);
-        mailTemplateSettings.setKey("mailTemplates");
-        mailTemplateSettings.setJsonValue(updateMailTemplates(oldTemplates));
-        adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, mailTemplateSettings);
-    }
-
-    public ObjectNode updateMailTemplates(JsonNode oldTemplates) throws IOException {
+    public void updateMailTemplates(JsonNode oldTemplates) throws IOException {
         JsonNode newTemplates = readMailTemplates();
 
         ObjectNode result = JacksonUtil.newObjectNode();
@@ -345,7 +333,8 @@ public class InstallScripts {
         if (updated.isPresent()) {
             result = (ObjectNode) JacksonUtil.toJsonNode(updated.get());
         }
-        return result;
+
+        whiteLabelingService.saveMailTemplates(TenantId.SYS_TENANT_ID, result);
     }
 
     public Optional<String> updateMailTemplatesFromVelocityToFreeMarker(String mailTemplatesJsonString) {
