@@ -79,13 +79,13 @@ public class ResourceClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> cloudRestClient.getResourceById(resource.getId()).get().getTitle().equals(updateTitle));
 
-        // delete resource on edge
-        edgeRestClient.deleteResource(resource.getId());
+        // cleanup - we can delete resources only on Cloud
+        cloudRestClient.deleteResource(resource.getId());
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
-                    PageData<TbResourceInfo> resources = cloudRestClient.getResources(new PageLink(1000));
+                    PageData<TbResourceInfo> resources = edgeRestClient.getResources(new PageLink(1000));
                     long count = resources.getData().stream().filter(d -> resource.getId().equals(d.getId())).count();
                     return count == 0;
                 });
