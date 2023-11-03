@@ -23,6 +23,7 @@ import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageDataIterable;
@@ -39,25 +40,20 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
 
     public ListenableFuture<Void> processResourceMsgFromCloud(TenantId tenantId, ResourceUpdateMsg resourceUpdateMsg) {
         TbResourceId tbResourceId = new TbResourceId(new UUID(resourceUpdateMsg.getIdMSB(), resourceUpdateMsg.getIdLSB()));
-        try {
-            cloudSynchronizationManager.getSync().set(true);
-            switch (resourceUpdateMsg.getMsgType()) {
-                case ENTITY_CREATED_RPC_MESSAGE:
-                case ENTITY_UPDATED_RPC_MESSAGE:
-                    deleteSystemResourceIfAlreadyExists(tbResourceId, ResourceType.valueOf(resourceUpdateMsg.getResourceType()), resourceUpdateMsg.getResourceKey());
-                    super.saveOrUpdateTbResource(tenantId, tbResourceId, resourceUpdateMsg);
-                    break;
-                case ENTITY_DELETED_RPC_MESSAGE:
-                    TbResource tbResourceToDelete = resourceService.findResourceById(tenantId, tbResourceId);
-                    if (tbResourceToDelete != null) {
-                        resourceService.deleteResource(tenantId, tbResourceId);
-                    }
-                    break;
-                case UNRECOGNIZED:
-                    return handleUnsupportedMsgType(resourceUpdateMsg.getMsgType());
-            }
-        } finally {
-            cloudSynchronizationManager.getSync().remove();
+        switch (resourceUpdateMsg.getMsgType()) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                deleteSystemResourceIfAlreadyExists(tbResourceId, ResourceType.valueOf(resourceUpdateMsg.getResourceType()), resourceUpdateMsg.getResourceKey());
+                super.saveOrUpdateTbResource(tenantId, tbResourceId, resourceUpdateMsg, new EdgeId(EdgeId.NULL_UUID));
+                break;
+            case ENTITY_DELETED_RPC_MESSAGE:
+                TbResource tbResourceToDelete = resourceService.findResourceById(tenantId, tbResourceId);
+                if (tbResourceToDelete != null) {
+                    resourceService.deleteResource(tenantId, tbResourceId);
+                }
+                break;
+            case UNRECOGNIZED:
+                return handleUnsupportedMsgType(resourceUpdateMsg.getMsgType());
         }
         return Futures.immediateFuture(null);
     }

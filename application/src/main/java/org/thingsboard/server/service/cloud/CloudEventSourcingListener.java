@@ -82,7 +82,7 @@ public class CloudEventSourcingListener {
 
     @TransactionalEventListener(fallbackExecution = true)
     public void handleEvent(SaveEntityEvent<?> event) {
-        if (event.getOriginatorEdgeId().getId().equals(EdgeId.NULL_UUID)) {
+        if (new EdgeId(EdgeId.NULL_UUID).equals(event.getOriginatorEdgeId())) {
             return;
         }
         try {
@@ -100,7 +100,7 @@ public class CloudEventSourcingListener {
 
     @TransactionalEventListener(fallbackExecution = true)
     public void handleEvent(DeleteEntityEvent<?> event) {
-        if (event.getOriginatorEdgeId().getId().equals(EdgeId.NULL_UUID)) {
+        if (new EdgeId(EdgeId.NULL_UUID).equals(event.getOriginatorEdgeId())) {
             return;
         }
         try {
@@ -117,7 +117,7 @@ public class CloudEventSourcingListener {
 
     @TransactionalEventListener(fallbackExecution = true)
     public void handleEvent(ActionEntityEvent event) {
-        if (event.getOriginatorEdgeId().getId().equals(EdgeId.NULL_UUID)) {
+        if (new EdgeId(EdgeId.NULL_UUID).equals(event.getOriginatorEdgeId())) {
             return;
         }
         try {
@@ -134,7 +134,7 @@ public class CloudEventSourcingListener {
 
     @TransactionalEventListener(fallbackExecution = true)
     public void handleEvent(RelationActionEvent event) {
-        if (event.getOriginatorEdgeId().getId().equals(EdgeId.NULL_UUID)) {
+        if (new EdgeId(EdgeId.NULL_UUID).equals(event.getOriginatorEdgeId())) {
             return;
         }
         try {
