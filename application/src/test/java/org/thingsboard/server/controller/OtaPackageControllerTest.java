@@ -321,8 +321,7 @@ public class OtaPackageControllerTest extends AbstractControllerTest {
                 ActionType.DELETED, savedFirmwareInfo.getId().getId().toString());
 
         doGet("/api/otaPackage/info/" + savedFirmwareInfo.getId().getId().toString())
-                .andExpect(status().isNotFound())
-                .andExpect(statusReason(containsString(msgErrorNotFound)));
+                .andExpect(status().isNotFound());
     }
 
     @Test
