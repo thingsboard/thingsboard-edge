@@ -54,5 +54,4 @@ class DeviceEdgeProcessorTest extends AbstractDeviceProcessorTest {
 
         verify(downlinkMsg, expectedDashboardIdMSB, expectedDashboardIdLSB, expectedRuleChainIdMSB, expectedRuleChainIdLSB);
     }
-
 }

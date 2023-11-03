@@ -59,6 +59,7 @@ import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
+import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequestActorMsg;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.util.KvProtoUtil;
 import org.thingsboard.server.common.util.ProtoUtils;
@@ -110,7 +111,6 @@ import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.queue.processing.AbstractConsumerService;
 import org.thingsboard.server.service.queue.processing.IdMsgPair;
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
-import org.thingsboard.server.service.rpc.ToDeviceRpcRequestActorMsg;
 import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
 import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
@@ -316,7 +316,19 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                 } else if (toCoreMsg.hasDeviceActivityMsg()) {
                                     log.trace("[{}] Forwarding message to device state service {}", id, toCoreMsg.getDeviceActivityMsg());
                                     forwardToStateService(toCoreMsg.getDeviceActivityMsg(), callback);
+                                } else if (toCoreMsg.hasToDeviceActorNotification()) {
+                                    TbActorMsg actorMsg = ProtoUtils.fromProto(toCoreMsg.getToDeviceActorNotification());
+                                    if (actorMsg != null) {
+                                        if (actorMsg.getMsgType().equals(MsgType.DEVICE_RPC_REQUEST_TO_DEVICE_ACTOR_MSG)) {
+                                            tbCoreDeviceRpcService.forwardRpcRequestToDeviceActor((ToDeviceRpcRequestActorMsg) actorMsg);
+                                        } else {
+                                            log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg);
+                                            actorContext.tell(actorMsg);
+                                        }
+                                    }
+                                    callback.onSuccess();
                                 } else if (!toCoreMsg.getToDeviceActorNotificationMsg().isEmpty()) {
+                                    // will be removed in 3.6.1 in favour of hasToDeviceActorNotification()
                                     Optional<TbActorMsg> actorMsg = encodingService.decode(toCoreMsg.getToDeviceActorNotificationMsg().toByteArray());
                                     if (actorMsg.isPresent()) {
                                         TbActorMsg tbActorMsg = actorMsg.get();
@@ -419,11 +431,23 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             //will be removed in 3.6.1 in favour of hasComponentLifecycle()
             handleComponentLifecycleMsg(id, toCoreNotification.getComponentLifecycleMsg());
             callback.onSuccess();
+        } else if (toCoreNotification.hasEdgeEventUpdate()) {
+            forwardToAppActor(id, ProtoUtils.fromProto(toCoreNotification.getEdgeEventUpdate()));
+            callback.onSuccess();
         } else if (!toCoreNotification.getEdgeEventUpdateMsg().isEmpty()) {
+            //will be removed in 3.6.1 in favour of hasEdgeEventUpdate()
             forwardToAppActor(id, encodingService.decode(toCoreNotification.getEdgeEventUpdateMsg().toByteArray()), callback);
+        } else if (toCoreNotification.hasToEdgeSyncRequest()) {
+            forwardToAppActor(id, ProtoUtils.fromProto(toCoreNotification.getToEdgeSyncRequest()));
+            callback.onSuccess();
         } else if (!toCoreNotification.getToEdgeSyncRequestMsg().isEmpty()) {
+            //will be removed in 3.6.1 in favour of hasToEdgeSyncRequest()
             forwardToAppActor(id, encodingService.decode(toCoreNotification.getToEdgeSyncRequestMsg().toByteArray()), callback);
+        } else if (toCoreNotification.hasFromEdgeSyncResponse()) {
+            forwardToAppActor(id, ProtoUtils.fromProto(toCoreNotification.getFromEdgeSyncResponse()));
+            callback.onSuccess();
         } else if (!toCoreNotification.getFromEdgeSyncResponseMsg().isEmpty()) {
+            //will be removed in 3.6.1 in favour of hasFromEdgeSyncResponse()
             forwardToAppActor(id, encodingService.decode(toCoreNotification.getFromEdgeSyncResponseMsg().toByteArray()), callback);
         } else if (toCoreNotification.hasQueueUpdateMsg()) {
             TransportProtos.QueueUpdateMsg queue = toCoreNotification.getQueueUpdateMsg();
@@ -763,10 +787,14 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
 
     private void forwardToAppActor(UUID id, Optional<TbActorMsg> actorMsg, TbCallback callback) {
         if (actorMsg.isPresent()) {
-            log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg.get());
-            actorContext.tell(actorMsg.get());
+            forwardToAppActor(id, actorMsg.get());
         }
         callback.onSuccess();
+    }
+
+    private void forwardToAppActor(UUID id, TbActorMsg actorMsg) {
+        log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg);
+        actorContext.tell(actorMsg);
     }
 
     private void forwardToEventService(ErrorEventProto eventProto, TbCallback callback) {

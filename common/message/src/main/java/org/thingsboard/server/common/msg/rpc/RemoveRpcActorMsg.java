@@ -28,43 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.rpc;
+package org.thingsboard.server.common.msg.rpc;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+import lombok.Data;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.MsgType;
 import org.thingsboard.server.common.msg.ToDeviceActorNotificationMsg;
-import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
 
-/**
- * Created by ashvayka on 16.04.18.
- */
-@ToString
-@RequiredArgsConstructor
-public class ToDeviceRpcRequestActorMsg implements ToDeviceActorNotificationMsg {
+import java.util.UUID;
 
-    private static final long serialVersionUID = -8592877558138716589L;
+@Data
+public class RemoveRpcActorMsg implements ToDeviceActorNotificationMsg {
 
-    @Getter
-    private final String serviceId;
-    @Getter
-    private final ToDeviceRpcRequest msg;
+    private static final long serialVersionUID = -6112720854949677477L;
 
-    @Override
-    public DeviceId getDeviceId() {
-        return msg.getDeviceId();
-    }
-
-    @Override
-    public TenantId getTenantId() {
-        return msg.getTenantId();
-    }
+    private final TenantId tenantId;
+    private final DeviceId deviceId;
+    private final UUID requestId;
 
     @Override
     public MsgType getMsgType() {
-        return MsgType.DEVICE_RPC_REQUEST_TO_DEVICE_ACTOR_MSG;
+        return MsgType.REMOVE_RPC_TO_DEVICE_ACTOR_MSG;
     }
 }
