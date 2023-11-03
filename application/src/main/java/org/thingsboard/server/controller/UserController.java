@@ -682,7 +682,7 @@ public class UserController extends BaseController {
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter("alarmId", strAlarmId);
         AlarmId alarmEntityId = new AlarmId(toUUID(strAlarmId));
-        Alarm alarm = checkAlarmId(alarmEntityId, Operation.READ);
+        Alarm alarm = checkAlarmId(alarmEntityId, Operation.WRITE);
         SecurityUser currentUser = getCurrentUser();
         TenantId tenantId = currentUser.getTenantId();
         CustomerId originatorCustomerId = entityService.fetchEntityCustomerId(tenantId, alarm.getOriginator()).orElse(NULL_CUSTOMER_ID);
