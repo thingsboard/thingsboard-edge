@@ -17,7 +17,6 @@ package org.thingsboard.server.msa.edge;
 
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
-import org.junit.Assert;
 import org.junit.Test;
 import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.Device;
@@ -25,7 +24,6 @@ import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
-import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -100,20 +98,17 @@ public class AlarmClientTest extends AbstractContainerTest {
 
     @Test
     public void sendAlarmToCloud() {
-        // create alarm
+        // create alarm on cloud (creation on edge possible using Send to Cloud node)
         Device device = saveAndAssignDeviceToEdge();
         Alarm alarm = new Alarm();
         alarm.setOriginator(device.getId());
-        alarm.setType("alarm from edge");
-        alarm.setSeverity(AlarmSeverity.MAJOR);
-        Alarm savedAlarm = edgeRestClient.saveAlarm(alarm);
+        alarm.setType("alarm");
+        alarm.setSeverity(AlarmSeverity.CRITICAL);
+        Alarm savedAlarm = cloudRestClient.saveAlarm(alarm);
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> getLatestAlarmByEntityIdFromCloud(device.getId()).isPresent());
-
-        Assert.assertEquals("Alarm on edge and cloud have different types",
-                "alarm from edge", getLatestAlarmByEntityIdFromCloud(device.getId()).get().getType());
+                .until(() -> getLatestAlarmByEntityIdFromEdge(device.getId()).isPresent());
 
         // ack alarm
         edgeRestClient.ackAlarm(savedAlarm.getId());
