@@ -120,14 +120,13 @@ export class ResourcesLibraryTableConfigResolver implements Resolve<EntityTableC
     this.config.entitySelectionEnabled = (resource) => this.isResourceEditable(resource, authUser.authority);
     this.config.detailsReadonly = (resource) => !this.isResourceEditable(resource, authUser.authority);
 
-    // @voba - edge read-only
-    this.config.detailsReadonly = () => true;
+    // @voba: resources can't be deleted from edge
     this.config.deleteEnabled = () => false;
-    this.config.addEnabled = false;
     this.config.entitiesDeleteEnabled = false;
 
     return this.config;
   }
+
 
   private openResource($event: Event, resourceInfo: ResourceInfo) {
     if ($event) {

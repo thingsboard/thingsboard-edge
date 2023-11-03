@@ -24,7 +24,6 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
-import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.page.PageDataIterable;
@@ -47,53 +46,47 @@ public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processTenantProfileMsgFromCloud(TenantId tenantId, TenantProfileUpdateMsg tenantProfileUpdateMsg) {
         TenantProfileId tenantProfileId = new TenantProfileId(new UUID(tenantProfileUpdateMsg.getIdMSB(), tenantProfileUpdateMsg.getIdLSB()));
-        try {
-            cloudSynchronizationManager.getSync().set(true);
+        switch (tenantProfileUpdateMsg.getMsgType()) {
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                String tenantProfileMsgName = tenantProfileUpdateMsg.getName();
+                TenantProfile tenantProfileByName = findTenantProfileByName(tenantId, tenantProfileMsgName);
+                boolean removePreviousProfile = false;
+                if (tenantProfileByName != null && !tenantProfileByName.getId().equals(tenantProfileId)) {
+                    renamePreviousTenantProfile(tenantProfileByName);
+                    removePreviousProfile = true;
+                }
+                TenantProfile tenantProfile = tenantProfileService.findTenantProfileById(tenantId, tenantProfileId);
+                if (tenantProfile == null) {
+                    tenantProfile = createTenantProfile(tenantProfileId, tenantProfileMsgName);
+                }
+                if (!tenantProfile.isDefault() && tenantProfileUpdateMsg.getDefault()) {
+                    tenantProfileService.setDefaultTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile.getId());
+                }
+                tenantProfile.setName(tenantProfileMsgName);
+                tenantProfile.setDefault(tenantProfileUpdateMsg.getDefault());
+                tenantProfile.setDescription(tenantProfileUpdateMsg.getDescription());
+                tenantProfile.setIsolatedTbRuleEngine(tenantProfileUpdateMsg.getIsolatedRuleChain());
 
-            switch (tenantProfileUpdateMsg.getMsgType()) {
-                case ENTITY_UPDATED_RPC_MESSAGE:
-                    String tenantProfileMsgName = tenantProfileUpdateMsg.getName();
-                    TenantProfile tenantProfileByName = findTenantProfileByName(tenantId, tenantProfileMsgName);
-                    boolean removePreviousProfile = false;
-                    if (tenantProfileByName != null && !tenantProfileByName.getId().equals(tenantProfileId)) {
-                        renamePreviousTenantProfile(tenantProfileByName);
-                        removePreviousProfile = true;
-                    }
-                    TenantProfile tenantProfile = tenantProfileService.findTenantProfileById(tenantId, tenantProfileId);
-                    if (tenantProfile == null) {
-                        tenantProfile = createTenantProfile(tenantProfileId, tenantProfileMsgName);
-                    }
-                    if (!tenantProfile.isDefault() && tenantProfileUpdateMsg.getDefault()) {
-                        tenantProfileService.setDefaultTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile.getId());
-                    }
-                    tenantProfile.setName(tenantProfileMsgName);
-                    tenantProfile.setDefault(tenantProfileUpdateMsg.getDefault());
-                    tenantProfile.setDescription(tenantProfileUpdateMsg.getDescription());
-                    tenantProfile.setIsolatedTbRuleEngine(tenantProfileUpdateMsg.getIsolatedRuleChain());
+                Optional<TenantProfileData> profileDataOpt = Optional.empty();
+                try {
+                    profileDataOpt = dataDecodingEncodingService.decode(tenantProfileUpdateMsg.getProfileDataBytes().toByteArray());
+                } catch (Exception e) {
+                    log.warn("[{}] Failed to decode tenant profile data bytes {}", tenantId, tenantProfileUpdateMsg.getProfileDataBytes(), e);
+                }
+                tenantProfile.setProfileData(profileDataOpt.orElse(new TenantProfile().createDefaultTenantProfileData()));
 
-                    Optional<TenantProfileData> profileDataOpt = Optional.empty();
-                    try {
-                        profileDataOpt = dataDecodingEncodingService.decode(tenantProfileUpdateMsg.getProfileDataBytes().toByteArray());
-                    } catch (Exception e) {
-                        log.warn("[{}] Failed to decode tenant profile data bytes {}", tenantId, tenantProfileUpdateMsg.getProfileDataBytes(), e);
-                    }
-                    tenantProfile.setProfileData(profileDataOpt.orElse(new TenantProfile().createDefaultTenantProfileData()));
+                TenantProfile savedTenantProfile = tenantProfileService.saveTenantProfile(tenantId, tenantProfile, false);
+                notifyCluster(tenantId, savedTenantProfile);
 
-                    TenantProfile savedTenantProfile = tenantProfileService.saveTenantProfile(tenantId, tenantProfile, false);
-                    notifyCluster(tenantId, savedTenantProfile);
+                if (removePreviousProfile) {
+                    updateTenants(tenantProfileId, tenantProfileByName.getId());
+                    tenantProfileService.deleteTenantProfile(tenantId, tenantProfileByName.getId());
+                    tbClusterService.broadcastEntityStateChangeEvent(tenantId, tenantProfileByName.getId(), ComponentLifecycleEvent.DELETED);
+                }
 
-                    if (removePreviousProfile) {
-                        updateTenants(tenantProfileId, tenantProfileByName.getId());
-                        tenantProfileService.deleteTenantProfile(tenantId, tenantProfileByName.getId());
-                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, tenantProfileByName.getId(), ComponentLifecycleEvent.DELETED);
-                    }
-
-                    break;
-                case UNRECOGNIZED:
-                    return handleUnsupportedMsgType(tenantProfileUpdateMsg.getMsgType());
-            }
-        } finally {
-            cloudSynchronizationManager.getSync().remove();
+                break;
+            case UNRECOGNIZED:
+                return handleUnsupportedMsgType(tenantProfileUpdateMsg.getMsgType());
         }
         return Futures.immediateFuture(null);
     }

@@ -86,6 +86,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
                 case ENTITY_VIEW:
                 case DASHBOARD:
                 case RULE_CHAIN:
+                case TB_RESOURCE:
                     future = processEntity(tenantId, cloudNotificationMsg);
                     break;
                 case ALARM:
@@ -179,5 +180,3 @@ public class DefaultCloudNotificationService implements CloudNotificationService
                 0L);
     }
 }
-
-

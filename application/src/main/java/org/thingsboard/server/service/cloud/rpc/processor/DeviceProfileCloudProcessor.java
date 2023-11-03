@@ -58,52 +58,47 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
 
     public ListenableFuture<Void> processDeviceProfileMsgFromCloud(TenantId tenantId, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
         DeviceProfileId deviceProfileId = new DeviceProfileId(new UUID(deviceProfileUpdateMsg.getIdMSB(), deviceProfileUpdateMsg.getIdLSB()));
-        try {
-            cloudSynchronizationManager.getSync().set(true);
 
-            switch (deviceProfileUpdateMsg.getMsgType()) {
-                case ENTITY_CREATED_RPC_MESSAGE:
-                case ENTITY_UPDATED_RPC_MESSAGE:
-                    deviceCreationLock.lock();
-                    try {
-                        DeviceProfile deviceProfileByName = deviceProfileService.findDeviceProfileByName(tenantId, deviceProfileUpdateMsg.getName());
-                        boolean removePreviousProfile = false;
-                        if (deviceProfileByName != null && !deviceProfileByName.getId().equals(deviceProfileId)) {
-                            renameExistingOnEdgeDeviceProfile(deviceProfileByName);
-                            removePreviousProfile = true;
-                        }
-                        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDeviceProfile(tenantId, deviceProfileId, deviceProfileUpdateMsg, new EdgeId(EdgeId.NULL_UUID) );
-                        boolean created = resultPair.getFirst();
-                        DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
-                        if (!deviceProfile.isDefault() && deviceProfileUpdateMsg.getDefault()) {
-                            deviceProfileService.setDefaultDeviceProfile(tenantId, deviceProfileId);
-                        }
-                        if (removePreviousProfile) {
-                            updateDevices(tenantId, deviceProfileId, deviceProfileByName.getId());
-                            deviceProfileService.deleteDeviceProfile(tenantId, deviceProfileByName.getId());
-                        }
-                        if (created) {
-                            pushDeviceProfileCreatedEventToRuleEngine(tenantId, deviceProfileId);
-                        }
-                        notifyCluster(tenantId, deviceProfile, created);
-                    } finally {
-                        deviceCreationLock.unlock();
+        switch (deviceProfileUpdateMsg.getMsgType()) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                deviceCreationLock.lock();
+                try {
+                    DeviceProfile deviceProfileByName = deviceProfileService.findDeviceProfileByName(tenantId, deviceProfileUpdateMsg.getName());
+                    boolean removePreviousProfile = false;
+                    if (deviceProfileByName != null && !deviceProfileByName.getId().equals(deviceProfileId)) {
+                        renameExistingOnEdgeDeviceProfile(deviceProfileByName);
+                        removePreviousProfile = true;
                     }
-                    break;
-                case ENTITY_DELETED_RPC_MESSAGE:
-                    DeviceProfile deviceProfileToDelete = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
-                    if (deviceProfileToDelete != null) {
-                        deviceProfileService.deleteDeviceProfile(tenantId, deviceProfileId);
-                        tbClusterService.onDeviceProfileDelete(deviceProfileToDelete, null);
-                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, deviceProfileId, ComponentLifecycleEvent.DELETED);
-                        pushDeviceProfileDeletedEventToRuleEngine(tenantId, deviceProfileToDelete);
+                    Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDeviceProfile(tenantId, deviceProfileId, deviceProfileUpdateMsg, new EdgeId(EdgeId.NULL_UUID));
+                    boolean created = resultPair.getFirst();
+                    DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
+                    if (!deviceProfile.isDefault() && deviceProfileUpdateMsg.getDefault()) {
+                        deviceProfileService.setDefaultDeviceProfile(tenantId, deviceProfileId);
                     }
-                    break;
-                case UNRECOGNIZED:
-                    return handleUnsupportedMsgType(deviceProfileUpdateMsg.getMsgType());
-            }
-        } finally {
-            cloudSynchronizationManager.getSync().remove();
+                    if (removePreviousProfile) {
+                        updateDevices(tenantId, deviceProfileId, deviceProfileByName.getId());
+                        deviceProfileService.deleteDeviceProfile(tenantId, deviceProfileByName.getId());
+                    }
+                    if (created) {
+                        pushDeviceProfileCreatedEventToRuleEngine(tenantId, deviceProfileId);
+                    }
+                    notifyCluster(tenantId, deviceProfile, created);
+                } finally {
+                    deviceCreationLock.unlock();
+                }
+                break;
+            case ENTITY_DELETED_RPC_MESSAGE:
+                DeviceProfile deviceProfileToDelete = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
+                if (deviceProfileToDelete != null) {
+                    deviceProfileService.deleteDeviceProfile(tenantId, deviceProfileId);
+                    tbClusterService.onDeviceProfileDelete(deviceProfileToDelete, null);
+                    tbClusterService.broadcastEntityStateChangeEvent(tenantId, deviceProfileId, ComponentLifecycleEvent.DELETED);
+                    pushDeviceProfileDeletedEventToRuleEngine(tenantId, deviceProfileToDelete);
+                }
+                break;
+            case UNRECOGNIZED:
+                return handleUnsupportedMsgType(deviceProfileUpdateMsg.getMsgType());
         }
         return Futures.immediateFuture(null);
     }

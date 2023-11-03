@@ -66,7 +66,8 @@ public class CloudEventSourcingListener {
             EntityType.ENTITY_VIEW,
             EntityType.ASSET,
             EntityType.ASSET_PROFILE,
-            EntityType.DASHBOARD);
+            EntityType.DASHBOARD,
+            EntityType.TB_RESOURCE);
 
     private final List<EntityType> supportableEntityTypes = new ArrayList<>(COMMON_ENTITY_TYPES) {{
         add(EntityType.ALARM);
