@@ -208,9 +208,7 @@ public class OtaPackageController extends BaseController {
                                                    @RequestParam(required = false) String sortProperty,
                                                    @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
                                                    @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        if (!accessControlService.hasPermission(getCurrentUser(), Resource.OTA_PACKAGE, Operation.READ)) {
-            throw permissionDenied();
-        }
+        accessControlService.checkPermission(getCurrentUser(), Resource.OTA_PACKAGE, Operation.READ);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         return checkNotNull(otaPackageService.findTenantOtaPackagesByTenantId(getTenantId(), pageLink));
     }
@@ -236,9 +234,7 @@ public class OtaPackageController extends BaseController {
                                                    @RequestParam(required = false) String sortProperty,
                                                    @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
                                                    @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        if (!accessControlService.hasPermission(getCurrentUser(), Resource.OTA_PACKAGE, Operation.READ)) {
-            throw permissionDenied();
-        }
+        accessControlService.checkPermission(getCurrentUser(), Resource.OTA_PACKAGE, Operation.READ);
         checkParameter("deviceProfileId", strDeviceProfileId);
         checkParameter("type", strType);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
