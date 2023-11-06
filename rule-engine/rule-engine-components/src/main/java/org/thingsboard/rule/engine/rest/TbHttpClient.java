@@ -283,7 +283,7 @@ public class TbHttpClient {
             }
         }
 
-        return parseJsonStringToPlainText(data, config.isTrimDoubleQuotes());
+        return parseJsonStringToPlainText(data, config.isParseToPlainText());
     }
 
     protected String parseJsonStringToPlainText(String data, boolean parseToJson) {

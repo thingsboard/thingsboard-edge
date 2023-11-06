@@ -69,7 +69,6 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.willCallRealMethod;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -174,7 +173,7 @@ public class TbHttpClientTest {
         );
 
         var ctx = mock(TbContext.class);
-        lenient().when(ctx.transformMsg(
+        when(ctx.transformMsg(
                 eq(msg),
                 eq(msg.getMetaData()),
                 eq(msg.getData())
@@ -182,7 +181,7 @@ public class TbHttpClientTest {
 
         var capturedData = ArgumentCaptor.forClass(String.class);
 
-        lenient().when(ctx.transformMsg(
+        when(ctx.transformMsg(
                 eq(msg),
                 any(),
                 capturedData.capture()
