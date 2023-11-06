@@ -197,9 +197,10 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
         return saveAsset(asset);
     }
 
+    // @voba - edge only
     @Override
     @Transactional
-    public void deleteAsset(TenantId tenantId, AssetId assetId) {
+    public void deleteAsset(TenantId tenantId, AssetId assetId, EdgeId originatorEdgeId) {
         validateId(assetId, INCORRECT_ASSET_ID + assetId);
         if (entityViewService.existsByTenantIdAndEntityId(tenantId, assetId)) {
             throw new DataValidationException("Can't delete asset that has entity views!");
@@ -207,10 +208,16 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
 
         Asset asset = assetDao.findById(tenantId, assetId.getId());
         alarmService.deleteEntityAlarmRelations(tenantId, assetId);
-        deleteAsset(tenantId, asset);
+        deleteAsset(tenantId, asset, originatorEdgeId);
     }
 
-    private void deleteAsset(TenantId tenantId, Asset asset) {
+    @Override
+    @Transactional
+    public void deleteAsset(TenantId tenantId, AssetId assetId) {
+        deleteAsset(tenantId, assetId, null);
+    }
+
+    private void deleteAsset(TenantId tenantId, Asset asset, EdgeId originatorEdgeId) {
         log.trace("Executing deleteAsset [{}]", asset.getId());
         relationService.deleteEntityRelations(tenantId, asset.getAssetProfileId());
 
@@ -218,7 +225,7 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
 
         publishEvictEvent(new AssetCacheEvictEvent(asset.getTenantId(), asset.getName(), null));
         countService.publishCountEntityEvictEvent(tenantId, EntityType.ASSET);
-        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(asset.getId()).build());
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(asset.getId()).originatorEdgeId(originatorEdgeId).build());
     }
 
     @Override
@@ -446,7 +453,7 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
 
         @Override
         protected void removeEntity(TenantId tenantId, Asset asset) {
-            deleteAsset(tenantId, asset);
+            deleteAsset(tenantId, asset, null);
         }
     };
 

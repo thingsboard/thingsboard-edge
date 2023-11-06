@@ -51,6 +51,8 @@ public interface AssetService extends EntityDaoService {
 
     void deleteAsset(TenantId tenantId, AssetId assetId);
 
+    void deleteAsset(TenantId tenantId, AssetId assetId, EdgeId originatorEdgeId);
+
     PageData<Asset> findAssetsByTenantId(TenantId tenantId, PageLink pageLink);
 
     PageData<AssetInfo> findAssetInfosByTenantId(TenantId tenantId, PageLink pageLink);

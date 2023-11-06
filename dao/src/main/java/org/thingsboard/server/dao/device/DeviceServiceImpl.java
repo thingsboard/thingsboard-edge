@@ -313,9 +313,10 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
         return saveDevice(device);
     }
 
+    // @voba - edge only
     @Transactional
     @Override
-    public void deleteDevice(final TenantId tenantId, final DeviceId deviceId) {
+    public void deleteDevice(final TenantId tenantId, final DeviceId deviceId, final EdgeId originatorEdgeId) {
         validateId(deviceId, INCORRECT_DEVICE_ID + deviceId);
         if (entityViewService.existsByTenantIdAndEntityId(tenantId, deviceId)) {
             throw new DataValidationException("Can't delete device that has entity views!");
@@ -323,10 +324,16 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
 
         Device device = deviceDao.findById(tenantId, deviceId.getId());
         alarmService.deleteEntityAlarmRelations(tenantId, deviceId);
-        deleteDevice(tenantId, device);
+        deleteDevice(tenantId, device, originatorEdgeId);
     }
 
-    private void deleteDevice(TenantId tenantId, Device device) {
+    @Transactional
+    @Override
+    public void deleteDevice(final TenantId tenantId, final DeviceId deviceId) {
+        deleteDevice(tenantId, deviceId, null);
+    }
+
+    private void deleteDevice(TenantId tenantId, Device device, EdgeId originatorEdgeId) {
         log.trace("Executing deleteDevice [{}]", device.getId());
         deviceCredentialsService.deleteDeviceCredentialsByDeviceId(tenantId, device.getId());
         relationService.deleteEntityRelations(tenantId, device.getId());
@@ -336,7 +343,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
         DeviceCacheEvictEvent deviceCacheEvictEvent = new DeviceCacheEvictEvent(device.getTenantId(), device.getId(), device.getName(), null);
         publishEvictEvent(deviceCacheEvictEvent);
         countService.publishCountEntityEvictEvent(tenantId, EntityType.DEVICE);
-        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(device.getId()).build());
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(device.getId()).originatorEdgeId(originatorEdgeId).build());
     }
 
     @Override
@@ -660,7 +667,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
 
         @Override
         protected void removeEntity(TenantId tenantId, Device device) {
-            deleteDevice(tenantId, device);
+            deleteDevice(tenantId, device, null);
         }
     };
 

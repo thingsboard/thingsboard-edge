@@ -228,9 +228,10 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         }
     }
 
+    // @voba - edge only
     @Override
     @Transactional
-    public void deleteDashboard(TenantId tenantId, DashboardId dashboardId) {
+    public void deleteDashboard(TenantId tenantId, DashboardId dashboardId, EdgeId originatorEdgeId) {
         log.trace("Executing deleteDashboard [{}]", dashboardId);
         Validator.validateId(dashboardId, INCORRECT_DASHBOARD_ID + dashboardId);
         deleteEntityRelations(tenantId, dashboardId);
@@ -238,7 +239,7 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
             dashboardDao.removeById(tenantId, dashboardId.getId());
             publishEvictEvent(new DashboardTitleEvictEvent(dashboardId));
             countService.publishCountEntityEvictEvent(tenantId, EntityType.DASHBOARD);
-            eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(dashboardId).build());
+            eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(dashboardId).originatorEdgeId(originatorEdgeId).build());
         } catch (Exception t) {
             ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
             if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("fk_default_dashboard_device_profile")) {
@@ -247,6 +248,12 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
                 throw t;
             }
         }
+    }
+
+    @Override
+    @Transactional
+    public void deleteDashboard(TenantId tenantId, DashboardId dashboardId) {
+        deleteDashboard(tenantId, dashboardId, null);
     }
 
     @Override

@@ -65,6 +65,8 @@ public interface DeviceService extends EntityDaoService {
 
     void deleteDevice(TenantId tenantId, DeviceId deviceId);
 
+    void deleteDevice(TenantId tenantId, DeviceId deviceId, EdgeId originatorEdgeId);
+
     PageData<Device> findDevicesByTenantId(TenantId tenantId, PageLink pageLink);
 
     PageData<DeviceInfo> findDeviceInfosByFilter(DeviceInfoFilter filter, PageLink pageLink);

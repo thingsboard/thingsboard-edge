@@ -61,7 +61,7 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
             case ENTITY_DELETED_RPC_MESSAGE:
                 EntityView entityViewById = entityViewService.findEntityViewById(tenantId, entityViewId);
                 if (entityViewById != null) {
-                    entityViewService.deleteEntityView(tenantId, entityViewId);
+                    entityViewService.deleteEntityView(tenantId, entityViewId, new EdgeId(EdgeId.NULL_UUID));
                     tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityViewId, ComponentLifecycleEvent.DELETED);
                     pushEntityViewDeletedEventToRuleEngine(tenantId, entityViewById);
                 }

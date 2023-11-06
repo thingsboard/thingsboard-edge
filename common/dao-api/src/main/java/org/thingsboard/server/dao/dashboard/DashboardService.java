@@ -52,6 +52,8 @@ public interface DashboardService extends EntityDaoService {
 
     Dashboard unassignDashboardFromCustomer(TenantId tenantId, DashboardId dashboardId, CustomerId customerId, EdgeId originatorEdgeId);
 
+    void deleteDashboard(TenantId tenantId, DashboardId dashboardId, EdgeId originatorEdgeId);
+
     void deleteDashboard(TenantId tenantId, DashboardId dashboardId);
 
     PageData<DashboardInfo> findDashboardsByTenantId(TenantId tenantId, PageLink pageLink);

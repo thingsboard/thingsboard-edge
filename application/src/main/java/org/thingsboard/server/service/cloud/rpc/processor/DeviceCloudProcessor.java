@@ -71,7 +71,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
             case ENTITY_DELETED_RPC_MESSAGE:
                 Device deviceById = deviceService.findDeviceById(tenantId, deviceId);
                 if (deviceById != null) {
-                    deviceService.deleteDevice(tenantId, deviceId);
+                    deviceService.deleteDevice(tenantId, deviceId, new EdgeId(EdgeId.NULL_UUID));
                     pushDeviceDeletedEventToRuleEngine(tenantId, deviceById);
                 }
                 return Futures.immediateFuture(null);

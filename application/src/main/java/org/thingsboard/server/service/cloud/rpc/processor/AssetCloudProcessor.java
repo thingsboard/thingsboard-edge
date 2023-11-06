@@ -59,7 +59,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
             case ENTITY_DELETED_RPC_MESSAGE:
                 Asset assetById = assetService.findAssetById(tenantId, assetId);
                 if (assetById != null) {
-                    assetService.deleteAsset(tenantId, assetId);
+                    assetService.deleteAsset(tenantId, assetId, new EdgeId(EdgeId.NULL_UUID));
                     pushAssetDeletedEventToRuleEngine(tenantId, assetById);
                 }
                 return Futures.immediateFuture(null);

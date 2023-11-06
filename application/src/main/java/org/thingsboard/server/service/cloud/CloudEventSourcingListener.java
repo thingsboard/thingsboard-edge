@@ -71,6 +71,8 @@ public class CloudEventSourcingListener {
 
     private final List<EntityType> supportableEntityTypes = new ArrayList<>(COMMON_ENTITY_TYPES) {{
         add(EntityType.ALARM);
+        remove(EntityType.DEVICE_PROFILE);
+        remove(EntityType.ASSET_PROFILE);
     }};
 
     private final List<EntityType> saveEventSupportableEntityTypes = new ArrayList<>(COMMON_ENTITY_TYPES);

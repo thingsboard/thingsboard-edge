@@ -61,7 +61,7 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
             case ENTITY_DELETED_RPC_MESSAGE:
                 Dashboard dashboardById = dashboardService.findDashboardById(tenantId, dashboardId);
                 if (dashboardById != null) {
-                    dashboardService.deleteDashboard(tenantId, dashboardId);
+                    dashboardService.deleteDashboard(tenantId, dashboardId, new EdgeId(EdgeId.NULL_UUID));
                     pushDashboardDeletedEventToRuleEngine(tenantId, dashboardById);
                 }
                 return Futures.immediateFuture(null);
