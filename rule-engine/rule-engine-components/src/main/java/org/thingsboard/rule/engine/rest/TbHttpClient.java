@@ -283,9 +283,15 @@ public class TbHttpClient {
             }
         }
 
-        if (config.isTrimDoubleQuotes()) {
+        return parseJsonStringToPlainText(data, config.isTrimDoubleQuotes());
+    }
+
+    protected String parseJsonStringToPlainText(String data, boolean parseToJson) {
+        if (parseToJson && data.startsWith("\"") && data.endsWith("\"") && data.length() >= 2) {
             final String dataBefore = data;
-            data = data.replaceAll("^\"|\"$", "");
+            try {
+                data = JacksonUtil.fromString(data, String.class);
+            } catch (Exception ignored) {}
             log.trace("Trimming double quotes. Before trim: [{}], after trim: [{}]", dataBefore, data);
         }
 
