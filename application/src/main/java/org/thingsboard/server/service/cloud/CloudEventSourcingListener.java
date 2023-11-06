@@ -73,6 +73,7 @@ public class CloudEventSourcingListener {
         add(EntityType.ALARM);
         remove(EntityType.DEVICE_PROFILE);
         remove(EntityType.ASSET_PROFILE);
+        remove(EntityType.TB_RESOURCE);
     }};
 
     private final List<EntityType> saveEventSupportableEntityTypes = new ArrayList<>(COMMON_ENTITY_TYPES);
