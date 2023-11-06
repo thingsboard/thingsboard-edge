@@ -49,8 +49,8 @@ public class DeviceCacheKey implements Serializable {
     private final DeviceId deviceId;
     private final String deviceName;
 
-    public DeviceCacheKey(TenantId tenantId, DeviceId deviceId) {
-        this(tenantId, deviceId, null);
+    public DeviceCacheKey(DeviceId deviceId) {
+        this(null, deviceId, null);
     }
 
     public DeviceCacheKey(TenantId tenantId, String deviceName) {
@@ -60,7 +60,7 @@ public class DeviceCacheKey implements Serializable {
     @Override
     public String toString() {
         if (deviceId != null) {
-            return tenantId + "_" + deviceId;
+            return deviceId.toString();
         } else {
             return tenantId + "_n_" + deviceName;
         }
