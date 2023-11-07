@@ -127,7 +127,7 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
 
     private void renamePreviousAssetProfile(AssetProfile assetProfileByName) {
         assetProfileByName.setName(assetProfileByName.getName() + StringUtils.randomAlphanumeric(15));
-        assetProfileService.saveAssetProfile(assetProfileByName);
+        assetProfileService.saveAssetProfile(assetProfileByName, new EdgeId(EdgeId.NULL_UUID));
     }
 
     private void updateAssets(TenantId tenantId, AssetProfileId newAssetProfileId, AssetProfileId previousAssetProfileId) {

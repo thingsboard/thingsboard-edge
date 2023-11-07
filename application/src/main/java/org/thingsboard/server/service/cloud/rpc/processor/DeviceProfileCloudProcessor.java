@@ -150,7 +150,7 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
 
     private void renameExistingOnEdgeDeviceProfile(DeviceProfile deviceProfileByName) {
         deviceProfileByName.setName(deviceProfileByName.getName() + StringUtils.randomAlphanumeric(15));
-        deviceProfileService.saveDeviceProfile(deviceProfileByName);
+        deviceProfileService.saveDeviceProfile(deviceProfileByName, new EdgeId(EdgeId.NULL_UUID));
     }
 
     public UplinkMsg convertDeviceProfileEventToUplink(CloudEvent cloudEvent) {
