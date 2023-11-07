@@ -48,6 +48,7 @@ import { FloatLabelType, MatFormFieldAppearance, SubscriptSizing } from '@angula
 import { coerceArray, coerceBoolean } from '@shared/decorators/coercion';
 import { PageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
+import { UtilsService } from '@core/services/utils.service';
 
 @Component({
   selector: 'tb-entity-subtype-list',
@@ -144,6 +145,7 @@ export class EntitySubTypeListComponent implements ControlValueAccessor, OnInit,
               private entityViewService: EntityViewService,
               private edgeService: EdgeService,
               private alarmService: AlarmService,
+              private utils: UtilsService,
               private fb: FormBuilder) {
     this.entitySubtypeListFormGroup = this.fb.group({
       entitySubtypeList: [this.entitySubtypeList, this.required ? [Validators.required] : []],
@@ -314,7 +316,7 @@ export class EntitySubTypeListComponent implements ControlValueAccessor, OnInit,
         } else {
           result = subTypes.filter(subType => searchText ? subType.toUpperCase().startsWith(searchText.toUpperCase()) : true);
         }
-        if (!result.length) {
+        if (!result.length && searchText.length) {
           result = [searchText];
         }
         return result;
@@ -386,6 +388,10 @@ export class EntitySubTypeListComponent implements ControlValueAccessor, OnInit,
       this.entitySubtypeInput.nativeElement.blur();
       this.entitySubtypeInput.nativeElement.focus();
     }, 0);
+  }
+
+  customTranslate(entity: string) {
+    return this.utils.customTranslation(entity, entity);
   }
 
 }
