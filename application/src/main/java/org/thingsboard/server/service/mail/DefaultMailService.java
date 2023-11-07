@@ -98,7 +98,8 @@ public class DefaultMailService implements MailService {
 
     @PostConstruct
     private void init() {
-        updateMailConfiguration();
+        // @voba - merge comment
+        // updateMailConfiguration();
     }
 
     @Override
