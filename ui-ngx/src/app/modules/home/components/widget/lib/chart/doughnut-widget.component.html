@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" ?>
 <!--
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
@@ -31,40 +30,23 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<!DOCTYPE configuration>
-<configuration scan="true" scanPeriod="10 seconds">
-
-    <appender name="fileLogAppender"
-              class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/var/log/tb-mqtt-transport/${TB_SERVICE_ID}/tb-mqtt-transport.log</file>
-        <rollingPolicy
-                class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>/var/log/tb-mqtt-transport/${TB_SERVICE_ID}/tb-mqtt-transport.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-            <maxFileSize>100MB</maxFileSize>
-            <maxHistory>30</maxHistory>
-            <totalSizeCap>3GB</totalSizeCap>
-        </rollingPolicy>
-        <encoder>
-            <pattern>%d{ISO8601} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
-
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{ISO8601} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
-
-    <logger name="org.thingsboard.server" level="INFO" />
-
-    <logger name="com.microsoft.azure.servicebus.primitives.CoreMessageReceiver" level="OFF" />
-    <logger name="org.apache.kafka.common.utils.AppInfoParser" level="WARN"/>
-    <logger name="org.apache.kafka.clients" level="WARN"/>
-    <logger name="org.thingsboard.server.transport.mqtt" level="TRACE"/>
-
-    <root level="INFO">
-        <appender-ref ref="fileLogAppender"/>
-        <appender-ref ref="STDOUT"/>
-    </root>
-
-</configuration>
+<div class="tb-doughnut-panel" [style]="backgroundStyle">
+  <div class="tb-doughnut-overlay" [style]="overlayStyle"></div>
+  <ng-container *ngTemplateOutlet="widgetTitlePanel"></ng-container>
+  <div #doughnutContent class="tb-doughnut-content" [class]="legendClass">
+    <div #doughnutShape class="tb-doughnut-shape">
+    </div>
+    <div *ngIf="showLegend" #doughnutLegend class="tb-doughnut-legend">
+      <div class="tb-doughnut-legend-item" *ngFor="let legendItem of legendItems" [class]="{'pointer': !legendItem.total && legendItem.hasValue}"
+           (mouseenter)="onLegendItemEnter(legendItem)"
+           (mouseleave)="onLegendItemLeave(legendItem)"
+           (click)="toggleLegendItem(legendItem)">
+        <div class="tb-doughnut-legend-item-label">
+          <div class="tb-doughnut-legend-item-label-circle" [style]="{background: (legendItem.enabled && legendItem.hasValue) ? legendItem.color : null}"></div>
+          <div [style]="(legendItem.enabled && legendItem.hasValue) ? legendLabelStyle : disabledLegendLabelStyle">{{ legendItem.label }}</div>
+        </div>
+        <div [style]="(legendItem.enabled && legendItem.hasValue) ? legendValueStyle : disabledLegendValueStyle" class="tb-doughnut-legend-item-value">{{ legendItem.value }}</div>
+      </div>
+    </div>
+  </div>
+</div>

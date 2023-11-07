@@ -425,8 +425,8 @@ export interface Datasource {
 export const datasourcesHasAggregation = (datasources?: Array<Datasource>): boolean => {
   if (datasources) {
     const foundDatasource = datasources.find(datasource => {
-      const found = datasource.dataKeys && datasource.dataKeys.find(key => key.type === DataKeyType.timeseries &&
-        key.aggregationType && key.aggregationType !== AggregationType.NONE);
+      const found = datasource.dataKeys && datasource.dataKeys.find(key => key?.type === DataKeyType.timeseries &&
+        key?.aggregationType && key.aggregationType !== AggregationType.NONE);
       return !!found;
     });
     if (foundDatasource) {

@@ -326,6 +326,9 @@ import {
 import {
   LiquidLevelCardWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/indicator/liquid-level-card-widget-settings.component';
+import {
+  DoughnutWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/chart/doughnut-widget-settings.component';
 
 @NgModule({
   declarations: [
@@ -436,10 +439,11 @@ import {
     SignalStrengthWidgetSettingsComponent,
     ValueChartCardWidgetSettingsComponent,
     ProgressBarWidgetSettingsComponent,
+    LiquidLevelCardWidgetSettingsComponent,
+    DoughnutWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
-    SchedulerEventsWidgetSettingsComponent,
-    LiquidLevelCardWidgetSettingsComponent
+    SchedulerEventsWidgetSettingsComponent
   ],
   imports: [
     CommonModule,
@@ -555,10 +559,11 @@ import {
     SignalStrengthWidgetSettingsComponent,
     ValueChartCardWidgetSettingsComponent,
     ProgressBarWidgetSettingsComponent,
+    LiquidLevelCardWidgetSettingsComponent,
+    DoughnutWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
-    SchedulerEventsWidgetSettingsComponent,
-    LiquidLevelCardWidgetSettingsComponent
+    SchedulerEventsWidgetSettingsComponent
   ]
 })
 export class WidgetSettingsModule {
@@ -640,7 +645,8 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-signal-strength-widget-settings': SignalStrengthWidgetSettingsComponent,
   'tb-value-chart-card-widget-settings': ValueChartCardWidgetSettingsComponent,
   'tb-progress-bar-widget-settings': ProgressBarWidgetSettingsComponent,
+  'tb-liquid-level-card-widget-settings': LiquidLevelCardWidgetSettingsComponent,
+  'tb-doughnut-widget-settings': DoughnutWidgetSettingsComponent,
   'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
-  'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent,
-  'tb-liquid-level-card-widget-settings': LiquidLevelCardWidgetSettingsComponent
+  'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
 };
