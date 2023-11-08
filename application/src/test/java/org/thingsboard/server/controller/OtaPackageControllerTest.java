@@ -40,7 +40,9 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.SaveOtaPackageInfoRequest;
@@ -48,6 +50,8 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -313,15 +317,18 @@ public class OtaPackageControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        doDelete("/api/otaPackage/" + savedFirmwareInfo.getId().getId().toString())
+        String idStr = savedFirmwareInfo.getId().getId().toString();
+        doDelete("/api/otaPackage/" + idStr)
                 .andExpect(status().isOk());
 
         testNotifyEntityEntityGroupNullAllOneTime(savedFirmwareInfo, savedFirmwareInfo.getId(), savedFirmwareInfo.getId(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.DELETED, savedFirmwareInfo.getId().getId().toString());
+                ActionType.DELETED, idStr);
 
-        doGet("/api/otaPackage/info/" + savedFirmwareInfo.getId().getId().toString())
-                .andExpect(status().isNotFound());
+        String expected = "Ota package with id [" + idStr + "] is not found";
+        doGet("/api/otaPackage/info/" + idStr)
+                .andExpect(status().isNotFound())
+                .andExpect(statusReason(containsString(expected)));
     }
 
     @Test
@@ -372,6 +379,70 @@ public class OtaPackageControllerTest extends AbstractControllerTest {
         Collections.sort(loadedFirmwares, idComparator);
 
         Assert.assertEquals(otaPackages, loadedFirmwares);
+    }
+
+    @Test
+    public void testFindFirmwaresUserWithoutPermission() throws Exception {
+        SaveOtaPackageInfoRequest firmwareInfo = new SaveOtaPackageInfoRequest();
+        firmwareInfo.setDeviceProfileId(deviceProfileId);
+        firmwareInfo.setType(FIRMWARE);
+        firmwareInfo.setTitle(TITLE);
+        firmwareInfo.setVersion("Test without role");
+        firmwareInfo.setUsesUrl(false);
+
+        OtaPackageInfo savedFirmwareInfo = save(firmwareInfo);
+        MockMultipartFile testData = new MockMultipartFile("file", FILE_NAME, CONTENT_TYPE, DATA.array());
+
+        OtaPackage savedFirmware = savaData("/api/otaPackage/" + savedFirmwareInfo.getId().getId().toString() + "?checksum={checksum}&checksumAlgorithm={checksumAlgorithm}", testData, CHECKSUM, CHECKSUM_ALGORITHM);
+        savedFirmwareInfo = new OtaPackageInfo(savedFirmware);
+        PageLink pageLink = new PageLink(24);
+        String apiOtaPackages = "/api/otaPackages?";
+        PageData<OtaPackageInfo> pageData  = doGetTypedWithPageLink(apiOtaPackages,
+                new TypeReference<>() {
+                }, pageLink);
+        Assert.assertEquals(savedFirmwareInfo, pageData.getData().get(0));
+
+        String apiOtaPackagesByProfileId = "/api/otaPackages/" + savedFirmwareInfo.getDeviceProfileId().toString() + "/FIRMWARE?";
+        pageData = doGetTypedWithPageLink(apiOtaPackagesByProfileId,
+                new TypeReference<>() {
+                }, pageLink);
+        Assert.assertEquals(savedFirmwareInfo, pageData.getData().get(0));
+
+        // create CustomerUser without roles and login
+        Customer customer = new Customer();
+        customer.setOwnerId(savedTenant.getId());
+        customer.setTenantId(savedTenant.getId());
+        customer.setParentCustomerId(null);
+        customer.setTitle("Customer without role");
+        Customer savedCustomer = doPost("/api/customer", customer, Customer.class);
+
+        EntityGroup userGroup = new EntityGroup();
+        userGroup.setType(EntityType.USER);
+        userGroup.setName("UserGroup without role");
+        userGroup.setOwnerId(savedCustomer.getId());
+        EntityGroupInfo savedUserGroupInfo = doPost("/api/entityGroup", userGroup, EntityGroupInfo.class);
+
+        User user = new User();
+        user.setAuthority(Authority.CUSTOMER_USER);
+        user.setTenantId(savedTenant.getId());
+        user.setCustomerId(savedCustomer.getId());
+        user.setFirstName("firstName");
+        user.setLastName("lastName");
+        user.setEmail("testMail@thingsboard.org");
+        String pwd = "testPasswordUser";
+        User savedCustomerUser = createUser(user, pwd, savedUserGroupInfo.getId());
+        loginUser(savedCustomerUser.getName(), pwd);
+
+        Object[] vars = {pageLink.getPageSize(), pageLink.getPage()};
+        String urlTemplate = apiOtaPackages + "pageSize={pageSize}&page={page}";
+        doGet(urlTemplate, vars)
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString("You don't have permission to perform this operation!")));
+
+        urlTemplate = apiOtaPackagesByProfileId + "pageSize={pageSize}&page={page}";
+        doGet(urlTemplate, vars)
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString("You don't have permission to perform this operation!")));
     }
 
     @Test
