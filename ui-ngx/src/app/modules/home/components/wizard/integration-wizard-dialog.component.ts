@@ -343,7 +343,7 @@ export class IntegrationWizardDialogComponent extends
 
   nextStepLabel(): string {
     if (this.showDownlinkStep && this.selectedIndex === 2 && this.downlinkConverterForm.get('downlinkConverterId').pristine &&
-      this.downlinkConverterForm.get('newDownlinkConverter').pristine) {
+      this.downlinkConverterForm.get('newDownlinkConverter').pristine && this.downlinkConverterForm.get('converterType').value === 'exist') {
       return 'action.skip';
     }
     if (this.selectedIndex >= this.maxStep) {
