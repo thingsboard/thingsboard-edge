@@ -38,7 +38,7 @@ import { User, UserInfo } from '@shared/models/user.model';
 import { selectAuth, selectAuthUser } from '@core/auth/auth.selectors';
 import { map } from 'rxjs/operators';
 import { Authority } from '@shared/models/authority.enum';
-import { isDefinedAndNotNull, isUndefined } from '@core/utils';
+import { isDefinedAndNotNull } from '@core/utils';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { ActionNotificationShow } from '@app/core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
@@ -94,7 +94,7 @@ export class UserComponent extends GroupEntityComponent<UserInfo> {
   }
 
   isUserCredentialPresent(): boolean {
-    return this.entity && this.entity.additionalInfo && isDefinedAndNotNull(this.entity.additionalInfo.userCredentialsEnabled);
+    return isDefinedAndNotNull(this.entity?.additionalInfo?.userCredentialsEnabled);
   }
 
   buildForm(entity: UserInfo): UntypedFormGroup {
