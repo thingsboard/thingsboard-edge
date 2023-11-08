@@ -130,7 +130,7 @@ export class PersistentTableWidgetSettingsComponent extends WidgetSettingsCompon
     });
   }
 
-  protected validateSettings(): boolean {
+  public validateSettings(): boolean {
     const displayColumns: string[] = this.persistentTableWidgetSettingsForm.get('displayColumns').value;
     this.columnsChipList.errorState = !displayColumns?.length;
     return super.validateSettings();
