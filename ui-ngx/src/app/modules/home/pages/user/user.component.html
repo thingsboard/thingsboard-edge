@@ -41,14 +41,14 @@
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'disableAccount')"
           *ngIf="entityGroup | hasGroupEntityOrGenericPermission: resource.USER: operation.WRITE"
-          [fxShow]="!isEdit && isUserCredentialPresent() && isUserCredentialsEnabled()">
+          [fxShow]="!isEdit && !isCurrentUser() && isUserCredentialPresent() && isUserCredentialsEnabled()">
     {{'user.disable-account' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'enableAccount')"
           *ngIf="entityGroup | hasGroupEntityOrGenericPermission: resource.USER: operation.WRITE"
-          [fxShow]="!isEdit && isUserCredentialPresent() && !isUserCredentialsEnabled()">
+          [fxShow]="!isEdit && !isCurrentUser() && isUserCredentialPresent() && !isUserCredentialsEnabled()">
     {{'user.enable-account' | translate }}
   </button>
   <button mat-raised-button color="primary"

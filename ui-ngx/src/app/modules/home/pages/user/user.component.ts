@@ -32,10 +32,9 @@
 import { ChangeDetectorRef, Component, Inject, Optional } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { EntityComponent } from '../../components/entity/entity.component';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { User, UserInfo } from '@shared/models/user.model';
-import { selectAuth, selectAuthUser } from '@core/auth/auth.selectors';
+import { UserInfo } from '@shared/models/user.model';
+import { getCurrentAuthUser, selectAuth, selectAuthUser } from '@core/auth/auth.selectors';
 import { map } from 'rxjs/operators';
 import { Authority } from '@shared/models/authority.enum';
 import { isDefinedAndNotNull } from '@core/utils';
@@ -70,6 +69,8 @@ export class UserComponent extends GroupEntityComponent<UserInfo> {
     map((auth) => auth?.authority === Authority.SYS_ADMIN)
   );
 
+  private authUser = getCurrentAuthUser(this.store);
+
   constructor(protected store: Store<AppState>,
               @Optional() @Inject('entity') protected entityValue: UserInfo,
               @Optional() @Inject('entitiesTableConfig')
@@ -87,6 +88,10 @@ export class UserComponent extends GroupEntityComponent<UserInfo> {
     } else {
       return false;
     }
+  }
+
+  isCurrentUser(): boolean {
+    return this.authUser.userId === this.entity?.id?.id;
   }
 
   isUserCredentialsEnabled(): boolean {
