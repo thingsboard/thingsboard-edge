@@ -30,14 +30,15 @@
  */
 package org.thingsboard.server.dao.wl;
 
-import org.thingsboard.server.common.data.AdminSettings;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 
 public interface WhiteLabelingService {
 
@@ -96,6 +97,8 @@ public interface WhiteLabelingService {
     JsonNode findMailTemplatesByTenantId(TenantId tenantId, TenantId settingsTenantId);
 
     JsonNode getMergedTenantMailTemplates(TenantId tenantId) throws ThingsboardException;
+
+    WhiteLabeling findByEntityId(TenantId tenantId, EntityId entityId, WhiteLabelingType type);
 
     // TODO: @voba - methods added on edge for login whitelabeling
     void saveOrUpdateEdgeLoginWhiteLabelSettings(TenantId tenantId, EntityId currentEntityId);

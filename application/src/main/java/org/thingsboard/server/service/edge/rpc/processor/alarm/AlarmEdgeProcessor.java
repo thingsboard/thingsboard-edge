@@ -86,7 +86,7 @@ public class AlarmEdgeProcessor extends BaseAlarmProcessor {
     public ListenableFuture<Void> processAlarmNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
         EdgeEventActionType actionType = EdgeEventActionType.valueOf(edgeNotificationMsg.getAction());
         AlarmId alarmId = new AlarmId(new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
-        EdgeId sourceEdgeId = safeGetEdgeId(edgeNotificationMsg.getSourceEdgeIdMSB(), edgeNotificationMsg.getSourceEdgeIdLSB());
+        EdgeId originatorEdgeId = safeGetEdgeId(edgeNotificationMsg.getOriginatorEdgeIdMSB(), edgeNotificationMsg.getOriginatorEdgeIdLSB());
         switch (actionType) {
             case DELETED:
                 Alarm deletedAlarm = JacksonUtil.fromString(edgeNotificationMsg.getBody(), Alarm.class);
@@ -94,7 +94,7 @@ public class AlarmEdgeProcessor extends BaseAlarmProcessor {
                     return Futures.immediateFuture(null);
                 }
                 List<ListenableFuture<Void>> delFutures = pushEventToAllRelatedEdges(tenantId, deletedAlarm.getOriginator(),
-                        alarmId, actionType, JacksonUtil.valueToTree(deletedAlarm), sourceEdgeId);
+                        alarmId, actionType, JacksonUtil.valueToTree(deletedAlarm), originatorEdgeId);
                 return Futures.transform(Futures.allAsList(delFutures), voids -> null, dbCallbackExecutorService);
             default:
                 ListenableFuture<Alarm> alarmFuture = alarmService.findAlarmByIdAsync(tenantId, alarmId);
@@ -107,7 +107,7 @@ public class AlarmEdgeProcessor extends BaseAlarmProcessor {
                         return Futures.immediateFuture(null);
                     }
                     List<ListenableFuture<Void>> futures = pushEventToAllRelatedEdges(tenantId, alarm.getOriginator(),
-                            alarmId, actionType, null, sourceEdgeId);
+                            alarmId, actionType, null, originatorEdgeId);
                     return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
                 }, dbCallbackExecutorService);
         }

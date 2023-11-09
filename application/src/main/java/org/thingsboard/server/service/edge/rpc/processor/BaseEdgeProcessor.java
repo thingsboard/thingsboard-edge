@@ -534,6 +534,7 @@ public abstract class BaseEdgeProcessor {
             case WHITE_LABELING:
             case LOGIN_WHITE_LABELING:
             case CUSTOM_TRANSLATION:
+            case MAIL_TEMPLATES:
                 return true;
         }
         return false;
@@ -634,9 +635,9 @@ public abstract class BaseEdgeProcessor {
         EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());
         EdgeEventActionType actionType = EdgeEventActionType.valueOf(edgeNotificationMsg.getAction());
         EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(type, new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
-        EdgeId sourceEdgeId = safeGetEdgeId(edgeNotificationMsg.getSourceEdgeIdMSB(), edgeNotificationMsg.getSourceEdgeIdLSB());
+        EdgeId originatorEdgeId = safeGetEdgeId(edgeNotificationMsg.getOriginatorEdgeIdMSB(), edgeNotificationMsg.getOriginatorEdgeIdLSB());
         if (type.isAllEdgesRelated()) {
-            return processEntityNotificationForAllEdges(tenantId, type, actionType, entityId, sourceEdgeId);
+            return processEntityNotificationForAllEdges(tenantId, type, actionType, entityId, originatorEdgeId);
         } else {
             JsonNode body = JacksonUtil.toJsonNode(edgeNotificationMsg.getBody());
             EdgeId edgeId = safeGetEdgeId(edgeNotificationMsg.getEdgeIdMSB(), edgeNotificationMsg.getEdgeIdLSB());
@@ -648,19 +649,19 @@ public abstract class BaseEdgeProcessor {
                     if (edgeId != null) {
                         return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, body, entityGroupId);
                     } else {
-                        return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, entityGroupId, sourceEdgeId);
+                        return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, entityGroupId, originatorEdgeId);
                     }
                 case DELETED:
                 case REMOVED_FROM_ENTITY_GROUP:
                     if (edgeId != null) {
                         return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, body, entityGroupId);
                     } else {
-                        return Futures.transform(Futures.allAsList(processActionForAllEdgesByTenantId(tenantId, type, actionType, entityId, body, sourceEdgeId, entityGroupId)),
+                        return Futures.transform(Futures.allAsList(processActionForAllEdgesByTenantId(tenantId, type, actionType, entityId, body, originatorEdgeId, entityGroupId)),
                                 voids -> null, dbCallbackExecutorService);
                     }
                 case ASSIGNED_TO_EDGE:
                 case UNASSIGNED_FROM_EDGE:
-                    if (sourceEdgeId == null) {
+                    if (originatorEdgeId == null) {
                         ListenableFuture<Void> future = saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, body);
                         return Futures.transformAsync(future, unused -> {
                             if (type.equals(EdgeEventType.RULE_CHAIN)) {
@@ -678,7 +679,7 @@ public abstract class BaseEdgeProcessor {
                     } else {
                         // TODO: @voba - provide logic for customer
                         return Futures.transform(Futures.allAsList(processActionForAllEdgesByTenantId(
-                                tenantId, type, actionType, entityId, body, sourceEdgeId, null)), voids -> null, dbCallbackExecutorService);
+                                tenantId, type, actionType, entityId, body, originatorEdgeId, null)), voids -> null, dbCallbackExecutorService);
                     }
                 default:
                     return Futures.immediateFuture(null);

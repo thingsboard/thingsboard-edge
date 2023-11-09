@@ -32,21 +32,28 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.wl.Favicon;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.Palette;
 import org.thingsboard.server.common.data.wl.PaletteSettings;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.gen.edge.v1.FaviconProto;
 import org.thingsboard.server.gen.edge.v1.LoginWhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.v1.PaletteProto;
 import org.thingsboard.server.gen.edge.v1.PaletteSettingsProto;
 import org.thingsboard.server.gen.edge.v1.WhiteLabelingParamsProto;
+import org.thingsboard.server.gen.edge.v1.WhiteLabelingProto;
 
 @Component
 @Slf4j
 public class WhiteLabelingParamsProtoConstructor {
+
+    public WhiteLabelingProto constructWhiteLabeling(WhiteLabeling whiteLabeling) {
+        return WhiteLabelingProto.newBuilder().setEntity(JacksonUtil.toString(whiteLabeling)).build();
+    }
 
     public LoginWhiteLabelingParamsProto constructLoginWhiteLabelingParamsProto(LoginWhiteLabelingParams loginWhiteLabelingParams,
                                                                                 EntityId entityId) {
