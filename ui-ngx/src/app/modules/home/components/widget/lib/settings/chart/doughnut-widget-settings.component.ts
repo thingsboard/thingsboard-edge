@@ -111,6 +111,8 @@ export class DoughnutWidgetSettingsComponent extends WidgetSettingsComponent {
     this.doughnutWidgetSettingsForm = this.fb.group({
       layout: [settings.layout, []],
       autoScale: [settings.autoScale, []],
+      clockwise: [settings.clockwise, []],
+      sortSeries: [settings.sortSeries, []],
 
       totalValueFont: [settings.totalValueFont, []],
       totalValueColor: [settings.totalValueColor, []],
@@ -179,23 +181,6 @@ export class DoughnutWidgetSettingsComponent extends WidgetSettingsComponent {
     } else {
       this.doughnutWidgetSettingsForm.get('totalValueFont').disable();
       this.doughnutWidgetSettingsForm.get('totalValueColor').disable();
-    }
-  }
-
-  private _centerValuePreviewFn(): string {
-    const centerValueDataKey = getDataKey(this.widgetConfig.config.datasources, 1);
-    if (centerValueDataKey) {
-      let units: string = this.widgetConfig.config.units;
-      let decimals: number = this.widgetConfig.config.decimals;
-      if (isDefinedAndNotNull(centerValueDataKey?.decimals)) {
-        decimals = centerValueDataKey.decimals;
-      }
-      if (centerValueDataKey?.units) {
-        units = centerValueDataKey.units;
-      }
-      return formatValue(25, decimals, units, true);
-    } else {
-      return '225°';
     }
   }
 
