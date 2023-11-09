@@ -478,6 +478,9 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
 
     @Override
     public JsonNode findMailTemplatesByTenantId(TenantId tenantId, TenantId settingsTenantId) {
+        if (settingsTenantId == null) {
+            return JacksonUtil.newObjectNode();
+        }
         WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey();
         key.setEntityId(settingsTenantId.getId());
         key.setEntityType(settingsTenantId.getEntityType().name());

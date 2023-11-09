@@ -131,7 +131,7 @@ public class OtaPackageController extends BaseController {
                                                 @PathVariable(OTA_PACKAGE_ID) String strOtaPackageId) throws ThingsboardException {
         checkParameter(OTA_PACKAGE_ID, strOtaPackageId);
         OtaPackageId otaPackageId = new OtaPackageId(toUUID(strOtaPackageId));
-        return checkNotNull(otaPackageService.findOtaPackageInfoById(getTenantId(), otaPackageId));
+        return checkNotNull(checkOtaPackageInfoId(otaPackageId, Operation.READ));
     }
 
     @ApiOperation(value = "Get OTA Package (getOtaPackageById)",
@@ -209,6 +209,7 @@ public class OtaPackageController extends BaseController {
                                                    @RequestParam(required = false) String sortProperty,
                                                    @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
                                                    @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        accessControlService.checkPermission(getCurrentUser(), Resource.OTA_PACKAGE, Operation.READ);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         return checkNotNull(otaPackageService.findTenantOtaPackagesByTenantId(getTenantId(), pageLink));
     }
@@ -234,6 +235,7 @@ public class OtaPackageController extends BaseController {
                                                    @RequestParam(required = false) String sortProperty,
                                                    @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
                                                    @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        accessControlService.checkPermission(getCurrentUser(), Resource.OTA_PACKAGE, Operation.READ);
         checkParameter("deviceProfileId", strDeviceProfileId);
         checkParameter("type", strType);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);

@@ -347,9 +347,7 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
     if ($event) {
       $event.stopPropagation();
     }
-    const unacknowledgedAlarms = alarms.filter(alarm => {
-      return alarm.status === AlarmStatus.CLEARED_UNACK || alarm.status === AlarmStatus.ACTIVE_UNACK;
-    })
+    const unacknowledgedAlarms = alarms.filter(alarm => !alarm.acknowledged);
     let title = '';
     let content = '';
     if (!unacknowledgedAlarms.length) {
@@ -384,9 +382,7 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
     if ($event) {
       $event.stopPropagation();
     }
-    const activeAlarms = alarms.filter(alarm => {
-      return alarm.status === AlarmStatus.ACTIVE_ACK || alarm.status === AlarmStatus.ACTIVE_UNACK;
-    })
+    const activeAlarms = alarms.filter(alarm => !alarm.cleared);
     let title = '';
     let content = '';
     if (!activeAlarms.length) {
