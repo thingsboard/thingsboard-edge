@@ -92,9 +92,12 @@ import org.thingsboard.server.common.data.query.NumericFilterPredicate;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
+import org.thingsboard.server.common.data.security.model.JwtSettings;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.controller.AbstractControllerTest;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.edge.imitator.EdgeImitator;
@@ -114,6 +117,7 @@ import org.thingsboard.server.gen.edge.v1.TenantProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.TenantUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.gen.edge.v1.WhiteLabelingProto;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 
 import java.util.ArrayList;
@@ -158,12 +162,17 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         doPost("/api/whiteLabel/whiteLabelParams", new WhiteLabelingParams(), WhiteLabelingParams.class);
         doPost("/api/customTranslation/customTranslation", new CustomTranslation(), CustomTranslation.class);
 
+        // get jwt settings from yaml config
+        JwtSettings settings = doGet("/api/admin/jwtSettings", JwtSettings.class);
+        // save jwt settings into db
+        doPost("/api/admin/jwtSettings", settings).andExpect(status().isOk());
+
         loginTenantAdmin();
 
         installation();
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.expectMessageAmount(22);
+        edgeImitator.expectMessageAmount(26);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();
@@ -265,8 +274,8 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         validateMsgsCnt(RuleChainMetadataUpdateMsg.class, 1);
         validateRuleChainMetadataUpdates(ruleChainUUID);
 
-        // 2 messages from fetcher (general', 'mail')
-        validateMsgsCnt(AdminSettingsUpdateMsg.class, 2);
+        // 5 messages ('general', 'mail', 'connectivity', 'jwt', 'customTranslation')
+        validateMsgsCnt(AdminSettingsUpdateMsg.class, 5);
         validateAdminSettings();
 
         // 3 messages
@@ -306,6 +315,10 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         // 1 from tenant profile fetcher
         validateMsgsCnt(TenantProfileUpdateMsg.class, 1);
         validateTenantProfile();
+
+        // 2 messages from fetcher: 'login' and 'general'
+        validateMsgsCnt(WhiteLabelingProto.class, 2);
+        validateWhiteLabeling();
 
         // 1 message sync completed
         validateMsgsCnt(SyncCompletedMsg.class, 1);
@@ -406,13 +419,24 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(2, adminSettingsUpdateMsgs.size());
 
         for (AdminSettingsUpdateMsg adminSettingsUpdateMsg : adminSettingsUpdateMsgs) {
-            if (adminSettingsUpdateMsg.getKey().equals("mail")) {
-                validateMailAdminSettings(adminSettingsUpdateMsg);
-            }
             if (adminSettingsUpdateMsg.getKey().equals("general")) {
                 validateGeneralAdminSettings(adminSettingsUpdateMsg);
             }
+            if (adminSettingsUpdateMsg.getKey().equals("mail")) {
+                validateMailAdminSettings(adminSettingsUpdateMsg);
+            }
+            if (adminSettingsUpdateMsg.getKey().equals("connectivity")) {
+                validateConnectivityAdminSettings(adminSettingsUpdateMsg);
+            }
+            if (adminSettingsUpdateMsg.getKey().equals("customTranslation")) {
+                validateCustomTranslationAdminSettings(adminSettingsUpdateMsg);
+            }
         }
+    }
+
+    private void validateGeneralAdminSettings(AdminSettingsUpdateMsg adminSettingsUpdateMsg) {
+        JsonNode jsonNode = JacksonUtil.toJsonNode(adminSettingsUpdateMsg.getJsonValue());
+        Assert.assertNotNull(jsonNode.get("baseUrl"));
     }
 
     private void validateMailAdminSettings(AdminSettingsUpdateMsg adminSettingsUpdateMsg) {
@@ -424,9 +448,19 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertNotNull(jsonNode.get("timeout"));
     }
 
-    private void validateGeneralAdminSettings(AdminSettingsUpdateMsg adminSettingsUpdateMsg) {
+    private void validateConnectivityAdminSettings(AdminSettingsUpdateMsg adminSettingsUpdateMsg) {
         JsonNode jsonNode = JacksonUtil.toJsonNode(adminSettingsUpdateMsg.getJsonValue());
-        Assert.assertNotNull(jsonNode.get("baseUrl"));
+        Assert.assertNotNull(jsonNode.get("http"));
+        Assert.assertNotNull(jsonNode.get("https"));
+        Assert.assertNotNull(jsonNode.get("mqtt"));
+        Assert.assertNotNull(jsonNode.get("mqtts"));
+        Assert.assertNotNull(jsonNode.get("coap"));
+        Assert.assertNotNull(jsonNode.get("coaps"));
+    }
+
+    private void validateCustomTranslationAdminSettings(AdminSettingsUpdateMsg adminSettingsUpdateMsg) {
+        JsonNode jsonNode = JacksonUtil.toJsonNode(adminSettingsUpdateMsg.getJsonValue());
+        Assert.assertNotNull(jsonNode.get("value"));
     }
 
     private void validateAssetProfiles() throws Exception {
@@ -476,6 +510,25 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Customer customer = doGet("/api/customer/" + customerUUID, Customer.class);
         Assert.assertNotNull(customer);
         Assert.assertTrue(customer.isPublic());
+    }
+
+    private void validateWhiteLabeling() {
+        List<WhiteLabelingProto> whiteLabelingProto = edgeImitator.findAllMessagesByType(WhiteLabelingProto.class);
+        Assert.assertEquals(2, whiteLabelingProto.size());
+        Optional<WhiteLabelingProto> loginWhiteLabeling =
+                whiteLabelingProto.stream().filter(login -> {
+                    WhiteLabeling whiteLabeling = JacksonUtil.fromStringIgnoreUnknownProperties(login.getEntity(), WhiteLabeling.class);
+                    Assert.assertNotNull(whiteLabeling);
+                    return WhiteLabelingType.LOGIN.equals(whiteLabeling.getType());
+                }).findAny();
+        Assert.assertTrue(loginWhiteLabeling.isPresent());
+        Optional<WhiteLabelingProto> generalWhiteLabeling =
+                whiteLabelingProto.stream().filter(general -> {
+                    WhiteLabeling whiteLabeling = JacksonUtil.fromStringIgnoreUnknownProperties(general.getEntity(), WhiteLabeling.class);
+                    Assert.assertNotNull(whiteLabeling);
+                    return WhiteLabelingType.LOGIN.equals(whiteLabeling.getType());
+                }).findAny();
+        Assert.assertTrue(generalWhiteLabeling.isPresent());
     }
 
     private void validateSyncCompleted() {
