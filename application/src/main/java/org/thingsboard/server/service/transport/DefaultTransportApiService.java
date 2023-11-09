@@ -362,7 +362,6 @@ public class DefaultTransportApiService implements TransportApiService {
 
     private TransportApiResponseMsg handle(GetOrCreateDeviceFromGatewayRequestMsg requestMsg) {
         DeviceId gatewayId = new DeviceId(new UUID(requestMsg.getGatewayIdMSB(), requestMsg.getGatewayIdLSB()));
-
         Device gateway = deviceService.findDeviceById(TenantId.SYS_TENANT_ID, gatewayId);
         Lock deviceCreationLock = deviceCreationLocks.computeIfAbsent(requestMsg.getDeviceName(), id -> new ReentrantLock());
         deviceCreationLock.lock();

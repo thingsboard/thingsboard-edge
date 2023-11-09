@@ -33,9 +33,11 @@ package org.thingsboard.server.service.cloud.rpc.processor;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.ResourceType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.TbResourceId;
@@ -60,7 +62,12 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     deleteSystemResourceIfAlreadyExists(tbResourceId, ResourceType.valueOf(resourceUpdateMsg.getResourceType()), resourceUpdateMsg.getResourceKey());
+                    Pair<Boolean, TbResourceId> resultPair = renamePreviousResource(tenantId, tbResourceId,
+                            ResourceType.valueOf(resourceUpdateMsg.getResourceType()), resourceUpdateMsg.getResourceKey());
                     super.saveOrUpdateTbResource(tenantId, tbResourceId, resourceUpdateMsg);
+                    if (resultPair.getFirst()) {
+                        resourceService.deleteResource(tenantId, resultPair.getSecond());
+                    }
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
                     TbResource tbResourceToDelete = resourceService.findResourceById(tenantId, tbResourceId);
@@ -75,6 +82,19 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
             cloudSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
+    }
+
+    private Pair<Boolean, TbResourceId> renamePreviousResource(TenantId tenantId, TbResourceId tbResourceId, ResourceType resourceType, String resourceKey) {
+        PageDataIterable<TbResource> resourcesIterable = new PageDataIterable<>(
+                link -> resourceService.findTenantResourcesByResourceTypeAndPageLink(tenantId, resourceType, link), 1024);
+        for (TbResource tbResource : resourcesIterable) {
+            if (tbResource.getResourceKey().equals(resourceKey) && !tbResourceId.equals(tbResource.getId())) {
+                tbResource.setResourceKey(StringUtils.randomAlphanumeric(15) + resourceKey);
+                resourceService.saveResource(tbResource, false);
+                return Pair.of(true, tbResource.getId());
+            }
+        }
+        return Pair.of(false, new TbResourceId(UUID.randomUUID()));
     }
 
     private void deleteSystemResourceIfAlreadyExists(TbResourceId tbResourceId, ResourceType resourceType, String resourceKey) {

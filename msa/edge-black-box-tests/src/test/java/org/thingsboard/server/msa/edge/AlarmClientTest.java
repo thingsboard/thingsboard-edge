@@ -116,21 +116,17 @@ public class AlarmClientTest extends AbstractContainerTest {
 
     @Test
     public void sendAlarmToCloud() {
+        // create alarm on cloud (creation on edge possible using Send to Cloud node)
         Device device = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
-
-        // create alarm
         Alarm alarm = new Alarm();
         alarm.setOriginator(device.getId());
-        alarm.setType("alarm from edge");
-        alarm.setSeverity(AlarmSeverity.MAJOR);
-        Alarm savedAlarm = edgeRestClient.saveAlarm(alarm);
+        alarm.setType("alarm");
+        alarm.setSeverity(AlarmSeverity.CRITICAL);
+        Alarm savedAlarm = cloudRestClient.saveAlarm(alarm);
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> getLatestAlarmByEntityIdFromCloud(device.getId()).isPresent());
-
-        Assert.assertEquals("Alarm on edge and cloud have different types",
-                "alarm from edge", getLatestAlarmByEntityIdFromCloud(device.getId()).get().getType());
+                .until(() -> getLatestAlarmByEntityIdFromEdge(device.getId()).isPresent());
 
         // ack alarm
         edgeRestClient.ackAlarm(savedAlarm.getId());
