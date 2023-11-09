@@ -30,28 +30,26 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
-import org.thingsboard.server.common.data.wl.Favicon;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
-import org.thingsboard.server.common.data.wl.Palette;
-import org.thingsboard.server.common.data.wl.PaletteSettings;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabelingType;
+import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
-import org.thingsboard.server.gen.edge.v1.FaviconProto;
-import org.thingsboard.server.gen.edge.v1.LoginWhiteLabelingParamsProto;
-import org.thingsboard.server.gen.edge.v1.PaletteProto;
-import org.thingsboard.server.gen.edge.v1.PaletteSettingsProto;
-import org.thingsboard.server.gen.edge.v1.WhiteLabelingParamsProto;
+import org.thingsboard.server.gen.edge.v1.WhiteLabelingProto;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 @Component
@@ -91,118 +89,97 @@ public class WhiteLabelingCloudProcessor extends BaseEdgeProcessor {
         return Futures.immediateFuture(null);
     }
 
-    public ListenableFuture<Void> processLoginWhiteLabelingParamsMsgFromCloud(TenantId tenantId,
-                                                                              LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto) {
-        try {
-            EntityId entityId = constructEntityId(loginWhiteLabelingParamsProto.getWhiteLabelingParams().getEntityType(),
-                    loginWhiteLabelingParamsProto.getWhiteLabelingParams().getEntityIdMSB(),
-                    loginWhiteLabelingParamsProto.getWhiteLabelingParams().getEntityIdLSB());
-            LoginWhiteLabelingParams loginWhiteLabelingParams = constructLoginWhiteLabelingParams(loginWhiteLabelingParamsProto);
-            switch (entityId.getEntityType()) {
-                case TENANT:
-                    if (EntityId.NULL_UUID.equals(entityId.getId())) {
-                        whiteLabelingService.saveSystemLoginWhiteLabelingParams(loginWhiteLabelingParams);
+    public ListenableFuture<Void> processWhiteLabelingMsgFromCloud(TenantId tenantId, CustomerId customerId, WhiteLabelingProto whiteLabelingProto) throws Exception {
+        WhiteLabeling whiteLabeling = JacksonUtil.fromStringIgnoreUnknownProperties(whiteLabelingProto.getEntity(), WhiteLabeling.class);
+        if (whiteLabeling == null) {
+            throw new RuntimeException("[{" + tenantId + "}] whiteLabelingProto {" + whiteLabelingProto + " } cannot be converted to white labeling");
+        }
+        boolean isSysAdmin = EntityId.NULL_UUID.equals(whiteLabeling.getEntityId().getId());
+        boolean isLogin = WhiteLabelingType.LOGIN.equals(whiteLabeling.getType());
+        boolean isGeneral = WhiteLabelingType.GENERAL.equals(whiteLabeling.getType());
+        switch (whiteLabeling.getEntityId().getEntityType()) {
+            case TENANT:
+                if (isLogin) {
+                    if (isSysAdmin) {
+                        whiteLabelingService.saveSystemLoginWhiteLabelingParams(constructLoginWlParams(whiteLabeling.getSettings()));
                     } else {
+                        LoginWhiteLabelingParams loginWhiteLabelingParams = constructLoginWlParams(whiteLabeling.getSettings());
+                        if (customerId == null || customerId.isNullUid()) {
+                            loginWhiteLabelingParams.setDomainName(WhiteLabelingService.EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME);
+                        }
                         whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams);
                     }
-                    break;
-                case CUSTOMER:
-                    whiteLabelingService.saveCustomerLoginWhiteLabelingParams(tenantId, new CustomerId(entityId.getId()), loginWhiteLabelingParams);
-                    break;
-            }
-        } catch (Exception e) {
-            String errMsg = "Exception during updating login white labeling params";
-            log.error(errMsg, e);
-            return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
-        }
-        return Futures.immediateFuture(null);
-    }
-
-    private LoginWhiteLabelingParams constructLoginWhiteLabelingParams(LoginWhiteLabelingParamsProto loginWLPProto) {
-        LoginWhiteLabelingParams loginWLP = new LoginWhiteLabelingParams();
-        WhiteLabelingParams whiteLabelingParams = constructWhiteLabelingParams(loginWLPProto.getWhiteLabelingParams());
-        loginWLP.merge(whiteLabelingParams);
-        loginWLP.setPageBackgroundColor(loginWLPProto.hasPageBackgroundColor() ? loginWLPProto.getPageBackgroundColor() : null);
-        loginWLP.setDarkForeground(loginWLPProto.getDarkForeground());
-        loginWLP.setDomainName(loginWLPProto.hasDomainName() ? loginWLPProto.getDomainName() : null);
-        loginWLP.setAdminSettingsId(loginWLPProto.hasAdminSettingsId() ? loginWLPProto.getAdminSettingsId() : null);
-        loginWLP.setShowNameBottom(loginWLPProto.hasShowNameBottom() ? loginWLPProto.getShowNameBottom() : null);
-        return loginWLP;
-    }
-
-    public ListenableFuture<Void> processWhiteLabelingParamsMsgFromCloud(TenantId tenantId, WhiteLabelingParamsProto wLPProto) {
-        try {
-            WhiteLabelingParams wLP = constructWhiteLabelingParams(wLPProto);
-            EntityId entityId = constructEntityId(wLPProto.getEntityType(), wLPProto.getEntityIdMSB(), wLPProto.getEntityIdLSB());
-            switch (entityId.getEntityType()) {
-                case TENANT:
-                    if (EntityId.NULL_UUID.equals(entityId.getId())) {
-                        whiteLabelingService.saveSystemWhiteLabelingParams(wLP);
+                } else if (isGeneral) {
+                    if (isSysAdmin) {
+                        whiteLabelingService.saveSystemWhiteLabelingParams(constructWlParams(whiteLabeling.getSettings(), true));
                     } else {
-                        whiteLabelingService.saveTenantWhiteLabelingParams(tenantId, wLP);
+                        whiteLabelingService.saveTenantWhiteLabelingParams(tenantId, constructWlParams(whiteLabeling.getSettings(), false));
                     }
-                    break;
-                case CUSTOMER:
-                    whiteLabelingService.saveCustomerWhiteLabelingParams(tenantId, new CustomerId(entityId.getId()), wLP);
-                    break;
-            }
-        } catch (Exception e) {
-            String errMsg = "Exception during updating white labeling params";
-            log.error(errMsg, e);
-            return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
+                } else if (WhiteLabelingType.MAIL_TEMPLATES.equals(whiteLabeling.getType())) {
+                    whiteLabelingService.saveMailTemplates(isSysAdmin ? TenantId.SYS_TENANT_ID : tenantId, whiteLabeling.getSettings());
+                }
+                break;
+            case CUSTOMER:
+                if (isLogin) {
+                    LoginWhiteLabelingParams loginWhiteLabelingParams = constructLoginWlParams(whiteLabeling.getSettings());
+                    if (customerId != null && !customerId.isNullUid()) {
+                        loginWhiteLabelingParams.setDomainName(WhiteLabelingService.EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME);
+                    }
+                    whiteLabelingService.saveCustomerLoginWhiteLabelingParams(tenantId, new CustomerId(whiteLabeling.getEntityId().getId()), loginWhiteLabelingParams);
+                } else if (isGeneral) {
+                    whiteLabelingService.saveCustomerWhiteLabelingParams(tenantId, new CustomerId(whiteLabeling.getEntityId().getId()), constructWlParams(whiteLabeling.getSettings(), false));
+                }
+                break;
         }
+
         return Futures.immediateFuture(null);
     }
 
-    private WhiteLabelingParams constructWhiteLabelingParams(WhiteLabelingParamsProto whiteLabelingParamsProto) {
-        WhiteLabelingParams whiteLabelingParams = new WhiteLabelingParams();
-        whiteLabelingParams.setLogoImageUrl(whiteLabelingParamsProto.hasLogoImageUrl() ? whiteLabelingParamsProto.getLogoImageUrl() : null);
-        whiteLabelingParams.setLogoImageChecksum(whiteLabelingParamsProto.hasLogoImageChecksum() ? whiteLabelingParamsProto.getLogoImageChecksum() : null);
-        whiteLabelingParams.setLogoImageHeight(whiteLabelingParamsProto.hasLogoImageHeight() ? (int) whiteLabelingParamsProto.getLogoImageHeight() : null);
-        whiteLabelingParams.setAppTitle(whiteLabelingParamsProto.hasAppTitle() ? whiteLabelingParamsProto.getAppTitle() : null);
-        whiteLabelingParams.setFavicon(constructFavicon(whiteLabelingParamsProto.getFavicon()));
-        whiteLabelingParams.setFaviconChecksum(whiteLabelingParamsProto.hasFaviconChecksum() ? whiteLabelingParamsProto.getFaviconChecksum() : null);
-        whiteLabelingParams.setPaletteSettings(constructPaletteSettings(whiteLabelingParamsProto.getPaletteSettings()));
-        whiteLabelingParams.setHelpLinkBaseUrl(whiteLabelingParamsProto.hasHelpLinkBaseUrl() ? whiteLabelingParamsProto.getHelpLinkBaseUrl() : null);
-        whiteLabelingParams.setEnableHelpLinks(whiteLabelingParamsProto.hasEnableHelpLinks() ? whiteLabelingParamsProto.getEnableHelpLinks() : null);
-        whiteLabelingParams.setShowNameVersion(whiteLabelingParamsProto.hasShowNameVersion() ? whiteLabelingParamsProto.getShowNameVersion() : null);
-        whiteLabelingParams.setPlatformName(whiteLabelingParamsProto.hasPlatformName() ? whiteLabelingParamsProto.getPlatformName() : null);
-        whiteLabelingParams.setPlatformVersion(whiteLabelingParamsProto.hasPlatformVersion() ? whiteLabelingParamsProto.getPlatformVersion() : null);
-        return whiteLabelingParams;
+    private LoginWhiteLabelingParams constructLoginWlParams(JsonNode json) {
+        LoginWhiteLabelingParams result = null;
+        if (json != null) {
+            try {
+                result = JacksonUtil.treeToValue(json, LoginWhiteLabelingParams.class);
+            } catch (IllegalArgumentException e) {
+                log.error("Unable to read Login White Labeling Params from JSON!", e);
+                throw new IncorrectParameterException("Unable to read Login White Labeling Params from JSON!");
+            }
+        }
+        if (result == null) {
+            result = new LoginWhiteLabelingParams();
+        }
+        return result;
     }
 
-    private Favicon constructFavicon(FaviconProto faviconProto) {
-        if (!faviconProto.hasUrl() && !faviconProto.hasType()) {
-            return null;
+    private WhiteLabelingParams constructWlParams(JsonNode json, boolean isSystem) {
+        WhiteLabelingParams result = null;
+        if (json != null) {
+            try {
+                result = JacksonUtil.treeToValue(json, WhiteLabelingParams.class);
+                if (isSystem) {
+                    if (!json.has("helpLinkBaseUrl")) {
+                        result.setHelpLinkBaseUrl("https://thingsboard.io");
+                    }
+                    if (!json.has("uiHelpBaseUrl")) {
+                        result.setUiHelpBaseUrl(null);
+                    }
+                    if (!json.has("enableHelpLinks")) {
+                        result.setEnableHelpLinks(true);
+                    }
+                }
+            } catch (IllegalArgumentException e) {
+                log.error("Unable to read White Labeling Params from JSON!", e);
+                throw new IncorrectParameterException("Unable to read White Labeling Params from JSON!");
+            }
         }
-        Favicon favicon = new Favicon();
-        favicon.setUrl(faviconProto.hasUrl() ? faviconProto.getUrl() : null);
-        favicon.setType(faviconProto.hasType() ? faviconProto.getType() : null);
-        return favicon;
-    }
-
-    private PaletteSettings constructPaletteSettings(PaletteSettingsProto paletteSettingsProto) {
-        Palette primaryPalette = constructPalette(paletteSettingsProto.getPrimaryPalette());
-        Palette accentPalette = constructPalette(paletteSettingsProto.getAccentPalette());
-        if (primaryPalette == null && accentPalette == null) {
-            return null;
+        if (result == null) {
+            result = new WhiteLabelingParams();
+            if (isSystem) {
+                result.setHelpLinkBaseUrl("https://thingsboard.io");
+                result.setUiHelpBaseUrl(null);
+                result.setEnableHelpLinks(true);
+            }
         }
-        PaletteSettings paletteSettings = new PaletteSettings();
-        paletteSettings.setPrimaryPalette(primaryPalette);
-        paletteSettings.setAccentPalette(accentPalette);
-        return paletteSettings;
-    }
-
-    private Palette constructPalette(PaletteProto paletteProto) {
-        if (!paletteProto.hasType()
-                && !paletteProto.hasExtendsPalette()
-                && paletteProto.getColorsMap().isEmpty()) {
-            return null;
-        }
-        Palette palette = new Palette();
-        palette.setType(paletteProto.hasType() ? paletteProto.getType() : null);
-        palette.setExtendsPalette(paletteProto.hasExtendsPalette() ? paletteProto.getExtendsPalette() : null);
-        palette.setColors(!paletteProto.getColorsMap().isEmpty() ? paletteProto.getColorsMap() : null);
-        return palette;
+        return result;
     }
 }

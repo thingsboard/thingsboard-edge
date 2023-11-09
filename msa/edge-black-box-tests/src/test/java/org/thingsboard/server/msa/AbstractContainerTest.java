@@ -203,7 +203,7 @@ public abstract class AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> {
                     try {
-                        return edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 24;
+                        return edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 26;
                     } catch (Throwable e) {
                         return false;
                     }
@@ -725,7 +725,7 @@ public abstract class AbstractContainerTest {
     }
 
     protected Device saveDeviceAndAssignEntityGroupToEdge(EntityGroup savedDeviceEntityGroup) {
-        return saveDeviceAndAssignEntityGroupToEdge("default", savedDeviceEntityGroup );
+        return saveDeviceAndAssignEntityGroupToEdge("default", savedDeviceEntityGroup);
     }
 
     protected Device saveDeviceAndAssignEntityGroupToEdge(String deviceType, EntityGroup savedDeviceEntityGroup) {

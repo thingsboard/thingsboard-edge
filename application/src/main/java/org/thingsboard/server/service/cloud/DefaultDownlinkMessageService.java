@@ -351,26 +351,8 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             if (downlinkMsg.hasCustomerCustomTranslationMsg()) {
                 result.add(whiteLabelingProcessor.processCustomTranslationMsgFromCloud(tenantId, downlinkMsg.getCustomerCustomTranslationMsg()));
             }
-            if (downlinkMsg.hasSystemWhiteLabelingParams()) {
-                result.add(whiteLabelingProcessor.processWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getSystemWhiteLabelingParams()));
-            }
-            if (downlinkMsg.hasTenantWhiteLabelingParams()) {
-                result.add(whiteLabelingProcessor.processWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getTenantWhiteLabelingParams()));
-            }
-            if (downlinkMsg.hasCustomerWhiteLabelingParams()) {
-                result.add(whiteLabelingProcessor.processWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getCustomerWhiteLabelingParams()));
-            }
-            if (downlinkMsg.hasSystemLoginWhiteLabelingParams()) {
-                result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getSystemLoginWhiteLabelingParams()));
-                updateEdgeLoginDomainWhiteLabelingSettings(tenantId);
-            }
-            if (downlinkMsg.hasTenantLoginWhiteLabelingParams()) {
-                result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getTenantLoginWhiteLabelingParams()));
-                updateEdgeLoginDomainWhiteLabelingSettings(tenantId);
-            }
-            if (downlinkMsg.hasCustomerLoginWhiteLabelingParams()) {
-                result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getCustomerLoginWhiteLabelingParams()));
-                updateEdgeLoginDomainWhiteLabelingSettings(tenantId);
+            if (downlinkMsg.hasWhiteLabelingProto()) {
+                result.add(whiteLabelingProcessor.processWhiteLabelingMsgFromCloud(tenantId, this.customerId, downlinkMsg.getWhiteLabelingProto()));
             }
             if (downlinkMsg.getSchedulerEventUpdateMsgCount() > 0) {
                 for (SchedulerEventUpdateMsg schedulerEventUpdateMsg : downlinkMsg.getSchedulerEventUpdateMsgList()) {

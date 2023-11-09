@@ -37,8 +37,13 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.Dashboard;
+import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -46,6 +51,7 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -155,19 +161,34 @@ public class EntityGroupCloudProcessor extends BaseEdgeProcessor {
     private void deleteEntityById(TenantId tenantId, EntityId entityId) {
         switch (entityId.getEntityType()) {
             case DEVICE:
-                deviceService.deleteDevice(tenantId, new DeviceId(entityId.getId()));
+                Device deviceToDelete = deviceService.findDeviceById(tenantId, new DeviceId(entityId.getId()));
+                if (deviceToDelete != null) {
+                    deviceService.deleteDevice(tenantId, deviceToDelete.getId());
+                }
                 break;
             case ASSET:
-                assetService.deleteAsset(tenantId, new AssetId(entityId.getId()));
+                Asset assetToDelete = assetService.findAssetById(tenantId, new AssetId(entityId.getId()));
+                if (assetToDelete != null) {
+                    assetService.deleteAsset(tenantId, assetToDelete.getId());
+                }
                 break;
             case ENTITY_VIEW:
-                entityViewService.deleteEntityView(tenantId, new EntityViewId(entityId.getId()));
+                EntityView entityViewToDelete = entityViewService.findEntityViewById(tenantId, new EntityViewId(entityId.getId()));
+                if (entityViewToDelete != null) {
+                    entityViewService.deleteEntityView(tenantId, entityViewToDelete.getId());
+                }
                 break;
             case USER:
-                userService.deleteUser(tenantId, new UserId(entityId.getId()));
+                User userToDelete = userService.findUserById(tenantId, new UserId(entityId.getId()));
+                if (userToDelete != null) {
+                    userService.deleteUser(tenantId, userToDelete.getId());
+                }
                 break;
             case DASHBOARD:
-                dashboardService.deleteDashboard(tenantId, new DashboardId(entityId.getId()));
+                Dashboard dashboardToDelete = dashboardService.findDashboardById(tenantId, new DashboardId(entityId.getId()));
+                if (dashboardToDelete != null) {
+                    dashboardService.deleteDashboard(tenantId, dashboardToDelete.getId());
+                }
                 break;
         }
     }

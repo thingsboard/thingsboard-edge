@@ -44,14 +44,12 @@ public class AdminSettingsClientTest extends AbstractContainerTest {
     @Test
     public void testTenantAdminSettings() {
         verifyTenantAdminSettingsByKey("general");
-        verifyTenantAdminSettingsByKey("mailTemplates");
         verifyTenantAdminSettingsByKey("mail");
 
         // TODO: @voba - verify admin setting in next release. In the current there is no sysadmin on edge to fetch it
         // login as sysadmin on edge
         // login as sysadmin on cloud
         // verifyAdminSettingsByKey("general");
-        // verifyAdminSettingsByKey("mailTemplates");
         // verifyAdminSettingsByKey("mail");
     }
 
