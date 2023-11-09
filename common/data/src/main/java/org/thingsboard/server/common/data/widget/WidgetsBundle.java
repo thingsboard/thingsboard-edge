@@ -21,6 +21,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
 import org.thingsboard.server.common.data.ExportableEntity;
@@ -34,6 +35,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 
 @ApiModel
 @EqualsAndHashCode(callSuper = true)
+@ToString
 public class WidgetsBundle extends BaseData<WidgetsBundleId> implements HasName, HasTenantId, ExportableEntity<WidgetsBundleId>, HasTitle {
 
     private static final long serialVersionUID = -7627368878362410489L;
@@ -119,16 +121,4 @@ public class WidgetsBundle extends BaseData<WidgetsBundleId> implements HasName,
     public String getName() {
         return title;
     }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("WidgetsBundle{");
-        sb.append("tenantId=").append(tenantId);
-        sb.append(", alias='").append(alias).append('\'');
-        sb.append(", title='").append(title).append('\'');
-        sb.append(", description='").append(description).append('\'');
-        sb.append('}');
-        return sb.toString();
-    }
-
 }
