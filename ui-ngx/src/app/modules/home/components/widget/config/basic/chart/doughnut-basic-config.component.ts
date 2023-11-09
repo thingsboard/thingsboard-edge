@@ -55,7 +55,7 @@ import {
   doughnutLayoutImages,
   doughnutLayouts,
   doughnutLayoutTranslations,
-  DoughnutLegendPosition,
+  doughnutLegendPositions,
   doughnutLegendPositionTranslations,
   DoughnutTooltipValueType,
   doughnutTooltipValueTypes,
@@ -98,7 +98,7 @@ export class DoughnutBasicConfigComponent extends BasicWidgetConfigComponent {
 
   doughnutLayoutImageMap: Map<DoughnutLayout, string>;
 
-  doughnutLegendPositions: DoughnutLegendPosition[];
+  doughnutLegendPositions = doughnutLegendPositions;
 
   doughnutLegendPositionTranslationMap = doughnutLegendPositionTranslations;
 
@@ -131,8 +131,6 @@ export class DoughnutBasicConfigComponent extends BasicWidgetConfigComponent {
     const params = widgetConfig.typeParameters as any;
     this.horizontal = isDefinedAndNotNull(params.horizontal) ? params.horizontal : false;
     this.doughnutLayoutImageMap = this.horizontal ? horizontalDoughnutLayoutImages : doughnutLayoutImages;
-    this.doughnutLegendPositions = this.horizontal ? [DoughnutLegendPosition.left, DoughnutLegendPosition.right] :
-      [DoughnutLegendPosition.top, DoughnutLegendPosition.bottom];
     super.setupConfig(widgetConfig);
   }
 
