@@ -172,7 +172,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         installation();
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.expectMessageAmount(26);
+        edgeImitator.expectMessageAmount(27);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();
@@ -416,7 +416,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
     private void validateAdminSettings() {
         List<AdminSettingsUpdateMsg> adminSettingsUpdateMsgs = edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class);
-        Assert.assertEquals(2, adminSettingsUpdateMsgs.size());
+        Assert.assertEquals(5, adminSettingsUpdateMsgs.size());
 
         for (AdminSettingsUpdateMsg adminSettingsUpdateMsg : adminSettingsUpdateMsgs) {
             if (adminSettingsUpdateMsg.getKey().equals("general")) {
