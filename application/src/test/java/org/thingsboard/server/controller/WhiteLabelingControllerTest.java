@@ -34,10 +34,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.After;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultActions;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
@@ -51,12 +49,9 @@ import org.thingsboard.server.dao.model.sql.WhiteLabelingCompositeKey;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.dao.wl.WhiteLabelingDao;
 
-import java.lang.reflect.Field;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.thingsboard.server.common.data.id.TenantId.SYS_TENANT_ID;
 
@@ -67,7 +62,7 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
     WhiteLabelingDao whiteLabelingDao;
 
     @After
-    public void afterTest(){
+    public void afterTest() {
         WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey();
         key.setType(WhiteLabelingType.MAIL_TEMPLATES);
         key.setEntityType(EntityType.TENANT.name());
@@ -323,26 +318,18 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
 
         doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
 
-        LoginWhiteLabelingParams found = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
+        ObjectNode found = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", ObjectNode.class);
 
-        String foundDomainName = getPrivateValue(found, "domainName");
-        assertThat(foundDomainName).isEqualTo(loginWhiteLabelingParams.getDomainName().toLowerCase());
+        assertThat(found.get("domainName").asText()).isEqualTo(loginWhiteLabelingParams.getDomainName().toLowerCase());
 
         domainName = "MY-DoMaIn.com";
         loginWhiteLabelingParams.setDomainName(domainName);
 
         doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
 
-        found = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
+        found = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", ObjectNode.class);
 
-        foundDomainName = getPrivateValue(found, "domainName");
-        assertThat(foundDomainName).isEqualTo(domainName.toLowerCase());
-    }
-
-    private <T> T getPrivateValue(Object object, String fieldName) throws NoSuchFieldException, IllegalAccessException {
-        Field field = object.getClass().getDeclaredField(fieldName);
-        field.setAccessible(true);
-        return (T) field.get(object);
+        assertThat(found.get("domainName").asText()).isEqualTo(domainName.toLowerCase());
     }
 
     private void updateAppTitleAndVerify(String appTile) throws Exception {
