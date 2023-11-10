@@ -31,7 +31,6 @@
 package org.thingsboard.server.service.edge.rpc.processor;
 
 import org.junit.jupiter.params.provider.Arguments;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.Lazy;
@@ -40,6 +39,7 @@ import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
@@ -67,6 +67,7 @@ import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
@@ -102,6 +103,7 @@ import org.thingsboard.server.service.edge.rpc.constructor.IntegrationProtoConst
 import org.thingsboard.server.service.edge.rpc.constructor.OtaPackageMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.QueueMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.RelationMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.ResourceMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.RoleProtoConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.RuleChainMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.SchedulerEventMsgConstructor;
@@ -210,6 +212,9 @@ public abstract class BaseEdgeProcessorTest {
     protected PartitionService partitionService;
 
     @MockBean
+    protected ResourceService resourceService;
+
+    @MockBean
     @Lazy
     protected TbQueueProducerProvider producerProvider;
 
@@ -230,6 +235,9 @@ public abstract class BaseEdgeProcessorTest {
 
     @MockBean
     protected DataValidator<EntityView> entityViewValidator;
+
+    @MockBean
+    protected DataValidator<TbResource> resourceValidator;
 
     @MockBean
     protected EdgeMsgConstructor edgeMsgConstructor;
@@ -290,6 +298,9 @@ public abstract class BaseEdgeProcessorTest {
 
     @MockBean
     protected QueueMsgConstructor queueMsgConstructor;
+
+    @MockBean
+    protected ResourceMsgConstructor resourceMsgConstructor;
 
     @MockBean
     protected EdgeSynchronizationManager edgeSynchronizationManager;

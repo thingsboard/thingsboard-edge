@@ -258,6 +258,60 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
         assertThat(mvcResult.getResponse().getContentAsString()).contains("Unable to send mail: Can't use ?api, because the \\\"api_builtin_enabled\\\" configuration setting is false.");
     }
 
+    @Test
+    public void updateLoginWhiteLabelParamsForCustomerByTenant() throws Exception {
+        loginTenantAdmin();
+        LoginWhiteLabelingParams loginWhiteLabelingParams = doGet("/api/whiteLabel/currentLoginWhiteLabelParams?customerId=" + customerId, LoginWhiteLabelingParams.class);
+
+        String domainName = "customer-domain.com";
+        loginWhiteLabelingParams.setDomainName(domainName);
+
+        doPost("/api/whiteLabel/loginWhiteLabelParams?customerId=" + customerId, loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
+
+        LoginWhiteLabelingParams updated = doGet("/api/whiteLabel/currentLoginWhiteLabelParams?customerId=" + customerId, LoginWhiteLabelingParams.class);
+        assertThat(updated).isEqualTo(loginWhiteLabelingParams);
+
+        loginCustomerAdminUser();
+        LoginWhiteLabelingParams updated2 = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
+        assertThat(updated2).isEqualTo(loginWhiteLabelingParams);
+    }
+
+    @Test
+    public void shouldNotUpdateLoginWhiteLabelParamsForAnotherCustomerByTenant() throws Exception {
+        loginTenantAdmin();
+        doGet("/api/whiteLabel/currentLoginWhiteLabelParams?customerId=" + differentTenantCustomerId);
+
+        LoginWhiteLabelingParams loginWhiteLabelingParams = new LoginWhiteLabelingParams();
+        doPost("/api/whiteLabel/loginWhiteLabelParams?customerId=" + differentTenantCustomerId, loginWhiteLabelingParams);
+    }
+
+    @Test
+    public void updateWhiteLabelParamsForCustomerByTenant() throws Exception {
+        loginTenantAdmin();
+        WhiteLabelingParams whiteLabelingParams = doGet("/api/whiteLabel/currentWhiteLabelParams?customerId=" + customerId, WhiteLabelingParams.class);
+
+        String appTile = "customer title";
+        whiteLabelingParams.setAppTitle(appTile);
+
+        doPost("/api/whiteLabel/whiteLabelParams?customerId=" + customerId, whiteLabelingParams, WhiteLabelingParams.class);
+
+        WhiteLabelingParams updated = doGet("/api/whiteLabel/currentWhiteLabelParams?customerId=" + customerId, WhiteLabelingParams.class);
+        assertThat(updated).isEqualTo(whiteLabelingParams);
+
+        loginCustomerAdminUser();
+        WhiteLabelingParams updated2 = doGet("/api/whiteLabel/currentWhiteLabelParams", WhiteLabelingParams.class);
+        assertThat(updated2).isEqualTo(whiteLabelingParams);
+    }
+
+    @Test
+    public void shouldNotUpdateWhiteLabelParamsForAnotherCustomerByTenant() throws Exception {
+        loginTenantAdmin();
+        doGet("/api/whiteLabel/currentWhiteLabelParams?customerId=" + differentTenantCustomerId);
+
+        LoginWhiteLabelingParams loginWhiteLabelingParams = new LoginWhiteLabelingParams();
+        doPost("/api/whiteLabel/currentWhiteLabelParams?customerId=" + differentTenantCustomerId, loginWhiteLabelingParams);
+    }
+
     private void updateAppTitleAndVerify(String appTile) throws Exception {
 
         WhiteLabelingParams whiteLabelingParams = doGet("/api/whiteLabel/currentWhiteLabelParams", WhiteLabelingParams.class);

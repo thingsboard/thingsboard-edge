@@ -287,6 +287,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         ObjectNode node = JacksonUtil.newObjectNode();
         node.put("baseUrl", "http://localhost:8080");
         node.put("prohibitDifferentUrl", false);
+        node.set("connectivity", createDeviceConnectivityConfiguration());
         generalSettings.setJsonValue(node);
         adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, generalSettings);
 
@@ -308,6 +309,12 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         mailSettings.setJsonValue(node);
         adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, mailSettings);
 
+        AdminSettings connectivitySettings = new AdminSettings();
+        connectivitySettings.setTenantId(TenantId.SYS_TENANT_ID);
+        connectivitySettings.setKey("connectivity");
+        connectivitySettings.setJsonValue(createDeviceConnectivityConfiguration());
+        adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, connectivitySettings);
+
         loadMailTemplates();
     }
 
@@ -319,6 +326,47 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
     @Override
     public void updateMailTemplates(JsonNode value) throws Exception {
         installScripts.updateMailTemplates(value);
+    }
+
+    private ObjectNode createDeviceConnectivityConfiguration() {
+        ObjectNode config = JacksonUtil.newObjectNode();
+
+        ObjectNode http = JacksonUtil.newObjectNode();
+        http.put("enabled", true);
+        http.put("host", "");
+        http.put("port", 8080);
+        config.set("http", http);
+
+        ObjectNode https = JacksonUtil.newObjectNode();
+        https.put("enabled", false);
+        https.put("host", "");
+        https.put("port", 443);
+        config.set("https", https);
+
+        ObjectNode mqtt = JacksonUtil.newObjectNode();
+        mqtt.put("enabled", true);
+        mqtt.put("host", "");
+        mqtt.put("port", 1883);
+        config.set("mqtt", mqtt);
+
+        ObjectNode mqtts = JacksonUtil.newObjectNode();
+        mqtts.put("enabled", false);
+        mqtts.put("host", "");
+        mqtts.put("port", 8883);
+        config.set("mqtts", mqtts);
+
+        ObjectNode coap = JacksonUtil.newObjectNode();
+        coap.put("enabled", true);
+        coap.put("host", "");
+        coap.put("port", 5683);
+        config.set("coap", coap);
+
+        ObjectNode coaps = JacksonUtil.newObjectNode();
+        coaps.put("enabled", false);
+        coaps.put("host", "");
+        coaps.put("port", 5684);
+        config.set("coaps", coaps);
+        return config;
     }
 
     @Override
@@ -572,6 +620,8 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         this.deleteSystemWidgetBundle("status_indicators");
         this.deleteSystemWidgetBundle("outdoor_environment");
         this.deleteSystemWidgetBundle("indoor_environment");
+        this.deleteSystemWidgetBundle("air_quality");
+        this.deleteSystemWidgetBundle("liquid_level_widgets");
         installScripts.loadSystemWidgets();
     }
 

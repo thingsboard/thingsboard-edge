@@ -188,6 +188,8 @@ public class EntityIdFactory {
                 return new ConverterId(uuid);
             case QUEUE:
                 return new QueueId(uuid);
+            case TB_RESOURCE:
+                return new TbResourceId(uuid);
         }
         throw new IllegalArgumentException("EdgeEventType " + edgeEventType + " is not supported!");
     }
