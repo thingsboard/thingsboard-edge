@@ -51,6 +51,7 @@ import org.thingsboard.server.dao.model.sql.WhiteLabelingCompositeKey;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.dao.wl.WhiteLabelingDao;
 
+import java.lang.reflect.Field;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -310,6 +311,38 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
 
         LoginWhiteLabelingParams loginWhiteLabelingParams = new LoginWhiteLabelingParams();
         doPost("/api/whiteLabel/currentWhiteLabelParams?customerId=" + differentTenantCustomerId, loginWhiteLabelingParams);
+    }
+
+    @Test
+    public void testDomainAlwaysInLowerCase() throws Exception {
+        loginTenantAdmin();
+        LoginWhiteLabelingParams loginWhiteLabelingParams = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
+
+        String domainName = "my-domain.com";
+        loginWhiteLabelingParams.setDomainName(domainName);
+
+        doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
+
+        LoginWhiteLabelingParams found = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
+
+        String foundDomainName = getPrivateValue(found, "domainName");
+        assertThat(foundDomainName).isEqualTo(loginWhiteLabelingParams.getDomainName().toLowerCase());
+
+        domainName = "MY-DoMaIn.com";
+        loginWhiteLabelingParams.setDomainName(domainName);
+
+        doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
+
+        found = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
+
+        foundDomainName = getPrivateValue(found, "domainName");
+        assertThat(foundDomainName).isEqualTo(domainName.toLowerCase());
+    }
+
+    private <T> T getPrivateValue(Object object, String fieldName) throws NoSuchFieldException, IllegalAccessException {
+        Field field = object.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        return (T) field.get(object);
     }
 
     private void updateAppTitleAndVerify(String appTile) throws Exception {

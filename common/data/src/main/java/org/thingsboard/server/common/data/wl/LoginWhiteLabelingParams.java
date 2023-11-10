@@ -34,6 +34,7 @@ package org.thingsboard.server.common.data.wl;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.StringUtils;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -53,6 +54,14 @@ public class LoginWhiteLabelingParams extends WhiteLabelingParams {
     private String adminSettingsId;
     @ApiModelProperty(position = 22, value = "Show platform name and version on login page")
     private Boolean showNameBottom;
+
+    public String getDomainName() {
+        return StringUtils.toLowerCase(domainName);
+    }
+
+    public void setDomainName(String domainName) {
+        this.domainName = StringUtils.toLowerCase(domainName);
+    }
 
     public LoginWhiteLabelingParams merge(LoginWhiteLabelingParams otherWlParams) {
         Integer prevLogoImageHeight = this.logoImageHeight;
