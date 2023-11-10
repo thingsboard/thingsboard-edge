@@ -317,7 +317,7 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
                 .downlinkConverterId(downlinkConverter.getId())
                 .routingKey(ROUTING_KEY)
                 .secret(SECRET_KEY)
-                .isRemote(false)
+                .isRemote(true)
                 .enabled(true)
                 .debugMode(true)
                 .allowCreateDevicesOrAssets(true)
