@@ -30,45 +30,28 @@
  */
 package org.thingsboard.server.service.edge.rpc.processor.telemetry;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.EntityType;
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
-import org.thingsboard.server.gen.edge.v1.EntityDataProto;
-import org.thingsboard.server.queue.util.TbCoreComponent;
 
-@Component
 @Slf4j
-@TbCoreComponent
-public class TelemetryEdgeProcessor extends BaseTelemetryProcessor {
+@RunWith(MockitoJUnitRunner.class)
+public class TelemetryEdgeProcessorTest {
 
-    @Override
-    protected String getMsgSourceKey() {
-        return DataConstants.EDGE_MSG_SOURCE;
-    }
-
-    public DownlinkMsg convertTelemetryEventToDownlink(EdgeEvent edgeEvent) throws JsonProcessingException {
-        if (edgeEvent.getBody() != null) {
-            String bodyStr = edgeEvent.getBody().toString();
-            if (bodyStr.length() > 1000) {
-                log.debug("[{}][{}][{}] Conversion to a DownlinkMsg telemetry event failed due to a size limit violation. " +
-                                "Current size is {}, but the limit is 1000. {}", edgeEvent.getTenantId(), edgeEvent.getEdgeId(),
-                        edgeEvent.getEntityId(), bodyStr.length(), StringUtils.truncate(bodyStr, 100));
-                return null;
-            }
-        }
-        EntityType entityType = EntityType.valueOf(edgeEvent.getType().name());
-        EntityDataProto entityDataProto = convertTelemetryEventToEntityDataProto(
-                edgeEvent.getTenantId(), entityType, edgeEvent.getEntityId(),
-                edgeEvent.getAction(), edgeEvent.getBody());
-        return DownlinkMsg.newBuilder()
-                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                .addEntityData(entityDataProto)
-                .build();
+    @Test
+    public void testConvert_maxSizeLimit() throws Exception {
+        EdgeEvent edgeEvent = new EdgeEvent();
+        ObjectNode body = JacksonUtil.newObjectNode();
+        body.put("value", StringUtils.randomAlphanumeric(10000));
+        edgeEvent.setBody(body);
+        DownlinkMsg downlinkMsg = new TelemetryEdgeProcessor().convertTelemetryEventToDownlink(edgeEvent);
+        Assert.assertNull(downlinkMsg);
     }
 }
