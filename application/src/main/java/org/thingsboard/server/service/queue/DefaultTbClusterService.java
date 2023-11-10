@@ -562,14 +562,14 @@ public class DefaultTbClusterService implements TbClusterService {
 
     @Override
     public void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
-                                          EdgeEventType type, EdgeEventActionType action, EdgeId sourceEdgeId) {
-        sendNotificationMsgToEdge(tenantId, edgeId, entityId, body, type, action, null, null, sourceEdgeId);
+                                          EdgeEventType type, EdgeEventActionType action, EdgeId originatorEdgeId) {
+        sendNotificationMsgToEdge(tenantId, edgeId, entityId, body, type, action, null, null, originatorEdgeId);
     }
 
     @Override
     public void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
                                           EdgeEventType type, EdgeEventActionType action,
-                                          EntityType entityGroupType, EntityGroupId entityGroupId, EdgeId sourceEdgeId) {
+                                          EntityType entityGroupType, EntityGroupId entityGroupId, EdgeId originatorEdgeId) {
         if (!edgesEnabled) {
             return;
         }
@@ -609,9 +609,9 @@ public class DefaultTbClusterService implements TbClusterService {
             builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits());
             builder.setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
         }
-        if (sourceEdgeId != null) {
-            builder.setSourceEdgeIdMSB(sourceEdgeId.getId().getMostSignificantBits());
-            builder.setSourceEdgeIdLSB(sourceEdgeId.getId().getLeastSignificantBits());
+        if (originatorEdgeId != null) {
+            builder.setOriginatorEdgeIdMSB(originatorEdgeId.getId().getMostSignificantBits());
+            builder.setOriginatorEdgeIdLSB(originatorEdgeId.getId().getLeastSignificantBits());
         }
         TransportProtos.EdgeNotificationMsgProto msg = builder.build();
         log.trace("[{}] sending notification to edge service {}", tenantId.getId(), msg);

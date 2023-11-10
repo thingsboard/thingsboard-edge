@@ -34,6 +34,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
@@ -79,6 +80,9 @@ public class JacksonUtil {
             .configure(JsonWriteFeature.QUOTE_FIELD_NAMES.mappedFeature(), false)
             .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true)
             .build();
+    public static final ObjectMapper IGNORE_UNKNOWN_PROPERTIES_JSON_MAPPER = JsonMapper.builder()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .build();
 
     public static ObjectMapper getObjectMapperWithJavaTimeModule() {
         return new ObjectMapper().registerModule(new JavaTimeModule());
@@ -120,6 +124,14 @@ public class JacksonUtil {
     public static <T> T fromString(String string, TypeReference<T> valueTypeRef) {
         try {
             return string != null ? OBJECT_MAPPER.readValue(string, valueTypeRef) : null;
+        } catch (IOException e) {
+            throw new IllegalArgumentException("The given string value cannot be transformed to Json object: " + string, e);
+        }
+    }
+
+    public static <T> T fromStringIgnoreUnknownProperties(String string, Class<T> clazz) {
+        try {
+            return string != null ? IGNORE_UNKNOWN_PROPERTIES_JSON_MAPPER.readValue(string, clazz) : null;
         } catch (IOException e) {
             throw new IllegalArgumentException("The given string value cannot be transformed to Json object: " + string, e);
         }
