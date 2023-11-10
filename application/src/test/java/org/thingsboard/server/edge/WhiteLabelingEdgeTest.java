@@ -166,7 +166,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof LoginWhiteLabelingParamsProto);
         LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto = (LoginWhiteLabelingParamsProto) latestMessage;
-        Assert.assertEquals(updatedDomainName, loginWhiteLabelingParamsProto.getDomainName());
+        Assert.assertEquals(updatedDomainName.toLowerCase(), loginWhiteLabelingParamsProto.getDomainName());
     }
 
     @Test
