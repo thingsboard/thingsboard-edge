@@ -42,6 +42,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -186,7 +187,7 @@ public class ThingsBoardDbInstaller {
         return env;
     }
 
-    public void createVolumes()  {
+    public void createVolumes() {
         try {
 
             dockerCompose.withCommand("volume create " + postgresDataVolume);
@@ -238,7 +239,7 @@ public class ThingsBoardDbInstaller {
                 }
             } else if (IS_REDIS_SENTINEL) {
                 additionalServices.append(" redis-master");
-                dockerCompose.withCommand("volume create " + redisSentinelDataVolume +"-" + "master");
+                dockerCompose.withCommand("volume create " + redisSentinelDataVolume + "-" + "master");
                 dockerCompose.invokeDocker();
 
                 additionalServices.append(" redis-slave");
@@ -264,7 +265,8 @@ public class ThingsBoardDbInstaller {
             try {
                 dockerCompose.withCommand("down -v");
                 dockerCompose.invokeCompose();
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
     }
 
@@ -278,16 +280,25 @@ public class ThingsBoardDbInstaller {
         copyLogs(tbSnmpTransportLogVolume, "./target/tb-snmp-transport-logs/");
         copyLogs(tbVcExecutorLogVolume, "./target/tb-vc-executor-logs/");
 
-        dockerCompose.withCommand("volume rm -f " + postgresDataVolume + " " + tbLogVolume +
-                " " + tbIntegrationExecutorLogVolume +
-                " " + tbCoapTransportLogVolume + " " + tbLwm2mTransportLogVolume + " " + tbHttpTransportLogVolume +
-                " " + tbMqttTransportLogVolume + " " + tbSnmpTransportLogVolume + " " + tbVcExecutorLogVolume + resolveRedisComposeVolumeLog());
-        dockerCompose.invokeDocker();
+        StringJoiner rmVolumesCommand = new StringJoiner(" ")
+                .add("volume rm -f")
+                .add(postgresDataVolume)
+                .add(tbLogVolume)
+                .add(tbCoapTransportLogVolume)
+                .add(tbLwm2mTransportLogVolume)
+                .add(tbHttpTransportLogVolume)
+                .add(tbMqttTransportLogVolume)
+                .add(tbSnmpTransportLogVolume)
+                .add(tbVcExecutorLogVolume)
+                .add(resolveRedisComposeVolumeLog())
+                .add(tbIntegrationExecutorLogVolume);
+
+        dockerCompose.withCommand(rmVolumesCommand.toString());
     }
 
     private String resolveRedisComposeVolumeLog() {
         if (IS_REDIS_CLUSTER) {
-            return IntStream.range(0, 6).mapToObj(i -> " " + redisClusterDataVolume + "-" + i).collect(Collectors.joining());
+            return IntStream.range(0, 6).mapToObj(i -> redisClusterDataVolume + "-" + i).collect(Collectors.joining());
         }
         if (IS_REDIS_SENTINEL) {
             return redisSentinelDataVolume + "-" + "master " + " " +
@@ -306,7 +317,7 @@ public class ThingsBoardDbInstaller {
         dockerCompose.withCommand("run -d --rm --name " + logsContainerName + " -v " + volumeName + ":/root alpine tail -f /dev/null");
         dockerCompose.invokeDocker();
 
-        dockerCompose.withCommand("cp " + logsContainerName + ":/root/. "+tbLogsDir.getAbsolutePath());
+        dockerCompose.withCommand("cp " + logsContainerName + ":/root/. " + tbLogsDir.getAbsolutePath());
         dockerCompose.invokeDocker();
 
         dockerCompose.withCommand("rm -f " + logsContainerName);
