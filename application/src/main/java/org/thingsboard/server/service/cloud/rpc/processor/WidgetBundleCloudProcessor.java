@@ -70,6 +70,7 @@ public class WidgetBundleCloudProcessor extends BaseEdgeProcessor {
                         widgetsBundle.setImage(widgetsBundleUpdateMsg.hasImage()
                                 ? new String(widgetsBundleUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8) : null);
                         widgetsBundle.setDescription(widgetsBundleUpdateMsg.hasDescription() ? widgetsBundleUpdateMsg.getDescription() : null);
+                        widgetsBundle.setOrder(widgetsBundleUpdateMsg.hasOrder() ? widgetsBundleUpdateMsg.getOrder() : null);
                         widgetsBundleService.saveWidgetsBundle(widgetsBundle, false);
 
                         String[] widgetFqns = JacksonUtil.fromString(widgetsBundleUpdateMsg.getWidgets(), String[].class);
