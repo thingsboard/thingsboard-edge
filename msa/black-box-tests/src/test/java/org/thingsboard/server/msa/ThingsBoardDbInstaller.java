@@ -66,6 +66,11 @@ public class ThingsBoardDbInstaller {
     private final static String TB_SNMP_TRANSPORT_LOG_VOLUME = "tb-snmp-transport-log-test-volume";
     private final static String TB_INTEGRATION_EXECUTOR_LOG_VOLUME = "tb-ie-log-test-volume";
     private final static String TB_VC_EXECUTOR_LOG_VOLUME = "tb-vc-executor-log-test-volume";
+    private final static String TB_HTTP_INTEGRATION_LOG_VOLUME = "tb-http-integration-log-test-volume";
+    private final static String TB_MQTT_INTEGRATION_LOG_VOLUME = "tb-mqtt-integration-log-test-volume";
+    private final static String TB_COAP_INTEGRATION_LOG_VOLUME = "tb-coap-integration-log-test-volume";
+    private final static String TB_TCP_INTEGRATION_LOG_VOLUME = "tb-tcp-integration-log-test-volume";
+    private final static String TB_UDP_INTEGRATION_LOG_VOLUME = "tb-udp-integration-log-test-volume";
     private final static String JAVA_OPTS = "-Xmx512m";
 
     private final DockerComposeExecutor dockerCompose;
@@ -84,6 +89,12 @@ public class ThingsBoardDbInstaller {
     private final String tbMqttTransportLogVolume;
     private final String tbSnmpTransportLogVolume;
     private final String tbVcExecutorLogVolume;
+    private final String tbHttpIntegrationLogVolume;
+    private final String tbMqttIntegrationLogVolume;
+    private final String tbCoapIntegrationLogVolume;
+    private final String tbTcpIntegrationLogVolume;
+    private final String tbUdpIntegrationLogVolume;
+
     private final Map<String, String> env;
 
     public ThingsBoardDbInstaller() {
@@ -123,6 +134,11 @@ public class ThingsBoardDbInstaller {
         tbMqttTransportLogVolume = project + "_" + TB_MQTT_TRANSPORT_LOG_VOLUME;
         tbSnmpTransportLogVolume = project + "_" + TB_SNMP_TRANSPORT_LOG_VOLUME;
         tbVcExecutorLogVolume = project + "_" + TB_VC_EXECUTOR_LOG_VOLUME;
+        tbHttpIntegrationLogVolume = project + "_" + TB_HTTP_INTEGRATION_LOG_VOLUME;
+        tbMqttIntegrationLogVolume = project + "_" + TB_MQTT_INTEGRATION_LOG_VOLUME;
+        tbCoapIntegrationLogVolume = project + "_" + TB_COAP_INTEGRATION_LOG_VOLUME;
+        tbTcpIntegrationLogVolume = project + "_" + TB_TCP_INTEGRATION_LOG_VOLUME;
+        tbUdpIntegrationLogVolume = project + "_" + TB_UDP_INTEGRATION_LOG_VOLUME;
 
         dockerCompose = new DockerComposeExecutor(composeFiles, project);
 
@@ -145,6 +161,12 @@ public class ThingsBoardDbInstaller {
         env.put("TB_MQTT_TRANSPORT_LOG_VOLUME", tbMqttTransportLogVolume);
         env.put("TB_SNMP_TRANSPORT_LOG_VOLUME", tbSnmpTransportLogVolume);
         env.put("TB_VC_EXECUTOR_LOG_VOLUME", tbVcExecutorLogVolume);
+        env.put("TB_HTTP_INTEGRATION_VOLUME", tbHttpIntegrationLogVolume);
+        env.put("TB_MQTT_INTEGRATION_VOLUME", tbMqttIntegrationLogVolume);
+        env.put("TB_COAP_INTEGRATION_VOLUME", tbCoapIntegrationLogVolume);
+        env.put("TB_TCP_INTEGRATION_VOLUME", tbTcpIntegrationLogVolume);
+        env.put("TB_UDP_INTEGRATION_VOLUME", tbUdpIntegrationLogVolume);
+
         if (IS_REDIS_CLUSTER) {
             for (int i = 0; i < 6; i++) {
                 env.put("REDIS_CLUSTER_DATA_VOLUME_" + i, redisClusterDataVolume + '-' + i);
@@ -227,6 +249,21 @@ public class ThingsBoardDbInstaller {
             dockerCompose.withCommand("volume create " + tbVcExecutorLogVolume);
             dockerCompose.invokeDocker();
 
+            dockerCompose.withCommand("volume create " + tbHttpIntegrationLogVolume);
+            dockerCompose.invokeDocker();
+
+            dockerCompose.withCommand("volume create " + tbMqttIntegrationLogVolume);
+            dockerCompose.invokeDocker();
+
+            dockerCompose.withCommand("volume create " + tbCoapIntegrationLogVolume);
+            dockerCompose.invokeDocker();
+
+            dockerCompose.withCommand("volume create " + tbTcpIntegrationLogVolume);
+            dockerCompose.invokeDocker();
+
+            dockerCompose.withCommand("volume create " + tbUdpIntegrationLogVolume);
+            dockerCompose.invokeDocker();
+
             StringBuilder additionalServices = new StringBuilder();
             if (IS_HYBRID_MODE) {
                 additionalServices.append(" cassandra");
@@ -279,6 +316,11 @@ public class ThingsBoardDbInstaller {
         copyLogs(tbMqttTransportLogVolume, "./target/tb-mqtt-transport-logs/");
         copyLogs(tbSnmpTransportLogVolume, "./target/tb-snmp-transport-logs/");
         copyLogs(tbVcExecutorLogVolume, "./target/tb-vc-executor-logs/");
+        copyLogs(tbHttpIntegrationLogVolume, "./target/tb-http_integration-logs/");
+        copyLogs(tbMqttIntegrationLogVolume, "./target/tb-mqtt_integration-logs/");
+        copyLogs(tbCoapIntegrationLogVolume, "./target/tb-coap_integration-logs/");
+        copyLogs(tbTcpIntegrationLogVolume, "./target/tb-tcp_integration-logs/");
+        copyLogs(tbUdpIntegrationLogVolume, "./target/tb-udp_integration-logs/");
 
         StringJoiner rmVolumesCommand = new StringJoiner(" ")
                 .add("volume rm -f")
@@ -291,9 +333,15 @@ public class ThingsBoardDbInstaller {
                 .add(tbSnmpTransportLogVolume)
                 .add(tbVcExecutorLogVolume)
                 .add(resolveRedisComposeVolumeLog())
-                .add(tbIntegrationExecutorLogVolume);
+                .add(tbIntegrationExecutorLogVolume)
+                .add(tbHttpIntegrationLogVolume)
+                .add(tbMqttIntegrationLogVolume)
+                .add(tbCoapIntegrationLogVolume)
+                .add(tbTcpIntegrationLogVolume)
+                .add(tbUdpIntegrationLogVolume);
 
         dockerCompose.withCommand(rmVolumesCommand.toString());
+        dockerCompose.invokeDocker();
     }
 
     private String resolveRedisComposeVolumeLog() {
