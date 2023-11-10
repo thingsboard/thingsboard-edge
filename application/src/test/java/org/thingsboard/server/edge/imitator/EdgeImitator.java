@@ -319,23 +319,8 @@ public class EdgeImitator {
         if (downlinkMsg.hasCustomerCustomTranslationMsg()) {
             result.add(saveDownlinkMsg(downlinkMsg.getCustomerCustomTranslationMsg()));
         }
-        if (downlinkMsg.hasSystemWhiteLabelingParams()) {
-            result.add(saveDownlinkMsg(downlinkMsg.getSystemWhiteLabelingParams()));
-        }
-        if (downlinkMsg.hasTenantWhiteLabelingParams()) {
-            result.add(saveDownlinkMsg(downlinkMsg.getTenantWhiteLabelingParams()));
-        }
-        if (downlinkMsg.hasCustomerWhiteLabelingParams()) {
-            result.add(saveDownlinkMsg(downlinkMsg.getCustomerWhiteLabelingParams()));
-        }
-        if (downlinkMsg.hasSystemLoginWhiteLabelingParams()) {
-            result.add(saveDownlinkMsg(downlinkMsg.getSystemLoginWhiteLabelingParams()));
-        }
-        if (downlinkMsg.hasTenantLoginWhiteLabelingParams()) {
-            result.add(saveDownlinkMsg(downlinkMsg.getTenantLoginWhiteLabelingParams()));
-        }
-        if (downlinkMsg.hasCustomerLoginWhiteLabelingParams()) {
-            result.add(saveDownlinkMsg(downlinkMsg.getCustomerLoginWhiteLabelingParams()));
+        if (downlinkMsg.hasWhiteLabelingProto()) {
+            result.add(saveDownlinkMsg(downlinkMsg.getWhiteLabelingProto()));
         }
         if (downlinkMsg.getSchedulerEventUpdateMsgCount() > 0) {
             for (SchedulerEventUpdateMsg schedulerEventUpdateMsg : downlinkMsg.getSchedulerEventUpdateMsgList()) {

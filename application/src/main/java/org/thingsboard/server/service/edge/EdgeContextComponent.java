@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.edge;
 
-import freemarker.template.Configuration;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -115,9 +114,6 @@ public class EdgeContextComponent {
 
     @Autowired
     private AdminSettingsService adminSettingsService;
-
-    @Autowired
-    private Configuration freemarkerConfig;
 
     @Autowired
     private DeviceService deviceService;
