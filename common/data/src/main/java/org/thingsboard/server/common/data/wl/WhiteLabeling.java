@@ -33,7 +33,6 @@ package org.thingsboard.server.common.data.wl;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
@@ -73,11 +72,4 @@ public class WhiteLabeling implements Serializable {
         setJson(settings, json -> this.settings = json, bytes -> this.settingsBytes = bytes);
     }
 
-    public String getDomain() {
-        return StringUtils.toLowerCase(domain);
-    }
-
-    public void setDomain(String domain) {
-        this.domain = StringUtils.toLowerCase(domain);
-    }
 }

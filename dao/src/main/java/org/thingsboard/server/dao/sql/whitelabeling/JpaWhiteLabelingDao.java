@@ -62,7 +62,7 @@ public class JpaWhiteLabelingDao extends JpaAbstractDaoListeningExecutorService 
 
     @Override
     public WhiteLabeling findByDomain(TenantId tenantId, String domain) {
-        return DaoUtil.getData(whiteLabelingRepository.findByDomain(domain));
+        return DaoUtil.getData(whiteLabelingRepository.findByDomainIgnoreCase(domain));
     }
 
     @Override

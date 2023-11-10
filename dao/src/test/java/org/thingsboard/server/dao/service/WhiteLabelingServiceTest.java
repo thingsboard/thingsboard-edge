@@ -38,10 +38,14 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
+import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 
 import java.io.IOException;
+import java.util.List;
 
 @DaoSqlTest
 public class WhiteLabelingServiceTest extends AbstractServiceTest {
@@ -176,6 +180,30 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
         Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, tenantId));
         Assert.assertFalse(whiteLabelingService.isCustomerWhiteLabelingAllowed(tenantId));
         Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, customerId));
+    }
+
+    @Test
+    public void testFindWhiteLabelingByDomainIgnoreCase() throws Exception {
+        for (String domainName : List.of("MY_DOMAIN.COM", "my_domain.com", "My_Domain.Com", "myDomain.com")) {
+            testFindWhiteLabelingByDomainIgnoreCase(domainName);
+        }
+    }
+
+    private void testFindWhiteLabelingByDomainIgnoreCase(String domainName) throws Exception {
+        LoginWhiteLabelingParams whiteLabelingParams = new LoginWhiteLabelingParams();
+        whiteLabelingParams.setDomainName(domainName);
+
+        whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, whiteLabelingParams);
+
+        WhiteLabeling foundLoginWhiteLabeling = whiteLabelingService.findByEntityId(tenantId, tenantId, WhiteLabelingType.LOGIN);
+
+        Assert.assertNotNull(foundLoginWhiteLabeling);
+        Assert.assertEquals(domainName.toLowerCase(), foundLoginWhiteLabeling.getDomain());
+
+        LoginWhiteLabelingParams mergedLoginWhiteLabelingParams = whiteLabelingService.getMergedLoginWhiteLabelingParams(tenantId, domainName, null, null);
+
+        Assert.assertNotNull(mergedLoginWhiteLabelingParams);
+        Assert.assertEquals(domainName.toLowerCase(), mergedLoginWhiteLabelingParams.getDomainName());
     }
 
     private void updateTenantAllowWhiteLabelingSetting(Boolean allowWhiteLabeling, Boolean allowCustomerWhiteLabeling) throws IOException {
