@@ -122,6 +122,9 @@ import {
 import {
   ParticleIntegrationFormComponent
 } from "@home/components/integration/configuration/particle-integration-form/particle-integration-form.component";
+import {
+  KpnIntegrationFormComponent
+} from "@home/components/integration/configuration/kpn-integration-form/kpn-integration-form.component";
 
 @NgModule({
   declarations: [
@@ -144,6 +147,7 @@ import {
     LoriotIntegrationFormComponent,
     ChirpStackIntegrationFormComponent,
     ParticleIntegrationFormComponent,
+    KpnIntegrationFormComponent,
     PubSubIntegrationFormComponent,
     ApachePulsarIntegrationFormComponent,
     CustomIntegrationFormComponent,

@@ -45,6 +45,7 @@ export enum IntegrationType {
   TTI = 'TTI',
   CHIRPSTACK = 'CHIRPSTACK',
   PARTICLE = 'PARTICLE',
+  KPN = 'KPN',
   AZURE_EVENT_HUB = 'AZURE_EVENT_HUB',
   AZURE_SERVICE_BUS = 'AZURE_SERVICE_BUS',
   COAP = 'COAP',
@@ -228,6 +229,14 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
       }
     ],
     [
+      IntegrationType.KPN,
+      {
+        name: 'integration.type-kpn',
+        description: 'integration.type-kpn-description',
+        icon: 'assets/integration-icon/particle.svg'
+      }
+    ],
+    [
       IntegrationType.AZURE_EVENT_HUB,
       {
         name: 'integration.type-azure-event-hub',
@@ -362,6 +371,7 @@ const integrationHelpLinkMap = new Map<IntegrationType, string>(
     [IntegrationType.TTI, 'integrationTheThingsIndustries'],
     [IntegrationType.CHIRPSTACK, 'integrationChirpStack'],
     [IntegrationType.PARTICLE, 'integrationParticle'],
+    [IntegrationType.KPN, 'integrationKPN'],
     [IntegrationType.AZURE_EVENT_HUB, 'integrationAzureEventHub'],
     [IntegrationType.AZURE_IOT_HUB, 'integrationAzureIoTHub'],
     [IntegrationType.OPC_UA, 'integrationOpcUa'],
@@ -379,8 +389,9 @@ const integrationHelpLinkMap = new Map<IntegrationType, string>(
 
 export type IntegrationConfiguration = ApachePulsarIntegration | HttpIntegration | ThingParkIntegration | LoriotIntegration |
   MqttIntegration | AwsIotIntegration | AwsSqsIntegration | AwsKinesisIntegration | IbmWatsonIotIntegration | TtnIntegration |
-  ChipStackIntegration | ParticleIntegration | AzureEventHubIntegration | AzureIotHubIntegration | OpcUaIntegration | UpdIntegration |
-  TcpIntegration | KafkaIntegration | RabbitMqIntegration | PubSubIntegration | CoapIntegration | TuyaIntegration | CustomIntegration;
+  ChipStackIntegration | ParticleIntegration | KpnIntegration | AzureEventHubIntegration | AzureIotHubIntegration | OpcUaIntegration |
+  UpdIntegration | TcpIntegration | KafkaIntegration | RabbitMqIntegration | PubSubIntegration | CoapIntegration | TuyaIntegration |
+  CustomIntegration;
 
 export function getIntegrationHelpLink(integration: Integration): string {
   if (integration && integration.type) {
@@ -705,6 +716,18 @@ export interface ParticleIntegration {
     enableSecurity?: boolean;
     headersFilter?: {[key: string]: string} | null;
   };
+}
+
+export interface KpnIntegration {
+  baseUrl: string;
+  httpEndpoint: string;
+  preSharedKey: string;
+  customerId: string;
+  gripTenantId: string;
+  apiId: string;
+  apiKey: string;
+  enableSecurity?: boolean;
+  headersFilter?: {[key: string]: string} | null;
 }
 
 export interface CoapIntegration {

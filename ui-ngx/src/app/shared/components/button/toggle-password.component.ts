@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, ElementRef } from '@angular/core';
+import {AfterViewInit, Component, ElementRef, Input} from '@angular/core';
 
 @Component({
   selector: 'tb-toggle-password',

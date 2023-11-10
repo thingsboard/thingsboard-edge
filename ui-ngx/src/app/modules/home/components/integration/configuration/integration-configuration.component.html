@@ -77,6 +77,14 @@
                                   [allowLocalNetwork]="allowLocalNetwork">
       </tb-sigfox-integration-form>
     </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.KPN">
+      <tb-kpn-integration-form formControlName="configuration"
+                                  [routingKey]="routingKey"
+                                  [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                  [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate"
+                                  [allowLocalNetwork]="allowLocalNetwork">
+      </tb-kpn-integration-form>
+    </ng-container>
     <ng-container *ngSwitchCase="integrationTypes.OCEANCONNECT">
       <tb-ocean-connect-integration-form formControlName="configuration"
                                          [routingKey]="routingKey"

@@ -2415,6 +2415,20 @@ public class ControllerConstants {
             "  \"fault_codes\": [100, 204, 301],\n" +
             "  \"battery_level\": 78.5\n" +
             "}\n";
+
+    static final String DEFAULT_KNP_UPLINK_CONVERTER_MESSAGE = "{\n" +
+            "  \"deviceName\":\"Device A\",\n" +
+            "  \"deviceType\":\"thermostat\",\n" +
+            "  \"customerName\":\"customer\",\n" +
+            "  \"groupName\":\"thermostat devices\",\n" +
+            "  \"attributes\": {\n" +
+            "    \"model\":\"Model A\",\n" +
+            "    \"serialNumber\":\"SN111\"\n" +
+            "  },\n" +
+            "  \"telemetry\": {\n" +
+            "    \"temperature\":42,\n" +
+            "    \"humidity\":80\n" +
+            "}\n";
     
     // Default converter uplinks messages
 }

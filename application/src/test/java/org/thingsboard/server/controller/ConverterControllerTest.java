@@ -76,6 +76,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_AWS_IOT_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_KNP_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_SIGFOX_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE;
@@ -594,6 +595,11 @@ public class ConverterControllerTest extends AbstractControllerTest {
                 "\"zeroPointAdjusted\":false,\"transmitPower\":\"full\",\"powerControl\":\"off\",\"fwVersion\":2},\"telemetry\":{\"ts\":\"1686298419000\"," +
                 "\"values\":{\"temperature\":28.7,\"humidity\":33,\"co2\":582,\"co2Baseline\":420,\"customData1\":\"37\",\"customData2\":\"2\"}}}";
         testDecoder("tbel-sigfox-decoder.raw", DEFAULT_SIGFOX_UPLINK_CONVERTER_MESSAGE, expectedDecodedMessage);
+    }
+
+    @Test
+    public void testKpnDefaultConverter() throws IOException {
+        testDecoder("tbel-kpn-decoder.raw", DEFAULT_KNP_UPLINK_CONVERTER_MESSAGE, DEFAULT_KNP_UPLINK_CONVERTER_MESSAGE);
     }
 
     public void testDecoder(String decoderFileName, String payloadExample, String expectedResult) throws IOException {
