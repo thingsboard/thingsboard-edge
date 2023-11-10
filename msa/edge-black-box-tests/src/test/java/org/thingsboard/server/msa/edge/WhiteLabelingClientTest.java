@@ -147,9 +147,10 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
         updateAndVerifyLoginWhiteLabelingUpdate("tenant_updated.org");
     }
 
-    private void updateAndVerifyLoginWhiteLabelingUpdate(String updateDomainName) {
+    private void updateAndVerifyLoginWhiteLabelingUpdate(String updatedDomainName) {
         LoginWhiteLabelingParams loginWhiteLabelingParams = new LoginWhiteLabelingParams();
-        loginWhiteLabelingParams.setDomainName(updateDomainName);
+        loginWhiteLabelingParams.setAppTitle(updatedDomainName);
+        loginWhiteLabelingParams.setDomainName(updatedDomainName);
         cloudRestClient.saveLoginWhiteLabelParams(loginWhiteLabelingParams);
 
         Awaitility.await()
@@ -158,9 +159,12 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
                 .until(() -> {
                     Optional<LoginWhiteLabelingParams> edgeLoginWhiteLabelParams = edgeRestClient.getCurrentLoginWhiteLabelParams();
                     Optional<LoginWhiteLabelingParams> cloudLoginWhiteLabelParams = cloudRestClient.getCurrentLoginWhiteLabelParams();
-                    return edgeLoginWhiteLabelParams.isPresent() &&
-                            cloudLoginWhiteLabelParams.isPresent() &&
-                            edgeLoginWhiteLabelParams.get().equals(cloudLoginWhiteLabelParams.get());
+                    if (edgeLoginWhiteLabelParams.isEmpty() || cloudLoginWhiteLabelParams.isEmpty()) {
+                        return false;
+                    }
+                    edgeLoginWhiteLabelParams.get().setDomainName(null);
+                    cloudLoginWhiteLabelParams.get().setDomainName(null);
+                    return edgeLoginWhiteLabelParams.get().equals(cloudLoginWhiteLabelParams.get());
                 });
     }
 
