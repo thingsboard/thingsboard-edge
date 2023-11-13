@@ -18,12 +18,15 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 import com.google.protobuf.ByteString;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 import java.nio.charset.StandardCharsets;
 
@@ -34,7 +37,16 @@ public class DeviceProfileMsgConstructor {
     @Autowired
     private DataDecodingEncodingService dataDecodingEncodingService;
 
-    public DeviceProfileUpdateMsg constructDeviceProfileUpdatedMsg(UpdateMsgType msgType, DeviceProfile deviceProfile) {
+    public DeviceProfileUpdateMsg constructDeviceProfileUpdatedMsg(UpdateMsgType msgType, DeviceProfile deviceProfile, EdgeVersion edgeVersion) {
+        if (EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)) {
+            return constructDeprecatedDeviceProfileUpdatedMsg(msgType, deviceProfile);
+        }
+        return DeviceProfileUpdateMsg.newBuilder().setMsgType(msgType).setEntity(JacksonUtil.toString(deviceProfile))
+                .setIdMSB(deviceProfile.getId().getId().getMostSignificantBits())
+                .setIdLSB(deviceProfile.getId().getId().getLeastSignificantBits()).build();
+    }
+
+    private DeviceProfileUpdateMsg constructDeprecatedDeviceProfileUpdatedMsg(UpdateMsgType msgType, DeviceProfile deviceProfile) {
         DeviceProfileUpdateMsg.Builder builder = DeviceProfileUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(deviceProfile.getId().getId().getMostSignificantBits())
@@ -87,5 +99,4 @@ public class DeviceProfileMsgConstructor {
                 .setIdMSB(deviceProfileId.getId().getMostSignificantBits())
                 .setIdLSB(deviceProfileId.getId().getLeastSignificantBits()).build();
     }
-
 }

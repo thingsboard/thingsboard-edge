@@ -41,6 +41,7 @@ import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 import java.util.UUID;
 
@@ -49,7 +50,7 @@ import java.util.UUID;
 @TbCoreComponent
 public class AssetEdgeProcessor extends BaseAssetProcessor {
 
-    public ListenableFuture<Void> processAssetMsgFromEdge(TenantId tenantId, Edge edge, AssetUpdateMsg assetUpdateMsg) {
+    public ListenableFuture<Void> processAssetMsgFromEdge(TenantId tenantId, Edge edge, AssetUpdateMsg assetUpdateMsg, EdgeVersion edgeVersion) {
         log.trace("[{}] executing processAssetMsgFromEdge [{}] from edge [{}]", tenantId, assetUpdateMsg, edge.getId());
         AssetId assetId = new AssetId(new UUID(assetUpdateMsg.getIdMSB(), assetUpdateMsg.getIdLSB()));
         try {
@@ -58,7 +59,7 @@ public class AssetEdgeProcessor extends BaseAssetProcessor {
             switch (assetUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, edge);
+                    saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, edge, edgeVersion);
                     return Futures.immediateFuture(null);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     Asset assetToDelete = assetService.findAssetById(tenantId, assetId);
@@ -82,9 +83,9 @@ public class AssetEdgeProcessor extends BaseAssetProcessor {
         }
     }
 
-    private void saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, Edge edge) {
-        CustomerId customerId = safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB());
-        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, customerId);
+    private void saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, Edge edge, EdgeVersion edgeVersion) {
+        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg,
+                EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion));
         Boolean created = resultPair.getFirst();
         if (created) {
             createRelationFromEdge(tenantId, edge.getId(), assetId);
@@ -121,14 +122,14 @@ public class AssetEdgeProcessor extends BaseAssetProcessor {
                 if (asset != null && !BaseAssetService.TB_SERVICE_QUEUE.equals(asset.getType())) {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     AssetUpdateMsg assetUpdateMsg =
-                            assetMsgConstructor.constructAssetUpdatedMsg(msgType, asset);
+                            assetMsgConstructor.constructAssetUpdatedMsg(msgType, asset, edgeVersion);
                     DownlinkMsg.Builder builder = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addAssetUpdateMsg(assetUpdateMsg);
                     if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(msgType)) {
                         AssetProfile assetProfile = assetProfileService.findAssetProfileById(edgeEvent.getTenantId(), asset.getAssetProfileId());
                         assetProfile = checkIfAssetProfileDefaultFieldsAssignedToEdge(edgeEvent.getTenantId(), edgeId, assetProfile, edgeVersion);
-                        builder.addAssetProfileUpdateMsg(assetProfileMsgConstructor.constructAssetProfileUpdatedMsg(msgType, assetProfile));
+                        builder.addAssetProfileUpdateMsg(assetProfileMsgConstructor.constructAssetProfileUpdatedMsg(msgType, assetProfile, edgeVersion));
                     }
                     downlinkMsg = builder.build();
                 }
@@ -144,5 +145,13 @@ public class AssetEdgeProcessor extends BaseAssetProcessor {
                 break;
         }
         return downlinkMsg;
+    }
+
+    @Override
+    protected void setCustomerId(TenantId tenantId, CustomerId customerId, Asset asset, AssetUpdateMsg assetUpdateMsg, boolean isEdgeVersionDeprecated) {
+        CustomerId customerUUID = isEdgeVersionDeprecated
+                ? safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB())
+                : asset.getCustomerId() != null ? asset.getCustomerId() : customerId;
+        asset.setCustomerId(customerUUID);
     }
 }

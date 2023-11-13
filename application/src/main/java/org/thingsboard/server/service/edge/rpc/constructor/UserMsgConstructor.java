@@ -20,16 +20,27 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 @Component
 @TbCoreComponent
 public class UserMsgConstructor {
 
-    public UserUpdateMsg constructUserUpdatedMsg(UpdateMsgType msgType, User user) {
+    public UserUpdateMsg constructUserUpdatedMsg(UpdateMsgType msgType, User user, EdgeVersion edgeVersion) {
+        if (EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)) {
+            return constructDeprecatedUserUpdatedMsg(msgType, user);
+        }
+        return UserUpdateMsg.newBuilder().setMsgType(msgType).setEntity(JacksonUtil.toString(user))
+                .setIdMSB(user.getId().getId().getMostSignificantBits())
+                .setIdLSB(user.getId().getId().getLeastSignificantBits()).build();
+    }
+
+    private UserUpdateMsg constructDeprecatedUserUpdatedMsg(UpdateMsgType msgType, User user) {
         UserUpdateMsg.Builder builder = UserUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(user.getId().getId().getMostSignificantBits())
@@ -59,7 +70,13 @@ public class UserMsgConstructor {
                 .setIdLSB(userId.getId().getLeastSignificantBits()).build();
     }
 
-    public UserCredentialsUpdateMsg constructUserCredentialsUpdatedMsg(UserCredentials userCredentials) {
+    public UserCredentialsUpdateMsg constructUserCredentialsUpdatedMsg(UserCredentials userCredentials, EdgeVersion edgeVersion) {
+        return EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)
+                ? constructDeprecatedUserCredentialsUpdatedMsg(userCredentials)
+                : UserCredentialsUpdateMsg.newBuilder().setEntity(JacksonUtil.toString(userCredentials)).build();
+    }
+
+    private UserCredentialsUpdateMsg constructDeprecatedUserCredentialsUpdatedMsg(UserCredentials userCredentials) {
         UserCredentialsUpdateMsg.Builder builder = UserCredentialsUpdateMsg.newBuilder()
                 .setUserIdMSB(userCredentials.getUserId().getId().getMostSignificantBits())
                 .setUserIdLSB(userCredentials.getUserId().getId().getLeastSignificantBits())

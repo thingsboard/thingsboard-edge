@@ -17,29 +17,31 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.gen.edge.v1.EdgeEntityType;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 @Component
 @TbCoreComponent
 public class EntityViewMsgConstructor {
 
-    public EntityViewUpdateMsg constructEntityViewUpdatedMsg(UpdateMsgType msgType, EntityView entityView) {
-        EdgeEntityType entityType;
-        switch (entityView.getEntityId().getEntityType()) {
-            case DEVICE:
-                entityType = EdgeEntityType.DEVICE;
-                break;
-            case ASSET:
-                entityType = EdgeEntityType.ASSET;
-                break;
-            default:
-                throw new RuntimeException("Unsupported entity type [" + entityView.getEntityId().getEntityType() + "]");
+    public EntityViewUpdateMsg constructEntityViewUpdatedMsg(UpdateMsgType msgType, EntityView entityView, EdgeVersion edgeVersion) {
+        if (EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)) {
+            return constructDeprecatedEntityViewUpdatedMsg(msgType, entityView);
         }
+        return EntityViewUpdateMsg.newBuilder().setMsgType(msgType).setEntity(JacksonUtil.toString(entityView))
+                .setIdMSB(entityView.getId().getId().getMostSignificantBits())
+                .setIdLSB(entityView.getId().getId().getLeastSignificantBits()).build();
+    }
+
+    private EntityViewUpdateMsg constructDeprecatedEntityViewUpdatedMsg(UpdateMsgType msgType, EntityView entityView) {
+        EdgeEntityType edgeEntityType = checkEntityType(entityView.getEntityId().getEntityType());
         EntityViewUpdateMsg.Builder builder = EntityViewUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(entityView.getId().getId().getMostSignificantBits())
@@ -48,7 +50,7 @@ public class EntityViewMsgConstructor {
                 .setType(entityView.getType())
                 .setEntityIdMSB(entityView.getEntityId().getId().getMostSignificantBits())
                 .setEntityIdLSB(entityView.getEntityId().getId().getLeastSignificantBits())
-                .setEntityType(entityType);
+                .setEntityType(edgeEntityType);
         if (entityView.getCustomerId() != null) {
             builder.setCustomerIdMSB(entityView.getCustomerId().getId().getMostSignificantBits());
             builder.setCustomerIdLSB(entityView.getCustomerId().getId().getLeastSignificantBits());
@@ -57,6 +59,17 @@ public class EntityViewMsgConstructor {
             builder.setAdditionalInfo(JacksonUtil.toString(entityView.getAdditionalInfo()));
         }
         return builder.build();
+    }
+
+    private EdgeEntityType checkEntityType(EntityType entityType) {
+        switch (entityType) {
+            case DEVICE:
+                return EdgeEntityType.DEVICE;
+            case ASSET:
+                return EdgeEntityType.ASSET;
+            default:
+                throw new RuntimeException("Unsupported entity type [" + entityType + "]");
+        }
     }
 
     public EntityViewUpdateMsg constructEntityViewDeleteMsg(EntityViewId entityViewId) {

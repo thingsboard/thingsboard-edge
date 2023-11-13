@@ -26,11 +26,13 @@ import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.RpcRequestMsg;
 import org.thingsboard.server.gen.edge.v1.RpcResponseMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 import java.util.UUID;
 
@@ -41,7 +43,16 @@ public class DeviceMsgConstructor {
     @Autowired
     private DataDecodingEncodingService dataDecodingEncodingService;
 
-    public DeviceUpdateMsg constructDeviceUpdatedMsg(UpdateMsgType msgType, Device device) {
+    public DeviceUpdateMsg constructDeviceUpdatedMsg(UpdateMsgType msgType, Device device, EdgeVersion edgeVersion) {
+        if (EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)) {
+            return constructDeprecatedDeviceUpdateMsg(msgType, device);
+        }
+        return DeviceUpdateMsg.newBuilder().setMsgType(msgType).setEntity(JacksonUtil.toString(device))
+                .setIdMSB(device.getId().getId().getMostSignificantBits())
+                .setIdLSB(device.getId().getId().getLeastSignificantBits()).build();
+    }
+
+    private DeviceUpdateMsg constructDeprecatedDeviceUpdateMsg(UpdateMsgType msgType, Device device) {
         DeviceUpdateMsg.Builder builder = DeviceUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(device.getId().getId().getMostSignificantBits())
@@ -76,7 +87,13 @@ public class DeviceMsgConstructor {
         return builder.build();
     }
 
-    public DeviceCredentialsUpdateMsg constructDeviceCredentialsUpdatedMsg(DeviceCredentials deviceCredentials) {
+    public DeviceCredentialsUpdateMsg constructDeviceCredentialsUpdatedMsg(DeviceCredentials deviceCredentials, EdgeVersion edgeVersion) {
+        return EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)
+                ? constructDeprecatedDeviceCredentialsUpdatedMsg(deviceCredentials)
+                : DeviceCredentialsUpdateMsg.newBuilder().setEntity(JacksonUtil.toString(deviceCredentials)).build();
+    }
+
+    private DeviceCredentialsUpdateMsg constructDeprecatedDeviceCredentialsUpdatedMsg(DeviceCredentials deviceCredentials) {
         DeviceCredentialsUpdateMsg.Builder builder = DeviceCredentialsUpdateMsg.newBuilder()
                 .setDeviceIdMSB(deviceCredentials.getDeviceId().getId().getMostSignificantBits())
                 .setDeviceIdLSB(deviceCredentials.getDeviceId().getId().getLeastSignificantBits());
