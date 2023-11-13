@@ -36,14 +36,31 @@ import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 @Component
 @TbCoreComponent
 public class AssetMsgConstructor {
 
-    public AssetUpdateMsg constructAssetUpdatedMsg(UpdateMsgType msgType, Asset asset, EntityGroupId entityGroupId) {
+    public AssetUpdateMsg constructAssetUpdatedMsg(UpdateMsgType msgType, Asset asset, EntityGroupId entityGroupId, EdgeVersion edgeVersion) {
+        if (EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)) {
+            return constructDeprecatedAssetUpdateMsg(msgType, asset, entityGroupId);
+        }
+        AssetUpdateMsg.Builder builder = AssetUpdateMsg.newBuilder()
+                .setMsgType(msgType).setEntity(JacksonUtil.toString(asset))
+                .setIdMSB(asset.getUuidId().getMostSignificantBits())
+                .setIdLSB(asset.getUuidId().getLeastSignificantBits());
+        if (entityGroupId != null) {
+            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
+                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
+        }
+        return builder.build();
+    }
+
+    private AssetUpdateMsg constructDeprecatedAssetUpdateMsg(UpdateMsgType msgType, Asset asset, EntityGroupId entityGroupId) {
         AssetUpdateMsg.Builder builder = AssetUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(asset.getUuidId().getMostSignificantBits())

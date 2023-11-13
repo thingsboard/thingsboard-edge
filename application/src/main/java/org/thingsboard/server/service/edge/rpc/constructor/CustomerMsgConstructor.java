@@ -36,14 +36,30 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 @Component
 @TbCoreComponent
 public class CustomerMsgConstructor {
 
-    public CustomerUpdateMsg constructCustomerUpdatedMsg(UpdateMsgType msgType, Customer customer, EntityGroupId entityGroupId) {
+    public CustomerUpdateMsg constructCustomerUpdatedMsg(UpdateMsgType msgType, Customer customer, EntityGroupId entityGroupId, EdgeVersion edgeVersion) {
+        if (EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)) {
+            return constructDeprecatedCustomerUpdatedMsg(msgType, customer, entityGroupId);
+        }
+        CustomerUpdateMsg.Builder builder = CustomerUpdateMsg.newBuilder().setMsgType(msgType).setEntity(JacksonUtil.toString(customer))
+                .setIdMSB(customer.getId().getId().getMostSignificantBits())
+                .setIdLSB(customer.getId().getId().getLeastSignificantBits());
+        if (entityGroupId != null) {
+            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
+                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
+        }
+        return builder.build();
+    }
+
+    private CustomerUpdateMsg constructDeprecatedCustomerUpdatedMsg(UpdateMsgType msgType, Customer customer, EntityGroupId entityGroupId) {
         CustomerUpdateMsg.Builder builder = CustomerUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(customer.getId().getId().getMostSignificantBits())

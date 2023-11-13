@@ -52,38 +52,33 @@ import java.util.UUID;
 @Slf4j
 public abstract class BaseEntityViewProcessor extends BaseEdgeProcessor {
 
-    protected Pair<Boolean, Boolean> saveOrUpdateEntityView(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg, CustomerId customerId) throws ThingsboardException {
+    protected Pair<Boolean, Boolean> saveOrUpdateEntityView(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg, boolean isEdgeProtoDeprecated) throws ThingsboardException {
         boolean created = false;
         boolean entityViewNameUpdated = false;
-        EntityView entityView = entityViewService.findEntityViewById(tenantId, entityViewId);
-        String entityViewName = entityViewUpdateMsg.getName();
+        EntityView entityView = isEdgeProtoDeprecated
+                ? createEntityView(tenantId, entityViewId, entityViewUpdateMsg)
+                : JacksonUtil.fromStringIgnoreUnknownProperties(entityViewUpdateMsg.getEntity(), EntityView.class);
         if (entityView == null) {
-            created = true;
-            entityView = new EntityView();
-            entityView.setTenantId(tenantId);
-            entityView.setCreatedTime(Uuids.unixTimestamp(entityViewId.getId()));
-        } else {
-            changeOwnerIfRequired(tenantId, customerId, entityViewId);
+            throw new RuntimeException("[{" + tenantId + "}] entityViewUpdateMsg {" + entityViewUpdateMsg + "} cannot be converted to entity view");
         }
+        EntityView entityViewById = entityViewService.findEntityViewById(tenantId, entityViewId);
+        if (entityViewById == null) {
+            created = true;
+            entityView.setId(null);
+        } else {
+            entityView.setId(entityViewId);
+            changeOwnerIfRequired(tenantId, entityViewById.getCustomerId(), entityViewId);
+        }
+        String entityViewName = entityView.getName();
         EntityView entityViewByName = entityViewService.findEntityViewByTenantIdAndName(tenantId, entityViewName);
         if (entityViewByName != null && !entityViewByName.getId().equals(entityViewId)) {
             entityViewName = entityViewName + "_" + StringUtils.randomAlphanumeric(15);
             log.warn("[{}] Entity view with name {} already exists. Renaming entity view name to {}",
-                    tenantId, entityViewUpdateMsg.getName(), entityViewName);
+                    tenantId, entityView.getName(), entityViewName);
             entityViewNameUpdated = true;
         }
         entityView.setName(entityViewName);
-        entityView.setType(entityViewUpdateMsg.getType());
-        entityView.setCustomerId(customerId);
-        entityView.setAdditionalInfo(entityViewUpdateMsg.hasAdditionalInfo() ?
-                JacksonUtil.toJsonNode(entityViewUpdateMsg.getAdditionalInfo()) : null);
-
-        UUID entityIdUUID = safeGetUUID(entityViewUpdateMsg.getEntityIdMSB(), entityViewUpdateMsg.getEntityIdLSB());
-        if (EdgeEntityType.DEVICE.equals(entityViewUpdateMsg.getEntityType())) {
-            entityView.setEntityId(entityIdUUID != null ? new DeviceId(entityIdUUID) : null);
-        } else if (EdgeEntityType.ASSET.equals(entityViewUpdateMsg.getEntityType())) {
-            entityView.setEntityId(entityIdUUID != null ? new AssetId(entityIdUUID) : null);
-        }
+        setCustomerId(tenantId, created ? null : entityViewById.getCustomerId(), entityView, entityViewUpdateMsg, isEdgeProtoDeprecated);
 
         entityViewValidator.validate(entityView, EntityView::getTenantId);
         if (created) {
@@ -104,4 +99,28 @@ public abstract class BaseEntityViewProcessor extends BaseEdgeProcessor {
             safeAddEntityToGroup(tenantId, new EntityGroupId(entityGroupUUID), entityViewId);
         }
     }
+
+    private EntityView createEntityView(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg) {
+        EntityView entityView = new EntityView();
+        entityView.setTenantId(tenantId);
+        entityView.setCreatedTime(Uuids.unixTimestamp(entityViewId.getId()));
+        entityView.setName(entityViewUpdateMsg.getName());
+        entityView.setType(entityViewUpdateMsg.getType());
+
+        entityView.setAdditionalInfo(entityViewUpdateMsg.hasAdditionalInfo() ?
+                JacksonUtil.toJsonNode(entityViewUpdateMsg.getAdditionalInfo()) : null);
+
+        CustomerId customerId = safeGetCustomerId(entityViewUpdateMsg.getCustomerIdMSB(), entityViewUpdateMsg.getCustomerIdLSB());
+        entityView.setCustomerId(customerId);
+
+        UUID entityIdUUID = safeGetUUID(entityViewUpdateMsg.getEntityIdMSB(), entityViewUpdateMsg.getEntityIdLSB());
+        if (EdgeEntityType.DEVICE.equals(entityViewUpdateMsg.getEntityType())) {
+            entityView.setEntityId(entityIdUUID != null ? new DeviceId(entityIdUUID) : null);
+        } else if (EdgeEntityType.ASSET.equals(entityViewUpdateMsg.getEntityType())) {
+            entityView.setEntityId(entityIdUUID != null ? new AssetId(entityIdUUID) : null);
+        }
+        return entityView;
+    }
+
+    protected abstract void setCustomerId(TenantId tenantId, CustomerId customerId, EntityView entityView, EntityViewUpdateMsg entityViewUpdateMsg, boolean isEdgeVersionDeprecated);
 }

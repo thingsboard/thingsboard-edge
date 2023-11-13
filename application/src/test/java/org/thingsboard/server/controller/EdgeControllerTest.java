@@ -53,15 +53,19 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
+import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -74,6 +78,8 @@ import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CustomMenuItem;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.queue.Queue;
+import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.model.JwtSettings;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
@@ -233,15 +239,13 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
     @Test
     public void testFindEdgeTypesByTenantId() throws Exception {
-        List<Edge> edges = new ArrayList<>();
-
         int cntEntity = 3;
 
         Mockito.reset(tbClusterService, auditLogService);
 
         for (int i = 0; i < cntEntity; i++) {
             Edge edge = constructEdge("My edge B" + i, "typeB");
-            edges.add(doPost("/api/edge", edge, Edge.class));
+            doPost("/api/edge", edge, Edge.class);
         }
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceNeverAdditionalInfoAny(new Edge(), new Edge(),
@@ -250,11 +254,11 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
         for (int i = 0; i < 7; i++) {
             Edge edge = constructEdge("My edge C" + i, "typeC");
-            edges.add(doPost("/api/edge", edge, Edge.class));
+            doPost("/api/edge", edge, Edge.class);
         }
         for (int i = 0; i < 9; i++) {
             Edge edge = constructEdge("My edge A" + i, "typeA");
-            edges.add(doPost("/api/edge", edge, Edge.class));
+            doPost("/api/edge", edge, Edge.class);
         }
         List<EntitySubtype> edgeTypes = doGetTyped("/api/edge/types",
                 new TypeReference<>() {
@@ -427,7 +431,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         List<Edge> edges = new ArrayList<>(Futures.allAsList(futures).get(TIMEOUT, TimeUnit.SECONDS));
         List<Edge> loadedEdges = new ArrayList<>();
         PageLink pageLink = new PageLink(23);
-        PageData<Edge> pageData = null;
+        PageData<Edge> pageData;
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/edges?",
                     new TypeReference<>() {
@@ -474,10 +478,10 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
         List<Edge> loadedEdgesTitle1 = new ArrayList<>();
         PageLink pageLink = new PageLink(15, 0, title1);
-        PageData<Edge> pageData = null;
+        PageData<Edge> pageData;
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/edges?",
-                    new TypeReference<PageData<Edge>>() {
+                    new TypeReference<>() {
                     }, pageLink);
             loadedEdgesTitle1.addAll(pageData.getData());
             if (pageData.hasNext()) {
@@ -494,7 +498,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         pageLink = new PageLink(4, 0, title2);
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/edges?",
-                    new TypeReference<PageData<Edge>>() {
+                    new TypeReference<>() {
                     }, pageLink);
             loadedEdgesTitle2.addAll(pageData.getData());
             if (pageData.hasNext()) {
@@ -564,10 +568,10 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
         List<Edge> loadedEdgesType1 = new ArrayList<>();
         PageLink pageLink = new PageLink(15);
-        PageData<Edge> pageData = null;
+        PageData<Edge> pageData;
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/edges?type={type}&",
-                    new TypeReference<PageData<Edge>>() {
+                    new TypeReference<>() {
                     }, pageLink, type1);
             loadedEdgesType1.addAll(pageData.getData());
             if (pageData.hasNext()) {
@@ -584,7 +588,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         pageLink = new PageLink(4);
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/edges?type={type}&",
-                    new TypeReference<PageData<Edge>>() {
+                    new TypeReference<>() {
                     }, pageLink, type2);
             loadedEdgesType2.addAll(pageData.getData());
             if (pageData.hasNext()) {
@@ -604,7 +608,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
         pageLink = new PageLink(4);
         pageData = doGetTypedWithPageLink("/api/tenant/edges?type={type}&",
-                new TypeReference<PageData<Edge>>() {
+                new TypeReference<>() {
                 }, pageLink, type1);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
@@ -616,7 +620,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
         pageLink = new PageLink(4);
         pageData = doGetTypedWithPageLink("/api/tenant/edges?type={type}&",
-                new TypeReference<PageData<Edge>>() {
+                new TypeReference<>() {
                 }, pageLink, type2);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
@@ -646,15 +650,14 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new Edge(), new Edge(),
                 tenantId, customerId, tenantAdminUser.getId(), tenantAdminUser.getEmail(),
-                ActionType.ASSIGNED_TO_CUSTOMER, cntEntity, cntEntity, cntEntity * 2,
-                new String(), new String(), new String());
+                ActionType.ASSIGNED_TO_CUSTOMER, cntEntity, cntEntity, cntEntity * 2, "", "", "");
 
         List<Edge> loadedEdges = new ArrayList<>();
         PageLink pageLink = new PageLink(23);
         PageData<Edge> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/edges?",
-                    new TypeReference<PageData<Edge>>() {
+                    new TypeReference<>() {
                     }, pageLink);
             loadedEdges.addAll(pageData.getData());
             if (pageData.hasNext()) {
@@ -713,7 +716,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         PageData<Edge> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/edges?",
-                    new TypeReference<PageData<Edge>>() {
+                    new TypeReference<>() {
                     }, pageLink);
             loadedEdgesTitle1.addAll(pageData.getData());
             if (pageData.hasNext()) {
@@ -730,7 +733,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         pageLink = new PageLink(4, 0, title2);
         do {
             pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/edges?",
-                    new TypeReference<PageData<Edge>>() {
+                    new TypeReference<>() {
                     }, pageLink);
             loadedEdgesTitle2.addAll(pageData.getData());
             if (pageData.hasNext()) {
@@ -757,7 +760,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
         pageLink = new PageLink(4, 0, title1);
         pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/edges?",
-                new TypeReference<PageData<Edge>>() {
+                new TypeReference<>() {
                 }, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
@@ -769,7 +772,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
         pageLink = new PageLink(4, 0, title2);
         pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/edges?",
-                new TypeReference<PageData<Edge>>() {
+                new TypeReference<>() {
                 }, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
@@ -819,10 +822,10 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
         List<Edge> loadedEdgesType1 = new ArrayList<>();
         PageLink pageLink = new PageLink(15, 0, title1);
-        PageData<Edge> pageData = null;
+        PageData<Edge> pageData;
         do {
             pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/edges?type={type}&",
-                    new TypeReference<PageData<Edge>>() {
+                    new TypeReference<>() {
                     }, pageLink, type1);
             loadedEdgesType1.addAll(pageData.getData());
             if (pageData.hasNext()) {
@@ -839,7 +842,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         pageLink = new PageLink(4, 0, title2);
         do {
             pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/edges?type={type}&",
-                    new TypeReference<PageData<Edge>>() {
+                    new TypeReference<>() {
                     }, pageLink, type2);
             loadedEdgesType2.addAll(pageData.getData());
             if (pageData.hasNext()) {
@@ -859,7 +862,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
         pageLink = new PageLink(4, 0, title1);
         pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/edges?type={type}&",
-                new TypeReference<PageData<Edge>>() {
+                new TypeReference<>() {
                 }, pageLink, type1);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
@@ -871,7 +874,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
         pageLink = new PageLink(4, 0, title2);
         pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/edges?type={type}&",
-                new TypeReference<PageData<Edge>>() {
+                new TypeReference<>() {
                 }, pageLink, type2);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
@@ -972,8 +975,9 @@ public class EdgeControllerTest extends AbstractControllerTest {
         for (AbstractMessage message : messages) {
             if (message instanceof QueueUpdateMsg) {
                 QueueUpdateMsg queueUpdateMsg = (QueueUpdateMsg) message;
-                if (msgType.equals(queueUpdateMsg.getMsgType())
-                        && name.equals(queueUpdateMsg.getName())) {
+                Queue queue = JacksonUtil.fromStringIgnoreUnknownProperties(queueUpdateMsg.getEntity(), Queue.class);
+                Assert.assertNotNull(queue);
+                if (msgType.equals(queueUpdateMsg.getMsgType()) && name.equals(queue.getName())) {
                     messages.remove(message);
                     return true;
                 }
@@ -986,9 +990,11 @@ public class EdgeControllerTest extends AbstractControllerTest {
         for (AbstractMessage message : messages) {
             if (message instanceof RuleChainUpdateMsg) {
                 RuleChainUpdateMsg ruleChainUpdateMsg = (RuleChainUpdateMsg) message;
+                RuleChain ruleChain = JacksonUtil.fromStringIgnoreUnknownProperties(ruleChainUpdateMsg.getEntity(), RuleChain.class);
+                Assert.assertNotNull(ruleChain);
                 if (msgType.equals(ruleChainUpdateMsg.getMsgType())
-                        && name.equals(ruleChainUpdateMsg.getName())
-                        && ruleChainUpdateMsg.getRoot()) {
+                        && name.equals(ruleChain.getName())
+                        && ruleChain.isRoot()) {
                     messages.remove(message);
                     return true;
                 }
@@ -1001,7 +1007,9 @@ public class EdgeControllerTest extends AbstractControllerTest {
         for (AbstractMessage message : messages) {
             if (message instanceof AdminSettingsUpdateMsg) {
                 AdminSettingsUpdateMsg adminSettingsUpdateMsg = (AdminSettingsUpdateMsg) message;
-                if (key.equals(adminSettingsUpdateMsg.getKey())) {
+                AdminSettings adminSettings = JacksonUtil.fromStringIgnoreUnknownProperties(adminSettingsUpdateMsg.getEntity(), AdminSettings.class);
+                Assert.assertNotNull(adminSettings);
+                if (key.equals(adminSettings.getKey())) {
                     messages.remove(message);
                     return true;
                 }
@@ -1014,8 +1022,10 @@ public class EdgeControllerTest extends AbstractControllerTest {
         for (AbstractMessage message : messages) {
             if (message instanceof DeviceProfileUpdateMsg) {
                 DeviceProfileUpdateMsg deviceProfileUpdateMsg = (DeviceProfileUpdateMsg) message;
+                DeviceProfile deviceProfile = JacksonUtil.fromStringIgnoreUnknownProperties(deviceProfileUpdateMsg.getEntity(), DeviceProfile.class);
+                Assert.assertNotNull(deviceProfile);
                 if (msgType.equals(deviceProfileUpdateMsg.getMsgType())
-                        && name.equals(deviceProfileUpdateMsg.getName())) {
+                        && name.equals(deviceProfile.getName())) {
                     messages.remove(message);
                     return true;
                 }
@@ -1028,8 +1038,10 @@ public class EdgeControllerTest extends AbstractControllerTest {
         for (AbstractMessage message : messages) {
             if (message instanceof DeviceUpdateMsg) {
                 DeviceUpdateMsg deviceUpdateMsg = (DeviceUpdateMsg) message;
+                Device device = JacksonUtil.fromStringIgnoreUnknownProperties(deviceUpdateMsg.getEntity(), Device.class);
+                Assert.assertNotNull(device);
                 if (msgType.equals(deviceUpdateMsg.getMsgType())
-                        && name.equals(deviceUpdateMsg.getName())) {
+                        && name.equals(device.getName())) {
                     messages.remove(message);
                     return true;
                 }
@@ -1042,8 +1054,10 @@ public class EdgeControllerTest extends AbstractControllerTest {
         for (AbstractMessage message : messages) {
             if (message instanceof AssetProfileUpdateMsg) {
                 AssetProfileUpdateMsg assetProfileUpdateMsg = (AssetProfileUpdateMsg) message;
+                AssetProfile assetProfile = JacksonUtil.fromStringIgnoreUnknownProperties(assetProfileUpdateMsg.getEntity(), AssetProfile.class);
+                Assert.assertNotNull(assetProfile);
                 if (msgType.equals(assetProfileUpdateMsg.getMsgType())
-                        && name.equals(assetProfileUpdateMsg.getName())) {
+                        && name.equals(assetProfile.getName())) {
                     messages.remove(message);
                     return true;
                 }
@@ -1056,8 +1070,10 @@ public class EdgeControllerTest extends AbstractControllerTest {
         for (AbstractMessage message : messages) {
             if (message instanceof AssetUpdateMsg) {
                 AssetUpdateMsg assetUpdateMsg = (AssetUpdateMsg) message;
+                Asset asset = JacksonUtil.fromStringIgnoreUnknownProperties(assetUpdateMsg.getEntity(), Asset.class);
+                Assert.assertNotNull(asset);
                 if (msgType.equals(assetUpdateMsg.getMsgType())
-                        && name.equals(assetUpdateMsg.getName())) {
+                        && name.equals(asset.getName())) {
                     messages.remove(message);
                     return true;
                 }
@@ -1070,9 +1086,11 @@ public class EdgeControllerTest extends AbstractControllerTest {
         for (AbstractMessage message : messages) {
             if (message instanceof UserUpdateMsg) {
                 UserUpdateMsg userUpdateMsg = (UserUpdateMsg) message;
+                User user = JacksonUtil.fromStringIgnoreUnknownProperties(userUpdateMsg.getEntity(), User.class);
+                Assert.assertNotNull(user);
                 if (msgType.equals(userUpdateMsg.getMsgType())
-                        && email.equals(userUpdateMsg.getEmail())
-                        && authority.name().equals(userUpdateMsg.getAuthority())) {
+                        && email.equals(user.getEmail())
+                        && authority.equals(user.getAuthority())) {
                     messages.remove(message);
                     return true;
                 }
@@ -1085,8 +1103,10 @@ public class EdgeControllerTest extends AbstractControllerTest {
         for (AbstractMessage message : messages) {
             if (message instanceof CustomerUpdateMsg) {
                 CustomerUpdateMsg customerUpdateMsg = (CustomerUpdateMsg) message;
+                Customer customer = JacksonUtil.fromStringIgnoreUnknownProperties(customerUpdateMsg.getEntity(), Customer.class);
+                Assert.assertNotNull(customer);
                 if (msgType.equals(customerUpdateMsg.getMsgType())
-                        && title.equals(customerUpdateMsg.getTitle())) {
+                        && title.equals(customer.getTitle())) {
                     messages.remove(message);
                     return true;
                 }
@@ -1099,11 +1119,13 @@ public class EdgeControllerTest extends AbstractControllerTest {
         for (AbstractMessage message : messages) {
             if (message instanceof CustomerUpdateMsg) {
                 CustomerUpdateMsg customerUpdateMsg = (CustomerUpdateMsg) message;
+                Customer customer = JacksonUtil.fromStringIgnoreUnknownProperties(customerUpdateMsg.getEntity(), Customer.class);
+                Assert.assertNotNull(customer);
                 if (msgType.equals(customerUpdateMsg.getMsgType())
-                        && title.equals(customerUpdateMsg.getTitle())
-                        && ownerType.equals(customerUpdateMsg.getOwnerEntityType())
-                        && ownerUUID.getMostSignificantBits() == customerUpdateMsg.getOwnerIdMSB()
-                        && ownerUUID.getLeastSignificantBits() == customerUpdateMsg.getOwnerIdLSB()) {
+                        && title.equals(customer.getTitle())
+                        && ownerType.equals(customer.getOwnerId().getEntityType().name())
+                        && ownerUUID.getMostSignificantBits() == customer.getOwnerId().getId().getMostSignificantBits()
+                        && ownerUUID.getLeastSignificantBits() == customer.getOwnerId().getId().getLeastSignificantBits()) {
                     messages.remove(message);
                     return true;
                 }
@@ -1142,10 +1164,12 @@ public class EdgeControllerTest extends AbstractControllerTest {
         for (AbstractMessage message : messages) {
             if (message instanceof EntityGroupUpdateMsg) {
                 EntityGroupUpdateMsg entityGroupUpdateMsg = (EntityGroupUpdateMsg) message;
+                EntityGroup entityGroup = JacksonUtil.fromStringIgnoreUnknownProperties(entityGroupUpdateMsg.getEntity(), EntityGroup.class);
+                Assert.assertNotNull(entityGroup);
                 if (msgType.equals(entityGroupUpdateMsg.getMsgType())
-                        && name.equals(entityGroupUpdateMsg.getName())
-                        && type.equals(entityGroupUpdateMsg.getType())
-                        && ownerType.equals(entityGroupUpdateMsg.getOwnerEntityType())) {
+                        && name.equals(entityGroup.getName())
+                        && type.equals(entityGroup.getType().name())
+                        && ownerType.equals(entityGroup.getOwnerId().getEntityType().name())) {
                     messages.remove(message);
                     return true;
                 }
@@ -1171,9 +1195,10 @@ public class EdgeControllerTest extends AbstractControllerTest {
         for (AbstractMessage message : messages) {
             if (message instanceof TenantProfileUpdateMsg) {
                 TenantProfileUpdateMsg tenantProfileUpdateMsg = (TenantProfileUpdateMsg) message;
-                TenantProfileId tenantProfileIdMsg = new TenantProfileId(new UUID(tenantProfileUpdateMsg.getIdMSB(), tenantProfileUpdateMsg.getIdLSB()));
+                TenantProfile tenantProfile = JacksonUtil.fromStringIgnoreUnknownProperties(tenantProfileUpdateMsg.getEntity(), TenantProfile.class);
+                Assert.assertNotNull(tenantProfile);
                 if (UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(tenantProfileUpdateMsg.getMsgType())
-                        && tenantProfileId.equals(tenantProfileIdMsg)) {
+                        && tenantProfileId.equals(tenantProfile.getId())) {
                     messages.remove(message);
                     return true;
                 }
@@ -1186,9 +1211,10 @@ public class EdgeControllerTest extends AbstractControllerTest {
         for (AbstractMessage message : messages) {
             if (message instanceof TenantUpdateMsg) {
                 TenantUpdateMsg tenantUpdateMsg = (TenantUpdateMsg) message;
-                TenantId tenantIdMsg = new TenantId(new UUID(tenantUpdateMsg.getIdMSB(), tenantUpdateMsg.getIdLSB()));
+                Tenant tenant = JacksonUtil.fromStringIgnoreUnknownProperties(tenantUpdateMsg.getEntity(), Tenant.class);
+                Assert.assertNotNull(tenant);
                 if (UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(tenantUpdateMsg.getMsgType())
-                        && tenantId1.equals(tenantIdMsg)) {
+                        && tenantId1.equals(tenant.getId())) {
                     messages.remove(message);
                     return true;
                 }
