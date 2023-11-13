@@ -30,12 +30,12 @@
  */
 package org.thingsboard.server.edge;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.EntityType;
@@ -77,8 +77,10 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof DashboardUpdateMsg);
         DashboardUpdateMsg dashboardUpdateMsg = (DashboardUpdateMsg) latestMessage;
+        Dashboard dashboardMsg = JacksonUtil.fromStringIgnoreUnknownProperties(dashboardUpdateMsg.getEntity(), Dashboard.class);
+        Assert.assertNotNull(dashboardMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, dashboardUpdateMsg.getMsgType());
-        Assert.assertEquals(savedDashboard.getTitle(), dashboardUpdateMsg.getTitle());
+        Assert.assertEquals(savedDashboard.getTitle(), dashboardMsg.getTitle());
         Assert.assertEquals(savedDashboard.getUuidId().getMostSignificantBits(), dashboardUpdateMsg.getIdMSB());
         Assert.assertEquals(savedDashboard.getUuidId().getLeastSignificantBits(), dashboardUpdateMsg.getIdLSB());
         Assert.assertEquals(dashboardEntityGroup1.getUuidId().getMostSignificantBits(), dashboardUpdateMsg.getEntityGroupIdMSB());
@@ -104,13 +106,15 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
         latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof DashboardUpdateMsg);
         dashboardUpdateMsg = (DashboardUpdateMsg) latestMessage;
+        dashboardMsg = JacksonUtil.fromStringIgnoreUnknownProperties(dashboardUpdateMsg.getEntity(), Dashboard.class);
+        Assert.assertNotNull(dashboardMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, dashboardUpdateMsg.getMsgType());
         Assert.assertEquals(dashboardEntityGroup2.getUuidId().getMostSignificantBits(), dashboardUpdateMsg.getEntityGroupIdMSB());
         Assert.assertEquals(dashboardEntityGroup2.getUuidId().getLeastSignificantBits(), dashboardUpdateMsg.getEntityGroupIdLSB());
-        Assert.assertEquals(savedDashboard.getTitle(), dashboardUpdateMsg.getTitle());
-        Assert.assertTrue(dashboardUpdateMsg.getMobileHide());
-        Assert.assertEquals(IMAGE, dashboardUpdateMsg.getImage());
-        Assert.assertEquals(MOBILE_ORDER, dashboardUpdateMsg.getMobileOrder());
+        Assert.assertEquals(savedDashboard.getTitle(), dashboardMsg.getTitle());
+        Assert.assertTrue(dashboardMsg.isMobileHide());
+        Assert.assertEquals(IMAGE, dashboardMsg.getImage());
+        Assert.assertEquals(MOBILE_ORDER, dashboardMsg.getMobileOrder().intValue());
 
         // update dashboard
         edgeImitator.expectMessageAmount(1);
@@ -120,8 +124,10 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
         latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof DashboardUpdateMsg);
         dashboardUpdateMsg = (DashboardUpdateMsg) latestMessage;
+        dashboardMsg = JacksonUtil.fromStringIgnoreUnknownProperties(dashboardUpdateMsg.getEntity(), Dashboard.class);
+        Assert.assertNotNull(dashboardMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, dashboardUpdateMsg.getMsgType());
-        Assert.assertEquals("Edge Dashboard 1 Updated", dashboardUpdateMsg.getTitle());
+        Assert.assertEquals("Edge Dashboard 1 Updated", dashboardMsg.getTitle());
 
         // remove dashboard from entity group 2
         edgeImitator.expectMessageAmount(1);
@@ -179,14 +185,13 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
     @Test
     @Ignore
     public void testSendDashboardToCloud() throws Exception {
-        UUID uuid = Uuids.timeBased();
+        Dashboard dashboard = buildDashboardForUplinkMsg();
 
         UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
         DashboardUpdateMsg.Builder dashboardUpdateMsgBuilder = DashboardUpdateMsg.newBuilder();
-        dashboardUpdateMsgBuilder.setIdMSB(uuid.getMostSignificantBits());
-        dashboardUpdateMsgBuilder.setIdLSB(uuid.getLeastSignificantBits());
-        dashboardUpdateMsgBuilder.setTitle("Edge Test Dashboard");
-        dashboardUpdateMsgBuilder.setConfiguration("");
+        dashboardUpdateMsgBuilder.setIdMSB(dashboard.getUuidId().getMostSignificantBits());
+        dashboardUpdateMsgBuilder.setIdLSB(dashboard.getUuidId().getLeastSignificantBits());
+        dashboardUpdateMsgBuilder.setEntity(JacksonUtil.toString(dashboard));
         dashboardUpdateMsgBuilder.setMsgType(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE);
         testAutoGeneratedCodeByProtobuf(dashboardUpdateMsgBuilder);
         uplinkMsgBuilder.addDashboardUpdateMsg(dashboardUpdateMsgBuilder.build());
@@ -198,9 +203,9 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
 
         Assert.assertTrue(edgeImitator.waitForResponses());
 
-        Dashboard dashboard = doGet("/api/dashboard/" + uuid, Dashboard.class);
-        Assert.assertNotNull(dashboard);
-        Assert.assertEquals("Edge Test Dashboard", dashboard.getName());
+        Dashboard foundDashboard = doGet("/api/dashboard/" + dashboard.getUuidId(), Dashboard.class);
+        Assert.assertNotNull(foundDashboard);
+        Assert.assertEquals("Edge Test Dashboard", foundDashboard.getName());
     }
 
     @Test
@@ -252,6 +257,14 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, entityViewUpdateMsg.getMsgType());
         Assert.assertEquals(dashboard.getUuidId().getMostSignificantBits(), entityViewUpdateMsg.getIdMSB());
         Assert.assertEquals(dashboard.getUuidId().getLeastSignificantBits(), entityViewUpdateMsg.getIdLSB());
+        return dashboard;
+    }
+
+    private Dashboard buildDashboardForUplinkMsg() {
+        Dashboard dashboard = new Dashboard();
+        dashboard.setId(new DashboardId(UUID.randomUUID()));
+        dashboard.setTenantId(tenantId);
+        dashboard.setTitle("Edge Test Dashboard");
         return dashboard;
     }
 

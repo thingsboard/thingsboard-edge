@@ -35,13 +35,23 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.gen.edge.v1.ConverterUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 @Component
 @Slf4j
 public class ConverterProtoConstructor {
 
-    public ConverterUpdateMsg constructConverterUpdateMsg(UpdateMsgType msgType, Converter converter) {
+    public ConverterUpdateMsg constructConverterUpdateMsg(UpdateMsgType msgType, Converter converter, EdgeVersion edgeVersion) {
+        return EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)
+                ? constructDeprecatedConverterUpdateMsg(msgType, converter)
+                : ConverterUpdateMsg.newBuilder().setEntity(JacksonUtil.toString(converter))
+                .setIdMSB(converter.getUuidId().getMostSignificantBits())
+                .setIdLSB(converter.getUuidId().getLeastSignificantBits()).build();
+    }
+
+    private ConverterUpdateMsg constructDeprecatedConverterUpdateMsg(UpdateMsgType msgType, Converter converter) {
         ConverterUpdateMsg.Builder builder = ConverterUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(converter.getId().getId().getMostSignificantBits())

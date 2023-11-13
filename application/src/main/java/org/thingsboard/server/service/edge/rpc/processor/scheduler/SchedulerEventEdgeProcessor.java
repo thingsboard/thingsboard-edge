@@ -37,6 +37,7 @@ import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -47,7 +48,7 @@ import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 @TbCoreComponent
 public class SchedulerEventEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg convertSchedulerEventToDownlink(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertSchedulerEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         SchedulerEventId schedulerEventId = new SchedulerEventId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
         UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
@@ -57,7 +58,7 @@ public class SchedulerEventEdgeProcessor extends BaseEdgeProcessor {
                 SchedulerEvent schedulerEvent = schedulerEventService.findSchedulerEventById(edgeEvent.getTenantId(), schedulerEventId);
                 if (schedulerEvent != null) {
                     SchedulerEventUpdateMsg schedulerEventUpdateMsg =
-                            schedulerEventMsgConstructor.constructSchedulerEventUpdatedMsg(msgType, schedulerEvent);
+                            schedulerEventMsgConstructor.constructSchedulerEventUpdatedMsg(msgType, schedulerEvent, edgeVersion);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addSchedulerEventUpdateMsg(schedulerEventUpdateMsg)

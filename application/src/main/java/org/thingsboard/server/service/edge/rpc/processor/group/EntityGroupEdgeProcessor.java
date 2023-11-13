@@ -37,6 +37,7 @@ import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -47,7 +48,7 @@ import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 @TbCoreComponent
 public class EntityGroupEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg convertEntityGroupEventToDownlink(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertEntityGroupEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         EntityGroupId entityGroupId = new EntityGroupId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
         UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
@@ -57,7 +58,7 @@ public class EntityGroupEdgeProcessor extends BaseEdgeProcessor {
                 EntityGroup entityGroup = entityGroupService.findEntityGroupById(edgeEvent.getTenantId(), entityGroupId);
                 if (entityGroup != null) {
                     EntityGroupUpdateMsg entityGroupUpdateMsg =
-                            entityGroupMsgConstructor.constructEntityGroupUpdatedMsg(msgType, entityGroup);
+                            entityGroupMsgConstructor.constructEntityGroupUpdatedMsg(msgType, entityGroup, edgeVersion);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addEntityGroupUpdateMsg(entityGroupUpdateMsg)

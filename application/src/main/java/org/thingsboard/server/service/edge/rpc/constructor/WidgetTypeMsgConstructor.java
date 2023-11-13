@@ -35,9 +35,11 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.WidgetTypeUpdateMsg;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 import java.util.Arrays;
 
@@ -45,7 +47,16 @@ import java.util.Arrays;
 @TbCoreComponent
 public class WidgetTypeMsgConstructor {
 
-    public WidgetTypeUpdateMsg constructWidgetTypeUpdateMsg(UpdateMsgType msgType, WidgetTypeDetails widgetTypeDetails) {
+    public WidgetTypeUpdateMsg constructWidgetTypeUpdateMsg(UpdateMsgType msgType, WidgetTypeDetails widgetTypeDetails, EdgeVersion edgeVersion) {
+        if (EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)) {
+            return constructDeprecatedWidgetTypeUpdateMsg(msgType, widgetTypeDetails, edgeVersion);
+        }
+        return WidgetTypeUpdateMsg.newBuilder().setMsgType(msgType).setEntity(JacksonUtil.toString(widgetTypeDetails))
+                .setIdMSB(widgetTypeDetails.getId().getId().getMostSignificantBits())
+                .setIdLSB(widgetTypeDetails.getId().getId().getLeastSignificantBits()).build();
+    }
+
+    private WidgetTypeUpdateMsg constructDeprecatedWidgetTypeUpdateMsg(UpdateMsgType msgType, WidgetTypeDetails widgetTypeDetails, EdgeVersion edgeVersion) {
         WidgetTypeUpdateMsg.Builder builder = WidgetTypeUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(widgetTypeDetails.getId().getId().getMostSignificantBits())
@@ -73,7 +84,12 @@ public class WidgetTypeMsgConstructor {
             builder.setImage(widgetTypeDetails.getImage());
         }
         if (widgetTypeDetails.getDescription() != null) {
-            builder.setDescription(widgetTypeDetails.getDescription());
+            if (EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_6_0) &&
+                    widgetTypeDetails.getDescription().length() > 255) {
+                builder.setDescription(widgetTypeDetails.getDescription().substring(0, 254));
+            } else {
+                builder.setDescription(widgetTypeDetails.getDescription());
+            }
         }
         builder.setDeprecated(widgetTypeDetails.isDeprecated());
         if (widgetTypeDetails.getTags() != null) {

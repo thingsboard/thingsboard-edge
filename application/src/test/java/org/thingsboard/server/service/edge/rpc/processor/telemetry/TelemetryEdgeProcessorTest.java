@@ -28,60 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-.tb-widget {
-  .tb-widget-error {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, .5);
+package org.thingsboard.server.service.edge.rpc.processor.telemetry;
 
-    span {
-      color: #f00;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+
+@Slf4j
+@RunWith(MockitoJUnitRunner.class)
+public class TelemetryEdgeProcessorTest {
+
+    @Test
+    public void testConvert_maxSizeLimit() throws Exception {
+        EdgeEvent edgeEvent = new EdgeEvent();
+        ObjectNode body = JacksonUtil.newObjectNode();
+        body.put("value", StringUtils.randomAlphanumeric(10000));
+        edgeEvent.setBody(body);
+        DownlinkMsg downlinkMsg = new TelemetryEdgeProcessor().convertTelemetryEventToDownlink(edgeEvent);
+        Assert.assertNull(downlinkMsg);
     }
-  }
-
-  .tb-widget-no-data {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, .75);
-    z-index: 2;
-
-    span {
-      color: #000;
-      text-align: center;
-    }
-  }
-
-  .tb-widget-loading {
-    z-index: 3;
-    background: rgba(255, 255, 255, .15);
-  }
-
-  .tb-widget-error-container {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-color: #fff;
-  }
-
-  .tb-widget-error-msg {
-    padding: 5px;
-    font-size: 16px;
-    color: #f00;
-    word-wrap: break-word;
-  }
-
-  #widget-container {
-    min-height: 0;
-    min-width: 0;
-
-    canvas {
-      user-select: none;
-
-      &::selection, &::-moz-selection {
-        background-color: transparent;
-      }
-    }
-  }
 }

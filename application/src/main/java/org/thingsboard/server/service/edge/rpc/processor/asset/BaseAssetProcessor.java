@@ -50,38 +50,35 @@ import java.util.UUID;
 @Slf4j
 public abstract class BaseAssetProcessor extends BaseEdgeProcessor {
 
-    protected Pair<Boolean, Boolean> saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, CustomerId customerId) throws ThingsboardException {
+    protected Pair<Boolean, Boolean> saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, boolean isEdgeVersionOlderThan_3_6_2) throws ThingsboardException {
         boolean created = false;
         boolean assetNameUpdated = false;
         assetCreationLock.lock();
         try {
-            Asset asset = assetService.findAssetById(tenantId, assetId);
-            String assetName = assetUpdateMsg.getName();
+            Asset asset = isEdgeVersionOlderThan_3_6_2
+                    ? createAsset(tenantId, assetId, assetUpdateMsg)
+                    : JacksonUtil.fromStringIgnoreUnknownProperties(assetUpdateMsg.getEntity(), Asset.class);
             if (asset == null) {
-                created = true;
-                asset = new Asset();
-                asset.setTenantId(tenantId);
-                asset.setCreatedTime(Uuids.unixTimestamp(assetId.getId()));
-            } else {
-                changeOwnerIfRequired(tenantId, customerId, assetId);
+                throw new RuntimeException("[{" + tenantId + "}] assetUpdateMsg {" + assetUpdateMsg + " } cannot be converted to asset");
             }
+            Asset assetById = assetService.findAssetById(tenantId, assetId);
+            if (assetById == null) {
+                created = true;
+                asset.setId(null);
+            } else {
+                asset.setId(assetId);
+                changeOwnerIfRequired(tenantId, asset.getCustomerId(), assetId);
+            }
+            String assetName = asset.getName();
             Asset assetByName = assetService.findAssetByTenantIdAndName(tenantId, assetName);
             if (assetByName != null && !assetByName.getId().equals(assetId)) {
                 assetName = assetName + "_" + StringUtils.randomAlphanumeric(15);
                 log.warn("[{}] Asset with name {} already exists. Renaming asset name to {}",
-                        tenantId, assetUpdateMsg.getName(), assetName);
+                        tenantId, asset.getName(), assetName);
                 assetNameUpdated = true;
             }
             asset.setName(assetName);
-            asset.setType(assetUpdateMsg.getType());
-            asset.setLabel(assetUpdateMsg.hasLabel() ? assetUpdateMsg.getLabel() : null);
-            asset.setAdditionalInfo(assetUpdateMsg.hasAdditionalInfo()
-                    ? JacksonUtil.toJsonNode(assetUpdateMsg.getAdditionalInfo()) : null);
-
-            UUID assetProfileUUID = safeGetUUID(assetUpdateMsg.getAssetProfileIdMSB(), assetUpdateMsg.getAssetProfileIdLSB());
-            asset.setAssetProfileId(assetProfileUUID != null ? new AssetProfileId(assetProfileUUID) : null);
-
-            asset.setCustomerId(customerId);
+            setCustomerId(tenantId, created ? null : assetById.getCustomerId(), asset, assetUpdateMsg, isEdgeVersionOlderThan_3_6_2);
 
             assetValidator.validate(asset, Asset::getTenantId);
             if (created) {
@@ -108,4 +105,25 @@ public abstract class BaseAssetProcessor extends BaseEdgeProcessor {
             safeAddEntityToGroup(tenantId, new EntityGroupId(entityGroupUUID), assetId);
         }
     }
+
+    private Asset createAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg) {
+        Asset asset = new Asset();
+        asset.setTenantId(tenantId);
+        asset.setName(assetUpdateMsg.getName());
+        asset.setCreatedTime(Uuids.unixTimestamp(assetId.getId()));
+        asset.setType(assetUpdateMsg.getType());
+        asset.setLabel(assetUpdateMsg.hasLabel() ? assetUpdateMsg.getLabel() : null);
+        asset.setAdditionalInfo(assetUpdateMsg.hasAdditionalInfo()
+                ? JacksonUtil.toJsonNode(assetUpdateMsg.getAdditionalInfo()) : null);
+
+        UUID assetProfileUUID = safeGetUUID(assetUpdateMsg.getAssetProfileIdMSB(), assetUpdateMsg.getAssetProfileIdLSB());
+        asset.setAssetProfileId(assetProfileUUID != null ? new AssetProfileId(assetProfileUUID) : null);
+
+        CustomerId customerId = safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB());
+        asset.setCustomerId(customerId);
+        return asset;
+    }
+
+    protected abstract void setCustomerId(TenantId tenantId, CustomerId customerId, Asset asset, AssetUpdateMsg assetUpdateMsg, boolean isEdgeVersionDeprecated);
+
 }

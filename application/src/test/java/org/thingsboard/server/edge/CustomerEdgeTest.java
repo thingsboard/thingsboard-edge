@@ -34,6 +34,7 @@ import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
@@ -96,7 +97,9 @@ public class CustomerEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, customerUpdateMsg.getMsgType());
         Assert.assertEquals(customer.getUuidId().getMostSignificantBits(), customerUpdateMsg.getIdMSB());
         Assert.assertEquals(customer.getUuidId().getLeastSignificantBits(), customerUpdateMsg.getIdLSB());
-        Assert.assertEquals(updatedTitle, customerUpdateMsg.getTitle());
+        Customer result = JacksonUtil.fromStringIgnoreUnknownProperties(customerUpdateMsg.getEntity(), Customer.class);
+        Assert.assertNotNull(result);
+        Assert.assertEquals(updatedTitle, result.getTitle());
     }
 
     private void updateCustomerAndValidate_NO_ChangesOnEdge(Customer customer, String updatedTitle) throws InterruptedException {

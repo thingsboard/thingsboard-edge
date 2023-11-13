@@ -37,6 +37,7 @@ import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -47,7 +48,7 @@ import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 @TbCoreComponent
 public class QueueEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg convertQueueEventToDownlink(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertQueueEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         QueueId queueId = new QueueId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
         switch (edgeEvent.getAction()) {
@@ -57,7 +58,7 @@ public class QueueEdgeProcessor extends BaseEdgeProcessor {
                 if (queue != null) {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     QueueUpdateMsg queueUpdateMsg =
-                            queueMsgConstructor.constructQueueUpdatedMsg(msgType, queue);
+                            queueMsgConstructor.constructQueueUpdatedMsg(msgType, queue, edgeVersion);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addQueueUpdateMsg(queueUpdateMsg)

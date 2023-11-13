@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -62,7 +63,7 @@ import java.util.UUID;
 @TbCoreComponent
 public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg convertGroupPermissionEventToDownlink(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertGroupPermissionEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         GroupPermissionId groupPermissionId = new GroupPermissionId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
         UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
@@ -74,7 +75,7 @@ public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addGroupPermissionMsg(
-                                    groupPermissionProtoConstructor.constructGroupPermissionProto(msgType, groupPermission))
+                                    groupPermissionProtoConstructor.constructGroupPermissionProto(msgType, groupPermission, edgeVersion))
                             .build();
                 }
                 break;

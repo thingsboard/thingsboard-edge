@@ -485,7 +485,7 @@ public class CloudManagerService {
             case DEVICE:
                 return deviceProcessor.convertDeviceEventToUplink(tenantId, cloudEvent);
             case DEVICE_PROFILE:
-                return deviceProfileProcessor.convertDeviceProfileEventToUplink(cloudEvent);
+                return deviceProfileProcessor.convertDeviceProfileEventToUplink(cloudEvent, null);
             case ALARM:
                 return alarmProcessor.convertAlarmEventToUplink(cloudEvent);
             case ASSET:
