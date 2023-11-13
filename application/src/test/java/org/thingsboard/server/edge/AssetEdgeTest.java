@@ -125,8 +125,10 @@ public class AssetEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof AssetUpdateMsg);
         assetUpdateMsg = (AssetUpdateMsg) latestMessage;
+        assetMsg = JacksonUtil.fromStringIgnoreUnknownProperties(assetUpdateMsg.getEntity(), Asset.class);
+        Assert.assertNotNull(assetMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, assetUpdateMsg.getMsgType());
-        Assert.assertEquals("Edge Asset 1 Updated", assetUpdateMsg.getName());
+        Assert.assertEquals("Edge Asset 1 Updated", assetMsg.getName());
 
         // remove asset from entity group 2
         edgeImitator.expectMessageAmount(1);

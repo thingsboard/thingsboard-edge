@@ -47,7 +47,7 @@ public class GroupPermissionProtoConstructor {
     public GroupPermissionProto constructGroupPermissionProto(UpdateMsgType msgType, GroupPermission groupPermission, EdgeVersion edgeVersion) {
         return EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)
                 ? constructDeprecatedGroupPermissionProto(msgType, groupPermission)
-                : GroupPermissionProto.newBuilder().setEntity(JacksonUtil.toString(groupPermission))
+                : GroupPermissionProto.newBuilder().setMsgType(msgType).setEntity(JacksonUtil.toString(groupPermission))
                 .setIdMSB(groupPermission.getId().getId().getMostSignificantBits())
                 .setIdLSB(groupPermission.getId().getId().getLeastSignificantBits()).build();
     }

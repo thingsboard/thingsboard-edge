@@ -81,7 +81,7 @@ public class SchedulerEventEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(savedSchedulerEvent.getUuidId().getLeastSignificantBits(), schedulerEventUpdateMsg.getIdLSB());
         Assert.assertEquals("Edge Scheduler Event", event.getName());
         Assert.assertEquals("irrigation", event.getType());
-        Assert.assertEquals(schedule, event.getSchedule());
+        Assert.assertEquals(schedule.toString(), event.getSchedule().toString());
         Assert.assertEquals(configuration, event.getConfiguration());
 
         Assert.assertEquals(tenantId, event.getOriginatorId());

@@ -138,7 +138,7 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         Integration integration = JacksonUtil.fromStringIgnoreUnknownProperties(integrationUpdateMsg.getEntity(), Integration.class);
         Assert.assertNotNull(integration);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, integrationUpdateMsg.getMsgType());
-        Assert.assertTrue(integration.getConfiguration().asText().contains("https://localhost/api/v1"));
+        Assert.assertTrue(integration.getConfiguration().get("metadata").get("baseUrl").asText().contains("https://localhost/api/v1"));
 
         Assert.assertEquals(2, edgeImitator.findAllMessagesByType(ConverterUpdateMsg.class).size());
 
@@ -155,8 +155,8 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         integration = JacksonUtil.fromStringIgnoreUnknownProperties(integrationUpdateMsg.getEntity(), Integration.class);
         Assert.assertNotNull(integration);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, integrationUpdateMsg.getMsgType());
-        Assert.assertTrue(integration.getConfiguration().asText().contains("https://localhost/api/v1"));
-        Assert.assertTrue(integration.getConfiguration().asText().contains("PCM-2230"));
+        Assert.assertTrue(integration.getConfiguration().get("metadata").get("baseUrl").asText().contains("https://localhost/api/v1"));
+        Assert.assertTrue(integration.getConfiguration().get("metadata").get("deviceHW").asText().contains("PCM-2230"));
 
         Assert.assertEquals(2, edgeImitator.findAllMessagesByType(ConverterUpdateMsg.class).size());
     }
@@ -178,7 +178,7 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(savedIntegration.getUuidId().getMostSignificantBits(), integrationUpdateMsg.getIdMSB());
         Assert.assertEquals(savedIntegration.getUuidId().getLeastSignificantBits(), integrationUpdateMsg.getIdLSB());
         Assert.assertEquals(savedIntegration.getName(), integration.getName());
-        Assert.assertTrue(integration.getConfiguration().asText().contains("http://localhost:18080"));
+        Assert.assertTrue(integration.getConfiguration().get("metadata").get("baseUrl").asText().contains("http://localhost:18080"));
 
         Optional<ConverterUpdateMsg> converterUpdateMsgOpt = edgeImitator.findMessageByType(ConverterUpdateMsg.class);
         Assert.assertTrue(converterUpdateMsgOpt.isPresent());
@@ -209,7 +209,7 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         Integration integration = JacksonUtil.fromStringIgnoreUnknownProperties(integrationUpdateMsg.getEntity(), Integration.class);
         Assert.assertNotNull(integration);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, integrationUpdateMsg.getMsgType());
-        Assert.assertTrue(integration.getConfiguration().asText().contains("http://localhost:18080/api/v1"));
+        Assert.assertTrue(integration.getConfiguration().get("metadata").get("baseUrl").asText().contains("http://localhost:18080/api/v1"));
     }
 
     private void validateIntegrationDefaultConverterUpdate(Integration savedIntegration) throws Exception {
