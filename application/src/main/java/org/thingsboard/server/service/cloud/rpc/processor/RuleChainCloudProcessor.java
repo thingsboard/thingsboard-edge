@@ -62,7 +62,7 @@ public class RuleChainCloudProcessor extends BaseEdgeProcessor {
             switch (ruleChainUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    RuleChain ruleChainMsg = JacksonUtil.fromEdgeString(ruleChainUpdateMsg.getEntity(), RuleChain.class);
+                    RuleChain ruleChainMsg = JacksonUtil.fromStringIgnoreUnknownProperties(ruleChainUpdateMsg.getEntity(), RuleChain.class);
                     if (ruleChainMsg == null) {
                         throw new RuntimeException("[{" + tenantId + "}] ruleChainUpdateMsg {" + ruleChainUpdateMsg + "} cannot be converted to rule chain");
                     }
@@ -117,7 +117,7 @@ public class RuleChainCloudProcessor extends BaseEdgeProcessor {
             switch (ruleChainMetadataUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    RuleChainMetaData ruleChainMetadata = JacksonUtil.fromEdgeString(ruleChainMetadataUpdateMsg.getEntity(), RuleChainMetaData.class);
+                    RuleChainMetaData ruleChainMetadata = JacksonUtil.fromStringIgnoreUnknownProperties(ruleChainMetadataUpdateMsg.getEntity(), RuleChainMetaData.class);
                     if (ruleChainMetadata == null) {
                         throw new RuntimeException("[{" + tenantId + "}] ruleChainMetadataUpdateMsg {" + ruleChainMetadataUpdateMsg + "} cannot be converted to rule chain metadata");
                     }

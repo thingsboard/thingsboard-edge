@@ -40,7 +40,7 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processCustomerMsgFromCloud(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg,
                                                               Long queueStartTs) {
-        Customer customer = JacksonUtil.fromEdgeString(customerUpdateMsg.getEntity(), Customer.class);
+        Customer customer = JacksonUtil.fromStringIgnoreUnknownProperties(customerUpdateMsg.getEntity(), Customer.class);
         if (customer == null) {
             throw new RuntimeException("[{" + tenantId + "}] customerUpdateMsg {" + customerUpdateMsg + "} cannot be converted to customer");
         }
