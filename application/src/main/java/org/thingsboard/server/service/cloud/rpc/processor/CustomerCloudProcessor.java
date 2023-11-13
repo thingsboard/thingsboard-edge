@@ -31,6 +31,8 @@ import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
+import java.util.UUID;
+
 @Component
 @Slf4j
 public class CustomerCloudProcessor extends BaseEdgeProcessor {
@@ -40,10 +42,7 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processCustomerMsgFromCloud(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg,
                                                               Long queueStartTs) {
-        Customer customer = JacksonUtil.fromStringIgnoreUnknownProperties(customerUpdateMsg.getEntity(), Customer.class);
-        if (customer == null) {
-            throw new RuntimeException("[{" + tenantId + "}] customerUpdateMsg {" + customerUpdateMsg + "} cannot be converted to customer");
-        }
+        CustomerId customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
 
@@ -52,15 +51,19 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     customerCreationLock.lock();
                     try {
+                        Customer customer = JacksonUtil.fromStringIgnoreUnknownProperties(customerUpdateMsg.getEntity(), Customer.class);
+                        if (customer == null) {
+                            throw new RuntimeException("[{" + tenantId + "}] customerUpdateMsg {" + customerUpdateMsg + "} cannot be converted to customer");
+                        }
                         customerService.saveCustomer(customer, false);
                     } finally {
                         customerCreationLock.unlock();
                     }
-                    return requestForAdditionalData(tenantId, customer.getId(), queueStartTs);
+                    return requestForAdditionalData(tenantId, customerId, queueStartTs);
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    Customer customerById = customerService.findCustomerById(tenantId, customer.getId());
+                    Customer customerById = customerService.findCustomerById(tenantId, customerId);
                     if (customerById != null) {
-                       customerService.deleteCustomer(tenantId, customer.getId());
+                       customerService.deleteCustomer(tenantId, customerById.getId());
                     }
                     return Futures.immediateFuture(null);
                 case UNRECOGNIZED:

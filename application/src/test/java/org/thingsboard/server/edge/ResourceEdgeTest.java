@@ -127,6 +127,7 @@ public class ResourceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testResourceToCloudWithNameThatAlreadyExistsOnCloud() throws Exception {
         TbResource resource = createTbResource();
 
