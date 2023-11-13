@@ -67,4 +67,4 @@ DELETE FROM attribute_kv WHERE entity_type = 'TENANT' AND entity_id IN (SELECT i
                            AND attribute_type = 'SERVER_SCOPE' AND  attribute_key = 'mailTemplates';
 -- MAIL TEMPLATES MIGRATION END
 
-UPDATE white_labeling SET domain_name = LOWER(domain_name) WHERE type = 'LOGIN';
+UPDATE white_labeling SET domain_name = LOWER(domain_name) WHERE type = 'LOGIN' AND domain_name IS NOT NULL AND domain_name != LOWER(domain_name);
