@@ -87,7 +87,7 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
     }
 
     public ListenableFuture<Void> processTenantMsgFromCloud(TenantUpdateMsg tenantUpdateMsg) {
-        Tenant tenant = JacksonUtil.fromEdgeString(tenantUpdateMsg.getEntity(), Tenant.class);
+        Tenant tenant = JacksonUtil.fromStringIgnoreUnknownProperties(tenantUpdateMsg.getEntity(), Tenant.class);
         if (tenant == null) {
             throw new RuntimeException("[{" + TenantId.SYS_TENANT_ID + "}] tenantUpdateMsg {" + tenantUpdateMsg + "} cannot be converted to tenant");
         }

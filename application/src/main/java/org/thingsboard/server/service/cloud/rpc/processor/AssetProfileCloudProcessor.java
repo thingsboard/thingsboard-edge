@@ -84,7 +84,7 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     assetCreationLock.lock();
                     try {
-                        AssetProfile assetProfileMsg = JacksonUtil.fromEdgeString(assetProfileUpdateMsg.getEntity(), AssetProfile.class);
+                        AssetProfile assetProfileMsg = JacksonUtil.fromStringIgnoreUnknownProperties(assetProfileUpdateMsg.getEntity(), AssetProfile.class);
                         if (assetProfileMsg == null) {
                             throw new RuntimeException("[{" + tenantId + "}] assetProfileUpdateMsg {" + assetProfileUpdateMsg + "} cannot be converted to asset profile");
                         }
@@ -193,7 +193,7 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
     }
 
     @Override
-    protected void setDefaultRuleChainId(TenantId tenantId, AssetProfile assetProfile) {
+    protected void setDefaultRuleChainId(TenantId tenantId, AssetProfile assetProfile, RuleChainId ruleChainId) {
         RuleChainId defaultRuleChainId = assetProfile.getDefaultEdgeRuleChainId();
         RuleChain ruleChain = null;
         if (defaultRuleChainId != null) {

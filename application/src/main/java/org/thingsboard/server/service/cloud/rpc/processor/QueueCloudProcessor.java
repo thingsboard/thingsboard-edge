@@ -65,7 +65,7 @@ public class QueueCloudProcessor extends BaseEdgeProcessor {
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     queueCreationLock.lock();
                     try {
-                        Queue queue = JacksonUtil.fromEdgeString(queueUpdateMsg.getEntity(), Queue.class);
+                        Queue queue = JacksonUtil.fromStringIgnoreUnknownProperties(queueUpdateMsg.getEntity(), Queue.class);
                         if (queue == null) {
                             throw new RuntimeException("[{" + tenantId + "}] queueUpdateMsg {" + queueUpdateMsg + "} cannot be converted to queue");
                         }
