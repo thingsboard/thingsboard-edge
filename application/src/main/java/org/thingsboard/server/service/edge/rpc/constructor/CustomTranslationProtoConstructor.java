@@ -44,7 +44,7 @@ import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 public class CustomTranslationProtoConstructor {
 
     public CustomTranslationProto constructCustomTranslationProto(CustomTranslation customTranslation, EntityId entityId, EdgeVersion edgeVersion) {
-        return EdgeVersionUtils.isEdgeProtoDeprecated(edgeVersion)
+        return EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)
                 ? constructDeprecatedCustomTranslationProto(customTranslation, entityId)
                 : CustomTranslationProto.newBuilder().setEntity(JacksonUtil.toString(customTranslation))
                 .setEntityIdMSB(entityId.getId().getMostSignificantBits())

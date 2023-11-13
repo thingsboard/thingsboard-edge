@@ -46,7 +46,7 @@ import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 public class SchedulerEventMsgConstructor {
 
     public SchedulerEventUpdateMsg constructSchedulerEventUpdatedMsg(UpdateMsgType msgType, SchedulerEvent schedulerEvent, EdgeVersion edgeVersion) {
-        return EdgeVersionUtils.isEdgeProtoDeprecated(edgeVersion)
+        return EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)
                 ? constructDeprecatedSchedulerEventUpdatedMsg(msgType, schedulerEvent)
                 : SchedulerEventUpdateMsg.newBuilder().setEntity(JacksonUtil.toString(schedulerEvent))
                 .setIdMSB(schedulerEvent.getId().getId().getMostSignificantBits())

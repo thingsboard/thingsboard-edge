@@ -46,7 +46,7 @@ import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 public class RoleProtoConstructor {
 
     public RoleProto constructRoleProto(UpdateMsgType msgType, Role role, EdgeVersion edgeVersion) {
-        return EdgeVersionUtils.isEdgeProtoDeprecated(edgeVersion)
+        return EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)
                 ? constructDeprecatedRoleProto(msgType, role)
                 : RoleProto.newBuilder().setEntity(JacksonUtil.toString(role))
                 .setIdMSB(role.getId().getId().getMostSignificantBits())

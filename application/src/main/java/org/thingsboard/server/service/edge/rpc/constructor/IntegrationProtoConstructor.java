@@ -47,7 +47,7 @@ public class IntegrationProtoConstructor {
 
     public IntegrationUpdateMsg constructIntegrationUpdateMsg(UpdateMsgType msgType, Integration integration, JsonNode configuration, EdgeVersion edgeVersion) {
         integration.setConfiguration(configuration);
-        return EdgeVersionUtils.isEdgeProtoDeprecated(edgeVersion)
+        return EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)
                 ? constructDeprecatedIntegrationUpdateMsg(msgType, integration)
                 : IntegrationUpdateMsg.newBuilder().setEntity(JacksonUtil.toString(integration))
                 .setIdMSB(integration.getId().getId().getMostSignificantBits())

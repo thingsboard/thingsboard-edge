@@ -45,7 +45,7 @@ import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 public class GroupPermissionProtoConstructor {
 
     public GroupPermissionProto constructGroupPermissionProto(UpdateMsgType msgType, GroupPermission groupPermission, EdgeVersion edgeVersion) {
-        return EdgeVersionUtils.isEdgeProtoDeprecated(edgeVersion)
+        return EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)
                 ? constructDeprecatedGroupPermissionProto(msgType, groupPermission)
                 : GroupPermissionProto.newBuilder().setEntity(JacksonUtil.toString(groupPermission))
                 .setIdMSB(groupPermission.getId().getId().getMostSignificantBits())

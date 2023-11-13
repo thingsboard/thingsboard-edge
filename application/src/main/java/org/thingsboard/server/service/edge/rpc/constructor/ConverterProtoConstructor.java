@@ -44,7 +44,7 @@ import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 public class ConverterProtoConstructor {
 
     public ConverterUpdateMsg constructConverterUpdateMsg(UpdateMsgType msgType, Converter converter, EdgeVersion edgeVersion) {
-        return EdgeVersionUtils.isEdgeProtoDeprecated(edgeVersion)
+        return EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)
                 ? constructDeprecatedConverterUpdateMsg(msgType, converter)
                 : ConverterUpdateMsg.newBuilder().setEntity(JacksonUtil.toString(converter))
                 .setIdMSB(converter.getUuidId().getMostSignificantBits())
