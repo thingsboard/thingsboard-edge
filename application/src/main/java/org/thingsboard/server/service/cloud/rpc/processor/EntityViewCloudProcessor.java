@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
@@ -51,6 +52,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
@@ -100,8 +102,7 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
     }
 
     private void saveOrUpdateEntityView(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg, Long queueStartTs) throws ThingsboardException {
-        CustomerId customerId = safeGetCustomerId(entityViewUpdateMsg.getCustomerIdMSB(), entityViewUpdateMsg.getCustomerIdLSB());
-        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg, customerId);
+        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg, false);
         Boolean created = resultPair.getFirst();
         tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityViewId,
                 created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
@@ -145,7 +146,7 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
         return builder.build();
     }
 
-    public UplinkMsg convertEntityViewEventToUplink(CloudEvent cloudEvent) {
+    public UplinkMsg convertEntityViewEventToUplink(CloudEvent cloudEvent, EdgeVersion edgeVersion) {
         EntityViewId entityViewId = new EntityViewId(cloudEvent.getEntityId());
         UplinkMsg msg = null;
         EntityGroupId entityGroupId = cloudEvent.getEntityGroupId() != null ? new EntityGroupId(cloudEvent.getEntityGroupId()) : null;
@@ -157,7 +158,7 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
                 if (entityView != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
                     EntityViewUpdateMsg entityViewUpdateMsg =
-                            entityViewMsgConstructor.constructEntityViewUpdatedMsg(msgType, entityView, entityGroupId);
+                            entityViewMsgConstructor.constructEntityViewUpdatedMsg(msgType, entityView, entityGroupId, edgeVersion);
                     msg = UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addEntityViewUpdateMsg(entityViewUpdateMsg).build();
@@ -175,5 +176,15 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
                 break;
         }
         return msg;
+    }
+
+    @Override
+    protected void setCustomerId(TenantId tenantId, CustomerId customerId, EntityView entityView, EntityViewUpdateMsg entityViewUpdateMsg, boolean isEdgeVersionDeprecated) {
+        CustomerId assignedCustomerId = entityView.getCustomerId();
+        Customer customer = null;
+        if (assignedCustomerId != null) {
+            customer = customerService.findCustomerById(tenantId, assignedCustomerId);
+        }
+        entityView.setCustomerId(customer != null ? customer.getId() : null);
     }
 }

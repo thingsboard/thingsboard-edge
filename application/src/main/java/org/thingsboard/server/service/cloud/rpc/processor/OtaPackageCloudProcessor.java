@@ -30,23 +30,17 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.OtaPackage;
-import org.thingsboard.server.common.data.OtaPackageInfo;
-import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
-import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.gen.edge.v1.OtaPackageUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
-import java.nio.ByteBuffer;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -66,45 +60,11 @@ public class OtaPackageCloudProcessor extends BaseEdgeProcessor {
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     otaPackageCreationLock.lock();
                     try {
-                        OtaPackageInfo otaPackageInfo = otaPackageService.findOtaPackageInfoById(tenantId, otaPackageId);
-                        if (otaPackageInfo == null) {
-                            otaPackageInfo = new OtaPackageInfo();
-                            otaPackageInfo.setId(otaPackageId);
-                            otaPackageInfo.setCreatedTime(Uuids.unixTimestamp(otaPackageId.getId()));
-                            otaPackageInfo.setTenantId(tenantId);
+                        OtaPackage otaPackage = JacksonUtil.fromEdgeString(otaPackageUpdateMsg.getEntity(), OtaPackage.class);
+                        if (otaPackage == null) {
+                            throw new RuntimeException("[{" + tenantId + "}] otaPackageUpdateMsg {" + otaPackageUpdateMsg + "} cannot be converted to ota package");
                         }
-                        otaPackageInfo.setDeviceProfileId(new DeviceProfileId(new UUID(otaPackageUpdateMsg.getDeviceProfileIdMSB(), otaPackageUpdateMsg.getDeviceProfileIdLSB())));
-                        otaPackageInfo.setType(OtaPackageType.valueOf(otaPackageUpdateMsg.getType()));
-                        otaPackageInfo.setTitle(otaPackageUpdateMsg.getTitle());
-                        otaPackageInfo.setVersion(otaPackageUpdateMsg.getVersion());
-                        otaPackageInfo.setTag(otaPackageUpdateMsg.getTag());
-                        if (otaPackageUpdateMsg.hasUrl()) {
-                            otaPackageInfo.setUrl(otaPackageUpdateMsg.getUrl());
-                        }
-                        if (otaPackageUpdateMsg.hasFileName()) {
-                            otaPackageInfo.setFileName(otaPackageUpdateMsg.getFileName());
-                        }
-                        if (otaPackageUpdateMsg.hasContentType()) {
-                            otaPackageInfo.setContentType(otaPackageUpdateMsg.getContentType());
-                        }
-                        if (otaPackageUpdateMsg.hasChecksumAlgorithm()) {
-                            otaPackageInfo.setChecksumAlgorithm(ChecksumAlgorithm.valueOf(otaPackageUpdateMsg.getChecksumAlgorithm()));
-                        }
-                        if (otaPackageUpdateMsg.hasChecksum()) {
-                            otaPackageInfo.setChecksum(otaPackageUpdateMsg.getChecksum());
-                        }
-                        if (otaPackageUpdateMsg.hasDataSize()) {
-                            otaPackageInfo.setDataSize(otaPackageUpdateMsg.getDataSize());
-                        }
-                        if (otaPackageUpdateMsg.hasAdditionalInfo()) {
-                            otaPackageInfo.setAdditionalInfo(JacksonUtil.toJsonNode(otaPackageUpdateMsg.getAdditionalInfo()));
-                        }
-                        otaPackageService.saveOtaPackageInfo(otaPackageInfo, otaPackageUpdateMsg.hasUrl(), false);
-                        if (otaPackageUpdateMsg.hasData()) {
-                            OtaPackage otaPackage = otaPackageService.findOtaPackageById(tenantId, otaPackageId);
-                            otaPackage.setData(ByteBuffer.wrap(otaPackageUpdateMsg.getData().toByteArray()));
-                            otaPackageService.saveOtaPackage(otaPackage, false);
-                        }
+                        otaPackageService.saveOtaPackage(otaPackage, false);
                     } finally {
                         otaPackageCreationLock.unlock();
                     }

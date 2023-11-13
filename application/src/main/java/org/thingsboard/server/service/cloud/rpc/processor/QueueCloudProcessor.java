@@ -35,6 +35,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.queue.ProcessingStrategy;
@@ -64,33 +65,12 @@ public class QueueCloudProcessor extends BaseEdgeProcessor {
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     queueCreationLock.lock();
                     try {
-                        Queue queue = queueService.findQueueById(tenantId, queueId);
-                        boolean create = false;
+                        Queue queue = JacksonUtil.fromEdgeString(queueUpdateMsg.getEntity(), Queue.class);
                         if (queue == null) {
-                            queue = new Queue();
-                            queue.setId(queueId);
-                            queue.setCreatedTime(Uuids.unixTimestamp(queueId.getId()));
-                            TenantId queueTenantId = new TenantId(new UUID(queueUpdateMsg.getTenantIdMSB(), queueUpdateMsg.getTenantIdLSB()));
-                            queue.setTenantId(queueTenantId);
-                            create = true;
+                            throw new RuntimeException("[{" + tenantId + "}] queueUpdateMsg {" + queueUpdateMsg + "} cannot be converted to queue");
                         }
-                        queue.setName(queueUpdateMsg.getName());
-                        queue.setTopic(queueUpdateMsg.getTopic());
-                        queue.setPollInterval(queueUpdateMsg.getPollInterval());
-                        queue.setPartitions(queueUpdateMsg.getPartitions());
-                        queue.setConsumerPerPartition(queueUpdateMsg.getConsumerPerPartition());
-                        queue.setPackProcessingTimeout(queueUpdateMsg.getPackProcessingTimeout());
-                        SubmitStrategy submitStrategy = new SubmitStrategy();
-                        submitStrategy.setType(SubmitStrategyType.valueOf(queueUpdateMsg.getSubmitStrategy().getType()));
-                        submitStrategy.setBatchSize(queueUpdateMsg.getSubmitStrategy().getBatchSize());
-                        queue.setSubmitStrategy(submitStrategy);
-                        ProcessingStrategy processingStrategy = new ProcessingStrategy();
-                        processingStrategy.setType(ProcessingStrategyType.valueOf(queueUpdateMsg.getProcessingStrategy().getType()));
-                        processingStrategy.setRetries(queueUpdateMsg.getProcessingStrategy().getRetries());
-                        processingStrategy.setPauseBetweenRetries(queueUpdateMsg.getProcessingStrategy().getPauseBetweenRetries());
-                        processingStrategy.setMaxPauseBetweenRetries(queueUpdateMsg.getProcessingStrategy().getMaxPauseBetweenRetries());
-                        processingStrategy.setFailurePercentage(queueUpdateMsg.getProcessingStrategy().getFailurePercentage());
-                        queue.setProcessingStrategy(processingStrategy);
+                        Queue queueById = queueService.findQueueById(tenantId, queueId);
+                        boolean create = queueById == null;
                         queueService.saveQueue(queue, false);
                         tbQueueService.saveQueue(queue, create);
                     } finally {

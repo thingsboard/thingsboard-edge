@@ -40,6 +40,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -58,7 +59,7 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
     private CustomerService customerService;
 
     public ListenableFuture<Void> processCustomerMsgFromCloud(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg,
-                                                              Long queueStartTs) throws Exception {
+                                                              Long queueStartTs) throws ThingsboardException {
         CustomerId customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
@@ -68,18 +69,17 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     customerCreationLock.lock();
                     try {
-                        EntityId ownerId = safeGetOwnerId(tenantId, customerUpdateMsg.getOwnerEntityType(),
-                                customerUpdateMsg.getOwnerIdMSB(), customerUpdateMsg.getOwnerIdLSB());
+                        Customer customer = JacksonUtil.fromStringIgnoreUnknownProperties(customerUpdateMsg.getEntity(), Customer.class);
+                        if (customer == null) {
+                            throw new RuntimeException("[{" + tenantId + "}] customerUpdateMsg {" + customerUpdateMsg + "} cannot be converted to customer");
+                        }
+                        EntityId ownerId = customer.getOwnerId();
                         if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
                             createCustomerIfNotExists(tenantId, new CustomerId(ownerId.getId()));
                         }
-                        Customer customer = customerService.findCustomerById(tenantId, customerId);
                         boolean created = false;
-                        if (customer == null) {
-                            customer = new Customer();
-                            customer.setId(customerId);
-                            customer.setCreatedTime(Uuids.unixTimestamp(customerId.getId()));
-                            customer.setTenantId(tenantId);
+                        Customer customerById = customerService.findCustomerById(tenantId, customerId);
+                        if (customerById == null) {
                             created = true;
                         } else {
                             CustomerId tmpCustomerOwnerId = new CustomerId(EntityId.NULL_UUID);
@@ -88,19 +88,7 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                             }
                             changeOwnerIfRequired(tenantId, tmpCustomerOwnerId, customerId);
                         }
-                        customer.setTitle(customerUpdateMsg.getTitle());
-                        customer.setCountry(customerUpdateMsg.hasCountry() ? customerUpdateMsg.getCountry() : null);
-                        customer.setState(customerUpdateMsg.hasState() ? customerUpdateMsg.getState() : null);
-                        customer.setCity(customerUpdateMsg.hasCity() ? customerUpdateMsg.getCity() : null);
-                        customer.setAddress(customerUpdateMsg.hasAddress() ? customerUpdateMsg.getAddress() : null);
-                        customer.setAddress2(customerUpdateMsg.hasAddress2() ? customerUpdateMsg.getAddress2() : null);
-                        customer.setZip(customerUpdateMsg.hasZip() ? customerUpdateMsg.getZip() : null);
-                        customer.setPhone(customerUpdateMsg.hasPhone() ? customerUpdateMsg.getPhone() : null);
-                        customer.setEmail(customerUpdateMsg.hasEmail() ? customerUpdateMsg.getEmail() : null);
-                        customer.setAdditionalInfo(customerUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(customerUpdateMsg.getAdditionalInfo()) : null);
-                        customer.setOwnerId(ownerId);
                         Customer savedCustomer = customerService.saveCustomer(customer, false);
-
                         if (created) {
                             postCreateSteps(savedCustomer);
                         }
@@ -117,7 +105,7 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                 case UNRECOGNIZED:
                 default:
                     return handleUnsupportedMsgType(customerUpdateMsg.getMsgType());
-        }
+            }
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }

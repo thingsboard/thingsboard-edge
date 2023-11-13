@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -58,24 +57,10 @@ public class WidgetTypeCloudProcessor extends BaseEdgeProcessor {
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     widgetCreationLock.lock();
                     try {
-                        WidgetTypeDetails widgetTypeDetails = widgetTypeService.findWidgetTypeDetailsById(tenantId, widgetTypeId);
+                        WidgetTypeDetails widgetTypeDetails = JacksonUtil.fromStringIgnoreUnknownProperties(widgetTypeUpdateMsg.getEntity(), WidgetTypeDetails.class);
                         if (widgetTypeDetails == null) {
-                            widgetTypeDetails = new WidgetTypeDetails();
-                            if (widgetTypeUpdateMsg.getIsSystem()) {
-                                widgetTypeDetails.setTenantId(TenantId.SYS_TENANT_ID);
-                            } else {
-                                widgetTypeDetails.setTenantId(tenantId);
-                            }
-                            widgetTypeDetails.setId(widgetTypeId);
-                            widgetTypeDetails.setCreatedTime(Uuids.unixTimestamp(widgetTypeId.getId()));
+                            throw new RuntimeException("[{" + tenantId + "}] widgetTypeUpdateMsg {" + widgetTypeUpdateMsg + "} cannot be converted to widget type");
                         }
-                        widgetTypeDetails.setFqn(widgetTypeUpdateMsg.hasFqn() ? widgetTypeUpdateMsg.getFqn() : null);
-                        widgetTypeDetails.setName(widgetTypeUpdateMsg.hasName() ? widgetTypeUpdateMsg.getName() : null);
-                        widgetTypeDetails.setDescriptor(widgetTypeUpdateMsg.hasDescriptorJson() ? JacksonUtil.toJsonNode(widgetTypeUpdateMsg.getDescriptorJson()) : null);
-                        widgetTypeDetails.setImage(widgetTypeUpdateMsg.hasImage() ? widgetTypeUpdateMsg.getImage() : null);
-                        widgetTypeDetails.setDescription(widgetTypeUpdateMsg.hasDescription() ? widgetTypeUpdateMsg.getDescription() : null);
-                        widgetTypeDetails.setDeprecated(widgetTypeUpdateMsg.getDeprecated());
-                        widgetTypeDetails.setTags(widgetTypeUpdateMsg.getTagsList().isEmpty() ? null : widgetTypeUpdateMsg.getTagsList().toArray(new String[0]));
                         widgetTypeService.saveWidgetType(widgetTypeDetails, false);
                     } finally {
                         widgetCreationLock.unlock();

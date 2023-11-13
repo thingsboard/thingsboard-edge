@@ -40,7 +40,6 @@ import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -48,6 +47,7 @@ import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.service.edge.rpc.processor.dashboard.BaseDashboardProcessor;
@@ -97,8 +97,7 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
     }
 
     private void saveOrUpdateDashboard(TenantId tenantId, DashboardId dashboardId, DashboardUpdateMsg dashboardUpdateMsg, Long queueStartTs) throws ThingsboardException {
-        CustomerId customerId = safeGetCustomerId(dashboardUpdateMsg.getCustomerIdMSB(), dashboardUpdateMsg.getCustomerIdLSB());
-        boolean created = super.saveOrUpdateDashboard(tenantId, dashboardId, dashboardUpdateMsg, customerId);
+        boolean created = super.saveOrUpdateDashboard(tenantId, dashboardId, dashboardUpdateMsg, false);
         if (created) {
             pushDashboardCreatedEventToRuleEngine(tenantId, dashboardId);
         }
@@ -122,7 +121,7 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
         }
     }
 
-    public UplinkMsg convertDashboardEventToUplink(CloudEvent cloudEvent) {
+    public UplinkMsg convertDashboardEventToUplink(CloudEvent cloudEvent, EdgeVersion edgeVersion) {
         DashboardId dashboardId = new DashboardId(cloudEvent.getEntityId());
         UplinkMsg msg = null;
         EntityGroupId entityGroupId = cloudEvent.getEntityGroupId() != null ? new EntityGroupId(cloudEvent.getEntityGroupId()) : null;
@@ -134,7 +133,7 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
                 if (dashboard != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
                     DashboardUpdateMsg dashboardUpdateMsg =
-                            dashboardMsgConstructor.constructDashboardUpdatedMsg(msgType, dashboard, entityGroupId);
+                            dashboardMsgConstructor.constructDashboardUpdatedMsg(msgType, dashboard, entityGroupId, edgeVersion);
                     msg = UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addDashboardUpdateMsg(dashboardUpdateMsg).build();

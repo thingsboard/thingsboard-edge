@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
@@ -51,6 +52,7 @@ import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.asset.BaseAssetService;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.service.edge.rpc.processor.asset.BaseAssetProcessor;
@@ -98,8 +100,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
     }
 
     private void saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, Long queueStartTs) throws ThingsboardException {
-        CustomerId customerId = safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB());
-        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, customerId);
+        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, false);
         Boolean created = resultPair.getFirst();
         if (created) {
             pushAssetCreatedEventToRuleEngine(tenantId, assetId);
@@ -128,7 +129,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
         }
     }
 
-    public UplinkMsg convertAssetEventToUplink(CloudEvent cloudEvent) {
+    public UplinkMsg convertAssetEventToUplink(CloudEvent cloudEvent, EdgeVersion edgeVersion) {
         AssetId assetId = new AssetId(cloudEvent.getEntityId());
         UplinkMsg msg = null;
         EntityGroupId entityGroupId = cloudEvent.getEntityGroupId() != null ? new EntityGroupId(cloudEvent.getEntityGroupId()) : null;
@@ -143,13 +144,13 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
                     } else {
                         UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
                         AssetUpdateMsg assetUpdateMsg =
-                                assetMsgConstructor.constructAssetUpdatedMsg(msgType, asset, entityGroupId);
+                                assetMsgConstructor.constructAssetUpdatedMsg(msgType, asset, entityGroupId, edgeVersion);
                         UplinkMsg.Builder builder = UplinkMsg.newBuilder()
                                 .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                                 .addAssetUpdateMsg(assetUpdateMsg);
                         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(msgType)) {
                             AssetProfile assetProfile = assetProfileService.findAssetProfileById(cloudEvent.getTenantId(), asset.getAssetProfileId());
-                            builder.addAssetProfileUpdateMsg(assetProfileMsgConstructor.constructAssetProfileUpdatedMsg(msgType, assetProfile));
+                            builder.addAssetProfileUpdateMsg(assetProfileMsgConstructor.constructAssetProfileUpdatedMsg(msgType, assetProfile, edgeVersion));
                         }
                         msg = builder.build();
                     }
@@ -167,6 +168,16 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
                 break;
         }
         return msg;
+    }
+
+    @Override
+    protected void setCustomerId(TenantId tenantId, CustomerId customerId, Asset asset, AssetUpdateMsg assetUpdateMsg, boolean isEdgeVersionDeprecated) {
+        CustomerId assignedCustomerId = asset.getCustomerId();
+        Customer customer = null;
+        if (assignedCustomerId != null) {
+            customer = customerService.findCustomerById(tenantId, assignedCustomerId);
+        }
+        asset.setCustomerId(customer != null ? customer.getId() : null);
     }
 
 }

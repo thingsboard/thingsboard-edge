@@ -35,6 +35,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -43,6 +44,7 @@ import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageDataIterable;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.ResourceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
@@ -61,10 +63,13 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
             switch (resourceUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    deleteSystemResourceIfAlreadyExists(tbResourceId, ResourceType.valueOf(resourceUpdateMsg.getResourceType()), resourceUpdateMsg.getResourceKey());
-                    Pair<Boolean, TbResourceId> resultPair = renamePreviousResource(tenantId, tbResourceId,
-                            ResourceType.valueOf(resourceUpdateMsg.getResourceType()), resourceUpdateMsg.getResourceKey());
-                    super.saveOrUpdateTbResource(tenantId, tbResourceId, resourceUpdateMsg);
+                    TbResource tbResource = JacksonUtil.fromStringIgnoreUnknownProperties(resourceUpdateMsg.getEntity(), TbResource.class);
+                    if (tbResource == null) {
+                        throw new RuntimeException("[{" + tenantId + "}] resourceUpdateMsg {" + resourceUpdateMsg + "} cannot be converted to tb resource");
+                    }
+                    deleteSystemResourceIfAlreadyExists(tbResourceId, tbResource.getResourceType(), tbResource.getResourceKey());
+                    Pair<Boolean, TbResourceId> resultPair = renamePreviousResource(tenantId, tbResourceId, tbResource.getResourceType(), tbResource.getResourceKey());
+                    super.saveOrUpdateTbResource(tenantId, tbResourceId, resourceUpdateMsg, false);
                     if (resultPair.getFirst()) {
                         resourceService.deleteResource(tenantId, resultPair.getSecond());
                     }
@@ -110,7 +115,7 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
         }
     }
 
-    public UplinkMsg convertResourceEventToUplink(CloudEvent cloudEvent) {
+    public UplinkMsg convertResourceEventToUplink(CloudEvent cloudEvent, EdgeVersion edgeVersion) {
         TbResourceId tbResourceId = new TbResourceId(cloudEvent.getEntityId());
         UplinkMsg msg = null;
         switch (cloudEvent.getAction()) {
@@ -120,7 +125,7 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
                 if (tbResource != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
                     ResourceUpdateMsg resourceUpdateMsg =
-                            resourceMsgConstructor.constructResourceUpdatedMsg(msgType, tbResource);
+                            resourceMsgConstructor.constructResourceUpdatedMsg(msgType, tbResource, edgeVersion);
                     msg = UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addResourceUpdateMsg(resourceUpdateMsg)
