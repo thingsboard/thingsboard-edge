@@ -66,7 +66,7 @@ public class RoleEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof RoleProto);
         RoleProto roleProto = (RoleProto) latestMessage;
-        Role roleMsg = JacksonUtil.fromEdgeString(roleProto.getEntity(), Role.class);
+        Role roleMsg = JacksonUtil.fromStringIgnoreUnknownProperties(roleProto.getEntity(), Role.class);
         Assert.assertNotNull(roleMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, roleProto.getMsgType());
         Assert.assertEquals(RoleType.GENERIC, roleMsg.getType());
@@ -81,7 +81,7 @@ public class RoleEdgeTest extends AbstractEdgeTest {
         latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof RoleProto);
         roleProto = (RoleProto) latestMessage;
-        roleMsg = JacksonUtil.fromEdgeString(roleProto.getEntity(), Role.class);
+        roleMsg = JacksonUtil.fromStringIgnoreUnknownProperties(roleProto.getEntity(), Role.class);
         Assert.assertNotNull(roleMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, roleProto.getMsgType());
         Assert.assertEquals("Generic Edge Role Updated", roleMsg.getName());
@@ -121,7 +121,7 @@ public class RoleEdgeTest extends AbstractEdgeTest {
         Optional<CustomerUpdateMsg> customerUpdateMsgs = edgeImitator.findMessageByType(CustomerUpdateMsg.class);
         Assert.assertTrue(customerUpdateMsgs.isPresent());
         CustomerUpdateMsg customerAUpdateMsg = customerUpdateMsgs.get();
-        Customer customer = JacksonUtil.fromEdgeString(customerAUpdateMsg.getEntity(), Customer.class);
+        Customer customer = JacksonUtil.fromStringIgnoreUnknownProperties(customerAUpdateMsg.getEntity(), Customer.class);
         Assert.assertNotNull(customer);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, customerAUpdateMsg.getMsgType());
         Assert.assertEquals(savedCustomer.getUuidId().getMostSignificantBits(), customerAUpdateMsg.getIdMSB());
@@ -131,7 +131,7 @@ public class RoleEdgeTest extends AbstractEdgeTest {
         Optional<RoleProto> roleProtoOpt = edgeImitator.findMessageByType(RoleProto.class);
         Assert.assertTrue(roleProtoOpt.isPresent());
         RoleProto roleProto = roleProtoOpt.get();
-        Role roleMsg = JacksonUtil.fromEdgeString(roleProto.getEntity(), Role.class);
+        Role roleMsg = JacksonUtil.fromStringIgnoreUnknownProperties(roleProto.getEntity(), Role.class);
         Assert.assertNotNull(roleMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, roleProto.getMsgType());
         Assert.assertEquals(RoleType.GENERIC, roleMsg.getType());
@@ -153,7 +153,7 @@ public class RoleEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof RoleProto);
         roleProto = (RoleProto) latestMessage;
-        roleMsg = JacksonUtil.fromEdgeString(roleProto.getEntity(), Role.class);
+        roleMsg = JacksonUtil.fromStringIgnoreUnknownProperties(roleProto.getEntity(), Role.class);
         Assert.assertNotNull(roleMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, roleProto.getMsgType());
         Assert.assertEquals("Customer Generic Edge Role Updated", roleMsg.getName());

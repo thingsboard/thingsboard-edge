@@ -74,7 +74,7 @@ public class SchedulerEventEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof SchedulerEventUpdateMsg);
         SchedulerEventUpdateMsg schedulerEventUpdateMsg = (SchedulerEventUpdateMsg) latestMessage;
-        SchedulerEvent event = JacksonUtil.fromEdgeString(schedulerEventUpdateMsg.getEntity(), SchedulerEvent.class);
+        SchedulerEvent event = JacksonUtil.fromStringIgnoreUnknownProperties(schedulerEventUpdateMsg.getEntity(), SchedulerEvent.class);
         Assert.assertNotNull(event);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, schedulerEventUpdateMsg.getMsgType());
         Assert.assertEquals(savedSchedulerEvent.getUuidId().getMostSignificantBits(), schedulerEventUpdateMsg.getIdMSB());
@@ -94,7 +94,7 @@ public class SchedulerEventEdgeTest extends AbstractEdgeTest {
         latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof SchedulerEventUpdateMsg);
         schedulerEventUpdateMsg = (SchedulerEventUpdateMsg) latestMessage;
-        event = JacksonUtil.fromEdgeString(schedulerEventUpdateMsg.getEntity(), SchedulerEvent.class);
+        event = JacksonUtil.fromStringIgnoreUnknownProperties(schedulerEventUpdateMsg.getEntity(), SchedulerEvent.class);
         Assert.assertNotNull(event);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, schedulerEventUpdateMsg.getMsgType());
         Assert.assertEquals("Edge Scheduler Event Updated", event.getName());
@@ -142,7 +142,7 @@ public class SchedulerEventEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof SchedulerEventUpdateMsg);
         SchedulerEventUpdateMsg schedulerEventUpdateMsg = (SchedulerEventUpdateMsg) latestMessage;
-        SchedulerEvent event = JacksonUtil.fromEdgeString(schedulerEventUpdateMsg.getEntity(), SchedulerEvent.class);
+        SchedulerEvent event = JacksonUtil.fromStringIgnoreUnknownProperties(schedulerEventUpdateMsg.getEntity(), SchedulerEvent.class);
         Assert.assertNotNull(event);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, schedulerEventUpdateMsg.getMsgType());
         Assert.assertEquals(savedSchedulerEvent.getId(), event.getId());
@@ -156,7 +156,7 @@ public class SchedulerEventEdgeTest extends AbstractEdgeTest {
         latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof SchedulerEventUpdateMsg);
         schedulerEventUpdateMsg = (SchedulerEventUpdateMsg) latestMessage;
-        event = JacksonUtil.fromEdgeString(schedulerEventUpdateMsg.getEntity(), SchedulerEvent.class);
+        event = JacksonUtil.fromStringIgnoreUnknownProperties(schedulerEventUpdateMsg.getEntity(), SchedulerEvent.class);
         Assert.assertNotNull(event);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, schedulerEventUpdateMsg.getMsgType());
         Assert.assertEquals("Edge Customer Scheduler Event Updated", event.getName());
