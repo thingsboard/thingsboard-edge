@@ -27,4 +27,3 @@ public class AdminSettingsClientTest extends AbstractContainerTest {
         // TODO: voba
     }
 }
-

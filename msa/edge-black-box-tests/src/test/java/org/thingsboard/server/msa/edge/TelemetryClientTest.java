@@ -345,13 +345,11 @@ public class TelemetryClientTest extends AbstractContainerTest {
                 Assert.assertEquals(true, attributeKvEntry.getBooleanValue().get());
             }
             if (attributeKvEntry.getKey().equals("doubleAttrToCloud")) {
-                Assert.assertEquals(42.0, (double) attributeKvEntry.getDoubleValue().get(), 0.0);
+                Assert.assertEquals(42.0, attributeKvEntry.getDoubleValue().get(), 0.0);
             }
             if (attributeKvEntry.getKey().equals("longAttrToCloud")) {
                 Assert.assertEquals(72L, attributeKvEntry.getLongValue().get().longValue());
             }
         }
     }
-
 }
-

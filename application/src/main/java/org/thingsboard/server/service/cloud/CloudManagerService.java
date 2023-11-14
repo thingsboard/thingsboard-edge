@@ -440,7 +440,8 @@ public class CloudManagerService {
                 }
             } catch (Exception e) {
                 log.error("Exception during converting events from queue, skipping event [{}]", cloudEvent, e);
-            }            if (uplinkMsg != null) {
+            }
+            if (uplinkMsg != null) {
                 result.add(uplinkMsg);
             }
         }
@@ -728,4 +729,3 @@ public class CloudManagerService {
         }
     }
 }
-

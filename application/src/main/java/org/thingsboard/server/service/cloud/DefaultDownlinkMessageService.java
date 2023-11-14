@@ -350,5 +350,4 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             return Futures.immediateFuture(null);
         }
     }
-
 }

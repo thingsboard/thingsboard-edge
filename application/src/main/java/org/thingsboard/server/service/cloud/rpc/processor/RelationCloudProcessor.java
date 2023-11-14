@@ -71,5 +71,4 @@ public class RelationCloudProcessor extends BaseRelationProcessor {
         }
         return msg;
     }
-
 }

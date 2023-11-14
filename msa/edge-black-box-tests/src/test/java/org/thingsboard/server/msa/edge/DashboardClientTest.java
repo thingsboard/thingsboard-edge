@@ -174,4 +174,3 @@ public class DashboardClientTest extends AbstractContainerTest {
         cloudRestClient.deleteDashboard(savedDashboardOnEdge.getId());
     }
 }
-
