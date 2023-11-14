@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +37,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
@@ -55,33 +53,28 @@ public class ConverterCloudProcessor extends BaseEdgeProcessor {
     @Autowired
     private ConverterService converterService;
 
-    public ListenableFuture<Void> processConverterMsgFromCloud(TenantId tenantId, ConverterUpdateMsg converterMsg) {
+    public ListenableFuture<Void> processConverterMsgFromCloud(TenantId tenantId, ConverterUpdateMsg converterUpdateMsg) {
         try {
-            ConverterId converterId = new ConverterId(new UUID(converterMsg.getIdMSB(), converterMsg.getIdLSB()));
-            switch (converterMsg.getMsgType()) {
+            ConverterId converterId = new ConverterId(new UUID(converterUpdateMsg.getIdMSB(), converterUpdateMsg.getIdLSB()));
+            switch (converterUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    Converter converter = converterService.findConverterById(tenantId, converterId);
-                    boolean created = false;
+                    Converter converter = JacksonUtil.fromStringIgnoreUnknownProperties(converterUpdateMsg.getEntity(), Converter.class);
                     if (converter == null) {
-                        converter = new Converter();
-                        converter.setCreatedTime(Uuids.unixTimestamp(converterId.getId()));
-                        converter.setTenantId(tenantId);
+                        throw new RuntimeException("[{" + tenantId + "}] converterUpdateMsg {" + converterUpdateMsg + "} cannot be converted to convertor");
+                    }
+                    Converter converterById = converterService.findConverterById(tenantId, converterId);
+                    boolean created = false;
+                    if (converterById == null) {
                         created = true;
+                        converter.setId(null);
                     }
                     converter.setEdgeTemplate(false);
-                    converter.setName(converterMsg.getName());
-                    converter.setType(ConverterType.valueOf(converterMsg.getType()));
-                    converter.setDebugMode(converterMsg.getDebugMode());
 
-                    converter.setConfiguration(JacksonUtil.toJsonNode(converterMsg.getConfiguration()));
-                    converter.setAdditionalInfo(JacksonUtil.toJsonNode(converterMsg.getAdditionalInfo()));
+                    converterValidator.validate(converter, Converter::getTenantId);
 
                     if (created) {
-                        converterValidator.validate(converter, Converter::getTenantId);
                         converter.setId(converterId);
-                    } else {
-                        converterValidator.validate(converter, Converter::getTenantId);
                     }
 
                     Converter savedConverter = converterService.saveConverter(converter);
@@ -91,12 +84,12 @@ public class ConverterCloudProcessor extends BaseEdgeProcessor {
 
                     break;
                 case UNRECOGNIZED:
-                    String errMsg = "Unsupported msg type " + converterMsg.getMsgType();
+                    String errMsg = "Unsupported msg type " + converterUpdateMsg.getMsgType();
                     log.error(errMsg);
                     return Futures.immediateFailedFuture(new RuntimeException(errMsg));
             }
         } catch (Exception e) {
-            String errMsg = String.format("Can't process converter msg [%s]", converterMsg);
+            String errMsg = String.format("Can't process converter msg [%s]", converterUpdateMsg);
             log.error(errMsg, e);
             return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
         }

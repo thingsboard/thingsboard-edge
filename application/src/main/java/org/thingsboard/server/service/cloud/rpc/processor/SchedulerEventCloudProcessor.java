@@ -30,20 +30,18 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 import org.thingsboard.server.service.scheduler.SchedulerService;
@@ -66,31 +64,23 @@ public class SchedulerEventCloudProcessor extends BaseEdgeProcessor {
             switch (schedulerEventUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    SchedulerEvent schedulerEvent = schedulerEventService.findSchedulerEventById(tenantId, schedulerEventId);
-                    boolean created = false;
+                    SchedulerEvent schedulerEvent = JacksonUtil.fromStringIgnoreUnknownProperties(schedulerEventUpdateMsg.getEntity(), SchedulerEvent.class);
                     if (schedulerEvent == null) {
+                        throw new RuntimeException("[{" + tenantId + "}] schedulerEventUpdateMsg {" + schedulerEventUpdateMsg + "} cannot be converted to scheduler event");
+                    }
+                    SchedulerEvent schedulerEventById = schedulerEventService.findSchedulerEventById(tenantId, schedulerEventId);
+                    boolean created = false;
+                    if (schedulerEventById == null) {
                         created = true;
-                        schedulerEvent = new SchedulerEvent();
+                        schedulerEvent.setId(null);
+                    }
+
+                    schedulerEventValidator.validate(schedulerEvent, SchedulerEventInfo::getTenantId);
+                    if (created) {
                         schedulerEvent.setId(schedulerEventId);
-                        schedulerEvent.setCreatedTime(Uuids.unixTimestamp(schedulerEventId.getId()));
-                        schedulerEvent.setTenantId(tenantId);
                     }
-                    schedulerEvent.setName(schedulerEventUpdateMsg.getName());
-                    schedulerEvent.setType(schedulerEventUpdateMsg.getType());
-                    schedulerEvent.setSchedule(JacksonUtil.toJsonNode(schedulerEventUpdateMsg.getSchedule()));
-                    schedulerEvent.setConfiguration(JacksonUtil.toJsonNode(schedulerEventUpdateMsg.getConfiguration()));
-                    safeSetCustomerId(schedulerEventUpdateMsg, schedulerEvent);
-                    schedulerEvent.setAdditionalInfo(schedulerEventUpdateMsg.hasAdditionalInfo()
-                            ? JacksonUtil.toJsonNode(schedulerEventUpdateMsg.getAdditionalInfo()) : null);
-                    EntityId originatorId = null;
-                    if (schedulerEventUpdateMsg.hasOriginatorType()
-                            && schedulerEventUpdateMsg.hasOriginatorIdMSB()
-                            && schedulerEventUpdateMsg.hasOriginatorIdLSB()) {
-                        originatorId = constructEntityId(schedulerEventUpdateMsg.getOriginatorType(),
-                                schedulerEventUpdateMsg.getOriginatorIdMSB(), schedulerEventUpdateMsg.getOriginatorIdLSB());
-                    }
-                    schedulerEvent.setOriginatorId(originatorId);
-                    schedulerEventService.saveSchedulerEvent(schedulerEvent);
+
+                    schedulerEventService.saveSchedulerEvent(schedulerEvent, false);
 
                     if (created) {
                         schedulerService.onSchedulerEventAdded(schedulerEvent);
@@ -100,11 +90,11 @@ public class SchedulerEventCloudProcessor extends BaseEdgeProcessor {
 
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    SchedulerEventInfo schedulerEventById = schedulerEventService.findSchedulerEventInfoById(tenantId, schedulerEventId);
-                    if (schedulerEventById != null) {
+                    SchedulerEventInfo schedulerEventInfo = schedulerEventService.findSchedulerEventInfoById(tenantId, schedulerEventId);
+                    if (schedulerEventInfo != null) {
                         schedulerEventService.deleteSchedulerEvent(tenantId, schedulerEventId);
 
-                        schedulerService.onSchedulerEventDeleted(schedulerEventById);
+                        schedulerService.onSchedulerEventDeleted(schedulerEventInfo);
                     }
                     break;
                 case UNRECOGNIZED:

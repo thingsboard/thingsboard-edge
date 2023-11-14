@@ -68,6 +68,8 @@ public interface SchedulerEventService extends EntityDaoService {
 
     SchedulerEvent saveSchedulerEvent(SchedulerEvent schedulerEvent);
 
+    SchedulerEvent saveSchedulerEvent(SchedulerEvent schedulerEvent, boolean doValidate);
+
     void deleteSchedulerEvent(TenantId tenantId, SchedulerEventId schedulerEventId);
 
     void deleteSchedulerEventsByTenantId(TenantId tenantId);

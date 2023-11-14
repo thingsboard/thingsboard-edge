@@ -58,7 +58,6 @@ public class AdminSettingsCloudProcessor extends BaseEdgeProcessor {
         }
         if (adminSettingsMsg.getId() != null) {
             adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, adminSettingsMsg);
-
         } else {
             List<AttributeKvEntry> attributes = new ArrayList<>();
             attributes.add(new BaseAttributeKvEntry(new StringDataEntry(adminSettingsMsg.getKey(), adminSettingsMsg.getJsonValue().asText()), System.currentTimeMillis()));

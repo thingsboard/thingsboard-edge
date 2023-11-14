@@ -65,9 +65,9 @@ public class WhiteLabelingCloudProcessor extends BaseEdgeProcessor {
     public ListenableFuture<Void> processCustomTranslationMsgFromCloud(TenantId tenantId, CustomTranslationProto customTranslationProto) {
         try {
             EntityId entityId = constructEntityId(customTranslationProto.getEntityType(), customTranslationProto.getEntityIdMSB(), customTranslationProto.getEntityIdLSB());
-            CustomTranslation customTranslation = new CustomTranslation();
-            if (!customTranslationProto.getTranslationMapMap().isEmpty()) {
-                customTranslation.setTranslationMap(customTranslationProto.getTranslationMapMap());
+            CustomTranslation customTranslation = JacksonUtil.fromStringIgnoreUnknownProperties(customTranslationProto.getEntity(), CustomTranslation.class);
+            if (customTranslation == null) {
+                throw new RuntimeException("[{" + tenantId + "}] customTranslationProto {" + customTranslationProto + "} cannot be converted to custom translation");
             }
             switch (entityId.getEntityType()) {
                 case TENANT:

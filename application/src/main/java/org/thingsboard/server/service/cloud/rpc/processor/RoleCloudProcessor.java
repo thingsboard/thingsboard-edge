@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.type.CollectionType;
@@ -42,7 +41,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -92,36 +90,21 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
             switch (roleProto.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    Role role = roleService.findRoleById(tenantId, roleId);
-                    boolean created = false;
+                    Role role = JacksonUtil.fromStringIgnoreUnknownProperties(roleProto.getEntity(), Role.class);
                     if (role == null) {
-                        role = new Role();
-                        role.setCreatedTime(Uuids.unixTimestamp(roleId.getId()));
-                        // role can be on sys level or tenant level
-                        TenantId roleTenantId = new TenantId(new UUID(roleProto.getTenantIdMSB(), roleProto.getTenantIdLSB()));
-                        role.setTenantId(roleTenantId);
+                        throw new RuntimeException("[{" + tenantId + "}] roleProto {" + roleProto + "} cannot be converted to rolo");
+                    }
+                    Role roleById = roleService.findRoleById(tenantId, roleId);
+                    boolean created = false;
+                    if (roleById == null) {
                         created = true;
+                        role.setId(null);
                     }
-                    role.setName(roleProto.getName());
-                    role.setType(RoleType.valueOf(roleProto.getType()));
-                    role.setAdditionalInfo(JacksonUtil.toJsonNode(roleProto.getAdditionalInfo()));
-                    role.setPermissions(JacksonUtil.toJsonNode(roleProto.getPermissions()));
-
                     role = replaceWriteOperationsToReadIfRequired(role);
-
-                    if (roleProto.hasCustomerIdMSB() && roleProto.hasCustomerIdLSB()) {
-                        UUID customerUUID = safeGetUUID(roleProto.getCustomerIdMSB(),
-                                roleProto.getCustomerIdLSB());
-                        role.setCustomerId(new CustomerId(customerUUID));
-                    } else {
-                        role.setCustomerId(null);
-                    }
+                    roleValidator.validate(role, Role::getTenantId);
 
                     if (created) {
-                        roleValidator.validate(role, Role::getTenantId);
                         role.setId(roleId);
-                    } else {
-                        roleValidator.validate(role, Role::getTenantId);
                     }
 
                     Role savedRole = roleService.saveRole(tenantId, role, false);
@@ -130,8 +113,8 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
 
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    Role roleById = roleService.findRoleById(tenantId, roleId);
-                    if (roleById != null) {
+                    Role roleToDelete = roleService.findRoleById(tenantId, roleId);
+                    if (roleToDelete != null) {
                         roleService.deleteRole(tenantId, roleId);
                     }
                     break;

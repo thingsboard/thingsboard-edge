@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +41,6 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
@@ -65,49 +63,28 @@ public class IntegrationCloudProcessor extends BaseEdgeProcessor {
     @Autowired
     private ConverterService converterService;
 
-    public ListenableFuture<Void> processIntegrationMsgFromCloud(TenantId tenantId, IntegrationUpdateMsg integrationMsg) {
+    public ListenableFuture<Void> processIntegrationMsgFromCloud(TenantId tenantId, IntegrationUpdateMsg integrationUpdateMsg) {
         try {
-            IntegrationId integrationId = new IntegrationId(new UUID(integrationMsg.getIdMSB(), integrationMsg.getIdLSB()));
-            switch (integrationMsg.getMsgType()) {
+            IntegrationId integrationId = new IntegrationId(new UUID(integrationUpdateMsg.getIdMSB(), integrationUpdateMsg.getIdLSB()));
+            switch (integrationUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    Integration integration = integrationService.findIntegrationById(tenantId, integrationId);
-                    boolean created = false;
+                    Integration integration = JacksonUtil.fromStringIgnoreUnknownProperties(integrationUpdateMsg.getEntity(), Integration.class);
                     if (integration == null) {
-                        integration = new Integration();
-                        integration.setCreatedTime(Uuids.unixTimestamp(integrationId.getId()));
-                        integration.setTenantId(tenantId);
+                        throw new RuntimeException("[{" + tenantId + "}] integrationUpdateMsg {" + integrationUpdateMsg + "} cannot be converted to integration");
+                    }
+                    Integration integrationById = integrationService.findIntegrationById(tenantId, integrationId);
+                    boolean created = false;
+                    if (integrationById == null) {
                         created = true;
+                        integration.setId(null);
                     }
                     integration.setEdgeTemplate(false);
-                    integration.setName(integrationMsg.getName());
-                    integration.setType(IntegrationType.valueOf(integrationMsg.getType()));
-                    integration.setEnabled(integrationMsg.getEnabled());
-                    integration.setRemote(integrationMsg.getRemote());
-                    integration.setAllowCreateDevicesOrAssets(integrationMsg.getAllowCreateDevicesOrAssets());
-                    integration.setDebugMode(integrationMsg.getDebugMode());
 
-                    ConverterId defaultConverterId =
-                            new ConverterId(new UUID(integrationMsg.getDefaultConverterIdMSB(), integrationMsg.getDefaultConverterIdLSB()));
-                    integration.setDefaultConverterId(defaultConverterId);
-                    if (integrationMsg.hasDownlinkConverterIdMSB() && integrationMsg.hasDownlinkConverterIdLSB()) {
-                        ConverterId downlinkConverterId =
-                                new ConverterId(new UUID(integrationMsg.getDownlinkConverterIdMSB(), integrationMsg.getDownlinkConverterIdLSB()));
-                        integration.setDownlinkConverterId(downlinkConverterId);
-                    } else {
-                        integration.setDownlinkConverterId(null);
-                    }
-                    integration.setRoutingKey(integrationMsg.getRoutingKey());
-                    integration.setSecret(integrationMsg.hasSecret() ? integrationMsg.getSecret() : null);
-
-                    integration.setConfiguration(JacksonUtil.toJsonNode(integrationMsg.getConfiguration()));
-                    integration.setAdditionalInfo(JacksonUtil.toJsonNode(integrationMsg.getAdditionalInfo()));
+                    integrationValidator.validate(integration, Integration::getTenantId);
 
                     if (created) {
-                        integrationValidator.validate(integration, Integration::getTenantId);
                         integration.setId(integrationId);
-                    } else {
-                        integrationValidator.validate(integration, Integration::getTenantId);
                     }
 
                     Integration savedIntegration = integrationService.saveIntegration(integration, false);
@@ -119,18 +96,18 @@ public class IntegrationCloudProcessor extends BaseEdgeProcessor {
 
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    Integration integrationById = integrationService.findIntegrationById(tenantId, integrationId);
-                    if (integrationById != null) {
+                    Integration integrationToDelete = integrationService.findIntegrationById(tenantId, integrationId);
+                    if (integrationToDelete != null) {
                         integrationService.deleteIntegration(tenantId, integrationId);
-                        tbClusterService.broadcastEntityStateChangeEvent(integrationById.getTenantId(), integrationById.getId(), ComponentLifecycleEvent.DELETED);
+                        tbClusterService.broadcastEntityStateChangeEvent(integrationToDelete.getTenantId(), integrationToDelete.getId(), ComponentLifecycleEvent.DELETED);
                         cleanUpUnusedConverters(tenantId);
                     }
                     break;
                 case UNRECOGNIZED:
-                    return handleUnsupportedMsgType(integrationMsg.getMsgType());
+                    return handleUnsupportedMsgType(integrationUpdateMsg.getMsgType());
             }
         } catch (Exception e) {
-            String errMsg = String.format("Can't process integration msg [%s]", integrationMsg);
+            String errMsg = String.format("Can't process integration msg [%s]", integrationUpdateMsg);
             log.error(errMsg, e);
             return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
         }

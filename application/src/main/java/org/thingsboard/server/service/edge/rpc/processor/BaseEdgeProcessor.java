@@ -88,6 +88,7 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
+import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -334,6 +335,9 @@ public abstract class BaseEdgeProcessor {
 
     @Autowired
     protected DataValidator<EntityView> entityViewValidator;
+
+    @Autowired
+    protected DataValidator<SchedulerEvent> schedulerEventValidator;
 
     @Autowired
     protected DataValidator<TbResource> resourceValidator;
