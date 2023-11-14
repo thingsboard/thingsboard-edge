@@ -102,11 +102,8 @@ public class EdgeProcessor extends BaseEdgeProcessor {
                     List<ListenableFuture<Void>> futures = new ArrayList<>();
                     try {
                         EntityId previousOwnerId = JacksonUtil.fromString(edgeNotificationMsg.getBody(), EntityId.class);
-                        if (previousOwnerId == null) {
-                            return Futures.immediateFuture(null);
-                        }
                         List<Customer> previousOwnerCustomerHierarchy = new ArrayList<>();
-                        if (EntityType.CUSTOMER.equals(previousOwnerId.getEntityType())) {
+                        if (previousOwnerId != null && EntityType.CUSTOMER.equals(previousOwnerId.getEntityType())) {
                             previousOwnerCustomerHierarchy =
                                     customersHierarchyEdgeService.getCustomersHierarchy(tenantId, new CustomerId(previousOwnerId.getId()));
                         }

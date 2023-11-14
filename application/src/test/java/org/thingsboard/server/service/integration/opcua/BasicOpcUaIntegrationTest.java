@@ -286,7 +286,7 @@ public class BasicOpcUaIntegrationTest extends AbstractIntegrationTest {
     private TransportProtos.IntegrationDownlinkMsgProto createIntegrationDownlinkMessage(DeviceId originatorId) {
         ObjectNode dataNode = JacksonUtil.newObjectNode();
         ObjectNode writeValuesNode = JacksonUtil.newObjectNode();
-        ArrayNode writeValuesArray = JacksonUtil.OBJECT_MAPPER.createArrayNode();
+        ArrayNode writeValuesArray = JacksonUtil.newArrayNode();
         ObjectNode writeValueNode = JacksonUtil.newObjectNode();
         writeValueNode.put("nodeId", "ns=2;s=HelloWorld/ScalarTypes/String");
         writeValueNode.put("value", "New value");
