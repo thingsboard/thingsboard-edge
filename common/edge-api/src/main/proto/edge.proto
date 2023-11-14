@@ -593,7 +593,7 @@ message EntityGroupUpdateMsg {
   UpdateMsgType msgType = 1;
   int64 idMSB = 2;
   int64 idLSB = 3;
-  string name = 4 [deprecated = true];
+  string name = 4;
   string type = 5 [deprecated = true];
   int64 ownerIdMSB = 6 [deprecated = true];
   int64 ownerIdLSB = 7 [deprecated = true];

@@ -62,7 +62,7 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         doPost("/api/plugins/telemetry/" + EntityType.EDGE.name() + "/" + edge.getId() + "/SERVER_SCOPE", baseUrlAttribute)
                 .andExpect(status().isOk());
 
-        ObjectNode converterConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode()
+        ObjectNode converterConfiguration = JacksonUtil.newObjectNode()
                 .put("decoder", "return {deviceName: 'Device A', deviceType: 'thermostat'};");
         Converter converter = new Converter();
         converter.setName("My converter");
@@ -76,7 +76,7 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
         integration.setDefaultConverterId(savedConverter.getId());
         integration.setType(IntegrationType.HTTP);
-        ObjectNode integrationConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode integrationConfiguration = JacksonUtil.newObjectNode();
         integrationConfiguration.putObject("metadata")
                 .put("baseUrl", "${{baseUrl}}");
         integration.setConfiguration(integrationConfiguration);
@@ -196,7 +196,7 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
     private void validateIntegrationConfigurationUpdate(Integration savedIntegration) throws Exception {
         edgeImitator.expectMessageAmount(2);
 
-        ObjectNode updatedIntegrationConfig = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode updatedIntegrationConfig = JacksonUtil.newObjectNode();
         updatedIntegrationConfig.putObject("metadata")
                 .put("baseUrl", "${{baseUrl}}/api/v1")
                 .put("deviceHW", "${{deviceHW}}");
@@ -217,7 +217,7 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
     private void validateIntegrationDefaultConverterUpdate(Integration savedIntegration) throws Exception {
         edgeImitator.expectMessageAmount(2);
 
-        ObjectNode newConverterConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode()
+        ObjectNode newConverterConfiguration = JacksonUtil.newObjectNode()
                 .put("decoder", "return {deviceName: 'Device B', deviceType: 'default'};");
         Converter converter = new Converter();
         converter.setName("My new converter");
@@ -254,7 +254,7 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
     private void validateIntegrationDownlinkConverterUpdate(Integration savedIntegration) throws Exception {
         edgeImitator.expectMessageAmount(3);
 
-        ObjectNode downlinkConverterConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode()
+        ObjectNode downlinkConverterConfiguration = JacksonUtil.newObjectNode()
                 .put("encoder", "return {contentType: 'JSON', data: '\"{\"pin\": 1}\"'};");
         Converter downlinkConverter = new Converter();
         downlinkConverter.setName("My downlink converter");
@@ -298,7 +298,7 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
 
         edgeImitator.expectMessageAmount(1);
 
-        downlinkConverterConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode()
+        downlinkConverterConfiguration = JacksonUtil.newObjectNode()
                 .put("encoder", "return {contentType: 'JSON', data: '\"{\"pin\": 3}\"'};");
         savedDownlinkConverter.setConfiguration(downlinkConverterConfiguration);
         doPost("/api/converter", savedDownlinkConverter, Converter.class);
