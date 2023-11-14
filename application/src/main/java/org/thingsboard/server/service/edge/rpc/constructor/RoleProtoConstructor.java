@@ -48,7 +48,7 @@ public class RoleProtoConstructor {
     public RoleProto constructRoleProto(UpdateMsgType msgType, Role role, EdgeVersion edgeVersion) {
         return EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)
                 ? constructDeprecatedRoleProto(msgType, role)
-                : RoleProto.newBuilder().setEntity(JacksonUtil.toString(role))
+                : RoleProto.newBuilder().setMsgType(msgType).setEntity(JacksonUtil.toString(role))
                 .setIdMSB(role.getId().getId().getMostSignificantBits())
                 .setIdLSB(role.getId().getId().getLeastSignificantBits()).build();
     }

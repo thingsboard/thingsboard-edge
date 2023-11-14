@@ -140,12 +140,11 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
         Assert.assertTrue(deviceUpdateMsgOpt.isPresent());
         deviceUpdateMsg = deviceUpdateMsgOpt.get();
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, deviceUpdateMsg.getMsgType());
+        Device device = JacksonUtil.fromStringIgnoreUnknownProperties(deviceUpdateMsg.getEntity(), Device.class);
+        Assert.assertNotNull(device);
         Assert.assertEquals(deviceEntityGroup2.getUuidId().getMostSignificantBits(), deviceUpdateMsg.getEntityGroupIdMSB());
         Assert.assertEquals(deviceEntityGroup2.getUuidId().getLeastSignificantBits(), deviceUpdateMsg.getEntityGroupIdLSB());
-        Assert.assertEquals(savedDevice.getUuidId().getMostSignificantBits(), deviceUpdateMsg.getIdMSB());
-        Assert.assertEquals(savedDevice.getUuidId().getLeastSignificantBits(), deviceUpdateMsg.getIdLSB());
-        Assert.assertEquals(savedDevice.getName(), deviceUpdateMsg.getName());
-        Assert.assertEquals(savedDevice.getType(), deviceUpdateMsg.getType());
+        Assert.assertEquals(savedDevice, device);
 
         deviceProfileUpdateMsgOpt = edgeImitator.findMessageByType(DeviceProfileUpdateMsg.class);
         Assert.assertTrue(deviceProfileUpdateMsgOpt.isPresent());
@@ -162,8 +161,10 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof DeviceUpdateMsg);
         deviceUpdateMsg = (DeviceUpdateMsg) latestMessage;
+        device = JacksonUtil.fromStringIgnoreUnknownProperties(deviceUpdateMsg.getEntity(), Device.class);
+        Assert.assertNotNull(device);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, deviceUpdateMsg.getMsgType());
-        Assert.assertEquals("Edge Device 1 Updated", deviceUpdateMsg.getName());
+        Assert.assertEquals("Edge Device 1 Updated", device.getName());
 
         // remove device from entity group 2
         edgeImitator.expectMessageAmount(1);

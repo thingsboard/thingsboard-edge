@@ -46,9 +46,10 @@ import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 public class EntityGroupMsgConstructor {
 
     public EntityGroupUpdateMsg constructEntityGroupUpdatedMsg(UpdateMsgType msgType, EntityGroup entityGroup, EdgeVersion edgeVersion) {
-        return EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)
-                ? constructDeprecatedEntityGroupUpdatedMsg(msgType, entityGroup)
-                : EntityGroupUpdateMsg.newBuilder().setEntity(JacksonUtil.toString(entityGroup))
+        if (EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)) {
+            return constructDeprecatedEntityGroupUpdatedMsg(msgType, entityGroup);
+        }
+        return EntityGroupUpdateMsg.newBuilder().setMsgType(msgType).setEntity(JacksonUtil.toString(entityGroup)).setName(entityGroup.getName())
                 .setIdMSB(entityGroup.getId().getId().getMostSignificantBits())
                 .setIdLSB(entityGroup.getId().getId().getLeastSignificantBits()).build();
     }

@@ -107,7 +107,7 @@ public class IntegrationEdgeProcessor extends BaseEdgeProcessor {
                 updatedConfiguration =
                         updatedConfiguration.replaceAll(EdgeUtils.formatAttributeKeyToRegexpPlaceholderFormat(attributeKvEntry.getKey()), attributeKvEntry.getValueAsString());
             }
-            return JacksonUtil.OBJECT_MAPPER.readTree(updatedConfiguration);
+            return JacksonUtil.toJsonNode(updatedConfiguration);
         } catch (Exception e) {
             log.warn("Failed to replace attribute placeholders in configuration [{}]", originalConfiguration, e);
             return originalConfiguration;

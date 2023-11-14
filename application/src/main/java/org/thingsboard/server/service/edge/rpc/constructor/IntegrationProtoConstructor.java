@@ -46,15 +46,19 @@ import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 public class IntegrationProtoConstructor {
 
     public IntegrationUpdateMsg constructIntegrationUpdateMsg(UpdateMsgType msgType, Integration integration, JsonNode configuration, EdgeVersion edgeVersion) {
+        JsonNode defaultConfig = integration.getConfiguration();
+        if (EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)) {
+            return constructDeprecatedIntegrationUpdateMsg(msgType, integration, configuration);
+        }
         integration.setConfiguration(configuration);
-        return EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)
-                ? constructDeprecatedIntegrationUpdateMsg(msgType, integration)
-                : IntegrationUpdateMsg.newBuilder().setEntity(JacksonUtil.toString(integration))
+        IntegrationUpdateMsg integrationUpdateMsg = IntegrationUpdateMsg.newBuilder().setMsgType(msgType).setEntity(JacksonUtil.toString(integration))
                 .setIdMSB(integration.getId().getId().getMostSignificantBits())
                 .setIdLSB(integration.getId().getId().getLeastSignificantBits()).build();
+        integration.setConfiguration(defaultConfig);
+        return integrationUpdateMsg;
     }
 
-    private IntegrationUpdateMsg constructDeprecatedIntegrationUpdateMsg(UpdateMsgType msgType, Integration integration) {
+    private IntegrationUpdateMsg constructDeprecatedIntegrationUpdateMsg(UpdateMsgType msgType, Integration integration, JsonNode configuration) {
         IntegrationUpdateMsg.Builder builder = IntegrationUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(integration.getId().getId().getMostSignificantBits())
@@ -68,7 +72,7 @@ public class IntegrationProtoConstructor {
                 .setEnabled(integration.isEnabled())
                 .setRemote(integration.isRemote())
                 .setAllowCreateDevicesOrAssets(integration.isAllowCreateDevicesOrAssets())
-                .setConfiguration(JacksonUtil.toString(integration.getConfiguration()));
+                .setConfiguration(JacksonUtil.toString(configuration));
         if (integration.getAdditionalInfo() != null) {
             builder.setAdditionalInfo(JacksonUtil.toString(integration.getAdditionalInfo()));
         }

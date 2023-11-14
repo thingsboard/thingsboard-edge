@@ -44,9 +44,10 @@ import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 public class ConverterProtoConstructor {
 
     public ConverterUpdateMsg constructConverterUpdateMsg(UpdateMsgType msgType, Converter converter, EdgeVersion edgeVersion) {
-        return EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)
-                ? constructDeprecatedConverterUpdateMsg(msgType, converter)
-                : ConverterUpdateMsg.newBuilder().setEntity(JacksonUtil.toString(converter))
+        if (EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)) {
+            return constructDeprecatedConverterUpdateMsg(msgType, converter);
+        }
+        return ConverterUpdateMsg.newBuilder().setMsgType(msgType).setEntity(JacksonUtil.toString(converter))
                 .setIdMSB(converter.getUuidId().getMostSignificantBits())
                 .setIdLSB(converter.getUuidId().getLeastSignificantBits()).build();
     }
