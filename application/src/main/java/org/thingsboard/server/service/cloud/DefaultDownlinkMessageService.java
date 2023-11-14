@@ -45,6 +45,7 @@ import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.OtaPackageUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.ResourceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.TenantProfileUpdateMsg;
@@ -66,6 +67,7 @@ import org.thingsboard.server.service.cloud.rpc.processor.EntityViewCloudProcess
 import org.thingsboard.server.service.cloud.rpc.processor.OtaPackageCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.QueueCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RelationCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.ResourceCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RuleChainCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.TelemetryCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.TenantCloudProcessor;
@@ -151,6 +153,9 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
     private TenantProfileCloudProcessor tenantProfileCloudProcessor;
 
     @Autowired
+    private ResourceCloudProcessor tbResourceCloudProcessor;
+
+    @Autowired
     private DbCallbackExecutorService dbCallbackExecutorService;
 
     public ListenableFuture<List<Void>> processDownlinkMsg(TenantId tenantId,
@@ -196,7 +201,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             }
             if (downlinkMsg.getDeviceCredentialsUpdateMsgCount() > 0) {
                 for (DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg : downlinkMsg.getDeviceCredentialsUpdateMsgList()) {
-                    result.add(deviceProcessor.processDeviceCredentialsMsg(tenantId, deviceCredentialsUpdateMsg));
+                    result.add(deviceProcessor.processDeviceCredentialsMsgFromCloud(tenantId, deviceCredentialsUpdateMsg));
                 }
             }
             if (downlinkMsg.getAssetProfileUpdateMsgCount() > 0) {
@@ -231,7 +236,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             }
             if (downlinkMsg.getAlarmUpdateMsgCount() > 0) {
                 for (AlarmUpdateMsg alarmUpdateMsg : downlinkMsg.getAlarmUpdateMsgList()) {
-                    result.add(alarmProcessor.processAlarmMsg(tenantId, alarmUpdateMsg));
+                    result.add(alarmProcessor.processAlarmMsgFromCloud(tenantId, alarmUpdateMsg));
                 }
             }
             if (downlinkMsg.getCustomerUpdateMsgCount() > 0) {
@@ -246,7 +251,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             }
             if (downlinkMsg.getRelationUpdateMsgCount() > 0) {
                 for (RelationUpdateMsg relationUpdateMsg : downlinkMsg.getRelationUpdateMsgList()) {
-                    result.add(relationProcessor.processRelationMsg(tenantId, relationUpdateMsg));
+                    result.add(relationProcessor.processRelationMsgFromCloud(tenantId, relationUpdateMsg));
                 }
             }
             if (downlinkMsg.getWidgetsBundleUpdateMsgCount() > 0) {
@@ -297,6 +302,11 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             if (downlinkMsg.getTenantUpdateMsgCount() > 0) {
                 for (TenantUpdateMsg tenantUpdateMsg : downlinkMsg.getTenantUpdateMsgList()) {
                     result.add(tenantCloudProcessor.processTenantMsgFromCloud(tenantUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getResourceUpdateMsgCount() > 0) {
+                for (ResourceUpdateMsg resourceUpdateMsg : downlinkMsg.getResourceUpdateMsgList()) {
+                    result.add(tbResourceCloudProcessor.processResourceMsgFromCloud(tenantId, resourceUpdateMsg));
                 }
             }
             log.trace("Finished processing DownlinkMsg {}", downlinkMsg.getDownlinkMsgId());

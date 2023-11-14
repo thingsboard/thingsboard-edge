@@ -768,7 +768,7 @@ export function genNextLabel(name: string, datasources: Datasource[]): string {
         if (datasource) {
           if (datasource.dataKeys) {
             datasource.dataKeys.forEach((dataKey) => {
-              if (dataKey.label === label) {
+              if (dataKey?.label === label) {
                 i++;
                 label = name + ' ' + i;
                 matches = true;
@@ -777,7 +777,7 @@ export function genNextLabel(name: string, datasources: Datasource[]): string {
           }
           if (datasource.latestDataKeys) {
             datasource.latestDataKeys.forEach((dataKey) => {
-              if (dataKey.label === label) {
+              if (dataKey?.label === label) {
                 i++;
                 label = name + ' ' + i;
                 matches = true;
@@ -816,4 +816,8 @@ export const getOS = (): string => {
 
 export const camelCase = (str: string): string => {
   return _.camelCase(str);
+};
+
+export const convertKeysToCamelCase = (obj: Record<string, any>): Record<string, any> => {
+  return _.mapKeys(obj, (value, key) => _.camelCase(key));
 };

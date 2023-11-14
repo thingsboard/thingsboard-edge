@@ -45,7 +45,7 @@ public class OtaPackageCloudProcessor extends BaseEdgeProcessor {
     public ListenableFuture<Void> processOtaPackageMsgFromCloud(TenantId tenantId, OtaPackageUpdateMsg otaPackageUpdateMsg) {
         OtaPackageId otaPackageId = new OtaPackageId(new UUID(otaPackageUpdateMsg.getIdMSB(), otaPackageUpdateMsg.getIdLSB()));
         try {
-            edgeSynchronizationManager.getSync().set(true);
+            cloudSynchronizationManager.getSync().set(true);
             switch (otaPackageUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
@@ -104,7 +104,7 @@ public class OtaPackageCloudProcessor extends BaseEdgeProcessor {
                     return handleUnsupportedMsgType(otaPackageUpdateMsg.getMsgType());
             }
         } finally {
-            edgeSynchronizationManager.getSync().remove();
+            cloudSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
     }

@@ -18,14 +18,11 @@ package org.thingsboard.server.service.install;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.EntitySubtype;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -45,7 +42,6 @@ import org.thingsboard.server.dao.sql.tenant.TenantRepository;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.queue.settings.TbRuleEngineQueueConfiguration;
-import org.thingsboard.server.service.install.sql.SqlDbHelper;
 import org.thingsboard.server.service.install.update.DefaultDataUpdateService;
 
 import java.nio.charset.Charset;
@@ -56,7 +52,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLSyntaxErrorException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -64,24 +59,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static org.thingsboard.server.service.install.DatabaseHelper.ADDITIONAL_INFO;
-import static org.thingsboard.server.service.install.DatabaseHelper.ASSIGNED_CUSTOMERS;
-import static org.thingsboard.server.service.install.DatabaseHelper.CONFIGURATION;
-import static org.thingsboard.server.service.install.DatabaseHelper.CUSTOMER_ID;
-import static org.thingsboard.server.service.install.DatabaseHelper.DASHBOARD;
-import static org.thingsboard.server.service.install.DatabaseHelper.END_TS;
-import static org.thingsboard.server.service.install.DatabaseHelper.ENTITY_ID;
-import static org.thingsboard.server.service.install.DatabaseHelper.ENTITY_TYPE;
-import static org.thingsboard.server.service.install.DatabaseHelper.ENTITY_VIEW;
-import static org.thingsboard.server.service.install.DatabaseHelper.ENTITY_VIEWS;
-import static org.thingsboard.server.service.install.DatabaseHelper.ID;
-import static org.thingsboard.server.service.install.DatabaseHelper.KEYS;
-import static org.thingsboard.server.service.install.DatabaseHelper.NAME;
 import static org.thingsboard.server.service.install.DatabaseHelper.SEARCH_TEXT;
-import static org.thingsboard.server.service.install.DatabaseHelper.START_TS;
-import static org.thingsboard.server.service.install.DatabaseHelper.TENANT_ID;
-import static org.thingsboard.server.service.install.DatabaseHelper.TITLE;
-import static org.thingsboard.server.service.install.DatabaseHelper.TYPE;
 
 @Service
 @Profile("install")
@@ -776,6 +754,25 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                         log.info("Schema updated to version 3.6.0.");
                     } else {
                         log.info("Skip schema re-update to version 3.6.0. Use env flag 'SKIP_SCHEMA_VERSION_CHECK' to force the re-update.");
+                    }
+                } catch (Exception e) {
+                    log.error("Failed updating schema!!!", e);
+                }
+                break;
+            case "3.6.0":
+                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
+                    if (isOldSchema(conn, 3006000)) {
+                        log.info("Updating schema ...");
+                        Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.6.0", SCHEMA_UPDATE_SQL);
+                        loadSql(schemaUpdateFile, conn);
+                        try {
+                            conn.createStatement().execute("DELETE FROM resource");
+                        } catch (Exception e) {
+                        }
+                        conn.createStatement().execute("UPDATE tb_schema_settings SET schema_version = 3006001;");
+                        log.info("Schema updated to version 3.6.1.");
+                    } else {
+                        log.info("Skip schema re-update to version 3.6.1. Use env flag 'SKIP_SCHEMA_VERSION_CHECK' to force the re-update.");
                     }
                 } catch (Exception e) {
                     log.error("Failed updating schema!!!", e);

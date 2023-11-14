@@ -22,7 +22,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.thingsboard.server.common.data.BaseData;
-import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasTenantId;
@@ -72,6 +71,11 @@ public class WidgetsBundle extends BaseData<WidgetsBundleId> implements HasName,
 
     @Getter
     @Setter
+    @ApiModelProperty(position = 8, value = "Order", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    private Integer order;
+
+    @Getter
+    @Setter
     private WidgetsBundleId externalId;
 
     public WidgetsBundle() {
@@ -89,6 +93,7 @@ public class WidgetsBundle extends BaseData<WidgetsBundleId> implements HasName,
         this.title = widgetsBundle.getTitle();
         this.image = widgetsBundle.getImage();
         this.description = widgetsBundle.getDescription();
+        this.order = widgetsBundle.getOrder();
         this.externalId = widgetsBundle.getExternalId();
     }
 
@@ -124,5 +129,4 @@ public class WidgetsBundle extends BaseData<WidgetsBundleId> implements HasName,
         sb.append('}');
         return sb.toString();
     }
-
 }

@@ -27,7 +27,9 @@
     <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
     <mat-card-content style="padding-top: 16px;">
       <form [formGroup]="homeSettings" (ngSubmit)="save()">
-        <fieldset [disabled]="isLoading$ | async">
+        <!-- @voba - disabled on edge -->
+        <!--<fieldset [disabled]="isLoading$ | async">-->
+        <fieldset [disabled]="true">
           <section class="tb-default-dashboard" fxFlex fxLayout="column">
             <section fxFlex fxLayout="column" fxLayout.gt-sm="row">
               <tb-dashboard-autocomplete

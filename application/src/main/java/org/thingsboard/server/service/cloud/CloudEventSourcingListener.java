@@ -26,7 +26,7 @@ import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
-import org.thingsboard.server.dao.edge.EdgeSynchronizationManager;
+import org.thingsboard.server.dao.cloud.CloudSynchronizationManager;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.RelationActionEvent;
@@ -59,7 +59,7 @@ import static org.thingsboard.server.service.entitiy.DefaultTbNotificationEntity
 public class CloudEventSourcingListener {
 
     private final TbClusterService tbClusterService;
-    private final EdgeSynchronizationManager edgeSynchronizationManager;
+    private final CloudSynchronizationManager cloudSynchronizationManager;
 
     private static final List<EntityType> COMMON_ENTITY_TYPES = Arrays.asList(
             EntityType.DEVICE,
@@ -67,7 +67,8 @@ public class CloudEventSourcingListener {
             EntityType.ENTITY_VIEW,
             EntityType.ASSET,
             EntityType.ASSET_PROFILE,
-            EntityType.DASHBOARD);
+            EntityType.DASHBOARD,
+            EntityType.TB_RESOURCE);
 
     private final List<EntityType> supportableEntityTypes = new ArrayList<>(COMMON_ENTITY_TYPES) {{
         add(EntityType.ALARM);
@@ -82,7 +83,7 @@ public class CloudEventSourcingListener {
 
     @TransactionalEventListener(fallbackExecution = true)
     public void handleEvent(SaveEntityEvent<?> event) {
-        if (edgeSynchronizationManager.isSync()) {
+        if (cloudSynchronizationManager.isSync()) {
             return;
         }
         try {
@@ -100,7 +101,7 @@ public class CloudEventSourcingListener {
 
     @TransactionalEventListener(fallbackExecution = true)
     public void handleEvent(DeleteEntityEvent<?> event) {
-        if (edgeSynchronizationManager.isSync()) {
+        if (cloudSynchronizationManager.isSync()) {
             return;
         }
         try {
@@ -117,7 +118,7 @@ public class CloudEventSourcingListener {
 
     @TransactionalEventListener(fallbackExecution = true)
     public void handleEvent(ActionEntityEvent event) {
-        if (edgeSynchronizationManager.isSync()) {
+        if (cloudSynchronizationManager.isSync()) {
             return;
         }
         try {
@@ -134,7 +135,7 @@ public class CloudEventSourcingListener {
 
     @TransactionalEventListener(fallbackExecution = true)
     public void handleEvent(RelationActionEvent event) {
-        if (edgeSynchronizationManager.isSync()) {
+        if (cloudSynchronizationManager.isSync()) {
             return;
         }
         try {

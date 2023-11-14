@@ -47,13 +47,13 @@ public class WidgetBundleCloudProcessor extends BaseEdgeProcessor {
                                                                    WidgetsBundleUpdateMsg widgetsBundleUpdateMsg) {
         WidgetsBundleId widgetsBundleId = new WidgetsBundleId(new UUID(widgetsBundleUpdateMsg.getIdMSB(), widgetsBundleUpdateMsg.getIdLSB()));
         try {
-            edgeSynchronizationManager.getSync().set(true);
+            cloudSynchronizationManager.getSync().set(true);
             switch (widgetsBundleUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     widgetCreationLock.lock();
                     try {
-                        deleteSystemWidgetBundleIfAlreadyExists(tenantId, widgetsBundleUpdateMsg.getAlias(), widgetsBundleId);
+                        deleteSystemWidgetBundleIfAlreadyExists(widgetsBundleUpdateMsg.getAlias(), widgetsBundleId);
                         WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
                         if (widgetsBundle == null) {
                             widgetsBundle = new WidgetsBundle();
@@ -70,6 +70,7 @@ public class WidgetBundleCloudProcessor extends BaseEdgeProcessor {
                         widgetsBundle.setImage(widgetsBundleUpdateMsg.hasImage()
                                 ? new String(widgetsBundleUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8) : null);
                         widgetsBundle.setDescription(widgetsBundleUpdateMsg.hasDescription() ? widgetsBundleUpdateMsg.getDescription() : null);
+                        widgetsBundle.setOrder(widgetsBundleUpdateMsg.hasOrder() ? widgetsBundleUpdateMsg.getOrder() : null);
                         widgetsBundleService.saveWidgetsBundle(widgetsBundle, false);
 
                         String[] widgetFqns = JacksonUtil.fromString(widgetsBundleUpdateMsg.getWidgets(), String[].class);
@@ -90,12 +91,12 @@ public class WidgetBundleCloudProcessor extends BaseEdgeProcessor {
                     return handleUnsupportedMsgType(widgetsBundleUpdateMsg.getMsgType());
             }
         } finally {
-            edgeSynchronizationManager.getSync().remove();
+            cloudSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
     }
 
-    private void deleteSystemWidgetBundleIfAlreadyExists(TenantId tenantId, String bundleAlias, WidgetsBundleId widgetsBundleId) {
+    private void deleteSystemWidgetBundleIfAlreadyExists(String bundleAlias, WidgetsBundleId widgetsBundleId) {
         try {
             WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleByTenantIdAndAlias(TenantId.SYS_TENANT_ID, bundleAlias);
             if (widgetsBundle != null && !widgetsBundleId.equals(widgetsBundle.getId())) {
