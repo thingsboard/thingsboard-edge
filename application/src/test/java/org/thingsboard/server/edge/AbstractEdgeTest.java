@@ -948,7 +948,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     protected ObjectNode getCustomTranslationHomeObject(String homeValue) {
-        ObjectNode objectNode = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode objectNode = JacksonUtil.newObjectNode();
         return objectNode.put("home", homeValue);
     }
 }

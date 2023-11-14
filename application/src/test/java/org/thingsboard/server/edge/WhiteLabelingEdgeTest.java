@@ -236,7 +236,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
     private void updateAndVerifyCustomTranslationUpdate(String updatedHomeValue) throws Exception {
         CustomTranslation customTranslation = doGet("/api/customTranslation/customTranslation", CustomTranslation.class);
         edgeImitator.expectMessageAmount(1);
-        customTranslation.getTranslationMap().put("en_US", JacksonUtil.OBJECT_MAPPER.writeValueAsString(getCustomTranslationHomeObject(updatedHomeValue)));
+        customTranslation.getTranslationMap().put("en_US", JacksonUtil.toString(getCustomTranslationHomeObject(updatedHomeValue)));
         doPost("/api/customTranslation/customTranslation", customTranslation, CustomTranslation.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
@@ -245,7 +245,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         CustomTranslation ct = JacksonUtil.fromStringIgnoreUnknownProperties(customTranslationProto.getEntity(), CustomTranslation.class);
         Assert.assertNotNull(ct);
         String enUsLangObject = ct.getTranslationMap().get("en_US");
-        Assert.assertEquals(updatedHomeValue, JacksonUtil.OBJECT_MAPPER.readTree(enUsLangObject).get("home").asText());
+        Assert.assertEquals(updatedHomeValue, JacksonUtil.toJsonNode(enUsLangObject).get("home").asText());
     }
 
 }

@@ -247,13 +247,13 @@ public class BasicOpcUaIntegrationTest extends AbstractIntegrationTest {
 
         clientConfiguration.set("identity", identityNode);
 
-        ArrayNode mappingNode = JacksonUtil.OBJECT_MAPPER.createArrayNode();
+        ArrayNode mappingNode = JacksonUtil.newArrayNode();
 
         ObjectNode deviceConfigurationNode = JacksonUtil.newObjectNode();
         deviceConfigurationNode.put("deviceNodePattern", "Objects\\.HelloWorld");
         deviceConfigurationNode.put("mappingType", "FQN");
 
-        ArrayNode subscriptionTagsNodes = JacksonUtil.OBJECT_MAPPER.createArrayNode();
+        ArrayNode subscriptionTagsNodes = JacksonUtil.newArrayNode();
 
         for (String expectedNode : expectedNodes) {
             ObjectNode subscriptionTagNode = JacksonUtil.newObjectNode();
