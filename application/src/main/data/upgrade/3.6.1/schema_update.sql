@@ -29,4 +29,15 @@
 -- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
-UPDATE white_labeling SET domain_name = LOWER(domain_name) WHERE type = 'LOGIN' AND domain_name IS NOT NULL AND domain_name != LOWER(domain_name);
+UPDATE white_labeling w
+SET domain_name = LOWER(w.domain_name)
+WHERE type = 'LOGIN'
+  AND w.domain_name IS NOT NULL
+  AND w.domain_name != LOWER(w.domain_name)
+  AND NOT EXISTS(
+        SELECT 1
+        FROM white_labeling wl
+        WHERE type = 'LOGIN'
+          AND LOWER(wl.domain_name) = LOWER(w.domain_name)
+          AND wl.entity_id != w.entity_id
+);

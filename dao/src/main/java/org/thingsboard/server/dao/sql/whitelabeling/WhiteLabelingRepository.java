@@ -37,6 +37,6 @@ import org.thingsboard.server.dao.model.sql.WhiteLabelingEntity;
 
 public interface WhiteLabelingRepository extends JpaRepository<WhiteLabelingEntity, WhiteLabelingCompositeKey> {
 
-    WhiteLabelingEntity findByDomainIgnoreCase(String domain);
+    WhiteLabelingEntity findByDomain(String domain);
 
 }
