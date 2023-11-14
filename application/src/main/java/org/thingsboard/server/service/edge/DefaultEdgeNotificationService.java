@@ -285,6 +285,7 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                         case WHITE_LABELING:
                         case LOGIN_WHITE_LABELING:
                         case CUSTOM_TRANSLATION:
+                        case MAIL_TEMPLATES:
                             whiteLabelingProcessor.processNotification(tenantId, edgeNotificationMsg);
                             break;
                         case TENANT:
