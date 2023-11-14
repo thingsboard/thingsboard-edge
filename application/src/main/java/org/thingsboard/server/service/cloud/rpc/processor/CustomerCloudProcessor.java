@@ -61,10 +61,6 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
     public ListenableFuture<Void> processCustomerMsgFromCloud(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg,
                                                               Long queueStartTs) throws ThingsboardException {
         CustomerId customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
-        Customer customer = JacksonUtil.fromStringIgnoreUnknownProperties(customerUpdateMsg.getEntity(), Customer.class);
-        if (customer == null) {
-            throw new RuntimeException("[{" + tenantId + "}] customerUpdateMsg {" + customerUpdateMsg + "} cannot be converted to customer");
-        }
         try {
             cloudSynchronizationManager.getSync().set(true);
 
@@ -73,6 +69,10 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     customerCreationLock.lock();
                     try {
+                        Customer customer = JacksonUtil.fromStringIgnoreUnknownProperties(customerUpdateMsg.getEntity(), Customer.class);
+                        if (customer == null) {
+                            throw new RuntimeException("[{" + tenantId + "}] customerUpdateMsg {" + customerUpdateMsg + "} cannot be converted to customer");
+                        }
                         EntityId ownerId = customer.getOwnerId();
                         if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
                             createCustomerIfNotExists(tenantId, new CustomerId(ownerId.getId()));
