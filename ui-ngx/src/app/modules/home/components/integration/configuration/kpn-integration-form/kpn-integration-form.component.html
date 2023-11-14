@@ -42,11 +42,11 @@
     </mat-error>
   </mat-form-field>
   <mat-form-field class="mat-block">
-    <mat-label translate>integration.pre-shared-key</mat-label>
-    <input matInput formControlName="preSharedKey" required type="password" >
+    <mat-label translate>integration.destination-shared-secret</mat-label>
+    <input matInput formControlName="destinationSharedSecret" required type="password" >
     <tb-toggle-password matSuffix></tb-toggle-password>
-    <mat-error translate *ngIf="kpnIntegrationConfigForm.get('preSharedKey').hasError('required')">
-      integration.pre-shared-key-required
+    <mat-error translate *ngIf="kpnIntegrationConfigForm.get('destinationSharedSecret').hasError('required')">
+      integration.destination-shared-secret-required
     </mat-error>
   </mat-form-field>
   <div fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start center">

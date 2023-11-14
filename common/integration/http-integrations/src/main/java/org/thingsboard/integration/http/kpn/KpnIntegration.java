@@ -156,7 +156,7 @@ public class KpnIntegration<T extends HttpIntegrationMsg<?>> extends BasicHttpIn
         Map<String, String> requestHeaders = msg.getRequestHeaders();
         log.trace("Validating request using the following request headers: {}", requestHeaders);
         String signed = requestHeaders.get(SIGNED_BODY_REQUEST_HEADER);
-        byte[] dataForHash = ArrayUtils.addAll(msg.getMsgInBytes(), kpnConfiguration.getPreSharedKey().getBytes());
+        byte[] dataForHash = ArrayUtils.addAll(msg.getMsgInBytes(), kpnConfiguration.getDestinationSharedSecret().getBytes());
         String hashed = new DigestUtils("SHA-256").digestAsHex(dataForHash);
         if (!signed.equals(hashed)) {
             return false;
@@ -173,7 +173,7 @@ public class KpnIntegration<T extends HttpIntegrationMsg<?>> extends BasicHttpIn
     }
 
     private void sendDownlinkRequest(DownlinkData downlinkData, Map<String, String> mdMap) throws Exception {
-        if (mdMap.containsKey(FPORT_PARAM)) {
+        if (mdMap.containsKey(FPORT_PARAM) || downlinkData.getMetadata().containsKey(FPORT_PARAM)) {
             HttpHeaders headers = new HttpHeaders();
             headers.set("Accept", "application/vnd.kpnthings.actuator.v1.response+json");
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -185,8 +185,9 @@ public class KpnIntegration<T extends HttpIntegrationMsg<?>> extends BasicHttpIn
                 }
                 headers.set("x-client-id", mdMap.get(SUB_CUSTOMER_ID_PARAM));
             }
+            String fPort = downlinkData.getMetadata().containsKey(FPORT_PARAM) ? downlinkData.getMetadata().get(FPORT_PARAM) : mdMap.get(FPORT_PARAM);
             String uriString = UriComponentsBuilder.fromHttpUrl(KPN_BASE_URL + DOWNLINK_PATH)
-                    .query("port=" + mdMap.get(FPORT_PARAM))
+                    .query("port=" + fPort)
                     .encode()
                     .toUriString();
             RequestEntity<Object> requestEntity = new RequestEntity<>(downlinkData.getData(), headers, HttpMethod.POST, URI.create(uriString));

@@ -233,7 +233,7 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
       {
         name: 'integration.type-kpn',
         description: 'integration.type-kpn-description',
-        icon: 'assets/integration-icon/particle.svg'
+        icon: 'assets/integration-icon/kpn.svg'
       }
     ],
     [
@@ -371,7 +371,7 @@ const integrationHelpLinkMap = new Map<IntegrationType, string>(
     [IntegrationType.TTI, 'integrationTheThingsIndustries'],
     [IntegrationType.CHIRPSTACK, 'integrationChirpStack'],
     [IntegrationType.PARTICLE, 'integrationParticle'],
-    [IntegrationType.KPN, 'integrationKPN'],
+    [IntegrationType.KPN, 'integrationKpn'],
     [IntegrationType.AZURE_EVENT_HUB, 'integrationAzureEventHub'],
     [IntegrationType.AZURE_IOT_HUB, 'integrationAzureIoTHub'],
     [IntegrationType.OPC_UA, 'integrationOpcUa'],
@@ -721,7 +721,7 @@ export interface ParticleIntegration {
 export interface KpnIntegration {
   baseUrl: string;
   httpEndpoint: string;
-  preSharedKey: string;
+  destinationSharedSecret: string;
   customerId: string;
   gripTenantId: string;
   apiId: string;

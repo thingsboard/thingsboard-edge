@@ -96,7 +96,7 @@ export class KpnIntegrationFormComponent extends IntegrationForm implements Cont
     }
     this.kpnIntegrationConfigForm = this.fb.group({
       baseUrl: [baseUrl(), baseURLValidators],
-      preSharedKey: ['', Validators.required],
+      destinationSharedSecret: ['', Validators.required],
       httpEndpoint: [{
         value: integrationEndPointUrl(this.integrationType, baseUrl(), this.routingKey),
         disabled: true
@@ -207,6 +207,6 @@ export class KpnIntegrationFormComponent extends IntegrationForm implements Cont
     this.kpnIntegrationConfigForm.get('gripTenantId').updateValueAndValidity({emitEvent: false});
     this.kpnIntegrationConfigForm.get('apiId').updateValueAndValidity({emitEvent: false});
     this.kpnIntegrationConfigForm.get('apiKey').updateValueAndValidity({emitEvent: false});
-    this.kpnIntegrationConfigForm.get('preSharedKey').updateValueAndValidity({emitEvent: false});
+    this.kpnIntegrationConfigForm.get('destinationSharedSecret').updateValueAndValidity({emitEvent: false});
   }
 }

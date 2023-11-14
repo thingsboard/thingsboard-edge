@@ -36,7 +36,7 @@ import lombok.Data;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class KpnConfiguration {
-    private String preSharedKey;
+    private String destinationSharedSecret;
     private Boolean enableSecurity;
     private String customerId;
     private String gripTenantId;

@@ -50,7 +50,8 @@ export const IntegrationTbelDefaultConvertersUrl = new Map<IntegrationType, stri
   [IntegrationType.AZURE_IOT_HUB, '/assets/converters/tbel-azure-decoder.raw'],
   [IntegrationType.AZURE_EVENT_HUB, '/assets/converters/tbel-azure-decoder.raw'],
   [IntegrationType.AZURE_SERVICE_BUS, '/assets/converters/tbel-azure-decoder.raw'],
-  [IntegrationType.AWS_IOT, '/assets/converters/tbel-aws-iot-decoder.raw']
+  [IntegrationType.AWS_IOT, '/assets/converters/tbel-aws-iot-decoder.raw'],
+  [IntegrationType.KPN, '/assets/converters/tbel-kpn-decoder.raw']
 ]);
 
 export const jsDefaultConvertorsUrl = new Map<ConverterType, string>([
