@@ -2428,7 +2428,8 @@ public class ControllerConstants {
             "  \"telemetry\": {\n" +
             "    \"temperature\":42,\n" +
             "    \"humidity\":80\n" +
+            "  }\n" +
             "}\n";
-    
+
     // Default converter uplinks messages
 }
