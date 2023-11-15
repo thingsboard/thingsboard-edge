@@ -59,8 +59,8 @@ import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.io.IOException;
@@ -599,7 +599,8 @@ public class ConverterControllerTest extends AbstractControllerTest {
 
     @Test
     public void testKpnDefaultConverter() throws IOException {
-        testDecoder("tbel-kpn-decoder.raw", DEFAULT_KNP_UPLINK_CONVERTER_MESSAGE, DEFAULT_KNP_UPLINK_CONVERTER_MESSAGE);
+        String expectedDecodedMessage = "{\"deviceName\":\"Device A\",\"deviceType\":\"thermostat\",\"customerName\":\"customer\",\"groupName\":\"thermostat devices\",\"attributes\":{\"model\":\"Model A\",\"serialNumber\":\"SN111\"},\"telemetry\":{\"temperature\":42,\"humidity\":80}}";
+        testDecoder("tbel-kpn-decoder.raw", DEFAULT_KNP_UPLINK_CONVERTER_MESSAGE, expectedDecodedMessage);
     }
 
     public void testDecoder(String decoderFileName, String payloadExample, String expectedResult) throws IOException {
@@ -607,7 +608,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
         String base64Payload = Base64Utils.encodeToString(payloadExample.getBytes(StandardCharsets.UTF_8));
 
         ObjectNode inputParams = JacksonUtil.newObjectNode();
-        inputParams.set("decoder",  new TextNode(new String(bytes)));
+        inputParams.set("decoder", new TextNode(new String(bytes)));
         inputParams.set("payload", new TextNode(base64Payload));
         inputParams.set("metadata", JacksonUtil.newObjectNode());
 
