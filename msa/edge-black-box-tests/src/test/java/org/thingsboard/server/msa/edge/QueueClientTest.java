@@ -97,6 +97,4 @@ public class QueueClientTest extends AbstractContainerTest {
 
         cloudRestClient.login("tenant@thingsboard.org", "tenant");
     }
-
 }
-

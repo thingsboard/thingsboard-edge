@@ -73,7 +73,7 @@ public class DashboardClientTest extends AbstractContainerTest {
                 .until(() -> updatedDashboardTitle.equals(edgeRestClient.getDashboardById(savedDashboard1.getId()).get().getTitle()));
 
         // save dashboard #1 attribute
-        JsonNode dashboardAttributes = JacksonUtil.OBJECT_MAPPER.readTree("{\"dashboardKey\":\"dashboardValue\"}");
+        JsonNode dashboardAttributes = JacksonUtil.toJsonNode("{\"dashboardKey\":\"dashboardValue\"}");
         cloudRestClient.saveEntityAttributesV1(savedDashboard1.getId(), DataConstants.SERVER_SCOPE, dashboardAttributes);
 
         Awaitility.await()
@@ -195,4 +195,3 @@ public class DashboardClientTest extends AbstractContainerTest {
     }
 
 }
-

@@ -77,7 +77,7 @@ public class RelationCloudProcessor extends BaseRelationProcessor {
     public UplinkMsg convertRelationEventToUplink(CloudEvent cloudEvent, EdgeVersion edgeVersion) {
         UplinkMsg msg = null;
         UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-        EntityRelation entityRelation = JacksonUtil.OBJECT_MAPPER.convertValue(cloudEvent.getEntityBody(), EntityRelation.class);
+        EntityRelation entityRelation = JacksonUtil.convertValue(cloudEvent.getEntityBody(), EntityRelation.class);
         if (entityRelation != null) {
             RelationUpdateMsg relationUpdateMsg = relationMsgConstructor.constructRelationUpdatedMsg(msgType, entityRelation, edgeVersion);
             msg = UplinkMsg.newBuilder()
@@ -86,5 +86,4 @@ public class RelationCloudProcessor extends BaseRelationProcessor {
         }
         return msg;
     }
-
 }

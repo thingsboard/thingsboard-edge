@@ -102,11 +102,8 @@ public class EdgeProcessor extends BaseEdgeProcessor {
                     List<ListenableFuture<Void>> futures = new ArrayList<>();
                     try {
                         EntityId previousOwnerId = JacksonUtil.fromString(edgeNotificationMsg.getBody(), EntityId.class);
-                        if (previousOwnerId == null) {
-                            return Futures.immediateFuture(null);
-                        }
                         List<Customer> previousOwnerCustomerHierarchy = new ArrayList<>();
-                        if (EntityType.CUSTOMER.equals(previousOwnerId.getEntityType())) {
+                        if (previousOwnerId != null && EntityType.CUSTOMER.equals(previousOwnerId.getEntityType())) {
                             previousOwnerCustomerHierarchy =
                                     customersHierarchyEdgeService.getCustomersHierarchy(tenantId, new CustomerId(previousOwnerId.getId()));
                         }
@@ -155,7 +152,7 @@ public class EdgeProcessor extends BaseEdgeProcessor {
     private ListenableFuture<Void> processAttributesUpdated(TenantId tenantId, EdgeId edgeId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
         List<String> attributeKeys = new ArrayList<>();
         try {
-            ArrayNode attributes = (ArrayNode) JacksonUtil.toJsonNode(edgeNotificationMsg.getBody());
+            ArrayNode attributes = (ArrayNode) JacksonUtil.OBJECT_MAPPER.readTree(edgeNotificationMsg.getBody());
             for (JsonNode attribute : attributes) {
                 attributeKeys.add(attribute.get("key").asText());
             }

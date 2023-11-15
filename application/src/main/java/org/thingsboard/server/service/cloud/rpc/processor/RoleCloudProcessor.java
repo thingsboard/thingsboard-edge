@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.type.CollectionType;
@@ -129,10 +130,10 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
         return Futures.immediateFuture(null);
     }
 
-    Role replaceWriteOperationsToReadIfRequired(Role role) throws JsonProcessingException {
+    Role replaceWriteOperationsToReadIfRequired(Role role) {
         if (RoleType.GROUP.equals(role.getType())) {
             CollectionType collectionType = TypeFactory.defaultInstance().constructCollectionType(List.class, Operation.class);
-            List<Operation> originOperations = JacksonUtil.OBJECT_MAPPER.readValue(role.getPermissions().toString(), collectionType);
+            List<Operation> originOperations = JacksonUtil.fromString(role.getPermissions().toString(), collectionType);
             List<Operation> operations;
             if (originOperations.contains(Operation.ALL)) {
                 operations = new ArrayList<>(allowedEntityGroupOperations);
@@ -141,12 +142,12 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
                         .filter(allowedEntityGroupOperations::contains)
                         .collect(Collectors.toList());
             }
-            role.setPermissions(JacksonUtil.OBJECT_MAPPER.valueToTree(operations));
+            role.setPermissions(JacksonUtil.valueToTree(operations));
         } else {
             CollectionType operationType = TypeFactory.defaultInstance().constructCollectionType(List.class, Operation.class);
             JavaType resourceType = JacksonUtil.OBJECT_MAPPER.getTypeFactory().constructType(Resource.class);
             MapType mapType = TypeFactory.defaultInstance().constructMapType(HashMap.class, resourceType, operationType);
-            Map<Resource, List<Operation>> originPermissions = JacksonUtil.OBJECT_MAPPER.readValue(role.getPermissions().toString(), mapType);
+            Map<Resource, List<Operation>> originPermissions = JacksonUtil.fromString(role.getPermissions().toString(), mapType);
             Map<Resource, List<Operation>> newPermissions = new HashMap<>();
             for (Map.Entry<Resource, List<Operation>> entry : originPermissions.entrySet()) {
                 List<Operation> originOperations = entry.getValue();
@@ -199,7 +200,7 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
                 }
                 newPermissions.put(entry.getKey(), newOperations);
             }
-            role.setPermissions(JacksonUtil.OBJECT_MAPPER.valueToTree(newPermissions));
+            role.setPermissions(JacksonUtil.valueToTree(newPermissions));
         }
         return role;
     }

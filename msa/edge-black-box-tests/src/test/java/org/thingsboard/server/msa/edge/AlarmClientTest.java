@@ -162,6 +162,4 @@ public class AlarmClientTest extends AbstractContainerTest {
     private Optional<AlarmInfo> getLatestAlarmByEntityIdFromCloud(EntityId entityId) {
         return getLatestAnyAlarmByEntityId(entityId, cloudRestClient);
     }
-
 }
-

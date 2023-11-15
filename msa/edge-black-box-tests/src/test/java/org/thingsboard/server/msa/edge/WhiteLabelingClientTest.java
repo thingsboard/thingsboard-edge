@@ -177,22 +177,22 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testCustomTranslation() throws Exception {
+    public void testCustomTranslation() {
         testCustomTranslation_sysAdmin();
         testCustomTranslation_tenant();
         testCustomTranslation_customer();
     }
 
-    private void testCustomTranslation_sysAdmin() throws Exception {
+    private void testCustomTranslation_sysAdmin() {
         cloudRestClient.login("sysadmin@thingsboard.org", "sysadmin");
         edgeRestClient.login("tenant@thingsboard.org", "tenant");
 
         Optional<CustomTranslation> currentCustomTranslationOpt = cloudRestClient.getCurrentCustomTranslation();
         Assert.assertTrue(currentCustomTranslationOpt.isPresent());
         CustomTranslation currentCustomTranslation = currentCustomTranslationOpt.get();
-        ObjectNode enUsSysAdmin = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode enUsSysAdmin = JacksonUtil.newObjectNode();
         enUsSysAdmin.put("home.home", "SYS_ADMIN_HOME_UPDATED");
-        currentCustomTranslation.getTranslationMap().put("en_US", JacksonUtil.OBJECT_MAPPER.writeValueAsString(enUsSysAdmin));
+        currentCustomTranslation.getTranslationMap().put("en_US", JacksonUtil.toString(enUsSysAdmin));
         cloudRestClient.saveCustomTranslation(currentCustomTranslation);
 
         Awaitility.await()
@@ -207,22 +207,22 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
                     if (edgeCustomTranslation.getTranslationMap().get("en_US") == null) {
                         return false;
                     }
-                    JsonNode enUsNode = JacksonUtil.OBJECT_MAPPER.readTree(edgeCustomTranslation.getTranslationMap().get("en_US"));
+                    JsonNode enUsNode = JacksonUtil.toJsonNode(edgeCustomTranslation.getTranslationMap().get("en_US"));
                     return "SYS_ADMIN_HOME_UPDATED".equals(enUsNode.get("home.home").asText());
                 });
     }
 
-    private void testCustomTranslation_tenant() throws Exception {
+    private void testCustomTranslation_tenant() {
         cloudRestClient.login("tenant@thingsboard.org", "tenant");
         edgeRestClient.login("tenant@thingsboard.org", "tenant");
         updateAndVerifyCustomTranslationUpdate("TENANT_HOME_UPDATED");
     }
 
-    private void updateAndVerifyCustomTranslationUpdate(String updateHomeTitle) throws Exception {
+    private void updateAndVerifyCustomTranslationUpdate(String updateHomeTitle) {
         CustomTranslation customTranslation = new CustomTranslation();
-        ObjectNode enUsSysAdmin = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode enUsSysAdmin = JacksonUtil.newObjectNode();
         enUsSysAdmin.put("home.home", updateHomeTitle);
-        customTranslation.getTranslationMap().put("en_US", JacksonUtil.OBJECT_MAPPER.writeValueAsString(enUsSysAdmin));
+        customTranslation.getTranslationMap().put("en_US", JacksonUtil.toString(enUsSysAdmin));
         cloudRestClient.saveCustomTranslation(customTranslation);
 
         Awaitility.await()
@@ -237,7 +237,7 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
                 });
     }
 
-    private void testCustomTranslation_customer() throws Exception {
+    private void testCustomTranslation_customer() {
         Customer savedCustomer = createCustomerAndAssignEdgeToCustomer();
 
         updateAndVerifyCustomTranslationUpdate("CUSTOMER_HOME_UPDATED");
@@ -296,4 +296,3 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
                 .until(() -> EntityId.NULL_UUID.equals(edgeRestClient.getEdgeById(edge.getId()).get().getCustomerId().getId()));
     }
 }
-

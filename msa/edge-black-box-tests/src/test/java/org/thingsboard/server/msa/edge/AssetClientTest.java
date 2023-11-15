@@ -75,7 +75,7 @@ public class AssetClientTest extends AbstractContainerTest {
                         && updatedAssetName.equals(edgeRestClient.getAssetById(savedAsset1.getId()).get().getName()));
 
         // save asset #1 attribute
-        JsonNode assetAttributes = JacksonUtil.OBJECT_MAPPER.readTree("{\"assetKey\":\"assetValue\"}");
+        JsonNode assetAttributes = JacksonUtil.toJsonNode("{\"assetKey\":\"assetValue\"}");
         cloudRestClient.saveEntityAttributesV1(savedAsset1.getId(), DataConstants.SERVER_SCOPE, assetAttributes);
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
@@ -259,6 +259,4 @@ public class AssetClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getAssetProfileById(savedAssetOnCloud.getAssetProfileId()).isEmpty());
     }
-
 }
-

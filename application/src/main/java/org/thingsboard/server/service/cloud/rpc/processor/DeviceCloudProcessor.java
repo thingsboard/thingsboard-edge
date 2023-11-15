@@ -215,7 +215,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
     private void reply(ToDeviceRpcRequest rpcRequest, int requestId, FromDeviceRpcResponse response) {
         try {
             Optional<RpcError> rpcError = response.getError();
-            ObjectNode body = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+            ObjectNode body = JacksonUtil.newObjectNode();
             body.put("requestUUID", rpcRequest.getId().toString());
             body.put("expirationTime", rpcRequest.getExpirationTime());
             body.put("oneway", rpcRequest.isOneway());

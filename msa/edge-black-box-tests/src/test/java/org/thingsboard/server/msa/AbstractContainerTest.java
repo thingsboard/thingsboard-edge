@@ -745,7 +745,7 @@ public abstract class AbstractContainerTest {
 
         Device device = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
 
-        sourceRestClient.saveDeviceAttributes(device.getId(), scope, JacksonUtil.OBJECT_MAPPER.readTree(attributesPayload.toString()));
+        sourceRestClient.saveDeviceAttributes(device.getId(), scope, JacksonUtil.toJsonNode(attributesPayload.toString()));
 
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
@@ -877,7 +877,7 @@ public abstract class AbstractContainerTest {
         ruleChainMetaData.addConnectionInfo(0, 2, "fail");
         ruleChainMetaData.addConnectionInfo(1, 2, "success");
 
-        // ruleChainMetaData.addRuleChainConnectionInfo(2, edge.getRootRuleChainId(), "success", JacksonUtil.OBJECT_MAPPER.createObjectNode());
+//         ruleChainMetaData.addRuleChainConnectionInfo(2, edge.getRootRuleChainId(), "success", JacksonUtil.newObjectNode());
 
         cloudRestClient.saveRuleChainMetaData(ruleChainMetaData);
     }

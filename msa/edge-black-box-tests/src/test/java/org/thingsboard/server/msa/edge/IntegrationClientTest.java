@@ -67,10 +67,10 @@ public class IntegrationClientTest extends AbstractContainerTest {
 
     @Test
     public void testIntegrations() throws Exception {
-        JsonNode edgeAttributes = JacksonUtil.OBJECT_MAPPER.readTree("{\"valAttr\":\"val3\", \"baseUrl\":\"" + edgeUrl + "\"}");
+        JsonNode edgeAttributes = JacksonUtil.toJsonNode("{\"valAttr\":\"val3\", \"baseUrl\":\"" + edgeUrl + "\"}");
         cloudRestClient.saveEntityAttributesV1(edge.getId(), DataConstants.SERVER_SCOPE, edgeAttributes);
 
-        ObjectNode converterConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode()
+        ObjectNode converterConfiguration = JacksonUtil.newObjectNode()
                 .put("decoder", "return {deviceName: 'Device Converter ' + metadata['key'], deviceType: 'thermostat'};");
         Converter converter = new Converter();
         converter.setName("My converter");
@@ -86,7 +86,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
         integration.setDefaultConverterId(savedConverter.getId());
         integration.setType(IntegrationType.HTTP);
 
-        ObjectNode integrationConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode integrationConfiguration = JacksonUtil.newObjectNode();
         integrationConfiguration.putObject("metadata").put("key", "val1");
         integrationConfiguration.put("baseUrl", "${{baseUrl}}");
         integration.setConfiguration(integrationConfiguration);
@@ -116,7 +116,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
             SECONDS.sleep(1); // wait for integration to be recompiled and restarted with updated config
         } catch (Throwable ignored) {}
 
-        ObjectNode values = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode values = JacksonUtil.newObjectNode();
         values.put("deviceName", expectedDeviceName);
         edgeRestClient.getRestTemplate().postForEntity(edgeUrl + "/api/v1/integrations/http/" + integration.getRoutingKey(),
                 values,
@@ -152,7 +152,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
     }
 
     private void validateIntegrationConfigurationUpdate(Integration savedIntegration) {
-        ObjectNode updatedIntegrationConfig = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode updatedIntegrationConfig = JacksonUtil.newObjectNode();
         updatedIntegrationConfig.putObject("metadata").put("key", "val2");
         savedIntegration.setConfiguration(updatedIntegrationConfig);
         cloudRestClient.saveIntegration(savedIntegration);
@@ -170,7 +170,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
     }
 
     private void validateEdgeAttributesUpdate(Integration savedIntegration) throws JsonProcessingException {
-        ObjectNode updatedIntegrationConfig = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode updatedIntegrationConfig = JacksonUtil.newObjectNode();
         updatedIntegrationConfig.putObject("metadata").put("key", "${{valAttr}}");
         savedIntegration.setConfiguration(updatedIntegrationConfig);
         cloudRestClient.saveIntegration(savedIntegration);
@@ -186,7 +186,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
 
         verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val3", true);
 
-        JsonNode edgeAttributes = JacksonUtil.OBJECT_MAPPER.readTree("{\"valAttr\":\"val4\", \"baseUrl\":\"" + edgeUrl + "\"}");
+        JsonNode edgeAttributes = JacksonUtil.toJsonNode("{\"valAttr\":\"val4\", \"baseUrl\":\"" + edgeUrl + "\"}");
         cloudRestClient.saveEntityAttributesV1(edge.getId(), DataConstants.SERVER_SCOPE, edgeAttributes);
 
         Awaitility.await()
@@ -202,7 +202,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
     }
 
     private void validateIntegrationDefaultConverterUpdate(Integration savedIntegration) {
-        ObjectNode newConverterConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode()
+        ObjectNode newConverterConfiguration = JacksonUtil.newObjectNode()
                 .put("decoder", "return {deviceName: 'Device Converter val5', deviceType: 'default'};");
         Converter converter = new Converter();
         converter.setName("My new converter");
@@ -232,7 +232,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
     }
 
     private void validateIntegrationDownlinkConverterUpdate(Integration savedIntegration) {
-        ObjectNode downlinkConverterConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode()
+        ObjectNode downlinkConverterConfiguration = JacksonUtil.newObjectNode()
                 .put("encoder", "return {contentType: 'JSON', data: '{\"pin\": 3}'};");
         Converter converter = new Converter();
         converter.setName("My downlink converter");
@@ -278,7 +278,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
     }
 
     private void sendHttpUplinkAndVerifyDownlink(Integration savedIntegration) {
-        ObjectNode values = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode values = JacksonUtil.newObjectNode();
         values.put("result", "ok");
         ResponseEntity<JsonNode> responseEntityResponseEntity =
                 edgeRestClient.getRestTemplate().postForEntity(
@@ -294,9 +294,9 @@ public class IntegrationClientTest extends AbstractContainerTest {
         Assert.assertTrue(tenantDeviceOpt.isPresent());
         Device device = tenantDeviceOpt.get();
 
-        ObjectNode rpcRequest = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode rpcRequest = JacksonUtil.newObjectNode();
         rpcRequest.put("method", "rpcCommand");
-        rpcRequest.set("params", JacksonUtil.OBJECT_MAPPER.createObjectNode());
+        rpcRequest.set("params", JacksonUtil.newObjectNode());
         rpcRequest.put("persistent", false);
         rpcRequest.put("timeout", 5000);
         edgeRestClient.handleOneWayDeviceRPCRequest(device.getId(), rpcRequest);
@@ -350,11 +350,11 @@ public class IntegrationClientTest extends AbstractContainerTest {
             ruleNode.setName("Integration Downlink");
             ruleNode.setType("org.thingsboard.rule.engine.integration.TbIntegrationDownlinkNode");
             ruleNode.setDebugMode(true);
-            ObjectNode configuration = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+            ObjectNode configuration = JacksonUtil.newObjectNode();
             configuration.put("integrationId", savedIntegration.getId().getId().toString());
             ruleNode.setConfiguration(configuration);
 
-            ObjectNode additionalInfo = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+            ObjectNode additionalInfo = JacksonUtil.newObjectNode();
             additionalInfo.put("layoutX", 514);
             additionalInfo.put("layoutY", 511);
             additionalInfo.put("additionalInfo", "");

@@ -86,8 +86,8 @@ public class RuleChainCloudProcessor extends BaseEdgeProcessor {
                     boolean isRoot = ruleChainMsg.isRoot();
                     if (ruleChain == null) {
                         created = true;
-                        ruleChainMsg.setRoot(false);
                     }
+                    ruleChainMsg.setRoot(false);
                     ruleChainMsg.setType(RuleChainType.CORE);
                     ruleChainService.saveRuleChain(ruleChainMsg);
 

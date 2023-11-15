@@ -135,7 +135,7 @@ public class EntityGroupCloudProcessor extends BaseEdgeProcessor {
         }
 
         if (entityGroup != null) {
-            ObjectNode body = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+            ObjectNode body = JacksonUtil.newObjectNode();
             body.put("type", entityGroup.getType().name());
             futures.add(cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ENTITY_GROUP, EdgeEventActionType.GROUP_ENTITIES_REQUEST,
                     entityGroupId, body, null, queueStartTs));

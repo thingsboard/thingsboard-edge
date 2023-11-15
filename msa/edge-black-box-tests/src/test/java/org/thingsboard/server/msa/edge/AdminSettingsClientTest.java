@@ -60,6 +60,4 @@ public class AdminSettingsClientTest extends AbstractContainerTest {
         Assert.assertTrue("Admin settings is not available on cloud, key = " + key, cloudAdminSettings.isPresent());
         Assert.assertEquals("Admin settings on cloud and edge are different", edgeAdminSettings.get(), cloudAdminSettings.get());
     }
-
 }
-
