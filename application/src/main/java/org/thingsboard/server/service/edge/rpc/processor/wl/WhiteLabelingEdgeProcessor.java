@@ -78,7 +78,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
             if (entityId == null) {
                 return null;
             }
-            if (EdgeVersionUtils.isEdgeProtoDeprecated(edgeVersion)) {
+            if (EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_6_1)) {
                 return constructDeprecatedWhiteLabelingEvent(edgeEvent, entityId);
             }
             WhiteLabeling whiteLabeling = whiteLabelingService.findByEntityId(edgeEvent.getTenantId(), entityId, getWhiteLabelingType(edgeEvent.getType()));
@@ -165,7 +165,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
             if (entityId == null) {
                 return null;
             }
-            if (EdgeVersionUtils.isEdgeProtoDeprecated(edgeVersion)) {
+            if (EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_6_1)) {
                 return constructDeprecatedLoginWhiteLabelingEvent(edgeEvent, entityId);
             }
             WhiteLabeling whiteLabeling = whiteLabelingService.findByEntityId(edgeEvent.getTenantId(), entityId, WhiteLabelingType.LOGIN);

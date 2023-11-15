@@ -70,5 +70,4 @@ public class JacksonUtilTest {
         Assert.assertEquals(asset.getName(), result.getName());
         Assert.assertEquals(asset.getType(), result.getType());
     }
-
 }
