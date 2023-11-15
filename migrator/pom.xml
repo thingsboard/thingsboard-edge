@@ -38,7 +38,7 @@
     <parent>
         <artifactId>thingsboard</artifactId>
         <groupId>org.thingsboard</groupId>
-        <version>3.6.1EDGEPE-SNAPSHOT</version>
+        <version>3.6.2EDGE-SNAPSHOT</version>
     </parent>
 
     <artifactId>migrator</artifactId>
