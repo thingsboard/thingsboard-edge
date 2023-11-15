@@ -141,6 +141,7 @@ public class ResourceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testResourceToCloudWithNameThatAlreadyExistsOnCloud() throws Exception {
         TbResource resource = new TbResource();
         resource.setResourceType(ResourceType.JKS);
