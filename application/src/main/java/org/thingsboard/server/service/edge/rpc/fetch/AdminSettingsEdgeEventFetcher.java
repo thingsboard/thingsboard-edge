@@ -30,22 +30,28 @@
  */
 package org.thingsboard.server.service.edge.rpc.fetch;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 
 import java.util.ArrayList;
@@ -59,6 +65,7 @@ public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
 
     private final AdminSettingsService adminSettingsService;
     private final AttributesService attributesService;
+    private final CustomerService customerService;
 
     @Override
     public PageLink getPageLink(int pageSize) {
@@ -66,31 +73,47 @@ public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
     }
 
     public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) throws Exception {
-        List<EdgeEvent> result = fetchAdminSettingsForKeys(tenantId, edge.getId(), List.of("general", "mail", "connectivity", "jwt", "customTranslation", "customMenu"));
+        List<EdgeEvent> result = fetchAdminSettingsForKeys(tenantId, edge, List.of("general", "mail", "connectivity", "jwt", "customTranslation", "customMenu"));
 
         // return PageData object to be in sync with other fetchers
         return new PageData<>(result, 1, result.size(), false);
     }
 
-    private List<EdgeEvent> fetchAdminSettingsForKeys(TenantId tenantId, EdgeId edgeId, List<String> keys) throws Exception {
+    private List<EdgeEvent> fetchAdminSettingsForKeys(TenantId tenantId, Edge edge, List<String> keys) throws Exception {
         List<EdgeEvent> result = new ArrayList<>();
         for (String key : keys) {
             AdminSettings adminSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key);
             if (adminSettings != null) {
-                result.add(EdgeUtils.constructEdgeEvent(tenantId, edgeId, EdgeEventType.ADMIN_SETTINGS,
-                        EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(adminSettings)));
+                result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
+                        EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(key)));
             }
-            Optional<AttributeKvEntry> tenantMailSettingsAttr = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, key).get();
-            if (tenantMailSettingsAttr.isPresent()) {
-                AdminSettings tenantMailSettings = new AdminSettings();
-                tenantMailSettings.setTenantId(tenantId);
-                tenantMailSettings.setKey(key);
-                String value = tenantMailSettingsAttr.get().getValueAsString();
-                tenantMailSettings.setJsonValue(JacksonUtil.toJsonNode(value));
-                result.add(EdgeUtils.constructEdgeEvent(tenantId, edgeId, EdgeEventType.ADMIN_SETTINGS,
-                        EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(tenantMailSettings)));
+            Optional<AttributeKvEntry> tenantSettingsAttr = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, key).get();
+            if (tenantSettingsAttr.isPresent()) {
+                ObjectNode tenantNode = JacksonUtil.newObjectNode()
+                        .put("tenantId", tenantId.getId().toString())
+                        .put("key", key);
+                result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
+                        EdgeEventActionType.UPDATED, null, tenantNode));
+            }
+            if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
+                getCustomerAdminSettingsEdgeEvents(tenantId, edge.getId(), edge.getOwnerId(), key, result);
             }
         }
         return result;
+    }
+
+    private void getCustomerAdminSettingsEdgeEvents(TenantId tenantId, EdgeId edgeId, EntityId customerId, String key, List<EdgeEvent> result) throws Exception {
+        Optional<AttributeKvEntry> customerSettingsAttr = attributesService.find(tenantId, customerId, DataConstants.SERVER_SCOPE, key).get();
+        if (customerSettingsAttr.isPresent()) {
+            ObjectNode customerNode = JacksonUtil.newObjectNode()
+                    .put("customerId", customerId.getId().toString())
+                    .put("key", key);
+            result.add(EdgeUtils.constructEdgeEvent(tenantId, edgeId, EdgeEventType.ADMIN_SETTINGS,
+                    EdgeEventActionType.UPDATED, null, customerNode));
+        }
+        Customer customer = customerService.findCustomerById(tenantId, (CustomerId) customerId);
+        if (customer.isSubCustomer()) {
+            getCustomerAdminSettingsEdgeEvents(tenantId, edgeId, customer.getParentCustomerId(), key, result);
+        }
     }
 }

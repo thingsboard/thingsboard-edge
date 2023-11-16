@@ -33,6 +33,7 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -42,11 +43,17 @@ import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 @TbCoreComponent
 public class AdminSettingsMsgConstructor {
 
-    public AdminSettingsUpdateMsg constructAdminSettingsUpdateMsg(AdminSettings adminSettings, EdgeVersion edgeVersion) {
+    public AdminSettingsUpdateMsg constructAdminSettingsUpdateMsg(AdminSettings adminSettings, CustomerId customerId, EdgeVersion edgeVersion) {
         if (EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)) {
             return constructDeprecatedWidgetTypeUpdateMsg(adminSettings);
         }
-        return AdminSettingsUpdateMsg.newBuilder().setEntity(JacksonUtil.toString(adminSettings)).build();
+        AdminSettingsUpdateMsg.Builder builder = AdminSettingsUpdateMsg.newBuilder().setEntity(JacksonUtil.toString(adminSettings));
+        if (customerId != null) {
+            builder.setEntityType(customerId.getEntityType().name())
+                    .setEntityIdMSB(customerId.getId().getMostSignificantBits())
+                    .setEntityIdLSB(customerId.getId().getLeastSignificantBits());
+        }
+        return builder.build();
     }
 
     private AdminSettingsUpdateMsg constructDeprecatedWidgetTypeUpdateMsg(AdminSettings adminSettings) {

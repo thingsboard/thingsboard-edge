@@ -437,7 +437,10 @@ message AdminSettingsUpdateMsg {
   bool isSystem = 1 [deprecated = true];
   string key = 2 [deprecated = true];
   string jsonValue = 3 [deprecated = true];
-  string entity = 4;
+  optional int64 entityIdMSB = 4;
+  optional int64 entityIdLSB = 5;
+  optional string entityType = 6;
+  string entity = 7;
 }
 
 message UserCredentialsUpdateMsg {

@@ -626,7 +626,7 @@ public final class EdgeGrpcSession implements Closeable {
         return ctx.getAttributesService().save(edge.getTenantId(), edge.getId(), DataConstants.SERVER_SCOPE, attributes);
     }
 
-    private DownlinkMsg convertEntityEventToDownlink(EdgeEvent edgeEvent) {
+    private DownlinkMsg convertEntityEventToDownlink(EdgeEvent edgeEvent) throws Exception {
         log.trace("[{}] Executing convertEntityEventToDownlink, edgeEvent [{}], action [{}]", this.tenantId, edgeEvent, edgeEvent.getAction());
         switch (edgeEvent.getType()) {
             case EDGE:
