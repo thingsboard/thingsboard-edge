@@ -34,10 +34,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.After;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultActions;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
@@ -54,8 +52,6 @@ import org.thingsboard.server.dao.wl.WhiteLabelingDao;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.thingsboard.server.common.data.id.TenantId.SYS_TENANT_ID;
 
@@ -66,7 +62,7 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
     WhiteLabelingDao whiteLabelingDao;
 
     @After
-    public void afterTest(){
+    public void afterTest() {
         WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey();
         key.setType(WhiteLabelingType.MAIL_TEMPLATES);
         key.setEntityType(EntityType.TENANT.name());
@@ -310,6 +306,30 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
 
         LoginWhiteLabelingParams loginWhiteLabelingParams = new LoginWhiteLabelingParams();
         doPost("/api/whiteLabel/currentWhiteLabelParams?customerId=" + differentTenantCustomerId, loginWhiteLabelingParams);
+    }
+
+    @Test
+    public void testDomainAlwaysInLowerCase() throws Exception {
+        loginTenantAdmin();
+        LoginWhiteLabelingParams loginWhiteLabelingParams = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
+
+        String domainName = "my-domain.com";
+        loginWhiteLabelingParams.setDomainName(domainName);
+
+        doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
+
+        ObjectNode found = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", ObjectNode.class);
+
+        assertThat(found.get("domainName").asText()).isEqualTo(loginWhiteLabelingParams.getDomainName().toLowerCase());
+
+        domainName = "MY-DoMaIn.com";
+        loginWhiteLabelingParams.setDomainName(domainName);
+
+        doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
+
+        found = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", ObjectNode.class);
+
+        assertThat(found.get("domainName").asText()).isEqualTo(domainName.toLowerCase());
     }
 
     private void updateAppTitleAndVerify(String appTile) throws Exception {

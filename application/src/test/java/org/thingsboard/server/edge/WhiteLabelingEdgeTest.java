@@ -175,7 +175,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         WhiteLabeling whiteLabeling = JacksonUtil.fromStringIgnoreUnknownProperties(login.getEntity(), WhiteLabeling.class);
         Assert.assertNotNull(whiteLabeling);
         LoginWhiteLabelingParams result = JacksonUtil.treeToValue(whiteLabeling.getSettings(), LoginWhiteLabelingParams.class);
-        Assert.assertEquals(updatedDomainName, result.getDomainName());
+        Assert.assertEquals(updatedDomainName.toLowerCase(), result.getDomainName());
     }
 
     @Test
