@@ -35,13 +35,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
@@ -50,6 +54,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
@@ -86,6 +91,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -93,6 +99,11 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.emptyList;
+import static org.thingsboard.server.common.data.DataConstants.DEVICE_NAME;
+import static org.thingsboard.server.common.data.DataConstants.DEVICE_TYPE;
+import static org.thingsboard.server.common.data.DataConstants.EXPIRATION_TIME;
+import static org.thingsboard.server.common.data.DataConstants.PERSISTENT;
+import static org.thingsboard.server.common.data.DataConstants.TIMEOUT;
 import static org.thingsboard.server.common.data.DataConstants.UPDATE_FIRMWARE;
 import static org.thingsboard.server.common.data.DataConstants.UPDATE_SOFTWARE;
 import static org.thingsboard.server.dao.scheduler.BaseSchedulerEventService.getOriginatorId;
@@ -105,7 +116,8 @@ import static org.thingsboard.server.dao.scheduler.BaseSchedulerEventService.get
 @Slf4j
 @RequiredArgsConstructor
 public class DefaultSchedulerService extends AbstractPartitionBasedService<TenantId> implements SchedulerService {
-
+    @Value("${server.rest.server_side_rpc.min_timeout:5000}")
+    protected long minTimeout;
     private final TenantService tenantService;
     private final TbClusterService clusterService;
     private final PartitionService partitionService;
@@ -374,6 +386,9 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
 
         if ("sendRpcRequest".equals(event.getType())) {
             metaData.put("originServiceId", serviceId);
+            if (configuration.has(DataConstants.TIMEOUT)) {
+                metaData.put(EXPIRATION_TIME, String.valueOf(System.currentTimeMillis() + Math.max(minTimeout, configuration.get(DataConstants.TIMEOUT).asLong())));
+            }
         }
 
         return new TbMsgMetaData(metaData);
