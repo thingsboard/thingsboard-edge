@@ -48,6 +48,7 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.edge.rpc.processor.device.BaseDeviceProcessor;
+import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.Optional;
@@ -116,11 +117,11 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         }
     }
 
-    public ListenableFuture<Void> processDeviceCredentialsMsgFromCloud(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg, EdgeVersion edgeVersion) {
+    public ListenableFuture<Void> processDeviceCredentialsMsgFromCloud(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {
         try {
             cloudSynchronizationManager.getSync().set(true);
 
-            updateDeviceCredentials(tenantId, deviceCredentialsUpdateMsg, edgeVersion);
+            updateDeviceCredentials(tenantId, deviceCredentialsUpdateMsg, false);
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }

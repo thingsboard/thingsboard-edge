@@ -36,7 +36,7 @@ import org.thingsboard.server.service.edge.rpc.processor.relation.BaseRelationPr
 @Slf4j
 public class RelationCloudProcessor extends BaseRelationProcessor {
 
-    public ListenableFuture<Void> processRelationMsgFromCloud(TenantId tenantId, RelationUpdateMsg relationUpdateMsg, EdgeVersion edgeVersion) {
+    public ListenableFuture<Void> processRelationMsgFromCloud(TenantId tenantId, RelationUpdateMsg relationUpdateMsg) {
         try {
             cloudSynchronizationManager.getSync().set(true);
 

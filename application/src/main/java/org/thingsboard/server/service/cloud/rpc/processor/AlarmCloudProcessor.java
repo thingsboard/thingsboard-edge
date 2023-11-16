@@ -30,10 +30,10 @@ import org.thingsboard.server.service.edge.rpc.processor.alarm.BaseAlarmProcesso
 @Slf4j
 public class AlarmCloudProcessor extends BaseAlarmProcessor {
 
-    public ListenableFuture<Void> processAlarmMsgFromCloud(TenantId tenantId, AlarmUpdateMsg alarmUpdateMsg, EdgeVersion edgeVersion) {
+    public ListenableFuture<Void> processAlarmMsgFromCloud(TenantId tenantId, AlarmUpdateMsg alarmUpdateMsg) {
         try {
             cloudSynchronizationManager.getSync().set(true);
-            return processAlarmMsg(tenantId, alarmUpdateMsg, edgeVersion);
+            return processAlarmMsg(tenantId, alarmUpdateMsg, false);
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }
