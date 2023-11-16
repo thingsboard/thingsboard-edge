@@ -40,7 +40,7 @@ public class RelationCloudProcessor extends BaseRelationProcessor {
         try {
             cloudSynchronizationManager.getSync().set(true);
 
-            return processRelationMsg(tenantId, relationUpdateMsg, edgeVersion);
+            return processRelationMsg(tenantId, relationUpdateMsg, false);
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }
