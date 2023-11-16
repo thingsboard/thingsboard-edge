@@ -53,7 +53,7 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { EntityService } from '@core/http/entity.service';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
-import { isDefinedAndNotNull, isEqual } from '@core/utils';
+import { getEntityDetailsPageURL, isDefinedAndNotNull, isEqual } from '@core/utils';
 import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
@@ -85,6 +85,8 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
   filteredEntities: Observable<Array<BaseData<EntityId>>>;
 
   searchText = '';
+
+  entityURL: string;
 
   private dirty = false;
 
@@ -352,6 +354,7 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
         this.propagateChange(null);
       }
       this.modelValue = entity !== null ? (this.useFullEntityId ? entity.id : entity.id.id) : null;
+      this.entityURL = getEntityDetailsPageURL(this.modelValue as string, targetEntityType);
       this.selectEntityFormGroup.get('entity').patchValue(entity !== null ? entity : '', {emitEvent: false});
       this.entityChanged.emit(entity);
     } else {
