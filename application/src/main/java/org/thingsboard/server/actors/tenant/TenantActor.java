@@ -245,7 +245,7 @@ public class TenantActor extends RuleChainManagerActor {
             log.warn("RECEIVED INVALID MESSAGE: {}", msg);
         }
         if (deletedDevices.contains(msg.getDeviceId())) {
-            log.warn("RECEIVED MESSAGE FOR DELETED DEVICE: {}", msg);
+            log.debug("RECEIVED MESSAGE FOR DELETED DEVICE: {}", msg);
             return;
         }
         TbActorRef deviceActor = getOrCreateDeviceActor(msg.getDeviceId());
@@ -268,7 +268,8 @@ public class TenantActor extends RuleChainManagerActor {
                 log.info("[{}] Received API state update. Going to ENABLE Rule Engine execution.", tenantId);
                 initRuleChains();
             }
-        } else if (entityType == EntityType.EDGE) {
+        }
+        if (entityType == EntityType.EDGE) {
             EdgeId edgeId = new EdgeId(msg.getEntityId().getId());
             EdgeRpcService edgeRpcService = systemContext.getEdgeRpcService();
             if (msg.getEvent() == ComponentLifecycleEvent.DELETED) {
@@ -277,11 +278,13 @@ public class TenantActor extends RuleChainManagerActor {
                 Edge edge = systemContext.getEdgeService().findEdgeById(tenantId, edgeId);
                 edgeRpcService.updateEdge(tenantId, edge);
             }
-        } else if (msg.getEntityId().getEntityType() == EntityType.DEVICE && ComponentLifecycleEvent.DELETED == msg.getEvent()) {
+        }
+        if (msg.getEntityId().getEntityType() == EntityType.DEVICE && ComponentLifecycleEvent.DELETED == msg.getEvent()) {
             DeviceId deviceId = (DeviceId) msg.getEntityId();
             onToDeviceActorMsg(new DeviceDeleteMsg(tenantId, deviceId), true);
             deletedDevices.add(deviceId);
-        } else if (isRuleEngine && !(entityType.equals(EntityType.INTEGRATION) || entityType.equals(EntityType.CONVERTER))) {
+        }
+        if (isRuleEngine && !(entityType.equals(EntityType.INTEGRATION) || entityType.equals(EntityType.CONVERTER))) {
             TbActorRef target = getEntityActorRef(msg.getEntityId());
             if (target != null) {
                 if (entityType == EntityType.RULE_CHAIN) {
