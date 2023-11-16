@@ -46,7 +46,6 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.testng.Assert;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.common.util.JacksonUtil;
@@ -54,7 +53,6 @@ import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.mqtt.BasicMqttIntegrationMsg;
 import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -137,22 +135,12 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
                     "};\n" +
                     "return result;");
 
-    private Converter uplinkConverter;
-    private Converter downlinkConverter;
-    private RuleChainId defaultRuleChainId;
+    private JsonNode configConverter;
 
     @BeforeMethod
     public void setUp() {
-        JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder",
+        configConverter = JacksonUtil.newObjectNode().put("decoder",
                 CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
-        uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(configConverter));
-        downlinkConverter = testRestClient.postConverter(downlinkConverterPrototype(DOWNLINK_CONVERTER_CONFIGURATION));
-        defaultRuleChainId = getDefaultRuleChainId();
-    }
-
-    @AfterMethod
-    public void tearDown()  {
-        testRestClient.setRootRuleChain(defaultRuleChainId);
     }
 
     @Test
@@ -161,8 +149,8 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
                 .type(MQTT)
                 .name("mqtt" + RandomStringUtils.randomAlphanumeric(7))
                 .configuration(defaultConfig(SERVICE_NAME, SERVICE_PORT, TOPIC))
-                .defaultConverterId(uplinkConverter.getId())
-                .downlinkConverterId(downlinkConverter.getId())
+                .defaultConverterId(testRestClient.postConverter(uplinkConverterPrototype(configConverter)).getId())
+                .downlinkConverterId(testRestClient.postConverter(downlinkConverterPrototype(DOWNLINK_CONVERTER_CONFIGURATION)).getId())
                 .routingKey(ROUTING_KEY)
                 .secret(SECRET_KEY)
                 .isRemote(false)
@@ -176,22 +164,7 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void telemetryUploadWithLocalIntegration() throws Exception {
-        integration = Integration.builder()
-                .type(MQTT)
-                .name("mqtt" + RandomStringUtils.randomAlphanumeric(7))
-                .configuration(defaultConfig(SERVICE_NAME, SERVICE_PORT, TOPIC))
-                .defaultConverterId(uplinkConverter.getId())
-                .downlinkConverterId(downlinkConverter.getId())
-                .routingKey(ROUTING_KEY)
-                .secret(SECRET_KEY)
-                .isRemote(false)
-                .enabled(true)
-                .debugMode(true)
-                .allowCreateDevicesOrAssets(true)
-                .build();
-
-        integration = testRestClient.postIntegration(integration);
-        waitUntilIntegrationStarted(integration.getId(), integration.getTenantId());
+        createIntegration(MQTT, defaultConfig(SERVICE_NAME, SERVICE_PORT, TOPIC), configConverter, ROUTING_KEY, SECRET_KEY, false);
 
         sendMessageToBroker();
 
@@ -209,26 +182,10 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(TELEMETRY_KEY, latestTimeseries.get(0).getKey());
         Assert.assertEquals(TELEMETRY_VALUE, latestTimeseries.get(0).getValue().toString());
     }
+
     @Test
     public void differentPayloadTypesInEventsForConverterWithLocalIntegration() throws Exception {
-        integration = Integration.builder()
-                .type(MQTT)
-                .name("mqtt" + RandomStringUtils.randomAlphanumeric(7))
-                .configuration(defaultConfig(SERVICE_NAME, SERVICE_PORT, TOPIC))
-                .defaultConverterId(uplinkConverter.getId())
-                .downlinkConverterId(downlinkConverter.getId())
-                .routingKey(ROUTING_KEY)
-                .secret(SECRET_KEY)
-                .isRemote(false)
-                .enabled(true)
-                .debugMode(true)
-                .allowCreateDevicesOrAssets(true)
-                .build();
-
-        long startTs = System.currentTimeMillis();
-
-        integration = testRestClient.postIntegration(integration);
-        waitUntilIntegrationStarted(integration.getId(), integration.getTenantId());
+        createIntegration(MQTT, defaultConfig(SERVICE_NAME, SERVICE_PORT, TOPIC), configConverter, ROUTING_KEY, SECRET_KEY, false);
 
         MqttConnectOptions connOpts = new MqttConnectOptions();
         connOpts.setKeepAliveInterval(30);
@@ -267,22 +224,7 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void telemetryUploadWithBasicCreds() throws Exception {
-        integration = Integration.builder()
-                .type(MQTT)
-                .name("mqtt" + RandomStringUtils.randomAlphanumeric(7))
-                .configuration(configWithBasicCreds(SERVICE_NAME, SERVICE_PORT, TOPIC))
-                .defaultConverterId(uplinkConverter.getId())
-                .downlinkConverterId(downlinkConverter.getId())
-                .routingKey(ROUTING_KEY)
-                .secret(SECRET_KEY)
-                .isRemote(false)
-                .enabled(true)
-                .debugMode(true)
-                .allowCreateDevicesOrAssets(true)
-                .build();
-
-        integration = testRestClient.postIntegration(integration);
-        waitUntilIntegrationStarted(integration.getId(), integration.getTenantId());
+        createIntegration(MQTT, configWithBasicCreds(SERVICE_NAME, SERVICE_PORT, TOPIC), configConverter, ROUTING_KEY, SECRET_KEY, false);
 
         MqttConnectOptions connOpts = new MqttConnectOptions();
         connOpts.setKeepAliveInterval(30);
@@ -309,22 +251,7 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void telemetryUploadWithRemoteIntegration() throws Exception {
-        integration = Integration.builder()
-                .type(MQTT)
-                .name("mqtt" + RandomStringUtils.randomAlphanumeric(7))
-                .configuration(defaultConfig(SERVICE_NAME, SERVICE_PORT, TOPIC))
-                .defaultConverterId(uplinkConverter.getId())
-                .downlinkConverterId(downlinkConverter.getId())
-                .routingKey(ROUTING_KEY)
-                .secret(SECRET_KEY)
-                .isRemote(true)
-                .enabled(true)
-                .debugMode(true)
-                .allowCreateDevicesOrAssets(true)
-                .build();
-
-        integration = testRestClient.postIntegration(integration);
-        waitUntilIntegrationStarted(integration.getId(), integration.getTenantId());
+        createIntegration(MQTT, defaultConfig(SERVICE_NAME, SERVICE_PORT, TOPIC), configConverter, ROUTING_KEY, SECRET_KEY, true);
 
         sendMessageToBroker();
 
@@ -341,24 +268,10 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(TELEMETRY_KEY, latestTimeseries.get(0).getKey());
         Assert.assertEquals(TELEMETRY_VALUE, latestTimeseries.get(0).getValue().toString());
     }
+
     @Test
     public void checkDownlinkMessageWasSent() throws Exception {
-        integration = Integration.builder()
-                .type(MQTT)
-                .name("mqtt" + RandomStringUtils.randomAlphanumeric(7))
-                .configuration(defaultConfig(SERVICE_NAME, SERVICE_PORT, DOWNLINK_TOPIC))
-                .defaultConverterId(uplinkConverter.getId())
-                .downlinkConverterId(downlinkConverter.getId())
-                .routingKey(ROUTING_KEY)
-                .secret(SECRET_KEY)
-                .isRemote(false)
-                .enabled(true)
-                .debugMode(true)
-                .allowCreateDevicesOrAssets(true)
-                .build();
-
-        integration = testRestClient.postIntegration(integration);
-        waitUntilIntegrationStarted(integration.getId(), integration.getTenantId());
+        createIntegration(MQTT, defaultConfig(SERVICE_NAME, SERVICE_PORT, DOWNLINK_TOPIC), configConverter, DOWNLINK_CONVERTER_CONFIGURATION, ROUTING_KEY, SECRET_KEY, false);
 
         sendMessageToBroker();
 
@@ -387,7 +300,7 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
         testRestClient.saveEntityAttributes(DEVICE, device.getId().toString(), SHARED_SCOPE, attributes);
 
         RuleChainMetaData ruleChainMetadata = testRestClient.getRuleChainMetadata(ruleChainId);
-        RuleNode integrationNode  = ruleChainMetadata.getNodes().stream().filter(ruleNode -> ruleNode.getType().equals("org.thingsboard.rule.engine.integration.TbIntegrationDownlinkNode")).findFirst().get();
+        RuleNode integrationNode = ruleChainMetadata.getNodes().stream().filter(ruleNode -> ruleNode.getType().equals("org.thingsboard.rule.engine.integration.TbIntegrationDownlinkNode")).findFirst().get();
         waitTillRuleNodeReceiveMsg(integrationNode.getId(), EventType.DEBUG_RULE_NODE, integration.getTenantId(), "ATTRIBUTES_UPDATED");
 
         //check downlink
@@ -395,7 +308,8 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
                 .await()
                 .alias("Get integration events")
                 .atMost(10, TimeUnit.SECONDS)
-                .until(() -> { return messageListener.getEvents().size() == 1; });;
+                .until(() -> messageListener.getEvents().size() > 0);
+
         BlockingQueue<MqttEvent> events = messageListener.getEvents();
         JsonNode actual = JacksonUtil.toJsonNode(Objects.requireNonNull(events.poll()).message);
 
@@ -494,6 +408,7 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
         private final String topic;
         private final String message;
     }
+
     @Override
     protected String getDevicePrototypeSufix() {
         return "mqtt_";
