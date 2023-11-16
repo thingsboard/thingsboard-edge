@@ -250,7 +250,7 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
                                             "true".equals(eventInfo.getBody().get("success").asText()))
                             .collect(Collectors.toList());
 
-                    return eventInfos.size() == 2;
+                    return eventInfos.size() == 4;
                 });
 
         return ruleChain.getId();
