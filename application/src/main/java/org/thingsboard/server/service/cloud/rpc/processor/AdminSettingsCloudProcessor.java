@@ -56,8 +56,12 @@ public class AdminSettingsCloudProcessor extends BaseEdgeProcessor {
         if (adminSettingsMsg == null) {
             throw new RuntimeException("[{" + tenantId + "}] adminSettingsUpdateMsg {" + adminSettingsUpdateMsg + " } cannot be converted to admin settings");
         }
-        if (adminSettingsMsg.getId() != null) {
-            adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, adminSettingsMsg);
+        if (TenantId.SYS_TENANT_ID.equals(adminSettingsMsg.getTenantId())) {
+            AdminSettings adminSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, adminSettingsMsg.getKey());
+            if (adminSettings != null) {
+                adminSettings.setJsonValue(adminSettingsMsg.getJsonValue());
+            }
+            adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, adminSettings);
         } else {
             List<AttributeKvEntry> attributes = new ArrayList<>();
             attributes.add(new BaseAttributeKvEntry(new StringDataEntry(adminSettingsMsg.getKey(), adminSettingsMsg.getJsonValue().asText()), System.currentTimeMillis()));
