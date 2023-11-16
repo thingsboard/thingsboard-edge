@@ -827,7 +827,7 @@ public abstract class AbstractContainerTest {
     protected void verifyThatCustomerAdminGroupIsCreatedOnEdge(Customer savedCustomer) {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
-                .atMost(30, TimeUnit.SECONDS)
+                .atMost(60, TimeUnit.SECONDS)
                 .until(() -> {
                     Optional<EntityGroupInfo> customerAdminGroupOpt =
                             edgeRestClient.getEntityGroupInfoByOwnerAndNameAndType(

@@ -722,9 +722,6 @@ public class DeviceClientTest extends AbstractContainerTest {
         User savedUser = cloudRestClient.saveUser(user, false, findCustomerAdminsGroup(savedCustomer).get().getId());
         cloudRestClient.activateUser(savedUser.getId(), "customer", false);
 
-        // make sure activate user is processed
-        Thread.sleep(TimeUnit.SECONDS.toMillis(3));
-
         Device savedDevice = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
         Optional<DeviceCredentials> deviceCredentialsByDeviceId =
                 cloudRestClient.getDeviceCredentialsByDeviceId(savedDevice.getId());

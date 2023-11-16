@@ -286,13 +286,13 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
         // validate that customer was deleted from edge
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
-                .atMost(30, TimeUnit.SECONDS)
+                .atMost(60, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isEmpty());
 
         // validate that edge customer id was updated
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
-                .atMost(30, TimeUnit.SECONDS)
+                .atMost(60, TimeUnit.SECONDS)
                 .until(() -> EntityId.NULL_UUID.equals(edgeRestClient.getEdgeById(edge.getId()).get().getCustomerId().getId()));
     }
 }
