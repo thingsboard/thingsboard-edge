@@ -67,8 +67,7 @@ public class WhiteLabelingEdgeEventFetcher implements EdgeEventFetcher {
     @Override
     public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) {
         List<EdgeEvent> result = new ArrayList<>();
-        List<EdgeEventType> wlTypes = Arrays.asList(EdgeEventType.WHITE_LABELING, EdgeEventType.LOGIN_WHITE_LABELING,
-                EdgeEventType.CUSTOM_TRANSLATION, EdgeEventType.MAIL_TEMPLATES);
+        List<EdgeEventType> wlTypes = Arrays.asList(EdgeEventType.WHITE_LABELING, EdgeEventType.LOGIN_WHITE_LABELING, EdgeEventType.MAIL_TEMPLATES);
         for (EdgeEventType wlType : wlTypes) {
             List<EdgeEvent> wlEdgeEvents = getWhiteLabelingEdgeEvents(tenantId, edge, wlType);
             result.addAll(wlEdgeEvents);
@@ -109,7 +108,3 @@ public class WhiteLabelingEdgeEventFetcher implements EdgeEventFetcher {
         }
     }
 }
-
-
-
-
