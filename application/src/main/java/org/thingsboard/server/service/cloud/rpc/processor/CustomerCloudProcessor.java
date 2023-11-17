@@ -63,7 +63,7 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                 case ENTITY_DELETED_RPC_MESSAGE:
                     Customer customerById = customerService.findCustomerById(tenantId, customerId);
                     if (customerById != null) {
-                       customerService.deleteCustomer(tenantId, customerById.getId());
+                       customerService.deleteCustomer(tenantId, customerId);
                     }
                     return Futures.immediateFuture(null);
                 case UNRECOGNIZED:
