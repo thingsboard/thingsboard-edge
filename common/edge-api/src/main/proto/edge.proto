@@ -437,7 +437,8 @@ message AdminSettingsUpdateMsg {
   bool isSystem = 1 [deprecated = true];
   string key = 2 [deprecated = true];
   string jsonValue = 3 [deprecated = true];
-  string entity = 4;
+  bool isCustomer = 4;
+  string entity = 5;
 }
 
 message UserCredentialsUpdateMsg {

@@ -80,12 +80,22 @@ public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
                 result.add(EdgeUtils.constructEdgeEvent(tenantId, edgeId, EdgeEventType.ADMIN_SETTINGS,
                         EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(adminSettings)));
             }
-            Optional<AttributeKvEntry> tenantMailSettingsAttr = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, key).get();
-            if (tenantMailSettingsAttr.isPresent()) {
+            Optional<AttributeKvEntry> tenantSettingsAttr = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, key).get();
+            if (tenantSettingsAttr.isPresent()) {
                 AdminSettings tenantMailSettings = new AdminSettings();
                 tenantMailSettings.setTenantId(tenantId);
                 tenantMailSettings.setKey(key);
-                String value = tenantMailSettingsAttr.get().getValueAsString();
+                String value = tenantSettingsAttr.get().getValueAsString();
+                tenantMailSettings.setJsonValue(JacksonUtil.toJsonNode(value));
+                result.add(EdgeUtils.constructEdgeEvent(tenantId, edgeId, EdgeEventType.ADMIN_SETTINGS,
+                        EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(tenantMailSettings)));
+            }
+            Optional<AttributeKvEntry> customerSettingsAttr = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, key).get();
+            if (customerSettingsAttr.isPresent()) {
+                AdminSettings tenantMailSettings = new AdminSettings();
+                tenantMailSettings.setTenantId(tenantId);
+                tenantMailSettings.setKey(key);
+                String value = customerSettingsAttr.get().getValueAsString();
                 tenantMailSettings.setJsonValue(JacksonUtil.toJsonNode(value));
                 result.add(EdgeUtils.constructEdgeEvent(tenantId, edgeId, EdgeEventType.ADMIN_SETTINGS,
                         EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(tenantMailSettings)));

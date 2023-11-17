@@ -314,7 +314,7 @@ public class ThingsboardInstallService {
                     // @voba - system widgets update is not required - uploaded from cloud
                     // log.info("Updating system data...");
                     // dataUpdateService.upgradeRuleNodes();
-                    // systemDataLoaderService.updateSystemWidgets();
+                    // systemDataLoaderService.loadSystemWidgets();
                     // installScripts.loadSystemLwm2mResources();
                 }
 
