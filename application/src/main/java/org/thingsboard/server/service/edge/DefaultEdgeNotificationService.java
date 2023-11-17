@@ -68,7 +68,6 @@ import org.thingsboard.server.service.edge.rpc.processor.resource.ResourceEdgePr
 import org.thingsboard.server.service.edge.rpc.processor.role.RoleEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.rule.RuleChainEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.scheduler.SchedulerEventEdgeProcessor;
-import org.thingsboard.server.service.edge.rpc.processor.settings.AdminSettingsEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.tenant.TenantEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.tenant.TenantProfileEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.user.UserEdgeProcessor;
@@ -148,9 +147,6 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
 
     @Autowired
     private ResourceEdgeProcessor resourceEdgeProcessor;
-
-    @Autowired
-    private AdminSettingsEdgeProcessor adminSettingsEdgeProcessor;
 
     @Autowired
     protected ApplicationEventPublisher eventPublisher;
@@ -288,6 +284,7 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                             break;
                         case WHITE_LABELING:
                         case LOGIN_WHITE_LABELING:
+                        case CUSTOM_TRANSLATION:
                         case MAIL_TEMPLATES:
                             whiteLabelingProcessor.processNotification(tenantId, edgeNotificationMsg);
                             break;
@@ -299,9 +296,6 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                             break;
                         case TB_RESOURCE:
                             resourceEdgeProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
-                            break;
-                        case ADMIN_SETTINGS:
-                            adminSettingsEdgeProcessor.processNotification(tenantId, edgeNotificationMsg);
                             break;
                         default:
                             log.warn("[{}] Edge event type [{}] is not designed to be pushed to edge", tenantId, type);

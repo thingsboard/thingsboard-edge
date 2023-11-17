@@ -110,7 +110,6 @@ import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
@@ -188,9 +187,6 @@ public abstract class BaseEdgeProcessor {
 
     @Autowired
     protected RuleChainService ruleChainService;
-
-    @Autowired
-    protected AdminSettingsService adminSettingsService;
 
     @Autowired
     protected AlarmService alarmService;

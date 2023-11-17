@@ -247,5 +247,4 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         String enUsLangObject = ct.getTranslationMap().get("en_US");
         Assert.assertEquals(updatedHomeValue, JacksonUtil.toJsonNode(enUsLangObject).get("home").asText());
     }
-
 }
