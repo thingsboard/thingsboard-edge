@@ -337,7 +337,7 @@ public interface TbContext {
 
     ExecutorProvider getPubSubRuleNodeExecutorProvider();
 
-    MailService getMailService(boolean isSystem);
+    MailService getMailService();
 
     SmsService getSmsService();
 
