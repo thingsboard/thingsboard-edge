@@ -340,13 +340,17 @@ public class ThingsBoardDbInstaller {
                 .add(tbTcpIntegrationLogVolume)
                 .add(tbUdpIntegrationLogVolume);
 
+        if (IS_HYBRID_MODE) {
+            rmVolumesCommand.add(cassandraDataVolume);
+        }
+
         dockerCompose.withCommand(rmVolumesCommand.toString());
         dockerCompose.invokeDocker();
     }
 
     private String resolveRedisComposeVolumeLog() {
         if (IS_REDIS_CLUSTER) {
-            return IntStream.range(0, 6).mapToObj(i -> redisClusterDataVolume + "-" + i).collect(Collectors.joining());
+            return IntStream.range(0, 6).mapToObj(i -> " " + redisClusterDataVolume + "-" + i).collect(Collectors.joining());
         }
         if (IS_REDIS_SENTINEL) {
             return redisSentinelDataVolume + "-" + "master " + " " +
