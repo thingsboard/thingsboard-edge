@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
@@ -37,11 +37,12 @@ import { SchedulerEventConfiguration } from '@shared/models/scheduler-event.mode
 import { MessageType } from '@shared/models/rule-node.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { jsonRequired } from '@shared/components/json-object-edit.component';
+import { isDefinedAndNotNull } from '@core/utils';
 
 @Component({
   selector: 'tb-send-rpc-request-event-config',
   templateUrl: './send-rpc-request.component.html',
-  styleUrls: [],
+  styleUrls: ['./send-rpc-request.component.scss'],
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => SendRpcRequestComponent),
@@ -69,6 +70,13 @@ export class SendRpcRequestComponent implements ControlValueAccessor, OnInit, Af
         {
           method: [null, [Validators.required, Validators.pattern(/^\S+$/)]],
           params: [null, [jsonRequired]]
+        }
+      ),
+      metadata: this.fb.group(
+        {
+          timeout: [null, [Validators.min(0)]],
+          persistent: [null, []],
+          persistentPollingInterval: [null, [Validators.min(1000)]]
         }
       )
     });
@@ -108,7 +116,7 @@ export class SendRpcRequestComponent implements ControlValueAccessor, OnInit, Af
     let doUpdate = false;
     if (this.modelValue) {
       if (!this.modelValue.msgType) {
-        this.modelValue.msgType = MessageType.RPC_CALL_FROM_SERVER_TO_DEVICE
+        this.modelValue.msgType = MessageType.RPC_CALL_FROM_SERVER_TO_DEVICE;
         doUpdate = true;
       }
       if (!this.modelValue.originatorId) {
@@ -118,10 +126,24 @@ export class SendRpcRequestComponent implements ControlValueAccessor, OnInit, Af
         };
         doUpdate = true;
       }
-      if (!this.modelValue.metadata || !this.modelValue.metadata.oneway) {
-        const metadata = this.modelValue.metadata || {};
-        metadata.oneway = true;
-        this.modelValue.metadata = metadata;
+      if (!isDefinedAndNotNull(this.modelValue.metadata)) {
+        this.modelValue.metadata = {};
+        doUpdate = true;
+      }
+      if (!isDefinedAndNotNull(this.modelValue.metadata.oneway)) {
+        this.modelValue.metadata.oneway = true;
+        doUpdate = true;
+      }
+      if (!isDefinedAndNotNull(this.modelValue.metadata.timeout)) {
+        this.modelValue.metadata.timeout = 5000;
+        doUpdate = true;
+      }
+      if (!isDefinedAndNotNull(this.modelValue.metadata.persistent)) {
+        this.modelValue.metadata.persistent = false;
+        doUpdate = true;
+      }
+      if (!isDefinedAndNotNull(this.modelValue.metadata.persistentPollingInterval)) {
+        this.modelValue.metadata.persistentPollingInterval = 5000;
         doUpdate = true;
       }
       this.sendRpcRequestFormGroup.reset(this.modelValue, { emitEvent: false });
