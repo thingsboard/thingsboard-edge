@@ -84,16 +84,16 @@ public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
         for (String key : keys) {
             AdminSettings adminSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key);
             if (adminSettings != null) {
+                ObjectNode sysadminNode = JacksonUtil.newObjectNode()
+                        .put("sysadmin", true)
+                        .put("key", key);
                 result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
-                        EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(key)));
+                        EdgeEventActionType.UPDATED, null, sysadminNode));
             }
             Optional<AttributeKvEntry> tenantSettingsAttr = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, key).get();
             if (tenantSettingsAttr.isPresent()) {
-                ObjectNode tenantNode = JacksonUtil.newObjectNode()
-                        .put("tenantId", tenantId.getId().toString())
-                        .put("key", key);
                 result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
-                        EdgeEventActionType.UPDATED, null, tenantNode));
+                        EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(key)));
             }
             if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
                 getCustomerAdminSettingsEdgeEvents(tenantId, edge.getId(), edge.getOwnerId(), key, result);

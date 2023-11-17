@@ -71,22 +71,13 @@ public class AdminSettingsEdgeProcessor extends BaseEdgeProcessor {
     public DownlinkMsg convertAdminSettingsEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) throws Exception {
         AdminSettings adminSettings = null;
         JsonNode body = edgeEvent.getBody();
-        CustomerId customerId = body.has("customerId") ? new CustomerId(UUID.fromString(body.get("customerId").asText())) : null;
-        TenantId tenantId = body.has("tenantId") ? new TenantId(UUID.fromString(body.get("tenantId").asText())) : TenantId.SYS_TENANT_ID;
+        boolean isSysadmin = body.has("sysadmin");
+        EntityId entityId = body.has("customerId") ? new CustomerId(UUID.fromString(body.get("customerId").asText())) : edgeEvent.getTenantId();
         String key = JacksonUtil.convertValue(body.get("key"), String.class);
-        if (customerId != null) {
-            Optional<AttributeKvEntry> customerSettingsAttr = attributesService.find(edgeEvent.getTenantId(), customerId, DataConstants.SERVER_SCOPE, key).get();
-            if (customerSettingsAttr.isPresent()) {
-                adminSettings = new AdminSettings();
-                adminSettings.setTenantId(edgeEvent.getTenantId());
-                adminSettings.setKey(key);
-                String value = customerSettingsAttr.get().getValueAsString();
-                adminSettings.setJsonValue(JacksonUtil.toJsonNode(value));
-            }
-        } else if (TenantId.SYS_TENANT_ID.equals(tenantId)) {
+        if (isSysadmin) {
             adminSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key);
         } else {
-            Optional<AttributeKvEntry> tenantSettingsAttr = attributesService.find(edgeEvent.getTenantId(), customerId, DataConstants.SERVER_SCOPE, key).get();
+            Optional<AttributeKvEntry> tenantSettingsAttr = attributesService.find(edgeEvent.getTenantId(), entityId, DataConstants.SERVER_SCOPE, key).get();
             if (tenantSettingsAttr.isPresent()) {
                 adminSettings = new AdminSettings();
                 adminSettings.setTenantId(edgeEvent.getTenantId());
@@ -98,7 +89,7 @@ public class AdminSettingsEdgeProcessor extends BaseEdgeProcessor {
         if (adminSettings == null) {
             return null;
         }
-        AdminSettingsUpdateMsg adminSettingsUpdateMsg = adminSettingsMsgConstructor.constructAdminSettingsUpdateMsg(adminSettings, customerId, edgeVersion);
+        AdminSettingsUpdateMsg adminSettingsUpdateMsg = adminSettingsMsgConstructor.constructAdminSettingsUpdateMsg(adminSettings, entityId, edgeVersion);
         return DownlinkMsg.newBuilder()
                 .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                 .addAdminSettingsUpdateMsg(adminSettingsUpdateMsg)
@@ -120,13 +111,13 @@ public class AdminSettingsEdgeProcessor extends BaseEdgeProcessor {
                     do {
                         tenantsIds = tenantService.findTenantsIds(pageLink);
                         for (TenantId tenantId1 : tenantsIds.getData()) {
-                            futures.addAll(processActionForAllEdgesByTenantId(tenantId1, type, actionType, null, JacksonUtil.valueToTree(edgeNotificationMsg.getBody()), sourceEdgeId, null));
+                            ObjectNode body = JacksonUtil.newObjectNode().put("sysadmin", true).put("key", edgeNotificationMsg.getBody());
+                            futures.addAll(processActionForAllEdgesByTenantId(tenantId1, type, actionType, null, body, sourceEdgeId, null));
                         }
                         pageLink = pageLink.nextPageLink();
                     } while (tenantsIds.hasNext());
                 } else {
-                    ObjectNode body = JacksonUtil.newObjectNode().put("tenantId", tenantId.toString()).put("key", edgeNotificationMsg.getBody());
-                    futures = processActionForAllEdgesByTenantId(tenantId, type, actionType, null, body, sourceEdgeId, null);
+                    futures = processActionForAllEdgesByTenantId(tenantId, type, actionType, null, JacksonUtil.valueToTree(edgeNotificationMsg.getBody()), sourceEdgeId, null);
                 }
                 return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
             case CUSTOMER:
