@@ -289,13 +289,15 @@ public class ThingsboardInstallService {
                             log.info("Upgrading ThingsBoard from version 3.6.0 to 3.6.1 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.6.0");
                             dataUpdateService.updateData("3.6.0");
+                        case "3.6.1":
+                            log.info("Upgrading ThingsBoard from version 3.6.1 to 3.6.2 ...");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.6.1");
 
                             // reset full sync required - to upload the latest widgets from cloud
                             // fromVersion must be updated per release
                             // DefaultDataUpdateService must be updated as well
                             // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to 'edge' version
                             dataUpdateService.updateData("edge");
-
                             break;
                         case "CE":
                             log.info("Upgrading ThingsBoard from version CE to PE ...");

@@ -111,7 +111,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
         DownlinkMsg result = null;
         switch (entityId.getEntityType()) {
             case TENANT:
-                if (EntityId.NULL_UUID.equals(entityId.getId())) {
+                if (TenantId.SYS_TENANT_ID.equals(entityId)) {
                     WhiteLabelingParams systemWhiteLabelingParams =
                             whiteLabelingService.getSystemWhiteLabelingParams(edgeEvent.getTenantId());
                     if (isDefaultWhiteLabeling(systemWhiteLabelingParams)) {
@@ -183,12 +183,11 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
         return result;
     }
 
-
     private DownlinkMsg constructDeprecatedLoginWhiteLabelingEvent(EdgeEvent edgeEvent, EntityId entityId) throws Exception {
         DownlinkMsg result = null;
         switch (entityId.getEntityType()) {
             case TENANT:
-                if (EntityId.NULL_UUID.equals(entityId.getId())) {
+                if (TenantId.SYS_TENANT_ID.equals(entityId)) {
                     LoginWhiteLabelingParams systemLoginWhiteLabelingParams =
                             whiteLabelingService.getSystemLoginWhiteLabelingParams(edgeEvent.getTenantId());
                     if (isDefaultLoginWhiteLabeling(systemLoginWhiteLabelingParams)) {
@@ -244,7 +243,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
             }
             switch (entityId.getEntityType()) {
                 case TENANT:
-                    if (EntityId.NULL_UUID.equals(entityId.getId())) {
+                    if (TenantId.SYS_TENANT_ID.equals(entityId)) {
                         CustomTranslation systemCustomTranslation =
                                 customTranslationService.getSystemCustomTranslation(edgeEvent.getTenantId());
                         if (isDefaultCustomTranslation(systemCustomTranslation)) {
