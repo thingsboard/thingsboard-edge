@@ -89,5 +89,4 @@ public class AssetProfileMsgConstructor {
                 .setIdMSB(assetProfileId.getId().getMostSignificantBits())
                 .setIdLSB(assetProfileId.getId().getLeastSignificantBits()).build();
     }
-
 }

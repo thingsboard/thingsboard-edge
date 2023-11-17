@@ -49,10 +49,8 @@ import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
-import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -149,8 +147,8 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
         return device;
     }
 
-    protected void updateDeviceCredentials(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg, EdgeVersion edgeVersion) {
-        DeviceCredentials deviceCredentials = EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)
+    protected void updateDeviceCredentials(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg, boolean isEdgeVersionOlderThan_3_6_2) {
+        DeviceCredentials deviceCredentials = isEdgeVersionOlderThan_3_6_2
                 ? createDeviceCredentials(deviceCredentialsUpdateMsg)
                 : JacksonUtil.fromStringIgnoreUnknownProperties(deviceCredentialsUpdateMsg.getEntity(), DeviceCredentials.class);
         if (deviceCredentials == null) {
@@ -187,5 +185,5 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
         return deviceCredentials;
     }
 
-    protected abstract void setCustomerId(TenantId tenantId, CustomerId customerId, Device device, DeviceUpdateMsg deviceUpdateMsg, boolean isEdgeVersionDeprecated);
+    protected abstract void setCustomerId(TenantId tenantId, CustomerId customerId, Device device, DeviceUpdateMsg deviceUpdateMsg, boolean isEdgeVersionOlderThan_3_6_2);
 }

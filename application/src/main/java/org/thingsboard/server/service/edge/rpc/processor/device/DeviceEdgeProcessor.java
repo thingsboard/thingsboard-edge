@@ -124,7 +124,7 @@ public class DeviceEdgeProcessor extends BaseDeviceProcessor {
         try {
             edgeSynchronizationManager.getEdgeId().set(edgeId);
 
-            updateDeviceCredentials(tenantId, deviceCredentialsUpdateMsg, edgeVersion);
+            updateDeviceCredentials(tenantId, deviceCredentialsUpdateMsg, EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion));
         } finally {
             edgeSynchronizationManager.getEdgeId().remove();
         }
@@ -341,8 +341,8 @@ public class DeviceEdgeProcessor extends BaseDeviceProcessor {
     }
 
     @Override
-    protected void setCustomerId(TenantId tenantId, CustomerId customerId, Device device, DeviceUpdateMsg deviceUpdateMsg, boolean isEdgeVersionDeprecated) {
-        CustomerId customerUUID = isEdgeVersionDeprecated
+    protected void setCustomerId(TenantId tenantId, CustomerId customerId, Device device, DeviceUpdateMsg deviceUpdateMsg, boolean isEdgeVersionOlderThan_3_6_2) {
+        CustomerId customerUUID = isEdgeVersionOlderThan_3_6_2
                 ? safeGetCustomerId(deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB())
                 : device.getCustomerId() != null ? device.getCustomerId() : customerId;
         device.setCustomerId(customerUUID);
