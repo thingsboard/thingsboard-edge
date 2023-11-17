@@ -291,6 +291,7 @@ public class ThingsboardInstallService {
                             dataUpdateService.updateData("3.6.0");
                         case "3.6.1":
                             log.info("Upgrading ThingsBoard from version 3.6.1 to 3.6.2 ...");
+                            //TODO DON'T FORGET to update switch statement in the CacheCleanupService if you need to clear the cache
                             databaseEntitiesUpgradeService.upgradeDatabase("3.6.1");
 
                             // reset full sync required - to upload the latest widgets from cloud

@@ -58,7 +58,6 @@ import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.EntityDataProto;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
@@ -224,7 +223,6 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             log.debug("[{}] Starting process DownlinkMsg. downlinkMsgId [{}],",
                     tenantId, downlinkMsg.getDownlinkMsgId());
             log.trace("DownlinkMsg Body {}", downlinkMsg);
-            EdgeVersion edgeVersion = EdgeVersion.V_3_6_2;
             if (downlinkMsg.hasSyncCompletedMsg()) {
                 result.add(updateSyncRequiredState(tenantId, this.customerId, currentEdgeSettings, queueStartTs));
             }
@@ -258,7 +256,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             }
             if (downlinkMsg.getDeviceCredentialsUpdateMsgCount() > 0) {
                 for (DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg : downlinkMsg.getDeviceCredentialsUpdateMsgList()) {
-                    result.add(deviceProcessor.processDeviceCredentialsMsgFromCloud(tenantId, deviceCredentialsUpdateMsg, edgeVersion));
+                    result.add(deviceProcessor.processDeviceCredentialsMsgFromCloud(tenantId, deviceCredentialsUpdateMsg));
                 }
             }
             if (downlinkMsg.getAssetProfileUpdateMsgCount() > 0) {
@@ -293,7 +291,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             }
             if (downlinkMsg.getAlarmUpdateMsgCount() > 0) {
                 for (AlarmUpdateMsg alarmUpdateMsg : downlinkMsg.getAlarmUpdateMsgList()) {
-                    result.add(alarmProcessor.processAlarmMsgFromCloud(tenantId, alarmUpdateMsg, edgeVersion));
+                    result.add(alarmProcessor.processAlarmMsgFromCloud(tenantId, alarmUpdateMsg));
                 }
             }
             if (downlinkMsg.getCustomerUpdateMsgCount() > 0) {
@@ -311,7 +309,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             }
             if (downlinkMsg.getRelationUpdateMsgCount() > 0) {
                 for (RelationUpdateMsg relationUpdateMsg : downlinkMsg.getRelationUpdateMsgList()) {
-                    result.add(relationProcessor.processRelationMsgFromCloud(tenantId, relationUpdateMsg, edgeVersion));
+                    result.add(relationProcessor.processRelationMsgFromCloud(tenantId, relationUpdateMsg));
                 }
             }
             if (downlinkMsg.getWidgetsBundleUpdateMsgCount() > 0) {
