@@ -28,38 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.coap.callback;
+package org.thingsboard.server.exception;
 
-import org.eclipse.californium.core.coap.CoAP;
-import org.eclipse.californium.core.coap.Response;
-import org.eclipse.californium.core.server.resources.CoapExchange;
-import org.thingsboard.server.common.transport.TransportServiceCallback;
+import lombok.Getter;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.TenantId;
 
-public class CoapOkCallback implements TransportServiceCallback<Void> {
+public class EntitiesLimitException extends DataValidationException {
+    private static final long serialVersionUID = -9211462514373279196L;
 
-    protected final CoapExchange exchange;
-    protected final CoAP.ResponseCode onSuccessResponse;
-    protected final CoAP.ResponseCode onFailureResponse;
+    @Getter
+    private final TenantId tenantId;
+    @Getter
+    private final EntityType entityType;
 
-    public CoapOkCallback(CoapExchange exchange, CoAP.ResponseCode onSuccessResponse, CoAP.ResponseCode onFailureResponse) {
-        this.exchange = exchange;
-        this.onSuccessResponse = onSuccessResponse;
-        this.onFailureResponse = onFailureResponse;
-    }
-
-    @Override
-    public void onSuccess(Void msg) {
-        Response response = new Response(onSuccessResponse);
-        response.setConfirmable(isConRequest());
-        exchange.respond(response);
-    }
-
-    @Override
-    public void onError(Throwable e) {
-        exchange.respond(onFailureResponse);
-    }
-
-    protected boolean isConRequest() {
-        return exchange.advanced().getRequest().isConfirmable();
+    public EntitiesLimitException(TenantId tenantId, EntityType entityType) {
+        super(entityType.getNormalName() + "s limit reached");
+        this.tenantId = tenantId;
+        this.entityType = entityType;
     }
 }

@@ -264,4 +264,8 @@ public class StringUtils {
         return string.substring(0, maxLength) + truncationMarkerFunc.apply(truncatedSymbols);
     }
 
+    public static String toLowerCase(String string) {
+        return isNotEmpty(string) ? string.toLowerCase() : string;
+    }
+
 }
