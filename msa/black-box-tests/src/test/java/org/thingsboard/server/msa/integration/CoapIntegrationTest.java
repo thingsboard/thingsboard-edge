@@ -39,10 +39,8 @@ import org.eclipse.californium.elements.exception.ConnectorException;
 import org.testcontainers.containers.ContainerState;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
@@ -128,22 +126,14 @@ public class CoapIntegrationTest extends AbstractIntegrationTest {
             "\n" +
             "return result;";
 
-    private RuleChainId defaultRuleChainId;
-    @BeforeMethod
-    public void setUp()  {
-        defaultRuleChainId = getDefaultRuleChainId();
-    }
     @AfterMethod
     public void afterMethod() {
-        testRestClient.setRootRuleChain(defaultRuleChainId);
-        afterIntegrationTest();
-        device = null;
-
         if (containerTestSuite.isActive()) {
             ContainerState tcpIntegrationContainer = containerTestSuite.getTestContainer().getContainerByServiceName("tb-pe-coap-integration_1").get();
             tcpIntegrationContainer.getDockerClient().restartContainerCmd(tcpIntegrationContainer.getContainerId()).exec();
         }
     }
+
     @Test
     public void checkTelemetryUploadedWithJsonConverter() throws Exception {
         JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder",
@@ -165,6 +155,7 @@ public class CoapIntegrationTest extends AbstractIntegrationTest {
 
         Assert.assertTrue(verify(actualLatestTelemetry, TELEMETRY_KEY, TELEMETRY_VALUE));
     }
+
     @Test
     public void checkTelemetryUploadedWithTextConverter() throws Exception {
         JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder", TEXT_CONVERTER_CONFIG);
@@ -186,6 +177,7 @@ public class CoapIntegrationTest extends AbstractIntegrationTest {
 
         Assert.assertTrue(verify(actualLatestTelemetry, TELEMETRY_KEY, "25.7"));
     }
+
     @Test
     public void checkTelemetryUploadedWithBinaryConverter() throws Exception {
         JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder", BINARY_CONVERTER_CONFIG);

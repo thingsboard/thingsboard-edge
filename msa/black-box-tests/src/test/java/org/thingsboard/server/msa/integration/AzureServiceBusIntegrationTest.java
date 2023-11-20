@@ -40,20 +40,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.awaitility.Awaitility;
 import org.testng.Assert;
 import org.testng.SkipException;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.msa.WsClient;
@@ -67,8 +62,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.thingsboard.server.common.data.DataConstants.DEVICE;
 import static org.thingsboard.server.common.data.DataConstants.SHARED_SCOPE;
 import static org.thingsboard.server.common.data.integration.IntegrationType.AZURE_SERVICE_BUS;
-import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.downlinkConverterPrototype;
-import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.uplinkConverterPrototype;
 
 @Slf4j
 public class AzureServiceBusIntegrationTest extends AbstractIntegrationTest {
@@ -82,15 +75,15 @@ public class AzureServiceBusIntegrationTest extends AbstractIntegrationTest {
     private static final String DOWNLINK_CONNECTION_STRING = System.getProperty("blackBoxTests.azureServiceBusDownlinkConnectionString", "");
     private static final String DOWNLINK_TOPIC_NAME = System.getProperty("blackBoxTests.azureServiceBusDownlinkTopicName", "");
     private static final String DOWNLINK_TOPIC_SUB_NAME = System.getProperty("blackBoxTests.azureServiceBusDownlinkSubName", "");
-    private static final String INTEGRATION_CONFIG = "{\"clientConfiguration\":{" +
+    private static final JsonNode INTEGRATION_CONFIG = JacksonUtil.toJsonNode("{\"clientConfiguration\":{" +
             "\"connectionString\":\"" + CONNECTION_STRING + "\"," +
             "\"topicName\":\"" + TOPIC_NAME + "\"," +
             "\"subName\":\"" + SUBSCRIPTION_NAME + "\"," +
             "\"downlinkConnectionString\":\"" + DOWNLINK_CONNECTION_STRING + "\"," +
             "\"downlinkTopicName\":\"" + DOWNLINK_TOPIC_NAME + "\"}," +
-            "\"metadata\":{}}";
+            "\"metadata\":{}}");
 
-    private static final String TEXT_CONVERTER_CONFIG = "var strArray = decodeToString(payload);\n" +
+    private static final JsonNode CONVERTER_CONFIG = JacksonUtil.newObjectNode().put("decoder", "var strArray = decodeToString(payload);\n" +
             "var payloadArray = strArray.replace(/\\\"/g, \"\").replace(/\\s/g, \"\").replace(/\\\\n/g, \"\").split(',');\n" +
             "var telemetryPayload = {};\n" +
             "for (var i = 2; i < 6; i = i + 2) {\n" +
@@ -109,7 +102,7 @@ public class AzureServiceBusIntegrationTest extends AbstractIntegrationTest {
             "function decodeToString(payload) {\n" +
             "   return String.fromCharCode.apply(String, payload);\n" +
             "}\n" +
-            "return result;";
+            "return result;");
 
     private final JsonNode DOWNLINK_CONVERTER_CONFIG = JacksonUtil.newObjectNode()
             .put("encoder", "var data = {};\n" +
@@ -132,9 +125,6 @@ public class AzureServiceBusIntegrationTest extends AbstractIntegrationTest {
                     "return result;");
 
     private final BlockingQueue<String> messageList = new ArrayBlockingQueue<>(100);
-    private Converter uplinkConverter;
-    private Converter downlinkConverter;
-    private RuleChainId defaultRuleChainId;
 
     @BeforeClass
     public static void beforeClass() {
@@ -142,36 +132,10 @@ public class AzureServiceBusIntegrationTest extends AbstractIntegrationTest {
             throw new SkipException("AzureServiceBusIntegrationTest is skipped");
         }
     }
-    @AfterMethod
-    public void tearDown()  {
-        testRestClient.setRootRuleChain(defaultRuleChainId);
-    }
-
-    @BeforeMethod
-    public void setUp() {
-        JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder", TEXT_CONVERTER_CONFIG);
-        uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(configConverter));
-        downlinkConverter = testRestClient.postConverter(downlinkConverterPrototype(DOWNLINK_CONVERTER_CONFIG));
-        defaultRuleChainId = getDefaultRuleChainId();
-    }
 
     @Test
     public void telemetryUploadWithLocalIntegration() throws Exception {
-        integration = Integration.builder()
-                .type(AZURE_SERVICE_BUS)
-                .name("service_bus_" + RandomStringUtils.randomAlphanumeric(7))
-                .configuration(JacksonUtil.toJsonNode(INTEGRATION_CONFIG))
-                .defaultConverterId(uplinkConverter.getId())
-                .routingKey(ROUTING_KEY + RandomStringUtils.randomAlphanumeric(5))
-                .secret(SECRET_KEY + RandomStringUtils.randomAlphanumeric(5))
-                .isRemote(false)
-                .enabled(true)
-                .debugMode(true)
-                .allowCreateDevicesOrAssets(true)
-                .build();
-
-        integration = testRestClient.postIntegration(integration);
-        waitUntilIntegrationStarted(integration.getId(), integration.getTenantId());
+        createIntegration(AZURE_SERVICE_BUS, INTEGRATION_CONFIG, CONVERTER_CONFIG, ROUTING_KEY, SECRET_KEY, false);
 
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
 
@@ -194,25 +158,10 @@ public class AzureServiceBusIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void checkDownlinkMessageWasSent() throws Exception {
-        integration = Integration.builder()
-                .type(AZURE_SERVICE_BUS)
-                .name("service_bus_" + RandomStringUtils.randomAlphanumeric(7))
-                .configuration(JacksonUtil.toJsonNode(INTEGRATION_CONFIG))
-                .defaultConverterId(uplinkConverter.getId())
-                .downlinkConverterId(downlinkConverter.getId())
-                .routingKey(ROUTING_KEY + RandomStringUtils.randomAlphanumeric(5))
-                .secret(SECRET_KEY + RandomStringUtils.randomAlphanumeric(5))
-                .isRemote(false)
-                .enabled(true)
-                .debugMode(true)
-                .allowCreateDevicesOrAssets(true)
-                .build();
-
-        integration = testRestClient.postIntegration(integration);
-        waitUntilIntegrationStarted(integration.getId(), integration.getTenantId());
+        createIntegration(AZURE_SERVICE_BUS, INTEGRATION_CONFIG, CONVERTER_CONFIG, DOWNLINK_CONVERTER_CONFIG, ROUTING_KEY, SECRET_KEY, false);
 
         //subscribe for service bus topic
-        try(ServiceBusProcessorClient serviceBusProcessorClient = getDownlinkProcessorClient()) {
+        try (ServiceBusProcessorClient serviceBusProcessorClient = getDownlinkProcessorClient()) {
             serviceBusProcessorClient.start();
 
             //add downlink node
@@ -231,7 +180,7 @@ public class AzureServiceBusIntegrationTest extends AbstractIntegrationTest {
                     .await()
                     .alias("Get message from azure service bus topic")
                     .atMost(20, TimeUnit.SECONDS)
-                    .until(() -> { return messageList.size() == 1; });;
+                    .until(() -> messageList.size() > 0);
 
             JsonNode actual = JacksonUtil.toJsonNode(messageList.poll());
 
@@ -266,8 +215,8 @@ public class AzureServiceBusIntegrationTest extends AbstractIntegrationTest {
                 .connectionString(CONNECTION_STRING)
                 .sender()
                 .topicName(TOPIC_NAME)
-                .buildClient()){
-            serviceBusSenderClient.sendMessage(new ServiceBusMessage(String.format( "%s,default,temperature,%s,humidity,%s,info,%s", device.getName(), temp, humidity, info)));
+                .buildClient()) {
+            serviceBusSenderClient.sendMessage(new ServiceBusMessage(String.format("%s,default,temperature,%s,humidity,%s,info,%s", device.getName(), temp, humidity, info)));
         }
     }
 
