@@ -51,6 +51,7 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
     public ListenableFuture<Void> processDashboardMsgFromCloud(TenantId tenantId,
                                                                DashboardUpdateMsg dashboardUpdateMsg,
                                                                CustomerId customerId,
+                                                               EdgeVersion edgeVersion,
                                                                Long queueStartTs) {
         DashboardId dashboardId = new DashboardId(new UUID(dashboardUpdateMsg.getIdMSB(), dashboardUpdateMsg.getIdLSB()));
         try {
@@ -58,7 +59,10 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
             switch (dashboardUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    saveOrUpdateDashboard(tenantId, dashboardId, dashboardUpdateMsg, customerId);
+                    boolean created = super.saveOrUpdateDashboard(tenantId, dashboardId, dashboardUpdateMsg, customerId, edgeVersion);
+                    if (created) {
+                        pushDashboardCreatedEventToRuleEngine(tenantId, dashboardId);
+                    }
                     return requestForAdditionalData(tenantId, dashboardId, queueStartTs);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     Dashboard dashboardById = dashboardService.findDashboardById(tenantId, dashboardId);
@@ -73,13 +77,6 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
             }
         } finally {
             cloudSynchronizationManager.getSync().remove();
-        }
-    }
-
-    private void saveOrUpdateDashboard(TenantId tenantId, DashboardId dashboardId, DashboardUpdateMsg dashboardUpdateMsg, CustomerId customerId) {
-        boolean created = super.saveOrUpdateDashboard(tenantId, dashboardId, dashboardUpdateMsg, false, customerId);
-        if (created) {
-            pushDashboardCreatedEventToRuleEngine(tenantId, dashboardId);
         }
     }
 

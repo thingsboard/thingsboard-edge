@@ -56,7 +56,7 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
     @Autowired
     private DeviceProfileService deviceProfileService;
 
-    public ListenableFuture<Void> processDeviceProfileMsgFromCloud(TenantId tenantId, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
+    public ListenableFuture<Void> processDeviceProfileMsgFromCloud(TenantId tenantId, DeviceProfileUpdateMsg deviceProfileUpdateMsg, EdgeVersion edgeVersion) {
         DeviceProfileId deviceProfileId = new DeviceProfileId(new UUID(deviceProfileUpdateMsg.getIdMSB(), deviceProfileUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
@@ -76,7 +76,7 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
                             renameExistingOnEdgeDeviceProfile(deviceProfileByName);
                             removePreviousProfile = true;
                         }
-                        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDeviceProfile(tenantId, deviceProfileId, deviceProfileUpdateMsg, false);
+                        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDeviceProfile(tenantId, deviceProfileId, deviceProfileUpdateMsg, edgeVersion);
                         boolean created = resultPair.getFirst();
                         DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
                         if (!deviceProfile.isDefault() && deviceProfileMsg.isDefault()) {
@@ -202,12 +202,12 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
     }
 
     @Override
-    protected void setDefaultEdgeRuleChainId(DeviceProfile deviceProfile, RuleChainId ruleChainId, DeviceProfileUpdateMsg deviceProfileUpdateMsg, boolean isEdgeVersionDeprecated) {
+    protected void setDefaultEdgeRuleChainId(DeviceProfile deviceProfile, RuleChainId ruleChainId, DeviceProfileUpdateMsg deviceProfileUpdateMsg, EdgeVersion edgeVersion) {
         deviceProfile.setDefaultEdgeRuleChainId(null);
     }
 
     @Override
-    protected void setDefaultDashboardId(TenantId tenantId, DashboardId dashboardId, DeviceProfile deviceProfile, DeviceProfileUpdateMsg deviceProfileUpdateMsg, boolean isEdgeVersionDeprecated) {
+    protected void setDefaultDashboardId(TenantId tenantId, DashboardId dashboardId, DeviceProfile deviceProfile, DeviceProfileUpdateMsg deviceProfileUpdateMsg, EdgeVersion edgeVersion) {
         DashboardId defaultDashboardId = deviceProfile.getDefaultDashboardId();
         DashboardInfo dashboard = null;
         if (defaultDashboardId != null) {
