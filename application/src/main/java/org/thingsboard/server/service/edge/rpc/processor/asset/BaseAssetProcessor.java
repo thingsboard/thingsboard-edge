@@ -43,19 +43,21 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 import java.util.UUID;
 
 @Slf4j
 public abstract class BaseAssetProcessor extends BaseEdgeProcessor {
 
-    protected Pair<Boolean, Boolean> saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, boolean isEdgeVersionOlderThan_3_6_2) throws ThingsboardException {
+    protected Pair<Boolean, Boolean> saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, EdgeVersion edgeVersion) throws ThingsboardException {
         boolean created = false;
         boolean assetNameUpdated = false;
         assetCreationLock.lock();
         try {
-            Asset asset = isEdgeVersionOlderThan_3_6_2
+            Asset asset = EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)
                     ? createAsset(tenantId, assetId, assetUpdateMsg)
                     : JacksonUtil.fromStringIgnoreUnknownProperties(assetUpdateMsg.getEntity(), Asset.class);
             if (asset == null) {
@@ -78,7 +80,7 @@ public abstract class BaseAssetProcessor extends BaseEdgeProcessor {
                 assetNameUpdated = true;
             }
             asset.setName(assetName);
-            setCustomerId(tenantId, created ? null : assetById.getCustomerId(), asset, assetUpdateMsg, isEdgeVersionOlderThan_3_6_2);
+            setCustomerId(tenantId, created ? null : assetById.getCustomerId(), asset, assetUpdateMsg, edgeVersion);
 
             assetValidator.validate(asset, Asset::getTenantId);
             if (created) {
@@ -124,5 +126,5 @@ public abstract class BaseAssetProcessor extends BaseEdgeProcessor {
         return asset;
     }
 
-    protected abstract void setCustomerId(TenantId tenantId, CustomerId customerId, Asset asset, AssetUpdateMsg assetUpdateMsg, boolean isEdgeVersionOlderThan_3_6_2);
+    protected abstract void setCustomerId(TenantId tenantId, CustomerId customerId, Asset asset, AssetUpdateMsg assetUpdateMsg, EdgeVersion edgeVersion);
 }
