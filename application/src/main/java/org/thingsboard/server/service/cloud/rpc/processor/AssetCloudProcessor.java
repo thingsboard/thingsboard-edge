@@ -65,6 +65,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
 
     public ListenableFuture<Void> processAssetMsgFromCloud(TenantId tenantId,
                                                            AssetUpdateMsg assetUpdateMsg,
+                                                           EdgeVersion edgeVersion,
                                                            Long queueStartTs) throws ThingsboardException {
         AssetId assetId = new AssetId(new UUID(assetUpdateMsg.getIdMSB(), assetUpdateMsg.getIdLSB()));
         try {
@@ -73,7 +74,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
             switch (assetUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, queueStartTs);
+                    saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, edgeVersion, queueStartTs);
                     return requestForAdditionalData(tenantId, assetId, queueStartTs);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     if (assetUpdateMsg.hasEntityGroupIdMSB() && assetUpdateMsg.hasEntityGroupIdLSB()) {
@@ -99,8 +100,8 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
         }
     }
 
-    private void saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, Long queueStartTs) throws ThingsboardException {
-        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, false);
+    private void saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, EdgeVersion edgeVersion, Long queueStartTs) throws ThingsboardException {
+        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, edgeVersion);
         Boolean created = resultPair.getFirst();
         if (created) {
             pushAssetCreatedEventToRuleEngine(tenantId, assetId);
@@ -171,7 +172,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
     }
 
     @Override
-    protected void setCustomerId(TenantId tenantId, CustomerId customerId, Asset asset, AssetUpdateMsg assetUpdateMsg, boolean isEdgeVersionDeprecated) {
+    protected void setCustomerId(TenantId tenantId, CustomerId customerId, Asset asset, AssetUpdateMsg assetUpdateMsg, EdgeVersion edgeVersion) {
         CustomerId assignedCustomerId = asset.getCustomerId();
         Customer customer = null;
         if (assignedCustomerId != null) {

@@ -65,7 +65,6 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.edge.rpc.processor.device.BaseDeviceProcessor;
-import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.Optional;
@@ -77,15 +76,15 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
 
     public ListenableFuture<Void> processDeviceMsgFromCloud(TenantId tenantId,
                                                             DeviceUpdateMsg deviceUpdateMsg,
+                                                            EdgeVersion edgeVersion,
                                                             Long queueStartTs) throws ThingsboardException {
-        log.trace("[{}] executing processDeviceMsgFromCloud [{}]", tenantId, deviceUpdateMsg);
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
             switch (deviceUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, queueStartTs);
+                    saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, edgeVersion, queueStartTs);
                     return Futures.transformAsync(requestForAdditionalData(tenantId, deviceId, queueStartTs),
                             ignored -> cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_REQUEST,
                                     deviceId, null, null, queueStartTs), dbCallbackExecutorService);
@@ -112,8 +111,8 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         }
     }
 
-    private void saveOrUpdateDevice(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg, Long queueStartTs) throws ThingsboardException {
-        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, false);
+    private void saveOrUpdateDevice(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg, EdgeVersion edgeVersion, Long queueStartTs) throws ThingsboardException {
+        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, edgeVersion);
         Boolean created = resultPair.getFirst();
         if (created) {
             pushDeviceCreatedEventToRuleEngine(tenantId, deviceId);
@@ -142,11 +141,11 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         }
     }
 
-    public ListenableFuture<Void> processDeviceCredentialsMsgFromCloud(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {
+    public ListenableFuture<Void> processDeviceCredentialsMsgFromCloud(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg, EdgeVersion edgeVersion) {
         try {
             cloudSynchronizationManager.getSync().set(true);
 
-            updateDeviceCredentials(tenantId, deviceCredentialsUpdateMsg, false);
+            updateDeviceCredentials(tenantId, deviceCredentialsUpdateMsg, edgeVersion);
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }
@@ -292,7 +291,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
     }
 
     @Override
-    protected void setCustomerId(TenantId tenantId, CustomerId customerId, Device device, DeviceUpdateMsg deviceUpdateMsg, boolean isEdgeVersionDeprecated) {
+    protected void setCustomerId(TenantId tenantId, CustomerId customerId, Device device, DeviceUpdateMsg deviceUpdateMsg, EdgeVersion edgeVersion) {
         CustomerId assignedCustomerId = device.getCustomerId();
         Customer customer = null;
         if (assignedCustomerId != null) {

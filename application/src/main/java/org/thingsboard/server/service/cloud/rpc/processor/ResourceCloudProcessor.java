@@ -56,7 +56,7 @@ import java.util.UUID;
 @Slf4j
 public class ResourceCloudProcessor extends BaseResourceProcessor {
 
-    public ListenableFuture<Void> processResourceMsgFromCloud(TenantId tenantId, ResourceUpdateMsg resourceUpdateMsg) {
+    public ListenableFuture<Void> processResourceMsgFromCloud(TenantId tenantId, ResourceUpdateMsg resourceUpdateMsg, EdgeVersion edgeVersion) {
         TbResourceId tbResourceId = new TbResourceId(new UUID(resourceUpdateMsg.getIdMSB(), resourceUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
@@ -69,7 +69,7 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
                     }
                     deleteSystemResourceIfAlreadyExists(tbResourceId, tbResource.getResourceType(), tbResource.getResourceKey());
                     Pair<Boolean, TbResourceId> resultPair = renamePreviousResource(tenantId, tbResourceId, tbResource.getResourceType(), tbResource.getResourceKey());
-                    super.saveOrUpdateTbResource(tenantId, tbResourceId, resourceUpdateMsg, false);
+                    super.saveOrUpdateTbResource(tenantId, tbResourceId, resourceUpdateMsg, edgeVersion);
                     if (resultPair.getFirst()) {
                         resourceService.deleteResource(tenantId, resultPair.getSecond());
                     }

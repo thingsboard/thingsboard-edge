@@ -74,7 +74,7 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
     @Autowired
     private AssetService assetService;
 
-    public ListenableFuture<Void> processAssetProfileMsgFromCloud(TenantId tenantId, AssetProfileUpdateMsg assetProfileUpdateMsg) {
+    public ListenableFuture<Void> processAssetProfileMsgFromCloud(TenantId tenantId, AssetProfileUpdateMsg assetProfileUpdateMsg, EdgeVersion edgeVersion) {
         AssetProfileId assetProfileId = new AssetProfileId(new UUID(assetProfileUpdateMsg.getIdMSB(), assetProfileUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
@@ -94,7 +94,7 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
                             renamePreviousAssetProfile(assetProfileByName);
                             removePreviousProfile = true;
                         }
-                        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAssetProfile(tenantId, assetProfileId, assetProfileUpdateMsg, false);
+                        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAssetProfile(tenantId, assetProfileId, assetProfileUpdateMsg, edgeVersion);
                         boolean created = resultPair.getFirst();
                         tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileId,
                                 created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
@@ -203,12 +203,12 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
     }
 
     @Override
-    protected void setDefaultEdgeRuleChainId(AssetProfile assetProfile, RuleChainId ruleChainId, AssetProfileUpdateMsg assetProfileUpdateMsg, boolean isEdgeVersionDeprecated) {
+    protected void setDefaultEdgeRuleChainId(AssetProfile assetProfile, RuleChainId ruleChainId, AssetProfileUpdateMsg assetProfileUpdateMsg, EdgeVersion edgeVersion) {
         assetProfile.setDefaultEdgeRuleChainId(null);
     }
 
     @Override
-    protected void setDefaultDashboardId(TenantId tenantId, DashboardId dashboardId, AssetProfile assetProfile, AssetProfileUpdateMsg assetProfileUpdateMsg, boolean isEdgeVersionDeprecated) {
+    protected void setDefaultDashboardId(TenantId tenantId, DashboardId dashboardId, AssetProfile assetProfile, AssetProfileUpdateMsg assetProfileUpdateMsg, EdgeVersion edgeVersion) {
         DashboardId defaultDashboardId = assetProfile.getDefaultDashboardId();
         DashboardInfo dashboard = null;
         if (defaultDashboardId != null) {
