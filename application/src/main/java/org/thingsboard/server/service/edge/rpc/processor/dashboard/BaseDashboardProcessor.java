@@ -39,16 +39,18 @@ import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 import java.util.UUID;
 
 @Slf4j
 public abstract class BaseDashboardProcessor extends BaseEdgeProcessor {
 
-    protected boolean saveOrUpdateDashboard(TenantId tenantId, DashboardId dashboardId, DashboardUpdateMsg dashboardUpdateMsg, boolean isEdgeVersionOlderThan_3_6_2) throws ThingsboardException {
+    protected boolean saveOrUpdateDashboard(TenantId tenantId, DashboardId dashboardId, DashboardUpdateMsg dashboardUpdateMsg, EdgeVersion edgeVersion) throws ThingsboardException {
         boolean created = false;
-        Dashboard dashboard = isEdgeVersionOlderThan_3_6_2
+        Dashboard dashboard = EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)
                 ? createDashboard(tenantId, dashboardId, dashboardUpdateMsg)
                 : JacksonUtil.fromStringIgnoreUnknownProperties(dashboardUpdateMsg.getEntity(), Dashboard.class);
         if (dashboard == null) {

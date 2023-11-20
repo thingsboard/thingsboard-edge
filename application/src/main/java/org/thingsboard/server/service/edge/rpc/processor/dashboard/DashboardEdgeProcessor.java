@@ -53,7 +53,6 @@ import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 import java.util.UUID;
 
@@ -99,8 +98,7 @@ public class DashboardEdgeProcessor extends BaseDashboardProcessor {
     }
 
     private void saveOrUpdateDashboard(TenantId tenantId, DashboardId dashboardId, DashboardUpdateMsg dashboardUpdateMsg, Edge edge, EdgeVersion edgeVersion) throws ThingsboardException {
-        boolean created = super.saveOrUpdateDashboard(tenantId, dashboardId, dashboardUpdateMsg,
-                EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion));
+        boolean created = super.saveOrUpdateDashboard(tenantId, dashboardId, dashboardUpdateMsg, edgeVersion);
         if (created) {
             createRelationFromEdge(tenantId, edge.getId(), dashboardId);
             pushDashboardCreatedEventToRuleEngine(tenantId, edge, dashboardId);

@@ -49,8 +49,10 @@ import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -61,12 +63,12 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
     @Autowired
     protected DataDecodingEncodingService dataDecodingEncodingService;
 
-    protected Pair<Boolean, Boolean> saveOrUpdateDevice(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg, boolean isEdgeVersionOlderThan_3_6_2) throws ThingsboardException {
+    protected Pair<Boolean, Boolean> saveOrUpdateDevice(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg, EdgeVersion edgeVersion) throws ThingsboardException {
         boolean created = false;
         boolean deviceNameUpdated = false;
         deviceCreationLock.lock();
         try {
-            Device device = isEdgeVersionOlderThan_3_6_2
+            Device device = EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)
                     ? createDevice(tenantId, deviceId, deviceUpdateMsg)
                     : JacksonUtil.fromStringIgnoreUnknownProperties(deviceUpdateMsg.getEntity(), Device.class);
             if (device == null) {
@@ -89,7 +91,7 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
                 deviceNameUpdated = true;
             }
             device.setName(deviceName);
-            setCustomerId(tenantId, created ? null : deviceById.getCustomerId(), device, deviceUpdateMsg, isEdgeVersionOlderThan_3_6_2);
+            setCustomerId(tenantId, created ? null : deviceById.getCustomerId(), device, deviceUpdateMsg, edgeVersion);
 
             deviceValidator.validate(device, Device::getTenantId);
             if (created) {
@@ -147,8 +149,8 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
         return device;
     }
 
-    protected void updateDeviceCredentials(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg, boolean isEdgeVersionOlderThan_3_6_2) {
-        DeviceCredentials deviceCredentials = isEdgeVersionOlderThan_3_6_2
+    protected void updateDeviceCredentials(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg, EdgeVersion edgeVersion) {
+        DeviceCredentials deviceCredentials = EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)
                 ? createDeviceCredentials(deviceCredentialsUpdateMsg)
                 : JacksonUtil.fromStringIgnoreUnknownProperties(deviceCredentialsUpdateMsg.getEntity(), DeviceCredentials.class);
         if (deviceCredentials == null) {
@@ -185,5 +187,5 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
         return deviceCredentials;
     }
 
-    protected abstract void setCustomerId(TenantId tenantId, CustomerId customerId, Device device, DeviceUpdateMsg deviceUpdateMsg, boolean isEdgeVersionOlderThan_3_6_2);
+    protected abstract void setCustomerId(TenantId tenantId, CustomerId customerId, Device device, DeviceUpdateMsg deviceUpdateMsg, EdgeVersion edgeVersion);
 }

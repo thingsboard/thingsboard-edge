@@ -124,7 +124,7 @@ public class DeviceEdgeProcessor extends BaseDeviceProcessor {
         try {
             edgeSynchronizationManager.getEdgeId().set(edgeId);
 
-            updateDeviceCredentials(tenantId, deviceCredentialsUpdateMsg, EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion));
+            updateDeviceCredentials(tenantId, deviceCredentialsUpdateMsg, edgeVersion);
         } finally {
             edgeSynchronizationManager.getEdgeId().remove();
         }
@@ -132,8 +132,7 @@ public class DeviceEdgeProcessor extends BaseDeviceProcessor {
     }
 
     private void saveOrUpdateDevice(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg, Edge edge, EdgeVersion edgeVersion) throws ThingsboardException {
-        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg,
-                EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion));
+        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, edgeVersion);
         Boolean created = resultPair.getFirst();
         if (created) {
             createRelationFromEdge(tenantId, edge.getId(), deviceId);
@@ -341,8 +340,8 @@ public class DeviceEdgeProcessor extends BaseDeviceProcessor {
     }
 
     @Override
-    protected void setCustomerId(TenantId tenantId, CustomerId customerId, Device device, DeviceUpdateMsg deviceUpdateMsg, boolean isEdgeVersionOlderThan_3_6_2) {
-        CustomerId customerUUID = isEdgeVersionOlderThan_3_6_2
+    protected void setCustomerId(TenantId tenantId, CustomerId customerId, Device device, DeviceUpdateMsg deviceUpdateMsg, EdgeVersion edgeVersion) {
+        CustomerId customerUUID = EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)
                 ? safeGetCustomerId(deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB())
                 : device.getCustomerId() != null ? device.getCustomerId() : customerId;
         device.setCustomerId(customerUUID);
