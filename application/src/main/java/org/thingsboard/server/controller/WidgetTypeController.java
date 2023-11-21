@@ -43,11 +43,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
@@ -384,7 +386,15 @@ public class WidgetTypeController extends AutoCommitController {
         String typeFqn = fqn.substring(scopeQualifier.length() + 1);
         WidgetType widgetType = widgetTypeService.findWidgetTypeByTenantIdAndFqn(tenantId, typeFqn);
         checkNotNull(widgetType);
-        accessControlService.checkPermission(getCurrentUser(), Resource.WIDGET_TYPE, Operation.READ, widgetType.getId(), widgetType);
+        if (!accessControlService.hasPermission(getCurrentUser(), Resource.WIDGET_TYPE, Operation.READ, widgetType.getId(), widgetType)) {
+            MergedUserPermissions userPermissions = getCurrentUser().getUserPermissions();
+            if (!userPermissions.hasGenericPermission(Resource.DASHBOARD, Operation.READ)) {
+                if (userPermissions.getGroupPermissionsByEntityTypeAndOperation(EntityType.DASHBOARD, Operation.READ).getEntityGroupIds().isEmpty()) {
+                    throw new ThingsboardException("You don't have permission to perform '" + Operation.READ +
+                            "' operation with " + widgetType.getEntityType().toString(), ThingsboardErrorCode.PERMISSION_DENIED);
+                }
+            }
+        }
         return widgetType;
     }
 
