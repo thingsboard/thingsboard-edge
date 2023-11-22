@@ -386,8 +386,8 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
 
         if ("sendRpcRequest".equals(event.getType())) {
             metaData.put("originServiceId", serviceId);
-            if (configuration.has(DataConstants.TIMEOUT)) {
-                metaData.put(EXPIRATION_TIME, String.valueOf(System.currentTimeMillis() + Math.max(minTimeout, configuration.get(DataConstants.TIMEOUT).asLong())));
+            if (metaData.get(DataConstants.TIMEOUT) != null) {
+                metaData.put(EXPIRATION_TIME, String.valueOf(System.currentTimeMillis() + Math.max(minTimeout, Long.parseLong(metaData.get(DataConstants.TIMEOUT)))));
             }
         }
 
