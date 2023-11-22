@@ -73,7 +73,8 @@ public abstract class BaseAlarmProcessor extends BaseEdgeProcessor {
                     alarm.setAckTs(alarmUpdateMsg.getAckTs());
                     alarm.setEndTs(alarmUpdateMsg.getEndTs());
                     alarm.setDetails(JacksonUtil.toJsonNode(alarmUpdateMsg.getDetails()));
-                    if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(alarmUpdateMsg.getMsgType())) {
+                    Alarm alarmById = alarmService.findAlarmById(tenantId, alarmId);
+                    if (alarmById == null) {
                         alarmService.createAlarm(AlarmCreateOrUpdateActiveRequest.fromAlarm(alarm, null, alarmId));
                     } else {
                         alarmService.updateAlarm(AlarmUpdateRequest.fromAlarm(alarm));
