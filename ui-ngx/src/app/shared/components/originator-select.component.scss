@@ -28,37 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-
-:host {
-  .tb-send-rpc-request {
-    gap: 16px;
-
-    .tb-form-panel {
-      &-container {
-        gap: 16px;
-      }
-
-      .tb-form-row {
-        .max-width-content {
-          width: 100%;
-          max-width: 60%;
-
-          .mat-mdc-form-field {
-            width: 100%;
-          }
-        }
-
-      }
-    }
-  }
-}
-
 :host ::ng-deep {
-  .tb-send-rpc-request {
-    .tb-form-panel {
-      .tb-json-object-panel {
-        margin: 0;
-      }
-    }
-  }
+ .tb-originator-select {
+   tb-entity-select {
+     tb-entity-type-select {
+       width: 100%;
+     }
+
+     tb-entity-autocomplete {
+       min-width: 50%;
+     }
+   }
+
+   tb-owner-autocomplete {
+     width: 100%;
+   }
+
+   tb-entity-group-select {
+     min-width: 50%;
+   }
+ }
 }

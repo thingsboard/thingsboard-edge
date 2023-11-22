@@ -54,7 +54,7 @@ import { Authority } from '@shared/models/authority.enum';
 @Component({
   selector: 'tb-originator-select',
   templateUrl: './originator-select.component.html',
-  styleUrls: [],
+  styleUrls: ['./originator-select.component.scss'],
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => OriginatorSelectComponent),
@@ -78,6 +78,20 @@ export class OriginatorSelectComponent implements ControlValueAccessor, OnInit, 
 
   @Input()
   entitiesGroupOwnerText = 'scheduler.entities-group-owner';
+  headerOptions = [
+    {
+      name: this.translate.instant(this.singleEntityText),
+      value: 'entity'
+    },
+    {
+      name: this.translate.instant(this.groupOfEntitiesText),
+      value: 'groupTenant'
+    },
+    {
+      name: this.translate.instant(this.entitiesGroupOwnerText),
+      value: 'ownerGroup'
+    }
+  ];
 
   private requiredValue: boolean;
   get required(): boolean {
@@ -194,7 +208,7 @@ export class OriginatorSelectComponent implements ControlValueAccessor, OnInit, 
   }
 
 
-  updateView(value: {originator: string, entityOriginatorId: EntityId, groupOriginatorId: EntityId} | null) {
+  updateView(value: {originator: string; entityOriginatorId: EntityId; groupOriginatorId: EntityId} | null) {
     let originatorId = null;
     if (value) {
       originatorId = value.originator !== 'entity' ? value.groupOriginatorId : value.entityOriginatorId;
