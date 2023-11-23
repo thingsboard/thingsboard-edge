@@ -69,6 +69,7 @@ import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileQueueConfiguration;
 import org.thingsboard.server.common.data.util.TbPair;
+import org.thingsboard.server.common.data.widget.WidgetTypeInfo;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
@@ -88,6 +89,7 @@ import org.thingsboard.server.dao.sql.device.DeviceProfileRepository;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
+import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.install.InstallScripts;
@@ -142,6 +144,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     @Autowired
     private WidgetsBundleService widgetsBundleService;
+
+    @Autowired
+    private WidgetTypeService widgetTypeService;
 
     @Autowired
     private CloudEventService cloudEventService;
@@ -245,9 +250,32 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
                 // reset full sync required - to upload latest widgets from cloud
                 tenantsFullSyncRequiredUpdater.updateEntities(null);
+
+                deleteAllWidgetBundlesAndTypes();
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
+        }
+    }
+
+    private void deleteAllWidgetBundlesAndTypes() {
+        PageData<Tenant> tenants = tenantService.findTenants(new PageLink(Integer.MAX_VALUE));
+        for (Tenant tenant : tenants.getData()) {
+            deleteWidgetBundlesAndTypes(tenant.getId());
+        }
+        deleteWidgetBundlesAndTypes(TenantId.SYS_TENANT_ID);
+    }
+
+    private void deleteWidgetBundlesAndTypes(TenantId tenantId) {
+        List<WidgetsBundle> systemWidgetsBundles = widgetsBundleService.findSystemWidgetsBundles(tenantId);
+        for (WidgetsBundle systemWidgetsBundle : systemWidgetsBundles) {
+            if (systemWidgetsBundle != null) {
+                List<WidgetTypeInfo> widgetTypes = widgetTypeService.findWidgetTypesInfosByWidgetsBundleId(tenantId, systemWidgetsBundle.getId());
+                for (var widgetType : widgetTypes) {
+                    widgetTypeService.deleteWidgetType(tenantId, widgetType.getId());
+                }
+                widgetsBundleService.deleteWidgetsBundle(tenantId, systemWidgetsBundle.getId());
+            }
         }
     }
 

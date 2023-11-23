@@ -25,9 +25,13 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
+import org.thingsboard.server.common.data.widget.WidgetTypeInfo;
+import org.thingsboard.server.common.data.widget.WidgetsBundle;
+import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.gen.edge.v1.WidgetTypeUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -60,7 +64,17 @@ public class WidgetTypeCloudProcessor extends BaseEdgeProcessor {
                         widgetTypeDetails.setImage(widgetTypeUpdateMsg.hasImage() ? widgetTypeUpdateMsg.getImage() : null);
                         widgetTypeDetails.setDescription(widgetTypeUpdateMsg.hasDescription() ? widgetTypeUpdateMsg.getDescription() : null);
                         widgetTypeDetails.setDeprecated(widgetTypeUpdateMsg.getDeprecated());
-                        widgetTypeService.saveWidgetType(widgetTypeDetails, false);
+                        try {
+                            widgetTypeService.saveWidgetType(widgetTypeDetails, false);
+                        } catch (Exception e) {
+                            if (e instanceof DataValidationException && e.getMessage().contains("fqn already exists")) {
+                                deleteWidgetBundlesAndTypes(TenantId.SYS_TENANT_ID);
+                                deleteWidgetBundlesAndTypes(tenantId);
+                                widgetTypeService.saveWidgetType(widgetTypeDetails, false);
+                            } else {
+                                throw new RuntimeException(e);
+                            }
+                        }
                     } finally {
                         widgetCreationLock.unlock();
                     }
@@ -78,5 +92,18 @@ public class WidgetTypeCloudProcessor extends BaseEdgeProcessor {
             edgeSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
+    }
+
+    private void deleteWidgetBundlesAndTypes(TenantId tenantId) {
+        List<WidgetsBundle> systemWidgetsBundles = widgetsBundleService.findSystemWidgetsBundles(tenantId);
+        for (WidgetsBundle systemWidgetsBundle : systemWidgetsBundles) {
+            if (systemWidgetsBundle != null) {
+                List<WidgetTypeInfo> widgetTypes = widgetTypeService.findWidgetTypesInfosByWidgetsBundleId(tenantId, systemWidgetsBundle.getId());
+                for (var widgetType : widgetTypes) {
+                    widgetTypeService.deleteWidgetType(tenantId, widgetType.getId());
+                }
+                widgetsBundleService.deleteWidgetsBundle(tenantId, systemWidgetsBundle.getId());
+            }
+        }
     }
 }
