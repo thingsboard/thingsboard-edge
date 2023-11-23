@@ -23,11 +23,18 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.widget.DeprecatedFilter;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
+import org.thingsboard.server.common.data.widget.WidgetTypeInfo;
+import org.thingsboard.server.common.data.widget.WidgetsBundle;
+import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.gen.edge.v1.WidgetTypeUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -61,7 +68,16 @@ public class WidgetTypeCloudProcessor extends BaseEdgeProcessor {
                         widgetTypeDetails.setDescription(widgetTypeUpdateMsg.hasDescription() ? widgetTypeUpdateMsg.getDescription() : null);
                         widgetTypeDetails.setDeprecated(widgetTypeUpdateMsg.getDeprecated());
                         widgetTypeDetails.setTags(widgetTypeUpdateMsg.getTagsList().isEmpty() ? null : widgetTypeUpdateMsg.getTagsList().toArray(new String[0]));
-                        widgetTypeService.saveWidgetType(widgetTypeDetails, false);
+                        try {
+                            widgetTypeService.saveWidgetType(widgetTypeDetails, false);
+                        } catch (Exception e) {
+                            if (e instanceof DataValidationException && e.getMessage().contains("fqn already exists")) {
+                                deleteSystemWidgetBundlesAndTypes();
+                                widgetTypeService.saveWidgetType(widgetTypeDetails, false);
+                            } else {
+                                throw new RuntimeException(e);
+                            }
+                        }
                     } finally {
                         widgetCreationLock.unlock();
                     }
@@ -79,5 +95,23 @@ public class WidgetTypeCloudProcessor extends BaseEdgeProcessor {
             cloudSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
+    }
+
+    private void deleteSystemWidgetBundlesAndTypes() {
+        List<WidgetsBundle> systemWidgetsBundles = widgetsBundleService.findSystemWidgetsBundles(TenantId.SYS_TENANT_ID);
+        for (WidgetsBundle systemWidgetsBundle : systemWidgetsBundles) {
+            if (systemWidgetsBundle != null) {
+                PageData<WidgetTypeInfo> widgetTypes;
+                var pageLink = new PageLink(1024);
+                do {
+                    widgetTypes = widgetTypeService.findWidgetTypesInfosByWidgetsBundleId(TenantId.SYS_TENANT_ID, systemWidgetsBundle.getId(), false, DeprecatedFilter.ALL, null, pageLink);
+                    for (var widgetType : widgetTypes.getData()) {
+                        widgetTypeService.deleteWidgetType(TenantId.SYS_TENANT_ID, widgetType.getId());
+                    }
+                    pageLink.nextPageLink();
+                } while (widgetTypes.hasNext());
+                widgetsBundleService.deleteWidgetsBundle(TenantId.SYS_TENANT_ID, systemWidgetsBundle.getId());
+            }
+        }
     }
 }
