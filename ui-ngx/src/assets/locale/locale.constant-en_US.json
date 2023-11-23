@@ -2284,7 +2284,8 @@
         "missing-attributes-text": "Integration(s), assigned to edge, have attribute placeholders that are not available on this edge. <br><br> List of missing edge attributes(s): <br> {{missingEdgeAttributes}}",
         "missing-all-related-attributes-title": "Edge(s) have missing attribute(s)",
         "missing-all-related-attributes-text": "Edge(s), related to integration, don't have attributes that are present inside integration configuration as attribute placeholders. <br><br> List of missing edge attributes(s): <br> {{missingEdgeAttributes}}",
-        "quick-overview-widget-header": "{{edgeName}} Quick Overview"
+        "quick-overview-widget-header": "{{edgeName}} Quick Overview",
+        "upgrade-instructions": "Upgrade Instructions"
     },
     "edge-event": {
         "type-dashboard": "Dashboard",

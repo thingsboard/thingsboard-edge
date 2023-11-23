@@ -432,7 +432,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
     );
   }
 
-  openInstructions($event, edge: EdgeInfo, afterAdd = false, config: EntityTableConfig<EdgeInfo>) {
+  openInstructions($event, edge: EdgeInfo, afterAdd = false, config: EntityTableConfig<EdgeInfo>, upgradeAvailable = false) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -442,7 +442,8 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
         edge,
-        afterAdd
+        afterAdd,
+        upgradeAvailable
       }
     }).afterClosed().subscribe(() => {
         if (afterAdd) {
@@ -494,11 +495,14 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
       case 'syncEdge':
         this.syncEdge(action.event, action.entity);
         return true;
-      case 'openInstructions':
-        this.openInstructions(action.event, action.entity, null, config);
-        return true;
       case 'manageOwnerAndGroups':
         this.manageOwnerAndGroups(action.event, action.entity, config);
+        return true;
+      case 'openInstallInstructions':
+        this.openInstructions(action.event, action.entity, null, config);
+        return true;
+      case 'openUpgradeInstructions':
+        this.openInstructions(action.event, action.entity,false, config, true);
         return true;
     }
   }

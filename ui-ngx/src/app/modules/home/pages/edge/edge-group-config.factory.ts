@@ -425,7 +425,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     );
   }
 
-  openInstructions($event: Event, edge: EdgeInfo) {
+  openInstructions($event: Event, edge: EdgeInfo, upgradeAvailable: boolean = false) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -435,7 +435,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
         edge,
-        afterAdd: false
+        afterAdd: false,
+        upgradeAvailable
       }
     }).afterClosed().subscribe();
   }

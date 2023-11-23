@@ -31,12 +31,11 @@
 package org.thingsboard.server.service.edge.instructions;
 
 import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.edge.EdgeInstallInstructions;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.edge.EdgeInstructions;
 
 import javax.servlet.http.HttpServletRequest;
 
 public interface EdgeInstallService {
 
-    EdgeInstallInstructions getInstallInstructions(TenantId tenantId, Edge edge, String installationMethod, HttpServletRequest request);
+    EdgeInstructions getInstallInstructions(Edge edge, String installationMethod, HttpServletRequest request);
 }
