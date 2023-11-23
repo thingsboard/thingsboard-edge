@@ -266,28 +266,35 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 // reset full sync required - to upload latest widgets from cloud
                 tenantsFullSyncRequiredUpdater.updateEntities(null);
 
-                deleteSystemWidgetBundlesAndTypes();
-
+                deleteAllWidgetBundlesAndTypes();
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
         }
     }
 
-    private void deleteSystemWidgetBundlesAndTypes() {
-        List<WidgetsBundle> systemWidgetsBundles = widgetsBundleService.findSystemWidgetsBundles(TenantId.SYS_TENANT_ID);
+    private void deleteAllWidgetBundlesAndTypes() {
+        PageData<Tenant> tenants = tenantService.findTenants(new PageLink(Integer.MAX_VALUE));
+        for (Tenant tenant : tenants.getData()) {
+            deleteWidgetBundlesAndTypes(tenant.getId());
+        }
+        deleteWidgetBundlesAndTypes(TenantId.SYS_TENANT_ID);
+    }
+
+    private void deleteWidgetBundlesAndTypes(TenantId tenantId) {
+        List<WidgetsBundle> systemWidgetsBundles = widgetsBundleService.findSystemWidgetsBundles(tenantId);
         for (WidgetsBundle systemWidgetsBundle : systemWidgetsBundles) {
             if (systemWidgetsBundle != null) {
                 PageData<WidgetTypeInfo> widgetTypes;
                 var pageLink = new PageLink(1024);
                 do {
-                    widgetTypes = widgetTypeService.findWidgetTypesInfosByWidgetsBundleId(TenantId.SYS_TENANT_ID, systemWidgetsBundle.getId(), false, DeprecatedFilter.ALL, null, pageLink);
+                    widgetTypes = widgetTypeService.findWidgetTypesInfosByWidgetsBundleId(tenantId, systemWidgetsBundle.getId(), false, DeprecatedFilter.ALL, null, pageLink);
                     for (var widgetType : widgetTypes.getData()) {
-                        widgetTypeService.deleteWidgetType(TenantId.SYS_TENANT_ID, widgetType.getId());
+                        widgetTypeService.deleteWidgetType(tenantId, widgetType.getId());
                     }
                     pageLink.nextPageLink();
                 } while (widgetTypes.hasNext());
-                widgetsBundleService.deleteWidgetsBundle(TenantId.SYS_TENANT_ID, systemWidgetsBundle.getId());
+                widgetsBundleService.deleteWidgetsBundle(tenantId, systemWidgetsBundle.getId());
             }
         }
     }
