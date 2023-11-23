@@ -92,7 +92,9 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
             UUID deviceProfileUUID = safeGetUUID(deviceUpdateMsg.getDeviceProfileIdMSB(), deviceUpdateMsg.getDeviceProfileIdLSB());
             device.setDeviceProfileId(deviceProfileUUID != null ? new DeviceProfileId(deviceProfileUUID) : null);
 
-            device.setCustomerId(customerId);
+            if (isCustomerExists(tenantId, customerId)) {
+                device.setCustomerId(customerId);
+            }
 
             Optional<DeviceData> deviceDataOpt =
                     dataDecodingEncodingService.decode(deviceUpdateMsg.getDeviceDataBytes().toByteArray());

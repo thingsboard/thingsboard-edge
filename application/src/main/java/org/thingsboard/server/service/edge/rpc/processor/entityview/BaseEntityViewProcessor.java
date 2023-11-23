@@ -74,7 +74,9 @@ public abstract class BaseEntityViewProcessor extends BaseEdgeProcessor {
         }
         entityView.setName(entityViewName);
         entityView.setType(entityViewUpdateMsg.getType());
-        entityView.setCustomerId(customerId);
+        if (isCustomerExists(tenantId, customerId)) {
+            entityView.setCustomerId(customerId);
+        }
         entityView.setAdditionalInfo(entityViewUpdateMsg.hasAdditionalInfo() ?
                 JacksonUtil.toJsonNode(entityViewUpdateMsg.getAdditionalInfo()) : null);
 

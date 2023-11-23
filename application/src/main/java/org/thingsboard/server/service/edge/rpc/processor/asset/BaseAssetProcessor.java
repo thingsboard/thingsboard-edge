@@ -81,7 +81,9 @@ public abstract class BaseAssetProcessor extends BaseEdgeProcessor {
             UUID assetProfileUUID = safeGetUUID(assetUpdateMsg.getAssetProfileIdMSB(), assetUpdateMsg.getAssetProfileIdLSB());
             asset.setAssetProfileId(assetProfileUUID != null ? new AssetProfileId(assetProfileUUID) : null);
 
-            asset.setCustomerId(customerId);
+            if (isCustomerExists(tenantId, customerId)) {
+                asset.setCustomerId(customerId);
+            }
 
             assetValidator.validate(asset, Asset::getTenantId);
             if (created) {
