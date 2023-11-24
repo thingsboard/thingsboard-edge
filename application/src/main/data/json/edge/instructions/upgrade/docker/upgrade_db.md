@@ -14,7 +14,7 @@ version: '3.0'
 services:
   mytbedge:
     restart: on-failure
-    image: "thingsboard/tb-edge:${TB_EDGE_VERSION}"
+    image: "thingsboard/tb-edge-pe:${TB_EDGE_VERSION}"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/tb-edge
     volumes:

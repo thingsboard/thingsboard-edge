@@ -432,7 +432,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
     );
   }
 
-  openInstructions($event, edge: EdgeInfo, afterAdd = false, config: EntityTableConfig<EdgeInfo>, upgradeAvailable = false) {
+  openInstructions($event: Event, edge: EdgeInfo, afterAdd = false, config: EntityTableConfig<EdgeInfo>, upgradeAvailable = false) {
     if ($event) {
       $event.stopPropagation();
     }

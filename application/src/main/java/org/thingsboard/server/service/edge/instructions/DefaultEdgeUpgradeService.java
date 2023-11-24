@@ -74,7 +74,7 @@ public class DefaultEdgeUpgradeService implements EdgeUpgradeService {
 
     @Override
     public EdgeInstructions getUpgradeInstructions(String edgeVersion, String upgradeMethod) {
-        String tbVersion = appVersion.replace("-SNAPSHOT", "");
+        String tbVersion = appVersion.replace("PE", "").replace("-SNAPSHOT", "");
         String currentEdgeVersion = convertEdgeVersionToDocsFormat(edgeVersion);
         switch (upgradeMethod.toLowerCase()) {
             case "docker":
@@ -110,8 +110,8 @@ public class DefaultEdgeUpgradeService implements EdgeUpgradeService {
                 String rmUpgrade = readFile(resolveFile("docker", "upgrade_rm.md"));
                 ubuntuUpgradeInstructions = ubuntuUpgradeInstructions.replace("${CLEAR_DOCKER_UPGRADE}", rmUpgrade);
             }
-            ubuntuUpgradeInstructions = ubuntuUpgradeInstructions.replace("${TB_EDGE_VERSION}", edgeVersion + "EDGE");
-            ubuntuUpgradeInstructions = ubuntuUpgradeInstructions.replace("${CURRENT_TB_EDGE_VERSION}", currentEdgeVersion + "EDGE");
+            ubuntuUpgradeInstructions = ubuntuUpgradeInstructions.replace("${TB_EDGE_VERSION}", edgeVersion + "EDGEPE");
+            ubuntuUpgradeInstructions = ubuntuUpgradeInstructions.replace("${CURRENT_TB_EDGE_VERSION}", currentEdgeVersion + "EDGEPE");
             currentEdgeVersion = edgeVersion;
             upgradeInfo = upgradeVersionHashMap.get(upgradeInfo.getNextVersion());
             result.append(ubuntuUpgradeInstructions);

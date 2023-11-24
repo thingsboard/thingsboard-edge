@@ -3,7 +3,7 @@
 Execute the following command to pull **${TB_EDGE_VERSION}** image:
 
 ```bash
-docker pull thingsboard/tb-edge:${TB_EDGE_VERSION}
+docker pull thingsboard/tb-edge-pe:${TB_EDGE_VERSION}
 {:copy-code}
 ```
 
