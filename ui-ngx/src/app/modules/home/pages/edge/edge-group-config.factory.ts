@@ -271,8 +271,11 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
       case 'syncEdge':
         this.syncEdge(action.event, action.entity);
         return true;
-      case 'openInstructions':
+      case 'openInstallInstructions':
         this.openInstructions(action.event, action.entity);
+        return true;
+      case 'openUpgradeInstructions':
+        this.openInstructions(action.event, action.entity, true);
         return true;
       case 'manageOwnerAndGroups':
         this.manageOwnerAndGroups(action.event, action.entity, config);

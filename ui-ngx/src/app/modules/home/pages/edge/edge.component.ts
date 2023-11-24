@@ -226,7 +226,7 @@ export class EdgeComponent extends GroupEntityComponent<EdgeInfo> {
     this.attributeService.getEntityAttributes(this.entity.id, AttributeScope.SERVER_SCOPE, [edgeVersionAttributeKey])
       .subscribe(attributes => {
         if (attributes?.length) {
-          const edgeVersion = attributes[0].value;
+          const edgeVersion = attributes[0].value + 'PE';
           const tbVersion = 'V_' + env.tbVersion.replaceAll('.', '_');
           this.upgradeAvailable = this.versionUpgradeSupported(edgeVersion) && (edgeVersion !== tbVersion);
         } else {
