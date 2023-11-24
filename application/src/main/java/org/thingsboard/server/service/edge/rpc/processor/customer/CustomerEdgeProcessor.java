@@ -72,7 +72,7 @@ public class CustomerEdgeProcessor extends BaseEdgeProcessor {
                     EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     CustomerUpdateMsg customerUpdateMsg =
-                            customerMsgConstructor.constructCustomerUpdatedMsg(msgType, customer, entityGroupId, edgeVersion);
+                            customerMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructCustomerUpdatedMsg(msgType, customer, entityGroupId);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addCustomerUpdateMsg(customerUpdateMsg)
@@ -82,7 +82,7 @@ public class CustomerEdgeProcessor extends BaseEdgeProcessor {
             case DELETED:
 //            case CHANGE_OWNER: TODO: @voba implement
                 CustomerUpdateMsg customerUpdateMsg =
-                        customerMsgConstructor.constructCustomerDeleteMsg(customerId);
+                        customerMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructCustomerDeleteMsg(customerId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addCustomerUpdateMsg(customerUpdateMsg)

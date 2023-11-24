@@ -61,7 +61,7 @@ public class WidgetBundleEdgeProcessor extends BaseEdgeProcessor {
                     List<String> widgets = widgetTypeService.findWidgetFqnsByWidgetsBundleId(edgeEvent.getTenantId(), widgetsBundleId);
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     WidgetsBundleUpdateMsg widgetsBundleUpdateMsg =
-                            widgetsBundleMsgConstructor.constructWidgetsBundleUpdateMsg(msgType, widgetsBundle, widgets, edgeVersion);
+                            widgetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructWidgetsBundleUpdateMsg(msgType, widgetsBundle, widgets);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addWidgetsBundleUpdateMsg(widgetsBundleUpdateMsg)
@@ -70,7 +70,7 @@ public class WidgetBundleEdgeProcessor extends BaseEdgeProcessor {
                 break;
             case DELETED:
                 WidgetsBundleUpdateMsg widgetsBundleUpdateMsg =
-                        widgetsBundleMsgConstructor.constructWidgetsBundleDeleteMsg(widgetsBundleId);
+                        widgetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructWidgetsBundleDeleteMsg(widgetsBundleId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addWidgetsBundleUpdateMsg(widgetsBundleUpdateMsg)

@@ -75,7 +75,7 @@ public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addGroupPermissionMsg(
-                                    groupPermissionProtoConstructor.constructGroupPermissionProto(msgType, groupPermission, edgeVersion))
+                                    groupMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructGroupPermissionProto(msgType, groupPermission))
                             .build();
                 }
                 break;
@@ -83,7 +83,7 @@ public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addGroupPermissionMsg(
-                                groupPermissionProtoConstructor.constructGroupPermissionDeleteMsg(groupPermissionId))
+                                groupMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructGroupPermissionDeleteMsg(groupPermissionId))
                         .build();
                 break;
         }

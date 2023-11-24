@@ -96,7 +96,7 @@ public class ResourceEdgeProcessor extends BaseResourceProcessor {
                 if (tbResource != null) {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     ResourceUpdateMsg resourceUpdateMsg =
-                            resourceMsgConstructor.constructResourceUpdatedMsg(msgType, tbResource, edgeVersion);
+                            resourceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructResourceUpdatedMsg(msgType, tbResource);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addResourceUpdateMsg(resourceUpdateMsg)
@@ -105,7 +105,7 @@ public class ResourceEdgeProcessor extends BaseResourceProcessor {
                 break;
             case DELETED:
                 ResourceUpdateMsg resourceUpdateMsg =
-                        resourceMsgConstructor.constructResourceDeleteMsg(tbResourceId);
+                        resourceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructResourceDeleteMsg(tbResourceId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addResourceUpdateMsg(resourceUpdateMsg)

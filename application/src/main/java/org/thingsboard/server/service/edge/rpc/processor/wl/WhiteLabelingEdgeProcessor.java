@@ -250,7 +250,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                             return null;
                         }
                         CustomTranslationProto customTranslationProto =
-                                customTranslationProtoConstructor.constructCustomTranslationProto(systemCustomTranslation, entityId, edgeVersion);
+                                customTranslationConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructCustomTranslationProto(systemCustomTranslation, entityId);
                         result = DownlinkMsg.newBuilder()
                                 .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                                 .setSystemCustomTranslationMsg(customTranslationProto)
@@ -262,7 +262,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                             return null;
                         }
                         CustomTranslationProto customTranslationProto =
-                                customTranslationProtoConstructor.constructCustomTranslationProto(tenantCustomTranslation, entityId, edgeVersion);
+                                customTranslationConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructCustomTranslationProto(tenantCustomTranslation, entityId);
                         result = DownlinkMsg.newBuilder()
                                 .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                                 .setTenantCustomTranslationMsg(customTranslationProto)
@@ -277,7 +277,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                         return null;
                     }
                     CustomTranslationProto customTranslationProto =
-                            customTranslationProtoConstructor.constructCustomTranslationProto(customerCustomTranslation, customerId, edgeVersion);
+                            customTranslationConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructCustomTranslationProto(customerCustomTranslation, customerId);
                     result = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .setCustomerCustomTranslationMsg(customTranslationProto)

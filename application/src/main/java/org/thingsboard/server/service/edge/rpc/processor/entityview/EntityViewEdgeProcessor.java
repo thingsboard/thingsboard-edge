@@ -167,7 +167,7 @@ public class EntityViewEdgeProcessor extends BaseEntityViewProcessor {
                 if (entityView != null) {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     EntityViewUpdateMsg entityViewUpdateMsg =
-                            entityViewMsgConstructor.constructEntityViewUpdatedMsg(msgType, entityView, entityGroupId, edgeVersion);
+                            entityViewMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructEntityViewUpdatedMsg(msgType, entityView, entityGroupId);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addEntityViewUpdateMsg(entityViewUpdateMsg)
@@ -179,7 +179,7 @@ public class EntityViewEdgeProcessor extends BaseEntityViewProcessor {
             case UNASSIGNED_FROM_EDGE:
             case CHANGE_OWNER:
                 EntityViewUpdateMsg entityViewUpdateMsg =
-                        entityViewMsgConstructor.constructEntityViewDeleteMsg(entityViewId, entityGroupId);
+                        entityViewMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructEntityViewDeleteMsg(entityViewId, entityGroupId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addEntityViewUpdateMsg(entityViewUpdateMsg)

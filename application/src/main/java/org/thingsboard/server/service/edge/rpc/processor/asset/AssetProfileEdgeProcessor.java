@@ -123,7 +123,7 @@ public class AssetProfileEdgeProcessor extends BaseAssetProfileProcessor {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     assetProfile = checkIfAssetProfileDefaultFieldsAssignedToEdge(edgeEvent.getTenantId(), edgeId, assetProfile, edgeVersion);
                     AssetProfileUpdateMsg assetProfileUpdateMsg =
-                            assetProfileMsgConstructor.constructAssetProfileUpdatedMsg(msgType, assetProfile, edgeVersion);
+                            assetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructAssetProfileUpdatedMsg(msgType, assetProfile);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addAssetProfileUpdateMsg(assetProfileUpdateMsg)
@@ -132,7 +132,7 @@ public class AssetProfileEdgeProcessor extends BaseAssetProfileProcessor {
                 break;
             case DELETED:
                 AssetProfileUpdateMsg assetProfileUpdateMsg =
-                        assetProfileMsgConstructor.constructAssetProfileDeleteMsg(assetProfileId);
+                        assetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructAssetProfileDeleteMsg(assetProfileId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addAssetProfileUpdateMsg(assetProfileUpdateMsg)

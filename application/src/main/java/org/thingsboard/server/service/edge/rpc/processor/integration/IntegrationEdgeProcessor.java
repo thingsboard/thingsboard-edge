@@ -67,14 +67,14 @@ public class IntegrationEdgeProcessor extends BaseEdgeProcessor {
                     JsonNode updatedConfiguration = replaceAttributePlaceholders(edgeEvent, integration.getConfiguration());
                     DownlinkMsg.Builder builder = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addIntegrationMsg(integrationProtoConstructor.constructIntegrationUpdateMsg(msgType, integration, updatedConfiguration, edgeVersion));
+                            .addIntegrationMsg(integrationMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructIntegrationUpdateMsg(msgType, integration, updatedConfiguration));
 
                     Converter uplinkConverter = converterService.findConverterById(edgeEvent.getTenantId(), integration.getDefaultConverterId());
-                    builder.addConverterMsg(converterProtoConstructor.constructConverterUpdateMsg(msgType, uplinkConverter, edgeVersion));
+                    builder.addConverterMsg(converterMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructConverterUpdateMsg(msgType, uplinkConverter));
 
                     if (integration.getDownlinkConverterId() != null) {
                         Converter downlinkConverter = converterService.findConverterById(edgeEvent.getTenantId(), integration.getDownlinkConverterId());
-                        builder.addConverterMsg(converterProtoConstructor.constructConverterUpdateMsg(msgType, downlinkConverter, edgeVersion));
+                        builder.addConverterMsg(converterMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructConverterUpdateMsg(msgType, downlinkConverter));
                     }
 
                     downlinkMsg = builder.build();
@@ -83,7 +83,7 @@ public class IntegrationEdgeProcessor extends BaseEdgeProcessor {
             case ENTITY_DELETED_RPC_MESSAGE:
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addIntegrationMsg(integrationProtoConstructor.constructIntegrationDeleteMsg(integrationId))
+                        .addIntegrationMsg(integrationMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructIntegrationDeleteMsg(integrationId))
                         .build();
                 break;
         }

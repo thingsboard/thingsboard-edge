@@ -64,7 +64,7 @@ public class UserEdgeProcessor extends BaseEdgeProcessor {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addUserUpdateMsg(userMsgConstructor.constructUserUpdatedMsg(msgType, user, entityGroupId, edgeVersion))
+                            .addUserUpdateMsg(userMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructUserUpdatedMsg(msgType, user, entityGroupId))
                             .build();
                 }
                 break;
@@ -74,14 +74,14 @@ public class UserEdgeProcessor extends BaseEdgeProcessor {
             case CHANGE_OWNER:
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addUserUpdateMsg(userMsgConstructor.constructUserDeleteMsg(userId, entityGroupId))
+                        .addUserUpdateMsg(userMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructUserDeleteMsg(userId, entityGroupId))
                         .build();
                 break;
             case CREDENTIALS_UPDATED:
                 UserCredentials userCredentialsByUserId = userService.findUserCredentialsByUserId(edgeEvent.getTenantId(), userId);
                 if (userCredentialsByUserId != null && userCredentialsByUserId.isEnabled()) {
                     UserCredentialsUpdateMsg userCredentialsUpdateMsg =
-                            userMsgConstructor.constructUserCredentialsUpdatedMsg(userCredentialsByUserId, edgeVersion);
+                            userMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructUserCredentialsUpdatedMsg(userCredentialsByUserId);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addUserCredentialsUpdateMsg(userCredentialsUpdateMsg)

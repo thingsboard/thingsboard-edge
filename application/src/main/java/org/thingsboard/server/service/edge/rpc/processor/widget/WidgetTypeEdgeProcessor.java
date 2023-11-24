@@ -43,8 +43,8 @@ import org.thingsboard.server.gen.edge.v1.WidgetTypeUpdateMsg;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
-@Component
 @Slf4j
+@Component
 @TbCoreComponent
 public class WidgetTypeEdgeProcessor extends BaseEdgeProcessor {
 
@@ -58,7 +58,7 @@ public class WidgetTypeEdgeProcessor extends BaseEdgeProcessor {
                 if (widgetTypeDetails != null) {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     WidgetTypeUpdateMsg widgetTypeUpdateMsg =
-                            widgetTypeMsgConstructor.constructWidgetTypeUpdateMsg(msgType, widgetTypeDetails, edgeVersion);
+                            widgetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructWidgetTypeUpdateMsg(msgType, widgetTypeDetails, edgeVersion);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addWidgetTypeUpdateMsg(widgetTypeUpdateMsg)
@@ -67,7 +67,7 @@ public class WidgetTypeEdgeProcessor extends BaseEdgeProcessor {
                 break;
             case DELETED:
                 WidgetTypeUpdateMsg widgetTypeUpdateMsg =
-                        widgetTypeMsgConstructor.constructWidgetTypeDeleteMsg(widgetTypeId);
+                        widgetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructWidgetTypeDeleteMsg(widgetTypeId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addWidgetTypeUpdateMsg(widgetTypeUpdateMsg)
@@ -76,5 +76,4 @@ public class WidgetTypeEdgeProcessor extends BaseEdgeProcessor {
         }
         return downlinkMsg;
     }
-
 }

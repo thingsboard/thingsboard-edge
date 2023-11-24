@@ -75,14 +75,14 @@ public class RoleEdgeProcessor extends BaseEdgeProcessor {
                 if (role != null) {
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addRoleMsg(roleProtoConstructor.constructRoleProto(msgType, role, edgeVersion))
+                            .addRoleMsg(roleMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructRoleProto(msgType, role))
                             .build();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addRoleMsg(roleProtoConstructor.constructRoleDeleteMsg(roleId))
+                        .addRoleMsg(roleMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructRoleDeleteMsg(roleId))
                         .build();
                 break;
         }
