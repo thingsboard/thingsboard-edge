@@ -105,6 +105,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
         put(Resource.DEVICE_PROFILE, profilePermissionChecker);
         put(Resource.ASSET_PROFILE, profilePermissionChecker);
         put(Resource.TB_RESOURCE, customerResourcePermissionChecker);
+        put(Resource.OTA_PACKAGE, customerStandaloneEntityPermissionChecker);
     }
 
     private final PermissionChecker<AlarmId, Alarm> customerAlarmPermissionChecker = new PermissionChecker<>() {
