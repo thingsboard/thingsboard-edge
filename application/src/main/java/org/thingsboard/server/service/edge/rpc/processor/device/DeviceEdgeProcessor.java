@@ -74,6 +74,7 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.constructor.device.DeviceMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 import java.util.UUID;
@@ -276,15 +277,17 @@ public class DeviceEdgeProcessor extends BaseDeviceProcessor {
                 if (device != null) {
                     EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
-                    DeviceUpdateMsg deviceUpdateMsg =
-                            deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructDeviceUpdatedMsg(msgType, device, entityGroupId);
+                    DeviceUpdateMsg deviceUpdateMsg = ((DeviceMsgConstructor)
+                            deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDeviceUpdatedMsg(msgType, device, entityGroupId);
                     DownlinkMsg.Builder builder = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addDeviceUpdateMsg(deviceUpdateMsg);
                     if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(msgType)) {
                         DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(edgeEvent.getTenantId(), device.getDeviceProfileId());
                         deviceProfile = checkIfDeviceProfileDefaultFieldsAssignedToEdge(edgeEvent.getTenantId(), edgeId, deviceProfile, edgeVersion);
-                        builder.addDeviceProfileUpdateMsg(deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructDeviceProfileUpdatedMsg(msgType, deviceProfile));
+                        builder.addDeviceProfileUpdateMsg(((DeviceMsgConstructor)
+                                deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion))
+                                .constructDeviceProfileUpdatedMsg(msgType, deviceProfile));
                     }
                     downlinkMsg = builder.build();
                 }
@@ -294,8 +297,8 @@ public class DeviceEdgeProcessor extends BaseDeviceProcessor {
             case UNASSIGNED_FROM_EDGE:
             case CHANGE_OWNER:
                 EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
-                DeviceUpdateMsg deviceUpdateMsg =
-                        deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructDeviceDeleteMsg(deviceId, entityGroupId);
+                DeviceUpdateMsg deviceUpdateMsg = ((DeviceMsgConstructor)
+                        deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDeviceDeleteMsg(deviceId, entityGroupId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addDeviceUpdateMsg(deviceUpdateMsg)
@@ -304,8 +307,8 @@ public class DeviceEdgeProcessor extends BaseDeviceProcessor {
             case CREDENTIALS_UPDATED:
                 DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(edgeEvent.getTenantId(), deviceId);
                 if (deviceCredentials != null) {
-                    DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg =
-                            deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructDeviceCredentialsUpdatedMsg(deviceCredentials);
+                    DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg = ((DeviceMsgConstructor)
+                            deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDeviceCredentialsUpdatedMsg(deviceCredentials);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addDeviceCredentialsUpdateMsg(deviceCredentialsUpdateMsg)
@@ -315,7 +318,9 @@ public class DeviceEdgeProcessor extends BaseDeviceProcessor {
             case RPC_CALL:
                 return DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addDeviceRpcCallMsg(deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructDeviceRpcCallMsg(edgeEvent.getEntityId(), edgeEvent.getBody()))
+                        .addDeviceRpcCallMsg(((DeviceMsgConstructor)
+                                deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion))
+                                .constructDeviceRpcCallMsg(edgeEvent.getEntityId(), edgeEvent.getBody()))
                         .build();
             case CREDENTIALS_REQUEST:
                 return convertCredentialsRequestEventToDownlink(edgeEvent);

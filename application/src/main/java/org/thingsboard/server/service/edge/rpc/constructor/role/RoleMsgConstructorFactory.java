@@ -30,31 +30,12 @@
  */
 package org.thingsboard.server.service.edge.rpc.constructor.role;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.constructor.MsgConstructorFactory;
 
 @Component
 @TbCoreComponent
-public class RoleMsgConstructorFactory {
+public class RoleMsgConstructorFactory extends MsgConstructorFactory<RoleMsgConstructorV1, RoleMsgConstructorV2> {
 
-    @Autowired
-    protected RoleMsgConstructorV1 roleMsgConstructorV1;
-
-    @Autowired
-    protected RoleMsgConstructorV2 roleMsgConstructorV2;
-
-    public RoleMsgConstructor getMsgConstructorByEdgeVersion(EdgeVersion edgeVersion) {
-        switch (edgeVersion) {
-            case V_3_3_0:
-            case V_3_3_3:
-            case V_3_4_0:
-            case V_3_6_0:
-            case V_3_6_1:
-                return roleMsgConstructorV1;
-            default:
-                return roleMsgConstructorV2;
-        }
-    }
 }

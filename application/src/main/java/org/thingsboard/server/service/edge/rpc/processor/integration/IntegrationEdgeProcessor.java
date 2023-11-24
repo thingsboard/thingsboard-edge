@@ -45,6 +45,8 @@ import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.constructor.converter.ConverterMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.integration.IntegrationMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.List;
@@ -67,14 +69,14 @@ public class IntegrationEdgeProcessor extends BaseEdgeProcessor {
                     JsonNode updatedConfiguration = replaceAttributePlaceholders(edgeEvent, integration.getConfiguration());
                     DownlinkMsg.Builder builder = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addIntegrationMsg(integrationMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructIntegrationUpdateMsg(msgType, integration, updatedConfiguration));
+                            .addIntegrationMsg(((IntegrationMsgConstructor) integrationMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructIntegrationUpdateMsg(msgType, integration, updatedConfiguration));
 
                     Converter uplinkConverter = converterService.findConverterById(edgeEvent.getTenantId(), integration.getDefaultConverterId());
-                    builder.addConverterMsg(converterMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructConverterUpdateMsg(msgType, uplinkConverter));
+                    builder.addConverterMsg(((ConverterMsgConstructor) converterMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructConverterUpdateMsg(msgType, uplinkConverter));
 
                     if (integration.getDownlinkConverterId() != null) {
                         Converter downlinkConverter = converterService.findConverterById(edgeEvent.getTenantId(), integration.getDownlinkConverterId());
-                        builder.addConverterMsg(converterMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructConverterUpdateMsg(msgType, downlinkConverter));
+                        builder.addConverterMsg(((ConverterMsgConstructor) converterMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructConverterUpdateMsg(msgType, downlinkConverter));
                     }
 
                     downlinkMsg = builder.build();
@@ -83,7 +85,7 @@ public class IntegrationEdgeProcessor extends BaseEdgeProcessor {
             case ENTITY_DELETED_RPC_MESSAGE:
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addIntegrationMsg(integrationMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructIntegrationDeleteMsg(integrationId))
+                        .addIntegrationMsg(((IntegrationMsgConstructor) integrationMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructIntegrationDeleteMsg(integrationId))
                         .build();
                 break;
         }

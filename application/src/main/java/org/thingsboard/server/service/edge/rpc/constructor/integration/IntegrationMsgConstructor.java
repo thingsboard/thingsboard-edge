@@ -35,8 +35,9 @@ import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.gen.edge.v1.IntegrationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.service.edge.rpc.constructor.MsgConstructor;
 
-public interface IntegrationMsgConstructor {
+public interface IntegrationMsgConstructor extends MsgConstructor {
 
     IntegrationUpdateMsg constructIntegrationUpdateMsg(UpdateMsgType msgType, Integration integration, JsonNode configuration);
 

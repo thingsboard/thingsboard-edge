@@ -28,17 +28,8 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.constructor.scheduler;
+package org.thingsboard.server.service.edge.rpc.constructor;
 
-import org.thingsboard.server.common.data.id.SchedulerEventId;
-import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
-import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
-import org.thingsboard.server.service.edge.rpc.constructor.MsgConstructor;
+public interface MsgConstructor {
 
-public interface SchedulerEventMsgConstructor extends MsgConstructor {
-
-    SchedulerEventUpdateMsg constructSchedulerEventUpdatedMsg(UpdateMsgType msgType, SchedulerEvent schedulerEvent);
-
-    SchedulerEventUpdateMsg constructEventDeleteMsg(SchedulerEventId schedulerEventId);
 }

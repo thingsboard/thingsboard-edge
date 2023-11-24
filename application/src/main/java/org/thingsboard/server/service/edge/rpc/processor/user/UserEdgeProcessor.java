@@ -43,6 +43,7 @@ import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.constructor.user.UserMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 @Component
@@ -64,7 +65,7 @@ public class UserEdgeProcessor extends BaseEdgeProcessor {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addUserUpdateMsg(userMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructUserUpdatedMsg(msgType, user, entityGroupId))
+                            .addUserUpdateMsg(((UserMsgConstructor)userMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructUserUpdatedMsg(msgType, user, entityGroupId))
                             .build();
                 }
                 break;
@@ -74,14 +75,14 @@ public class UserEdgeProcessor extends BaseEdgeProcessor {
             case CHANGE_OWNER:
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addUserUpdateMsg(userMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructUserDeleteMsg(userId, entityGroupId))
+                        .addUserUpdateMsg(((UserMsgConstructor)userMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructUserDeleteMsg(userId, entityGroupId))
                         .build();
                 break;
             case CREDENTIALS_UPDATED:
                 UserCredentials userCredentialsByUserId = userService.findUserCredentialsByUserId(edgeEvent.getTenantId(), userId);
                 if (userCredentialsByUserId != null && userCredentialsByUserId.isEnabled()) {
                     UserCredentialsUpdateMsg userCredentialsUpdateMsg =
-                            userMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructUserCredentialsUpdatedMsg(userCredentialsByUserId);
+                            ((UserMsgConstructor) userMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructUserCredentialsUpdatedMsg(userCredentialsByUserId);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addUserCredentialsUpdateMsg(userCredentialsUpdateMsg)

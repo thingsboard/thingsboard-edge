@@ -40,6 +40,7 @@ import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.constructor.settings.AdminSettingsMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 @Component
@@ -52,8 +53,8 @@ public class AdminSettingsEdgeProcessor extends BaseEdgeProcessor {
         if (adminSettings == null) {
             return null;
         }
-        AdminSettingsUpdateMsg adminSettingsUpdateMsg =
-                adminSettingsMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructAdminSettingsUpdateMsg(adminSettings);
+        AdminSettingsUpdateMsg adminSettingsUpdateMsg = ((AdminSettingsMsgConstructor)
+                adminSettingsMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructAdminSettingsUpdateMsg(adminSettings);
         return DownlinkMsg.newBuilder()
                 .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                 .addAdminSettingsUpdateMsg(adminSettingsUpdateMsg)

@@ -34,8 +34,9 @@ import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.service.edge.rpc.constructor.MsgConstructor;
 
-public interface RoleMsgConstructor {
+public interface RoleMsgConstructor extends MsgConstructor {
 
     RoleProto constructRoleProto(UpdateMsgType msgType, Role role);
 

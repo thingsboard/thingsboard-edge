@@ -30,31 +30,11 @@
  */
 package org.thingsboard.server.service.edge.rpc.constructor.converter;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.constructor.MsgConstructorFactory;
 
 @Component
 @TbCoreComponent
-public class ConverterMsgConstructorFactory {
-
-    @Autowired
-    protected ConverterMsgConstructorV1 converterMsgConstructorV1;
-
-    @Autowired
-    protected ConverterMsgConstructorV2 converterMsgConstructorV2;
-
-    public ConverterMsgConstructor getMsgConstructorByEdgeVersion(EdgeVersion edgeVersion) {
-        switch (edgeVersion) {
-            case V_3_3_0:
-            case V_3_3_3:
-            case V_3_4_0:
-            case V_3_6_0:
-            case V_3_6_1:
-                return converterMsgConstructorV1;
-            default:
-                return converterMsgConstructorV2;
-        }
-    }
+public class ConverterMsgConstructorFactory extends MsgConstructorFactory<ConverterMsgConstructorV1, ConverterMsgConstructorV2> {
 }

@@ -33,8 +33,9 @@ package org.thingsboard.server.service.edge.rpc.constructor.converter;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.gen.edge.v1.ConverterUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.service.edge.rpc.constructor.MsgConstructor;
 
-public interface ConverterMsgConstructor {
+public interface ConverterMsgConstructor extends MsgConstructor {
 
     ConverterUpdateMsg constructConverterUpdateMsg(UpdateMsgType msgType, Converter converter);
 }

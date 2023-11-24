@@ -55,6 +55,7 @@ import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.constructor.asset.AssetMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 import java.util.UUID;
@@ -122,8 +123,8 @@ public class AssetProfileEdgeProcessor extends BaseAssetProfileProcessor {
                 if (assetProfile != null) {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     assetProfile = checkIfAssetProfileDefaultFieldsAssignedToEdge(edgeEvent.getTenantId(), edgeId, assetProfile, edgeVersion);
-                    AssetProfileUpdateMsg assetProfileUpdateMsg =
-                            assetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructAssetProfileUpdatedMsg(msgType, assetProfile);
+                    AssetProfileUpdateMsg assetProfileUpdateMsg = ((AssetMsgConstructor)
+                            assetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructAssetProfileUpdatedMsg(msgType, assetProfile);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addAssetProfileUpdateMsg(assetProfileUpdateMsg)
@@ -131,8 +132,8 @@ public class AssetProfileEdgeProcessor extends BaseAssetProfileProcessor {
                 }
                 break;
             case DELETED:
-                AssetProfileUpdateMsg assetProfileUpdateMsg =
-                        assetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructAssetProfileDeleteMsg(assetProfileId);
+                AssetProfileUpdateMsg assetProfileUpdateMsg = ((AssetMsgConstructor)
+                        assetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructAssetProfileDeleteMsg(assetProfileId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addAssetProfileUpdateMsg(assetProfileUpdateMsg)

@@ -37,8 +37,9 @@ import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.GroupPermissionProto;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.service.edge.rpc.constructor.MsgConstructor;
 
-public interface GroupMsgConstructor {
+public interface GroupMsgConstructor extends MsgConstructor {
 
     EntityGroupUpdateMsg constructEntityGroupUpdatedMsg(UpdateMsgType msgType, EntityGroup entityGroup);
 

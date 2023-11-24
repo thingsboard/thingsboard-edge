@@ -48,6 +48,7 @@ import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.ResourceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.constructor.resource.ResourceMsgConstructor;
 
 import java.util.UUID;
 
@@ -95,8 +96,8 @@ public class ResourceEdgeProcessor extends BaseResourceProcessor {
                 TbResource tbResource = resourceService.findResourceById(edgeEvent.getTenantId(), tbResourceId);
                 if (tbResource != null) {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
-                    ResourceUpdateMsg resourceUpdateMsg =
-                            resourceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructResourceUpdatedMsg(msgType, tbResource);
+                    ResourceUpdateMsg resourceUpdateMsg = ((ResourceMsgConstructor)
+                            resourceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructResourceUpdatedMsg(msgType, tbResource);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addResourceUpdateMsg(resourceUpdateMsg)
@@ -104,8 +105,8 @@ public class ResourceEdgeProcessor extends BaseResourceProcessor {
                 }
                 break;
             case DELETED:
-                ResourceUpdateMsg resourceUpdateMsg =
-                        resourceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructResourceDeleteMsg(tbResourceId);
+                ResourceUpdateMsg resourceUpdateMsg = ((ResourceMsgConstructor)
+                        resourceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructResourceDeleteMsg(tbResourceId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addResourceUpdateMsg(resourceUpdateMsg)

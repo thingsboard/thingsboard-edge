@@ -30,31 +30,12 @@
  */
 package org.thingsboard.server.service.edge.rpc.constructor.scheduler;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.constructor.MsgConstructorFactory;
 
 @Component
 @TbCoreComponent
-public class SchedulerEventMsgConstructorFactory {
+public class SchedulerEventMsgConstructorFactory extends MsgConstructorFactory<SchedulerEventMsgConstructorV1, SchedulerEventMsgConstructorV2> {
 
-    @Autowired
-    protected SchedulerEventMsgConstructorV1 schedulerEventMsgConstructorV1;
-
-    @Autowired
-    protected SchedulerEventMsgConstructorV2 schedulerEventMsgConstructorV2;
-
-    public SchedulerEventMsgConstructor getMsgConstructorByEdgeVersion(EdgeVersion edgeVersion) {
-        switch (edgeVersion) {
-            case V_3_3_0:
-            case V_3_3_3:
-            case V_3_4_0:
-            case V_3_6_0:
-            case V_3_6_1:
-                return schedulerEventMsgConstructorV1;
-            default:
-                return schedulerEventMsgConstructorV2;
-        }
-    }
 }

@@ -30,31 +30,12 @@
  */
 package org.thingsboard.server.service.edge.rpc.constructor.translation;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.constructor.MsgConstructorFactory;
 
 @Component
 @TbCoreComponent
-public class CustomTranslationConstructorFactory {
+public class CustomTranslationConstructorFactory extends MsgConstructorFactory<CustomTranslationMsgConstructorV1, CustomTranslationMsgConstructorV2> {
 
-    @Autowired
-    protected CustomTranslationMsgConstructorV1 customTranslationMsgConstructorV1;
-
-    @Autowired
-    protected CustomTranslationMsgConstructorV2 customTranslationMsgConstructorV2;
-
-    public CustomTranslationMsgConstructor getMsgConstructorByEdgeVersion(EdgeVersion edgeVersion) {
-        switch (edgeVersion) {
-            case V_3_3_0:
-            case V_3_3_3:
-            case V_3_4_0:
-            case V_3_6_0:
-            case V_3_6_1:
-                return customTranslationMsgConstructorV1;
-            default:
-                return customTranslationMsgConstructorV2;
-        }
-    }
 }

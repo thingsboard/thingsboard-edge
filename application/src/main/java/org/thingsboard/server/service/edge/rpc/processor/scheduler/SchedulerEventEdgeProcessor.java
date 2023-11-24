@@ -41,6 +41,7 @@ import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.constructor.scheduler.SchedulerEventMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 @Component
@@ -57,8 +58,8 @@ public class SchedulerEventEdgeProcessor extends BaseEdgeProcessor {
             case ENTITY_UPDATED_RPC_MESSAGE:
                 SchedulerEvent schedulerEvent = schedulerEventService.findSchedulerEventById(edgeEvent.getTenantId(), schedulerEventId);
                 if (schedulerEvent != null) {
-                    SchedulerEventUpdateMsg schedulerEventUpdateMsg =
-                            schedulerEventMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructSchedulerEventUpdatedMsg(msgType, schedulerEvent);
+                    SchedulerEventUpdateMsg schedulerEventUpdateMsg = ((SchedulerEventMsgConstructor)
+                            schedulerEventMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructSchedulerEventUpdatedMsg(msgType, schedulerEvent);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addSchedulerEventUpdateMsg(schedulerEventUpdateMsg)
@@ -66,8 +67,8 @@ public class SchedulerEventEdgeProcessor extends BaseEdgeProcessor {
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                SchedulerEventUpdateMsg schedulerEventUpdateMsg =
-                        schedulerEventMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion).constructEventDeleteMsg(schedulerEventId);
+                SchedulerEventUpdateMsg schedulerEventUpdateMsg = ((SchedulerEventMsgConstructor)
+                        schedulerEventMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructEventDeleteMsg(schedulerEventId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addSchedulerEventUpdateMsg(schedulerEventUpdateMsg)
