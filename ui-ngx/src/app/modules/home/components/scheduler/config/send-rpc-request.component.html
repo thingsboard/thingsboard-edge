@@ -89,25 +89,9 @@
         </div>
       </div>
       <div class="tb-form-row column-xs" fxLayoutAlign="space-between center">
-        <div tb-hint-tooltip-icon="{{'scheduler.rpc-persistent-polling-interval' | translate}}">
-          <mat-slide-toggle class="mat-slide fixed-title-width" formControlName="persistent">
-            {{ 'scheduler.rpc-request-persistent' | translate }}
-          </mat-slide-toggle>
-        </div>
-        <div class="max-width-content">
-          <mat-form-field appearance="outline" class="flex number" subscriptSizing="dynamic">
-            <input matInput type="number" min="1000" formControlName="persistentPollingInterval"
-                   placeholder="{{ 'scheduler.set' | translate }}">
-            <mat-icon matSuffix
-                      matTooltipPosition="above"
-                      matTooltipClass="tb-error-tooltip"
-                      [matTooltip]="(translate.get('scheduler.rpc-value-min-error', {min: 1000}) | async)"
-                      *ngIf="sendRpcRequestFormGroup.get('metadata.persistentPollingInterval').hasError('min')"
-                      class="material-icons tb-suffix-show-always tb-error">
-              warning
-            </mat-icon>
-          </mat-form-field>
-        </div>
+        <mat-slide-toggle class="mat-slide fixed-title-width" formControlName="persistent">
+          {{ 'scheduler.rpc-request-persistent' | translate }}
+        </mat-slide-toggle>
       </div>
     </fieldset>
   </fieldset>

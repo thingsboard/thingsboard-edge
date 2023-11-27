@@ -44,8 +44,7 @@ export const sendRPCRequestDefaults: SchedulerEventConfiguration = {
   metadata: {
     oneway: true,
     timeout: 5000,
-    persistent: false,
-    persistentPollingInterval: 5000
+    persistent: false
   }
 };
 

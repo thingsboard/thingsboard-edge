@@ -46,7 +46,7 @@ import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { safeMerge, sendRPCRequestDefaults } from '@home/components/scheduler/config/send-rpc-request.models';
-import { compareObjs } from '@fullcalendar/core/internal';
+import { isEqual } from '@core/utils';
 
 @Component({
   selector: 'tb-send-rpc-request-event-config',
@@ -87,8 +87,7 @@ export class SendRpcRequestComponent implements ControlValueAccessor, OnInit, Af
       metadata: this.fb.group(
         {
           timeout: [null, [Validators.min(0)]],
-          persistent: [null, []],
-          persistentPollingInterval: [null, [Validators.min(1000)]]
+          persistent: [null, []]
         }
       )
     });
@@ -97,12 +96,6 @@ export class SendRpcRequestComponent implements ControlValueAccessor, OnInit, Af
       takeUntil(this.destroy$)
     ).subscribe(() => {
       this.updateModel();
-    });
-
-    this.sendRpcRequestFormGroup.get('metadata.persistent').valueChanges.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe((persistent) => {
-      this.updatePersistentValidators(persistent);
     });
   }
 
@@ -137,8 +130,7 @@ export class SendRpcRequestComponent implements ControlValueAccessor, OnInit, Af
     this.modelValue = safeMerge(sendRPCRequestDefaults, value);
     this.sendRpcRequestFormGroup.reset(this.modelValue, { emitEvent: false });
     setTimeout(() => {
-      this.updatePersistentValidators(this.modelValue.metadata.persistent);
-      if (compareObjs(this.modelValue, sendRPCRequestDefaults)) {
+      if (isEqual(this.modelValue, sendRPCRequestDefaults)) {
         this.updateModel();
       }
     }, 0);
@@ -151,14 +143,6 @@ export class SendRpcRequestComponent implements ControlValueAccessor, OnInit, Af
       this.propagateChange(this.modelValue);
     } else {
       this.propagateChange(null);
-    }
-  }
-
-  private updatePersistentValidators(persistent: boolean): void {
-    if (persistent) {
-      this.sendRpcRequestFormGroup.get('metadata.persistentPollingInterval').enable({ emitEvent: false });
-    } else {
-      this.sendRpcRequestFormGroup.get('metadata.persistentPollingInterval').disable({ emitEvent: false });
     }
   }
 
