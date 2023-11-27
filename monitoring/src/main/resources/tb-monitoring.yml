@@ -121,6 +121,8 @@ monitoring:
       target:
         # HTTP integration base url, http://DOMAIN by default
         base_url: '${HTTP_INTEGRATION_BASE_URL:http://${monitoring.domain}}'
+        # Whether to monitor IPs associated with the domain from base url
+        check_domain_ips: '${HTTP_INTEGRATION_CHECK_DOMAIN_IPS:false}'
     coap:
       # Enable CoAP integration checks
       enabled: '${COAP_INTEGRATION_MONITORING_ENABLED:false}'
@@ -129,6 +131,8 @@ monitoring:
       target:
         # CoAP integration base url, coap://DOMAIN by default
         base_url: '${COAP_INTEGRATION_BASE_URL:coap://${monitoring.domain}}'
+        # Whether to monitor IPs associated with the domain from base url
+        check_domain_ips: '${COAP_INTEGRATION_CHECK_DOMAIN_IPS:false}'
 
   notification_channels:
     slack:
