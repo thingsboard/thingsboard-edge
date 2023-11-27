@@ -53,6 +53,7 @@ import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.constructor.dashboard.DashboardMsgConstructor;
 
 import java.util.UUID;
 
@@ -156,8 +157,8 @@ public class DashboardEdgeProcessor extends BaseDashboardProcessor {
                 Dashboard dashboard = dashboardService.findDashboardById(edgeEvent.getTenantId(), dashboardId);
                 if (dashboard != null) {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
-                    DashboardUpdateMsg dashboardUpdateMsg =
-                            dashboardMsgConstructor.constructDashboardUpdatedMsg(msgType, dashboard, entityGroupId, edgeVersion);
+                    DashboardUpdateMsg dashboardUpdateMsg = ((DashboardMsgConstructor)
+                            dashboardMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDashboardUpdatedMsg(msgType, dashboard, entityGroupId);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addDashboardUpdateMsg(dashboardUpdateMsg)
@@ -168,8 +169,8 @@ public class DashboardEdgeProcessor extends BaseDashboardProcessor {
             case REMOVED_FROM_ENTITY_GROUP:
             case UNASSIGNED_FROM_EDGE:
             case CHANGE_OWNER:
-                DashboardUpdateMsg dashboardUpdateMsg =
-                        dashboardMsgConstructor.constructDashboardDeleteMsg(dashboardId, entityGroupId);
+                DashboardUpdateMsg dashboardUpdateMsg = ((DashboardMsgConstructor)
+                        dashboardMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDashboardDeleteMsg(dashboardId, entityGroupId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addDashboardUpdateMsg(dashboardUpdateMsg)

@@ -50,6 +50,7 @@ import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.constructor.relation.RelationMsgConstructor;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -74,7 +75,8 @@ public class RelationEdgeProcessor extends BaseRelationProcessor {
     public DownlinkMsg convertRelationEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         EntityRelation entityRelation = JacksonUtil.convertValue(edgeEvent.getBody(), EntityRelation.class);
         UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
-        RelationUpdateMsg relationUpdateMsg = relationMsgConstructor.constructRelationUpdatedMsg(msgType, entityRelation, edgeVersion);
+        RelationUpdateMsg relationUpdateMsg = ((RelationMsgConstructor) relationMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion))
+                .constructRelationUpdatedMsg(msgType, entityRelation);
         return DownlinkMsg.newBuilder()
                 .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                 .addRelationUpdateMsg(relationUpdateMsg)

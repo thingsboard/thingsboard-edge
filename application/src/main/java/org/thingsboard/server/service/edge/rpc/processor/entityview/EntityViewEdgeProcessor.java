@@ -57,6 +57,7 @@ import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.constructor.entityview.EntityViewMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 import java.util.UUID;
@@ -166,8 +167,8 @@ public class EntityViewEdgeProcessor extends BaseEntityViewProcessor {
                 EntityView entityView = entityViewService.findEntityViewById(edgeEvent.getTenantId(), entityViewId);
                 if (entityView != null) {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
-                    EntityViewUpdateMsg entityViewUpdateMsg =
-                            entityViewMsgConstructor.constructEntityViewUpdatedMsg(msgType, entityView, entityGroupId, edgeVersion);
+                    EntityViewUpdateMsg entityViewUpdateMsg = ((EntityViewMsgConstructor)
+                            entityViewMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructEntityViewUpdatedMsg(msgType, entityView, entityGroupId);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addEntityViewUpdateMsg(entityViewUpdateMsg)
@@ -178,8 +179,8 @@ public class EntityViewEdgeProcessor extends BaseEntityViewProcessor {
             case REMOVED_FROM_ENTITY_GROUP:
             case UNASSIGNED_FROM_EDGE:
             case CHANGE_OWNER:
-                EntityViewUpdateMsg entityViewUpdateMsg =
-                        entityViewMsgConstructor.constructEntityViewDeleteMsg(entityViewId, entityGroupId);
+                EntityViewUpdateMsg entityViewUpdateMsg = ((EntityViewMsgConstructor)
+                        entityViewMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructEntityViewDeleteMsg(entityViewId, entityGroupId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addEntityViewUpdateMsg(entityViewUpdateMsg)

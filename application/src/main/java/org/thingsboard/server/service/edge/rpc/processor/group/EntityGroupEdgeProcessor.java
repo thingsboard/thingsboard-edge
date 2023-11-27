@@ -41,6 +41,7 @@ import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.constructor.group.GroupMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 @Component
@@ -57,8 +58,8 @@ public class EntityGroupEdgeProcessor extends BaseEdgeProcessor {
             case ENTITY_UPDATED_RPC_MESSAGE:
                 EntityGroup entityGroup = entityGroupService.findEntityGroupById(edgeEvent.getTenantId(), entityGroupId);
                 if (entityGroup != null) {
-                    EntityGroupUpdateMsg entityGroupUpdateMsg =
-                            entityGroupMsgConstructor.constructEntityGroupUpdatedMsg(msgType, entityGroup, edgeVersion);
+                    EntityGroupUpdateMsg entityGroupUpdateMsg = ((GroupMsgConstructor)
+                            groupMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructEntityGroupUpdatedMsg(msgType, entityGroup);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addEntityGroupUpdateMsg(entityGroupUpdateMsg)
@@ -66,8 +67,8 @@ public class EntityGroupEdgeProcessor extends BaseEdgeProcessor {
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                EntityGroupUpdateMsg entityGroupUpdateMsg =
-                        entityGroupMsgConstructor.constructEntityGroupDeleteMsg(entityGroupId);
+                EntityGroupUpdateMsg entityGroupUpdateMsg = ((GroupMsgConstructor)
+                        groupMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructEntityGroupDeleteMsg(entityGroupId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addEntityGroupUpdateMsg(entityGroupUpdateMsg)

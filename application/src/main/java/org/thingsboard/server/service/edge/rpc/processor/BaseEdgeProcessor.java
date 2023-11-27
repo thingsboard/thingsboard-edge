@@ -137,35 +137,30 @@ import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.service.edge.rpc.CustomersHierarchyEdgeService;
-import org.thingsboard.server.service.edge.rpc.constructor.AdminSettingsMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.AlarmMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.AssetMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.AssetProfileMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.ConverterProtoConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.CustomTranslationProtoConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.CustomerMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.DashboardMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.DeviceMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.DeviceProfileMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.EdgeMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.EntityDataMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.EntityGroupMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.EntityViewMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.GroupPermissionProtoConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.IntegrationProtoConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.OtaPackageMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.QueueMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.RelationMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.ResourceMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.RoleProtoConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.RuleChainMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.SchedulerEventMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.TenantMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.TenantProfileMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.UserMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.WhiteLabelingParamsProtoConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.WidgetTypeMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.WidgetsBundleMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.alarm.AlarmMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.asset.AssetMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.converter.ConverterMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.customer.CustomerMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.dashboard.DashboardMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.device.DeviceMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.edge.EdgeMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.entityview.EntityViewMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.group.GroupMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.integration.IntegrationMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.ota.OtaPackageMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.queue.QueueMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.relation.RelationMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.resource.ResourceMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.role.RoleMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.rule.RuleChainMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.scheduler.SchedulerEventMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.settings.AdminSettingsMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.telemetry.EntityDataMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.tenant.TenantMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.translation.CustomTranslationConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.user.UserMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.widget.WidgetMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.wl.WhiteLabelingParamsProtoConstructor;
 import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
 import org.thingsboard.server.service.entitiy.queue.TbQueueService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
@@ -349,61 +344,49 @@ public abstract class BaseEdgeProcessor {
     protected EntityDataMsgConstructor entityDataMsgConstructor;
 
     @Autowired
-    protected RuleChainMsgConstructor ruleChainMsgConstructor;
+    protected RuleChainMsgConstructorFactory ruleChainMsgConstructorFactory;
 
     @Autowired
-    protected AlarmMsgConstructor alarmMsgConstructor;
+    protected AlarmMsgConstructorFactory alarmMsgConstructorFactory;
 
     @Autowired
-    protected DeviceMsgConstructor deviceMsgConstructor;
+    protected DeviceMsgConstructorFactory deviceMsgConstructorFactory;
 
     @Autowired
-    protected AssetMsgConstructor assetMsgConstructor;
+    protected AssetMsgConstructorFactory assetMsgConstructorFactory;
 
     @Autowired
-    protected EntityViewMsgConstructor entityViewMsgConstructor;
+    protected EntityViewMsgConstructorFactory entityViewMsgConstructorFactory;
 
     @Autowired
-    protected DashboardMsgConstructor dashboardMsgConstructor;
+    protected DashboardMsgConstructorFactory dashboardMsgConstructorFactory;
 
     @Autowired
-    protected RelationMsgConstructor relationMsgConstructor;
+    protected RelationMsgConstructorFactory relationMsgConstructorFactory;
 
     @Autowired
-    protected UserMsgConstructor userMsgConstructor;
+    protected UserMsgConstructorFactory userMsgConstructorFactory;
 
     @Autowired
-    protected CustomerMsgConstructor customerMsgConstructor;
+    protected CustomerMsgConstructorFactory customerMsgConstructorFactory;
 
     @Autowired
-    protected DeviceProfileMsgConstructor deviceProfileMsgConstructor;
+    protected TenantMsgConstructorFactory tenantMsgConstructorFactory;
 
     @Autowired
-    protected AssetProfileMsgConstructor assetProfileMsgConstructor;
+    protected WidgetMsgConstructorFactory widgetMsgConstructorFactory;
 
     @Autowired
-    protected TenantMsgConstructor tenantMsgConstructor;
+    protected AdminSettingsMsgConstructorFactory adminSettingsMsgConstructorFactory;
 
     @Autowired
-    protected TenantProfileMsgConstructor tenantProfileMsgConstructor;
+    protected OtaPackageMsgConstructorFactory otaPackageMsgConstructorFactory;
 
     @Autowired
-    protected WidgetsBundleMsgConstructor widgetsBundleMsgConstructor;
+    protected QueueMsgConstructorFactory queueMsgConstructorFactory;
 
     @Autowired
-    protected WidgetTypeMsgConstructor widgetTypeMsgConstructor;
-
-    @Autowired
-    protected AdminSettingsMsgConstructor adminSettingsMsgConstructor;
-
-    @Autowired
-    protected OtaPackageMsgConstructor otaPackageMsgConstructor;
-
-    @Autowired
-    protected QueueMsgConstructor queueMsgConstructor;
-
-    @Autowired
-    protected ResourceMsgConstructor resourceMsgConstructor;
+    protected ResourceMsgConstructorFactory resourceMsgConstructorFactory;
 
     @Autowired
     protected EdgeSynchronizationManager edgeSynchronizationManager;
@@ -446,25 +429,22 @@ public abstract class BaseEdgeProcessor {
     protected WhiteLabelingParamsProtoConstructor whiteLabelingParamsProtoConstructor;
 
     @Autowired
-    protected CustomTranslationProtoConstructor customTranslationProtoConstructor;
+    protected CustomTranslationConstructorFactory customTranslationConstructorFactory;
 
     @Autowired
-    protected RoleProtoConstructor roleProtoConstructor;
+    protected RoleMsgConstructorFactory roleMsgConstructorFactory;
 
     @Autowired
-    protected GroupPermissionProtoConstructor groupPermissionProtoConstructor;
+    protected SchedulerEventMsgConstructorFactory schedulerEventMsgConstructorFactory;
 
     @Autowired
-    protected SchedulerEventMsgConstructor schedulerEventMsgConstructor;
+    protected GroupMsgConstructorFactory groupMsgConstructorFactory;
 
     @Autowired
-    protected EntityGroupMsgConstructor entityGroupMsgConstructor;
+    protected ConverterMsgConstructorFactory converterMsgConstructorFactory;
 
     @Autowired
-    protected ConverterProtoConstructor converterProtoConstructor;
-
-    @Autowired
-    protected IntegrationProtoConstructor integrationProtoConstructor;
+    protected IntegrationMsgConstructorFactory integrationMsgConstructorFactory;
 
     @Autowired
     protected CustomersHierarchyEdgeService customersHierarchyEdgeService;
