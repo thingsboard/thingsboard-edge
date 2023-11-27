@@ -45,6 +45,7 @@ import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.service.edge.rpc.constructor.asset.AssetMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.processor.asset.BaseAssetProfileProcessor;
 
 import java.util.UUID;
@@ -157,8 +158,8 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
                 AssetProfile assetProfile = assetProfileService.findAssetProfileById(cloudEvent.getTenantId(), assetProfileId);
                 if (assetProfile != null && !BaseAssetService.TB_SERVICE_QUEUE.equals(assetProfile.getName())) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                    AssetProfileUpdateMsg assetProfileUpdateMsg =
-                            assetProfileMsgConstructor.constructAssetProfileUpdatedMsg(msgType, assetProfile, edgeVersion);
+                    AssetProfileUpdateMsg assetProfileUpdateMsg = ((AssetMsgConstructor)
+                            assetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructAssetProfileUpdatedMsg(msgType, assetProfile);
                     msg = UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addAssetProfileUpdateMsg(assetProfileUpdateMsg).build();
@@ -167,8 +168,8 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
                 }
                 break;
             case DELETED:
-                AssetProfileUpdateMsg assetProfileUpdateMsg =
-                        assetProfileMsgConstructor.constructAssetProfileDeleteMsg(assetProfileId);
+                AssetProfileUpdateMsg assetProfileUpdateMsg = ((AssetMsgConstructor)
+                        assetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructAssetProfileDeleteMsg(assetProfileId);
                 msg = UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addAssetProfileUpdateMsg(assetProfileUpdateMsg).build();

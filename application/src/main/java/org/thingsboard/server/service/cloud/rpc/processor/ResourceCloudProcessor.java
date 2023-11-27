@@ -33,6 +33,7 @@ import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.ResourceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.service.edge.rpc.constructor.resource.ResourceMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.processor.resource.BaseResourceProcessor;
 
 import java.util.UUID;
@@ -109,8 +110,8 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
                 TbResource tbResource = resourceService.findResourceById(cloudEvent.getTenantId(), tbResourceId);
                 if (tbResource != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                    ResourceUpdateMsg resourceUpdateMsg =
-                            resourceMsgConstructor.constructResourceUpdatedMsg(msgType, tbResource, edgeVersion);
+                    ResourceUpdateMsg resourceUpdateMsg = ((ResourceMsgConstructor)
+                            resourceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructResourceUpdatedMsg(msgType, tbResource);
                     msg = UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addResourceUpdateMsg(resourceUpdateMsg)
@@ -118,8 +119,8 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
                 }
                 break;
             case DELETED:
-                ResourceUpdateMsg resourceUpdateMsg =
-                        resourceMsgConstructor.constructResourceDeleteMsg(tbResourceId);
+                ResourceUpdateMsg resourceUpdateMsg = ((ResourceMsgConstructor)
+                        resourceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructResourceDeleteMsg(tbResourceId);
                 msg = UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addResourceUpdateMsg(resourceUpdateMsg)
