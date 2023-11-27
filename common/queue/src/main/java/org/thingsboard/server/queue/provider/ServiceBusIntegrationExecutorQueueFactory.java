@@ -56,8 +56,8 @@ import org.thingsboard.server.queue.azure.servicebus.TbServiceBusSettings;
 import org.thingsboard.server.queue.common.DefaultTbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.NotificationsTopicService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+import org.thingsboard.server.queue.discovery.TopicService;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
@@ -70,7 +70,7 @@ import java.nio.charset.StandardCharsets;
 @ConditionalOnExpression("'${queue.type:null}'=='service-bus' && '${service.type:null}'=='tb-integration-executor'")
 public class ServiceBusIntegrationExecutorQueueFactory implements TbIntegrationExecutorQueueFactory {
 
-    private final NotificationsTopicService notificationsTopicService;
+    private final TopicService topicService;
     private final TbQueueCoreSettings coreSettings;
     private final TbServiceInfoProvider serviceInfoProvider;
     private final TbQueueIntegrationApiSettings integrationApiSettings;
@@ -84,14 +84,14 @@ public class ServiceBusIntegrationExecutorQueueFactory implements TbIntegrationE
     private final TbQueueAdmin notificationAdmin;
     private final TbQueueAdmin integrationApiAdmin;
 
-    public ServiceBusIntegrationExecutorQueueFactory(NotificationsTopicService notificationsTopicService, TbQueueCoreSettings coreSettings,
+    public ServiceBusIntegrationExecutorQueueFactory(TopicService topicService, TbQueueCoreSettings coreSettings,
                                                      TbServiceInfoProvider serviceInfoProvider,
                                                      TbQueueIntegrationApiSettings integrationApiSettings,
                                                      TbServiceBusSettings serviceBusSettings,
                                                      TbQueueRemoteJsInvokeSettings jsInvokeSettings,
                                                      TbServiceBusQueueConfigs serviceBusQueueConfigs,
                                                      TbQueueIntegrationExecutorSettings integrationExecutorSettings) {
-        this.notificationsTopicService = notificationsTopicService;
+        this.topicService = topicService;
         this.coreSettings = coreSettings;
         this.serviceInfoProvider = serviceInfoProvider;
         this.integrationApiSettings = integrationApiSettings;
@@ -108,12 +108,12 @@ public class ServiceBusIntegrationExecutorQueueFactory implements TbIntegrationE
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createTbCoreIntegrationMsgProducer() {
-        return new TbServiceBusProducerTemplate<>(coreAdmin, serviceBusSettings, integrationExecutorSettings.getUplinkTopic());
+        return new TbServiceBusProducerTemplate<>(coreAdmin, serviceBusSettings, topicService.buildTopicName(integrationExecutorSettings.getUplinkTopic()));
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToCoreNotificationMsg>> createTbCoreNotificationMsgProducer() {
-        return new TbServiceBusProducerTemplate<>(coreAdmin, serviceBusSettings, coreSettings.getTopic());
+        return new TbServiceBusProducerTemplate<>(coreAdmin, serviceBusSettings, topicService.buildTopicName(coreSettings.getTopic()));
     }
 
     @Override
@@ -142,9 +142,9 @@ public class ServiceBusIntegrationExecutorQueueFactory implements TbIntegrationE
     @Override
     @Bean
     public TbQueueRequestTemplate<TbProtoQueueMsg<IntegrationApiRequestMsg>, TbProtoQueueMsg<IntegrationApiResponseMsg>> createIntegrationApiRequestTemplate() {
-        TbQueueProducer<TbProtoQueueMsg<IntegrationApiRequestMsg>> producer = new TbServiceBusProducerTemplate<>(integrationApiAdmin, serviceBusSettings, integrationApiSettings.getRequestsTopic());
+        TbQueueProducer<TbProtoQueueMsg<IntegrationApiRequestMsg>> producer = new TbServiceBusProducerTemplate<>(integrationApiAdmin, serviceBusSettings, topicService.buildTopicName(integrationApiSettings.getRequestsTopic()));
         TbQueueConsumer<TbProtoQueueMsg<IntegrationApiResponseMsg>> consumer = new TbServiceBusConsumerTemplate<>(integrationApiAdmin, serviceBusSettings,
-                integrationApiSettings.getResponsesTopic() + "." + serviceInfoProvider.getServiceId(),
+                topicService.buildTopicName(integrationApiSettings.getResponsesTopic() + "." + serviceInfoProvider.getServiceId()),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), IntegrationApiResponseMsg.parseFrom(msg.getData()), msg.getHeaders()));
 
         DefaultTbQueueRequestTemplate.DefaultTbQueueRequestTemplateBuilder
@@ -160,13 +160,13 @@ public class ServiceBusIntegrationExecutorQueueFactory implements TbIntegrationE
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> createToUsageStatsServiceMsgProducer() {
-        return new TbServiceBusProducerTemplate<>(coreAdmin, serviceBusSettings, coreSettings.getUsageStatsTopic());
+        return new TbServiceBusProducerTemplate<>(coreAdmin, serviceBusSettings, topicService.buildTopicName(coreSettings.getUsageStatsTopic()));
     }
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> createToIntegrationExecutorNotificationsMsgConsumer() {
         return new TbServiceBusConsumerTemplate<>(notificationAdmin, serviceBusSettings,
-                notificationsTopicService.getNotificationsTopic(ServiceType.TB_INTEGRATION_EXECUTOR, serviceInfoProvider.getServiceId()).getFullTopicName(),
+                topicService.getNotificationsTopic(ServiceType.TB_INTEGRATION_EXECUTOR, serviceInfoProvider.getServiceId()).getFullTopicName(),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorNotificationMsg.parseFrom(msg.getData()), msg.getHeaders())
         );
     }
@@ -174,7 +174,7 @@ public class ServiceBusIntegrationExecutorQueueFactory implements TbIntegrationE
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createToIntegrationExecutorDownlinkMsgConsumer(IntegrationType integrationType) {
         return new TbServiceBusConsumerTemplate<>(ruleEngineAdmin, serviceBusSettings,
-                integrationExecutorSettings.getIntegrationDownlinkTopic(integrationType),
+                topicService.buildTopicName(integrationExecutorSettings.getIntegrationDownlinkTopic(integrationType)),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorDownlinkMsg.parseFrom(msg.getData()), msg.getHeaders())
         );
     }

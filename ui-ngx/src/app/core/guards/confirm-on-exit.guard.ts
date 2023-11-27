@@ -45,10 +45,12 @@ import { Observable, of } from 'rxjs';
 export interface HasConfirmForm {
   confirmForm(): UntypedFormGroup;
   onExit?(): Observable<any>;
+  confirmOnExitMessage?: string;
 }
 
 export interface HasDirtyFlag {
   isDirty: boolean;
+  confirmOnExitMessage?: string;
 }
 
 @Injectable({
@@ -83,9 +85,10 @@ export class ConfirmOnExitGuard implements CanDeactivate<HasConfirmForm & HasDir
         isDirty = component.isDirty;
       }
       if (isDirty) {
+        const message = this.getMessage(component);
         return this.dialogService.confirm(
           this.translate.instant('confirm-on-exit.title'),
-          this.translate.instant('confirm-on-exit.html-message')
+          message
         ).pipe(
           mergeMap(result => {
             if (result && component.onExit) {
@@ -111,5 +114,11 @@ export class ConfirmOnExitGuard implements CanDeactivate<HasConfirmForm & HasDir
       return component.onExit().pipe(map(() => true));
     }
     return true;
+  }
+
+  private getMessage(component: HasConfirmForm & HasDirtyFlag): string {
+    return component.confirmOnExitMessage
+      ? component.confirmOnExitMessage
+      : this.translate.instant('confirm-on-exit.html-message');
   }
 }

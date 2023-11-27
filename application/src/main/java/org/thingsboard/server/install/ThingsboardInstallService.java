@@ -126,7 +126,7 @@ public class ThingsboardInstallService {
                     dataUpdateService.updateData("3.0.0");
 
                     log.info("Updating system data...");
-                    systemDataLoaderService.updateSystemWidgets();
+                    systemDataLoaderService.loadSystemWidgets();
                 } else if ("3.0.1-cassandra".equals(upgradeFromVersion)) {
                     log.info("Migrating ThingsBoard latest timeseries data from cassandra to SQL database ...");
                     latestMigrateService.migrate();
@@ -284,6 +284,10 @@ public class ThingsboardInstallService {
                         case "3.6.0":
                             log.info("Upgrading ThingsBoard from version 3.6.0 to 3.6.1 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.6.0");
+                            dataUpdateService.updateData("3.6.0");
+                        case "3.6.1":
+                            log.info("Upgrading ThingsBoard from version 3.6.1 to 3.6.2 ...");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.6.1");
                             break;
                         case "CE":
                             log.info("Upgrading ThingsBoard from version CE to PE ...");
@@ -300,7 +304,7 @@ public class ThingsboardInstallService {
                     dataUpdateService.updateData("ce");
                     log.info("Updating system data...");
                     dataUpdateService.upgradeRuleNodes();
-                    systemDataLoaderService.updateSystemWidgets();
+                    systemDataLoaderService.loadSystemWidgets();
                     installScripts.loadSystemLwm2mResources();
                 }
                 log.info("Upgrade finished successfully!");

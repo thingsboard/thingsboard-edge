@@ -53,6 +53,7 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.usagerecord.ApiLimitService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -84,6 +85,8 @@ class InstallScriptsTest {
     OAuth2ConfigTemplateService oAuth2TemplateService;
     @MockBean
     ResourceService resourceService;
+    @MockBean
+    WhiteLabelingService whiteLabelingService;
     @SpyBean
     InstallScripts installScripts;
 

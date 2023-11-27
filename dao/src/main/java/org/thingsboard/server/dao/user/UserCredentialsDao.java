@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.user;
 
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.Dao;
 
@@ -72,5 +73,7 @@ public interface UserCredentialsDao extends Dao<UserCredentials> {
      * @return the user credentials object
      */
     UserCredentials findByResetToken(TenantId tenantId, String resetToken);
+
+    void removeByUserId(TenantId tenantId, UserId userId);
 
 }

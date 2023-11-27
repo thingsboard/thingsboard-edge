@@ -45,7 +45,7 @@ import {
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
-import { AddEntityDialogData, EntityAction } from '@home/models/entity/entity-component.models';
+import { EntityAction } from '@home/models/entity/entity-component.models';
 import { Observable, of } from 'rxjs';
 import { select, Store } from '@ngrx/store';
 import { getCurrentAuthUser, selectUserSettingsProperty } from '@core/auth/auth.selectors';
@@ -65,7 +65,6 @@ import {
   EdgeInstructionsDialogComponent,
   EdgeInstructionsDialogData
 } from '@home/pages/edge/edge-instructions-dialog.component';
-import { AddEntityDialogComponent } from '@home/components/entity/add-entity-dialog.component';
 import { AllEntitiesTableConfigService } from '@home/components/entity/all-entities-table-config.service';
 import { resolveGroupParams } from '@shared/models/entity-group.models';
 import { GroupEntityTabsComponent } from '@home/components/group/group-entity-tabs.component';
@@ -76,6 +75,8 @@ import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { UtilsService } from '@core/services/utils.service';
+import { AddGroupEntityDialogComponent } from '@home/components/group/add-group-entity-dialog.component';
+import { AddGroupEntityDialogData } from '@home/models/group/group-entity-component.models';
 
 @Injectable()
 export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeInfo>> {
@@ -406,8 +407,8 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
   }
 
   addEdge(config) {
-    this.dialog.open<AddEntityDialogComponent, AddEntityDialogData<EdgeInfo>,
-      EdgeInfo>(AddEntityDialogComponent, {
+    this.dialog.open<AddGroupEntityDialogComponent, AddGroupEntityDialogData<EdgeInfo>,
+      EdgeInfo>(AddGroupEntityDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {

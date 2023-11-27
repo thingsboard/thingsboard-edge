@@ -32,6 +32,9 @@
 ALTER TABLE widget_type
     ADD COLUMN IF NOT EXISTS tags text[];
 
+ALTER TABLE widgets_bundle
+    ADD COLUMN IF NOT EXISTS widgets_bundle_order int;
+
 ALTER TABLE api_usage_state ADD COLUMN IF NOT EXISTS tbel_exec varchar(32);
 UPDATE api_usage_state SET tbel_exec = js_exec WHERE tbel_exec IS NULL;
 
@@ -40,3 +43,26 @@ ALTER TABLE notification DROP CONSTRAINT IF EXISTS fk_notification_recipient_id;
 CREATE INDEX IF NOT EXISTS idx_notification_notification_request_id ON notification(request_id);
 CREATE INDEX IF NOT EXISTS idx_notification_request_tenant_id ON notification_request(tenant_id);
 
+-- DELETE invalid records from M:N widgets_bundle_widget table caused by the bug in previous upgrade script;
+DELETE
+FROM widgets_bundle_widget wbw
+WHERE (SELECT tenant_id FROM widgets_bundle wb WHERE wb.id = wbw.widgets_bundle_id) !=
+      (SELECT tenant_id FROM widget_type wt WHERE wt.id = wbw.widget_type_id);
+
+-- MAIL TEMPLATES MIGRATION START
+-- move system settings
+INSERT INTO white_labeling(entity_type, entity_id, type, settings)
+    (SELECT 'TENANT', tenant_id, 'MAIL_TEMPLATES', json_value FROM admin_settings
+     WHERE key = 'mailTemplates') ON CONFLICT DO NOTHING;
+
+-- move mailTemplates attributes
+INSERT INTO white_labeling(entity_type, entity_id, type, settings)
+    (SELECT entity_type, entity_id, 'MAIL_TEMPLATES', str_v FROM attribute_kv
+     WHERE entity_type = 'TENANT' AND entity_id IN (SELECT id FROM tenant) AND attribute_type = 'SERVER_SCOPE'
+       AND  attribute_key = 'mailTemplates') ON CONFLICT DO NOTHING;
+
+DELETE FROM admin_settings WHERE key = 'mailTemplates';
+
+DELETE FROM attribute_kv WHERE entity_type = 'TENANT' AND entity_id IN (SELECT id FROM TENANT)
+                           AND attribute_type = 'SERVER_SCOPE' AND  attribute_key = 'mailTemplates';
+-- MAIL TEMPLATES MIGRATION END

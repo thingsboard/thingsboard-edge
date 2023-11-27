@@ -51,9 +51,11 @@ import org.thingsboard.server.service.edge.rpc.fetch.QueuesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.RuleChainsEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.SchedulerEventsEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.SysAdminRolesEdgeEventFetcher;
+import org.thingsboard.server.service.edge.rpc.fetch.SystemResourcesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.SystemWidgetTypesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.SystemWidgetsBundlesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.TenantEdgeEventFetcher;
+import org.thingsboard.server.service.edge.rpc.fetch.TenantResourcesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.TenantRolesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.TenantWidgetTypesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.TenantWidgetsBundlesEdgeEventFetcher;
@@ -104,6 +106,8 @@ public class EdgeSyncCursor {
         if (fullSync) {
             fetchers.add(new IntegrationEventsEdgeEventFetcher(ctx.getIntegrationService()));
             fetchers.add(new OtaPackagesEdgeEventFetcher(ctx.getOtaPackageService()));
+            fetchers.add(new SystemResourcesEdgeEventFetcher(ctx.getResourceService()));
+            fetchers.add(new TenantResourcesEdgeEventFetcher(ctx.getResourceService()));
         }
     }
 

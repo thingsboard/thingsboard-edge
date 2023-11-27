@@ -29,8 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Injectable, NgModule } from '@angular/core';
-import { ActivatedRouteSnapshot, Resolve, RouterModule, Routes } from '@angular/router';
+import { inject, Injectable, NgModule } from '@angular/core';
+import { ActivatedRouteSnapshot, Resolve, ResolveFn, RouterModule, RouterStateSnapshot, Routes } from '@angular/router';
 import { MailServerComponent } from '@modules/home/pages/admin/mail-server.component';
 import { SmsProviderComponent } from '@home/pages/admin/sms-provider.component';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
@@ -39,13 +39,7 @@ import { GeneralSettingsComponent } from '@home/pages/admin/general-settings.com
 import { SecuritySettingsComponent } from '@modules/home/pages/admin/security-settings.component';
 import { MailTemplatesComponent } from '@home/pages/admin/mail-templates.component';
 import { Observable } from 'rxjs';
-import { AdminSettings, MailTemplatesSettings } from '@shared/models/settings.models';
-import { AdminService } from '@core/http/admin.service';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
-import { getCurrentAuthUser } from '@core/auth/auth.selectors';
-import { map } from 'rxjs/operators';
-import { isDefined } from '@core/utils';
+import { MailTemplatesSettings } from '@shared/models/settings.models';
 import { CustomTranslation } from '@shared/models/custom-translation.model';
 import { CustomTranslationService } from '@core/http/custom-translation.service';
 import { CustomTranslationComponent } from '@home/pages/admin/custom-translation.component';
@@ -70,27 +64,14 @@ import { widgetsLibraryRoutes } from '@home/pages/widget/widget-library-routing.
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { auditLogsRoutes } from '@home/pages/audit-log/audit-log-routing.module';
 import { rolesRoutes } from '@home/pages/role/role-routing.module';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
-@Injectable()
-export class MailTemplateSettingsResolver implements Resolve<AdminSettings<MailTemplatesSettings>> {
-
-  constructor(private adminService: AdminService,
-              private store: Store<AppState>) {
-  }
-
-  resolve(route: ActivatedRouteSnapshot): Observable<AdminSettings<MailTemplatesSettings>> {
-    return this.adminService.getAdminSettings<MailTemplatesSettings>('mailTemplates', true).pipe(
-      map((adminSettings) => {
-        let useSystemMailSettings = false;
-        if (getCurrentAuthUser(this.store).authority === Authority.TENANT_ADMIN) {
-          useSystemMailSettings = isDefined(adminSettings.jsonValue.useSystemMailSettings) ?
-            adminSettings.jsonValue.useSystemMailSettings : true;
-        }
-        adminSettings.jsonValue.useSystemMailSettings = useSystemMailSettings;
-        return adminSettings;
-      })
-    );
-  }
+export const mailTemplateSettingsResolver: ResolveFn<MailTemplatesSettings> = (
+  route: ActivatedRouteSnapshot,
+  state: RouterStateSnapshot,
+  wl = inject(WhiteLabelingService)
+): Observable<MailTemplatesSettings> => {
+  return wl.getMailTemplates(true);
 }
 
 @Injectable()
@@ -501,7 +482,7 @@ const routes: Routes = [
           }
         },
         resolve: {
-          adminSettings: MailTemplateSettingsResolver
+          mailTemplatesSettings: mailTemplateSettingsResolver
         }
       },
       {
@@ -548,7 +529,6 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
   providers: [
-    MailTemplateSettingsResolver,
     CustomTranslationResolver,
     CustomMenuResolver,
     OAuth2LoginProcessingUrlResolver,
