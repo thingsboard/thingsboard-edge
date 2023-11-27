@@ -57,6 +57,7 @@ import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.service.edge.rpc.constructor.entityview.EntityViewMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.processor.entityview.BaseEntityViewProcessor;
 
 import java.util.UUID;
@@ -158,8 +159,8 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
                 EntityView entityView = entityViewService.findEntityViewById(cloudEvent.getTenantId(), entityViewId);
                 if (entityView != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                    EntityViewUpdateMsg entityViewUpdateMsg =
-                            entityViewMsgConstructor.constructEntityViewUpdatedMsg(msgType, entityView, entityGroupId, edgeVersion);
+                    EntityViewUpdateMsg entityViewUpdateMsg = ((EntityViewMsgConstructor)
+                            entityViewMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructEntityViewUpdatedMsg(msgType, entityView, entityGroupId);
                     msg = UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addEntityViewUpdateMsg(entityViewUpdateMsg).build();
@@ -169,8 +170,8 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
                 break;
             case DELETED:
             case REMOVED_FROM_ENTITY_GROUP:
-                EntityViewUpdateMsg entityViewUpdateMsg =
-                        entityViewMsgConstructor.constructEntityViewDeleteMsg(entityViewId, entityGroupId);
+                EntityViewUpdateMsg entityViewUpdateMsg = ((EntityViewMsgConstructor)
+                        entityViewMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructEntityViewDeleteMsg(entityViewId, entityGroupId);
                 msg = UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addEntityViewUpdateMsg(entityViewUpdateMsg).build();

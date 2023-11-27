@@ -50,6 +50,7 @@ import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.service.edge.rpc.constructor.dashboard.DashboardMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.processor.dashboard.BaseDashboardProcessor;
 
 import java.util.UUID;
@@ -129,8 +130,8 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
                 Dashboard dashboard = dashboardService.findDashboardById(cloudEvent.getTenantId(), dashboardId);
                 if (dashboard != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                    DashboardUpdateMsg dashboardUpdateMsg =
-                            dashboardMsgConstructor.constructDashboardUpdatedMsg(msgType, dashboard, entityGroupId, edgeVersion);
+                    DashboardUpdateMsg dashboardUpdateMsg = ((DashboardMsgConstructor)
+                            dashboardMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDashboardUpdatedMsg(msgType, dashboard, entityGroupId);
                     msg = UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addDashboardUpdateMsg(dashboardUpdateMsg).build();
@@ -140,8 +141,8 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
                 break;
             case DELETED:
             case REMOVED_FROM_ENTITY_GROUP:
-                DashboardUpdateMsg dashboardUpdateMsg =
-                        dashboardMsgConstructor.constructDashboardDeleteMsg(dashboardId, entityGroupId);
+                DashboardUpdateMsg dashboardUpdateMsg = ((DashboardMsgConstructor)
+                        dashboardMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDashboardDeleteMsg(dashboardId, entityGroupId);
                 msg = UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addDashboardUpdateMsg(dashboardUpdateMsg).build();

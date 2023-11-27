@@ -59,6 +59,7 @@ import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.service.edge.rpc.constructor.device.DeviceMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.processor.device.BaseDeviceProfileProcessor;
 
 import java.util.Objects;
@@ -186,8 +187,9 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
                 DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(cloudEvent.getTenantId(), deviceProfileId);
                 if (deviceProfile != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                    DeviceProfileUpdateMsg deviceProfileUpdateMsg =
-                            deviceProfileMsgConstructor.constructDeviceProfileUpdatedMsg(msgType, deviceProfile, edgeVersion);
+                    DeviceProfileUpdateMsg deviceProfileUpdateMsg = ((DeviceMsgConstructor)
+                            deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion))
+                            .constructDeviceProfileUpdatedMsg(msgType, deviceProfile);
                     msg = UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addDeviceProfileUpdateMsg(deviceProfileUpdateMsg).build();
@@ -196,8 +198,8 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
                 }
                 break;
             case DELETED:
-                DeviceProfileUpdateMsg deviceProfileUpdateMsg =
-                        deviceProfileMsgConstructor.constructDeviceProfileDeleteMsg(deviceProfileId);
+                DeviceProfileUpdateMsg deviceProfileUpdateMsg = ((DeviceMsgConstructor)
+                        deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDeviceProfileDeleteMsg(deviceProfileId);
                 msg = UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addDeviceProfileUpdateMsg(deviceProfileUpdateMsg).build();

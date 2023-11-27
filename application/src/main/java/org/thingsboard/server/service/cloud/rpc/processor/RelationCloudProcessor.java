@@ -45,6 +45,7 @@ import org.thingsboard.server.gen.edge.v1.RelationRequestMsg;
 import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.service.edge.rpc.constructor.relation.RelationMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.processor.relation.BaseRelationProcessor;
 
 @Component
@@ -79,7 +80,8 @@ public class RelationCloudProcessor extends BaseRelationProcessor {
         UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
         EntityRelation entityRelation = JacksonUtil.convertValue(cloudEvent.getEntityBody(), EntityRelation.class);
         if (entityRelation != null) {
-            RelationUpdateMsg relationUpdateMsg = relationMsgConstructor.constructRelationUpdatedMsg(msgType, entityRelation, edgeVersion);
+            RelationUpdateMsg relationUpdateMsg = ((RelationMsgConstructor) relationMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion))
+                    .constructRelationUpdatedMsg(msgType, entityRelation);
             msg = UplinkMsg.newBuilder()
                     .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                     .addRelationUpdateMsg(relationUpdateMsg).build();
