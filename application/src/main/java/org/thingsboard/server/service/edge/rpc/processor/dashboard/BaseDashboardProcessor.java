@@ -64,7 +64,10 @@ public abstract class BaseDashboardProcessor extends BaseEdgeProcessor {
             dashboard.setId(dashboardId);
             changeOwnerIfRequired(tenantId, null, dashboardId);
         }
-
+        // EDGE PE only: check if customer exists
+        if (isCustomerNotExists(tenantId, dashboard.getCustomerId())) {
+            dashboard.setCustomerId(null);
+        }
         dashboardValidator.validate(dashboard, Dashboard::getTenantId);
         if (created) {
             dashboard.setId(dashboardId);

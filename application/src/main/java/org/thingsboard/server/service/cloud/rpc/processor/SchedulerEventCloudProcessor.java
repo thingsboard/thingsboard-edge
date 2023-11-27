@@ -36,7 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
@@ -79,6 +78,9 @@ public class SchedulerEventCloudProcessor extends BaseEdgeProcessor {
                     if (created) {
                         schedulerEvent.setId(schedulerEventId);
                     }
+                    if (isCustomerNotExists(tenantId, schedulerEvent.getCustomerId())) {
+                        schedulerEvent.setCustomerId(null);
+                    }
 
                     schedulerEventService.saveSchedulerEvent(schedulerEvent, false);
 
@@ -107,11 +109,4 @@ public class SchedulerEventCloudProcessor extends BaseEdgeProcessor {
         }
         return Futures.immediateFuture(null);
     }
-
-    private void safeSetCustomerId(SchedulerEventUpdateMsg schedulerEventUpdateMsg, SchedulerEvent schedulerEvent) {
-        CustomerId customerId = safeGetCustomerId(schedulerEventUpdateMsg.getCustomerIdMSB(),
-                schedulerEventUpdateMsg.getCustomerIdLSB());
-        schedulerEvent.setCustomerId(customerId);
-    }
-
 }

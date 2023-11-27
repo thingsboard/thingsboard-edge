@@ -880,53 +880,75 @@ public abstract class BaseEdgeProcessor {
             case DEVICE:
                 Device device = deviceService.findDeviceById(tenantId, new DeviceId(entityId.getId()));
                 currentOwnerId = device.getOwnerId();
-                if (!newOwnerId.equals(currentOwnerId)) {
+                if (!newOwnerId.equals(currentOwnerId) && checkIfNewOwnerIsCustomerAndExists(tenantId, newOwnerId)) {
                     ownersCacheService.changeDeviceOwner(tenantId, newOwnerId, device);
                 }
                 break;
             case ASSET:
                 Asset asset = assetService.findAssetById(tenantId, new AssetId(entityId.getId()));
                 currentOwnerId = asset.getOwnerId();
-                if (!newOwnerId.equals(currentOwnerId)) {
+                if (!newOwnerId.equals(currentOwnerId) && checkIfNewOwnerIsCustomerAndExists(tenantId, newOwnerId)) {
                     ownersCacheService.changeAssetOwner(tenantId, newOwnerId, asset);
                 }
                 break;
             case ENTITY_VIEW:
                 EntityView entityView = entityViewService.findEntityViewById(tenantId, new EntityViewId(entityId.getId()));
                 currentOwnerId = entityView.getOwnerId();
-                if (!newOwnerId.equals(currentOwnerId)) {
+                if (!newOwnerId.equals(currentOwnerId) && checkIfNewOwnerIsCustomerAndExists(tenantId, newOwnerId)) {
                     ownersCacheService.changeEntityViewOwner(tenantId, newOwnerId, entityView);
                 }
                 break;
             case USER:
                 User user = userService.findUserById(tenantId, new UserId(entityId.getId()));
                 currentOwnerId = user.getOwnerId();
-                if (!newOwnerId.equals(currentOwnerId)) {
+                if (!newOwnerId.equals(currentOwnerId) && checkIfNewOwnerIsCustomerAndExists(tenantId, newOwnerId)) {
                     ownersCacheService.changeUserOwner(tenantId, newOwnerId, user);
                 }
                 break;
             case DASHBOARD:
                 Dashboard dashboard = dashboardService.findDashboardById(tenantId, new DashboardId(entityId.getId()));
                 currentOwnerId = dashboard.getOwnerId();
-                if (!newOwnerId.equals(currentOwnerId)) {
+                if (!newOwnerId.equals(currentOwnerId) && checkIfNewOwnerIsCustomerAndExists(tenantId, newOwnerId)) {
                     ownersCacheService.changeDashboardOwner(tenantId, newOwnerId, dashboard);
                 }
                 break;
             case CUSTOMER:
                 Customer customer = customerService.findCustomerById(tenantId, new CustomerId(entityId.getId()));
                 currentOwnerId = customer.getOwnerId();
-                if (!newOwnerId.equals(currentOwnerId)) {
+                if (!newOwnerId.equals(currentOwnerId) && checkIfNewOwnerIsCustomerAndExists(tenantId, newOwnerId)) {
                     ownersCacheService.changeCustomerOwner(tenantId, newOwnerId, customer);
                 }
                 break;
             case EDGE:
                 Edge edge = edgeService.findEdgeById(tenantId, new EdgeId(entityId.getId()));
                 currentOwnerId = edge.getOwnerId();
-                if (!newOwnerId.equals(currentOwnerId)) {
+                if (!newOwnerId.equals(currentOwnerId) && checkIfNewOwnerIsCustomerAndExists(tenantId, newOwnerId)) {
                     ownersCacheService.changeEdgeOwner(tenantId, newOwnerId, edge);
                 }
                 break;
         }
+    }
+
+    private boolean checkIfNewOwnerIsCustomerAndExists(TenantId tenantId, EntityId newOwnerId) {
+        if (EntityType.TENANT.equals(newOwnerId.getEntityType())) {
+            return true;
+        }
+        if (EntityId.NULL_UUID.equals(newOwnerId.getId())) {
+            return false;
+        }
+        Customer customerById = customerService.findCustomerById(tenantId, new CustomerId(newOwnerId.getId()));
+        return customerById != null;
+    }
+
+    protected boolean isCustomerNotExists(TenantId tenantId, CustomerId customerId) {
+        if (customerId == null) {
+            return false;
+        }
+        if (EntityId.NULL_UUID.equals(customerId.getId())) {
+            return false;
+        }
+        Customer customerById = customerService.findCustomerById(tenantId, customerId);
+        return customerById == null;
     }
 
     private EntityId getOwnerId(TenantId tenantId, CustomerId customerId) {

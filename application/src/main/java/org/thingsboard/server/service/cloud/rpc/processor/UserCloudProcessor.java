@@ -84,6 +84,9 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                         if (!created) {
                             changeOwnerIfRequired(tenantId, user.getCustomerId(), userId);
                         }
+                        if (isCustomerNotExists(tenantId, user.getCustomerId())) {
+                            user.setCustomerId(null);
+                        }
                         User savedUser = userService.saveUser(tenantId, user, false);
                         if (created) {
                             createDefaultUserCredentials(savedUser.getTenantId(), savedUser.getId());

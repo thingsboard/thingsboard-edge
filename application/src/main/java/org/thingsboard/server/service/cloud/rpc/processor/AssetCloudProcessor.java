@@ -36,7 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
@@ -175,11 +174,8 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
 
     @Override
     protected void setCustomerId(TenantId tenantId, CustomerId customerId, Asset asset, AssetUpdateMsg assetUpdateMsg, EdgeVersion edgeVersion) {
-        CustomerId assignedCustomerId = asset.getCustomerId();
-        Customer customer = null;
-        if (assignedCustomerId != null) {
-            customer = customerService.findCustomerById(tenantId, assignedCustomerId);
+        if (isCustomerNotExists(tenantId, asset.getCustomerId())) {
+            asset.setCustomerId(null);
         }
-        asset.setCustomerId(customer != null ? customer.getId() : null);
     }
 }

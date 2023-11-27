@@ -37,7 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EdgeUtils;
@@ -294,11 +293,8 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
 
     @Override
     protected void setCustomerId(TenantId tenantId, CustomerId customerId, Device device, DeviceUpdateMsg deviceUpdateMsg, EdgeVersion edgeVersion) {
-        CustomerId assignedCustomerId = device.getCustomerId();
-        Customer customer = null;
-        if (assignedCustomerId != null) {
-            customer = customerService.findCustomerById(tenantId, assignedCustomerId);
+        if (isCustomerNotExists(tenantId, device.getCustomerId())) {
+            device.setCustomerId(null);
         }
-        device.setCustomerId(customer != null ? customer.getId() : null);
     }
 }
