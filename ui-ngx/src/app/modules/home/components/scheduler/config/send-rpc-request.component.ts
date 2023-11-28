@@ -86,6 +86,7 @@ export class SendRpcRequestComponent implements ControlValueAccessor, OnInit, Af
       ),
       metadata: this.fb.group(
         {
+          oneway: [null, []],
           timeout: [null, [Validators.min(0)]],
           persistent: [null, []]
         }

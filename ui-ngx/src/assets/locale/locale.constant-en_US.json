@@ -5053,7 +5053,7 @@
         "invalid-time": "Invalid time",
         "rpc-request-timeout": "RPC request timeout (ms)",
         "rpc-request-persistent": "RPC request persistent",
-        "rpc-persistent-polling-interval": "If enabled polling interval (ms) could be entered to get persistent RPC command response",
+        "rpc-request-oneway-command": "One-way RPC request",
         "rpc-value-min-error": "Value must be more then {{min}} ms.",
         "set": "Set",
         "rpc-settings": "RPC settings"

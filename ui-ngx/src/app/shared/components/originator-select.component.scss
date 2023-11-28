@@ -28,24 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host ::ng-deep {
-  .tb-originator-select {
-    tb-entity-select {
-      tb-entity-type-select {
-        width: 100%;
-      }
-
-      tb-entity-autocomplete {
-        min-width: 50%;
-      }
-    }
-
-    tb-owner-autocomplete {
+.tb-originator-select {
+  tb-entity-select {
+    tb-entity-type-select {
       width: 100%;
     }
 
-    tb-entity-group-select {
+    tb-entity-autocomplete {
       min-width: 50%;
     }
+  }
+
+  tb-owner-autocomplete {
+    width: 100%;
+  }
+
+  tb-entity-group-select {
+    min-width: 50%;
   }
 }

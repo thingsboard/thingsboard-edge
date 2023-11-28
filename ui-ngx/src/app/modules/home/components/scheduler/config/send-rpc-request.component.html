@@ -89,6 +89,11 @@
         </div>
       </div>
       <div class="tb-form-row column-xs" fxLayoutAlign="space-between center">
+        <mat-slide-toggle class="mat-slide fixed-title-width" formControlName="oneway">
+          {{ 'scheduler.rpc-request-oneway-command' | translate }}
+        </mat-slide-toggle>
+      </div>
+      <div class="tb-form-row column-xs" fxLayoutAlign="space-between center">
         <mat-slide-toggle class="mat-slide fixed-title-width" formControlName="persistent">
           {{ 'scheduler.rpc-request-persistent' | translate }}
         </mat-slide-toggle>
