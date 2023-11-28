@@ -38,6 +38,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 
 public interface WhiteLabelingService {
 
@@ -94,4 +95,6 @@ public interface WhiteLabelingService {
     JsonNode findMailTemplatesByTenantId(TenantId tenantId, TenantId settingsTenantId);
 
     JsonNode getMergedTenantMailTemplates(TenantId tenantId) throws ThingsboardException;
+
+    WhiteLabeling findByEntityId(TenantId tenantId, EntityId entityId, WhiteLabelingType type);
 }

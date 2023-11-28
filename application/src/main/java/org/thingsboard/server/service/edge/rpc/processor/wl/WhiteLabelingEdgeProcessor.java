@@ -48,14 +48,19 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.LoginWhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.v1.WhiteLabelingParamsProto;
+import org.thingsboard.server.gen.edge.v1.WhiteLabelingProto;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,54 +71,85 @@ import java.util.UUID;
 @TbCoreComponent
 public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg convertWhiteLabelingEventToDownlink(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertWhiteLabelingEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         DownlinkMsg result = null;
         try {
-            EntityId entityId = JacksonUtil.OBJECT_MAPPER.convertValue(edgeEvent.getBody(), EntityId.class);
-            switch (entityId.getEntityType()) {
-                case TENANT:
-                    if (EntityId.NULL_UUID.equals(entityId.getId())) {
-                        WhiteLabelingParams systemWhiteLabelingParams =
-                                whiteLabelingService.getSystemWhiteLabelingParams(edgeEvent.getTenantId());
-                        if (isDefaultWhiteLabeling(systemWhiteLabelingParams)) {
-                            return null;
-                        }
-                        WhiteLabelingParamsProto whiteLabelingParamsProto =
-                                whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(systemWhiteLabelingParams, entityId);
-                        result = DownlinkMsg.newBuilder()
-                                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                                .setSystemWhiteLabelingParams(whiteLabelingParamsProto)
-                                .build();
-                    } else {
-                        WhiteLabelingParams tenantWhiteLabelingParams =
-                                whiteLabelingService.getTenantWhiteLabelingParams(edgeEvent.getTenantId());
-                        if (isDefaultWhiteLabeling(tenantWhiteLabelingParams)) {
-                            return null;
-                        }
-                        WhiteLabelingParamsProto whiteLabelingParamsProto =
-                                whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(tenantWhiteLabelingParams, entityId);
-                        result = DownlinkMsg.newBuilder()
-                                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                                .setTenantWhiteLabelingParams(whiteLabelingParamsProto)
-                                .build();
-                    }
-                    break;
-                case CUSTOMER:
-                    CustomerId customerId = new CustomerId(entityId.getId());
-                    WhiteLabelingParams customerWhiteLabelingParams =
-                            whiteLabelingService.getCustomerWhiteLabelingParams(edgeEvent.getTenantId(), customerId);
-                    if (isDefaultWhiteLabeling(customerWhiteLabelingParams)) {
+            EntityId entityId = JacksonUtil.convertValue(edgeEvent.getBody(), EntityId.class);
+            if (entityId == null) {
+                return null;
+            }
+            if (EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_6_1)) {
+                return constructDeprecatedWhiteLabelingEvent(edgeEvent, entityId);
+            }
+            WhiteLabeling whiteLabeling = whiteLabelingService.findByEntityId(edgeEvent.getTenantId(), entityId, getWhiteLabelingType(edgeEvent.getType()));
+            if (whiteLabeling == null) {
+                return null;
+            }
+            WhiteLabelingProto whiteLabelingProto = whiteLabelingParamsProtoConstructor.constructWhiteLabeling(whiteLabeling);
+            result = DownlinkMsg.newBuilder()
+                    .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                    .setWhiteLabelingProto(whiteLabelingProto)
+                    .build();
+        } catch (Exception e) {
+            log.error("Can't process white labeling msg [{}]", edgeEvent, e);
+        }
+        return result;
+    }
+
+    private WhiteLabelingType getWhiteLabelingType(EdgeEventType type) {
+        switch (type) {
+            case WHITE_LABELING:
+                return WhiteLabelingType.GENERAL;
+            case MAIL_TEMPLATES:
+                return WhiteLabelingType.MAIL_TEMPLATES;
+            default:
+                return null;
+        }
+    }
+
+    private DownlinkMsg constructDeprecatedWhiteLabelingEvent(EdgeEvent edgeEvent, EntityId entityId) {
+        DownlinkMsg result = null;
+        switch (entityId.getEntityType()) {
+            case TENANT:
+                if (EntityId.NULL_UUID.equals(entityId.getId())) {
+                    WhiteLabelingParams systemWhiteLabelingParams =
+                            whiteLabelingService.getSystemWhiteLabelingParams(edgeEvent.getTenantId());
+                    if (isDefaultWhiteLabeling(systemWhiteLabelingParams)) {
                         return null;
                     }
                     WhiteLabelingParamsProto whiteLabelingParamsProto =
-                            whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(customerWhiteLabelingParams, customerId);
+                            whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(systemWhiteLabelingParams, entityId);
                     result = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .setCustomerWhiteLabelingParams(whiteLabelingParamsProto)
+                            .setSystemWhiteLabelingParams(whiteLabelingParamsProto)
                             .build();
-            }
-        } catch (Exception e) {
-            log.error("Can't process white labeling msg [{}]", edgeEvent, e);
+                } else {
+                    WhiteLabelingParams tenantWhiteLabelingParams =
+                            whiteLabelingService.getTenantWhiteLabelingParams(edgeEvent.getTenantId());
+                    if (isDefaultWhiteLabeling(tenantWhiteLabelingParams)) {
+                        return null;
+                    }
+                    WhiteLabelingParamsProto whiteLabelingParamsProto =
+                            whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(tenantWhiteLabelingParams, entityId);
+                    result = DownlinkMsg.newBuilder()
+                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                            .setTenantWhiteLabelingParams(whiteLabelingParamsProto)
+                            .build();
+                }
+                break;
+            case CUSTOMER:
+                CustomerId customerId = new CustomerId(entityId.getId());
+                WhiteLabelingParams customerWhiteLabelingParams =
+                        whiteLabelingService.getCustomerWhiteLabelingParams(edgeEvent.getTenantId(), customerId);
+                if (isDefaultWhiteLabeling(customerWhiteLabelingParams)) {
+                    return null;
+                }
+                WhiteLabelingParamsProto whiteLabelingParamsProto =
+                        whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(customerWhiteLabelingParams, customerId);
+                result = DownlinkMsg.newBuilder()
+                        .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                        .setCustomerWhiteLabelingParams(whiteLabelingParamsProto)
+                        .build();
         }
         return result;
     }
@@ -122,54 +158,75 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
         return new WhiteLabelingParams().equals(whiteLabelingParams);
     }
 
-    public DownlinkMsg convertLoginWhiteLabelingEventToDownlink(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertLoginWhiteLabelingEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         DownlinkMsg result = null;
         try {
-            EntityId entityId = JacksonUtil.OBJECT_MAPPER.convertValue(edgeEvent.getBody(), EntityId.class);
-            switch (entityId.getEntityType()) {
-                case TENANT:
-                    if (EntityId.NULL_UUID.equals(entityId.getId())) {
-                        LoginWhiteLabelingParams systemLoginWhiteLabelingParams =
-                                whiteLabelingService.getSystemLoginWhiteLabelingParams(edgeEvent.getTenantId());
-                        if (isDefaultLoginWhiteLabeling(systemLoginWhiteLabelingParams)) {
-                            return null;
-                        }
-                        LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto =
-                                whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(systemLoginWhiteLabelingParams, entityId);
-                        result = DownlinkMsg.newBuilder()
-                                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                                .setSystemLoginWhiteLabelingParams(loginWhiteLabelingParamsProto)
-                                .build();
-                    } else {
-                        LoginWhiteLabelingParams tenantLoginWhiteLabelingParams =
-                                whiteLabelingService.getTenantLoginWhiteLabelingParams(edgeEvent.getTenantId());
-                        if (isDefaultLoginWhiteLabeling(tenantLoginWhiteLabelingParams)) {
-                            return null;
-                        }
-                        LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto =
-                                whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(tenantLoginWhiteLabelingParams, entityId);
-                        result = DownlinkMsg.newBuilder()
-                                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                                .setTenantLoginWhiteLabelingParams(loginWhiteLabelingParamsProto)
-                                .build();
-                    }
-                    break;
-                case CUSTOMER:
-                    CustomerId customerId = new CustomerId(entityId.getId());
-                    LoginWhiteLabelingParams customerLoginWhiteLabelingParams =
-                            whiteLabelingService.getCustomerLoginWhiteLabelingParams(edgeEvent.getTenantId(), customerId);
-                    if (isDefaultLoginWhiteLabeling(customerLoginWhiteLabelingParams)) {
+            EntityId entityId = JacksonUtil.convertValue(edgeEvent.getBody(), EntityId.class);
+            if (entityId == null) {
+                return null;
+            }
+            if (EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_6_1)) {
+                return constructDeprecatedLoginWhiteLabelingEvent(edgeEvent, entityId);
+            }
+            WhiteLabeling whiteLabeling = whiteLabelingService.findByEntityId(edgeEvent.getTenantId(), entityId, WhiteLabelingType.LOGIN);
+            if (whiteLabeling == null) {
+                return null;
+            }
+            WhiteLabelingProto whiteLabelingProto = whiteLabelingParamsProtoConstructor.constructWhiteLabeling(whiteLabeling);
+            result = DownlinkMsg.newBuilder()
+                    .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                    .setWhiteLabelingProto(whiteLabelingProto)
+                    .build();
+        } catch (Exception e) {
+            log.error("Can't process login white labeling msg [{}]", edgeEvent, e);
+        }
+        return result;
+    }
+
+
+    private DownlinkMsg constructDeprecatedLoginWhiteLabelingEvent(EdgeEvent edgeEvent, EntityId entityId) throws Exception {
+        DownlinkMsg result = null;
+        switch (entityId.getEntityType()) {
+            case TENANT:
+                if (EntityId.NULL_UUID.equals(entityId.getId())) {
+                    LoginWhiteLabelingParams systemLoginWhiteLabelingParams =
+                            whiteLabelingService.getSystemLoginWhiteLabelingParams(edgeEvent.getTenantId());
+                    if (isDefaultLoginWhiteLabeling(systemLoginWhiteLabelingParams)) {
                         return null;
                     }
                     LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto =
-                            whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(customerLoginWhiteLabelingParams, customerId);
+                            whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(systemLoginWhiteLabelingParams, entityId);
                     result = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .setCustomerLoginWhiteLabelingParams(loginWhiteLabelingParamsProto)
+                            .setSystemLoginWhiteLabelingParams(loginWhiteLabelingParamsProto)
                             .build();
-            }
-        } catch (Exception e) {
-            log.error("Can't process login white labeling msg [{}]", edgeEvent, e);
+                } else {
+                    LoginWhiteLabelingParams tenantLoginWhiteLabelingParams =
+                            whiteLabelingService.getTenantLoginWhiteLabelingParams(edgeEvent.getTenantId());
+                    if (isDefaultLoginWhiteLabeling(tenantLoginWhiteLabelingParams)) {
+                        return null;
+                    }
+                    LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto =
+                            whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(tenantLoginWhiteLabelingParams, entityId);
+                    result = DownlinkMsg.newBuilder()
+                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                            .setTenantLoginWhiteLabelingParams(loginWhiteLabelingParamsProto)
+                            .build();
+                }
+                break;
+            case CUSTOMER:
+                CustomerId customerId = new CustomerId(entityId.getId());
+                LoginWhiteLabelingParams customerLoginWhiteLabelingParams =
+                        whiteLabelingService.getCustomerLoginWhiteLabelingParams(edgeEvent.getTenantId(), customerId);
+                if (isDefaultLoginWhiteLabeling(customerLoginWhiteLabelingParams)) {
+                    return null;
+                }
+                LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto =
+                        whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(customerLoginWhiteLabelingParams, customerId);
+                result = DownlinkMsg.newBuilder()
+                        .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                        .setCustomerLoginWhiteLabelingParams(loginWhiteLabelingParamsProto)
+                        .build();
         }
         return result;
     }
@@ -181,7 +238,10 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
     public DownlinkMsg convertCustomTranslationEventToDownlink(EdgeEvent edgeEvent) {
         DownlinkMsg result = null;
         try {
-            EntityId entityId = JacksonUtil.OBJECT_MAPPER.convertValue(edgeEvent.getBody(), EntityId.class);
+            EntityId entityId = JacksonUtil.convertValue(edgeEvent.getBody(), EntityId.class);
+            if (entityId == null) {
+                return null;
+            }
             switch (entityId.getEntityType()) {
                 case TENANT:
                     if (EntityId.NULL_UUID.equals(entityId.getId())) {
@@ -239,7 +299,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
         EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());
         EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(EdgeEventType.valueOf(edgeNotificationMsg.getEntityType()),
                 new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
-        EdgeId sourceEdgeId = safeGetEdgeId(edgeNotificationMsg.getSourceEdgeIdMSB(), edgeNotificationMsg.getSourceEdgeIdLSB());
+        EdgeId sourceEdgeId = safeGetEdgeId(edgeNotificationMsg.getOriginatorEdgeIdMSB(), edgeNotificationMsg.getOriginatorEdgeIdLSB());
         switch (entityId.getEntityType()) {
             case TENANT:
                 List<ListenableFuture<Void>> futures = new ArrayList<>();

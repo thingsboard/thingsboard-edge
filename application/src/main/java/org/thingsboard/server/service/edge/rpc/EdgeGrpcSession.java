@@ -658,7 +658,7 @@ public final class EdgeGrpcSession implements Closeable {
             case WIDGETS_BUNDLE:
                 return ctx.getWidgetBundleProcessor().convertWidgetsBundleEventToDownlink(edgeEvent);
             case WIDGET_TYPE:
-                return ctx.getWidgetTypeProcessor().convertWidgetTypeEventToDownlink(edgeEvent);
+                return ctx.getWidgetTypeProcessor().convertWidgetTypeEventToDownlink(edgeEvent, this.edgeVersion);
             case ADMIN_SETTINGS:
                 return ctx.getAdminSettingsProcessor().convertAdminSettingsEventToDownlink(edgeEvent);
             case OTA_PACKAGE:
@@ -672,9 +672,10 @@ public final class EdgeGrpcSession implements Closeable {
             case ENTITY_GROUP:
                 return ctx.getEntityGroupProcessor().convertEntityGroupEventToDownlink(edgeEvent);
             case WHITE_LABELING:
-                return ctx.getWhiteLabelingProcessor().convertWhiteLabelingEventToDownlink(edgeEvent);
+            case MAIL_TEMPLATES:
+                return ctx.getWhiteLabelingProcessor().convertWhiteLabelingEventToDownlink(edgeEvent, this.edgeVersion);
             case LOGIN_WHITE_LABELING:
-                return ctx.getWhiteLabelingProcessor().convertLoginWhiteLabelingEventToDownlink(edgeEvent);
+                return ctx.getWhiteLabelingProcessor().convertLoginWhiteLabelingEventToDownlink(edgeEvent, this.edgeVersion);
             case CUSTOM_TRANSLATION:
                 return ctx.getWhiteLabelingProcessor().convertCustomTranslationEventToDownlink(edgeEvent);
             case ROLE:
@@ -686,9 +687,9 @@ public final class EdgeGrpcSession implements Closeable {
             case CONVERTER:
                 return ctx.getConverterProcessor().convertConverterEventToDownlink(edgeEvent);
             case TENANT:
-                return ctx.getTenantEdgeProcessor().convertTenantEventToDownlink(edgeEvent);
+                return ctx.getTenantEdgeProcessor().convertTenantEventToDownlink(edgeEvent, this.getEdgeVersion());
             case TENANT_PROFILE:
-                return ctx.getTenantProfileEdgeProcessor().convertTenantProfileEventToDownlink(edgeEvent);
+                return ctx.getTenantProfileEdgeProcessor().convertTenantProfileEventToDownlink(edgeEvent, this.getEdgeVersion());
             default:
                 log.warn("[{}] Unsupported edge event type [{}]", this.tenantId, edgeEvent);
                 return null;

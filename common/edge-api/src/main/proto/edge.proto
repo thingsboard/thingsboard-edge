@@ -50,6 +50,7 @@ enum EdgeVersion {
   V_3_3_3 = 1;
   V_3_4_0 = 2;
   V_3_6_0 = 3;
+  V_3_6_1 = 4;
 }
 
 /**
@@ -393,8 +394,8 @@ message WidgetsBundleUpdateMsg {
   optional bytes image = 6;
   bool isSystem = 7;
   optional string description = 8;
-  optional int32 order = 9;
-  optional string widgets = 10;
+  optional string widgets = 9;
+  optional int32 order = 10;
 }
 
 message WidgetTypeUpdateMsg {
@@ -582,6 +583,7 @@ enum EdgeEntityType {
 }
 
 message LoginWhiteLabelingParamsProto {
+  option deprecated = true;
   WhiteLabelingParamsProto whiteLabelingParams = 1;
   optional string pageBackgroundColor = 2;
   bool darkForeground = 3;
@@ -591,6 +593,7 @@ message LoginWhiteLabelingParamsProto {
 }
 
 message WhiteLabelingParamsProto {
+  option deprecated = true;
   optional string logoImageUrl = 1;
   optional string logoImageChecksum = 2;
   optional int64 logoImageHeight = 3;
@@ -609,17 +612,24 @@ message WhiteLabelingParamsProto {
   optional string entityType = 16;
 }
 
+message WhiteLabelingProto {
+  string entity = 1;
+}
+
 message FaviconProto {
+  option deprecated = true;
   optional string url = 1;
   optional string type = 2;
 }
 
 message PaletteSettingsProto {
+  option deprecated = true;
   PaletteProto primaryPalette = 1;
   PaletteProto accentPalette = 2;
 }
 
 message PaletteProto {
+  option deprecated = true;
   optional string type = 1;
   optional string extendsPalette = 2;
   map<string, string> colors = 3;
@@ -804,12 +814,12 @@ message DownlinkMsg {
   repeated WidgetTypeUpdateMsg widgetTypeUpdateMsg = 19;
   repeated AdminSettingsUpdateMsg adminSettingsUpdateMsg = 20;
   repeated DeviceRpcCallMsg deviceRpcCallMsg = 21;
-  WhiteLabelingParamsProto systemWhiteLabelingParams = 22;
-  WhiteLabelingParamsProto tenantWhiteLabelingParams = 23;
-  WhiteLabelingParamsProto customerWhiteLabelingParams = 24;
-  LoginWhiteLabelingParamsProto systemLoginWhiteLabelingParams = 25;
-  LoginWhiteLabelingParamsProto tenantLoginWhiteLabelingParams = 26;
-  LoginWhiteLabelingParamsProto customerLoginWhiteLabelingParams = 27;
+  WhiteLabelingParamsProto systemWhiteLabelingParams = 22 [deprecated = true];
+  WhiteLabelingParamsProto tenantWhiteLabelingParams = 23 [deprecated = true];
+  WhiteLabelingParamsProto customerWhiteLabelingParams = 24 [deprecated = true];
+  LoginWhiteLabelingParamsProto systemLoginWhiteLabelingParams = 25 [deprecated = true];
+  LoginWhiteLabelingParamsProto tenantLoginWhiteLabelingParams = 26 [deprecated = true];
+  LoginWhiteLabelingParamsProto customerLoginWhiteLabelingParams = 27 [deprecated = true];
   CustomTranslationProto systemCustomTranslationMsg = 28;
   CustomTranslationProto tenantCustomTranslationMsg = 29;
   CustomTranslationProto customerCustomTranslationMsg = 30;
@@ -826,4 +836,5 @@ message DownlinkMsg {
   repeated TenantUpdateMsg tenantUpdateMsg = 41;
   repeated TenantProfileUpdateMsg tenantProfileUpdateMsg = 42;
   repeated ResourceUpdateMsg resourceUpdateMsg = 43;
+  WhiteLabelingProto whiteLabelingProto = 44;
 }

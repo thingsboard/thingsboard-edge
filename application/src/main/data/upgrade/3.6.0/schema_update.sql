@@ -66,4 +66,3 @@ DELETE FROM admin_settings WHERE key = 'mailTemplates';
 DELETE FROM attribute_kv WHERE entity_type = 'TENANT' AND entity_id IN (SELECT id FROM TENANT)
                            AND attribute_type = 'SERVER_SCOPE' AND  attribute_key = 'mailTemplates';
 -- MAIL TEMPLATES MIGRATION END
-

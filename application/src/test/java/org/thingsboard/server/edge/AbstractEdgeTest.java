@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.MessageLite;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -91,9 +92,12 @@ import org.thingsboard.server.common.data.query.NumericFilterPredicate;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
+import org.thingsboard.server.common.data.security.model.JwtSettings;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.controller.AbstractControllerTest;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.edge.imitator.EdgeImitator;
@@ -113,6 +117,7 @@ import org.thingsboard.server.gen.edge.v1.TenantProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.TenantUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.gen.edge.v1.WhiteLabelingProto;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 
 import java.util.ArrayList;
@@ -120,7 +125,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -130,6 +134,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "queue.rule-engine.stats.enabled=false",
         "edges.storage.sleep_between_batches=1000"
 })
+@Slf4j
 abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
     protected static final String THERMOSTAT_DEVICE_PROFILE_NAME = "Thermostat";
@@ -156,12 +161,17 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         doPost("/api/whiteLabel/whiteLabelParams", new WhiteLabelingParams(), WhiteLabelingParams.class);
         doPost("/api/customTranslation/customTranslation", new CustomTranslation(), CustomTranslation.class);
 
+        // get jwt settings from yaml config
+        JwtSettings settings = doGet("/api/admin/jwtSettings", JwtSettings.class);
+        // save jwt settings into db
+        doPost("/api/admin/jwtSettings", settings).andExpect(status().isOk());
+
         loginTenantAdmin();
 
         installation();
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.expectMessageAmount(22);
+        edgeImitator.expectMessageAmount(27);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();
@@ -208,11 +218,6 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         extendDeviceProfileData(thermostatDeviceProfile);
         thermostatDeviceProfile = doPost("/api/deviceProfile", thermostatDeviceProfile, DeviceProfile.class);
 
-        try {
-            // make sure to NOT include device profile save message into edge queue
-            TimeUnit.MILLISECONDS.sleep(500);
-        } catch (Exception ignored) {}
-
         edge = doPost("/api/edge", constructEdge("Test Edge", "test"), Edge.class);
     }
 
@@ -252,49 +257,76 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         validateEdgeConfiguration();
 
         // 1 message from queue fetcher
+        validateMsgsCnt(QueueUpdateMsg.class, 1);
         validateQueues();
 
         // 1 from rule chain fetcher
+        validateMsgsCnt(RuleChainUpdateMsg.class, 1);
         UUID ruleChainUUID = validateRuleChains();
 
         // 1 from request message
+        validateMsgsCnt(RuleChainMetadataUpdateMsg.class, 1);
         validateRuleChainMetadataUpdates(ruleChainUUID);
 
-        // 2 messages from fetcher (general', 'mail')
-        validateAdminSettings();
+        // 5 messages ('general', 'mail', 'connectivity', 'jwt', 'customTranslation')
+        validateMsgsCnt(AdminSettingsUpdateMsg.class, 5);
+        validateAdminSettings(5);
 
         // 3 messages
         // - 1 from default profile fetcher
         // - 2 from device profile fetcher (default and thermostat)
-        validateDeviceProfiles();
+        validateMsgsCnt(DeviceProfileUpdateMsg.class, 3);
+        validateDeviceProfiles(3);
 
         // 2 messages
         // - 1 from default profile fetcher
         // - 1 message from asset profile fetcher
-        validateAssetProfiles();
+        validateMsgsCnt(AssetProfileUpdateMsg.class, 2);
+        validateAssetProfiles(2);
 
         // 1 message from public customer fetcher
+        validateMsgsCnt(CustomerUpdateMsg.class, 1);
         validatePublicCustomer();
 
         // 5 messages
         // - 2 messages from SysAdminRolesEdgeEventFetcher
         // - 2 messages from TenantRolesEdgeEventFetcher
         // - 1 message from public customer role
+        validateMsgsCnt(RoleProto.class, 5);
         validateRoles();
 
         // 3 messages
         // - 2 messages from fetcher
         // - 1 message from public customer user group
+        validateMsgsCnt(EntityGroupUpdateMsg.class, 3);
         validateEntityGroups();
 
         // 1 from tenant fetcher
+        validateMsgsCnt(TenantUpdateMsg.class, 1);
         validateTenant();
 
         // 1 from tenant profile fetcher
+        validateMsgsCnt(TenantProfileUpdateMsg.class, 1);
         validateTenantProfile();
 
+        // 2 messages from fetcher: 'login' and 'general'
+        validateMsgsCnt(WhiteLabelingProto.class, 2);
+        validateWhiteLabeling();
+
         // 1 message sync completed
+        validateMsgsCnt(SyncCompletedMsg.class, 1);
         validateSyncCompleted();
+    }
+
+    private <T extends AbstractMessage> void validateMsgsCnt(Class<T> clazz, int expectedMsgCnt) {
+        List<T> downlinkMsgsByType = edgeImitator.findAllMessagesByType(clazz);
+        if (downlinkMsgsByType.size() != expectedMsgCnt) {
+            List<AbstractMessage> downlinkMsgs = edgeImitator.getDownlinkMsgs();
+            for (AbstractMessage downlinkMsg : downlinkMsgs) {
+                log.error("{}\n{}", downlinkMsg.getClass(), downlinkMsg);
+            }
+            Assert.fail("Unexpected message count for " + clazz + "! Expected: " + expectedMsgCnt + ", but found: " + downlinkMsgsByType.size());
+        }
     }
 
     private void validateEdgeConfiguration() throws Exception {
@@ -326,12 +358,12 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         testAutoGeneratedCodeByProtobuf(tenantProfileUpdateMsg);
     }
 
-    private void validateDeviceProfiles() throws Exception {
+    private void validateDeviceProfiles(int expectedMsgCnt) throws Exception {
         List<DeviceProfileUpdateMsg> deviceProfileUpdateMsgList = edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class);
         // default msg default device profile from fetcher
         // default msg
         // thermostat msg from device profile fetcher
-        Assert.assertEquals(3, deviceProfileUpdateMsgList.size());
+        Assert.assertEquals(expectedMsgCnt, deviceProfileUpdateMsgList.size());
         Optional<DeviceProfileUpdateMsg> thermostatProfileUpdateMsgOpt =
                 deviceProfileUpdateMsgList.stream().filter(dfum -> THERMOSTAT_DEVICE_PROFILE_NAME.equals(dfum.getName())).findAny();
         Assert.assertTrue(thermostatProfileUpdateMsgOpt.isPresent());
@@ -375,18 +407,29 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(expectedRuleChainUUID, ruleChainUUID);
     }
 
-    private void validateAdminSettings() {
+    private void validateAdminSettings(int expectedMsgCnt) {
         List<AdminSettingsUpdateMsg> adminSettingsUpdateMsgs = edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class);
-        Assert.assertEquals(2, adminSettingsUpdateMsgs.size());
+        Assert.assertEquals(expectedMsgCnt, adminSettingsUpdateMsgs.size());
 
         for (AdminSettingsUpdateMsg adminSettingsUpdateMsg : adminSettingsUpdateMsgs) {
-            if (adminSettingsUpdateMsg.getKey().equals("mail")) {
-                validateMailAdminSettings(adminSettingsUpdateMsg);
-            }
             if (adminSettingsUpdateMsg.getKey().equals("general")) {
                 validateGeneralAdminSettings(adminSettingsUpdateMsg);
             }
+            if (adminSettingsUpdateMsg.getKey().equals("mail")) {
+                validateMailAdminSettings(adminSettingsUpdateMsg);
+            }
+            if (adminSettingsUpdateMsg.getKey().equals("connectivity")) {
+                validateConnectivityAdminSettings(adminSettingsUpdateMsg);
+            }
+            if (adminSettingsUpdateMsg.getKey().equals("customTranslation")) {
+                validateCustomTranslationAdminSettings(adminSettingsUpdateMsg);
+            }
         }
+    }
+
+    private void validateGeneralAdminSettings(AdminSettingsUpdateMsg adminSettingsUpdateMsg) {
+        JsonNode jsonNode = JacksonUtil.toJsonNode(adminSettingsUpdateMsg.getJsonValue());
+        Assert.assertNotNull(jsonNode.get("baseUrl"));
     }
 
     private void validateMailAdminSettings(AdminSettingsUpdateMsg adminSettingsUpdateMsg) {
@@ -398,14 +441,24 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertNotNull(jsonNode.get("timeout"));
     }
 
-    private void validateGeneralAdminSettings(AdminSettingsUpdateMsg adminSettingsUpdateMsg) {
+    private void validateConnectivityAdminSettings(AdminSettingsUpdateMsg adminSettingsUpdateMsg) {
         JsonNode jsonNode = JacksonUtil.toJsonNode(adminSettingsUpdateMsg.getJsonValue());
-        Assert.assertNotNull(jsonNode.get("baseUrl"));
+        Assert.assertNotNull(jsonNode.get("http"));
+        Assert.assertNotNull(jsonNode.get("https"));
+        Assert.assertNotNull(jsonNode.get("mqtt"));
+        Assert.assertNotNull(jsonNode.get("mqtts"));
+        Assert.assertNotNull(jsonNode.get("coap"));
+        Assert.assertNotNull(jsonNode.get("coaps"));
     }
 
-    private void validateAssetProfiles() throws Exception {
+    private void validateCustomTranslationAdminSettings(AdminSettingsUpdateMsg adminSettingsUpdateMsg) {
+        JsonNode jsonNode = JacksonUtil.toJsonNode(adminSettingsUpdateMsg.getJsonValue());
+        Assert.assertNotNull(jsonNode.get("value"));
+    }
+
+    private void validateAssetProfiles(int expectedMsgCnt) throws Exception {
         List<AssetProfileUpdateMsg> assetProfileUpdateMsgs = edgeImitator.findAllMessagesByType(AssetProfileUpdateMsg.class);
-        Assert.assertEquals(2, assetProfileUpdateMsgs.size());
+        Assert.assertEquals(expectedMsgCnt, assetProfileUpdateMsgs.size());
         AssetProfileUpdateMsg assetProfileUpdateMsg = assetProfileUpdateMsgs.get(0);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, assetProfileUpdateMsg.getMsgType());
         UUID assetProfileUUID = new UUID(assetProfileUpdateMsg.getIdMSB(), assetProfileUpdateMsg.getIdLSB());
@@ -450,6 +503,25 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Customer customer = doGet("/api/customer/" + customerUUID, Customer.class);
         Assert.assertNotNull(customer);
         Assert.assertTrue(customer.isPublic());
+    }
+
+    private void validateWhiteLabeling() {
+        List<WhiteLabelingProto> whiteLabelingProto = edgeImitator.findAllMessagesByType(WhiteLabelingProto.class);
+        Assert.assertEquals(2, whiteLabelingProto.size());
+        Optional<WhiteLabelingProto> loginWhiteLabeling =
+                whiteLabelingProto.stream().filter(login -> {
+                    WhiteLabeling whiteLabeling = JacksonUtil.fromStringIgnoreUnknownProperties(login.getEntity(), WhiteLabeling.class);
+                    Assert.assertNotNull(whiteLabeling);
+                    return WhiteLabelingType.LOGIN.equals(whiteLabeling.getType());
+                }).findAny();
+        Assert.assertTrue(loginWhiteLabeling.isPresent());
+        Optional<WhiteLabelingProto> generalWhiteLabeling =
+                whiteLabelingProto.stream().filter(general -> {
+                    WhiteLabeling whiteLabeling = JacksonUtil.fromStringIgnoreUnknownProperties(general.getEntity(), WhiteLabeling.class);
+                    Assert.assertNotNull(whiteLabeling);
+                    return WhiteLabelingType.LOGIN.equals(whiteLabeling.getType());
+                }).findAny();
+        Assert.assertTrue(generalWhiteLabeling.isPresent());
     }
 
     private void validateSyncCompleted() {

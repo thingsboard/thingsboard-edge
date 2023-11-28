@@ -42,11 +42,11 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
-import org.thingsboard.server.gen.edge.v1.LoginWhiteLabelingParamsProto;
-import org.thingsboard.server.gen.edge.v1.WhiteLabelingParamsProto;
+import org.thingsboard.server.gen.edge.v1.WhiteLabelingProto;
 
 @DaoSqlTest
 public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
@@ -99,9 +99,12 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         doPost("/api/whiteLabel/whiteLabelParams", whiteLabelingParams, WhiteLabelingParams.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-        Assert.assertTrue(latestMessage instanceof WhiteLabelingParamsProto);
-        WhiteLabelingParamsProto whiteLabelingParamsProto = (WhiteLabelingParamsProto) latestMessage;
-        Assert.assertEquals(updatedAppTitle, whiteLabelingParamsProto.getAppTitle());
+        Assert.assertTrue(latestMessage instanceof WhiteLabelingProto);
+        WhiteLabelingProto login = (WhiteLabelingProto) latestMessage;
+        WhiteLabeling whiteLabeling = JacksonUtil.fromStringIgnoreUnknownProperties(login.getEntity(), WhiteLabeling.class);
+        Assert.assertNotNull(whiteLabeling);
+        WhiteLabelingParams result = JacksonUtil.treeToValue(whiteLabeling.getSettings(), WhiteLabelingParams.class);
+        Assert.assertEquals(updatedAppTitle, result.getAppTitle());
     }
 
     @Test
@@ -152,9 +155,12 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-        Assert.assertTrue(latestMessage instanceof LoginWhiteLabelingParamsProto);
-        LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto = (LoginWhiteLabelingParamsProto) latestMessage;
-        Assert.assertEquals(color, loginWhiteLabelingParamsProto.getPageBackgroundColor());
+        Assert.assertTrue(latestMessage instanceof WhiteLabelingProto);
+        WhiteLabelingProto login = (WhiteLabelingProto) latestMessage;
+        WhiteLabeling whiteLabeling = JacksonUtil.fromStringIgnoreUnknownProperties(login.getEntity(), WhiteLabeling.class);
+        Assert.assertNotNull(whiteLabeling);
+        LoginWhiteLabelingParams result = JacksonUtil.treeToValue(whiteLabeling.getSettings(), LoginWhiteLabelingParams.class);
+        Assert.assertEquals(color, result.getPageBackgroundColor());
     }
 
     private void updateAndVerifyLoginWhiteLabelingUpdate(String updatedDomainName) throws Exception {
@@ -164,9 +170,12 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-        Assert.assertTrue(latestMessage instanceof LoginWhiteLabelingParamsProto);
-        LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto = (LoginWhiteLabelingParamsProto) latestMessage;
-        Assert.assertEquals(updatedDomainName, loginWhiteLabelingParamsProto.getDomainName());
+        Assert.assertTrue(latestMessage instanceof WhiteLabelingProto);
+        WhiteLabelingProto login = (WhiteLabelingProto) latestMessage;
+        WhiteLabeling whiteLabeling = JacksonUtil.fromStringIgnoreUnknownProperties(login.getEntity(), WhiteLabeling.class);
+        Assert.assertNotNull(whiteLabeling);
+        LoginWhiteLabelingParams result = JacksonUtil.treeToValue(whiteLabeling.getSettings(), LoginWhiteLabelingParams.class);
+        Assert.assertEquals(updatedDomainName.toLowerCase(), result.getDomainName());
     }
 
     @Test
