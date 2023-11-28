@@ -158,7 +158,7 @@ public class DefaultReportService implements ReportService {
     @Override
     public void generateDashboardReport(String baseUrl, DashboardId dashboardId, TenantId tenantId, UserId userId, String publicId,
                                         String reportName, JsonNode reportParams, Consumer<ReportData> onSuccess,
-                                        Consumer<Throwable> onFailure) {
+                                        Consumer<Throwable> onFailure) throws ThingsboardException {
         checkLimits(tenantId);
         log.trace("Executing generateDashboardReport, baseUrl [{}], dashboardId [{}], userId [{}]", baseUrl, dashboardId, userId);
 
@@ -185,7 +185,7 @@ public class DefaultReportService implements ReportService {
     }
 
     @Override
-    public void generateReport(TenantId tenantId, ReportConfig reportConfig, String reportsServerEndpointUrl, Consumer<ReportData> onSuccess, Consumer<Throwable> onFailure) {
+    public void generateReport(TenantId tenantId, ReportConfig reportConfig, String reportsServerEndpointUrl, Consumer<ReportData> onSuccess, Consumer<Throwable> onFailure) throws ThingsboardException {
         checkLimits(tenantId);
         log.trace("Executing generateReport, reportConfig [{}]", reportConfig);
 
@@ -223,7 +223,7 @@ public class DefaultReportService implements ReportService {
         });
     }
 
-    private JsonNode createDashboardReportRequest(TenantId tenantId, ReportConfig reportConfig) {
+    private JsonNode createDashboardReportRequest(TenantId tenantId, ReportConfig reportConfig) throws ThingsboardException {
         AccessJwtToken accessToken = calculateUserAccessToken(tenantId, new UserId(UUID.fromString(reportConfig.getUserId())));
         String token = accessToken.getToken();
         long expiration = accessToken.getClaims().getExpiration().getTime();
@@ -263,8 +263,11 @@ public class DefaultReportService implements ReportService {
         return name;
     }
 
-    private AccessJwtToken calculateUserAccessToken(TenantId tenantId, UserId userId) {
+    private AccessJwtToken calculateUserAccessToken(TenantId tenantId, UserId userId) throws ThingsboardException {
         User user = userService.findUserById(tenantId, userId);
+        if (user == null) {
+            throw new ThingsboardException("Configured user [id: " + userId + "] was not found in system. Please use other user credentials.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
         UserCredentials credentials = userService.findUserCredentialsByUserId(tenantId, userId);
         UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
         MergedUserPermissions mergedUserPermissions;
