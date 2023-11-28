@@ -31,6 +31,8 @@
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -55,6 +57,9 @@ import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.exception.DataValidationException;
@@ -384,6 +389,8 @@ public class OtaPackageControllerTest extends AbstractControllerTest {
     @Test
     public void testFindFirmwares_CustomerUserWithoutPermission() throws Exception {
         OtaPackageInfo savedFirmwareInfo = createOtaPackageInfo();
+        String apiOtaPackagesByProfileId = "/api/otaPackages/" + savedFirmwareInfo.getDeviceProfileId().toString() + "/FIRMWARE?";
+        String urlTemplateOtaPackageInfoById = "/api/otaPackage/info/" + savedFirmwareInfo.getId().toString();
 
         PageLink pageLink = new PageLink(24);
         String apiOtaPackages = "/api/otaPackages?";
@@ -392,24 +399,29 @@ public class OtaPackageControllerTest extends AbstractControllerTest {
                 }, pageLink);
         Assert.assertEquals(savedFirmwareInfo, pageData.getData().get(0));
 
-        String apiOtaPackagesByProfileId = "/api/otaPackages/" + savedFirmwareInfo.getDeviceProfileId().toString() + "/FIRMWARE?";
         pageData = doGetTypedWithPageLink(apiOtaPackagesByProfileId,
                 new TypeReference<>() {
                 }, pageLink);
         Assert.assertEquals(savedFirmwareInfo, pageData.getData().get(0));
 
+        doGet(urlTemplateOtaPackageInfoById)
+                .andExpect(status().isOk());
+
         // create Customer
         Customer savedCustomer = createCustomer();
 
-        EntityGroup userGroup = new EntityGroup();
-        userGroup.setType(EntityType.USER);
-        userGroup.setName("UserGroup without role");
-        userGroup.setOwnerId(savedCustomer.getId());
-        EntityGroupInfo savedUserGroupInfo = doPost("/api/entityGroup", userGroup, EntityGroupInfo.class);
+        EntityGroup customerUserGroup = new EntityGroup();
+        customerUserGroup.setType(EntityType.USER);
+        customerUserGroup.setName("Customer User Group");
+        customerUserGroup.setOwnerId(savedCustomer.getOwnerId());
+        customerUserGroup = doPost("/api/entityGroup", customerUserGroup, EntityGroup.class);
 
-        // create CustomerUser Without role
-        String pwd = "userWithoutRole";
-        User savedCustomerUser = createCustomerUser(savedCustomer, savedUserGroupInfo, "customerUserWithoutRole@thingsboard.org", pwd);
+        EntityGroupInfo savedUserGroupInfo =
+                doPostWithResponse("/api/entityGroup", customerUserGroup, EntityGroupInfo.class);
+
+        // create CustomerUser With All role
+        String pwd = "userWithAllRole";
+        User savedCustomerUser = createCustomerUser(savedCustomer, savedUserGroupInfo, "customerUserWithAllRole@thingsboard.org", pwd);
         loginUser(savedCustomerUser.getName(), pwd);
 
         Object[] vars = {pageLink.getPageSize(), pageLink.getPage()};
@@ -422,10 +434,16 @@ public class OtaPackageControllerTest extends AbstractControllerTest {
         doGet(urlTemplate, vars)
                 .andExpect(status().isForbidden())
                 .andExpect(statusReason(containsString("You don't have permission to perform 'READ' operation with 'OTA_PACKAGE' resource!")));
+
+        doGet(urlTemplateOtaPackageInfoById)
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString("ou don't have permission to perform 'READ' operation with OTA_PACKAGE 'My firmware'!")));
     }
     @Test
     public void testFindFirmwares_CustomerUserWithAllPermission() throws Exception {
-         OtaPackageInfo savedFirmwareInfo = createOtaPackageInfo();
+        OtaPackageInfo savedFirmwareInfo = createOtaPackageInfo();
+        String apiOtaPackagesByProfileId = "/api/otaPackages/" + savedFirmwareInfo.getDeviceProfileId().toString() + "/FIRMWARE?";
+        String urlTemplateOtaPackageInfoById = "/api/otaPackage/info/" + savedFirmwareInfo.getId().toString();
 
          PageLink pageLink = new PageLink(24);
          String apiOtaPackages = "/api/otaPackages?";
@@ -434,17 +452,47 @@ public class OtaPackageControllerTest extends AbstractControllerTest {
                  }, pageLink);
          Assert.assertEquals(savedFirmwareInfo, pageData.getData().get(0));
 
-         String apiOtaPackagesByProfileId = "/api/otaPackages/" + savedFirmwareInfo.getDeviceProfileId().toString() + "/FIRMWARE?";
          pageData = doGetTypedWithPageLink(apiOtaPackagesByProfileId,
                  new TypeReference<>() {
                  }, pageLink);
          Assert.assertEquals(savedFirmwareInfo, pageData.getData().get(0));
 
-         // create Customer
-         Customer savedCustomer = createCustomer();
+        OtaPackageInfo actualFirmwareInfo = doGet(urlTemplateOtaPackageInfoById, OtaPackageInfo.class);
+        Assert.assertEquals(savedFirmwareInfo, actualFirmwareInfo);
 
-         EntityGroupInfo savedUserGroupInfo = doGet("/api/entityGroup/"+ EntityType.CUSTOMER +"/"+savedCustomer.getId().toString()+"/"+EntityType.USER+"/"+EntityGroup.GROUP_CUSTOMER_ADMINS_NAME,
-                 EntityGroupInfo.class);
+        // create Customer
+        Customer savedCustomer = createCustomer();
+
+        EntityGroup customerUserGroup = new EntityGroup();
+        customerUserGroup.setType(EntityType.USER);
+        customerUserGroup.setName("Customer User Group");
+        customerUserGroup.setOwnerId(savedCustomer.getOwnerId());
+        customerUserGroup = doPost("/api/entityGroup", customerUserGroup, EntityGroup.class);
+
+        Role groupRole = new Role();
+        groupRole.setTenantId(savedTenant.getId());
+        groupRole.setName("Read Group Role");
+        groupRole.setType(RoleType.GROUP);
+        ArrayNode readPermissions = JacksonUtil.newArrayNode();
+        readPermissions.add("READ");
+        groupRole.setPermissions(readPermissions);
+
+        Role genericRole = new Role();
+        genericRole.setTenantId(savedTenant.getId());
+        genericRole.setName("Read Generic Role");
+        genericRole.setType(RoleType.GENERIC);
+        ObjectNode genericPermissions = JacksonUtil.newObjectNode();
+        genericPermissions.set("ALL", readPermissions);
+        genericRole.setPermissions(genericPermissions);
+        genericRole = doPost("/api/role", genericRole, Role.class);
+
+        GroupPermission genericPermission = new GroupPermission();
+        genericPermission.setRoleId(genericRole.getId());
+        genericPermission.setUserGroupId(customerUserGroup.getId());
+        doPost("/api/groupPermission", genericPermission, GroupPermission.class);
+
+        EntityGroupInfo savedUserGroupInfo =
+                doPostWithResponse("/api/entityGroup", customerUserGroup, EntityGroupInfo.class);
 
          // create CustomerUser With All role
          String pwd = "userWithAllRole";
@@ -459,6 +507,9 @@ public class OtaPackageControllerTest extends AbstractControllerTest {
          urlTemplate = apiOtaPackagesByProfileId + "pageSize={pageSize}&page={page}";
          doGet(urlTemplate, vars)
                  .andExpect(status().isOk());
+
+        actualFirmwareInfo = doGet(urlTemplateOtaPackageInfoById, OtaPackageInfo.class);
+        Assert.assertEquals(savedFirmwareInfo, actualFirmwareInfo);
     }
 
     @Test

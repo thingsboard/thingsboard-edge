@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasOwnerId;
+import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.alarm.Alarm;
@@ -152,10 +153,16 @@ public class CustomerUserPermissions extends AbstractPermissions {
             if (!user.getTenantId().equals(entity.getTenantId())) {
                 return false;
             }
+
+            Resource resource = Resource.resourceFromEntityType(entity.getEntityType());
+            if (entity instanceof OtaPackageInfo){
+                return user.getUserPermissions().hasGenericPermission(resource, operation);
+            }
+
             if (!(entity instanceof HasOwnerId)) {
                 return false;
             }
-            Resource resource = Resource.resourceFromEntityType(entity.getEntityType());
+
             if (entityId != null) {
                 if (ownersCacheService.getOwners(user.getTenantId(), entityId, ((HasOwnerId)entity)).contains(user.getOwnerId())) {
                     // This entity does not have groups, so we are checking only generic level permissions
