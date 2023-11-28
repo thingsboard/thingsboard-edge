@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [formGroup]="sendRpcRequestFormGroup" fxLayout="column" class="tb-send-rpc-request">
+<section [formGroup]="sendRpcRequestFormGroup" fxLayout="column" class="tb-send-rpc-request tb-form-panel no-border">
   <div class="tb-form-panel">
     <div class="tb-form-panel-title" translate>scheduler.target</div>
     <tb-originator-select
@@ -44,11 +44,11 @@
   </div>
   <fieldset class="tb-form-panel">
     <div class="tb-form-panel-title" translate>scheduler.rpc-settings</div>
-    <fieldset class="tb-form-panel-container" fxLayout="column" formGroupName="msgBody">
+    <fieldset class="tb-form-panel no-border" fxLayout="column" formGroupName="msgBody">
       <div class="tb-form-row column-xs" fxLayoutAlign="space-between center">
         <div class="fixed-title-width tb-required" translate>scheduler.rpc-method</div>
         <div class="max-width-content">
-          <mat-form-field appearance="outline" class="flex" subscriptSizing="dynamic">
+          <mat-form-field class="medium-width" appearance="outline" class="flex" subscriptSizing="dynamic">
             <input matInput formControlName="method" required>
             <mat-icon matSuffix
                       matTooltipPosition="above"
@@ -70,11 +70,11 @@
         [fillHeight]="true">
       </tb-json-object-edit>
     </fieldset>
-    <fieldset class="tb-form-panel-container" fxLayout="column" formGroupName="metadata">
+    <fieldset class="tb-form-panel no-border" fxLayout="column" formGroupName="metadata">
       <div class="tb-form-row column-xs" fxLayoutAlign="space-between center">
         <div class="fixed-title-width" translate>scheduler.rpc-request-timeout</div>
         <div class="max-width-content">
-          <mat-form-field appearance="outline" class="flex number" subscriptSizing="dynamic">
+          <mat-form-field class="medium-width" appearance="outline" class="flex number" subscriptSizing="dynamic">
             <input matInput type="number" min="0" formControlName="timeout"
                    placeholder="{{ 'scheduler.set' | translate }}">
             <mat-icon matSuffix

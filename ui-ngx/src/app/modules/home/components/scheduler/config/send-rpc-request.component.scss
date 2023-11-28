@@ -29,30 +29,6 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-:host {
-  .tb-send-rpc-request {
-    gap: 16px;
-
-    .tb-form-panel {
-      &-container {
-        gap: 16px;
-      }
-
-      .tb-form-row {
-        .max-width-content {
-          width: 100%;
-          max-width: 60%;
-
-          .mat-mdc-form-field {
-            width: 100%;
-          }
-        }
-
-      }
-    }
-  }
-}
-
 :host ::ng-deep {
   .tb-send-rpc-request {
     .tb-form-panel {

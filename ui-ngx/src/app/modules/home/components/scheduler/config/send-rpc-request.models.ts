@@ -48,8 +48,8 @@ export const sendRPCRequestDefaults: SchedulerEventConfiguration = {
   }
 };
 
-export const safeMerge = (defaults: SchedulerEventConfiguration,
-                          value: SchedulerEventConfiguration | null): SchedulerEventConfiguration => {
+export const safeMerge = (defaults: SchedulerEventConfiguration | { [key: string]: any },
+                          value: SchedulerEventConfiguration | { [key: string]: any } | null): SchedulerEventConfiguration => {
   const result = {...defaults};
 
   for (const key in value) {
@@ -58,7 +58,7 @@ export const safeMerge = (defaults: SchedulerEventConfiguration,
       if (isDefinedAndNotNull(valueToUpdate)) {
         if (isObject(valueToUpdate)) {
           if (Object.keys(valueToUpdate).length) {
-            result[key] = valueToUpdate;
+            result[key] = safeMerge(result[key], valueToUpdate);
           }
         } else {
           result[key] = valueToUpdate;
