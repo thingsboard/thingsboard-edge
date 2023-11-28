@@ -288,4 +288,17 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     return false;
   }
 
+  // saveAndAssignDashboard(dashboard: DashboardSetup): Observable<Dashboard> {
+  //   const {assignedCustomerIds, ...dashboardToCreate} = dashboard;
+  //
+  //   return this.dashboardService.saveDashboard(dashboardToCreate as Dashboard).pipe(
+  //     mergeMap((createdDashboard) => {
+  //       if (assignedCustomerIds?.length) {
+  //         return this.dashboardService.addDashboardCustomers(createdDashboard.id.id, assignedCustomerIds);
+  //       }
+  //       return of(createdDashboard);
+  //     })
+  //   );
+  // }
+
 }
