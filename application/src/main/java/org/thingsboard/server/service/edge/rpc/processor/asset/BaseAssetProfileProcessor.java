@@ -61,6 +61,7 @@ public abstract class BaseAssetProfileProcessor extends BaseEdgeProcessor {
             if (assetProfile == null) {
                 throw new RuntimeException("[{" + tenantId + "}] assetProfileUpdateMsg {" + assetProfileUpdateMsg + "} cannot be converted to asset profile");
             }
+            boolean isDefault = assetProfile.isDefault();
             AssetProfile assetProfileById = assetProfileService.findAssetProfileById(tenantId, assetProfileId);
             if (assetProfileById == null) {
                 created = true;
@@ -68,6 +69,7 @@ public abstract class BaseAssetProfileProcessor extends BaseEdgeProcessor {
             } else {
                 assetProfile.setId(assetProfileId);
             }
+            assetProfile.setDefault(false);
             String assetProfileName = assetProfile.getName();
             AssetProfile assetProfileByName = assetProfileService.findAssetProfileByName(tenantId, assetProfileName);
             if (assetProfileByName != null && !assetProfileByName.getId().equals(assetProfileId)) {
@@ -88,6 +90,9 @@ public abstract class BaseAssetProfileProcessor extends BaseEdgeProcessor {
                 assetProfile.setId(assetProfileId);
             }
             assetProfileService.saveAssetProfile(assetProfile, false);
+            if (isDefault) {
+                assetProfileService.setDefaultAssetProfile(tenantId, assetProfileId);
+            }
         } catch (Exception e) {
             log.error("[{}] Failed to process asset profile update msg [{}]", tenantId, assetProfileUpdateMsg, e);
             throw e;
@@ -100,7 +105,7 @@ public abstract class BaseAssetProfileProcessor extends BaseEdgeProcessor {
     private AssetProfile createAssetProfile(TenantId tenantId, AssetProfileId assetProfileId, AssetProfileUpdateMsg assetProfileUpdateMsg) {
         AssetProfile assetProfile = new AssetProfile();
         assetProfile.setTenantId(tenantId);
-        assetProfile.setName(assetProfile.getName());
+        assetProfile.setName(assetProfileUpdateMsg.getName());
         assetProfile.setCreatedTime(Uuids.unixTimestamp(assetProfileId.getId()));
         assetProfile.setDefault(assetProfileUpdateMsg.getDefault());
         assetProfile.setDefaultQueueName(assetProfileUpdateMsg.hasDefaultQueueName() ? assetProfileUpdateMsg.getDefaultQueueName() : null);
