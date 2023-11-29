@@ -42,12 +42,11 @@ import { Authority } from '@shared/models/authority.enum';
 import { Observable } from 'rxjs';
 import { EntityService } from '@core/http/entity.service';
 import { BaseData, HasId } from '@shared/models/base-data';
-import { HasTenantId } from '@shared/models/entity.models';
 import { map } from 'rxjs/operators';
 import { TbPopoverComponent } from '@shared/components/popover.component';
 
 interface ReferencedEntityInfo {
-  entity: BaseData<HasId> & HasTenantId;
+  entity: BaseData<HasId>;
   typeName: string;
   detailsUrl: string;
 }

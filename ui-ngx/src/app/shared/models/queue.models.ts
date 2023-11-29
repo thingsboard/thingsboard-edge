@@ -32,7 +32,6 @@
 import { BaseData } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { QueueId } from '@shared/models/id/queue-id';
-import { HasTenantId } from '@shared/models/entity.models';
 
 export enum ServiceType {
   TB_CORE = 'TB_CORE',
@@ -115,7 +114,7 @@ export const QueueProcessingStrategyTypesMap = new Map<QueueProcessingStrategyTy
     }]
   ]);
 
-export interface QueueInfo extends BaseData<QueueId>, HasTenantId {
+export interface QueueInfo extends BaseData<QueueId> {
   generatedId?: string;
   name: string;
   packProcessingTimeout: number;

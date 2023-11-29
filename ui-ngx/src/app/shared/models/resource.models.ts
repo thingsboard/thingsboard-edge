@@ -33,7 +33,6 @@ import { BaseData, ExportableEntity, HasId } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { TbResourceId } from '@shared/models/id/tb-resource-id';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
-import { HasTenantId } from '@shared/models/entity.models';
 
 export enum ResourceType {
   LWM2M_MODEL = 'LWM2M_MODEL',
@@ -72,7 +71,7 @@ export const ResourceTypeTranslationMap = new Map<ResourceType, string>(
   ]
 );
 
-export interface TbResourceInfo<D> extends Omit<BaseData<TbResourceId>, 'name' | 'label'>, HasTenantId, ExportableEntity<TbResourceId> {
+export interface TbResourceInfo<D> extends Omit<BaseData<TbResourceId>, 'name' | 'label'>, ExportableEntity<TbResourceId> {
   tenantId?: TenantId;
   resourceKey?: string;
   title?: string;
@@ -111,7 +110,7 @@ export interface ImageExportData {
 
 export type ImageResourceType = 'tenant' | 'system';
 
-export type ImageReferences = {[entityType: string]: Array<BaseData<HasId> & HasTenantId>};
+export type ImageReferences = {[entityType: string]: Array<BaseData<HasId>>};
 
 export interface ImageResourceInfoWithReferences extends ImageResourceInfo {
   references: ImageReferences;

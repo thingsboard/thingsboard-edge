@@ -37,7 +37,7 @@ import { DeviceCredentialsId } from '@shared/models/id/device-credentials-id';
 import { EntitySearchQuery } from '@shared/models/relation.models';
 import { DeviceProfileId } from '@shared/models/id/device-profile-id';
 import { RuleChainId } from '@shared/models/id/rule-chain-id';
-import { EntityInfoData, HasTenantId } from '@shared/models/entity.models';
+import { EntityInfoData } from '@shared/models/entity.models';
 import { FilterPredicateValue, KeyFilter } from '@shared/models/query/query.models';
 import { TimeUnit } from '@shared/models/time/time.models';
 import * as _moment from 'moment';
@@ -599,7 +599,7 @@ export interface DeviceProfileData {
   provisionConfiguration?: DeviceProvisionConfiguration;
 }
 
-export interface DeviceProfile extends BaseData<DeviceProfileId>, HasTenantId, ExportableEntity<DeviceProfileId> {
+export interface DeviceProfile extends BaseData<DeviceProfileId>, ExportableEntity<DeviceProfileId> {
   tenantId?: TenantId;
   name: string;
   description?: string;
@@ -618,7 +618,7 @@ export interface DeviceProfile extends BaseData<DeviceProfileId>, HasTenantId, E
   defaultEdgeRuleChainId?: RuleChainId;
 }
 
-export interface DeviceProfileInfo extends EntityInfoData, HasTenantId {
+export interface DeviceProfileInfo extends EntityInfoData {
   tenantId?: TenantId;
   type: DeviceProfileType;
   transportType: DeviceTransportType;
@@ -726,7 +726,7 @@ export interface DeviceData {
   transportConfiguration: DeviceTransportConfiguration;
 }
 
-export interface Device extends BaseData<DeviceId>, HasTenantId, ExportableEntity<DeviceId> {
+export interface Device extends BaseData<DeviceId>, ExportableEntity<DeviceId> {
   tenantId?: TenantId;
   customerId?: CustomerId;
   name?: string;

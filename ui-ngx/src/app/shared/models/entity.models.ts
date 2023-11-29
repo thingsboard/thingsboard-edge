@@ -200,7 +200,3 @@ export const entityFields: {[fieldName: string]: EntityField} = {
     value: 'originatorType'
   }
 };
-
-export interface HasTenantId {
-  tenantId?: TenantId;
-}

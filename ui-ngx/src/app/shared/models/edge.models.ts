@@ -38,9 +38,8 @@ import { RuleChainId } from '@shared/models/id/rule-chain-id';
 import { BaseEventBody } from '@shared/models/event.models';
 import { EventId } from '@shared/models/id/event-id';
 import { EntityType } from '@shared/models/entity-type.models';
-import { HasTenantId } from '@shared/models/entity.models';
 
-export interface Edge extends BaseData<EdgeId>, HasTenantId {
+export interface Edge extends BaseData<EdgeId> {
   tenantId?: TenantId;
   customerId?: CustomerId;
   name: string;
