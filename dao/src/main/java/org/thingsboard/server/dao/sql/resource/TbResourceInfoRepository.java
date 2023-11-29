@@ -37,6 +37,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.TbResourceInfoEntity;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface TbResourceInfoRepository extends JpaRepository<TbResourceInfoEntity, UUID> {
@@ -44,26 +45,43 @@ public interface TbResourceInfoRepository extends JpaRepository<TbResourceInfoEn
     @Query("SELECT tr FROM TbResourceInfoEntity tr WHERE " +
             "(:searchText IS NULL OR ilike(tr.title, CONCAT('%', :searchText, '%')) = true) " +
             "AND (tr.tenantId = :tenantId " +
-            "OR (tr.tenantId = :systemAdminId " +
+            "OR (tr.tenantId = :systemTenantId " +
             "AND NOT EXISTS " +
             "(SELECT sr FROM TbResourceEntity sr " +
             "WHERE sr.tenantId = :tenantId " +
             "AND tr.resourceType = sr.resourceType " +
             "AND tr.resourceKey = sr.resourceKey)))" +
-            "AND (:resourceType IS NULL OR tr.resourceType = :resourceType)")
+            "AND tr.resourceType IN :resourceTypes")
     Page<TbResourceInfoEntity> findAllTenantResourcesByTenantId(@Param("tenantId") UUID tenantId,
-                                                                @Param("systemAdminId") UUID sysadminId,
-                                                                @Param("resourceType") String resourceType,
+                                                                @Param("systemTenantId") UUID systemTenantId,
+                                                                @Param("resourceTypes") List<String> resourceTypes,
                                                                 @Param("searchText") String searchText,
                                                                 Pageable pageable);
 
     @Query("SELECT ri FROM TbResourceInfoEntity ri WHERE " +
             "ri.tenantId = :tenantId " +
-            "AND (:resourceType IS NULL OR ri.resourceType = :resourceType)" +
+            "AND ri.resourceType IN :resourceTypes " +
             "AND (:searchText IS NULL OR ilike(ri.title, CONCAT('%', :searchText, '%')) = true)")
     Page<TbResourceInfoEntity> findTenantResourcesByTenantId(@Param("tenantId") UUID tenantId,
-                                                             @Param("resourceType") String resourceType,
+                                                             @Param("resourceTypes") List<String> resourceTypes,
                                                              @Param("searchText") String searchText,
                                                              Pageable pageable);
 
+    TbResourceInfoEntity findByTenantIdAndResourceTypeAndResourceKey(UUID tenantId, String resourceType, String resourceKey);
+
+    boolean existsByTenantIdAndResourceTypeAndResourceKey(UUID tenantId, String resourceType, String resourceKey);
+
+    @Query(value = "SELECT r.resource_key FROM resource r WHERE r.tenant_id = :tenantId AND r.resource_type = :resourceType " +
+            "AND starts_with(r.resource_key, :resourceKeyStartsWith)", nativeQuery = true)
+    List<String> findKeysByTenantIdAndResourceTypeAndResourceKeyStartingWith(@Param("tenantId") UUID tenantId,
+                                                                             @Param("resourceType") String resourceType,
+                                                                             @Param("resourceKeyStartsWith") String resourceKeyStartsWith);
+
+    List<TbResourceInfoEntity> findByTenantIdAndEtagAndResourceKeyStartingWith(UUID tenantId, String etag, String query);
+
+    @Query(value = "SELECT * FROM resource r WHERE (r.tenant_id = :systemTenantId OR r.tenant_id = :tenantId) AND r.resource_type = :resourceType AND r.etag = :etag LIMIT 1", nativeQuery = true)
+    TbResourceInfoEntity findByTenantIdAndEtag(@Param("systemTenantId") UUID sysTenantId,
+                                               @Param("tenantId") UUID tenantId,
+                                               @Param("resourceType") String resourceType,
+                                               @Param("etag") String etag);
 }

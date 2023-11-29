@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.sql.asset;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -138,6 +139,16 @@ public class JpaAssetProfileDao extends JpaAbstractDao<AssetProfileEntity, Asset
     public AssetProfileId getExternalIdByInternal(AssetProfileId internalId) {
         return Optional.ofNullable(assetProfileRepository.getExternalIdById(internalId.getId()))
                 .map(AssetProfileId::new).orElse(null);
+    }
+
+    @Override
+    public List<AssetProfileInfo> findByTenantAndImageLink(TenantId tenantId, String imageLink, int limit) {
+        return assetProfileRepository.findByTenantAndImageLink(tenantId.getId(), imageLink, PageRequest.of(0, limit));
+    }
+
+    @Override
+    public List<AssetProfileInfo> findByImageLink(String imageLink, int limit) {
+        return assetProfileRepository.findByImageLink(imageLink, PageRequest.of(0, limit));
     }
 
     @Override

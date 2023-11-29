@@ -32,17 +32,20 @@ package org.thingsboard.server.dao.resource;
 
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResource;
+import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.ExportableEntityDao;
 import org.thingsboard.server.dao.TenantEntityWithDataDao;
 
 import java.util.List;
+import java.util.Set;
 
-public interface TbResourceDao extends Dao<TbResource>, TenantEntityWithDataDao {
+public interface TbResourceDao extends Dao<TbResource>, TenantEntityWithDataDao, ExportableEntityDao<TbResourceId, TbResource> {
 
-    TbResource getResource(TenantId tenantId, ResourceType resourceType, String resourceId);
+    TbResource findResourceByTenantIdAndKey(TenantId tenantId, ResourceType resourceType, String resourceId);
 
     PageData<TbResource> findAllByTenantId(TenantId tenantId, PageLink pageLink);
 
@@ -54,4 +57,10 @@ public interface TbResourceDao extends Dao<TbResource>, TenantEntityWithDataDao 
                                                             ResourceType resourceType,
                                                             String[] objectIds,
                                                             String searchText);
+
+    byte[] getResourceData(TenantId tenantId, TbResourceId resourceId);
+
+    byte[] getResourcePreview(TenantId tenantId, TbResourceId resourceId);
+
+    Set<String> findResourceKeysByTenantIdResourceTypeAndKeyPrefix(TenantId tenantId, ResourceType resourceType, String keyPrefix);
 }

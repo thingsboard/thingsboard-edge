@@ -91,4 +91,10 @@ public interface WidgetTypeRepository extends JpaRepository<WidgetTypeDetailsEnt
     @Query("SELECT externalId FROM WidgetTypeDetailsEntity WHERE id = :id")
     UUID getExternalIdById(@Param("id") UUID id);
 
+    @Query("SELECT id FROM WidgetTypeDetailsEntity")
+    Page<UUID> findAllIds(Pageable pageable);
+
+    @Query("SELECT id FROM WidgetTypeDetailsEntity WHERE tenantId = :tenantId")
+    Page<UUID> findIdsByTenantId(@Param("tenantId") UUID tenantId, Pageable pageable);
+
 }

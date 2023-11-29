@@ -50,6 +50,7 @@ import org.thingsboard.server.common.data.widget.WidgetsBundleWidget;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
@@ -79,6 +80,9 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
     @Autowired
     protected ApplicationEventPublisher eventPublisher;
 
+    @Autowired
+    protected ImageService imageService;
+
     @Override
     public WidgetType findWidgetTypeById(TenantId tenantId, WidgetTypeId widgetTypeId) {
         log.trace("Executing findWidgetTypeById [{}]", widgetTypeId);
@@ -105,6 +109,7 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
         log.trace("Executing saveWidgetType [{}]", widgetTypeDetails);
         widgetTypeValidator.validate(widgetTypeDetails, WidgetType::getTenantId);
         try {
+            imageService.replaceBase64WithImageUrl(widgetTypeDetails);
             WidgetTypeDetails result = widgetTypeDao.save(widgetTypeDetails.getTenantId(), widgetTypeDetails);
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getTenantId())
                     .entityId(result.getId()).added(widgetTypeDetails.getId() == null).build());
@@ -234,6 +239,11 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
         log.trace("Executing deleteWidgetTypesByTenantId, tenantId [{}]", tenantId);
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         tenantWidgetTypeRemover.removeEntities(tenantId, tenantId);
+    }
+
+    @Override
+    public PageData<WidgetTypeId> findAllWidgetTypesIds(PageLink pageLink) {
+        return widgetTypeDao.findAllWidgetTypesIds(pageLink);
     }
 
     @Override

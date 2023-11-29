@@ -50,10 +50,10 @@ import {
   CsvToJsonConfig,
   CsvToJsonResult,
   ImportEntityColumnType
-} from '@home/components/import-export/import-export.models';
-import { ImportExportService } from '@home/components/import-export/import-export.service';
+} from '@shared/import-export/import-export.models';
 import { CustomerId } from '@shared/models/id/customer-id';
-import { TableColumnsAssignmentComponent } from '@home/components/import-export/table-columns-assignment.component';
+import { ImportExportService } from '@shared/import-export/import-export.service';
+import { TableColumnsAssignmentComponent } from '@shared/import-export/table-columns-assignment.component';
 import { Ace } from 'ace-builds';
 import { getAce } from '@shared/models/ace/ace.models';
 
@@ -88,7 +88,7 @@ export class ImportDialogCsvComponent extends DialogComponent<ImportDialogCsvCom
   customerId: CustomerId;
   entityGroupId: string;
 
-  delimiters: { key: CSVDelimiter, value: string }[] = [{
+  delimiters: { key: CSVDelimiter; value: string }[] = [{
     key: ',',
     value: ','
   }, {

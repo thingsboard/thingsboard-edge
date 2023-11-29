@@ -32,6 +32,7 @@ package org.thingsboard.server.service.edge.rpc.processor.resource;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TbResource;
@@ -76,7 +77,9 @@ public abstract class BaseResourceProcessor extends BaseEdgeProcessor {
             resource.setResourceKey(resourceKey);
             resource.setResourceType(resourceType);
             resource.setFileName(resourceUpdateMsg.getFileName());
-            resource.setData(resourceUpdateMsg.hasData() ? resourceUpdateMsg.getData() : null);
+            resource.setDescriptor(resourceUpdateMsg.hasDescriptorJson() ? JacksonUtil.toJsonNode(resourceUpdateMsg.getDescriptorJson()) : null);
+            resource.setEncodedData(resourceUpdateMsg.hasData() ? resourceUpdateMsg.getData() : null);
+            resource.setPreview(resourceUpdateMsg.hasPreview() ? resourceUpdateMsg.getPreview().toByteArray() : null);
             resource.setEtag(resourceUpdateMsg.hasEtag() ? resourceUpdateMsg.getEtag() : null);
             resourceValidator.validate(resource, TbResourceInfo::getTenantId);
             if (created) {

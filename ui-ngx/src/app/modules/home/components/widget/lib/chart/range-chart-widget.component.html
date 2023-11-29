@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-range-chart-panel" [style]="backgroundStyle">
+<div class="tb-range-chart-panel" [style]="backgroundStyle$ | async">
   <div class="tb-range-chart-overlay" [style]="overlayStyle"></div>
   <ng-container *ngTemplateOutlet="widgetTitlePanel"></ng-container>
   <div class="tb-range-chart-content" [class]="legendClass">

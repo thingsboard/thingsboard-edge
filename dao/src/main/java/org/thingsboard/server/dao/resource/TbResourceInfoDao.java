@@ -30,13 +30,15 @@
  */
 package org.thingsboard.server.dao.resource;
 
+import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.TbResourceInfoFilter;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
 
-import java.util.UUID;
+import java.util.List;
 
 public interface TbResourceInfoDao extends Dao<TbResourceInfo> {
 
@@ -44,4 +46,13 @@ public interface TbResourceInfoDao extends Dao<TbResourceInfo> {
 
     PageData<TbResourceInfo> findTenantResourcesByTenantId(TbResourceInfoFilter filter, PageLink pageLink);
 
+    TbResourceInfo findByTenantIdAndKey(TenantId tenantId, ResourceType resourceType, String resourceKey);
+
+    boolean existsByTenantIdAndResourceTypeAndResourceKey(TenantId tenantId, ResourceType resourceType, String resourceKey);
+
+    List<String> findKeysByTenantIdAndResourceTypeAndResourceKeyStartingWith(TenantId tenantId, ResourceType resourceType, String resourceKeyQuery);
+
+    List<TbResourceInfo> findByTenantIdAndEtagAndKeyStartingWith(TenantId tenantId, String etag, String query);
+
+    TbResourceInfo findByTenantIdAndEtag(TenantId tenantId, ResourceType resourceType, String etag);
 }

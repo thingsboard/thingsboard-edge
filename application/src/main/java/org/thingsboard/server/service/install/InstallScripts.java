@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -41,15 +42,17 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ResourceType;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.oauth2.OAuth2ClientRegistrationTemplate;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
@@ -67,6 +70,7 @@ import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.exception.DataValidationException;
+import org.thingsboard.server.service.install.update.ImagesUpdater;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -74,7 +78,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -146,6 +149,9 @@ public class InstallScripts {
 
     @Autowired
     private ResourceService resourceService;
+
+    @Autowired
+    private ImagesUpdater imagesUpdater;
 
     Path getTenantRuleChainsDir() {
         return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, RULE_CHAINS_DIR);
@@ -233,6 +239,7 @@ public class InstallScripts {
     }
 
     public void loadSystemWidgets() throws Exception {
+        log.info("Loading system widgets");
         Map<Path, JsonNode> widgetsBundlesMap = new HashMap<>();
         Path widgetBundlesDir = Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, WIDGET_BUNDLES_DIR);
         try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(widgetBundlesDir, path -> path.toString().endsWith(JSON_EXT))) {
@@ -332,6 +339,49 @@ public class InstallScripts {
                 pageLink.nextPageLink();
             } while (widgetTypes.hasNext());
             widgetsBundleService.deleteWidgetsBundle(TenantId.SYS_TENANT_ID, widgetsBundle.getId());
+        }
+    }
+
+    public void migrateTenantImages() {
+        var widgetsBundles = new PageDataIterable<>(widgetsBundleService::findAllWidgetsBundles, 100);
+        for (WidgetsBundle widgetsBundle : widgetsBundles) {
+            try {
+                boolean updated = imagesUpdater.updateWidgetsBundle(widgetsBundle);
+                if (updated) {
+                    widgetsBundleService.saveWidgetsBundle(widgetsBundle);
+                    log.info("[{}][{}][{}] Migrated widgets bundle images", widgetsBundle.getTenantId(), widgetsBundle.getId(), widgetsBundle.getTitle());
+                }
+            } catch (Exception e) {
+                log.error("[{}][{}][{}] Failed to migrate widgets bundle images", widgetsBundle.getTenantId(), widgetsBundle.getId(), widgetsBundle.getTitle(), e);
+            }
+        }
+
+        var widgetTypes = new PageDataIterable<>(widgetTypeService::findAllWidgetTypesIds, 1024);
+        for (WidgetTypeId widgetTypeId : widgetTypes) {
+            WidgetTypeDetails widgetTypeDetails = widgetTypeService.findWidgetTypeDetailsById(TenantId.SYS_TENANT_ID, widgetTypeId);
+            try {
+                boolean updated = imagesUpdater.updateWidget(widgetTypeDetails);
+                if (updated) {
+                    widgetTypeService.saveWidgetType(widgetTypeDetails);
+                    log.info("[{}][{}][{}] Migrated widget type images", widgetTypeDetails.getTenantId(), widgetTypeDetails.getId(), widgetTypeDetails.getName());
+                }
+            } catch (Exception e) {
+                log.error("[{}][{}][{}] Failed to migrate widget type images", widgetTypeDetails.getTenantId(), widgetTypeDetails.getId(), widgetTypeDetails.getName(), e);
+            }
+        }
+
+        var dashboards = new PageDataIterable<>(dashboardService::findAllDashboardsIds, 1024);
+        for (DashboardId dashboardId : dashboards) {
+            Dashboard dashboard = dashboardService.findDashboardById(TenantId.SYS_TENANT_ID, dashboardId);
+            try {
+                boolean updated = imagesUpdater.updateDashboard(dashboard);
+                if (updated) {
+                    dashboardService.saveDashboard(dashboard);
+                    log.info("[{}][{}][{}] Migrated dashboard images", dashboard.getTenantId(), dashboardId, dashboard.getTitle());
+                }
+            } catch (Exception e) {
+                log.error("[{}][{}][{}] Failed to migrate dashboard images", dashboard.getTenantId(), dashboardId, dashboard.getTitle(), e);
+            }
         }
     }
 
@@ -479,7 +529,7 @@ public class InstallScripts {
             dirStream.forEach(
                     path -> {
                         try {
-                            String data = Base64.getEncoder().encodeToString(Files.readAllBytes(path));
+                            byte[] data = Files.readAllBytes(path);
                             TbResource tbResource = new TbResource();
                             tbResource.setTenantId(TenantId.SYS_TENANT_ID);
                             tbResource.setData(data);
@@ -500,15 +550,13 @@ public class InstallScripts {
 
     private void doSaveLwm2mResource(TbResource resource) throws ThingsboardException {
         log.trace("Executing saveResource [{}]", resource);
-        if (StringUtils.isEmpty(resource.getData())) {
+        if (resource.getData() == null || resource.getData().length == 0) {
             throw new DataValidationException("Resource data should be specified!");
         }
         toLwm2mResource(resource);
-        TbResource foundResource =
-                resourceService.getResource(TenantId.SYS_TENANT_ID, ResourceType.LWM2M_MODEL, resource.getResourceKey());
+        TbResource foundResource = resourceService.findResourceByTenantIdAndKey(TenantId.SYS_TENANT_ID, ResourceType.LWM2M_MODEL, resource.getResourceKey());
         if (foundResource == null) {
             resourceService.saveResource(resource);
         }
     }
 }
-

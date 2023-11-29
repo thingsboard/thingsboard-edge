@@ -305,6 +305,7 @@ public class ThingsboardInstallService {
                     log.info("Updating system data...");
                     dataUpdateService.upgradeRuleNodes();
                     systemDataLoaderService.loadSystemWidgets();
+//                    installScripts.migrateTenantImages();
                     installScripts.loadSystemLwm2mResources();
                 }
                 log.info("Upgrade finished successfully!");

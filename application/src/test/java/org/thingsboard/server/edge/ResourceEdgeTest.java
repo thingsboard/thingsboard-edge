@@ -61,7 +61,7 @@ public class ResourceEdgeTest extends AbstractEdgeTest {
         resource.setResourceType(ResourceType.JKS);
         resource.setTitle("Edge Test Resource");
         resource.setFileName(FILE_NAME);
-        resource.setData(TEST_DATA);
+        resource.setEncodedData(TEST_DATA);
 
         edgeImitator.expectMessageAmount(1);
         TbResource savedResource = doPost("/api/resource", resource, TbResource.class);
@@ -135,6 +135,7 @@ public class ResourceEdgeTest extends AbstractEdgeTest {
         TbResource tbResource = doGet("/api/resource/" + uuid, TbResource.class);
         Assert.assertNotNull(tbResource);
         Assert.assertEquals("Edge Test Resource", tbResource.getName());
+        Assert.assertEquals(TEST_DATA, tbResource.getEncodedData());
     }
 
     @Test
@@ -143,7 +144,7 @@ public class ResourceEdgeTest extends AbstractEdgeTest {
         resource.setResourceType(ResourceType.JKS);
         resource.setTitle("Edge Test Resource");
         resource.setFileName(FILE_NAME);
-        resource.setData(TEST_DATA);
+        resource.setEncodedData(TEST_DATA);
 
         edgeImitator.expectMessageAmount(1);
         TbResource savedResource = doPost("/api/resource", resource, TbResource.class);

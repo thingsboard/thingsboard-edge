@@ -63,6 +63,7 @@ import { TwoFactorAuthSettingsComponent } from '@home/pages/admin/two-factor-aut
 import { widgetsLibraryRoutes } from '@home/pages/widget/widget-library-routing.module';
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { auditLogsRoutes } from '@home/pages/audit-log/audit-log-routing.module';
+import { ImageGalleryComponent } from '@shared/components/image/image-gallery.component';
 import { rolesRoutes } from '@home/pages/role/role-routing.module';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
@@ -70,9 +71,7 @@ export const mailTemplateSettingsResolver: ResolveFn<MailTemplatesSettings> = (
   route: ActivatedRouteSnapshot,
   state: RouterStateSnapshot,
   wl = inject(WhiteLabelingService)
-): Observable<MailTemplatesSettings> => {
-  return wl.getMailTemplates(true);
-}
+): Observable<MailTemplatesSettings> => wl.getMailTemplates(true);
 
 @Injectable()
 export class CustomTranslationResolver implements Resolve<CustomTranslation> {
@@ -111,7 +110,7 @@ const routes: Routes = [
   {
     path: 'resources',
     data: {
-      auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
+      auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       breadcrumb: {
         label: 'admin.resources',
         icon: 'folder'
@@ -122,11 +121,34 @@ const routes: Routes = [
         path: '',
         children: [],
         data: {
-          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
-          redirectTo: '/resources/widgets-library'
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          redirectTo: {
+            SYS_ADMIN: '/resources/widgets-library',
+            TENANT_ADMIN: '/resources/widgets-library',
+            CUSTOMER_USER: '/resources/images'
+          }
         }
       },
       ...widgetsLibraryRoutes,
+      {
+        path: 'images',
+        data: {
+          breadcrumb: {
+            label: 'image.gallery',
+            icon: 'filter'
+          }
+        },
+        children: [
+          {
+            path: '',
+            component: ImageGalleryComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN, Authority.CUSTOMER_USER],
+              title: 'image.gallery',
+            },
+          }
+        ]
+      },
       {
         path: 'resources-library',
         data: {

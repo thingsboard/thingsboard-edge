@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
+import java.util.Set;
 
 public interface ResourceService extends EntityDaoService {
 
@@ -49,11 +50,13 @@ public interface ResourceService extends EntityDaoService {
 
     TbResource saveResource(TbResource resource, boolean doValidate);
 
-    TbResource getResource(TenantId tenantId, ResourceType resourceType, String resourceId);
+    TbResource findResourceByTenantIdAndKey(TenantId tenantId, ResourceType resourceType, String resourceKey);
 
     TbResource findResourceById(TenantId tenantId, TbResourceId resourceId);
 
     TbResourceInfo findResourceInfoById(TenantId tenantId, TbResourceId resourceId);
+
+    TbResourceInfo findResourceInfoByTenantIdAndKey(TenantId tenantId, ResourceType resourceType, String resourceKey);
 
     PageData<TbResource> findAllTenantResources(TenantId tenantId, PageLink pageLink);
 
@@ -67,9 +70,14 @@ public interface ResourceService extends EntityDaoService {
 
     PageData<TbResource> findTenantResourcesByResourceTypeAndPageLink(TenantId tenantId, ResourceType lwm2mModel, PageLink pageLink);
 
+    Set<String> findResourceKeysByTenantIdResourceTypeAndKeyPrefix(TenantId tenantId, ResourceType resourceType, String key);
+
     void deleteResource(TenantId tenantId, TbResourceId resourceId);
+
+    void deleteResource(TenantId tenantId, TbResourceId resourceId, boolean force);
 
     void deleteResourcesByTenantId(TenantId tenantId);
 
     long sumDataSizeByTenantId(TenantId tenantId);
+
 }

@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-value-chart-card-panel" [style]="backgroundStyle">
+<div class="tb-value-chart-card-panel" [style]="backgroundStyle$ | async">
   <div class="tb-value-chart-card-overlay" [style]="overlayStyle"></div>
   <ng-container *ngTemplateOutlet="widgetTitlePanel"></ng-container>
   <div #valueChartCardContent class="tb-value-chart-card-content" [class]="layout">
