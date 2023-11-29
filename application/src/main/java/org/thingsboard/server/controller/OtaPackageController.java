@@ -131,7 +131,7 @@ public class OtaPackageController extends BaseController {
                                                 @PathVariable(OTA_PACKAGE_ID) String strOtaPackageId) throws ThingsboardException {
         checkParameter(OTA_PACKAGE_ID, strOtaPackageId);
         OtaPackageId otaPackageId = new OtaPackageId(toUUID(strOtaPackageId));
-        return checkNotNull(otaPackageService.findOtaPackageInfoById(getTenantId(), otaPackageId));
+        return checkNotNull(checkOtaPackageInfoId(otaPackageId, Operation.READ));
     }
 
     @ApiOperation(value = "Get OTA Package (getOtaPackageById)",
@@ -208,6 +208,7 @@ public class OtaPackageController extends BaseController {
                                                    @RequestParam(required = false) String sortProperty,
                                                    @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
                                                    @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        accessControlService.checkPermission(getCurrentUser(), Resource.OTA_PACKAGE, Operation.READ);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         return checkNotNull(otaPackageService.findTenantOtaPackagesByTenantId(getTenantId(), pageLink));
     }
@@ -221,7 +222,7 @@ public class OtaPackageController extends BaseController {
     @ResponseBody
     public PageData<OtaPackageInfo> getOtaPackages(@Parameter(description = DEVICE_PROFILE_ID_PARAM_DESCRIPTION)
                                                    @PathVariable("deviceProfileId") String strDeviceProfileId,
-                                                   @Parameter(description = "OTA Package type.", schema = @Schema(allowableValues = "FIRMWARE, SOFTWARE"))
+                                                   @Parameter(description = "OTA Package type.", schema = @Schema(allowableValues = {"FIRMWARE", "SOFTWARE"}))
                                                    @PathVariable("type") String strType,
                                                    @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
                                                    @RequestParam int pageSize,
@@ -233,6 +234,7 @@ public class OtaPackageController extends BaseController {
                                                    @RequestParam(required = false) String sortProperty,
                                                    @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
                                                    @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        accessControlService.checkPermission(getCurrentUser(), Resource.OTA_PACKAGE, Operation.READ);
         checkParameter("deviceProfileId", strDeviceProfileId);
         checkParameter("type", strType);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
@@ -284,3 +286,4 @@ public class OtaPackageController extends BaseController {
         return checkNotNull(otaPackageService.findOtaPackageInfosByGroupIdAndHasData(groupId, OtaPackageType.valueOf(strType), pageLink));
     }
 }
+
