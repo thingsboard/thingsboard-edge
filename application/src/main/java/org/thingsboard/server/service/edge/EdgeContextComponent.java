@@ -52,6 +52,7 @@ import org.thingsboard.server.service.edge.rpc.processor.asset.profile.AssetProf
 import org.thingsboard.server.service.edge.rpc.processor.customer.CustomerEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.dashboard.DashboardEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.dashboard.DashboardEdgeProcessorFactory;
+import org.thingsboard.server.service.edge.rpc.processor.device.DeviceEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.device.DeviceEdgeProcessorFactory;
 import org.thingsboard.server.service.edge.rpc.processor.device.profile.DeviceProfileEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.device.profile.DeviceProfileEdgeProcessorFactory;

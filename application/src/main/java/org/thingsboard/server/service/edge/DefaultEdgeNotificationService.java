@@ -37,6 +37,7 @@ import org.thingsboard.server.service.edge.rpc.processor.alarm.AlarmEdgeProcesso
 import org.thingsboard.server.service.edge.rpc.processor.asset.AssetEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.customer.CustomerEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.dashboard.DashboardEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.device.DeviceEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.edge.EdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.entityview.EntityViewEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.ota.OtaPackageEdgeProcessor;
