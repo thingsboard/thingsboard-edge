@@ -32,10 +32,10 @@ package org.thingsboard.server.service.edge.rpc.constructor.group;
 
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.edge.rpc.constructor.MsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.BaseMsgConstructorFactory;
 
 @Component
 @TbCoreComponent
-public class GroupMsgConstructorFactory extends MsgConstructorFactory<GroupMsgConstructorV1, GroupMsgConstructorV2> {
+public class GroupMsgConstructorFactory extends BaseMsgConstructorFactory<GroupMsgConstructorV1, GroupMsgConstructorV2> {
 
 }
