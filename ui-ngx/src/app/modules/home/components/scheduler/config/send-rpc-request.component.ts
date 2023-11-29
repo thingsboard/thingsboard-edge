@@ -75,7 +75,7 @@ export class SendRpcRequestComponent implements ControlValueAccessor, OnInit, Af
 
   constructor(private store: Store<AppState>,
               private fb: UntypedFormBuilder,
-              public translate: TranslateService) {
+              private translate: TranslateService) {
     this.sendRpcRequestFormGroup = this.fb.group({
       originatorId: [null, [Validators.required]],
       msgBody: this.fb.group(
