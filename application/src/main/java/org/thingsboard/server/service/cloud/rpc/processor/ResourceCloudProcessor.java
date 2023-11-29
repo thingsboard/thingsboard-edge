@@ -57,7 +57,7 @@ import java.util.UUID;
 @Slf4j
 public class ResourceCloudProcessor extends BaseResourceProcessor {
 
-    public ListenableFuture<Void> processResourceMsgFromCloud(TenantId tenantId, ResourceUpdateMsg resourceUpdateMsg, EdgeVersion edgeVersion) {
+    public ListenableFuture<Void> processResourceMsgFromCloud(TenantId tenantId, ResourceUpdateMsg resourceUpdateMsg) {
         TbResourceId tbResourceId = new TbResourceId(new UUID(resourceUpdateMsg.getIdMSB(), resourceUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
@@ -70,7 +70,7 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
                     }
                     deleteSystemResourceIfAlreadyExists(tbResourceId, tbResource.getResourceType(), tbResource.getResourceKey());
                     Pair<Boolean, TbResourceId> resultPair = renamePreviousResource(tenantId, tbResourceId, tbResource.getResourceType(), tbResource.getResourceKey());
-                    super.saveOrUpdateTbResource(tenantId, tbResourceId, resourceUpdateMsg, edgeVersion);
+                    super.saveOrUpdateTbResource(tenantId, tbResourceId, resourceUpdateMsg);
                     if (resultPair.getFirst()) {
                         resourceService.deleteResource(tenantId, resultPair.getSecond());
                     }
@@ -143,5 +143,10 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
                 break;
         }
         return msg;
+    }
+
+    @Override
+    protected TbResource constructResourceFromUpdateMsg(TenantId tenantId, TbResourceId tbResourceId, ResourceUpdateMsg resourceUpdateMsg) {
+        return JacksonUtil.fromStringIgnoreUnknownProperties(resourceUpdateMsg.getEntity(), TbResource.class);
     }
 }

@@ -76,7 +76,6 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
 
     public ListenableFuture<Void> processDeviceMsgFromCloud(TenantId tenantId,
                                                             DeviceUpdateMsg deviceUpdateMsg,
-                                                            EdgeVersion edgeVersion,
                                                             Long queueStartTs) throws ThingsboardException {
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
         try {
@@ -84,7 +83,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
             switch (deviceUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, edgeVersion, queueStartTs);
+                    saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, queueStartTs);
                     return Futures.transformAsync(requestForAdditionalData(tenantId, deviceId, queueStartTs),
                             ignored -> cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_REQUEST,
                                     deviceId, null, null, queueStartTs), dbCallbackExecutorService);
@@ -111,8 +110,8 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         }
     }
 
-    private void saveOrUpdateDevice(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg, EdgeVersion edgeVersion, Long queueStartTs) throws ThingsboardException {
-        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, edgeVersion);
+    private void saveOrUpdateDevice(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg, Long queueStartTs) throws ThingsboardException {
+        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg);
         Boolean created = resultPair.getFirst();
         if (created) {
             pushDeviceCreatedEventToRuleEngine(tenantId, deviceId);
@@ -141,11 +140,11 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         }
     }
 
-    public ListenableFuture<Void> processDeviceCredentialsMsgFromCloud(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg, EdgeVersion edgeVersion) {
+    public ListenableFuture<Void> processDeviceCredentialsMsgFromCloud(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {
         try {
             cloudSynchronizationManager.getSync().set(true);
 
-            updateDeviceCredentials(tenantId, deviceCredentialsUpdateMsg, edgeVersion);
+            updateDeviceCredentials(tenantId, deviceCredentialsUpdateMsg);
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }
@@ -291,10 +290,19 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         return msg;
     }
 
+    protected Device constructDeviceFromUpdateMsg(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg) {
+        return JacksonUtil.fromStringIgnoreUnknownProperties(deviceUpdateMsg.getEntity(), Device.class);
+    }
+
     @Override
-    protected void setCustomerId(TenantId tenantId, CustomerId customerId, Device device, DeviceUpdateMsg deviceUpdateMsg, EdgeVersion edgeVersion) {
+    protected void setCustomerId(TenantId tenantId, CustomerId customerId, Device device, DeviceUpdateMsg deviceUpdateMsg) {
         if (isCustomerNotExists(tenantId, device.getCustomerId())) {
             device.setCustomerId(null);
         }
+    }
+
+    @Override
+    protected DeviceCredentials constructDeviceCredentialsFromUpdateMsg(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {
+        return JacksonUtil.fromStringIgnoreUnknownProperties(deviceCredentialsUpdateMsg.getEntity(), DeviceCredentials.class);
     }
 }

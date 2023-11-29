@@ -60,7 +60,7 @@ import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.service.edge.rpc.constructor.device.DeviceMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.processor.device.BaseDeviceProfileProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.device.profile.BaseDeviceProfileProcessor;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -72,7 +72,7 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
     @Autowired
     private DeviceProfileService deviceProfileService;
 
-    public ListenableFuture<Void> processDeviceProfileMsgFromCloud(TenantId tenantId, DeviceProfileUpdateMsg deviceProfileUpdateMsg, EdgeVersion edgeVersion) {
+    public ListenableFuture<Void> processDeviceProfileMsgFromCloud(TenantId tenantId, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
         DeviceProfileId deviceProfileId = new DeviceProfileId(new UUID(deviceProfileUpdateMsg.getIdMSB(), deviceProfileUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
@@ -92,7 +92,7 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
                             renameExistingOnEdgeDeviceProfile(deviceProfileByName);
                             removePreviousProfile = true;
                         }
-                        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDeviceProfile(tenantId, deviceProfileId, deviceProfileUpdateMsg, edgeVersion);
+                        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDeviceProfile(tenantId, deviceProfileId, deviceProfileUpdateMsg);
                         boolean created = resultPair.getFirst();
                         DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
                         if (!deviceProfile.isDefault() && deviceProfileMsg.isDefault()) {
@@ -209,6 +209,11 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
     }
 
     @Override
+    protected DeviceProfile constructDeviceProfileFromUpdateMsg(TenantId tenantId, DeviceProfileId deviceProfileId, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
+        return JacksonUtil.fromStringIgnoreUnknownProperties(deviceProfileUpdateMsg.getEntity(), DeviceProfile.class);
+    }
+
+    @Override
     protected void setDefaultRuleChainId(TenantId tenantId, DeviceProfile deviceProfile, RuleChainId ruleChainId) {
         RuleChainId defaultRuleChainId = deviceProfile.getDefaultEdgeRuleChainId();
         RuleChain ruleChain = null;
@@ -219,12 +224,12 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
     }
 
     @Override
-    protected void setDefaultEdgeRuleChainId(DeviceProfile deviceProfile, RuleChainId ruleChainId, DeviceProfileUpdateMsg deviceProfileUpdateMsg, EdgeVersion edgeVersion) {
+    protected void setDefaultEdgeRuleChainId(DeviceProfile deviceProfile, RuleChainId ruleChainId, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
         deviceProfile.setDefaultEdgeRuleChainId(null);
     }
 
     @Override
-    protected void setDefaultDashboardId(TenantId tenantId, DashboardId dashboardId, DeviceProfile deviceProfile, DeviceProfileUpdateMsg deviceProfileUpdateMsg, EdgeVersion edgeVersion) {
+    protected void setDefaultDashboardId(TenantId tenantId, DashboardId dashboardId, DeviceProfile deviceProfile, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
         DashboardId defaultDashboardId = deviceProfile.getDefaultDashboardId();
         DashboardInfo dashboard = null;
         if (defaultDashboardId != null) {

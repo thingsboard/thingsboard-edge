@@ -33,8 +33,12 @@ package org.thingsboard.server.service.cloud.rpc.processor;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.id.AlarmId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
@@ -45,10 +49,10 @@ import org.thingsboard.server.service.edge.rpc.processor.alarm.BaseAlarmProcesso
 @Slf4j
 public class AlarmCloudProcessor extends BaseAlarmProcessor {
 
-    public ListenableFuture<Void> processAlarmMsgFromCloud(TenantId tenantId, AlarmUpdateMsg alarmUpdateMsg, EdgeVersion edgeVersion) {
+    public ListenableFuture<Void> processAlarmMsgFromCloud(TenantId tenantId, AlarmUpdateMsg alarmUpdateMsg) {
         try {
             cloudSynchronizationManager.getSync().set(true);
-            return processAlarmMsg(tenantId, alarmUpdateMsg, edgeVersion);
+            return processAlarmMsg(tenantId, alarmUpdateMsg);
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }
@@ -64,5 +68,16 @@ public class AlarmCloudProcessor extends BaseAlarmProcessor {
                     .build();
         }
         return null;
+    }
+
+    @Override
+    protected EntityId getAlarmOriginatorFromMsg(TenantId tenantId, AlarmUpdateMsg alarmUpdateMsg) {
+        Alarm alarm = JacksonUtil.fromStringIgnoreUnknownProperties(alarmUpdateMsg.getEntity(), Alarm.class);
+        return alarm != null ? alarm.getOriginator() : null;
+    }
+
+    @Override
+    protected Alarm constructAlarmFromUpdateMsg(TenantId tenantId, AlarmId alarmId, EntityId originatorId, AlarmUpdateMsg alarmUpdateMsg) {
+        return JacksonUtil.fromStringIgnoreUnknownProperties(alarmUpdateMsg.getEntity(), Alarm.class);
     }
 }
