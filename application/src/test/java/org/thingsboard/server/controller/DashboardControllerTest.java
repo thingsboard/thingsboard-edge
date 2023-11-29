@@ -476,8 +476,8 @@ public class DashboardControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        // Tenant admin user must have access to both dashboards
-        Assert.assertEquals(2, tenantAdminDashboards.size());
+        // Tenant admin user must have access to both dashboards and default gateways dashboard
+        Assert.assertEquals(3, tenantAdminDashboards.size());
 
         User customerUser = new User();
         customerUser.setAuthority(Authority.CUSTOMER_USER);
