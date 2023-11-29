@@ -46,7 +46,7 @@ import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.service.edge.rpc.constructor.asset.AssetMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.processor.asset.BaseAssetProfileProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.asset.profile.BaseAssetProfileProcessor;
 
 import java.util.UUID;
 
@@ -60,7 +60,7 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
     @Autowired
     private AssetService assetService;
 
-    public ListenableFuture<Void> processAssetProfileMsgFromCloud(TenantId tenantId, AssetProfileUpdateMsg assetProfileUpdateMsg, EdgeVersion edgeVersion) {
+    public ListenableFuture<Void> processAssetProfileMsgFromCloud(TenantId tenantId, AssetProfileUpdateMsg assetProfileUpdateMsg) {
         AssetProfileId assetProfileId = new AssetProfileId(new UUID(assetProfileUpdateMsg.getIdMSB(), assetProfileUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
@@ -80,7 +80,7 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
                             renamePreviousAssetProfile(assetProfileByName);
                             removePreviousProfile = true;
                         }
-                        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAssetProfile(tenantId, assetProfileId, assetProfileUpdateMsg, edgeVersion);
+                        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAssetProfile(tenantId, assetProfileId, assetProfileUpdateMsg);
                         boolean created = resultPair.getFirst();
                         tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileId,
                                 created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
@@ -179,6 +179,11 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
     }
 
     @Override
+    protected AssetProfile constructAssetProfileFromUpdateMsg(TenantId tenantId, AssetProfileId assetProfileId, AssetProfileUpdateMsg assetProfileUpdateMsg) {
+        return JacksonUtil.fromStringIgnoreUnknownProperties(assetProfileUpdateMsg.getEntity(), AssetProfile.class);
+    }
+
+    @Override
     protected void setDefaultRuleChainId(TenantId tenantId, AssetProfile assetProfile, RuleChainId ruleChainId) {
         RuleChainId defaultRuleChainId = assetProfile.getDefaultEdgeRuleChainId();
         RuleChain ruleChain = null;
@@ -189,12 +194,12 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
     }
 
     @Override
-    protected void setDefaultEdgeRuleChainId(AssetProfile assetProfile, RuleChainId ruleChainId, AssetProfileUpdateMsg assetProfileUpdateMsg, EdgeVersion edgeVersion) {
+    protected void setDefaultEdgeRuleChainId(AssetProfile assetProfile, RuleChainId ruleChainId, AssetProfileUpdateMsg assetProfileUpdateMsg) {
         assetProfile.setDefaultEdgeRuleChainId(null);
     }
 
     @Override
-    protected void setDefaultDashboardId(TenantId tenantId, DashboardId dashboardId, AssetProfile assetProfile, AssetProfileUpdateMsg assetProfileUpdateMsg, EdgeVersion edgeVersion) {
+    protected void setDefaultDashboardId(TenantId tenantId, DashboardId dashboardId, AssetProfile assetProfile, AssetProfileUpdateMsg assetProfileUpdateMsg) {
         DashboardId defaultDashboardId = assetProfile.getDefaultDashboardId();
         DashboardInfo dashboard = null;
         if (defaultDashboardId != null) {

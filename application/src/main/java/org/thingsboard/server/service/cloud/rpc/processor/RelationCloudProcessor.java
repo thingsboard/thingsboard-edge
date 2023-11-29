@@ -37,11 +37,11 @@ import org.thingsboard.server.service.edge.rpc.processor.relation.BaseRelationPr
 @Slf4j
 public class RelationCloudProcessor extends BaseRelationProcessor {
 
-    public ListenableFuture<Void> processRelationMsgFromCloud(TenantId tenantId, RelationUpdateMsg relationUpdateMsg, EdgeVersion edgeVersion) {
+    public ListenableFuture<Void> processRelationMsgFromCloud(TenantId tenantId, RelationUpdateMsg relationUpdateMsg) {
         try {
             cloudSynchronizationManager.getSync().set(true);
 
-            return processRelationMsg(tenantId, relationUpdateMsg, edgeVersion);
+            return processRelationMsg(tenantId, relationUpdateMsg);
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }
@@ -72,5 +72,10 @@ public class RelationCloudProcessor extends BaseRelationProcessor {
                     .addRelationUpdateMsg(relationUpdateMsg).build();
         }
         return msg;
+    }
+
+    @Override
+    protected EntityRelation constructEntityRelationFromUpdateMsg(RelationUpdateMsg relationUpdateMsg) {
+        return JacksonUtil.fromStringIgnoreUnknownProperties(relationUpdateMsg.getEntity(), EntityRelation.class);
     }
 }
