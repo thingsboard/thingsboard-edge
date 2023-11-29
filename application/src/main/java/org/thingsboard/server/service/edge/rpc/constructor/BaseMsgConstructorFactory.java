@@ -37,7 +37,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 
 @Component
 @TbCoreComponent
-public abstract class MsgConstructorFactory<T extends MsgConstructor, U extends MsgConstructor> {
+public abstract class BaseMsgConstructorFactory<T extends MsgConstructor, U extends MsgConstructor> {
 
     @Autowired
     protected T v1Constructor;

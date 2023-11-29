@@ -33,14 +33,11 @@ package org.thingsboard.server.service.edge.rpc.processor.asset;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 
-@SpringBootTest(classes = {AssetProfileEdgeProcessor.class})
+@SpringBootTest(classes = {AssetEdgeProcessorV1.class})
 class AssetProfileEdgeProcessorTest extends AbstractAssetProcessorTest{
-    @SpyBean
-    AssetProfileEdgeProcessor assetProfileEdgeProcessor;
 
     // @voba: disable test
     // @ParameterizedTest
@@ -52,7 +49,7 @@ class AssetProfileEdgeProcessorTest extends AbstractAssetProcessorTest{
 
         edgeEvent.setEntityId(assetProfileId.getId());
 
-        DownlinkMsg downlinkMsg = assetProfileEdgeProcessor.convertAssetProfileEventToDownlink(edgeEvent, edgeId, edgeVersion);
+        DownlinkMsg downlinkMsg = assetProfileProcessorV1.convertAssetProfileEventToDownlink(edgeEvent, edgeId, edgeVersion);
 
         verify(downlinkMsg, expectedDashboardIdMSB, expectedDashboardIdLSB, expectedRuleChainIdMSB, expectedRuleChainIdLSB);
     }

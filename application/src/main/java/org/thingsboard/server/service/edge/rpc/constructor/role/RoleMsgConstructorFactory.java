@@ -32,10 +32,10 @@ package org.thingsboard.server.service.edge.rpc.constructor.role;
 
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.edge.rpc.constructor.MsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.BaseMsgConstructorFactory;
 
 @Component
 @TbCoreComponent
-public class RoleMsgConstructorFactory extends MsgConstructorFactory<RoleMsgConstructorV1, RoleMsgConstructorV2> {
+public class RoleMsgConstructorFactory extends BaseMsgConstructorFactory<RoleMsgConstructorV1, RoleMsgConstructorV2> {
 
 }
