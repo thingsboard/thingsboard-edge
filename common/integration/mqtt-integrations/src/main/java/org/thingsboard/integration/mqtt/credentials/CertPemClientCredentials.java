@@ -66,7 +66,7 @@ public class CertPemClientCredentials implements MqttClientCredentials {
     private String caCert;
     private String cert;
     private String privateKey;
-    private String privateKeyPassword = "";
+    private String privateKeyPassword;
 
     @Override
     public Optional<SslContext> initSslContext() {
@@ -104,7 +104,7 @@ public class CertPemClientCredentials implements MqttClientCredentials {
 
     private KeyManagerFactory createAndInitKeyManagerFactory() throws Exception {
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        kmf.init(loadKeyStore(), privateKeyPassword.toCharArray());
+        kmf.init(loadKeyStore(), SslUtil.getPassword(privateKeyPassword));
         return kmf;
     }
 
@@ -124,7 +124,7 @@ public class CertPemClientCredentials implements MqttClientCredentials {
             CertPath certPath = factory.generateCertPath(certificates);
             List<? extends Certificate> path = certPath.getCertificates();
             Certificate[] x509Certificates = path.toArray(new Certificate[0]);
-            keyStore.setKeyEntry(PRIVATE_KEY_ALIAS, privateKey, privateKeyPassword.toCharArray(), x509Certificates);
+            keyStore.setKeyEntry(PRIVATE_KEY_ALIAS, privateKey, SslUtil.getPassword(privateKeyPassword), x509Certificates);
         }
         return keyStore;
     }

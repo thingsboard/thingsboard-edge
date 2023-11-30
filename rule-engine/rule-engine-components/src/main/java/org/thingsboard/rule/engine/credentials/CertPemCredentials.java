@@ -62,7 +62,7 @@ public class CertPemCredentials implements ClientCredentials {
     protected String caCert;
     private String cert;
     private String privateKey;
-    private String password = "";
+    private String password;
 
     @Override
     public CredentialsType getType() {
@@ -102,7 +102,7 @@ public class CertPemCredentials implements ClientCredentials {
 
     private KeyManagerFactory createAndInitKeyManagerFactory() throws Exception {
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        kmf.init(loadKeyStore(), password.toCharArray());
+        kmf.init(loadKeyStore(), SslUtil.getPassword(password));
         return kmf;
     }
 
@@ -122,7 +122,7 @@ public class CertPemCredentials implements ClientCredentials {
             CertPath certPath = factory.generateCertPath(certificates);
             List<? extends Certificate> path = certPath.getCertificates();
             Certificate[] x509Certificates = path.toArray(new Certificate[0]);
-            keyStore.setKeyEntry(PRIVATE_KEY_ALIAS, privateKey, password.toCharArray(), x509Certificates);
+            keyStore.setKeyEntry(PRIVATE_KEY_ALIAS, privateKey, SslUtil.getPassword(password), x509Certificates);
         }
         return keyStore;
     }
