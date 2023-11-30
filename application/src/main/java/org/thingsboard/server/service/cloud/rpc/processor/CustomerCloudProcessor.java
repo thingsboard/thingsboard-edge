@@ -51,23 +51,10 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     customerCreationLock.lock();
                     try {
-                        Customer customer = customerService.findCustomerById(tenantId, customerId);
+                        Customer customer = JacksonUtil.fromStringIgnoreUnknownProperties(customerUpdateMsg.getEntity(), Customer.class);
                         if (customer == null) {
-                            customer = new Customer();
-                            customer.setId(customerId);
-                            customer.setCreatedTime(Uuids.unixTimestamp(customerId.getId()));
-                            customer.setTenantId(tenantId);
+                            throw new RuntimeException("[{" + tenantId + "}] customerUpdateMsg {" + customerUpdateMsg + "} cannot be converted to customer");
                         }
-                        customer.setTitle(customerUpdateMsg.getTitle());
-                        customer.setCountry(customerUpdateMsg.hasCountry() ? customerUpdateMsg.getCountry() : null);
-                        customer.setState(customerUpdateMsg.hasState() ? customerUpdateMsg.getState() : null);
-                        customer.setCity(customerUpdateMsg.hasCity() ? customerUpdateMsg.getCity() : null);
-                        customer.setAddress(customerUpdateMsg.hasAddress() ? customerUpdateMsg.getAddress() : null);
-                        customer.setAddress2(customerUpdateMsg.hasAddress2() ? customerUpdateMsg.getAddress2() : null);
-                        customer.setZip(customerUpdateMsg.hasZip() ? customerUpdateMsg.getZip() : null);
-                        customer.setPhone(customerUpdateMsg.hasPhone() ? customerUpdateMsg.getPhone() : null);
-                        customer.setEmail(customerUpdateMsg.hasEmail() ? customerUpdateMsg.getEmail() : null);
-                        customer.setAdditionalInfo(customerUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(customerUpdateMsg.getAdditionalInfo()) : null);
                         customerService.saveCustomer(customer, false);
                     } finally {
                         customerCreationLock.unlock();

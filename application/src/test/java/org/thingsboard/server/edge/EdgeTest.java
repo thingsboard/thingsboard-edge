@@ -18,6 +18,7 @@ package org.thingsboard.server.edge;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -56,10 +57,9 @@ public class EdgeTest extends AbstractEdgeTest {
         Optional<CustomerUpdateMsg> customerUpdateOpt = edgeImitator.findMessageByType(CustomerUpdateMsg.class);
         Assert.assertTrue(customerUpdateOpt.isPresent());
         CustomerUpdateMsg customerUpdateMsg = customerUpdateOpt.get();
+        Customer customerMsg = JacksonUtil.fromStringIgnoreUnknownProperties(customerUpdateMsg.getEntity(), Customer.class);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, customerUpdateMsg.getMsgType());
-        Assert.assertEquals(savedCustomer.getUuidId().getMostSignificantBits(), customerUpdateMsg.getIdMSB());
-        Assert.assertEquals(savedCustomer.getUuidId().getLeastSignificantBits(), customerUpdateMsg.getIdLSB());
-        Assert.assertEquals(savedCustomer.getTitle(), customerUpdateMsg.getTitle());
+        Assert.assertEquals(savedCustomer, customerMsg);
 
         // unassign edge from customer
         edgeImitator.expectMessageAmount(2);

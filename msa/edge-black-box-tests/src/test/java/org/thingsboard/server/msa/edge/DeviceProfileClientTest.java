@@ -298,6 +298,4 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
         PageData<DeviceProfile> pageData = edgeRestClient.getDeviceProfiles(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.DEVICE_PROFILE);
     }
-
 }
-
