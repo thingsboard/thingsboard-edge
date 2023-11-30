@@ -46,7 +46,7 @@ import org.thingsboard.server.dao.entity.EntityDaoService;
 import java.util.List;
 
 public interface DashboardService extends EntityDaoService {
-    
+
     Dashboard findDashboardById(TenantId tenantId, DashboardId dashboardId);
 
     ListenableFuture<Dashboard> findDashboardByIdAsync(TenantId tenantId, DashboardId dashboardId);
@@ -100,7 +100,5 @@ public interface DashboardService extends EntityDaoService {
     DashboardInfo findFirstDashboardInfoByTenantIdAndName(TenantId tenantId, String name);
 
     List<Dashboard> findTenantDashboardsByTitle(TenantId tenantId, String title);
-
-    PageData<DashboardId> findAllDashboardsIds(PageLink pageLink);
 
 }

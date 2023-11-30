@@ -66,8 +66,6 @@ public interface WidgetsBundleService extends EntityDaoService {
 
     ListenableFuture<List<WidgetsBundle>> findAllTenantWidgetsBundlesByIdsAsync(TenantId tenantId, List<WidgetsBundleId> widgetsBundleIds);
 
-    PageData<WidgetsBundle> findAllWidgetsBundles(PageLink pageLink);
-
     void deleteWidgetsBundlesByTenantId(TenantId tenantId);
 
 }

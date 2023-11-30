@@ -95,7 +95,7 @@ public class WidgetsBundleServiceImpl implements WidgetsBundleService {
         log.trace("Executing saveWidgetsBundle [{}]", widgetsBundle);
         widgetsBundleValidator.validate(widgetsBundle, WidgetsBundle::getTenantId);
         try {
-            imageService.replaceBase64WithImageUrl(widgetsBundle, widgetsBundle.getName(), "bundle");
+            imageService.replaceBase64WithImageUrl(widgetsBundle, "bundle");
             WidgetsBundle result = widgetsBundleDao.save(widgetsBundle.getTenantId(), widgetsBundle);
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getTenantId())
                     .entityId(result.getId()).added(widgetsBundle.getId() == null).build());
@@ -206,11 +206,6 @@ public class WidgetsBundleServiceImpl implements WidgetsBundleService {
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateIds(widgetsBundleIds, "Incorrect widgetsBundleIds " + widgetsBundleIds);
         return widgetsBundleDao.findAllTenantWidgetBundlesByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(widgetsBundleIds));
-    }
-
-    @Override
-    public PageData<WidgetsBundle> findAllWidgetsBundles(PageLink pageLink) {
-        return widgetsBundleDao.findAllWidgetsBundles(pageLink);
     }
 
     @Override

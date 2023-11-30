@@ -37,7 +37,6 @@ import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.ExportableEntityDao;
 import org.thingsboard.server.dao.ImageContainerDao;
@@ -64,4 +63,7 @@ public interface AssetProfileDao extends Dao<AssetProfile>, ExportableEntityDao<
     AssetProfileInfo findDefaultAssetProfileInfo(TenantId tenantId);
 
     AssetProfile findByName(TenantId tenantId, String profileName);
+
+    PageData<AssetProfile> findAll(PageLink pageLink);
+
 }

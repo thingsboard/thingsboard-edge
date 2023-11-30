@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
 
 import java.util.List;
+import java.util.Set;
 
 public interface TbResourceInfoDao extends Dao<TbResourceInfo> {
 
@@ -50,7 +51,7 @@ public interface TbResourceInfoDao extends Dao<TbResourceInfo> {
 
     boolean existsByTenantIdAndResourceTypeAndResourceKey(TenantId tenantId, ResourceType resourceType, String resourceKey);
 
-    List<String> findKeysByTenantIdAndResourceTypeAndResourceKeyStartingWith(TenantId tenantId, ResourceType resourceType, String resourceKeyQuery);
+    Set<String> findKeysByTenantIdAndResourceTypeAndResourceKeyPrefix(TenantId tenantId, ResourceType resourceType, String prefix);
 
     List<TbResourceInfo> findByTenantIdAndEtagAndKeyStartingWith(TenantId tenantId, String etag, String query);
 

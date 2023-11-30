@@ -47,12 +47,9 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.oauth2.OAuth2ClientRegistrationTemplate;
 import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
@@ -65,7 +62,6 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.oauth2.OAuth2ConfigTemplateService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
-import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
@@ -342,47 +338,12 @@ public class InstallScripts {
         }
     }
 
-    public void migrateTenantImages() {
-        var widgetsBundles = new PageDataIterable<>(widgetsBundleService::findAllWidgetsBundles, 100);
-        for (WidgetsBundle widgetsBundle : widgetsBundles) {
-            try {
-                boolean updated = imagesUpdater.updateWidgetsBundle(widgetsBundle);
-                if (updated) {
-                    widgetsBundleService.saveWidgetsBundle(widgetsBundle);
-                    log.info("[{}][{}][{}] Migrated widgets bundle images", widgetsBundle.getTenantId(), widgetsBundle.getId(), widgetsBundle.getTitle());
-                }
-            } catch (Exception e) {
-                log.error("[{}][{}][{}] Failed to migrate widgets bundle images", widgetsBundle.getTenantId(), widgetsBundle.getId(), widgetsBundle.getTitle(), e);
-            }
-        }
-
-        var widgetTypes = new PageDataIterable<>(widgetTypeService::findAllWidgetTypesIds, 1024);
-        for (WidgetTypeId widgetTypeId : widgetTypes) {
-            WidgetTypeDetails widgetTypeDetails = widgetTypeService.findWidgetTypeDetailsById(TenantId.SYS_TENANT_ID, widgetTypeId);
-            try {
-                boolean updated = imagesUpdater.updateWidget(widgetTypeDetails);
-                if (updated) {
-                    widgetTypeService.saveWidgetType(widgetTypeDetails);
-                    log.info("[{}][{}][{}] Migrated widget type images", widgetTypeDetails.getTenantId(), widgetTypeDetails.getId(), widgetTypeDetails.getName());
-                }
-            } catch (Exception e) {
-                log.error("[{}][{}][{}] Failed to migrate widget type images", widgetTypeDetails.getTenantId(), widgetTypeDetails.getId(), widgetTypeDetails.getName(), e);
-            }
-        }
-
-        var dashboards = new PageDataIterable<>(dashboardService::findAllDashboardsIds, 1024);
-        for (DashboardId dashboardId : dashboards) {
-            Dashboard dashboard = dashboardService.findDashboardById(TenantId.SYS_TENANT_ID, dashboardId);
-            try {
-                boolean updated = imagesUpdater.updateDashboard(dashboard);
-                if (updated) {
-                    dashboardService.saveDashboard(dashboard);
-                    log.info("[{}][{}][{}] Migrated dashboard images", dashboard.getTenantId(), dashboardId, dashboard.getTitle());
-                }
-            } catch (Exception e) {
-                log.error("[{}][{}][{}] Failed to migrate dashboard images", dashboard.getTenantId(), dashboardId, dashboard.getTitle(), e);
-            }
-        }
+    public void updateImages() {
+        imagesUpdater.updateWidgetsBundlesImages();
+        imagesUpdater.updateWidgetTypesImages();
+        imagesUpdater.updateDashboardsImages();
+        imagesUpdater.updateDeviceProfilesImages();
+        imagesUpdater.updateAssetProfilesImages();
     }
 
     public void loadDashboards(TenantId tenantId, CustomerId customerId) throws Exception {

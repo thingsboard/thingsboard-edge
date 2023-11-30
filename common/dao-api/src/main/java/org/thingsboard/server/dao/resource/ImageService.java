@@ -31,7 +31,6 @@
 package org.thingsboard.server.dao.resource;
 
 import org.thingsboard.server.common.data.Dashboard;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasImage;
 import org.thingsboard.server.common.data.TbImageDeleteResult;
 import org.thingsboard.server.common.data.TbResource;
@@ -41,12 +40,9 @@ import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
-
-import java.util.List;
 
 public interface ImageService {
 
@@ -68,11 +64,9 @@ public interface ImageService {
 
     TbImageDeleteResult deleteImage(TbResourceInfo imageInfo, boolean force);
 
-    List<TbResourceInfo> findSimilarImagesByTenantIdAndKeyStartingWith(TenantId tenantId, byte[] data, String imageKeyStartingWith);
-
     TbResourceInfo findImageByTenantIdAndEtag(TenantId tenantId, String etag);
 
-    boolean replaceBase64WithImageUrl(HasImage hasImage, String title, String type);
+    boolean replaceBase64WithImageUrl(HasImage entity, String type);
     boolean replaceBase64WithImageUrl(Dashboard dashboard);
     boolean replaceBase64WithImageUrl(WidgetTypeDetails widgetType);
 

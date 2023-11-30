@@ -41,7 +41,6 @@ import org.thingsboard.server.dao.ExportableEntityDao;
 import org.thingsboard.server.dao.TenantEntityWithDataDao;
 
 import java.util.List;
-import java.util.Set;
 
 public interface TbResourceDao extends Dao<TbResource>, TenantEntityWithDataDao, ExportableEntityDao<TbResourceId, TbResource> {
 
@@ -62,5 +61,4 @@ public interface TbResourceDao extends Dao<TbResource>, TenantEntityWithDataDao,
 
     byte[] getResourcePreview(TenantId tenantId, TbResourceId resourceId);
 
-    Set<String> findResourceKeysByTenantIdResourceTypeAndKeyPrefix(TenantId tenantId, ResourceType resourceType, String keyPrefix);
 }

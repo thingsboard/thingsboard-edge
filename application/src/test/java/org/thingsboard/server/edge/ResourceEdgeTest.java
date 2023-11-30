@@ -136,7 +136,7 @@ public class ResourceEdgeTest extends AbstractEdgeTest {
         TbResource tb = doGet("/api/resource/" + uuid, TbResource.class);
         Assert.assertNotNull(tb);
         Assert.assertEquals("Edge Test Resource", tb.getName());
-        Assert.assertEquals(TEST_DATA, tbResource.getEncodedData());
+        Assert.assertEquals(TEST_DATA, tb.getEncodedData());
     }
 
     @Test
