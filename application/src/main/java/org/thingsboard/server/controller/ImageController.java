@@ -179,7 +179,7 @@ public class ImageController extends BaseController {
 
     private ResponseEntity<ByteArrayResource> downloadLoginImage(String domainName, String type,
                                                                  String key, String etag, boolean faviconElseLogo) throws Exception {
-        var imageKey = whiteLabelingService.getLoginImageKey(TenantId.SYS_TENANT_ID, domainName, faviconElseLogo);
+        var imageKey = whiteLabelingService.getLoginImageKey(domainName, faviconElseLogo);
         if (imageKey != null && imageKey.getKey().equals(key) &&
                 ((imageKey.getTenantId().isSysTenantId() && SYSTEM_IMAGE.equals(type)) || (!imageKey.getTenantId().isSysTenantId() && TENANT_IMAGE.equals(type)))) {
             return downloadIfChanged(TenantId.SYS_TENANT_ID, imageKey, etag, false, true);

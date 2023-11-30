@@ -107,7 +107,7 @@ public class WhiteLabelingController extends BaseController {
     @RequestMapping(value = "/noauth/whiteLabel/loginWhiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public LoginWhiteLabelingParams getLoginWhiteLabelParams(HttpServletRequest request) throws Exception {
-        return whiteLabelingService.getMergedLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID, request.getServerName());
+        return whiteLabelingService.getMergedLoginWhiteLabelingParams(request.getServerName());
     }
 
     @ApiOperation(value = "Get White Labeling configuration (getCurrentWhiteLabelParams)",

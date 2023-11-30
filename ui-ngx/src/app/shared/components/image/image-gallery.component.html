@@ -58,7 +58,7 @@
               </button>
             </div>
           </div>
-          <mat-slide-toggle *ngIf="!isSysAdmin"
+          <mat-slide-toggle *ngIf="isTenantAdmin"
                             fxHide fxShow.gt-sm
                             [ngModel]="includeSystemImages"
                             (ngModelChange)="includeSystemImagesChanged($event)">{{ 'image.include-system-images' | translate }}</mat-slide-toggle>
@@ -106,7 +106,7 @@
           </button>
         </section>
       </div>
-      <mat-slide-toggle *ngIf="!isSysAdmin" fxHide fxShow.lt-md
+      <mat-slide-toggle *ngIf="isTenantAdmin" fxHide fxShow.lt-md
                         [ngModel]="includeSystemImages"
                         (ngModelChange)="includeSystemImagesChanged($event)">{{ 'image.include-system-images' | translate }}</mat-slide-toggle>
     </mat-toolbar>

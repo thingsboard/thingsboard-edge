@@ -59,9 +59,9 @@ public interface WhiteLabelingService {
 
     LoginWhiteLabelingParams getCustomerLoginWhiteLabelingParams(TenantId tenantId, CustomerId customerId) throws Exception;
 
-    LoginWhiteLabelingParams getMergedLoginWhiteLabelingParams(TenantId tenantId, String domainName) throws Exception;
+    LoginWhiteLabelingParams getMergedLoginWhiteLabelingParams(String domainName) throws Exception;
 
-    ImageCacheKey getLoginImageKey(TenantId tenantId, String domainName, boolean faviconElseLogo) throws Exception;
+    ImageCacheKey getLoginImageKey(String domainName, boolean faviconElseLogo) throws Exception;
 
     WhiteLabelingParams saveSystemWhiteLabelingParams(WhiteLabelingParams whiteLabelingParams);
 

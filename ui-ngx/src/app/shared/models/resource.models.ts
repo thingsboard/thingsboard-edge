@@ -33,6 +33,7 @@ import { BaseData, ExportableEntity, HasId } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { TbResourceId } from '@shared/models/id/tb-resource-id';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
+import { WhiteLabeling } from '@shared/models/white-labeling.models';
 
 export enum ResourceType {
   LWM2M_MODEL = 'LWM2M_MODEL',
@@ -110,7 +111,7 @@ export interface ImageExportData {
 
 export type ImageResourceType = 'tenant' | 'system';
 
-export type ImageReferences = {[entityType: string]: Array<BaseData<HasId>>};
+export type ImageReferences = Array<BaseData<HasId> | WhiteLabeling>;
 
 export interface ImageResourceInfoWithReferences extends ImageResourceInfo {
   references: ImageReferences;
@@ -129,8 +130,19 @@ export const toImageDeleteResult = (image: ImageResourceInfo, e?: any): ImageDel
     return {image, success: true};
   } else {
     const result: ImageDeleteResult = {image, success: false, error: e};
-    if (e?.status === 400 && e?.error?.success === false && e?.error?.references) {
-      const references: ImageReferences = e?.error?.references;
+    if (e?.status === 400 && e?.error?.success === false && (e?.error?.references || e?.error?.whiteLabelingList)) {
+      const entityReferences: {[entityType: string]: Array<BaseData<HasId>>} = e?.error?.references;
+      const whiteLabelingList: Array<WhiteLabeling> = e?.error?.whiteLabelingList;
+      const references: ImageReferences = [];
+      if (entityReferences) {
+        for (const entityTypeStr of Object.keys(entityReferences)) {
+          const entities = entityReferences[entityTypeStr];
+          references.push.apply(references, entities);
+        }
+      }
+      if (whiteLabelingList) {
+        references.push.apply(references, whiteLabelingList);
+      }
       result.imageIsReferencedError = true;
       result.references = references;
     }

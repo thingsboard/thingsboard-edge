@@ -119,10 +119,11 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     }
 
     @Override
-    public LoginWhiteLabelingParams getMergedLoginWhiteLabelingParams(TenantId tenantId, String domainName) throws Exception {
+    public LoginWhiteLabelingParams getMergedLoginWhiteLabelingParams(String domainName) throws Exception {
         LoginWhiteLabelingParams result;
         WhiteLabeling existingLoginWLSettings;
-        if (validateDomain(domainName) && ((existingLoginWLSettings = whiteLabelingDao.findByDomain(tenantId, domainName)) != null)) {
+        if (validateDomain(domainName) && ((existingLoginWLSettings = whiteLabelingDao.findByDomain(TenantId.SYS_TENANT_ID, domainName)) != null)) {
+            var tenantId = existingLoginWLSettings.getTenantId();
             var customerId = existingLoginWLSettings.getCustomerId();
             result = getEntityLoginWhiteLabelParams(tenantId, customerId);
             if (customerId != null && !customerId.isNullUid()) {
@@ -140,13 +141,13 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     }
 
     @Override
-    public ImageCacheKey getLoginImageKey(TenantId tenantId, String domainName, boolean faviconElseLogo) throws Exception {
+    public ImageCacheKey getLoginImageKey(String domainName, boolean faviconElseLogo) throws Exception {
         // TODO: optimize via cache
         LoginWhiteLabelingParams result;
         WhiteLabeling existingLoginWLSettings;
-        TenantId dataTenantId = null;
-        if (validateDomain(domainName) && ((existingLoginWLSettings = whiteLabelingDao.findByDomain(tenantId, domainName)) != null)) {
-            dataTenantId = existingLoginWLSettings.getTenantId();
+        TenantId tenantId = null;
+        if (validateDomain(domainName) && ((existingLoginWLSettings = whiteLabelingDao.findByDomain(TenantId.SYS_TENANT_ID, domainName)) != null)) {
+            tenantId = existingLoginWLSettings.getTenantId();
             var customerId = existingLoginWLSettings.getCustomerId();
             result = getEntityLoginWhiteLabelParams(tenantId, customerId);
             if (customerId != null && !customerId.isNullUid()) {
@@ -164,7 +165,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         if (StringUtils.isNotBlank(url)) {
             TenantId imageTenantId = null;
             if (url.startsWith(DataConstants.TB_IMAGE_PREFIX + "/api/images/tenant/")) {
-                imageTenantId = dataTenantId;
+                imageTenantId = tenantId;
             } else if (url.startsWith(DataConstants.TB_IMAGE_PREFIX + "/api/images/system/")) {
                 imageTenantId = TenantId.SYS_TENANT_ID;
             }

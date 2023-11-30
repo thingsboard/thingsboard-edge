@@ -32,6 +32,9 @@
 import { environment as env } from '@env/environment';
 import { deepClone, isDefined, isUndefinedOrNull } from '@core/utils';
 import { ColorPalette, extendDefaultPalette } from '@shared/models/material.models';
+import { TenantId } from '@shared/models/id/tenant-id';
+import { CustomerId } from '@shared/models/id/customer-id';
+import { EntityType } from '@shared/models/entity-type.models';
 
 export interface Favicon {
   url?: string;
@@ -176,3 +179,22 @@ export const checkWlParams = <T extends WhiteLabelingParams & LoginWhiteLabeling
   }
   return whiteLabelParams;
 };
+
+export enum WhiteLabelingType {
+  LOGIN = 'LOGIN',
+  GENERAL = 'GENERAL',
+  MAIL_TEMPLATES = 'MAIL_TEMPLATES'
+}
+
+export interface WhiteLabeling {
+  tenantId: TenantId;
+  customerId?: CustomerId;
+  type: WhiteLabelingType;
+  settings?: any;
+  domain?: string;
+}
+
+export const pageByWhiteLabelingType = new Map<WhiteLabelingType, string>([
+    [WhiteLabelingType.GENERAL, '/white-labeling/whiteLabel'],
+    [WhiteLabelingType.LOGIN, '/white-labeling/loginWhiteLabel']
+]);
