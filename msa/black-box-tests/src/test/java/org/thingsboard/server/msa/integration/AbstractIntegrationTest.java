@@ -31,6 +31,7 @@
 package org.thingsboard.server.msa.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.awaitility.Awaitility;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -64,6 +65,8 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.downlinkConverterPrototype;
+import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.uplinkConverterPrototype;
 import static org.thingsboard.server.msa.prototypes.DevicePrototypes.defaultDevicePrototype;
 
 @DisableUIListeners
@@ -71,7 +74,9 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
     protected static final String LOGIN = "tenant@thingsboard.org";
     protected static final String PASSWORD = "tenant";
     protected Device device;
+    private RuleChainId defaultRuleChainId;
     protected Integration integration;
+    protected Converter uplinkConverter;
 
     abstract protected String getDevicePrototypeSufix();
 
@@ -82,12 +87,14 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
 
     @BeforeMethod
     public void beforeIntegrationTest() {
+        defaultRuleChainId = getDefaultRuleChainId();
         device = testRestClient.postDevice("", defaultDevicePrototype(getDevicePrototypeSufix()));
     }
 
     @AfterMethod
     public void afterIntegrationTest() {
-        if (device != null){
+        testRestClient.setRootRuleChain(defaultRuleChainId);
+        if (device != null) {
             testRestClient.deleteDevice(device.getId());
             if (integration.getId() != null) {
                 testRestClient.deleteIntegration(integration.getId());
@@ -99,13 +106,29 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
         }
     }
 
-    protected Integration createIntegration(IntegrationType type, String config, JsonNode converterConfig,
+    protected Integration createIntegration(IntegrationType type, String config, JsonNode uplinkConfig,
+                                            String routingKey, String secretKey, boolean isRemote) {
+        return createIntegration(type, JacksonUtil.toJsonNode(config), uplinkConfig, routingKey, secretKey, isRemote);
+    }
+
+    protected Integration createIntegration(IntegrationType type, JsonNode config, JsonNode uplinkConfig,
+                                            String routingKey, String secretKey, boolean isRemote) {
+        return createIntegration(type, config, uplinkConfig, null, routingKey, secretKey, isRemote);
+    }
+
+    protected Integration createIntegration(IntegrationType type, JsonNode config, JsonNode uplinkConfig, JsonNode downlinkConfig,
                                             String routingKey, String secretKey, boolean isRemote) {
         Integration integration = new Integration();
-        JsonNode conf = JacksonUtil.toJsonNode(config);
-        integration.setConfiguration(conf);
-        integration.setDefaultConverterId(createUplink(converterConfig).getId());
-        integration.setName(type.name().toLowerCase());
+        integration.setConfiguration(config);
+
+        uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(uplinkConfig));
+        integration.setDefaultConverterId(uplinkConverter.getId());
+
+        if (downlinkConfig != null) {
+            integration.setDownlinkConverterId(testRestClient.postConverter(downlinkConverterPrototype(downlinkConfig)).getId());
+        }
+
+        integration.setName(type.name().toLowerCase() + "_" + RandomStringUtils.randomAlphanumeric(7));
         integration.setType(type);
         integration.setRoutingKey(routingKey);
         integration.setSecret(secretKey);
@@ -120,8 +143,9 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
         TenantId tenantId = integration.getTenantId();
 
         waitUntilIntegrationStarted(integrationId, tenantId);
-        return integration;
+        return this.integration = integration;
     }
+
     protected void waitUntilIntegrationStarted(IntegrationId integrationId, TenantId tenantId) {
         Awaitility
                 .await()
@@ -206,7 +230,7 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
         ruleChainMetaData.setRuleChainId(ruleChain.getId());
         ruleChainMetaData.setFirstNodeIndex(configuration.get("firstNodeIndex").asInt());
         ruleChainMetaData.setNodes(Arrays.asList(JacksonUtil.OBJECT_MAPPER.treeToValue(configuration.get("nodes"), RuleNode[].class)));
-        RuleNode integrationNode  = ruleChainMetaData.getNodes().stream().filter(ruleNode -> ruleNode.getType().equals("org.thingsboard.rule.engine.integration.TbIntegrationDownlinkNode")).findFirst().get();
+        RuleNode integrationNode = ruleChainMetaData.getNodes().stream().filter(ruleNode -> ruleNode.getType().equals("org.thingsboard.rule.engine.integration.TbIntegrationDownlinkNode")).findFirst().get();
         integrationNode.setConfiguration(JacksonUtil.newObjectNode().put("integrationId", integrationId.toString()));
         ruleChainMetaData.setConnections(Arrays.asList(JacksonUtil.OBJECT_MAPPER.treeToValue(configuration.get("connections"), NodeConnectionInfo[].class)));
 
@@ -214,6 +238,21 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
 
         // make rule chain root
         testRestClient.setRootRuleChain(ruleChain.getId());
+
+        Awaitility
+                .await()
+                .alias("Get events from rule chain")
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> {
+                    PageData<EventInfo> events = testRestClient.getEvents(ruleChain.getId(), EventType.LC_EVENT, ruleChain.getTenantId(), new TimePageLink(1024));
+                    List<EventInfo> eventInfos = events.getData().stream().filter(eventInfo ->
+                                    "UPDATED".equals(eventInfo.getBody().get("event").asText()) &&
+                                            "true".equals(eventInfo.getBody().get("success").asText()))
+                            .collect(Collectors.toList());
+
+                    return eventInfos.size() == 4;
+                });
+
         return ruleChain.getId();
     }
 
