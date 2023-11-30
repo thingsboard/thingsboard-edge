@@ -533,7 +533,7 @@ public class DashboardController extends BaseController {
         JsonNode additionalInfo;
         HomeDashboard homeDashboard = null;
 
-        boolean ownerWhiteLabelingAllowed = whiteLabelingService.isWhiteLabelingAllowed(getTenantId(), user.getOwnerId());
+        boolean ownerWhiteLabelingAllowed = whiteLabelingService.isWhiteLabelingAllowed(getTenantId(), user.getCustomerId());
 
         if (ownerWhiteLabelingAllowed) {
             additionalInfo = user.getAdditionalInfo();
@@ -545,8 +545,9 @@ public class DashboardController extends BaseController {
                 additionalInfo = customer.getAdditionalInfo();
                 homeDashboard = extractHomeDashboardFromAdditionalInfo(additionalInfo);
             }
+            //TODO: merge with parent customers if any.
             if (homeDashboard == null && ((securityUser.isTenantAdmin() && ownerWhiteLabelingAllowed) ||
-                    (securityUser.isCustomerUser() && whiteLabelingService.isWhiteLabelingAllowed(getTenantId(), getTenantId())))) {
+                    (securityUser.isCustomerUser() && whiteLabelingService.isWhiteLabelingAllowed(getTenantId(), null)))) {
                 Tenant tenant = tenantService.findTenantById(securityUser.getTenantId());
                 additionalInfo = tenant.getAdditionalInfo();
                 homeDashboard = extractHomeDashboardFromAdditionalInfo(additionalInfo);

@@ -31,12 +31,29 @@
 package org.thingsboard.server.dao.sql.whitelabeling;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
+import org.thingsboard.server.dao.model.sql.DashboardInfoEntity;
 import org.thingsboard.server.dao.model.sql.WhiteLabelingCompositeKey;
 import org.thingsboard.server.dao.model.sql.WhiteLabelingEntity;
+
+import java.util.List;
+import java.util.UUID;
 
 
 public interface WhiteLabelingRepository extends JpaRepository<WhiteLabelingEntity, WhiteLabelingCompositeKey> {
 
     WhiteLabelingEntity findByDomain(String domain);
 
+    @Query(nativeQuery = true,
+            value = "SELECT * FROM white_labeling wl WHERE wl.tenant_id = :tenantId " +
+                    "and wl.settings ILIKE CONCAT('%\"', :imageLink, '\"%') limit :lmt"
+    )
+    List<WhiteLabelingEntity> findByTenantAndImageLink(@Param("tenantId") UUID tenantId, @Param("imageLink") String imageLink, @Param("lmt") int lmt);
+
+    @Query(nativeQuery = true,
+            value = "SELECT * FROM white_labeling wl WHERE wl.settings ILIKE CONCAT('%\"', :imageLink, '\"%') limit :lmt"
+    )
+    List<WhiteLabelingEntity> findByImageLink(@Param("imageLink") String imageLink, @Param("lmt") int lmt);
 }

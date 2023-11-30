@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data.wl;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -39,6 +40,7 @@ import org.thingsboard.server.common.data.StringUtils;
 @ApiModel
 @Data
 @EqualsAndHashCode
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class WhiteLabelingParams {
 
     @ApiModelProperty(position = 1, value = "Logo image URL", example = "https://company.com/images/logo.png")

@@ -65,13 +65,14 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.net.URI;
+import java.util.UUID;
 
 import static org.thingsboard.server.dao.entity.AbstractEntityService.checkConstraintViolation;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelingCompositeKey, WhiteLabeling, WhiteLabelingEvictEvent>  implements WhiteLabelingService {
+public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelingCompositeKey, WhiteLabeling, WhiteLabelingEvictEvent> implements WhiteLabelingService {
 
     private static final String ALLOW_WHITE_LABELING = "allowWhiteLabeling";
     private static final String ALLOW_CUSTOMER_WHITE_LABELING = "allowCustomerWhiteLabeling";
@@ -84,20 +85,20 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
 
 
     @Override
-    public LoginWhiteLabelingParams getSystemLoginWhiteLabelingParams(TenantId tenantId) {
-        WhiteLabeling whiteLabeling = findByEntityId(tenantId, TenantId.SYS_TENANT_ID, WhiteLabelingType.LOGIN);
+    public LoginWhiteLabelingParams getSystemLoginWhiteLabelingParams() {
+        WhiteLabeling whiteLabeling = findByEntityId(TenantId.SYS_TENANT_ID, null, WhiteLabelingType.LOGIN);
         return constructLoginWlParams(whiteLabeling != null ? whiteLabeling.getSettings() : null);
     }
 
     @Override
-    public WhiteLabelingParams getSystemWhiteLabelingParams(TenantId tenantId) {
-        WhiteLabeling whiteLabeling = findByEntityId(tenantId, TenantId.SYS_TENANT_ID, WhiteLabelingType.GENERAL);
+    public WhiteLabelingParams getSystemWhiteLabelingParams() {
+        WhiteLabeling whiteLabeling = findByEntityId(TenantId.SYS_TENANT_ID, null, WhiteLabelingType.GENERAL);
         return constructWlParams(whiteLabeling != null ? whiteLabeling.getSettings() : null, true);
     }
 
     @Override
     public WhiteLabelingParams getTenantWhiteLabelingParams(TenantId tenantId) {
-        return getEntityWhiteLabelParams(tenantId, tenantId);
+        return getEntityWhiteLabelParams(tenantId, null);
     }
 
     @Override
@@ -106,13 +107,8 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     }
 
     @Override
-    public WhiteLabelingParams getMergedSystemWhiteLabelingParams(TenantId tenantId) {
-        return getSystemWhiteLabelingParams(tenantId);
-    }
-
-    @Override
     public LoginWhiteLabelingParams getTenantLoginWhiteLabelingParams(TenantId tenantId) {
-        return getEntityLoginWhiteLabelParams(tenantId, tenantId);
+        return getEntityLoginWhiteLabelParams(tenantId, null);
     }
 
     @Override
@@ -124,48 +120,44 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     public LoginWhiteLabelingParams getMergedLoginWhiteLabelingParams(TenantId tenantId, String domainName) throws Exception {
         LoginWhiteLabelingParams result;
         WhiteLabeling existingLoginWLSettings;
-        if (validateDomain(domainName) && ((existingLoginWLSettings =  whiteLabelingDao.findByDomain(tenantId, domainName)) != null)) {
-            EntityId entityId = existingLoginWLSettings.getEntityId();
-            result = getEntityLoginWhiteLabelParams(tenantId, entityId);
-            if (entityId.getEntityType().equals(EntityType.CUSTOMER)) {
-                Customer customer = customerService.findCustomerById(tenantId, (CustomerId) entityId);
+        if (validateDomain(domainName) && ((existingLoginWLSettings = whiteLabelingDao.findByDomain(tenantId, domainName)) != null)) {
+            var customerId = existingLoginWLSettings.getCustomerId();
+            result = getEntityLoginWhiteLabelParams(tenantId, customerId);
+            if (customerId != null) {
+                Customer customer = customerService.findCustomerById(tenantId, customerId);
                 if (customer.isSubCustomer()) {
-                    result.merge(getCustomerHierarchyLoginWhileLabelingParams(tenantId, customer.getParentCustomerId(), result));
+                    result = getCustomerHierarchyLoginWhileLabelingParams(tenantId, customer.getParentCustomerId(), result);
                 }
+                result.merge(getTenantLoginWhiteLabelingParams(tenantId));
             }
-            result.merge(getSystemLoginWhiteLabelingParams(tenantId));
+            result.merge(getSystemLoginWhiteLabelingParams());
         } else {
-            result = getSystemLoginWhiteLabelingParams(tenantId);
+            result = getSystemLoginWhiteLabelingParams();
         }
-        result.merge(getSystemWhiteLabelingParams(tenantId));
         return result;
     }
 
     @Override
     public ImageCacheKey getLoginImageKey(TenantId tenantId, String domainName, boolean faviconElseLogo) throws Exception {
-
-        // TODO: optimize
-
+        // TODO: optimize via cache
         LoginWhiteLabelingParams result;
         WhiteLabeling existingLoginWLSettings;
         TenantId dataTenantId = null;
-        if (validateDomain(domainName) && ((existingLoginWLSettings =  whiteLabelingDao.findByDomain(tenantId, domainName)) != null)) {
-            EntityId entityId = existingLoginWLSettings.getEntityId();
-            result = getEntityLoginWhiteLabelParams(tenantId, entityId);
-            if (entityId.getEntityType().equals(EntityType.CUSTOMER)) {
-                Customer customer = customerService.findCustomerById(tenantId, (CustomerId) entityId);
-                dataTenantId = customer.getTenantId();
+        if (validateDomain(domainName) && ((existingLoginWLSettings = whiteLabelingDao.findByDomain(tenantId, domainName)) != null)) {
+            dataTenantId = existingLoginWLSettings.getTenantId();
+            var customerId = existingLoginWLSettings.getCustomerId();
+            result = getEntityLoginWhiteLabelParams(tenantId, customerId);
+            if (customerId != null) {
+                Customer customer = customerService.findCustomerById(tenantId, customerId);
                 if (customer.isSubCustomer()) {
-                    result.merge(getCustomerHierarchyLoginWhileLabelingParams(tenantId, customer.getParentCustomerId(), result));
+                    result = getCustomerHierarchyLoginWhileLabelingParams(tenantId, customer.getParentCustomerId(), result);
                 }
-            } else {
-                dataTenantId = new TenantId(entityId.getId());
+                result.merge(getTenantLoginWhiteLabelingParams(tenantId));
             }
-            result.merge(getSystemLoginWhiteLabelingParams(tenantId));
+            result.merge(getSystemLoginWhiteLabelingParams());
         } else {
-            result = getSystemLoginWhiteLabelingParams(tenantId);
+            result = getSystemLoginWhiteLabelingParams();
         }
-        result.merge(getSystemWhiteLabelingParams(tenantId));
         var url = faviconElseLogo ? (result.getFavicon() != null ? result.getFavicon().getUrl() : null) : result.getLogoImageUrl();
         if (StringUtils.isNotBlank(url)) {
             TenantId imageTenantId = null;
@@ -197,24 +189,24 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     }
 
     @Override
-    public WhiteLabelingParams getMergedTenantWhiteLabelingParams(TenantId tenantId) throws Exception {
+    public WhiteLabelingParams getMergedTenantWhiteLabelingParams(TenantId tenantId) {
         WhiteLabelingParams result = getTenantWhiteLabelingParams(tenantId);
-        result.merge(getSystemWhiteLabelingParams(tenantId));
+        result.merge(getSystemWhiteLabelingParams());
         return result;
     }
 
     @Override
-    public WhiteLabelingParams getMergedCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId) throws Exception {
+    public WhiteLabelingParams getMergedCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId) {
         WhiteLabelingParams result = getCustomerWhiteLabelingParams(tenantId, customerId);
         Customer customer = customerService.findCustomerById(tenantId, customerId);
         if (customer.isSubCustomer()) {
-            result.merge(getMergedCustomerHierarchyWhileLabelingParams(tenantId, customer.getParentCustomerId(), result));
+            result = getMergedCustomerHierarchyWhileLabelingParams(tenantId, customer.getParentCustomerId(), result);
         }
-        result.merge(getTenantWhiteLabelingParams(tenantId)).merge(getSystemWhiteLabelingParams(tenantId));
+        result.merge(getTenantWhiteLabelingParams(tenantId)).merge(getSystemWhiteLabelingParams());
         return result;
     }
 
-    private WhiteLabelingParams getMergedCustomerHierarchyWhileLabelingParams(TenantId tenantId, CustomerId customerId, WhiteLabelingParams childCustomerWLParams) throws Exception {
+    private WhiteLabelingParams getMergedCustomerHierarchyWhileLabelingParams(TenantId tenantId, CustomerId customerId, WhiteLabelingParams childCustomerWLParams) {
         WhiteLabelingParams entityWhiteLabelParams = getEntityWhiteLabelParams(tenantId, customerId);
         childCustomerWLParams.merge(entityWhiteLabelParams);
         Customer customer = customerService.findCustomerById(tenantId, customerId);
@@ -227,8 +219,8 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
 
     @Override
     public WhiteLabelingParams saveSystemWhiteLabelingParams(WhiteLabelingParams whiteLabelingParams) {
-        saveWhiteLabelParams(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID, whiteLabelingParams);
-        return getSystemWhiteLabelingParams(TenantId.SYS_TENANT_ID);
+        saveWhiteLabelParams(TenantId.SYS_TENANT_ID, null, whiteLabelingParams);
+        return getSystemWhiteLabelingParams();
     }
 
     @Override
@@ -236,25 +228,25 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         if (!StringUtils.isBlank(loginWhiteLabelingParams.getDomainName())) {
             throw new DataValidationException("Domain name is prohibited for system level");
         }
-        saveLoginWhiteLabelParams(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID, loginWhiteLabelingParams);
-        return getSystemLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID);
+        saveLoginWhiteLabelParams(TenantId.SYS_TENANT_ID, null, loginWhiteLabelingParams);
+        return getSystemLoginWhiteLabelingParams();
     }
 
     @Override
-    public LoginWhiteLabelingParams saveTenantLoginWhiteLabelingParams(TenantId tenantId, LoginWhiteLabelingParams loginWhiteLabelingParams) throws Exception {
-        saveEntityLoginWhiteLabelingParams(tenantId, tenantId, loginWhiteLabelingParams);
+    public LoginWhiteLabelingParams saveTenantLoginWhiteLabelingParams(TenantId tenantId, LoginWhiteLabelingParams loginWhiteLabelingParams) {
+        saveEntityLoginWhiteLabelingParams(tenantId, null, loginWhiteLabelingParams);
         return getTenantLoginWhiteLabelingParams(tenantId);
     }
 
     @Override
-    public LoginWhiteLabelingParams saveCustomerLoginWhiteLabelingParams(TenantId tenantId, CustomerId customerId, LoginWhiteLabelingParams loginWhiteLabelingParams) throws Exception {
+    public LoginWhiteLabelingParams saveCustomerLoginWhiteLabelingParams(TenantId tenantId, CustomerId customerId, LoginWhiteLabelingParams loginWhiteLabelingParams) {
         saveEntityLoginWhiteLabelingParams(tenantId, customerId, loginWhiteLabelingParams);
         return getCustomerLoginWhiteLabelingParams(tenantId, customerId);
     }
 
     private boolean validateDomain(String domainName) {
         try {
-            LoginWhiteLabelingParams systemParams = getSystemLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID);
+            LoginWhiteLabelingParams systemParams = getSystemLoginWhiteLabelingParams();
             if (systemParams != null) {
                 if (isBaseUrlMatchesDomain(systemParams.getBaseUrl(), domainName)) {
                     return false;
@@ -286,19 +278,19 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         }
     }
 
-    private void saveEntityLoginWhiteLabelingParams(TenantId tenantId, EntityId entityId, LoginWhiteLabelingParams loginWhiteLabelParams) {
+    private void saveEntityLoginWhiteLabelingParams(TenantId tenantId, CustomerId customerId, LoginWhiteLabelingParams loginWhiteLabelParams) {
         if (loginWhiteLabelParams.getDomainName() == null) {
             throw new IncorrectParameterException("Domain name could not be empty!");
         }
         if (!validateDomain(loginWhiteLabelParams.getDomainName())) {
             throw new IncorrectParameterException("Current domain name [" + loginWhiteLabelParams.getDomainName() + "] already used in the system level!");
         }
-        saveLoginWhiteLabelParams(tenantId, entityId, loginWhiteLabelParams);
+        saveLoginWhiteLabelParams(tenantId, customerId, loginWhiteLabelParams);
     }
 
     @Override
     public WhiteLabelingParams saveTenantWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams) {
-        saveWhiteLabelParams(tenantId, tenantId, whiteLabelingParams);
+        saveWhiteLabelParams(tenantId, null, whiteLabelingParams);
         return getTenantWhiteLabelingParams(tenantId);
     }
 
@@ -314,17 +306,18 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     }
 
     @Override
-    public WhiteLabelingParams mergeTenantWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams) {
-        return whiteLabelingParams.merge(getSystemWhiteLabelingParams(tenantId));
+    public WhiteLabelingParams mergeTenantWhiteLabelingParams(WhiteLabelingParams whiteLabelingParams) {
+        return whiteLabelingParams.merge(getSystemWhiteLabelingParams());
     }
 
     @Override
-    public WhiteLabelingParams mergeCustomerWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams) {
-        WhiteLabelingParams otherWlParams;
+    public WhiteLabelingParams mergeCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, WhiteLabelingParams whiteLabelingParams) {
         try {
-            otherWlParams = getTenantWhiteLabelingParams(tenantId);
-            return whiteLabelingParams.merge(otherWlParams).
-                    merge(getSystemWhiteLabelingParams(tenantId));
+            Customer customer = customerService.findCustomerById(tenantId, customerId);
+            if (customer.isSubCustomer()) {
+                whiteLabelingParams = getMergedCustomerHierarchyWhileLabelingParams(tenantId, customer.getParentCustomerId(), whiteLabelingParams);
+            }
+            return whiteLabelingParams.merge(getTenantWhiteLabelingParams(tenantId)).merge(getSystemWhiteLabelingParams());
         } catch (Exception e) {
             log.error("Unable to merge Customer White Labeling Params!", e);
             throw new RuntimeException("Unable to merge Customer White Labeling Params!", e);
@@ -332,8 +325,8 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     }
 
     @Override
-    public void deleteDomainWhiteLabelingByEntityId(TenantId tenantId, EntityId entityId) {
-        WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(entityId.getEntityType().name(), entityId.getId(), WhiteLabelingType.LOGIN);
+    public void deleteDomainWhiteLabelingByEntityId(TenantId tenantId, CustomerId customerId) {
+        WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(tenantId, customerId, WhiteLabelingType.LOGIN);
         if (whiteLabelingDao.findById(tenantId, key) != null) {
             whiteLabelingDao.removeById(tenantId, key);
         }
@@ -372,10 +365,10 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         return result;
     }
 
-    private WhiteLabelingParams getEntityWhiteLabelParams(TenantId tenantId, EntityId entityId) {
+    private WhiteLabelingParams getEntityWhiteLabelParams(TenantId tenantId, CustomerId customerId) {
         JsonNode jsonNode = null;
-        if (isWhiteLabelingAllowed(tenantId, entityId)) {
-            WhiteLabeling whiteLabeling = findByEntityId(tenantId, entityId, WhiteLabelingType.GENERAL);
+        if (isWhiteLabelingAllowed(tenantId, customerId)) {
+            WhiteLabeling whiteLabeling = findByEntityId(tenantId, customerId, WhiteLabelingType.GENERAL);
             if (whiteLabeling != null) {
                 jsonNode = whiteLabeling.getSettings();
             }
@@ -400,10 +393,10 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     }
 
 
-    private LoginWhiteLabelingParams getEntityLoginWhiteLabelParams(TenantId tenantId, EntityId entityId) {
+    private LoginWhiteLabelingParams getEntityLoginWhiteLabelParams(TenantId tenantId, CustomerId customerId) {
         JsonNode jsonNode = null;
-        if (isWhiteLabelingAllowed(tenantId, entityId)) {
-            WhiteLabeling whiteLabeling = findByEntityId(tenantId, entityId, WhiteLabelingType.LOGIN);
+        if (isWhiteLabelingAllowed(tenantId, customerId)) {
+            WhiteLabeling whiteLabeling = findByEntityId(tenantId, customerId, WhiteLabelingType.LOGIN);
             if (whiteLabeling != null) {
                 jsonNode = whiteLabeling.getSettings();
             }
@@ -411,9 +404,9 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         return constructLoginWlParams(jsonNode);
     }
 
-    public boolean isWhiteLabelingAllowed(TenantId tenantId, EntityId entityId) {
-        if (entityId.getEntityType().equals(EntityType.CUSTOMER)) {
-            Customer customer = customerService.findCustomerById(tenantId, (CustomerId) entityId);
+    public boolean isWhiteLabelingAllowed(TenantId tenantId, CustomerId customerId) {
+        if (customerId != null) {
+            Customer customer = customerService.findCustomerById(tenantId, customerId);
             if (customer == null) {
                 return false;
             }
@@ -435,17 +428,17 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
                     return false;
                 }
             }
-        } else if (entityId.getEntityType().equals(EntityType.TENANT)) {
-            Tenant tenant = tenantService.findTenantById((TenantId) entityId);
+        } else if (!tenantId.isSysTenantId()) {
+            Tenant tenant = tenantService.findTenantById(tenantId);
             JsonNode allowWhiteLabelJsonNode = tenant.getAdditionalInfo() != null ? tenant.getAdditionalInfo().get(ALLOW_WHITE_LABELING) : null;
             if (allowWhiteLabelJsonNode == null) {
                 return true;
             } else {
                 return allowWhiteLabelJsonNode.asBoolean();
             }
+        } else {
+            return true;
         }
-        log.error("Unsupported entity type [{}]!", entityId.getEntityType().name());
-        throw new IncorrectParameterException("Unsupported entity type [" + entityId.getEntityType().name() + "]!");
     }
 
     @Override
@@ -470,13 +463,13 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
 
     @Override
     public boolean isWhiteLabelingConfigured(TenantId tenantId) {
-        return findByEntityId(tenantId, TenantId.SYS_TENANT_ID, WhiteLabelingType.GENERAL) != null;
+        return findByEntityId(tenantId, null, WhiteLabelingType.GENERAL) != null;
     }
 
     @Override
     public JsonNode saveMailTemplates(TenantId tenantId, JsonNode mailTemplates) {
         WhiteLabeling whiteLabeling = new WhiteLabeling();
-        whiteLabeling.setEntityId(tenantId);
+        whiteLabeling.setTenantId(tenantId);
         whiteLabeling.setType(WhiteLabelingType.MAIL_TEMPLATES);
         whiteLabeling.setSettings(mailTemplates);
 
@@ -502,11 +495,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         if (settingsTenantId == null) {
             return JacksonUtil.newObjectNode();
         }
-        WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey();
-        key.setEntityId(settingsTenantId.getId());
-        key.setEntityType(settingsTenantId.getEntityType().name());
-        key.setType(WhiteLabelingType.MAIL_TEMPLATES);
-
+        WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(settingsTenantId, WhiteLabelingType.MAIL_TEMPLATES);
         WhiteLabeling mailTemplates = whiteLabelingDao.findById(tenantId, key);
         return mailTemplates == null ? JacksonUtil.newObjectNode() : mailTemplates.getSettings();
     }
@@ -528,9 +517,10 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         return mailTemplatesSettings;
     }
 
-    private void saveLoginWhiteLabelParams(TenantId tenantId, EntityId entityId, LoginWhiteLabelingParams whiteLabelingParams) {
+    private void saveLoginWhiteLabelParams(TenantId tenantId, CustomerId customerId, LoginWhiteLabelingParams whiteLabelingParams) {
         WhiteLabeling whiteLabeling = new WhiteLabeling();
-        whiteLabeling.setEntityId(entityId);
+        whiteLabeling.setTenantId(tenantId);
+        whiteLabeling.setCustomerId(customerId);
         whiteLabeling.setType(WhiteLabelingType.LOGIN);
         whiteLabelingParams.setDomainName(StringUtils.toLowerCase(whiteLabelingParams.getDomainName()));
         whiteLabelingParams.setBaseUrl(StringUtils.toLowerCase(whiteLabelingParams.getBaseUrl()));
@@ -538,25 +528,26 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         whiteLabeling.setDomain(whiteLabelingParams.getDomainName());
 
         doSaveWhiteLabelingSettings(tenantId, whiteLabeling);
-        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(entityId)
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(customerId != null ? customerId : tenantId)
                 .edgeEventType(EdgeEventType.LOGIN_WHITE_LABELING).actionType(ActionType.UPDATED).build());
     }
 
-    private void saveWhiteLabelParams(TenantId tenantId, EntityId entityId, WhiteLabelingParams whiteLabelingParams) {
+    private void saveWhiteLabelParams(TenantId tenantId, CustomerId customerId, WhiteLabelingParams whiteLabelingParams) {
         WhiteLabeling whiteLabeling = new WhiteLabeling();
-        whiteLabeling.setEntityId(entityId);
+        whiteLabeling.setTenantId(tenantId);
+        whiteLabeling.setCustomerId(customerId);
         whiteLabeling.setType(WhiteLabelingType.GENERAL);
         whiteLabeling.setSettings(JacksonUtil.valueToTree(whiteLabelingParams));
 
         doSaveWhiteLabelingSettings(tenantId, whiteLabeling);
-        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(entityId)
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(customerId != null ? customerId : tenantId)
                 .edgeEventType(EdgeEventType.WHITE_LABELING).actionType(ActionType.UPDATED).build());
     }
 
     private void doSaveWhiteLabelingSettings(TenantId tenantId, WhiteLabeling whiteLabeling) {
         try {
             WhiteLabeling saved = whiteLabelingDao.save(tenantId, whiteLabeling);
-            WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(saved.getEntityId().getEntityType().name(), saved.getEntityId().getId(), saved.getType());
+            WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(saved.getTenantId(), saved.getCustomerId(), saved.getType());
             publishEvictEvent(new WhiteLabelingEvictEvent(key));
         } catch (Exception t) {
             checkConstraintViolation(t,
@@ -566,8 +557,8 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     }
 
     @Override
-    public WhiteLabeling findByEntityId(TenantId tenantId, EntityId entityId, WhiteLabelingType type) {
-        WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(entityId.getEntityType().name(), entityId.getId(), type);
+    public WhiteLabeling findByEntityId(TenantId tenantId, CustomerId customerId, WhiteLabelingType type) {
+        WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(tenantId, customerId, type);
         log.trace("Executing findById for key [{}] ", key);
         return cache.getAndPutInTransaction(key,
                 () -> whiteLabelingDao.findById(tenantId,

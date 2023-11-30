@@ -34,6 +34,8 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.dao.model.sql.WhiteLabelingCompositeKey;
 
+import java.util.List;
+
 public interface WhiteLabelingDao {
 
     WhiteLabeling save(TenantId tenantId, WhiteLabeling whiteLabeling);
@@ -43,5 +45,9 @@ public interface WhiteLabelingDao {
     WhiteLabeling findByDomain(TenantId tenantId, String domain);
 
     void removeById(TenantId tenantId, WhiteLabelingCompositeKey key);
+
+    List<WhiteLabeling> findByTenantAndImageLink(TenantId tenantId, String imageUrl, int limit);
+
+    List<WhiteLabeling> findByImageLink(String imageUrl, int limit);
 
 }

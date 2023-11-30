@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.TbResourceInfoFilter;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TbResourceId;
@@ -188,7 +189,8 @@ public class BaseResourceService extends AbstractCachedEntityService<ResourceInf
     @Override
     public PageData<TbResourceInfo> findTenantResourcesByTenantId(TbResourceInfoFilter filter, PageLink pageLink) {
         TenantId tenantId = filter.getTenantId();
-        log.trace("Executing findTenantResourcesByTenantId [{}]", tenantId);
+        CustomerId customerId = filter.getCustomerId();
+        log.trace("Executing findTenantResourcesByFilter [{}]", filter);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         return resourceInfoDao.findTenantResourcesByTenantId(filter, pageLink);
     }

@@ -39,6 +39,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.validation.Length;
@@ -56,24 +57,26 @@ public class TbResourceInfo extends BaseData<TbResourceId> implements HasName, T
 
     @ApiModelProperty(position = 3, value = "JSON object with Tenant Id. Tenant Id of the resource can't be changed.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private TenantId tenantId;
+    @ApiModelProperty(position = 4, value = "JSON object with Customer Id. Customer Id of the resource can't be changed.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    private CustomerId customerId;
     @NoXss
     @Length(fieldName = "title")
-    @ApiModelProperty(position = 4, value = "Resource title.", example = "BinaryAppDataContainer id=19 v1.0")
+    @ApiModelProperty(position = 5, value = "Resource title.", example = "BinaryAppDataContainer id=19 v1.0")
     private String title;
-    @ApiModelProperty(position = 5, value = "Resource type.", example = "LWM2M_MODEL", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @ApiModelProperty(position = 6, value = "Resource type.", example = "LWM2M_MODEL", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private ResourceType resourceType;
     @NoXss
     @Length(fieldName = "resourceKey")
-    @ApiModelProperty(position = 6, value = "Resource key.", example = "19_1.0", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @ApiModelProperty(position = 7, value = "Resource key.", example = "19_1.0", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private String resourceKey;
-    @ApiModelProperty(position = 7, value = "Resource search text.", example = "19_1.0:binaryappdatacontainer", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @ApiModelProperty(position = 8, value = "Resource search text.", example = "19_1.0:binaryappdatacontainer", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private String searchText;
 
-    @ApiModelProperty(position = 8, value = "Resource etag.", example = "33a64df551425fcc55e4d42a148795d9f25f89d4", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @ApiModelProperty(position = 9, value = "Resource etag.", example = "33a64df551425fcc55e4d42a148795d9f25f89d4", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private String etag;
     @NoXss
     @Length(fieldName = "file name")
-    @ApiModelProperty(position = 9, value = "Resource file name.", example = "19.xml", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @ApiModelProperty(position = 10, value = "Resource file name.", example = "19.xml", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private String fileName;
     private JsonNode descriptor;
 
@@ -90,6 +93,7 @@ public class TbResourceInfo extends BaseData<TbResourceId> implements HasName, T
     public TbResourceInfo(TbResourceInfo resourceInfo) {
         super(resourceInfo);
         this.tenantId = resourceInfo.tenantId;
+        this.customerId = resourceInfo.customerId;
         this.title = resourceInfo.title;
         this.resourceType = resourceInfo.resourceType;
         this.resourceKey = resourceInfo.resourceKey;

@@ -53,6 +53,7 @@ import org.thingsboard.server.common.data.TbImageDeleteResult;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.TbResourceInfoFilter;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -71,6 +72,7 @@ import org.thingsboard.server.dao.util.JsonNodeProcessingTask;
 import org.thingsboard.server.dao.util.JsonPathProcessingTask;
 import org.thingsboard.server.dao.widget.WidgetTypeDao;
 import org.thingsboard.server.dao.widget.WidgetsBundleDao;
+import org.thingsboard.server.dao.wl.WhiteLabelingDao;
 
 import javax.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
@@ -123,17 +125,19 @@ public class BaseImageService extends BaseResourceService implements ImageServic
     private final WidgetsBundleDao widgetsBundleDao;
     private final WidgetTypeDao widgetTypeDao;
     private final DashboardInfoDao dashboardInfoDao;
+    private final WhiteLabelingDao whiteLabelingDao;
     private final Map<EntityType, ImageContainerDao<?>> imageContainerDaoMap = new HashMap<>();
 
     public BaseImageService(TbResourceDao resourceDao, TbResourceInfoDao resourceInfoDao, ResourceDataValidator resourceValidator,
                             AssetProfileDao assetProfileDao, DeviceProfileDao deviceProfileDao, WidgetsBundleDao widgetsBundleDao,
-                            WidgetTypeDao widgetTypeDao, DashboardInfoDao dashboardInfoDao) {
+                            WidgetTypeDao widgetTypeDao, DashboardInfoDao dashboardInfoDao, WhiteLabelingDao whiteLabelingDao) {
         super(resourceDao, resourceInfoDao, resourceValidator);
         this.assetProfileDao = assetProfileDao;
         this.deviceProfileDao = deviceProfileDao;
         this.widgetsBundleDao = widgetsBundleDao;
         this.widgetTypeDao = widgetTypeDao;
         this.dashboardInfoDao = dashboardInfoDao;
+        this.whiteLabelingDao = whiteLabelingDao;
     }
 
     @PostConstruct
@@ -227,6 +231,16 @@ public class BaseImageService extends BaseResourceService implements ImageServic
     }
 
     @Override
+    public PageData<TbResourceInfo> getImagesByCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
+        TbResourceInfoFilter filter = TbResourceInfoFilter.builder()
+                .tenantId(tenantId)
+                .customerId(customerId)
+                .resourceTypes(Set.of(ResourceType.IMAGE))
+                .build();
+        return findTenantResourcesByTenantId(filter, pageLink);
+    }
+
+    @Override
     public PageData<TbResourceInfo> getAllImagesByTenantId(TenantId tenantId, PageLink pageLink) {
         TbResourceInfoFilter filter = TbResourceInfoFilter.builder()
                 .tenantId(tenantId)
@@ -263,9 +277,14 @@ public class BaseImageService extends BaseResourceService implements ImageServic
                     affectedEntities.put(entityType.name(), entities);
                 }
             });
-            if (!affectedEntities.isEmpty()) {
+
+            var wlList = tenantId.isSysTenantId() ? whiteLabelingDao.findByImageLink(link, MAX_ENTITIES_TO_FIND) :
+                    whiteLabelingDao.findByTenantAndImageLink(tenantId, link, MAX_ENTITIES_TO_FIND);
+
+            if (!affectedEntities.isEmpty() || !wlList.isEmpty()) {
                 success = false;
                 result.references(affectedEntities);
+                result.whiteLabelingList(wlList);
             }
         }
         if (success) {

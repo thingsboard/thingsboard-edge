@@ -37,6 +37,7 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResourceInfo;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseEntity;
@@ -49,6 +50,7 @@ import javax.persistence.Table;
 import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_CUSTOMER_ID_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_DESCRIPTOR_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_ETAG_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_FILE_NAME_COLUMN;
@@ -68,6 +70,9 @@ public class TbResourceInfoEntity extends BaseSqlEntity<TbResourceInfo> implemen
 
     @Column(name = RESOURCE_TENANT_ID_COLUMN, columnDefinition = "uuid")
     private UUID tenantId;
+
+    @Column(name = RESOURCE_CUSTOMER_ID_COLUMN, columnDefinition = "uuid")
+    private UUID customerId;
 
     @Column(name = RESOURCE_TITLE_COLUMN)
     private String title;
@@ -103,6 +108,9 @@ public class TbResourceInfoEntity extends BaseSqlEntity<TbResourceInfo> implemen
         }
         this.createdTime = resource.getCreatedTime();
         this.tenantId = resource.getTenantId().getId();
+        if (resource.getCustomerId() != null) {
+            this.customerId = resource.getCustomerId().getId();
+        }
         this.title = resource.getTitle();
         this.resourceType = resource.getResourceType().name();
         this.resourceKey = resource.getResourceKey();
@@ -118,6 +126,9 @@ public class TbResourceInfoEntity extends BaseSqlEntity<TbResourceInfo> implemen
         TbResourceInfo resource = new TbResourceInfo(new TbResourceId(id));
         resource.setCreatedTime(createdTime);
         resource.setTenantId(TenantId.fromUUID(tenantId));
+        if (customerId != null) {
+            resource.setCustomerId(new CustomerId(customerId));
+        }
         resource.setTitle(title);
         resource.setResourceType(ResourceType.valueOf(resourceType));
         resource.setResourceKey(resourceKey);

@@ -36,6 +36,7 @@ import org.thingsboard.server.common.data.HasImage;
 import org.thingsboard.server.common.data.TbImageDeleteResult;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TbResourceInfo;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -54,6 +55,8 @@ public interface ImageService {
     TbResourceInfo getImageInfoByTenantIdAndKey(TenantId tenantId, String key);
 
     PageData<TbResourceInfo> getImagesByTenantId(TenantId tenantId, PageLink pageLink);
+
+    PageData<TbResourceInfo> getImagesByCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink);
 
     PageData<TbResourceInfo> getAllImagesByTenantId(TenantId tenantId, PageLink pageLink);
 
@@ -76,4 +79,5 @@ public interface ImageService {
     void inlineImages(Dashboard dashboard);
 
     void inlineImages(WidgetTypeDetails widgetTypeDetails);
+
 }

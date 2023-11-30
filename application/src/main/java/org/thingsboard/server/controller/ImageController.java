@@ -112,8 +112,7 @@ public class ImageController extends BaseController {
         SecurityUser user = getCurrentUser();
         TbResource image = new TbResource();
         image.setTenantId(user.getTenantId());
-        accessControlService.checkPermission(user, Resource.TB_RESOURCE, Operation.CREATE, null, image);
-
+        image.setCustomerId(user.getCustomerId());
         image.setFileName(file.getOriginalFilename());
         if (StringUtils.isNotEmpty(title)) {
             image.setTitle(title);
@@ -204,7 +203,7 @@ public class ImageController extends BaseController {
         SecurityUser user = getCurrentUser();
         TbResource image = new TbResource();
         image.setTenantId(user.getTenantId());
-        accessControlService.checkPermission(user, Resource.TB_RESOURCE, Operation.CREATE, null, image);
+        image.setCustomerId(user.getCustomerId());
 
         image.setFileName(imageData.getFileName());
         if (StringUtils.isNotEmpty(imageData.getTitle())) {
@@ -251,10 +250,11 @@ public class ImageController extends BaseController {
                                               @RequestParam(required = false) String sortProperty,
                                               @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
                                               @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        // PE: generic permission
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         TenantId tenantId = getTenantId();
-        if (getCurrentUser().getAuthority() == Authority.SYS_ADMIN || !includeSystemImages) {
+        if (getCurrentUser().isCustomerUser()) {
+            return checkNotNull(imageService.getImagesByCustomerId(tenantId, getCurrentUser().getCustomerId(), pageLink));
+        } else if (getCurrentUser().getAuthority() == Authority.SYS_ADMIN || !includeSystemImages) {
             return checkNotNull(imageService.getImagesByTenantId(tenantId, pageLink));
         } else {
             return checkNotNull(imageService.getAllImagesByTenantId(tenantId, pageLink));
@@ -316,12 +316,22 @@ public class ImageController extends BaseController {
         return this.checkImageInfo(tenantId, key, operation, false);
     }
 
-    private TbResourceInfo checkImageInfo(TenantId tenantId, String key, Operation operation, boolean skipPermissionCheck) throws ThingsboardException {
-        TbResourceInfo imageInfo = imageService.getImageInfoByTenantIdAndKey(tenantId, key);
-        if (skipPermissionCheck) {
-            checkNotNull(imageInfo);
-        } else {
-            checkEntity(getCurrentUser(), checkNotNull(imageInfo), operation);
+    private TbResourceInfo checkImageInfo(TenantId imageTenantId, String key, Operation operation, boolean skipPermissionCheck) throws ThingsboardException {
+        TbResourceInfo imageInfo = imageService.getImageInfoByTenantIdAndKey(imageTenantId, key);
+        checkNotNull(imageInfo);
+        if (!skipPermissionCheck) {
+            TenantId userTenantId = getTenantId();
+            if (Operation.READ.equals(operation)) {
+                if (!(imageTenantId.isSysTenantId() || imageTenantId.equals(userTenantId))) {
+                    throw permissionDenied();
+                }
+            } else {
+                if (!imageTenantId.equals(userTenantId)) {
+                    throw permissionDenied();
+                } else if (getCurrentUser().isCustomerUser() && !getCurrentUser().getCustomerId().equals(imageInfo.getCustomerId())) {
+                    throw permissionDenied();
+                }
+            }
         }
         return imageInfo;
     }

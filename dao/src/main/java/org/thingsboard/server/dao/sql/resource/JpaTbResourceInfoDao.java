@@ -93,12 +93,23 @@ public class JpaTbResourceInfoDao extends JpaAbstractDao<TbResourceInfoEntity, T
         if (CollectionsUtil.isEmpty(resourceTypes)) {
             resourceTypes = EnumSet.allOf(ResourceType.class);
         }
-        return DaoUtil.toPageData(resourceInfoRepository
-                .findTenantResourcesByTenantId(
-                        filter.getTenantId().getId(),
-                        resourceTypes.stream().map(Enum::name).collect(Collectors.toList()),
-                        pageLink.getTextSearch(),
-                        DaoUtil.toPageable(pageLink)));
+        var resourceTypesList = resourceTypes.stream().map(Enum::name).collect(Collectors.toList());
+        if (filter.getCustomerId() != null) {
+            return DaoUtil.toPageData(resourceInfoRepository
+                    .findTenantResourcesByCustomerId(
+                            filter.getTenantId().getId(),
+                            filter.getCustomerId().getId(),
+                            resourceTypesList,
+                            pageLink.getTextSearch(),
+                            DaoUtil.toPageable(pageLink)));
+        } else {
+            return DaoUtil.toPageData(resourceInfoRepository
+                    .findTenantResourcesByTenantId(
+                            filter.getTenantId().getId(),
+                            resourceTypesList,
+                            pageLink.getTextSearch(),
+                            DaoUtil.toPageable(pageLink)));
+        }
     }
 
     @Override

@@ -46,10 +46,13 @@ $$;
 ALTER TABLE resource ADD COLUMN IF NOT EXISTS descriptor varchar;
 ALTER TABLE resource ADD COLUMN IF NOT EXISTS preview bytea;
 ALTER TABLE resource ADD COLUMN IF NOT EXISTS external_id uuid;
+ALTER TABLE resource ADD COLUMN IF NOT EXISTS customer_id uuid;
 
 CREATE INDEX IF NOT EXISTS idx_resource_etag ON resource(tenant_id, etag);
 
 -- RESOURCES UPDATE END
+
+-- WL UPDATE START
 
 UPDATE white_labeling w
 SET domain_name = LOWER(w.domain_name)
@@ -63,3 +66,26 @@ WHERE type = 'LOGIN'
           AND LOWER(wl.domain_name) = LOWER(w.domain_name)
           AND wl.entity_id != w.entity_id
 );
+
+DO
+$$
+    BEGIN
+        IF NOT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name = 'white_labeling' AND column_name = 'tenant_id') THEN
+            ALTER TABLE white_labeling ADD COLUMN tenant_id uuid not null default '13814000-1dd2-11b2-8080-808080808080';
+            ALTER TABLE white_labeling ADD COLUMN customer_id uuid not null default '13814000-1dd2-11b2-8080-808080808080';
+
+            UPDATE white_labeling SET tenant_id = entity_id WHERE entity_type = 'TENANT';
+            UPDATE white_labeling
+            SET tenant_id   = (select tenant_id from customer where id = entity_id),
+                customer_id = entity_id
+            WHERE entity_type = 'CUSTOMER';
+            ALTER TABLE white_labeling DROP CONSTRAINT white_labeling_pkey;
+            ALTER TABLE white_labeling DROP COLUMN entity_id;
+            ALTER TABLE white_labeling DROP COLUMN entity_type;
+            ALTER TABLE white_labeling ADD CONSTRAINT white_labeling_pkey PRIMARY KEY (tenant_id, customer_id, type);
+        END IF;
+    END;
+$$;
+
+
+-- WL UPDATE END
