@@ -53,6 +53,9 @@ public class WidgetTypeDetails extends WidgetType implements HasName, HasTenantI
     @Length(fieldName = "description", max = 1024)
     @ApiModelProperty(position = 10, value = "Description of the widget")
     private String description;
+    @NoXss
+    @ApiModelProperty(position = 11, value = "Tags of the widget type")
+    private String[] tags;
 
     @Getter
     @Setter
@@ -74,6 +77,7 @@ public class WidgetTypeDetails extends WidgetType implements HasName, HasTenantI
         super(widgetTypeDetails);
         this.image = widgetTypeDetails.getImage();
         this.description = widgetTypeDetails.getDescription();
+        this.tags = widgetTypeDetails.getTags();
         this.externalId = widgetTypeDetails.getExternalId();
     }
 }

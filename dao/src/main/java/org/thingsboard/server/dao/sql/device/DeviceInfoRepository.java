@@ -52,10 +52,10 @@ public interface DeviceInfoRepository extends JpaRepository<DeviceInfoEntity, UU
             ") " +
             "AND (:deviceProfileId IS NULL OR d.deviceProfileId = uuid(:deviceProfileId)) " +
             "AND ((:filterByActive) IS FALSE OR d.active = :deviceActive) " +
-            "AND (LOWER(d.name) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
-            "OR LOWER(d.label) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
-            "OR LOWER(d.type) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
-            "OR LOWER(d.ownerName) LIKE LOWER(CONCAT('%', :textSearch, '%')))")
+            "AND (:textSearch IS NULL OR ilike(d.name, CONCAT('%', :textSearch, '%'))  = true " +
+            "OR ilike(d.label, CONCAT('%', :textSearch, '%')) = true " +
+            "OR ilike(d.type, CONCAT('%', :textSearch, '%')) = true " +
+            "OR ilike(d.ownerName, CONCAT('%', :textSearch, '%')) = true )")
     Page<DeviceInfoEntity> findDeviceInfosByFilter(@Param("tenantId") UUID tenantId,
                                                    @Param("includeCustomers") boolean includeCustomers,
                                                    @Param("customerId") String customerId,
@@ -73,19 +73,19 @@ public interface DeviceInfoRepository extends JpaRepository<DeviceInfoEntity, UU
             "WHERE" + SUB_CUSTOMERS_QUERY +
             "AND (:deviceProfileId IS NULL OR e.device_profile_id = uuid(:deviceProfileId)) " +
             "AND ((:filterByActive) IS FALSE OR e.active = :deviceActive) " +
-            "AND (LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
-            "OR LOWER(e.label) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
-            "OR LOWER(e.type) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
-            "OR LOWER(e.owner_name) LIKE LOWER(CONCAT('%', :textSearch, '%')))",
+            "AND (:textSearch IS NULL OR e.name ILIKE CONCAT('%', :textSearch, '%') " +
+            "OR e.label ILIKE CONCAT('%', :textSearch, '%') " +
+            "OR e.type ILIKE CONCAT('%', :textSearch, '%') " +
+            "OR e.owner_name ILIKE CONCAT('%', :textSearch, '%'))",
             countQuery = "SELECT count(e.id) FROM device_info_view e " +
                     "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId " +
                     "WHERE" + SUB_CUSTOMERS_QUERY +
                     "AND (:deviceProfileId IS NULL OR e.device_profile_id = uuid(:deviceProfileId)) " +
                     "AND ((:filterByActive) IS FALSE OR e.active = :deviceActive) " +
-                    "AND (LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
-                    "OR LOWER(e.label) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
-                    "OR LOWER(e.type) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
-                    "OR LOWER(e.owner_name) LIKE LOWER(CONCAT('%', :textSearch, '%')))",
+                    "AND (:textSearch IS NULL OR e.name ILIKE CONCAT('%', :textSearch, '%') " +
+                    "OR e.label ILIKE CONCAT('%', :textSearch, '%') " +
+                    "OR e.type ILIKE CONCAT('%', :textSearch, '%') " +
+                    "OR e.owner_name ILIKE CONCAT('%', :textSearch, '%'))",
             nativeQuery = true)
     Page<DeviceInfoEntity> findDeviceInfosByFilterIncludingSubCustomers(@Param("tenantId") UUID tenantId,
                                                         @Param("customerId") UUID customerId,

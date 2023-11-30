@@ -44,11 +44,13 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -83,13 +85,13 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
 
     @Override
     public LoginWhiteLabelingParams getSystemLoginWhiteLabelingParams(TenantId tenantId) {
-        WhiteLabeling whiteLabeling = findById(tenantId, TenantId.SYS_TENANT_ID, WhiteLabelingType.LOGIN);
+        WhiteLabeling whiteLabeling = findByEntityId(tenantId, TenantId.SYS_TENANT_ID, WhiteLabelingType.LOGIN);
         return constructLoginWlParams(whiteLabeling != null ? whiteLabeling.getSettings() : null);
     }
 
     @Override
     public WhiteLabelingParams getSystemWhiteLabelingParams(TenantId tenantId) {
-        WhiteLabeling whiteLabeling = findById(tenantId, TenantId.SYS_TENANT_ID, WhiteLabelingType.GENERAL);
+        WhiteLabeling whiteLabeling = findByEntityId(tenantId, TenantId.SYS_TENANT_ID, WhiteLabelingType.GENERAL);
         return constructWlParams(whiteLabeling != null ? whiteLabeling.getSettings() : null, true);
     }
 
@@ -188,8 +190,6 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     public WhiteLabelingParams saveSystemWhiteLabelingParams(WhiteLabelingParams whiteLabelingParams) {
         prepareChecksums(whiteLabelingParams);
         saveWhiteLabelParams(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID, whiteLabelingParams);
-        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID)
-                .edgeEventType(EdgeEventType.WHITE_LABELING).actionType(ActionType.UPDATED).build());
         return getSystemWhiteLabelingParams(TenantId.SYS_TENANT_ID);
     }
 
@@ -200,8 +200,6 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         }
         prepareChecksums(loginWhiteLabelingParams);
         saveLoginWhiteLabelParams(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID, loginWhiteLabelingParams);
-        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID)
-                .edgeEventType(EdgeEventType.LOGIN_WHITE_LABELING).actionType(ActionType.UPDATED).build());
         return getSystemLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID);
     }
 
@@ -261,16 +259,12 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
 
         prepareChecksums(loginWhiteLabelParams);
         saveLoginWhiteLabelParams(tenantId, entityId, loginWhiteLabelParams);
-        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(entityId)
-                .edgeEventType(EdgeEventType.LOGIN_WHITE_LABELING).actionType(ActionType.UPDATED).build());
     }
 
     @Override
     public WhiteLabelingParams saveTenantWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams) {
         prepareChecksums(whiteLabelingParams);
         saveWhiteLabelParams(tenantId, tenantId, whiteLabelingParams);
-        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(tenantId)
-                .edgeEventType(EdgeEventType.WHITE_LABELING).actionType(ActionType.UPDATED).build());
         return getTenantWhiteLabelingParams(tenantId);
     }
 
@@ -278,8 +272,6 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     public WhiteLabelingParams saveCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, WhiteLabelingParams whiteLabelingParams) {
         prepareChecksums(whiteLabelingParams);
         saveWhiteLabelParams(tenantId, customerId, whiteLabelingParams);
-        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(customerId)
-                .edgeEventType(EdgeEventType.WHITE_LABELING).actionType(ActionType.UPDATED).build());
         return getCustomerWhiteLabelingParams(tenantId, customerId);
     }
 
@@ -350,7 +342,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     private WhiteLabelingParams getEntityWhiteLabelParams(TenantId tenantId, EntityId entityId) {
         JsonNode jsonNode = null;
         if (isWhiteLabelingAllowed(tenantId, entityId)) {
-            WhiteLabeling whiteLabeling = findById(tenantId, entityId, WhiteLabelingType.GENERAL);
+            WhiteLabeling whiteLabeling = findByEntityId(tenantId, entityId, WhiteLabelingType.GENERAL);
             if (whiteLabeling != null) {
                 jsonNode = whiteLabeling.getSettings();
             }
@@ -378,7 +370,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     private LoginWhiteLabelingParams getEntityLoginWhiteLabelParams(TenantId tenantId, EntityId entityId) {
         JsonNode jsonNode = null;
         if (isWhiteLabelingAllowed(tenantId, entityId)) {
-            WhiteLabeling whiteLabeling = findById(tenantId, entityId, WhiteLabelingType.LOGIN);
+            WhiteLabeling whiteLabeling = findByEntityId(tenantId, entityId, WhiteLabelingType.LOGIN);
             if (whiteLabeling != null) {
                 jsonNode = whiteLabeling.getSettings();
             }
@@ -445,17 +437,76 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
 
     @Override
     public boolean isWhiteLabelingConfigured(TenantId tenantId) {
-        return findById(tenantId, TenantId.SYS_TENANT_ID, WhiteLabelingType.GENERAL) != null;
+        return findByEntityId(tenantId, TenantId.SYS_TENANT_ID, WhiteLabelingType.GENERAL) != null;
+    }
+
+    @Override
+    public JsonNode saveMailTemplates(TenantId tenantId, JsonNode mailTemplates) {
+        WhiteLabeling whiteLabeling = new WhiteLabeling();
+        whiteLabeling.setEntityId(tenantId);
+        whiteLabeling.setType(WhiteLabelingType.MAIL_TEMPLATES);
+        whiteLabeling.setSettings(mailTemplates);
+
+        JsonNode result = whiteLabelingDao.save(tenantId, whiteLabeling).getSettings();
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(tenantId)
+                .edgeEventType(EdgeEventType.MAIL_TEMPLATES).actionType(ActionType.UPDATED).build());
+        return result;
+    }
+
+    @Override
+    public JsonNode getCurrentTenantMailTemplates(TenantId tenantId, boolean systemByDefault) {
+        JsonNode mailTemplatesSettings = findMailTemplatesByTenantId(tenantId, tenantId);
+        if (mailTemplatesSettings.isEmpty()) {
+            if (systemByDefault) {
+                mailTemplatesSettings = findMailTemplatesByTenantId(tenantId, TenantId.SYS_TENANT_ID);
+            }
+        }
+        return mailTemplatesSettings;
+    }
+
+    @Override
+    public JsonNode findMailTemplatesByTenantId(TenantId tenantId, TenantId settingsTenantId) {
+        if (settingsTenantId == null) {
+            return JacksonUtil.newObjectNode();
+        }
+        WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey();
+        key.setEntityId(settingsTenantId.getId());
+        key.setEntityType(settingsTenantId.getEntityType().name());
+        key.setType(WhiteLabelingType.MAIL_TEMPLATES);
+
+        WhiteLabeling mailTemplates = whiteLabelingDao.findById(tenantId, key);
+        return mailTemplates == null ? JacksonUtil.newObjectNode() : mailTemplates.getSettings();
+    }
+
+    @Override
+    public JsonNode getMergedTenantMailTemplates(TenantId tenantId) throws ThingsboardException {
+        JsonNode mailTemplatesSettings = getCurrentTenantMailTemplates(tenantId, true);
+        if (mailTemplatesSettings.isEmpty()) {
+            throw new ThingsboardException("Failed to get tenant mail templates configuration. Settings not found!", ThingsboardErrorCode.GENERAL);
+        }
+        JsonNode useSystemMailSettingsNode = mailTemplatesSettings.get("useSystemMailSettings");
+        if (useSystemMailSettingsNode == null || useSystemMailSettingsNode.asBoolean()) {
+            JsonNode systemMailTemplates = findMailTemplatesByTenantId(tenantId, TenantId.SYS_TENANT_ID);
+            if (systemMailTemplates.isEmpty()) {
+                throw new ThingsboardException("Failed to get system mail templates configuration. Settings not found!", ThingsboardErrorCode.GENERAL);
+            }
+            mailTemplatesSettings = systemMailTemplates;
+        }
+        return mailTemplatesSettings;
     }
 
     private void saveLoginWhiteLabelParams(TenantId tenantId, EntityId entityId, LoginWhiteLabelingParams whiteLabelingParams) {
         WhiteLabeling whiteLabeling = new WhiteLabeling();
         whiteLabeling.setEntityId(entityId);
         whiteLabeling.setType(WhiteLabelingType.LOGIN);
+        whiteLabelingParams.setDomainName(StringUtils.toLowerCase(whiteLabelingParams.getDomainName()));
+        whiteLabelingParams.setBaseUrl(StringUtils.toLowerCase(whiteLabelingParams.getBaseUrl()));
         whiteLabeling.setSettings(JacksonUtil.valueToTree(whiteLabelingParams));
         whiteLabeling.setDomain(whiteLabelingParams.getDomainName());
 
         doSaveWhiteLabelingSettings(tenantId, whiteLabeling);
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(entityId)
+                .edgeEventType(EdgeEventType.LOGIN_WHITE_LABELING).actionType(ActionType.UPDATED).build());
     }
 
     private void saveWhiteLabelParams(TenantId tenantId, EntityId entityId, WhiteLabelingParams whiteLabelingParams) {
@@ -465,6 +516,8 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         whiteLabeling.setSettings(JacksonUtil.valueToTree(whiteLabelingParams));
 
         doSaveWhiteLabelingSettings(tenantId, whiteLabeling);
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(entityId)
+                .edgeEventType(EdgeEventType.WHITE_LABELING).actionType(ActionType.UPDATED).build());
     }
 
     private void doSaveWhiteLabelingSettings(TenantId tenantId, WhiteLabeling whiteLabeling) {
@@ -479,7 +532,8 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         }
     }
 
-    private WhiteLabeling findById(TenantId tenantId, EntityId entityId, WhiteLabelingType type) {
+    @Override
+    public WhiteLabeling findByEntityId(TenantId tenantId, EntityId entityId, WhiteLabelingType type) {
         WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(entityId.getEntityType().name(), entityId.getId(), type);
         log.trace("Executing findById for key [{}] ", key);
         return cache.getAndPutInTransaction(key,

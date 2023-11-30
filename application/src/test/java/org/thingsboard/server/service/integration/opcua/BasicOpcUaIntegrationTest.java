@@ -112,6 +112,7 @@ public class BasicOpcUaIntegrationTest extends AbstractIntegrationTest {
             if (server.getStarted()) {
                 stopServer();
             }
+            Thread.sleep(5000); // Should be sufficient to process all messages from integration to properly delete tenant.
         } catch (InterruptedException | ExecutionException e) {
             log.error("Error during removing OPC-UA integration", e);
         }

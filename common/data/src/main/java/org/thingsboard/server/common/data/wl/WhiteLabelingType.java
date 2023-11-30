@@ -32,5 +32,6 @@ package org.thingsboard.server.common.data.wl;
 
 public enum WhiteLabelingType {
     LOGIN,
-    GENERAL
+    GENERAL,
+    MAIL_TEMPLATES
 }

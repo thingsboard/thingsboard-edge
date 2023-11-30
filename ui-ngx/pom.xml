@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.6.0PE-SNAPSHOT</version>
+        <version>3.6.2PE-SNAPSHOT</version>
         <artifactId>thingsboard</artifactId>
     </parent>
     <artifactId>ui-ngx</artifactId>
@@ -70,7 +70,7 @@
                             <goal>install-node-and-yarn</goal>
                         </goals>
                         <configuration>
-                            <nodeVersion>v16.15.1</nodeVersion>
+                            <nodeVersion>v16.20.2</nodeVersion>
                             <yarnVersion>v1.22.17</yarnVersion>
                         </configuration>
                     </execution>

@@ -435,25 +435,7 @@ public class TestRestClient {
                 .then()
                 .statusCode(HTTP_OK)
                 .extract()
-                .as(new TypeRef<PageData<EventInfo>>() {
-                });
-    }
-
-    public PageData<EventInfo> getEvents(EntityId entityId, TenantId tenantId, TimePageLink pageLink) {
-        Map<String, String> params = new HashMap<>();
-        params.put("entityType", entityId.getEntityType().name());
-        params.put("entityId", entityId.getId().toString());
-        params.put("tenantId", tenantId.getId().toString());
-        addTimePageLinkToParam(params, pageLink);
-
-        return given().spec(requestSpec)
-                .params(params)
-                .get("/api/events/{entityType}/{entityId}/{eventType}?tenantId={tenantId}&" + getTimeUrlParams(pageLink))
-                .then()
-                .statusCode(HTTP_OK)
-                .extract()
-                .as(new TypeRef<PageData<EventInfo>>() {
-                });
+                .as(new TypeRef<>() {});
     }
 
     private void addTimePageLinkToParam(Map<String, String> params, TimePageLink pageLink) {

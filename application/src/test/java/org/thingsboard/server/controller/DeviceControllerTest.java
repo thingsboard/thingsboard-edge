@@ -62,6 +62,9 @@ import org.thingsboard.server.common.data.SaveOtaPackageInfoRequest;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmInfo;
+import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -84,6 +87,7 @@ import org.thingsboard.server.dao.exception.DeviceCredentialsValidationException
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.service.gateway_device.GatewayNotificationsService;
+import org.thingsboard.server.service.state.DeviceStateService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,6 +96,8 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -115,6 +121,9 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
     @SpyBean
     private GatewayNotificationsService gatewayNotificationsService;
+
+    @SpyBean
+    private DeviceStateService deviceStateService;
 
     @Autowired
     private DeviceDao deviceDao;
@@ -562,6 +571,39 @@ public class DeviceControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    public void testDeleteDeviceWithAlarmsAndAlarmTypes() throws Exception {
+        Device device = new Device();
+        device.setName("My device");
+        device.setType("default");
+        Device savedDevice = doPost("/api/device", device, Device.class);
+
+        Alarm alarm = Alarm.builder()
+                .tenantId(tenantId)
+                .originator(savedDevice.getId())
+                .severity(AlarmSeverity.CRITICAL)
+                .type("test_type")
+                .build();
+
+        alarm = doPost("/api/alarm", alarm, Alarm.class);
+        Assert.assertNotNull(alarm);
+
+        AlarmInfo foundAlarm = doGet("/api/alarm/info/" + alarm.getId(), AlarmInfo.class);
+        Assert.assertNotNull(foundAlarm);
+
+        doDelete("/api/device/" + savedDevice.getId().getId().toString())
+                .andExpect(status().isOk());
+
+        String DeviceIdStr = savedDevice.getId().getId().toString();
+        doGet("/api/device/" + DeviceIdStr)
+                .andExpect(status().isNotFound())
+                .andExpect(statusReason(containsString(msgErrorNoFound("Device", DeviceIdStr))));
+
+        doGet("/api/device/info/" + alarm.getId())
+                .andExpect(status().isNotFound())
+                .andExpect(statusReason(containsString(msgErrorNoFound("Device", alarm.getId().getId().toString()))));
+    }
+
+    @Test
     public void testSaveDeviceWithEmptyType() throws Exception {
         Device device = new Device();
         device.setName("My device");
@@ -992,6 +1034,28 @@ public class DeviceControllerTest extends AbstractControllerTest {
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ASSIGNED_TO_TENANT, savedDifferentTenant.getId().getId().toString(), savedDifferentTenant.getTitle());
         testNotificationUpdateGatewayNever();
+
+        Mockito.verify(deviceStateService, times(1)).onQueueMsg(
+                argThat(proto ->
+                        proto.getTenantIdMSB() == savedTenant.getUuidId().getMostSignificantBits() &&
+                                proto.getTenantIdLSB() == savedTenant.getUuidId().getLeastSignificantBits() &&
+                                proto.getDeviceIdMSB() == savedDevice.getUuidId().getMostSignificantBits() &&
+                                proto.getDeviceIdLSB() == savedDevice.getUuidId().getLeastSignificantBits() &&
+                                proto.getDeleted()
+                ),
+                any()
+        );
+
+        Mockito.verify(deviceStateService, times(1)).onQueueMsg(
+                argThat(proto ->
+                        proto.getTenantIdMSB() == savedDifferentTenant.getUuidId().getMostSignificantBits() &&
+                                proto.getTenantIdLSB() == savedDifferentTenant.getUuidId().getLeastSignificantBits() &&
+                                proto.getDeviceIdMSB() == savedDevice.getUuidId().getMostSignificantBits() &&
+                                proto.getDeviceIdLSB() == savedDevice.getUuidId().getLeastSignificantBits() &&
+                                proto.getAdded()
+                ),
+                any()
+        );
 
         login("tenant9@thingsboard.org", "testPassword1");
 

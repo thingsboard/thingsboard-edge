@@ -58,7 +58,8 @@ class EntityTypeTest {
 
     @Test
     void getGroupEntityTypesTest() {
-        assertThat(groupEntityTypes).containsExactlyInAnyOrderElementsOf(EntityType.GROUP_ENTITY_TYPES);
+        assertThat(EntityType.GROUP_ENTITY_TYPES).hasSameSizeAs(groupEntityTypes);
+        assertThat(EntityType.GROUP_ENTITY_TYPES).containsExactlyInAnyOrderElementsOf(groupEntityTypes);
     }
 
 }

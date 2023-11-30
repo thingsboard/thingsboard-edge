@@ -56,7 +56,7 @@ import { AttributeScope, DataKeyType } from '@shared/models/telemetry/telemetry.
 import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-utils';
 import { RuleChainService } from '@core/http/rule-chain.service';
 import { AliasInfo, StateParams, SubscriptionInfo } from '@core/api/widget-api.models';
-import { DataKey, Datasource, DatasourceType, KeyInfo } from '@app/shared/models/widget.models';
+import { DataKey, Datasource, DatasourceType, DeprecatedFilter, KeyInfo } from '@app/shared/models/widget.models';
 import { UtilsService } from '@core/services/utils.service';
 import {
   AliasFilterType,
@@ -96,7 +96,9 @@ import { Operation, resourceByEntityType, RoleType } from '@shared/models/securi
 import { CustomerId } from '@shared/models/id/customer-id';
 import {
   AlarmData,
-  AlarmDataQuery, AlarmFilter, AlarmFilterConfig,
+  AlarmDataQuery,
+  AlarmFilter,
+  AlarmFilterConfig,
   createDefaultEntityDataPageLink,
   EntityData,
   EntityDataQuery,
@@ -123,6 +125,7 @@ import { NotificationService } from '@core/http/notification.service';
 import { TenantProfileService } from '@core/http/tenant-profile.service';
 import { NotificationType } from '@shared/models/notification.models';
 import { UserId } from '@shared/models/id/user-id';
+import { AlarmService } from '@core/http/alarm.service';
 
 @Injectable({
   providedIn: 'root'
@@ -157,7 +160,8 @@ export class EntityService {
     private userPermissionsService: UserPermissionsService,
     private utils: UtilsService,
     private queueService: QueueService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private alarmService: AlarmService
   ) { }
 
   private getEntityObservable(entityType: EntityType, entityId: string,
@@ -197,7 +201,7 @@ export class EntityService {
         observable = this.ruleChainService.getRuleChain(entityId, config);
         break;
       case EntityType.ALARM:
-        console.error('Get Alarm Entity is not implemented!');
+        observable = this.alarmService.getAlarm(entityId, config);
         break;
       case EntityType.CONVERTER:
         observable = this.converterService.getConverter(entityId, config);
@@ -594,7 +598,11 @@ export class EntityService {
         break;
       case EntityType.WIDGETS_BUNDLE:
         pageLink.sortOrder.property = 'title';
-        entitiesObservable = this.widgetService.getWidgetBundles(pageLink, config);
+        entitiesObservable = this.widgetService.getWidgetBundles(pageLink, false, true, config);
+        break;
+      case EntityType.WIDGET_TYPE:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.widgetService.getWidgetTypes(pageLink, true, false, DeprecatedFilter.ALL, null, config);
         break;
       case EntityType.NOTIFICATION_TARGET:
         pageLink.sortOrder.property = 'name';

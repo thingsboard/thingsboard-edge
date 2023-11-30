@@ -264,7 +264,8 @@ message IntegrationApiResponseMsg {
 
 /* High priority messages with low latency are handled by ThingsBoard Integration Executor Service separately */
 message ToIntegrationExecutorNotificationMsg {
-  bytes componentLifecycleMsg = 1;
+  bytes componentLifecycleMsg = 1 [deprecated = true];
+  transport.ComponentLifecycleMsgProto componentLifecycle = 2;
 }
 
 message IntegrationValidationRequestProto {

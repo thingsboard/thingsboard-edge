@@ -89,7 +89,7 @@ public class JpaTbResourceDao extends JpaAbstractDao<TbResourceEntity, TbResourc
                 tenantId.getId(),
                 TenantId.SYS_TENANT_ID.getId(),
                 resourceType.name(),
-                Objects.toString(pageLink.getTextSearch(), ""),
+                pageLink.getTextSearch(),
                 DaoUtil.toPageable(pageLink)
         ));
     }
@@ -103,7 +103,7 @@ public class JpaTbResourceDao extends JpaAbstractDao<TbResourceEntity, TbResourc
                         tenantId.getId(),
                         TenantId.SYS_TENANT_ID.getId(),
                         resourceType.name(),
-                        Objects.toString(searchText, ""))) :
+                        searchText)) :
                 DaoUtil.convertDataList(resourceRepository.findResourcesByIds(
                         tenantId.getId(),
                         TenantId.SYS_TENANT_ID.getId(),

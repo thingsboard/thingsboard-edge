@@ -89,7 +89,7 @@ public class JpaOtaPackageInfoDao extends JpaAbstractDao<OtaPackageInfoEntity, O
         return DaoUtil.toPageData(otaPackageInfoRepository
                 .findAllByTenantId(
                         tenantId.getId(),
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -100,7 +100,7 @@ public class JpaOtaPackageInfoDao extends JpaAbstractDao<OtaPackageInfoEntity, O
                         tenantId.getId(),
                         deviceProfileId.getId(),
                         otaPackageType,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -124,7 +124,7 @@ public class JpaOtaPackageInfoDao extends JpaAbstractDao<OtaPackageInfoEntity, O
                 .findAllByTenantIdAndDeviceGroupAndTypeAndHasData(
                         deviceGroupId,
                         type,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 }
