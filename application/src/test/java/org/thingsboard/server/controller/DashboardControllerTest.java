@@ -373,6 +373,24 @@ public class DashboardControllerTest extends AbstractControllerTest {
 
     @Test
     public void testFindCustomerUserDashboards() throws Exception {
+        List<DashboardInfo> tenantAdminDashboards = new ArrayList<>();
+        PageLink pageLink = new PageLink(100);
+        PageData<DashboardInfo> pageData;
+        do {
+            pageData = doGetTypedWithPageLink("/api/user/dashboards?",
+                    new TypeReference<>() {
+                    }, pageLink);
+            tenantAdminDashboards.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+        for (DashboardInfo dashboard : tenantAdminDashboards) {
+            doDelete("/api/dashboard/" + dashboard.getId().getId().toString())
+                    .andExpect(status().isOk());
+        }
+        tenantAdminDashboards = new ArrayList<>();
+
         Customer customer = new Customer();
         customer.setTitle("My customer");
         customer.setTenantId(savedTenant.getTenantId());
@@ -448,9 +466,6 @@ public class DashboardControllerTest extends AbstractControllerTest {
         sharedDashboard.setTitle("Shared Dashboard");
         new DashboardInfo(doPost("/api/dashboard?entityGroupId={entityGroupId}", sharedDashboard, Dashboard.class, tenantDashboardGroup.getId().getId().toString()));
 
-        List<DashboardInfo> tenantAdminDashboards = new ArrayList<>();
-        PageLink pageLink = new PageLink(100);
-        PageData<DashboardInfo> pageData;
         do {
             pageData = doGetTypedWithPageLink("/api/user/dashboards?",
                     new TypeReference<>() {
@@ -461,8 +476,8 @@ public class DashboardControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        // Tenant admin user must have access to both dashboards
-        Assert.assertEquals(2, tenantAdminDashboards.size());
+        // Tenant admin user must have access to both dashboards and default gateways dashboard
+        Assert.assertEquals(3, tenantAdminDashboards.size());
 
         User customerUser = new User();
         customerUser.setAuthority(Authority.CUSTOMER_USER);
