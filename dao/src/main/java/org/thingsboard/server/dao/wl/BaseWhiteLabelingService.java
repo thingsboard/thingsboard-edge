@@ -60,6 +60,7 @@ import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.model.sql.WhiteLabelingCompositeKey;
 import org.thingsboard.server.dao.resource.ImageCacheKey;
+import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.exception.DataValidationException;
@@ -81,6 +82,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     private final WhiteLabelingDao whiteLabelingDao;
     private final TenantService tenantService;
     private final CustomerService customerService;
+    private final ImageService imageService;
     private final ApplicationEventPublisher eventPublisher;
 
 
@@ -123,7 +125,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         if (validateDomain(domainName) && ((existingLoginWLSettings = whiteLabelingDao.findByDomain(tenantId, domainName)) != null)) {
             var customerId = existingLoginWLSettings.getCustomerId();
             result = getEntityLoginWhiteLabelParams(tenantId, customerId);
-            if (customerId != null) {
+            if (customerId != null && !customerId.isNullUid()) {
                 Customer customer = customerService.findCustomerById(tenantId, customerId);
                 if (customer.isSubCustomer()) {
                     result = getCustomerHierarchyLoginWhileLabelingParams(tenantId, customer.getParentCustomerId(), result);
@@ -147,7 +149,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
             dataTenantId = existingLoginWLSettings.getTenantId();
             var customerId = existingLoginWLSettings.getCustomerId();
             result = getEntityLoginWhiteLabelParams(tenantId, customerId);
-            if (customerId != null) {
+            if (customerId != null && !customerId.isNullUid()) {
                 Customer customer = customerService.findCustomerById(tenantId, customerId);
                 if (customer.isSubCustomer()) {
                     result = getCustomerHierarchyLoginWhileLabelingParams(tenantId, customer.getParentCustomerId(), result);
@@ -405,7 +407,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     }
 
     public boolean isWhiteLabelingAllowed(TenantId tenantId, CustomerId customerId) {
-        if (customerId != null) {
+        if (customerId != null && !customerId.isNullUid()) {
             Customer customer = customerService.findCustomerById(tenantId, customerId);
             if (customer == null) {
                 return false;
@@ -528,7 +530,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         whiteLabeling.setDomain(whiteLabelingParams.getDomainName());
 
         doSaveWhiteLabelingSettings(tenantId, whiteLabeling);
-        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(customerId != null ? customerId : tenantId)
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(getEntityIdForEvent(tenantId, customerId))
                 .edgeEventType(EdgeEventType.LOGIN_WHITE_LABELING).actionType(ActionType.UPDATED).build());
     }
 
@@ -540,12 +542,17 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         whiteLabeling.setSettings(JacksonUtil.valueToTree(whiteLabelingParams));
 
         doSaveWhiteLabelingSettings(tenantId, whiteLabeling);
-        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(customerId != null ? customerId : tenantId)
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(getEntityIdForEvent(tenantId, customerId))
                 .edgeEventType(EdgeEventType.WHITE_LABELING).actionType(ActionType.UPDATED).build());
+    }
+
+    private static EntityId getEntityIdForEvent(TenantId tenantId, CustomerId customerId) {
+        return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
     }
 
     private void doSaveWhiteLabelingSettings(TenantId tenantId, WhiteLabeling whiteLabeling) {
         try {
+            imageService.replaceBase64WithImageUrl(whiteLabeling);
             WhiteLabeling saved = whiteLabelingDao.save(tenantId, whiteLabeling);
             WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(saved.getTenantId(), saved.getCustomerId(), saved.getType());
             publishEvictEvent(new WhiteLabelingEvictEvent(key));

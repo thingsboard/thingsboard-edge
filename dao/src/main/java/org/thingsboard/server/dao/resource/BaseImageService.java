@@ -60,6 +60,9 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
+import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.dao.ImageContainerDao;
 import org.thingsboard.server.dao.asset.AssetProfileDao;
 import org.thingsboard.server.dao.dashboard.DashboardInfoDao;
@@ -97,6 +100,8 @@ public class BaseImageService extends BaseResourceService implements ImageServic
     public static Map<String, String> DASHBOARD_BASE64_MAPPING = new HashMap<>();
     public static Map<String, String> WIDGET_TYPE_BASE64_MAPPING = new HashMap<>();
 
+    public static Map<String, String> WHITE_LABELING_BASE64_MAPPING = new HashMap<>();
+
     static {
         DASHBOARD_BASE64_MAPPING.put("settings.dashboardLogoUrl", "$prefix logo");
         DASHBOARD_BASE64_MAPPING.put("states.default.layouts.main.gridSettings.backgroundImageUrl", "$prefix background");
@@ -118,6 +123,9 @@ public class BaseImageService extends BaseResourceService implements ImageServic
         WIDGET_TYPE_BASE64_MAPPING.put("settings.background.imageUrl", "$prefix background");
         WIDGET_TYPE_BASE64_MAPPING.put("settings.background.imageBase64", "$prefix background");
         WIDGET_TYPE_BASE64_MAPPING.put("datasources.*.dataKeys.*.settings.customIcon", "$prefix custom icon");
+
+        WHITE_LABELING_BASE64_MAPPING.put("logoImageUrl", "$prefix logo");
+        WHITE_LABELING_BASE64_MAPPING.put("favicon.url", "$prefix website icon");
     }
 
     private final AssetProfileDao assetProfileDao;
@@ -322,6 +330,26 @@ public class BaseImageService extends BaseResourceService implements ImageServic
         }
         base64ToImageUrlRecursively(entity.getTenantId(), prefix, entity.getDescriptor());
         return true; //TODO: should return true only if something is changed.
+    }
+
+    @Override
+    public boolean replaceBase64WithImageUrl(WhiteLabeling whiteLabeling) {
+        if (WhiteLabelingType.LOGIN.equals(whiteLabeling.getType())) {
+            String prefix = "Login white labeling";
+            if (!whiteLabeling.getTenantId().isSysTenantId()) {
+                prefix = "\"" + whiteLabeling.getDomain() + "\" " + prefix.toLowerCase();
+            }
+            base64ToImageUrlUsingMapping(whiteLabeling.getTenantId(), WHITE_LABELING_BASE64_MAPPING, Collections.singletonMap("prefix", prefix), whiteLabeling.getSettings());
+        } else if (WhiteLabelingType.GENERAL.equals(whiteLabeling.getType())) {
+            String prefix;
+            if (whiteLabeling.getCustomerId() != null && !whiteLabeling.getCustomerId().isNullUid()) {
+                prefix = "Customer white labeling";
+            } else {
+                prefix = "White labeling";
+            }
+            base64ToImageUrlUsingMapping(whiteLabeling.getTenantId(), WHITE_LABELING_BASE64_MAPPING, Collections.singletonMap("prefix", prefix), whiteLabeling.getSettings());
+        }
+        return true;
     }
 
     @Override

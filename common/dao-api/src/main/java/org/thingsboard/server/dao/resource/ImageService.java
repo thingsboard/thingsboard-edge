@@ -43,6 +43,8 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
+import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 
 import java.util.List;
 
@@ -73,6 +75,8 @@ public interface ImageService {
     boolean replaceBase64WithImageUrl(HasImage hasImage, String title, String type);
     boolean replaceBase64WithImageUrl(Dashboard dashboard);
     boolean replaceBase64WithImageUrl(WidgetTypeDetails widgetType);
+
+    boolean replaceBase64WithImageUrl(WhiteLabeling widgetType);
 
     void inlineImage(HasImage entity);
 
