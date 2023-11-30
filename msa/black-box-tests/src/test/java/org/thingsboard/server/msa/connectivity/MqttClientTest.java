@@ -331,7 +331,7 @@ public class MqttClientTest extends AbstractContainerTest {
         serverRpcPayload.addProperty("params", true);
         serverRpcPayload.addProperty("persistent", true);
 
-        JsonNode persistentRpcId = testRestClient.postServerSideRpc(device.getId(), mapper.readTree(serverRpcPayload.toString()));
+        JsonNode persistentRpcId = testRestClient.postServerSideRpc(device.getId(), JacksonUtil.toJsonNode(serverRpcPayload.toString()));
 
         assertNotNull(persistentRpcId);
 
@@ -365,7 +365,7 @@ public class MqttClientTest extends AbstractContainerTest {
 
         Rpc persistentRpc = testRestClient.getPersistedRpc(rpcId);
 
-        assertThat(persistentRpc.getResponse()).isEqualTo(mapper.readTree(clientResponse.toString()));
+        assertThat(persistentRpc.getResponse()).isEqualTo(JacksonUtil.toJsonNode(clientResponse.toString()));
     }
 
     @Test
