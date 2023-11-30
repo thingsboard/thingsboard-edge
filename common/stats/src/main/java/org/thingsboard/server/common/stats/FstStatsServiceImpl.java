@@ -28,51 +28,46 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.util;
+package org.thingsboard.server.common.stats;
 
-import lombok.extern.slf4j.Slf4j;
-import org.nustaq.serialization.FSTConfiguration;
+import io.micrometer.core.instrument.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.FSTUtils;
 import org.thingsboard.server.common.data.FstStatsService;
 
-import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
-@Slf4j
 @Service
-public class ProtoWithFSTService implements DataDecodingEncodingService {
+public class FstStatsServiceImpl implements FstStatsService {
+    private final ConcurrentHashMap<String, StatsCounter> encodeCounters = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, StatsCounter> decodeCounters = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Timer> encodeTimers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Timer> decodeTimer = new ConcurrentHashMap<>();
 
     @Autowired
-    private FstStatsService fstStatsService;
-
-    public static final FSTConfiguration CONFIG = FSTConfiguration.createDefaultConfiguration();
+    private StatsFactory statsFactory;
 
     @Override
-    public <T> Optional<T> decode(byte[] byteArray) {
-        try {
-            long startTime = System.nanoTime();
-            Optional<T> optional = Optional.ofNullable(FSTUtils.decode(byteArray));
-            optional.ifPresent(obj -> {
-                fstStatsService.recordDecodeTime(obj.getClass(), startTime);
-                fstStatsService.incrementDecode(obj.getClass());
-            });
-            return optional;
-        } catch (IllegalArgumentException e) {
-            log.error("Error during deserialization message, [{}]", e.getMessage());
-            return Optional.empty();
-        }
+    public void incrementEncode(Class<?> clazz) {
+        encodeCounters.computeIfAbsent(clazz.getSimpleName(), key -> statsFactory.createStatsCounter("fst_encode", key)).increment();
     }
-
 
     @Override
-    public <T> byte[] encode(T msq) {
-        long startTime = System.nanoTime();
-        var bytes = FSTUtils.encode(msq);
-        fstStatsService.recordEncodeTime(msq.getClass(), startTime);
-        fstStatsService.incrementEncode(msq.getClass());
-        return bytes;
+    public void incrementDecode(Class<?> clazz) {
+        decodeCounters.computeIfAbsent(clazz.getSimpleName(), key -> statsFactory.createStatsCounter("fst_decode", key)).increment();
     }
 
+    @Override
+    public void recordEncodeTime(Class<?> clazz, long startTime) {
+        encodeTimers.computeIfAbsent(clazz.getSimpleName(),
+                key -> statsFactory.createTimer("fst_encode_time", "statsName", key)).record(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
+    }
+
+    @Override
+    public void recordDecodeTime(Class<?> clazz, long startTime) {
+        decodeTimer.computeIfAbsent(clazz.getSimpleName(),
+                key -> statsFactory.createTimer("fst_decode_time", "statsName", key)).record(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
+    }
 
 }

@@ -49,6 +49,13 @@ public class IntegrationsMonitoringService extends BaseMonitoringService<Integra
     }
 
     @Override
+    protected IntegrationMonitoringTarget createTarget(String baseUrl) {
+        IntegrationMonitoringTarget target = new IntegrationMonitoringTarget();
+        target.setBaseUrl(baseUrl);
+        return target;
+    }
+
+    @Override
     protected String getName() {
         return "integrations check";
     }
