@@ -62,7 +62,7 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         doPost("/api/plugins/telemetry/" + EntityType.EDGE.name() + "/" + edge.getId() + "/SERVER_SCOPE", baseUrlAttribute)
                 .andExpect(status().isOk());
 
-        ObjectNode converterConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode()
+        ObjectNode converterConfiguration = JacksonUtil.newObjectNode()
                 .put("decoder", "return {deviceName: 'Device A', deviceType: 'thermostat'};");
         Converter converter = new Converter();
         converter.setName("My converter");
@@ -76,7 +76,7 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
         integration.setDefaultConverterId(savedConverter.getId());
         integration.setType(IntegrationType.HTTP);
-        ObjectNode integrationConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode integrationConfiguration = JacksonUtil.newObjectNode();
         integrationConfiguration.putObject("metadata")
                 .put("baseUrl", "${{baseUrl}}");
         integration.setConfiguration(integrationConfiguration);
@@ -119,10 +119,11 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         Optional<ConverterUpdateMsg> newConverterUpdateMsgOpt = edgeImitator.findMessageByType(ConverterUpdateMsg.class);
         Assert.assertTrue(newConverterUpdateMsgOpt.isPresent());
         ConverterUpdateMsg converterUpdateMsg = newConverterUpdateMsgOpt.get();
+        Converter converter = JacksonUtil.fromStringIgnoreUnknownProperties(converterUpdateMsg.getEntity(), Converter.class);
+        Assert.assertNotNull(converter);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, converterUpdateMsg.getMsgType());
-        Assert.assertEquals(savedConverter.getUuidId().getMostSignificantBits(), converterUpdateMsg.getIdMSB());
-        Assert.assertEquals(savedConverter.getUuidId().getLeastSignificantBits(), converterUpdateMsg.getIdLSB());
-        Assert.assertEquals(savedConverter.getName(), converterUpdateMsg.getName());
+        Assert.assertEquals(savedConverter.getId(), converter.getId());
+        Assert.assertEquals(savedConverter.getName(), converter.getName());
     }
 
     private void validateAddingAndUpdateOfEdgeAttribute() throws Exception {
@@ -136,8 +137,10 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         Optional<IntegrationUpdateMsg> integrationUpdateMsgOpt = edgeImitator.findMessageByType(IntegrationUpdateMsg.class);
         Assert.assertTrue(integrationUpdateMsgOpt.isPresent());
         IntegrationUpdateMsg integrationUpdateMsg = integrationUpdateMsgOpt.get();
+        Integration integration = JacksonUtil.fromStringIgnoreUnknownProperties(integrationUpdateMsg.getEntity(), Integration.class);
+        Assert.assertNotNull(integration);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, integrationUpdateMsg.getMsgType());
-        Assert.assertTrue(integrationUpdateMsg.getConfiguration().contains("https://localhost/api/v1"));
+        Assert.assertTrue(integration.getConfiguration().get("metadata").get("baseUrl").asText().contains("https://localhost/api/v1"));
 
         Assert.assertEquals(2, edgeImitator.findAllMessagesByType(ConverterUpdateMsg.class).size());
 
@@ -151,9 +154,11 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         integrationUpdateMsgOpt = edgeImitator.findMessageByType(IntegrationUpdateMsg.class);
         Assert.assertTrue(integrationUpdateMsgOpt.isPresent());
         integrationUpdateMsg = integrationUpdateMsgOpt.get();
+        integration = JacksonUtil.fromStringIgnoreUnknownProperties(integrationUpdateMsg.getEntity(), Integration.class);
+        Assert.assertNotNull(integration);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, integrationUpdateMsg.getMsgType());
-        Assert.assertTrue(integrationUpdateMsg.getConfiguration().contains("https://localhost/api/v1"));
-        Assert.assertTrue(integrationUpdateMsg.getConfiguration().contains("PCM-2230"));
+        Assert.assertTrue(integration.getConfiguration().get("metadata").get("baseUrl").asText().contains("https://localhost/api/v1"));
+        Assert.assertTrue(integration.getConfiguration().get("metadata").get("deviceHW").asText().contains("PCM-2230"));
 
         Assert.assertEquals(2, edgeImitator.findAllMessagesByType(ConverterUpdateMsg.class).size());
     }
@@ -169,25 +174,29 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         Optional<IntegrationUpdateMsg> integrationUpdateMsgOpt = edgeImitator.findMessageByType(IntegrationUpdateMsg.class);
         Assert.assertTrue(integrationUpdateMsgOpt.isPresent());
         IntegrationUpdateMsg integrationUpdateMsg = integrationUpdateMsgOpt.get();
+        Integration integration = JacksonUtil.fromStringIgnoreUnknownProperties(integrationUpdateMsg.getEntity(), Integration.class);
+        Assert.assertNotNull(integration);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, integrationUpdateMsg.getMsgType());
         Assert.assertEquals(savedIntegration.getUuidId().getMostSignificantBits(), integrationUpdateMsg.getIdMSB());
         Assert.assertEquals(savedIntegration.getUuidId().getLeastSignificantBits(), integrationUpdateMsg.getIdLSB());
-        Assert.assertEquals(savedIntegration.getName(), integrationUpdateMsg.getName());
-        Assert.assertTrue(integrationUpdateMsg.getConfiguration().contains("http://localhost:18080"));
+        Assert.assertEquals(savedIntegration.getName(), integration.getName());
+        Assert.assertTrue(integration.getConfiguration().get("metadata").get("baseUrl").asText().contains("http://localhost:18080"));
 
         Optional<ConverterUpdateMsg> converterUpdateMsgOpt = edgeImitator.findMessageByType(ConverterUpdateMsg.class);
         Assert.assertTrue(converterUpdateMsgOpt.isPresent());
         ConverterUpdateMsg converterUpdateMsg = converterUpdateMsgOpt.get();
+        Converter converter = JacksonUtil.fromStringIgnoreUnknownProperties(converterUpdateMsg.getEntity(), Converter.class);
+        Assert.assertNotNull(converter);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, converterUpdateMsg.getMsgType());
         Assert.assertEquals(savedConverter.getUuidId().getMostSignificantBits(), converterUpdateMsg.getIdMSB());
         Assert.assertEquals(savedConverter.getUuidId().getLeastSignificantBits(), converterUpdateMsg.getIdLSB());
-        Assert.assertEquals(savedConverter.getName(), converterUpdateMsg.getName());
+        Assert.assertEquals(savedConverter.getName(), converter.getName());
     }
 
     private void validateIntegrationConfigurationUpdate(Integration savedIntegration) throws Exception {
         edgeImitator.expectMessageAmount(2);
 
-        ObjectNode updatedIntegrationConfig = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode updatedIntegrationConfig = JacksonUtil.newObjectNode();
         updatedIntegrationConfig.putObject("metadata")
                 .put("baseUrl", "${{baseUrl}}/api/v1")
                 .put("deviceHW", "${{deviceHW}}");
@@ -199,14 +208,16 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         Optional<IntegrationUpdateMsg> integrationUpdateMsgOpt = edgeImitator.findMessageByType(IntegrationUpdateMsg.class);
         Assert.assertTrue(integrationUpdateMsgOpt.isPresent());
         IntegrationUpdateMsg integrationUpdateMsg = integrationUpdateMsgOpt.get();
+        Integration integration = JacksonUtil.fromStringIgnoreUnknownProperties(integrationUpdateMsg.getEntity(), Integration.class);
+        Assert.assertNotNull(integration);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, integrationUpdateMsg.getMsgType());
-        Assert.assertTrue(integrationUpdateMsg.getConfiguration().contains("http://localhost:18080/api/v1"));
+        Assert.assertTrue(integration.getConfiguration().get("metadata").get("baseUrl").asText().contains("http://localhost:18080/api/v1"));
     }
 
     private void validateIntegrationDefaultConverterUpdate(Integration savedIntegration) throws Exception {
         edgeImitator.expectMessageAmount(2);
 
-        ObjectNode newConverterConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode()
+        ObjectNode newConverterConfiguration = JacksonUtil.newObjectNode()
                 .put("decoder", "return {deviceName: 'Device B', deviceType: 'default'};");
         Converter converter = new Converter();
         converter.setName("My new converter");
@@ -223,24 +234,27 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         Optional<IntegrationUpdateMsg> integrationUpdateMsgOpt = edgeImitator.findMessageByType(IntegrationUpdateMsg.class);
         Assert.assertTrue(integrationUpdateMsgOpt.isPresent());
         IntegrationUpdateMsg integrationUpdateMsg = integrationUpdateMsgOpt.get();
+        Integration integration = JacksonUtil.fromStringIgnoreUnknownProperties(integrationUpdateMsg.getEntity(), Integration.class);
+        Assert.assertNotNull(integration);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, integrationUpdateMsg.getMsgType());
         Assert.assertEquals(savedIntegration.getUuidId().getMostSignificantBits(), integrationUpdateMsg.getIdMSB());
         Assert.assertEquals(savedIntegration.getUuidId().getLeastSignificantBits(), integrationUpdateMsg.getIdLSB());
-        Assert.assertEquals(savedIntegration.getName(), integrationUpdateMsg.getName());
+        Assert.assertEquals(savedIntegration.getName(), integration.getName());
 
         Optional<ConverterUpdateMsg> newConverterUpdateMsgOpt = edgeImitator.findMessageByType(ConverterUpdateMsg.class);
         Assert.assertTrue(newConverterUpdateMsgOpt.isPresent());
         ConverterUpdateMsg converterUpdateMsg = newConverterUpdateMsgOpt.get();
+        Converter converterMsg = JacksonUtil.fromStringIgnoreUnknownProperties(converterUpdateMsg.getEntity(), Converter.class);
+        Assert.assertNotNull(converterMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, converterUpdateMsg.getMsgType());
-        Assert.assertEquals(newSavedConverter.getUuidId().getMostSignificantBits(), converterUpdateMsg.getIdMSB());
-        Assert.assertEquals(newSavedConverter.getUuidId().getLeastSignificantBits(), converterUpdateMsg.getIdLSB());
-        Assert.assertEquals(newSavedConverter.getName(), converterUpdateMsg.getName());
+        Assert.assertEquals(newSavedConverter.getId(), converterMsg.getId());
+        Assert.assertEquals(newSavedConverter.getName(), converterMsg.getName());
     }
 
     private void validateIntegrationDownlinkConverterUpdate(Integration savedIntegration) throws Exception {
         edgeImitator.expectMessageAmount(3);
 
-        ObjectNode downlinkConverterConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode()
+        ObjectNode downlinkConverterConfiguration = JacksonUtil.newObjectNode()
                 .put("encoder", "return {contentType: 'JSON', data: '\"{\"pin\": 1}\"'};");
         Converter downlinkConverter = new Converter();
         downlinkConverter.setName("My downlink converter");
@@ -257,28 +271,34 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         Optional<IntegrationUpdateMsg> integrationUpdateMsgOpt = edgeImitator.findMessageByType(IntegrationUpdateMsg.class);
         Assert.assertTrue(integrationUpdateMsgOpt.isPresent());
         IntegrationUpdateMsg integrationUpdateMsg = integrationUpdateMsgOpt.get();
+        Integration integration = JacksonUtil.fromStringIgnoreUnknownProperties(integrationUpdateMsg.getEntity(), Integration.class);
+        Assert.assertNotNull(integration);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, integrationUpdateMsg.getMsgType());
         Assert.assertEquals(savedIntegration.getUuidId().getMostSignificantBits(), integrationUpdateMsg.getIdMSB());
         Assert.assertEquals(savedIntegration.getUuidId().getLeastSignificantBits(), integrationUpdateMsg.getIdLSB());
-        Assert.assertEquals(savedIntegration.getName(), integrationUpdateMsg.getName());
+        Assert.assertEquals(savedIntegration.getName(), integration.getName());
 
         List<ConverterUpdateMsg> downlinkConverterUpdateMsgs = edgeImitator.findAllMessagesByType(ConverterUpdateMsg.class);
 
         ConverterUpdateMsg downlinkConverterUpdateMsg = null;
         for (ConverterUpdateMsg converterUpdateMsg : downlinkConverterUpdateMsgs) {
-            if (savedDownlinkConverter.getName().equals(converterUpdateMsg.getName())) {
+            Converter converterMsg = JacksonUtil.fromStringIgnoreUnknownProperties(converterUpdateMsg.getEntity(), Converter.class);
+            Assert.assertNotNull(converterMsg);
+            if (savedDownlinkConverter.getName().equals(converterMsg.getName())) {
                 downlinkConverterUpdateMsg = converterUpdateMsg;
             }
         }
         Assert.assertNotNull(downlinkConverterUpdateMsg);
+        Converter converterMsg = JacksonUtil.fromStringIgnoreUnknownProperties(downlinkConverterUpdateMsg.getEntity(), Converter.class);
+        Assert.assertNotNull(converterMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, downlinkConverterUpdateMsg.getMsgType());
         Assert.assertEquals(savedDownlinkConverter.getUuidId().getMostSignificantBits(), downlinkConverterUpdateMsg.getIdMSB());
         Assert.assertEquals(savedDownlinkConverter.getUuidId().getLeastSignificantBits(), downlinkConverterUpdateMsg.getIdLSB());
-        Assert.assertEquals(savedDownlinkConverter.getName(), downlinkConverterUpdateMsg.getName());
+        Assert.assertEquals(savedDownlinkConverter.getName(), converterMsg.getName());
 
         edgeImitator.expectMessageAmount(1);
 
-        downlinkConverterConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode()
+        downlinkConverterConfiguration = JacksonUtil.newObjectNode()
                 .put("encoder", "return {contentType: 'JSON', data: '\"{\"pin\": 3}\"'};");
         savedDownlinkConverter.setConfiguration(downlinkConverterConfiguration);
         doPost("/api/converter", savedDownlinkConverter, Converter.class);
@@ -288,10 +308,12 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         Optional<ConverterUpdateMsg> downlinkConverterUpdateMsgOpt = edgeImitator.findMessageByType(ConverterUpdateMsg.class);
         Assert.assertTrue(downlinkConverterUpdateMsgOpt.isPresent());
         downlinkConverterUpdateMsg = downlinkConverterUpdateMsgOpt.get();
+        converterMsg = JacksonUtil.fromStringIgnoreUnknownProperties(downlinkConverterUpdateMsg.getEntity(), Converter.class);
+        Assert.assertNotNull(converterMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, downlinkConverterUpdateMsg.getMsgType());
         Assert.assertEquals(savedDownlinkConverter.getUuidId().getMostSignificantBits(), downlinkConverterUpdateMsg.getIdMSB());
         Assert.assertEquals(savedDownlinkConverter.getUuidId().getLeastSignificantBits(), downlinkConverterUpdateMsg.getIdLSB());
-        Assert.assertEquals(JacksonUtil.OBJECT_MAPPER.writeValueAsString(downlinkConverterConfiguration), downlinkConverterUpdateMsg.getConfiguration());
+        Assert.assertEquals(downlinkConverterConfiguration, converterMsg.getConfiguration());
     }
 
     private void validateIntegrationUnassignFromEdge(Integration savedIntegration) throws Exception {

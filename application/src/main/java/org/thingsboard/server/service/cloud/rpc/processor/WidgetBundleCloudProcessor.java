@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +48,6 @@ import org.thingsboard.server.gen.edge.v1.WidgetBundleTypesRequestMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetsBundleUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -58,8 +56,7 @@ import java.util.UUID;
 @Slf4j
 public class WidgetBundleCloudProcessor extends BaseEdgeProcessor {
 
-    public ListenableFuture<Void> processWidgetsBundleMsgFromCloud(TenantId tenantId,
-                                                                   WidgetsBundleUpdateMsg widgetsBundleUpdateMsg) {
+    public ListenableFuture<Void> processWidgetsBundleMsgFromCloud(TenantId tenantId, WidgetsBundleUpdateMsg widgetsBundleUpdateMsg) {
         WidgetsBundleId widgetsBundleId = new WidgetsBundleId(new UUID(widgetsBundleUpdateMsg.getIdMSB(), widgetsBundleUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
@@ -68,24 +65,11 @@ public class WidgetBundleCloudProcessor extends BaseEdgeProcessor {
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     widgetCreationLock.lock();
                     try {
-                        deleteSystemWidgetBundleIfAlreadyExists(widgetsBundleUpdateMsg.getAlias(), widgetsBundleId);
-                        WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
+                        WidgetsBundle widgetsBundle = JacksonUtil.fromStringIgnoreUnknownProperties(widgetsBundleUpdateMsg.getEntity(), WidgetsBundle.class);
                         if (widgetsBundle == null) {
-                            widgetsBundle = new WidgetsBundle();
-                            if (widgetsBundleUpdateMsg.getIsSystem()) {
-                                widgetsBundle.setTenantId(TenantId.SYS_TENANT_ID);
-                            } else {
-                                widgetsBundle.setTenantId(tenantId);
-                            }
-                            widgetsBundle.setId(widgetsBundleId);
-                            widgetsBundle.setCreatedTime(Uuids.unixTimestamp(widgetsBundleId.getId()));
+                            throw new RuntimeException("[{" + tenantId + "}] widgetsBundleUpdateMsg {" + widgetsBundleUpdateMsg + "} cannot be converted to widget bundle");
                         }
-                        widgetsBundle.setTitle(widgetsBundleUpdateMsg.getTitle());
-                        widgetsBundle.setAlias(widgetsBundleUpdateMsg.getAlias());
-                        widgetsBundle.setImage(widgetsBundleUpdateMsg.hasImage()
-                                ? new String(widgetsBundleUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8) : null);
-                        widgetsBundle.setDescription(widgetsBundleUpdateMsg.hasDescription() ? widgetsBundleUpdateMsg.getDescription() : null);
-                        widgetsBundle.setOrder(widgetsBundleUpdateMsg.hasOrder() ? widgetsBundleUpdateMsg.getOrder() : null);
+                        deleteSystemWidgetBundleIfAlreadyExists(widgetsBundle.getAlias(), widgetsBundleId);
                         widgetsBundleService.saveWidgetsBundle(widgetsBundle, false);
 
                         String[] widgetFqns = JacksonUtil.fromString(widgetsBundleUpdateMsg.getWidgets(), String[].class);

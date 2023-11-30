@@ -158,6 +158,4 @@ public class RoleClientTest extends AbstractContainerTest {
         // delete customers
         cloudRestClient.deleteCustomer(savedCustomer.getId());
     }
-
 }
-

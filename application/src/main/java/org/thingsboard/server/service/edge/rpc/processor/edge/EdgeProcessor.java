@@ -101,9 +101,9 @@ public class EdgeProcessor extends BaseEdgeProcessor {
                 return Futures.transformAsync(edgeFuture, edge -> {
                     List<ListenableFuture<Void>> futures = new ArrayList<>();
                     try {
-                        EntityId previousOwnerId = JacksonUtil.OBJECT_MAPPER.readValue(edgeNotificationMsg.getBody(), EntityId.class);
+                        EntityId previousOwnerId = JacksonUtil.fromString(edgeNotificationMsg.getBody(), EntityId.class);
                         List<Customer> previousOwnerCustomerHierarchy = new ArrayList<>();
-                        if (EntityType.CUSTOMER.equals(previousOwnerId.getEntityType())) {
+                        if (previousOwnerId != null && EntityType.CUSTOMER.equals(previousOwnerId.getEntityType())) {
                             previousOwnerCustomerHierarchy =
                                     customersHierarchyEdgeService.getCustomersHierarchy(tenantId, new CustomerId(previousOwnerId.getId()));
                         }

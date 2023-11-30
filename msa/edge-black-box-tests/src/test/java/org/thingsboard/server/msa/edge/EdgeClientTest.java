@@ -578,6 +578,4 @@ public class EdgeClientTest extends AbstractContainerTest {
                     return result;
                 });
     }
-
 }
-

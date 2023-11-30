@@ -329,6 +329,9 @@ import {
 import {
   DoughnutWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/chart/doughnut-widget-settings.component';
+import {
+  RangeChartWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/chart/range-chart-widget-settings.component';
 
 @NgModule({
   declarations: [
@@ -441,6 +444,7 @@ import {
     ProgressBarWidgetSettingsComponent,
     LiquidLevelCardWidgetSettingsComponent,
     DoughnutWidgetSettingsComponent,
+    RangeChartWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -561,6 +565,7 @@ import {
     ProgressBarWidgetSettingsComponent,
     LiquidLevelCardWidgetSettingsComponent,
     DoughnutWidgetSettingsComponent,
+    RangeChartWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -647,6 +652,7 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-progress-bar-widget-settings': ProgressBarWidgetSettingsComponent,
   'tb-liquid-level-card-widget-settings': LiquidLevelCardWidgetSettingsComponent,
   'tb-doughnut-widget-settings': DoughnutWidgetSettingsComponent,
+  'tb-range-chart-widget-settings': RangeChartWidgetSettingsComponent,
   'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
   'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
 };

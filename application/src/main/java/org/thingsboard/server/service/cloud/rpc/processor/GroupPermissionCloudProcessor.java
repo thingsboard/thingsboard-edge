@@ -30,20 +30,17 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
-import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
@@ -54,7 +51,6 @@ import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
-import java.io.IOException;
 import java.util.UUID;
 
 @Component
@@ -73,31 +69,12 @@ public class GroupPermissionCloudProcessor extends BaseEdgeProcessor {
             switch (groupPermissionProto.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    GroupPermission groupPermission = groupPermissionService.findGroupPermissionById(tenantId, groupPermissionId);
+                    GroupPermission groupPermission = JacksonUtil.fromStringIgnoreUnknownProperties(groupPermissionProto.getEntity(), GroupPermission.class);
                     if (groupPermission == null) {
-                        groupPermission = new GroupPermission();
-                        groupPermission.setId(groupPermissionId);
-                        groupPermission.setCreatedTime(Uuids.unixTimestamp(groupPermissionId.getId()));
-                        groupPermission.setTenantId(tenantId);
+                        throw new RuntimeException("[{" + tenantId + "}] groupPermissionProto {" + groupPermissionProto + "} cannot be converted to group permission");
                     }
-                    EntityGroupId userGroupId =
-                            new EntityGroupId(new UUID(groupPermissionProto.getUserGroupIdMSB(), groupPermissionProto.getUserGroupIdLSB()));
-                    groupPermission.setUserGroupId(userGroupId);
-
-                    RoleId roleId = new RoleId(new UUID(groupPermissionProto.getRoleIdMSB(), groupPermissionProto.getRoleIdLSB()));
-                    groupPermission.setRoleId(roleId);
-
-                    if (groupPermissionProto.hasEntityGroupType()) {
-                        EntityGroupId entityGroupId =
-                                new EntityGroupId(new UUID(groupPermissionProto.getEntityGroupIdMSB(),
-                                        groupPermissionProto.getEntityGroupIdLSB()));
-                        groupPermission.setEntityGroupId(entityGroupId);
-                        groupPermission.setEntityGroupType(EntityType.valueOf(groupPermissionProto.getEntityGroupType()));
-                    }
-                    groupPermission.setPublic(groupPermissionProto.getIsPublic());
                     GroupPermission saveGroupPermission = groupPermissionService.saveGroupPermission(tenantId, groupPermission);
                     userPermissionsService.onGroupPermissionUpdated(saveGroupPermission);
-
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
                     GroupPermission groupPermissionById = groupPermissionService.findGroupPermissionById(tenantId, groupPermissionId);

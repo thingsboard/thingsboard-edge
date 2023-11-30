@@ -135,8 +135,8 @@ public class DeviceClientTest extends AbstractContainerTest {
                 .until(() -> softwarePackageId.equals(edgeRestClient.getDeviceById(savedDevice1.getId()).get().getSoftwareId()));
 
         // save device #1 attribute
-        cloudRestClient.saveDeviceAttributes(savedDevice1.getId(), DataConstants.SERVER_SCOPE, JacksonUtil.OBJECT_MAPPER.readTree("{\"key1\":\"value1\"}"));
-        cloudRestClient.saveDeviceAttributes(savedDevice1.getId(), DataConstants.SHARED_SCOPE, JacksonUtil.OBJECT_MAPPER.readTree("{\"key2\":\"value2\"}"));
+        cloudRestClient.saveDeviceAttributes(savedDevice1.getId(), DataConstants.SERVER_SCOPE, JacksonUtil.toJsonNode("{\"key1\":\"value1\"}"));
+        cloudRestClient.saveDeviceAttributes(savedDevice1.getId(), DataConstants.SHARED_SCOPE, JacksonUtil.toJsonNode("{\"key2\":\"value2\"}"));
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
@@ -246,8 +246,8 @@ public class DeviceClientTest extends AbstractContainerTest {
         verifyDeviceCredentialsOnCloudAndEdge(savedDeviceOnEdge);
 
         // update device attributes
-        edgeRestClient.saveDeviceAttributes(savedDeviceOnEdge.getId(), DataConstants.SERVER_SCOPE, JacksonUtil.OBJECT_MAPPER.readTree("{\"key1\":\"value1\"}"));
-        edgeRestClient.saveDeviceAttributes(savedDeviceOnEdge.getId(), DataConstants.SHARED_SCOPE, JacksonUtil.OBJECT_MAPPER.readTree("{\"key2\":\"value2\"}"));
+        edgeRestClient.saveDeviceAttributes(savedDeviceOnEdge.getId(), DataConstants.SERVER_SCOPE, JacksonUtil.toJsonNode("{\"key1\":\"value1\"}"));
+        edgeRestClient.saveDeviceAttributes(savedDeviceOnEdge.getId(), DataConstants.SHARED_SCOPE, JacksonUtil.toJsonNode("{\"key2\":\"value2\"}"));
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
@@ -528,7 +528,7 @@ public class DeviceClientTest extends AbstractContainerTest {
         }).start();
 
         // send rpc request to device over cloud
-        ObjectNode initialRequestBody = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode initialRequestBody = JacksonUtil.newObjectNode();
         initialRequestBody.put("method", "setGpio");
         initialRequestBody.put("params", "{\"pin\":\"23\", \"value\": 1}");
         cloudRestClient.handleOneWayDeviceRPCRequest(device.getId(), initialRequestBody);
@@ -582,7 +582,7 @@ public class DeviceClientTest extends AbstractContainerTest {
         }).start();
 
         // send two-way rpc request to device over cloud
-        ObjectNode initialRequestBody = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode initialRequestBody = JacksonUtil.newObjectNode();
         initialRequestBody.put("method", "setGpio");
         initialRequestBody.put("params", "{\"pin\":\"23\", \"value\": 1}");
 
@@ -608,7 +608,7 @@ public class DeviceClientTest extends AbstractContainerTest {
                 });
 
         // send response back to the rpc request
-        ObjectNode replyBody = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode replyBody = JacksonUtil.newObjectNode();
         replyBody.put("result", "ok");
 
         String rpcReply = edgeUrl + "/api/v1/" + deviceCredentials.get().getCredentialsId() + "/rpc/" + rpcSubscriptionRequest[0].getBody().get("id");
@@ -651,7 +651,7 @@ public class DeviceClientTest extends AbstractContainerTest {
         Assert.assertTrue(deviceCredentials.isPresent());
 
         // send request from device to cloud over edge
-        ObjectNode requestBody = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode requestBody = JacksonUtil.newObjectNode();
         requestBody.put("method", "getCurrentTime");
         requestBody.put("params", "{}");
 
@@ -688,7 +688,7 @@ public class DeviceClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testClaimDevice() throws Exception {
+    public void testClaimDevice() throws InterruptedException {
         // create customer, user and device
         Customer customer = new Customer();
         customer.setTitle("Claim Test Customer");
@@ -733,7 +733,7 @@ public class DeviceClientTest extends AbstractContainerTest {
         claimRequest.addProperty("duration", 10000);
         ResponseEntity claimDeviceRequest = edgeRestClient.getRestTemplate()
                 .postForEntity(edgeUrl + "/api/v1/{credentialsId}/claim",
-                        JacksonUtil.OBJECT_MAPPER.readTree(claimRequest.toString()),
+                        JacksonUtil.toJsonNode(claimRequest.toString()),
                         ResponseEntity.class,
                         deviceCredentialsByDeviceId.get().getCredentialsId());
         Assert.assertTrue(claimDeviceRequest.getStatusCode().is2xxSuccessful());
@@ -764,7 +764,7 @@ public class DeviceClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testSharedAttributeUpdates() throws JsonProcessingException {
+    public void testSharedAttributeUpdates() {
         // create device on cloud and assign to edge
         Device savedDevice = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
 
@@ -791,7 +791,7 @@ public class DeviceClientTest extends AbstractContainerTest {
             sharedAttributeUpdateRequest[0] = edgeRestClient.getRestTemplate().getForEntity(subscribeToSharedAttributeUpdateUrl, JsonNode.class);
         }).start();
 
-        JsonNode deviceAttributes = JacksonUtil.OBJECT_MAPPER.readTree("{\"sharedAttrKey\":\"sharedAttrValue\"}");
+        JsonNode deviceAttributes = JacksonUtil.toJsonNode("{\"sharedAttrKey\":\"sharedAttrValue\"}");
         cloudRestClient.saveEntityAttributesV1(savedDevice.getId(), DataConstants.SHARED_SCOPE, deviceAttributes);
 
         // verify that shared attribute update was received
@@ -810,5 +810,3 @@ public class DeviceClientTest extends AbstractContainerTest {
         cloudRestClient.deleteDevice(savedDevice.getId());
     }
 }
-
-

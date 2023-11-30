@@ -139,6 +139,4 @@ public class AssetProfileClientTest extends AbstractContainerTest {
         PageData<AssetProfile> pageData = edgeRestClient.getAssetProfiles(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.ASSET_PROFILE);
     }
-
 }
-

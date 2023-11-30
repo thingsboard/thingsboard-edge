@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -40,7 +39,6 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -51,7 +49,6 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -81,29 +78,22 @@ public class EntityGroupCloudProcessor extends BaseEdgeProcessor {
                                                                  Long queueStartTs) {
         EntityGroupId entityGroupId = new EntityGroupId(new UUID(entityGroupUpdateMsg.getIdMSB(), entityGroupUpdateMsg.getIdLSB()));
         List<ListenableFuture<Void>> futures = new ArrayList<>();
+        EntityGroup entityGroup = null;
+        if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(entityGroupUpdateMsg.getMsgType()) ||
+                UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(entityGroupUpdateMsg.getMsgType())) {
+            entityGroup = JacksonUtil.fromStringIgnoreUnknownProperties(entityGroupUpdateMsg.getEntity(), EntityGroup.class);
+            if (entityGroup == null) {
+                throw new RuntimeException("[{" + tenantId + "}] entityGroupUpdateMsg {" + entityGroupUpdateMsg + "} cannot be converted to entity group");
+            }
+        }
         boolean edgeGroupAll = EdgeUtils.isEdgeGroupAll(entityGroupUpdateMsg.getName());
         if (!edgeGroupAll) {
             switch (entityGroupUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     entityGroupCreationLock.lock();
-                    EntityGroup entityGroup;
                     try {
-                        entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
-                        if (entityGroup == null) {
-                            entityGroup = new EntityGroup();
-                            entityGroup.setId(entityGroupId);
-                            entityGroup.setCreatedTime(Uuids.unixTimestamp(entityGroupId.getId()));
-                            entityGroup.setTenantId(tenantId);
-                        }
-                        entityGroup.setName(entityGroupUpdateMsg.getName());
-                        entityGroup.setType(EntityType.valueOf(entityGroupUpdateMsg.getType()));
-                        entityGroup.setConfiguration(JacksonUtil.toJsonNode(entityGroupUpdateMsg.getConfiguration()));
-                        entityGroup.setAdditionalInfo(entityGroupUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(entityGroupUpdateMsg.getAdditionalInfo()) : null);
-                        EntityId ownerId = safeGetOwnerId(tenantId, entityGroupUpdateMsg.getOwnerEntityType(),
-                                entityGroupUpdateMsg.getOwnerIdMSB(), entityGroupUpdateMsg.getOwnerIdLSB());
-                        entityGroup.setOwnerId(ownerId);
-                        entityGroupService.saveEntityGroup(tenantId, ownerId, entityGroup, false);
+                        entityGroupService.saveEntityGroup(tenantId, entityGroup.getOwnerId(), entityGroup, false);
                     } finally {
                         entityGroupCreationLock.unlock();
                     }
@@ -144,10 +134,9 @@ public class EntityGroupCloudProcessor extends BaseEdgeProcessor {
             }
         }
 
-        if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(entityGroupUpdateMsg.getMsgType()) ||
-                UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(entityGroupUpdateMsg.getMsgType())) {
-            ObjectNode body = JacksonUtil.OBJECT_MAPPER.createObjectNode();
-            body.put("type", entityGroupUpdateMsg.getType());
+        if (entityGroup != null) {
+            ObjectNode body = JacksonUtil.newObjectNode();
+            body.put("type", entityGroup.getType().name());
             futures.add(cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ENTITY_GROUP, EdgeEventActionType.GROUP_ENTITIES_REQUEST,
                     entityGroupId, body, null, queueStartTs));
             if (!edgeGroupAll) {

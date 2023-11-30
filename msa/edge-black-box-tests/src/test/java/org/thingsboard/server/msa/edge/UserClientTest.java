@@ -199,4 +199,3 @@ public class UserClientTest extends AbstractContainerTest {
                 .until(() -> edgeRestClient.getUserById(savedUser.getId()).isEmpty());
     }
 }
-

@@ -504,6 +504,8 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         WhiteLabeling whiteLabeling = new WhiteLabeling();
         whiteLabeling.setEntityId(entityId);
         whiteLabeling.setType(WhiteLabelingType.LOGIN);
+        whiteLabelingParams.setDomainName(StringUtils.toLowerCase(whiteLabelingParams.getDomainName()));
+        whiteLabelingParams.setBaseUrl(StringUtils.toLowerCase(whiteLabelingParams.getBaseUrl()));
         whiteLabeling.setSettings(JacksonUtil.valueToTree(whiteLabelingParams));
         whiteLabeling.setDomain(whiteLabelingParams.getDomainName());
 

@@ -128,6 +128,4 @@ public class DockerComposeExecutor {
         checkNotNull(composeFiles);
         checkArgument(!composeFiles.isEmpty(), "No docker compose file have been provided");
     }
-
-
 }

@@ -73,17 +73,17 @@ public class RoleCloudProcessorTest {
     public void testReplaceWriteOperationsToReadIfRequired() throws JsonProcessingException {
         Role role = new Role();
 
-        ArrayNode assetOperations = JacksonUtil.OBJECT_MAPPER.createArrayNode();
+        ArrayNode assetOperations = JacksonUtil.newArrayNode();
         assetOperations.add(Operation.READ.name());
         assetOperations.add(Operation.WRITE.name());
 
-        ArrayNode deviceOperations = JacksonUtil.OBJECT_MAPPER.createArrayNode();
+        ArrayNode deviceOperations = JacksonUtil.newArrayNode();
         deviceOperations.add(Operation.READ.name());
 
-        ArrayNode allOperations = JacksonUtil.OBJECT_MAPPER.createArrayNode();
+        ArrayNode allOperations = JacksonUtil.newArrayNode();
         allOperations.add(Operation.ALL.name());
 
-        ObjectNode permissions = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode permissions = JacksonUtil.newObjectNode();
         permissions.set(Resource.ALL.name(), allOperations);
         permissions.set(Resource.DEVICE.name(), deviceOperations);
         permissions.set(Resource.ASSET.name(), assetOperations);
@@ -95,7 +95,7 @@ public class RoleCloudProcessorTest {
         CollectionType operationType = TypeFactory.defaultInstance().constructCollectionType(List.class, Operation.class);
         JavaType resourceType = JacksonUtil.OBJECT_MAPPER.getTypeFactory().constructType(Resource.class);
         MapType mapType = TypeFactory.defaultInstance().constructMapType(HashMap.class, resourceType, operationType);
-        Map<Resource, List<Operation>> newPermissions = JacksonUtil.OBJECT_MAPPER.readValue(updatedRole.getPermissions().toString(), mapType);
+        Map<Resource, List<Operation>> newPermissions = JacksonUtil.fromString(updatedRole.getPermissions().toString(), mapType);
 
         Assert.assertTrue(newPermissions.containsKey(Resource.ALL));
         Assert.assertFalse(newPermissions.get(Resource.ALL).contains(Operation.ALL));

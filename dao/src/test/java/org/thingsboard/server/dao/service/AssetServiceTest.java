@@ -35,12 +35,17 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.asset.AssetDao;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -58,9 +63,13 @@ public class AssetServiceTest extends AbstractServiceTest {
     @Autowired
     AssetService assetService;
     @Autowired
+    AssetDao assetDao;
+    @Autowired
     CustomerService customerService;
     @Autowired
-    AssetProfileService assetProfileService;
+    private AssetProfileService assetProfileService;
+    @Autowired
+    private PlatformTransactionManager platformTransactionManager;
 
     private IdComparator<Asset> idComparator = new IdComparator<>();
 
@@ -87,6 +96,29 @@ public class AssetServiceTest extends AbstractServiceTest {
         Assert.assertEquals(foundAsset.getName(), savedAsset.getName());
 
         assetService.deleteAsset(tenantId, savedAsset.getId());
+    }
+
+    @Test
+    public void testShouldNotPutInCacheRolledbackAssetProfile() {
+        AssetProfile assetProfile = new AssetProfile();
+        assetProfile.setName(StringUtils.randomAlphabetic(10));
+        assetProfile.setTenantId(tenantId);
+
+        Asset asset = new Asset();
+        asset.setName("My asset" + StringUtils.randomAlphabetic(15));
+        asset.setType(assetProfile.getName());
+        asset.setTenantId(tenantId);
+
+        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus status = platformTransactionManager.getTransaction(def);
+        try {
+            assetProfileService.saveAssetProfile(assetProfile);
+            assetService.saveAsset(asset);
+        } finally {
+            platformTransactionManager.rollback(status);
+        }
+        AssetProfile assetProfileByName = assetProfileService.findAssetProfileByName(tenantId, assetProfile.getName());
+        Assert.assertNull(assetProfileByName);
     }
 
     @Test

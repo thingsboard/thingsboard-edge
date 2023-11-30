@@ -57,8 +57,10 @@ import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.asset.BaseAssetService;
 import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.service.edge.rpc.constructor.asset.AssetMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.processor.asset.BaseAssetProfileProcessor;
 
 import java.util.UUID;
@@ -73,7 +75,7 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
     @Autowired
     private AssetService assetService;
 
-    public ListenableFuture<Void> processAssetProfileMsgFromCloud(TenantId tenantId, AssetProfileUpdateMsg assetProfileUpdateMsg, Long queueStartTs) {
+    public ListenableFuture<Void> processAssetProfileMsgFromCloud(TenantId tenantId, AssetProfileUpdateMsg assetProfileUpdateMsg, EdgeVersion edgeVersion) {
         AssetProfileId assetProfileId = new AssetProfileId(new UUID(assetProfileUpdateMsg.getIdMSB(), assetProfileUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
@@ -83,18 +85,22 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     assetCreationLock.lock();
                     try {
-                        AssetProfile assetProfileByName = assetProfileService.findAssetProfileByName(tenantId, assetProfileUpdateMsg.getName());
+                        AssetProfile assetProfileMsg = JacksonUtil.fromStringIgnoreUnknownProperties(assetProfileUpdateMsg.getEntity(), AssetProfile.class);
+                        if (assetProfileMsg == null) {
+                            throw new RuntimeException("[{" + tenantId + "}] assetProfileUpdateMsg {" + assetProfileUpdateMsg + "} cannot be converted to asset profile");
+                        }
+                        AssetProfile assetProfileByName = assetProfileService.findAssetProfileByName(tenantId, assetProfileMsg.getName());
                         boolean removePreviousProfile = false;
                         if (assetProfileByName != null && !assetProfileByName.getId().equals(assetProfileId)) {
                             renamePreviousAssetProfile(assetProfileByName);
                             removePreviousProfile = true;
                         }
-                        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAssetProfile(tenantId, assetProfileId, assetProfileUpdateMsg);
+                        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAssetProfile(tenantId, assetProfileId, assetProfileUpdateMsg, edgeVersion);
                         boolean created = resultPair.getFirst();
                         tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileId,
                                 created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
                         AssetProfile assetProfile = assetProfileService.findAssetProfileById(tenantId, assetProfileId);
-                        if (!assetProfile.isDefault() && assetProfileUpdateMsg.getDefault()) {
+                        if (!assetProfile.isDefault() && assetProfileMsg.isDefault()) {
                             assetProfileService.setDefaultAssetProfile(tenantId, assetProfileId);
                         }
                         if (removePreviousProfile) {
@@ -158,7 +164,7 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
         });
     }
 
-    public UplinkMsg convertAssetProfileEventToUplink(CloudEvent cloudEvent) {
+    public UplinkMsg convertAssetProfileEventToUplink(CloudEvent cloudEvent, EdgeVersion edgeVersion) {
         AssetProfileId assetProfileId = new AssetProfileId(cloudEvent.getEntityId());
         UplinkMsg msg = null;
         switch (cloudEvent.getAction()) {
@@ -167,8 +173,8 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
                 AssetProfile assetProfile = assetProfileService.findAssetProfileById(cloudEvent.getTenantId(), assetProfileId);
                 if (assetProfile != null && !BaseAssetService.TB_SERVICE_QUEUE.equals(assetProfile.getName())) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                    AssetProfileUpdateMsg assetProfileUpdateMsg =
-                            assetProfileMsgConstructor.constructAssetProfileUpdatedMsg(msgType, assetProfile);
+                    AssetProfileUpdateMsg assetProfileUpdateMsg = ((AssetMsgConstructor)
+                            assetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructAssetProfileUpdatedMsg(msgType, assetProfile);
                     msg = UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addAssetProfileUpdateMsg(assetProfileUpdateMsg).build();
@@ -177,8 +183,8 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
                 }
                 break;
             case DELETED:
-                AssetProfileUpdateMsg assetProfileUpdateMsg =
-                        assetProfileMsgConstructor.constructAssetProfileDeleteMsg(assetProfileId);
+                AssetProfileUpdateMsg assetProfileUpdateMsg = ((AssetMsgConstructor)
+                        assetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructAssetProfileDeleteMsg(assetProfileId);
                 msg = UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addAssetProfileUpdateMsg(assetProfileUpdateMsg).build();
@@ -188,26 +194,26 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
     }
 
     @Override
-    protected void setDefaultRuleChainId(TenantId tenantId, AssetProfile assetProfile, AssetProfileUpdateMsg assetProfileUpdateMsg) {
-        UUID defaultRuleChainUUID = safeGetUUID(assetProfileUpdateMsg.getDefaultRuleChainIdMSB(), assetProfileUpdateMsg.getDefaultRuleChainIdLSB());
+    protected void setDefaultRuleChainId(TenantId tenantId, AssetProfile assetProfile, RuleChainId ruleChainId) {
+        RuleChainId defaultRuleChainId = assetProfile.getDefaultEdgeRuleChainId();
         RuleChain ruleChain = null;
-        if (defaultRuleChainUUID != null) {
-            ruleChain = ruleChainService.findRuleChainById(tenantId, new RuleChainId(defaultRuleChainUUID));
+        if (defaultRuleChainId != null) {
+            ruleChain = ruleChainService.findRuleChainById(tenantId, defaultRuleChainId);
         }
         assetProfile.setDefaultRuleChainId(ruleChain != null ? ruleChain.getId() : null);
     }
 
     @Override
-    protected void setDefaultEdgeRuleChainId(TenantId tenantId, AssetProfile assetProfile, AssetProfileUpdateMsg assetProfileUpdateMsg) {
-        // do nothing on edge
+    protected void setDefaultEdgeRuleChainId(AssetProfile assetProfile, RuleChainId ruleChainId, AssetProfileUpdateMsg assetProfileUpdateMsg, EdgeVersion edgeVersion) {
+        assetProfile.setDefaultEdgeRuleChainId(null);
     }
 
     @Override
-    protected void setDefaultDashboardId(TenantId tenantId, AssetProfile assetProfile, AssetProfileUpdateMsg assetProfileUpdateMsg) {
-        UUID defaultDashboardUUID = safeGetUUID(assetProfileUpdateMsg.getDefaultDashboardIdMSB(), assetProfileUpdateMsg.getDefaultDashboardIdLSB());
+    protected void setDefaultDashboardId(TenantId tenantId, DashboardId dashboardId, AssetProfile assetProfile, AssetProfileUpdateMsg assetProfileUpdateMsg, EdgeVersion edgeVersion) {
+        DashboardId defaultDashboardId = assetProfile.getDefaultDashboardId();
         DashboardInfo dashboard = null;
-        if (defaultDashboardUUID != null) {
-            dashboard = dashboardService.findDashboardInfoById(tenantId, new DashboardId(defaultDashboardUUID));
+        if (defaultDashboardId != null) {
+            dashboard = dashboardService.findDashboardInfoById(tenantId, defaultDashboardId);
         }
         assetProfile.setDefaultDashboardId(dashboard != null ? dashboard.getId() : null);
     }

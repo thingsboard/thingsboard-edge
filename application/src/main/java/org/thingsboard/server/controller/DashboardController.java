@@ -671,8 +671,8 @@ public class DashboardController extends BaseController {
         }
         Customer customer = customerService.findCustomerById(getTenantId(), getCurrentUser().getCustomerId());
         JsonNode additionalInfo = customer.getAdditionalInfo();
-        if (additionalInfo == null || !(additionalInfo instanceof ObjectNode)) {
-            additionalInfo = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        if (!(additionalInfo instanceof ObjectNode)) {
+            additionalInfo = JacksonUtil.newObjectNode();
         }
         if (homeDashboardInfo.getDashboardId() != null) {
             ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_ID, homeDashboardInfo.getDashboardId().getId().toString());

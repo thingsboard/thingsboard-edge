@@ -51,10 +51,12 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.service.edge.rpc.constructor.entityview.EntityViewMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.processor.entityview.BaseEntityViewProcessor;
 
 import java.util.UUID;
@@ -65,6 +67,7 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
 
     public ListenableFuture<Void> processEntityViewMsgFromCloud(TenantId tenantId,
                                                                 EntityViewUpdateMsg entityViewUpdateMsg,
+                                                                EdgeVersion edgeVersion,
                                                                 Long queueStartTs) throws ThingsboardException {
         EntityViewId entityViewId = new EntityViewId(new UUID(entityViewUpdateMsg.getIdMSB(), entityViewUpdateMsg.getIdLSB()));
         try {
@@ -73,7 +76,7 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
             switch (entityViewUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg, queueStartTs);
+                    saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg, edgeVersion, queueStartTs);
                     return requestForAdditionalData(tenantId, entityViewId, queueStartTs);
             case ENTITY_DELETED_RPC_MESSAGE:
                 if (entityViewUpdateMsg.hasEntityGroupIdMSB() && entityViewUpdateMsg.hasEntityGroupIdLSB()) {
@@ -99,9 +102,8 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
         }
     }
 
-    private void saveOrUpdateEntityView(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg, Long queueStartTs) throws ThingsboardException {
-        CustomerId customerId = safeGetCustomerId(entityViewUpdateMsg.getCustomerIdMSB(), entityViewUpdateMsg.getCustomerIdLSB());
-        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg, customerId);
+    private void saveOrUpdateEntityView(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg, EdgeVersion edgeVersion, Long queueStartTs) throws ThingsboardException {
+        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg, edgeVersion);
         Boolean created = resultPair.getFirst();
         tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityViewId,
                 created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
@@ -145,7 +147,7 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
         return builder.build();
     }
 
-    public UplinkMsg convertEntityViewEventToUplink(CloudEvent cloudEvent) {
+    public UplinkMsg convertEntityViewEventToUplink(CloudEvent cloudEvent, EdgeVersion edgeVersion) {
         EntityViewId entityViewId = new EntityViewId(cloudEvent.getEntityId());
         UplinkMsg msg = null;
         EntityGroupId entityGroupId = cloudEvent.getEntityGroupId() != null ? new EntityGroupId(cloudEvent.getEntityGroupId()) : null;
@@ -156,8 +158,8 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
                 EntityView entityView = entityViewService.findEntityViewById(cloudEvent.getTenantId(), entityViewId);
                 if (entityView != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                    EntityViewUpdateMsg entityViewUpdateMsg =
-                            entityViewMsgConstructor.constructEntityViewUpdatedMsg(msgType, entityView, entityGroupId);
+                    EntityViewUpdateMsg entityViewUpdateMsg = ((EntityViewMsgConstructor)
+                            entityViewMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructEntityViewUpdatedMsg(msgType, entityView, entityGroupId);
                     msg = UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addEntityViewUpdateMsg(entityViewUpdateMsg).build();
@@ -167,13 +169,20 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
                 break;
             case DELETED:
             case REMOVED_FROM_ENTITY_GROUP:
-                EntityViewUpdateMsg entityViewUpdateMsg =
-                        entityViewMsgConstructor.constructEntityViewDeleteMsg(entityViewId, entityGroupId);
+                EntityViewUpdateMsg entityViewUpdateMsg = ((EntityViewMsgConstructor)
+                        entityViewMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructEntityViewDeleteMsg(entityViewId, entityGroupId);
                 msg = UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addEntityViewUpdateMsg(entityViewUpdateMsg).build();
                 break;
         }
         return msg;
+    }
+
+    @Override
+    protected void setCustomerId(TenantId tenantId, CustomerId customerId, EntityView entityView, EntityViewUpdateMsg entityViewUpdateMsg, EdgeVersion edgeVersion) {
+        if (isCustomerNotExists(tenantId, entityView.getCustomerId())) {
+            entityView.setCustomerId(null);
+        }
     }
 }

@@ -51,8 +51,10 @@ import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.asset.BaseAssetService;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.service.edge.rpc.constructor.asset.AssetMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.processor.asset.BaseAssetProcessor;
 
 import java.util.UUID;
@@ -63,6 +65,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
 
     public ListenableFuture<Void> processAssetMsgFromCloud(TenantId tenantId,
                                                            AssetUpdateMsg assetUpdateMsg,
+                                                           EdgeVersion edgeVersion,
                                                            Long queueStartTs) throws ThingsboardException {
         AssetId assetId = new AssetId(new UUID(assetUpdateMsg.getIdMSB(), assetUpdateMsg.getIdLSB()));
         try {
@@ -71,7 +74,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
             switch (assetUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, queueStartTs);
+                    saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, edgeVersion, queueStartTs);
                     return requestForAdditionalData(tenantId, assetId, queueStartTs);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     if (assetUpdateMsg.hasEntityGroupIdMSB() && assetUpdateMsg.hasEntityGroupIdLSB()) {
@@ -97,9 +100,8 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
         }
     }
 
-    private void saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, Long queueStartTs) throws ThingsboardException {
-        CustomerId customerId = safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB());
-        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, customerId);
+    private void saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, EdgeVersion edgeVersion, Long queueStartTs) throws ThingsboardException {
+        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, edgeVersion);
         Boolean created = resultPair.getFirst();
         if (created) {
             pushAssetCreatedEventToRuleEngine(tenantId, assetId);
@@ -128,7 +130,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
         }
     }
 
-    public UplinkMsg convertAssetEventToUplink(CloudEvent cloudEvent) {
+    public UplinkMsg convertAssetEventToUplink(CloudEvent cloudEvent, EdgeVersion edgeVersion) {
         AssetId assetId = new AssetId(cloudEvent.getEntityId());
         UplinkMsg msg = null;
         EntityGroupId entityGroupId = cloudEvent.getEntityGroupId() != null ? new EntityGroupId(cloudEvent.getEntityGroupId()) : null;
@@ -142,14 +144,15 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
                         log.debug("Skipping TbServiceQueue asset [{}]", cloudEvent);
                     } else {
                         UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                        AssetUpdateMsg assetUpdateMsg =
-                                assetMsgConstructor.constructAssetUpdatedMsg(msgType, asset, entityGroupId);
+                        AssetUpdateMsg assetUpdateMsg = ((AssetMsgConstructor)
+                                assetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructAssetUpdatedMsg(msgType, asset, entityGroupId);
                         UplinkMsg.Builder builder = UplinkMsg.newBuilder()
                                 .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                                 .addAssetUpdateMsg(assetUpdateMsg);
                         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(msgType)) {
                             AssetProfile assetProfile = assetProfileService.findAssetProfileById(cloudEvent.getTenantId(), asset.getAssetProfileId());
-                            builder.addAssetProfileUpdateMsg(assetProfileMsgConstructor.constructAssetProfileUpdatedMsg(msgType, assetProfile));
+                            builder.addAssetProfileUpdateMsg(((AssetMsgConstructor) assetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion))
+                                    .constructAssetProfileUpdatedMsg(msgType, assetProfile));
                         }
                         msg = builder.build();
                     }
@@ -159,8 +162,8 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
                 break;
             case DELETED:
             case REMOVED_FROM_ENTITY_GROUP:
-                AssetUpdateMsg assetUpdateMsg =
-                        assetMsgConstructor.constructAssetDeleteMsg(assetId, entityGroupId);
+                AssetUpdateMsg assetUpdateMsg = ((AssetMsgConstructor)
+                        assetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructAssetDeleteMsg(assetId, entityGroupId);
                 msg = UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addAssetUpdateMsg(assetUpdateMsg).build();
@@ -169,4 +172,10 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
         return msg;
     }
 
+    @Override
+    protected void setCustomerId(TenantId tenantId, CustomerId customerId, Asset asset, AssetUpdateMsg assetUpdateMsg, EdgeVersion edgeVersion) {
+        if (isCustomerNotExists(tenantId, asset.getCustomerId())) {
+            asset.setCustomerId(null);
+        }
+    }
 }

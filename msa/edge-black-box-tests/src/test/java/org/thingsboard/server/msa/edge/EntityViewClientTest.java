@@ -85,7 +85,7 @@ public class EntityViewClientTest extends AbstractContainerTest {
                         && updatedEntityViewName.equals(edgeRestClient.getEntityViewById(savedEntityView1.getId()).get().getName()));
 
         // save entity view #1 attribute
-        JsonNode entityViewAttributes = JacksonUtil.OBJECT_MAPPER.readTree("{\"entityViewKey\":\"entityViewValue\"}");
+        JsonNode entityViewAttributes = JacksonUtil.toJsonNode("{\"entityViewKey\":\"entityViewValue\"}");
         cloudRestClient.saveEntityAttributesV1(savedEntityView1.getId(), DataConstants.SERVER_SCOPE, entityViewAttributes);
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
@@ -286,6 +286,4 @@ public class EntityViewClientTest extends AbstractContainerTest {
         entityView.setEntityId(entityId);
         return edgeRestClient.saveEntityView(entityView, entityGroupId);
     }
-
 }
-

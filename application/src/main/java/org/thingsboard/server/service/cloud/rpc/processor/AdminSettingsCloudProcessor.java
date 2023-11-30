@@ -52,20 +52,21 @@ import java.util.List;
 public class AdminSettingsCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processAdminSettingsMsgFromCloud(TenantId tenantId, AdminSettingsUpdateMsg adminSettingsUpdateMsg) {
-        String key = adminSettingsUpdateMsg.getKey();
-        String jsonValue = adminSettingsUpdateMsg.getJsonValue();
-        if (adminSettingsUpdateMsg.getIsSystem()) {
-            AdminSettings adminSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key);
-            if (adminSettings == null) {
-                adminSettings = new AdminSettings();
-                adminSettings.setKey(key);
+        AdminSettings adminSettingsMsg = JacksonUtil.fromStringIgnoreUnknownProperties(adminSettingsUpdateMsg.getEntity(), AdminSettings.class);
+        if (adminSettingsMsg == null) {
+            throw new RuntimeException("[{" + tenantId + "}] adminSettingsUpdateMsg {" + adminSettingsUpdateMsg + " } cannot be converted to admin settings");
+        }
+        if (TenantId.SYS_TENANT_ID.equals(adminSettingsMsg.getTenantId())) {
+            AdminSettings adminSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, adminSettingsMsg.getKey());
+            if (adminSettings != null) {
+                adminSettings.setJsonValue(adminSettingsMsg.getJsonValue());
+                adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, adminSettings);
+            } else {
+                adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, adminSettingsMsg);
             }
-            adminSettings.setJsonValue(JacksonUtil.toJsonNode(jsonValue));
-            adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, adminSettings);
-
         } else {
             List<AttributeKvEntry> attributes = new ArrayList<>();
-            attributes.add(new BaseAttributeKvEntry(new StringDataEntry(key, jsonValue), System.currentTimeMillis()));
+            attributes.add(new BaseAttributeKvEntry(new StringDataEntry(adminSettingsMsg.getKey(), adminSettingsMsg.getJsonValue().asText()), System.currentTimeMillis()));
             attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);
         }
         return Futures.immediateFuture(null);

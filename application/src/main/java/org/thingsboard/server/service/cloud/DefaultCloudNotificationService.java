@@ -163,12 +163,12 @@ public class DefaultCloudNotificationService implements CloudNotificationService
         AlarmId alarmId = new AlarmId(new UUID(cloudNotificationMsg.getEntityIdMSB(), cloudNotificationMsg.getEntityIdLSB()));
         switch (actionType) {
             case DELETED:
-                Alarm deletedAlarm = JacksonUtil.OBJECT_MAPPER.readValue(cloudNotificationMsg.getEntityBody(), Alarm.class);
+                Alarm deletedAlarm = JacksonUtil.fromString(cloudNotificationMsg.getEntityBody(), Alarm.class);
                 return cloudEventService.saveCloudEventAsync(tenantId,
                         CloudEventType.ALARM,
                         actionType,
                         alarmId,
-                        JacksonUtil.OBJECT_MAPPER.valueToTree(deletedAlarm),
+                        JacksonUtil.valueToTree(deletedAlarm),
                         null,
                         0L);
             default:
@@ -193,12 +193,12 @@ public class DefaultCloudNotificationService implements CloudNotificationService
     }
 
     private ListenableFuture<Void> processRelation(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) throws Exception {
-        EntityRelation relation = JacksonUtil.OBJECT_MAPPER.readValue(cloudNotificationMsg.getEntityBody(), EntityRelation.class);
+        EntityRelation relation = JacksonUtil.fromString(cloudNotificationMsg.getEntityBody(), EntityRelation.class);
         return cloudEventService.saveCloudEventAsync(tenantId,
                 CloudEventType.RELATION,
                 EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction()),
                 null,
-                JacksonUtil.OBJECT_MAPPER.valueToTree(relation),
+                JacksonUtil.valueToTree(relation),
                 null,
                 0L);
     }

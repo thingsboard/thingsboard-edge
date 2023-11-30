@@ -572,7 +572,7 @@ public class IntegrationControllerTest extends AbstractControllerTest {
         edgeConverter.setName("My edge converter");
         edgeConverter.setType(ConverterType.UPLINK);
         ObjectNode converterConfiguration =
-                JacksonUtil.OBJECT_MAPPER.createObjectNode().put("decoder", "return {deviceName: 'Device Name', deviceType: metadata['deviceType']};");
+                JacksonUtil.newObjectNode().put("decoder", "return {deviceName: 'Device Name', deviceType: metadata['deviceType']};");
         edgeConverter.setConfiguration(converterConfiguration);
         edgeConverter.setEdgeTemplate(true);
         edgeConverter = doPost("/api/converter", edgeConverter, Converter.class);
@@ -582,7 +582,7 @@ public class IntegrationControllerTest extends AbstractControllerTest {
         integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
         integration.setDefaultConverterId(edgeConverter.getId());
         integration.setType(IntegrationType.HTTP);
-        ObjectNode integrationConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode integrationConfiguration = JacksonUtil.newObjectNode();
         integrationConfiguration.putObject("metadata").put("deviceType", "${{DEVICE_TYPE}}").put("deviceFirmware", "${{DEVICE_FW}}");
         integrationConfiguration.put("baseUrl", "${{HTTP_URL}}/api");
         integration.setConfiguration(integrationConfiguration);
@@ -621,7 +621,7 @@ public class IntegrationControllerTest extends AbstractControllerTest {
         integration2.setRoutingKey(StringUtils.randomAlphanumeric(15));
         integration2.setDefaultConverterId(edgeConverter.getId());
         integration2.setType(IntegrationType.HTTP);
-        ObjectNode integrationConfiguration2 = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode integrationConfiguration2 = JacksonUtil.newObjectNode();
         integrationConfiguration2.put("baseUrl", "${{HTTPS_URL}}/api");
         integration2.setConfiguration(integrationConfiguration2);
         integration2.setEdgeTemplate(true);

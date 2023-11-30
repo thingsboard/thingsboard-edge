@@ -78,7 +78,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
             timeseriesPayload.addProperty(telemetryKey, idx);
             ResponseEntity deviceTelemetryResponse = edgeRestClient.getRestTemplate()
                     .postForEntity(edgeUrl + "/api/v1/{credentialsId}/telemetry",
-                            JacksonUtil.OBJECT_MAPPER.readTree(timeseriesPayload.toString()),
+                            JacksonUtil.toJsonNode(timeseriesPayload.toString()),
                             ResponseEntity.class,
                             accessToken);
             Assert.assertTrue(deviceTelemetryResponse.getStatusCode().is2xxSuccessful());
@@ -175,7 +175,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
 
         ResponseEntity deviceTelemetryResponse = sourceRestClient.getRestTemplate()
                 .postForEntity(sourceUrl + "/api/v1/{credentialsId}/telemetry",
-                        JacksonUtil.OBJECT_MAPPER.readTree(timeseriesPayload.toString()),
+                        JacksonUtil.toJsonNode(timeseriesPayload.toString()),
                         ResponseEntity.class,
                         accessToken);
         Assert.assertTrue(deviceTelemetryResponse.getStatusCode().is2xxSuccessful());
@@ -273,7 +273,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
         String accessToken = deviceCredentials.getCredentialsId();
 
         ResponseEntity deviceClientsAttributes = sourceRestClient.getRestTemplate()
-                .postForEntity(sourceUrl + "/api/v1/" + accessToken + "/attributes/", JacksonUtil.OBJECT_MAPPER.readTree(attributesPayload.toString()),
+                .postForEntity(sourceUrl + "/api/v1/" + accessToken + "/attributes/", JacksonUtil.toJsonNode(attributesPayload.toString()),
                         ResponseEntity.class,
                         accessToken);
         Assert.assertTrue(deviceClientsAttributes.getStatusCode().is2xxSuccessful());
@@ -361,13 +361,11 @@ public class TelemetryClientTest extends AbstractContainerTest {
                 Assert.assertEquals(true, attributeKvEntry.getBooleanValue().get());
             }
             if (attributeKvEntry.getKey().equals("doubleAttrToCloud")) {
-                Assert.assertEquals(42.0, (double) attributeKvEntry.getDoubleValue().get(), 0.0);
+                Assert.assertEquals(42.0, attributeKvEntry.getDoubleValue().get(), 0.0);
             }
             if (attributeKvEntry.getKey().equals("longAttrToCloud")) {
                 Assert.assertEquals(72L, attributeKvEntry.getLongValue().get().longValue());
             }
         }
     }
-
 }
-

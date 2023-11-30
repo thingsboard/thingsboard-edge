@@ -94,7 +94,7 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
         // create widget type
         WidgetTypeDetails widgetType = new WidgetTypeDetails();
         widgetType.setName("Test Widget Type");
-        ObjectNode descriptor = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode descriptor = JacksonUtil.newObjectNode();
         descriptor.put("key", "value");
         widgetType.setDescriptor(descriptor);
         WidgetTypeDetails savedWidgetType = cloudRestClient.saveWidgetType(widgetType);
@@ -133,6 +133,4 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getWidgetsBundleById(savedWidgetsBundle.getId()).isEmpty());
     }
-
 }
-

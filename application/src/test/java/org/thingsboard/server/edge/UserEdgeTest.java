@@ -36,12 +36,14 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
@@ -78,13 +80,14 @@ public class UserEdgeTest extends AbstractEdgeTest {
         Optional<UserUpdateMsg> latestMessageOpt = edgeImitator.findMessageByType(UserUpdateMsg.class);
         Assert.assertTrue(latestMessageOpt.isPresent());
         UserUpdateMsg userUpdateMsg = latestMessageOpt.get();
+        User userMsg = JacksonUtil.fromStringIgnoreUnknownProperties(userUpdateMsg.getEntity(), User.class);
+        Assert.assertNotNull(userMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, userUpdateMsg.getMsgType());
-        Assert.assertEquals(savedTenantAdmin.getUuidId().getMostSignificantBits(), userUpdateMsg.getIdMSB());
-        Assert.assertEquals(savedTenantAdmin.getUuidId().getLeastSignificantBits(), userUpdateMsg.getIdLSB());
-        Assert.assertEquals(savedTenantAdmin.getAuthority().name(), userUpdateMsg.getAuthority());
-        Assert.assertEquals(savedTenantAdmin.getEmail(), userUpdateMsg.getEmail());
-        Assert.assertEquals(savedTenantAdmin.getFirstName(), userUpdateMsg.getFirstName());
-        Assert.assertEquals(savedTenantAdmin.getLastName(), userUpdateMsg.getLastName());
+        Assert.assertEquals(savedTenantAdmin.getId(), userMsg.getId());
+        Assert.assertEquals(savedTenantAdmin.getAuthority(), userMsg.getAuthority());
+        Assert.assertEquals(savedTenantAdmin.getEmail(), userMsg.getEmail());
+        Assert.assertEquals(savedTenantAdmin.getFirstName(), userMsg.getFirstName());
+        Assert.assertEquals(savedTenantAdmin.getLastName(), userMsg.getLastName());
         Optional<UserCredentialsUpdateMsg> userCredentialsUpdateMsgOpt = edgeImitator.findMessageByType(UserCredentialsUpdateMsg.class);
         Assert.assertTrue(userCredentialsUpdateMsgOpt.isPresent());
 
@@ -108,8 +111,10 @@ public class UserEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof UserUpdateMsg);
         userUpdateMsg = (UserUpdateMsg) latestMessage;
+        userMsg = JacksonUtil.fromStringIgnoreUnknownProperties(userUpdateMsg.getEntity(), User.class);
+        Assert.assertNotNull(userMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, userUpdateMsg.getMsgType());
-        Assert.assertEquals(savedTenantAdmin.getLastName(), userUpdateMsg.getLastName());
+        Assert.assertEquals(savedTenantAdmin.getLastName(), userMsg.getLastName());
 
         // remove user from custom user group
         edgeImitator.expectMessageAmount(1);
@@ -134,9 +139,10 @@ public class UserEdgeTest extends AbstractEdgeTest {
         latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof UserCredentialsUpdateMsg);
         UserCredentialsUpdateMsg userCredentialsUpdateMsg = (UserCredentialsUpdateMsg) latestMessage;
-        Assert.assertEquals(savedTenantAdmin.getUuidId().getMostSignificantBits(), userCredentialsUpdateMsg.getUserIdMSB());
-        Assert.assertEquals(savedTenantAdmin.getUuidId().getLeastSignificantBits(), userCredentialsUpdateMsg.getUserIdLSB());
-        Assert.assertTrue(passwordEncoder.matches(changePasswordRequest.getNewPassword(), userCredentialsUpdateMsg.getPassword()));
+        UserCredentials userCredentialsMsg = JacksonUtil.fromStringIgnoreUnknownProperties(userCredentialsUpdateMsg.getEntity(), UserCredentials.class);
+        Assert.assertNotNull(userCredentialsMsg);
+        Assert.assertEquals(savedTenantAdmin.getId(), userCredentialsMsg.getUserId());
+        Assert.assertTrue(passwordEncoder.matches(changePasswordRequest.getNewPassword(), userCredentialsMsg.getPassword()));
 
         loginTenantAdmin();
 
@@ -179,15 +185,15 @@ public class UserEdgeTest extends AbstractEdgeTest {
         Optional<UserUpdateMsg> latestMessageOpt = edgeImitator.findMessageByType(UserUpdateMsg.class);
         Assert.assertTrue(latestMessageOpt.isPresent());
         UserUpdateMsg userUpdateMsg = latestMessageOpt.get();
+        User userMsg = JacksonUtil.fromStringIgnoreUnknownProperties(userUpdateMsg.getEntity(), User.class);
+        Assert.assertNotNull(userMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, userUpdateMsg.getMsgType());
-        Assert.assertEquals(savedCustomerUser.getUuidId().getMostSignificantBits(), userUpdateMsg.getIdMSB());
-        Assert.assertEquals(savedCustomerUser.getUuidId().getLeastSignificantBits(), userUpdateMsg.getIdLSB());
-        Assert.assertEquals(savedCustomerUser.getCustomerId().getId().getMostSignificantBits(), userUpdateMsg.getCustomerIdMSB());
-        Assert.assertEquals(savedCustomerUser.getCustomerId().getId().getLeastSignificantBits(), userUpdateMsg.getCustomerIdLSB());
-        Assert.assertEquals(savedCustomerUser.getAuthority().name(), userUpdateMsg.getAuthority());
-        Assert.assertEquals(savedCustomerUser.getEmail(), userUpdateMsg.getEmail());
-        Assert.assertEquals(savedCustomerUser.getFirstName(), userUpdateMsg.getFirstName());
-        Assert.assertEquals(savedCustomerUser.getLastName(), userUpdateMsg.getLastName());
+        Assert.assertEquals(savedCustomerUser.getId(), userMsg.getId());
+        Assert.assertEquals(savedCustomerUser.getCustomerId(), userMsg.getCustomerId());
+        Assert.assertEquals(savedCustomerUser.getAuthority(), userMsg.getAuthority());
+        Assert.assertEquals(savedCustomerUser.getEmail(), userMsg.getEmail());
+        Assert.assertEquals(savedCustomerUser.getFirstName(), userMsg.getFirstName());
+        Assert.assertEquals(savedCustomerUser.getLastName(), userMsg.getLastName());
         Optional<UserCredentialsUpdateMsg> userCredentialsUpdateMsgOpt = edgeImitator.findMessageByType(UserCredentialsUpdateMsg.class);
         Assert.assertTrue(userCredentialsUpdateMsgOpt.isPresent());
 
@@ -211,8 +217,10 @@ public class UserEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof UserUpdateMsg);
         userUpdateMsg = (UserUpdateMsg) latestMessage;
+        userMsg = JacksonUtil.fromStringIgnoreUnknownProperties(userUpdateMsg.getEntity(), User.class);
+        Assert.assertNotNull(userMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, userUpdateMsg.getMsgType());
-        Assert.assertEquals(savedCustomerUser.getLastName(), userUpdateMsg.getLastName());
+        Assert.assertEquals(savedCustomerUser.getLastName(), userMsg.getLastName());
 
         // remove user from custom user group
         edgeImitator.expectMessageAmount(1);
@@ -239,9 +247,10 @@ public class UserEdgeTest extends AbstractEdgeTest {
         latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof UserCredentialsUpdateMsg);
         UserCredentialsUpdateMsg userCredentialsUpdateMsg = (UserCredentialsUpdateMsg) latestMessage;
-        Assert.assertEquals(savedCustomerUser.getUuidId().getMostSignificantBits(), userCredentialsUpdateMsg.getUserIdMSB());
-        Assert.assertEquals(savedCustomerUser.getUuidId().getLeastSignificantBits(), userCredentialsUpdateMsg.getUserIdLSB());
-        Assert.assertTrue(passwordEncoder.matches(changePasswordRequest.getNewPassword(), userCredentialsUpdateMsg.getPassword()));
+        UserCredentials userCredentialsMsg = JacksonUtil.fromStringIgnoreUnknownProperties(userCredentialsUpdateMsg.getEntity(), UserCredentials.class);
+        Assert.assertNotNull(userCredentialsMsg);
+        Assert.assertEquals(savedCustomerUser.getId(), userCredentialsMsg.getUserId());
+        Assert.assertTrue(passwordEncoder.matches(changePasswordRequest.getNewPassword(), userCredentialsMsg.getPassword()));
 
         loginTenantAdmin();
 
@@ -287,8 +296,9 @@ public class UserEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof UserCredentialsUpdateMsg);
         UserCredentialsUpdateMsg userCredentialsUpdateMsg = (UserCredentialsUpdateMsg) latestMessage;
-        Assert.assertEquals(tenantAdminUserId.getId().getMostSignificantBits(), userCredentialsUpdateMsg.getUserIdMSB());
-        Assert.assertEquals(tenantAdminUserId.getId().getLeastSignificantBits(), userCredentialsUpdateMsg.getUserIdLSB());
+        UserCredentials userCredentialsMsg = JacksonUtil.fromStringIgnoreUnknownProperties(userCredentialsUpdateMsg.getEntity(), UserCredentials.class);
+        Assert.assertNotNull(userCredentialsMsg);
+        Assert.assertEquals(tenantAdminUserId, userCredentialsMsg.getUserId());
     }
 
     @Test
@@ -312,8 +322,9 @@ public class UserEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof UserCredentialsUpdateMsg);
         UserCredentialsUpdateMsg userCredentialsUpdateMsg = (UserCredentialsUpdateMsg) latestMessage;
-        Assert.assertEquals(userCredentialsUpdateMsg.getUserIdMSB(), tenantAdminUserId.getId().getMostSignificantBits());
-        Assert.assertEquals(userCredentialsUpdateMsg.getUserIdLSB(), tenantAdminUserId.getId().getLeastSignificantBits());
+        UserCredentials userCredentialsMsg = JacksonUtil.fromStringIgnoreUnknownProperties(userCredentialsUpdateMsg.getEntity(), UserCredentials.class);
+        Assert.assertNotNull(userCredentialsMsg);
+        Assert.assertEquals(tenantAdminUserId, userCredentialsMsg.getUserId());
 
         testAutoGeneratedCodeByProtobuf(userCredentialsUpdateMsg);
     }

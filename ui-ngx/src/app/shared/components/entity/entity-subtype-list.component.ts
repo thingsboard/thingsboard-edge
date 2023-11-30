@@ -281,8 +281,8 @@ export class EntitySubTypeListComponent implements ControlValueAccessor, OnInit,
     const value = (event.value || '').trim();
     if (value) {
       this.add(value);
+      this.clear('');
     }
-    this.clear('');
   }
   remove(entitySubtype: string) {
     const index = this.entitySubtypeList.indexOf(entitySubtype);

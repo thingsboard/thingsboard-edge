@@ -42,7 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -92,36 +91,21 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
             switch (roleProto.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    Role role = roleService.findRoleById(tenantId, roleId);
-                    boolean created = false;
+                    Role role = JacksonUtil.fromStringIgnoreUnknownProperties(roleProto.getEntity(), Role.class);
                     if (role == null) {
-                        role = new Role();
-                        role.setCreatedTime(Uuids.unixTimestamp(roleId.getId()));
-                        // role can be on sys level or tenant level
-                        TenantId roleTenantId = new TenantId(new UUID(roleProto.getTenantIdMSB(), roleProto.getTenantIdLSB()));
-                        role.setTenantId(roleTenantId);
+                        throw new RuntimeException("[{" + tenantId + "}] roleProto {" + roleProto + "} cannot be converted to rolo");
+                    }
+                    Role roleById = roleService.findRoleById(tenantId, roleId);
+                    boolean created = false;
+                    if (roleById == null) {
                         created = true;
+                        role.setId(null);
                     }
-                    role.setName(roleProto.getName());
-                    role.setType(RoleType.valueOf(roleProto.getType()));
-                    role.setAdditionalInfo(JacksonUtil.toJsonNode(roleProto.getAdditionalInfo()));
-                    role.setPermissions(JacksonUtil.toJsonNode(roleProto.getPermissions()));
-
                     role = replaceWriteOperationsToReadIfRequired(role);
-
-                    if (roleProto.hasCustomerIdMSB() && roleProto.hasCustomerIdLSB()) {
-                        UUID customerUUID = safeGetUUID(roleProto.getCustomerIdMSB(),
-                                roleProto.getCustomerIdLSB());
-                        role.setCustomerId(new CustomerId(customerUUID));
-                    } else {
-                        role.setCustomerId(null);
-                    }
+                    roleValidator.validate(role, Role::getTenantId);
 
                     if (created) {
-                        roleValidator.validate(role, Role::getTenantId);
                         role.setId(roleId);
-                    } else {
-                        roleValidator.validate(role, Role::getTenantId);
                     }
 
                     Role savedRole = roleService.saveRole(tenantId, role, false);
@@ -130,8 +114,8 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
 
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    Role roleById = roleService.findRoleById(tenantId, roleId);
-                    if (roleById != null) {
+                    Role roleToDelete = roleService.findRoleById(tenantId, roleId);
+                    if (roleToDelete != null) {
                         roleService.deleteRole(tenantId, roleId);
                     }
                     break;
@@ -146,10 +130,10 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
         return Futures.immediateFuture(null);
     }
 
-    Role replaceWriteOperationsToReadIfRequired(Role role) throws JsonProcessingException {
+    Role replaceWriteOperationsToReadIfRequired(Role role) {
         if (RoleType.GROUP.equals(role.getType())) {
             CollectionType collectionType = TypeFactory.defaultInstance().constructCollectionType(List.class, Operation.class);
-            List<Operation> originOperations = JacksonUtil.OBJECT_MAPPER.readValue(role.getPermissions().toString(), collectionType);
+            List<Operation> originOperations = JacksonUtil.fromString(role.getPermissions().toString(), collectionType);
             List<Operation> operations;
             if (originOperations.contains(Operation.ALL)) {
                 operations = new ArrayList<>(allowedEntityGroupOperations);
@@ -158,12 +142,12 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
                         .filter(allowedEntityGroupOperations::contains)
                         .collect(Collectors.toList());
             }
-            role.setPermissions(JacksonUtil.OBJECT_MAPPER.valueToTree(operations));
+            role.setPermissions(JacksonUtil.valueToTree(operations));
         } else {
             CollectionType operationType = TypeFactory.defaultInstance().constructCollectionType(List.class, Operation.class);
             JavaType resourceType = JacksonUtil.OBJECT_MAPPER.getTypeFactory().constructType(Resource.class);
             MapType mapType = TypeFactory.defaultInstance().constructMapType(HashMap.class, resourceType, operationType);
-            Map<Resource, List<Operation>> originPermissions = JacksonUtil.OBJECT_MAPPER.readValue(role.getPermissions().toString(), mapType);
+            Map<Resource, List<Operation>> originPermissions = JacksonUtil.fromString(role.getPermissions().toString(), mapType);
             Map<Resource, List<Operation>> newPermissions = new HashMap<>();
             for (Map.Entry<Resource, List<Operation>> entry : originPermissions.entrySet()) {
                 List<Operation> originOperations = entry.getValue();
@@ -216,7 +200,7 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
                 }
                 newPermissions.put(entry.getKey(), newOperations);
             }
-            role.setPermissions(JacksonUtil.OBJECT_MAPPER.valueToTree(newPermissions));
+            role.setPermissions(JacksonUtil.valueToTree(newPermissions));
         }
         return role;
     }
