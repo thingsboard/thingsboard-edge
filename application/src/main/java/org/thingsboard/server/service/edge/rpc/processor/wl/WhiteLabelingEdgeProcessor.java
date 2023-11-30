@@ -60,6 +60,7 @@ import org.thingsboard.server.gen.edge.v1.WhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.v1.WhiteLabelingProto;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.constructor.translation.CustomTranslationMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
@@ -113,7 +114,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
         DownlinkMsg result = null;
         switch (entityId.getEntityType()) {
             case TENANT:
-                if (EntityId.NULL_UUID.equals(entityId.getId())) {
+                if (TenantId.SYS_TENANT_ID.equals(entityId)) {
                     WhiteLabelingParams systemWhiteLabelingParams =
                             whiteLabelingService.getSystemWhiteLabelingParams();
                     if (isDefaultWhiteLabeling(systemWhiteLabelingParams)) {
@@ -186,12 +187,11 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
         return result;
     }
 
-
     private DownlinkMsg constructDeprecatedLoginWhiteLabelingEvent(EdgeEvent edgeEvent, EntityId entityId) throws Exception {
         DownlinkMsg result = null;
         switch (entityId.getEntityType()) {
             case TENANT:
-                if (EntityId.NULL_UUID.equals(entityId.getId())) {
+                if (TenantId.SYS_TENANT_ID.equals(entityId)) {
                     LoginWhiteLabelingParams systemLoginWhiteLabelingParams =
                             whiteLabelingService.getSystemLoginWhiteLabelingParams();
                     if (isDefaultLoginWhiteLabeling(systemLoginWhiteLabelingParams)) {
@@ -238,7 +238,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
         return new LoginWhiteLabelingParams().equals(loginWhiteLabelingParams);
     }
 
-    public DownlinkMsg convertCustomTranslationEventToDownlink(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertCustomTranslationEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         DownlinkMsg result = null;
         try {
             EntityId entityId = JacksonUtil.convertValue(edgeEvent.getBody(), EntityId.class);
@@ -247,14 +247,14 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
             }
             switch (entityId.getEntityType()) {
                 case TENANT:
-                    if (EntityId.NULL_UUID.equals(entityId.getId())) {
+                    if (TenantId.SYS_TENANT_ID.equals(entityId)) {
                         CustomTranslation systemCustomTranslation =
                                 customTranslationService.getSystemCustomTranslation(edgeEvent.getTenantId());
                         if (isDefaultCustomTranslation(systemCustomTranslation)) {
                             return null;
                         }
-                        CustomTranslationProto customTranslationProto =
-                                customTranslationProtoConstructor.constructCustomTranslationProto(systemCustomTranslation, entityId);
+                        CustomTranslationProto customTranslationProto = ((CustomTranslationMsgConstructor)
+                                customTranslationConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructCustomTranslationProto(systemCustomTranslation, entityId);
                         result = DownlinkMsg.newBuilder()
                                 .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                                 .setSystemCustomTranslationMsg(customTranslationProto)
@@ -265,8 +265,8 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                         if (isDefaultCustomTranslation(tenantCustomTranslation)) {
                             return null;
                         }
-                        CustomTranslationProto customTranslationProto =
-                                customTranslationProtoConstructor.constructCustomTranslationProto(tenantCustomTranslation, entityId);
+                        CustomTranslationProto customTranslationProto = ((CustomTranslationMsgConstructor)
+                                customTranslationConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructCustomTranslationProto(tenantCustomTranslation, entityId);
                         result = DownlinkMsg.newBuilder()
                                 .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                                 .setTenantCustomTranslationMsg(customTranslationProto)
@@ -280,8 +280,8 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                     if (isDefaultCustomTranslation(customerCustomTranslation)) {
                         return null;
                     }
-                    CustomTranslationProto customTranslationProto =
-                            customTranslationProtoConstructor.constructCustomTranslationProto(customerCustomTranslation, customerId);
+                    CustomTranslationProto customTranslationProto = ((CustomTranslationMsgConstructor)
+                            customTranslationConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructCustomTranslationProto(customerCustomTranslation, customerId);
                     result = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .setCustomerCustomTranslationMsg(customTranslationProto)
