@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.edge.rpc.processor.telemetry;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -338,7 +337,7 @@ public abstract class BaseTelemetryProcessor extends BaseEdgeProcessor {
                                                                   EntityType entityType,
                                                                   UUID entityUUID,
                                                                   EdgeEventActionType actionType,
-                                                                  JsonNode body) throws JsonProcessingException {
+                                                                  JsonNode body) {
         EntityId entityId;
         switch (entityType) {
             case DEVICE:
@@ -376,5 +375,4 @@ public abstract class BaseTelemetryProcessor extends BaseEdgeProcessor {
         return bodyJackson == null ? null :
                 entityDataMsgConstructor.constructEntityDataMsg(tenantId, entityId, actionType, JsonParser.parseString(bodyJackson));
     }
-
 }
