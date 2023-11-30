@@ -47,7 +47,6 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -55,12 +54,12 @@ import java.util.stream.Collectors;
 @Slf4j
 @RuleNode(
         type = ComponentType.TRANSFORMATION,
-        name = "delete key-values",
+        name = "delete key-value pairs",
         version = 1,
         configClazz = TbDeleteKeysNodeConfiguration.class,
-        nodeDescription = "Removes key-values from message or message metadata.",
-        nodeDetails = "Removes key-values from message or message metadata based on the keys list specified in the configuration. " +
-                "Use regular expression(s) as a key(s) to remove keys by pattern.<br><br>" +
+        nodeDescription = "Deletes key-value pairs from message or message metadata.",
+        nodeDetails = "Deletes key-value pairs from the message or message metadata according to the configured " +
+                "keys and/or regular expressions.<br><br>" +
                 "Output connections: <code>Success</code>, <code>Failure</code>.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbTransformationNodeDeleteKeysConfig",
@@ -69,8 +68,8 @@ import java.util.stream.Collectors;
 public class TbDeleteKeysNode extends TbAbstractTransformNodeWithTbMsgSource {
 
     private TbDeleteKeysNodeConfiguration config;
-    private List<Pattern> patternKeys;
     private TbMsgSource deleteFrom;
+    private List<Pattern> compiledKeyPatterns;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
@@ -79,44 +78,44 @@ public class TbDeleteKeysNode extends TbAbstractTransformNodeWithTbMsgSource {
         if (deleteFrom == null) {
             throw new TbNodeException("DeleteFrom can't be null! Allowed values: " + Arrays.toString(TbMsgSource.values()));
         }
-        this.patternKeys = config.getKeys().stream().map(Pattern::compile).collect(Collectors.toList());
+        this.compiledKeyPatterns = config.getKeys().stream().map(Pattern::compile).collect(Collectors.toList());
     }
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
-        TbMsgMetaData metaDataCopy = msg.getMetaData().copy();
-        String msgData = msg.getData();
-        List<String> keysToDelete = new ArrayList<>();
+        var metaDataCopy = msg.getMetaData().copy();
+        var msgDataStr = msg.getData();
+        boolean hasNoChanges = false;
         switch (deleteFrom) {
             case METADATA:
-                Map<String, String> metaDataMap = metaDataCopy.getData();
-                metaDataMap.forEach((keyMetaData, valueMetaData) -> {
-                    if (matches(keyMetaData)) {
-                        keysToDelete.add(keyMetaData);
-                    }
-                });
-                keysToDelete.forEach(metaDataMap::remove);
+                var metaDataMap = metaDataCopy.getData();
+                var mdKeysToDelete = metaDataMap.keySet()
+                        .stream()
+                        .filter(this::matches)
+                        .collect(Collectors.toList());
+                mdKeysToDelete.forEach(metaDataMap::remove);
                 metaDataCopy = new TbMsgMetaData(metaDataMap);
+                hasNoChanges = mdKeysToDelete.isEmpty();
                 break;
             case DATA:
-                JsonNode dataNode = JacksonUtil.toJsonNode(msgData);
+                JsonNode dataNode = JacksonUtil.toJsonNode(msgDataStr);
                 if (dataNode.isObject()) {
-                    ObjectNode msgDataObject = (ObjectNode) dataNode;
-                    dataNode.fields().forEachRemaining(entry -> {
-                        String keyData = entry.getKey();
-                        if (matches(keyData)) {
-                            keysToDelete.add(keyData);
+                    var msgDataObject = (ObjectNode) dataNode;
+                    var msgKeysToDelete = new ArrayList<String>();
+                    dataNode.fieldNames().forEachRemaining(key -> {
+                        if (matches(key)) {
+                            msgKeysToDelete.add(key);
                         }
                     });
-                    msgDataObject.remove(keysToDelete);
-                    msgData = JacksonUtil.toString(msgDataObject);
+                    msgDataObject.remove(msgKeysToDelete);
+                    msgDataStr = JacksonUtil.toString(msgDataObject);
+                    hasNoChanges = msgKeysToDelete.isEmpty();
                 }
                 break;
             default:
                 log.debug("Unexpected DeleteFrom value: {}. Allowed values: {}", deleteFrom, TbMsgSource.values());
-                break;
         }
-        ctx.tellSuccess(keysToDelete.isEmpty() ? msg : TbMsg.transformMsg(msg, metaDataCopy, msgData));
+        ctx.tellSuccess(hasNoChanges ? msg : TbMsg.transformMsg(msg, metaDataCopy, msgDataStr));
     }
 
     @Override
@@ -125,7 +124,7 @@ public class TbDeleteKeysNode extends TbAbstractTransformNodeWithTbMsgSource {
     }
 
     boolean matches(String key) {
-        return patternKeys.stream().anyMatch(pattern -> pattern.matcher(key).matches());
+        return compiledKeyPatterns.stream().anyMatch(pattern -> pattern.matcher(key).matches());
     }
 
 }

@@ -54,14 +54,12 @@ import java.util.stream.Collectors;
 @Slf4j
 @RuleNode(
         type = ComponentType.TRANSFORMATION,
-        name = "copy key-values",
+        name = "copy key-value pairs",
         version = 1,
         configClazz = TbCopyKeysNodeConfiguration.class,
-        nodeDescription = "Copies key-values from message to message metadata or vice-versa.",
-        nodeDetails = "Fetches key-values from message or message metadata based on the keys list specified in the configuration " +
-                "and copies them into message metadata or into message itself in accordance with the fetch source. " +
-                "Keys that are absent in the fetch source will be ignored. " +
-                "Use regular expression(s) as a key(s) to copy keys by pattern.<br><br>" +
+        nodeDescription = "Copies key-value pairs from message to message metadata or vice-versa.",
+        nodeDetails = "Copies key-value pairs from the message to message metadata, or vice-versa, according to the configured direction and keys. " +
+                "Regular expressions can be used to define which keys-value pairs to copy. Any configured key not found in the source will be ignored.<br><br>" +
                 "Output connections: <code>Success</code>, <code>Failure</code>.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbTransformationNodeCopyKeysConfig",
@@ -70,8 +68,8 @@ import java.util.stream.Collectors;
 public class TbCopyKeysNode extends TbAbstractTransformNodeWithTbMsgSource {
 
     private TbCopyKeysNodeConfiguration config;
-    private List<Pattern> patternKeys;
     private TbMsgSource copyFrom;
+    private List<Pattern> compiledKeyPatterns;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
@@ -80,7 +78,7 @@ public class TbCopyKeysNode extends TbAbstractTransformNodeWithTbMsgSource {
         if (copyFrom == null) {
             throw new TbNodeException("CopyFrom can't be null! Allowed values: " + Arrays.toString(TbMsgSource.values()));
         }
-        this.patternKeys = config.getKeys().stream().map(Pattern::compile).collect(Collectors.toList());
+        this.compiledKeyPatterns = config.getKeys().stream().map(Pattern::compile).collect(Collectors.toList());
     }
 
     @Override
@@ -95,10 +93,11 @@ public class TbCopyKeysNode extends TbAbstractTransformNodeWithTbMsgSource {
                     ObjectNode msgDataNode = (ObjectNode) dataNode;
                     Map<String, String> metaDataMap = metaDataCopy.getData();
                     for (Map.Entry<String, String> entry : metaDataMap.entrySet()) {
-                        String keyData = entry.getKey();
-                        if (matches(keyData)) {
+                        String mdKey = entry.getKey();
+                        String mdValue = entry.getValue();
+                        if (matches(mdKey)) {
                             msgChanged = true;
-                            msgDataNode.put(keyData, entry.getValue());
+                            msgDataNode.put(mdKey, mdValue);
                         }
                     }
                     msgData = JacksonUtil.toString(msgDataNode);
@@ -107,18 +106,18 @@ public class TbCopyKeysNode extends TbAbstractTransformNodeWithTbMsgSource {
                     Iterator<Map.Entry<String, JsonNode>> iteratorNode = dataNode.fields();
                     while (iteratorNode.hasNext()) {
                         Map.Entry<String, JsonNode> entry = iteratorNode.next();
-                        String keyData = entry.getKey();
-                        if (matches(keyData)) {
+                        String msgKey = entry.getKey();
+                        JsonNode msgValue = entry.getValue();
+                        if (matches(msgKey)) {
                             msgChanged = true;
-                            String value = entry.getValue().isTextual() ?
-                                    entry.getValue().asText() : JacksonUtil.toString(entry.getValue());
-                            metaDataCopy.putValue(keyData, value);
+                            String value = msgValue.isTextual() ?
+                                    msgValue.asText() : JacksonUtil.toString(msgValue);
+                            metaDataCopy.putValue(msgKey, value);
                         }
                     }
                     break;
                 default:
                     log.debug("Unexpected CopyFrom value: {}. Allowed values: {}", copyFrom, TbMsgSource.values());
-                    break;
             }
         }
         ctx.tellSuccess(msgChanged ? TbMsg.transformMsg(msg, metaDataCopy, msgData) : msg);
@@ -130,7 +129,7 @@ public class TbCopyKeysNode extends TbAbstractTransformNodeWithTbMsgSource {
     }
 
     boolean matches(String key) {
-        return patternKeys.stream().anyMatch(pattern -> pattern.matcher(key).matches());
+        return compiledKeyPatterns.stream().anyMatch(pattern -> pattern.matcher(key).matches());
     }
 
 }
