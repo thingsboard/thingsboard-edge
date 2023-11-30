@@ -95,6 +95,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.emptyList;
+import static org.thingsboard.server.common.data.DataConstants.TIMEOUT;
 import static org.thingsboard.server.common.data.DataConstants.EXPIRATION_TIME;
 import static org.thingsboard.server.common.data.DataConstants.UPDATE_FIRMWARE;
 import static org.thingsboard.server.common.data.DataConstants.UPDATE_SOFTWARE;
@@ -378,8 +379,8 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
 
         if ("sendRpcRequest".equals(event.getType())) {
             metaData.put("originServiceId", serviceId);
-            if (metaData.get(DataConstants.TIMEOUT) != null) {
-                metaData.put(EXPIRATION_TIME, String.valueOf(System.currentTimeMillis() + Math.max(minTimeout, Long.parseLong(metaData.get(DataConstants.TIMEOUT)))));
+            if (metaData.get(TIMEOUT) != null) {
+                metaData.put(EXPIRATION_TIME, String.valueOf(System.currentTimeMillis() + Math.max(minTimeout, Long.parseLong(metaData.get(TIMEOUT)))));
             }
         }
 
