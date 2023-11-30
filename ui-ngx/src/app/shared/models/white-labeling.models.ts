@@ -32,11 +32,9 @@
 import { environment as env } from '@env/environment';
 import { deepClone, isDefined, isUndefinedOrNull } from '@core/utils';
 import { ColorPalette, extendDefaultPalette } from '@shared/models/material.models';
-import { SafeUrl } from '@angular/platform-browser';
 
 export interface Favicon {
   url?: string;
-  type?: string;
 }
 
 export interface Palette {
@@ -52,12 +50,9 @@ export interface PaletteSettings {
 
 export interface WhiteLabelingParams {
   logoImageUrl?: string;
-  logoImageSafeUrl?: SafeUrl;
-  logoImageChecksum?: string;
   logoImageHeight?: number;
   appTitle?: string;
   favicon?: Favicon;
-  faviconChecksum?: string;
   paletteSettings?: PaletteSettings;
   helpLinkBaseUrl?: string;
   uiHelpBaseUrl?: string;
@@ -80,14 +75,11 @@ const defaultImageUrl = 'assets/logo_title_white_pe.svg';
 
 export const defaultWLParams: WhiteLabelingParams = {
   logoImageUrl: defaultImageUrl,
-  logoImageChecksum: 'ce227e602495446086a0672d3a2f1d899203dd4d',
   logoImageHeight: 36,
   appTitle: 'ThingsBoard PE',
   favicon: {
-    url: 'thingsboard.ico',
-    type: 'image/x-icon'
+    url: 'thingsboard.ico'
   },
-  faviconChecksum: '87059b3055f7ce8b8e43f18f470ed895a316f5ec',
   paletteSettings: {
     primaryPalette: {
       type: 'tb-primary'
@@ -121,8 +113,8 @@ export const tbLoginPrimaryPalette: ColorPalette = extendDefaultPalette('teal', 
 });
 export const tbLoginAccentPalette: ColorPalette = extendDefaultPalette('deep-orange', {});
 
-export function mergeDefaults<T extends WhiteLabelingParams & LoginWhiteLabelingParams>(wlParams: T,
-                              targetDefaultWlParams?: T): T {
+export const mergeDefaults = <T extends WhiteLabelingParams & LoginWhiteLabelingParams>(wlParams: T,
+                              targetDefaultWlParams?: T): T => {
   if (!targetDefaultWlParams) {
     targetDefaultWlParams = defaultWLParams as T;
   }
@@ -132,9 +124,8 @@ export function mergeDefaults<T extends WhiteLabelingParams & LoginWhiteLabeling
   if (!wlParams.pageBackgroundColor && targetDefaultWlParams.pageBackgroundColor) {
     wlParams.pageBackgroundColor = targetDefaultWlParams.pageBackgroundColor;
   }
-  if (!wlParams.logoImageUrl && !wlParams.logoImageChecksum) {
+  if (!wlParams.logoImageUrl) {
     wlParams.logoImageUrl = targetDefaultWlParams.logoImageUrl;
-    wlParams.logoImageChecksum = targetDefaultWlParams.logoImageChecksum;
   }
   if (!wlParams.logoImageHeight) {
     wlParams.logoImageHeight = targetDefaultWlParams.logoImageHeight;
@@ -142,9 +133,8 @@ export function mergeDefaults<T extends WhiteLabelingParams & LoginWhiteLabeling
   if (!wlParams.appTitle) {
     wlParams.appTitle = targetDefaultWlParams.appTitle;
   }
-  if ((!wlParams.favicon || !wlParams.favicon.url) && !wlParams.faviconChecksum) {
+  if (!wlParams.favicon || !wlParams.favicon.url) {
     wlParams.favicon = targetDefaultWlParams.favicon;
-    wlParams.faviconChecksum = targetDefaultWlParams.faviconChecksum;
   }
   if (!wlParams.paletteSettings) {
     wlParams.paletteSettings = targetDefaultWlParams.paletteSettings;
@@ -172,9 +162,9 @@ export function mergeDefaults<T extends WhiteLabelingParams & LoginWhiteLabeling
     wlParams.platformVersion = targetDefaultWlParams.platformVersion;
   }
   return wlParams;
-}
+};
 
-export function checkWlParams<T extends WhiteLabelingParams & LoginWhiteLabelingParams>(whiteLabelParams: T): T {
+export const checkWlParams = <T extends WhiteLabelingParams & LoginWhiteLabelingParams>(whiteLabelParams: T): T  => {
   if (!whiteLabelParams) {
     whiteLabelParams = {} as T;
   }
@@ -185,4 +175,4 @@ export function checkWlParams<T extends WhiteLabelingParams & LoginWhiteLabeling
     whiteLabelParams.favicon = {};
   }
   return whiteLabelParams;
-}
+};

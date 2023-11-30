@@ -597,21 +597,20 @@ message LoginWhiteLabelingParamsProto {
 message WhiteLabelingParamsProto {
   option deprecated = true;
   optional string logoImageUrl = 1;
-  optional string logoImageChecksum = 2;
-  optional int64 logoImageHeight = 3;
-  optional string appTitle = 4;
-  FaviconProto favicon = 5;
-  optional string faviconChecksum = 6;
-  PaletteSettingsProto paletteSettings = 7;
-  optional string helpLinkBaseUrl = 8;
-  optional bool enableHelpLinks = 9;
-  optional bool showNameVersion = 10;
-  optional string platformName = 11;
-  optional string platformVersion = 12;
-  optional string uiHelpBaseUrl = 13;
-  optional int64 entityIdMSB = 14;
-  optional int64 entityIdLSB = 15;
-  optional string entityType = 16;
+  optional int64 logoImageHeight = 2;
+  optional string appTitle = 3;
+  FaviconProto favicon = 4;
+  optional string faviconChecksum = 5;
+  PaletteSettingsProto paletteSettings = 6;
+  optional string helpLinkBaseUrl = 7;
+  optional bool enableHelpLinks = 8;
+  optional bool showNameVersion = 9;
+  optional string platformName = 10;
+  optional string platformVersion = 11;
+  optional string uiHelpBaseUrl = 12;
+  optional int64 entityIdMSB = 13;
+  optional int64 entityIdLSB = 14;
+  optional string entityType = 15;
 }
 
 message WhiteLabelingProto {
@@ -621,7 +620,6 @@ message WhiteLabelingProto {
 message FaviconProto {
   option deprecated = true;
   optional string url = 1;
-  optional string type = 2;
 }
 
 message PaletteSettingsProto {

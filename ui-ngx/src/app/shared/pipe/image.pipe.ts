@@ -62,7 +62,16 @@ export class ImagePipe implements PipeTransform {
     const url = (typeof urlData === 'string') ? urlData : urlData?.url;
     if (isDefinedAndNotNull(url)) {
       const preview = !!args?.preview;
-      this.imageService.resolveImageUrl(url, preview, asString, emptyUrl).subscribe((imageUrl) => {
+      const loginLogo = !!args?.loginLogo;
+      const loginFavicon = !!args?.loginFavicon;
+      let imageObservable: Observable<SafeUrl | string>;
+      if (loginLogo || loginFavicon) {
+        const faviconElseLogo = loginFavicon;
+        imageObservable = this.imageService.resolveLoginImageUrl(url, faviconElseLogo, asString, emptyUrl);
+      } else {
+        imageObservable = this.imageService.resolveImageUrl(url, preview, asString, emptyUrl);
+      }
+      imageObservable.subscribe((imageUrl) => {
         Promise.resolve().then(() => {
           image$.next(imageUrl);
           image$.complete();

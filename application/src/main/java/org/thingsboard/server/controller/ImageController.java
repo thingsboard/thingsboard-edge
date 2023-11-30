@@ -60,6 +60,7 @@ import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbImageDeleteResult;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TbResourceInfo;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -68,11 +69,13 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.resource.ImageService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.dao.resource.ImageCacheKey;
 import org.thingsboard.server.service.resource.TbImageService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.concurrent.TimeUnit;
 
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
@@ -91,6 +94,7 @@ import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERT
 public class ImageController extends BaseController {
 
     private final ImageService imageService;
+    private final WhiteLabelingService whiteLabelingService;
     private final TbImageService tbImageService;
     @Value("${cache.image.systemImagesBrowserTtlInMinutes:0}")
     private int systemImagesBrowserTtlInMinutes;
@@ -156,6 +160,33 @@ public class ImageController extends BaseController {
                                                            @PathVariable String key,
                                                            @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag) throws Exception {
         return downloadIfChanged(type, key, etag, false);
+    }
+
+    @GetMapping(value = "/api/noauth/whiteLabel/loginLogo/{type}/{key}", produces = "image/*")
+    public ResponseEntity<ByteArrayResource> downloadLoginLogo(HttpServletRequest request,
+                                                               @PathVariable String type,
+                                                               @PathVariable String key,
+                                                               @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag) throws Exception {
+        return this.downloadLoginImage(request.getServerName(), type, key, etag, false);
+    }
+
+    @GetMapping(value = "/api/noauth/whiteLabel/loginFavicon/{type}/{key}", produces = "image/*")
+    public ResponseEntity<ByteArrayResource> downloadLoginFavicon(HttpServletRequest request,
+                                                                  @PathVariable String type,
+                                                                  @PathVariable String key,
+                                                                  @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag) throws Exception {
+        return this.downloadLoginImage(request.getServerName(), type, key, etag, true);
+    }
+
+    private ResponseEntity<ByteArrayResource> downloadLoginImage(String domainName, String type,
+                                                                 String key, String etag, boolean faviconElseLogo) throws Exception {
+        var imageKey = whiteLabelingService.getLoginImageKey(TenantId.SYS_TENANT_ID, domainName, faviconElseLogo);
+        if (imageKey != null && imageKey.getKey().equals(key) &&
+                ((imageKey.getTenantId().isSysTenantId() && SYSTEM_IMAGE.equals(type)) || (!imageKey.getTenantId().isSysTenantId() && TENANT_IMAGE.equals(type)))) {
+            return downloadIfChanged(TenantId.SYS_TENANT_ID, imageKey, etag, false, true);
+        } else {
+            throw new ThingsboardException("Login image not found", ThingsboardErrorCode.ITEM_NOT_FOUND);
+        }
     }
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
@@ -242,14 +273,18 @@ public class ImageController extends BaseController {
 
     private ResponseEntity<ByteArrayResource> downloadIfChanged(String type, String key, String etag, boolean preview) throws ThingsboardException, JsonProcessingException {
         ImageCacheKey cacheKey = new ImageCacheKey(getTenantId(type), key, preview);
+        return downloadIfChanged(getTenantId(), cacheKey, etag, preview, false);
+    }
+
+    private ResponseEntity<ByteArrayResource> downloadIfChanged(TenantId tenantId, ImageCacheKey cacheKey, String etag,
+                                                                boolean preview, boolean skipPermissionCheck) throws ThingsboardException, JsonProcessingException {
         if (StringUtils.isNotEmpty(etag)) {
             etag = StringUtils.remove(etag, '\"'); // etag is wrapped in double quotes due to HTTP specification
             if (etag.equals(tbImageService.getETag(cacheKey))) {
                 return ResponseEntity.status(HttpStatus.NOT_MODIFIED).build();
             }
         }
-        TenantId tenantId = getTenantId();
-        TbResourceInfo imageInfo = checkImageInfo(type, key, Operation.READ);
+        TbResourceInfo imageInfo = checkImageInfo(cacheKey.getTenantId(), cacheKey.getKey(), Operation.READ, skipPermissionCheck);
         String fileName = imageInfo.getFileName();
         ImageDescriptor descriptor = imageInfo.getDescriptor(ImageDescriptor.class);
         byte[] data;
@@ -278,8 +313,16 @@ public class ImageController extends BaseController {
 
     private TbResourceInfo checkImageInfo(String imageType, String key, Operation operation) throws ThingsboardException {
         TenantId tenantId = getTenantId(imageType);
+        return this.checkImageInfo(tenantId, key, operation, false);
+    }
+
+    private TbResourceInfo checkImageInfo(TenantId tenantId, String key, Operation operation, boolean skipPermissionCheck) throws ThingsboardException {
         TbResourceInfo imageInfo = imageService.getImageInfoByTenantIdAndKey(tenantId, key);
-        checkEntity(getCurrentUser(), checkNotNull(imageInfo), operation);
+        if (skipPermissionCheck) {
+            checkNotNull(imageInfo);
+        } else {
+            checkEntity(getCurrentUser(), checkNotNull(imageInfo), operation);
+        }
         return imageInfo;
     }
 

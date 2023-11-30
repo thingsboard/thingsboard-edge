@@ -39,6 +39,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
@@ -58,13 +59,12 @@ import org.thingsboard.server.dao.entity.AbstractCachedService;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.model.sql.WhiteLabelingCompositeKey;
+import org.thingsboard.server.dao.resource.ImageCacheKey;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.net.URI;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 import static org.thingsboard.server.dao.entity.AbstractEntityService.checkConstraintViolation;
 
@@ -106,10 +106,8 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     }
 
     @Override
-    public WhiteLabelingParams getMergedSystemWhiteLabelingParams(TenantId tenantId, String logoImageChecksum, String faviconChecksum) {
-        WhiteLabelingParams result = getSystemWhiteLabelingParams(tenantId);
-        result.prepareImages(logoImageChecksum, faviconChecksum);
-        return result;
+    public WhiteLabelingParams getMergedSystemWhiteLabelingParams(TenantId tenantId) {
+        return getSystemWhiteLabelingParams(tenantId);
     }
 
     @Override
@@ -123,7 +121,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     }
 
     @Override
-    public LoginWhiteLabelingParams getMergedLoginWhiteLabelingParams(TenantId tenantId, String domainName, String logoImageChecksum, String faviconChecksum) throws Exception {
+    public LoginWhiteLabelingParams getMergedLoginWhiteLabelingParams(TenantId tenantId, String domainName) throws Exception {
         LoginWhiteLabelingParams result;
         WhiteLabeling existingLoginWLSettings;
         if (validateDomain(domainName) && ((existingLoginWLSettings =  whiteLabelingDao.findByDomain(tenantId, domainName)) != null)) {
@@ -140,8 +138,51 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
             result = getSystemLoginWhiteLabelingParams(tenantId);
         }
         result.merge(getSystemWhiteLabelingParams(tenantId));
-        result.prepareImages(logoImageChecksum, faviconChecksum);
         return result;
+    }
+
+    @Override
+    public ImageCacheKey getLoginImageKey(TenantId tenantId, String domainName, boolean faviconElseLogo) throws Exception {
+
+        // TODO: optimize
+
+        LoginWhiteLabelingParams result;
+        WhiteLabeling existingLoginWLSettings;
+        TenantId dataTenantId = null;
+        if (validateDomain(domainName) && ((existingLoginWLSettings =  whiteLabelingDao.findByDomain(tenantId, domainName)) != null)) {
+            EntityId entityId = existingLoginWLSettings.getEntityId();
+            result = getEntityLoginWhiteLabelParams(tenantId, entityId);
+            if (entityId.getEntityType().equals(EntityType.CUSTOMER)) {
+                Customer customer = customerService.findCustomerById(tenantId, (CustomerId) entityId);
+                dataTenantId = customer.getTenantId();
+                if (customer.isSubCustomer()) {
+                    result.merge(getCustomerHierarchyLoginWhileLabelingParams(tenantId, customer.getParentCustomerId(), result));
+                }
+            } else {
+                dataTenantId = new TenantId(entityId.getId());
+            }
+            result.merge(getSystemLoginWhiteLabelingParams(tenantId));
+        } else {
+            result = getSystemLoginWhiteLabelingParams(tenantId);
+        }
+        result.merge(getSystemWhiteLabelingParams(tenantId));
+        var url = faviconElseLogo ? (result.getFavicon() != null ? result.getFavicon().getUrl() : null) : result.getLogoImageUrl();
+        if (StringUtils.isNotBlank(url)) {
+            TenantId imageTenantId = null;
+            if (url.startsWith(DataConstants.TB_IMAGE_PREFIX + "/api/images/tenant/")) {
+                imageTenantId = dataTenantId;
+            } else if (url.startsWith(DataConstants.TB_IMAGE_PREFIX + "/api/images/system/")) {
+                imageTenantId = TenantId.SYS_TENANT_ID;
+            }
+            if (imageTenantId != null) {
+                var parts = url.split("/");
+                if (parts.length == 5) {
+                    var key = parts[4];
+                    return new ImageCacheKey(imageTenantId, key, false);
+                }
+            }
+        }
+        return null;
     }
 
     private LoginWhiteLabelingParams getCustomerHierarchyLoginWhileLabelingParams(TenantId tenantId, CustomerId customerId, LoginWhiteLabelingParams childCustomerWLLParams) throws Exception {
@@ -156,22 +197,20 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     }
 
     @Override
-    public WhiteLabelingParams getMergedTenantWhiteLabelingParams(TenantId tenantId, String logoImageChecksum, String faviconChecksum) throws Exception {
+    public WhiteLabelingParams getMergedTenantWhiteLabelingParams(TenantId tenantId) throws Exception {
         WhiteLabelingParams result = getTenantWhiteLabelingParams(tenantId);
         result.merge(getSystemWhiteLabelingParams(tenantId));
-        result.prepareImages(logoImageChecksum, faviconChecksum);
         return result;
     }
 
     @Override
-    public WhiteLabelingParams getMergedCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, String logoImageChecksum, String faviconChecksum) throws Exception {
+    public WhiteLabelingParams getMergedCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId) throws Exception {
         WhiteLabelingParams result = getCustomerWhiteLabelingParams(tenantId, customerId);
         Customer customer = customerService.findCustomerById(tenantId, customerId);
         if (customer.isSubCustomer()) {
             result.merge(getMergedCustomerHierarchyWhileLabelingParams(tenantId, customer.getParentCustomerId(), result));
         }
         result.merge(getTenantWhiteLabelingParams(tenantId)).merge(getSystemWhiteLabelingParams(tenantId));
-        result.prepareImages(logoImageChecksum, faviconChecksum);
         return result;
     }
 
@@ -188,7 +227,6 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
 
     @Override
     public WhiteLabelingParams saveSystemWhiteLabelingParams(WhiteLabelingParams whiteLabelingParams) {
-        prepareChecksums(whiteLabelingParams);
         saveWhiteLabelParams(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID, whiteLabelingParams);
         return getSystemWhiteLabelingParams(TenantId.SYS_TENANT_ID);
     }
@@ -198,7 +236,6 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         if (!StringUtils.isBlank(loginWhiteLabelingParams.getDomainName())) {
             throw new DataValidationException("Domain name is prohibited for system level");
         }
-        prepareChecksums(loginWhiteLabelingParams);
         saveLoginWhiteLabelParams(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID, loginWhiteLabelingParams);
         return getSystemLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID);
     }
@@ -256,21 +293,17 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         if (!validateDomain(loginWhiteLabelParams.getDomainName())) {
             throw new IncorrectParameterException("Current domain name [" + loginWhiteLabelParams.getDomainName() + "] already used in the system level!");
         }
-
-        prepareChecksums(loginWhiteLabelParams);
         saveLoginWhiteLabelParams(tenantId, entityId, loginWhiteLabelParams);
     }
 
     @Override
     public WhiteLabelingParams saveTenantWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams) {
-        prepareChecksums(whiteLabelingParams);
         saveWhiteLabelParams(tenantId, tenantId, whiteLabelingParams);
         return getTenantWhiteLabelingParams(tenantId);
     }
 
     @Override
     public WhiteLabelingParams saveCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, WhiteLabelingParams whiteLabelingParams) {
-        prepareChecksums(whiteLabelingParams);
         saveWhiteLabelParams(tenantId, customerId, whiteLabelingParams);
         return getCustomerWhiteLabelingParams(tenantId, customerId);
     }
@@ -539,37 +572,6 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         return cache.getAndPutInTransaction(key,
                 () -> whiteLabelingDao.findById(tenantId,
                         key), true);
-    }
-
-    private <T extends WhiteLabelingParams> T prepareChecksums(T whiteLabelingParams) {
-        String logoImageChecksum = null;
-        String logoImageUrl = whiteLabelingParams.getLogoImageUrl();
-        if (!StringUtils.isEmpty(logoImageUrl)) {
-            logoImageChecksum = calculateSha1Checksum(logoImageUrl);
-        }
-        whiteLabelingParams.setLogoImageChecksum(logoImageChecksum);
-        String faviconChecksum = null;
-        if (whiteLabelingParams.getFavicon() != null && !StringUtils.isEmpty(whiteLabelingParams.getFavicon().getUrl())) {
-            faviconChecksum = calculateSha1Checksum(whiteLabelingParams.getFavicon().getUrl());
-        }
-        whiteLabelingParams.setFaviconChecksum(faviconChecksum);
-        return whiteLabelingParams;
-    }
-
-    private static String calculateSha1Checksum(String data) {
-        MessageDigest digest;
-        try {
-            digest = MessageDigest.getInstance("SHA1");
-        } catch (NoSuchAlgorithmException e) {
-            return "";
-        }
-        byte[] inputBytes = data.getBytes();
-        byte[] hashBytes = digest.digest(inputBytes);
-        StringBuffer sb = new StringBuffer("");
-        for (int i = 0; i < hashBytes.length; i++) {
-            sb.append(Integer.toString((hashBytes[i] & 0xff) + 0x100, 16).substring(1));
-        }
-        return sb.toString();
     }
 
     @TransactionalEventListener(classes = WhiteLabelingEvictEvent.class)

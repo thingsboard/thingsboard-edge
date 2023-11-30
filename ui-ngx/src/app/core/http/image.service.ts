@@ -101,12 +101,27 @@ export class ImageService {
     parts[parts.length - 1] = encodeURIComponent(key);
     const encodedUrl = parts.join('/');
     const imageLink = preview ? (encodedUrl + '/preview') : encodedUrl;
+    return this.loadImageDataUrl(imageLink, asString, emptyUrl);
+  }
+
+  public getLoginImageDataUrl(imageUrl: string, faviconElseLogo: boolean,
+                              asString = false, emptyUrl = NO_IMAGE_DATA_URI): Observable<SafeUrl | string> {
+    const parts = imageUrl.split('/');
+    const type = parts[parts.length - 2];
+    const key = encodeURIComponent(parts[parts.length - 1]);
+    const imageLink = faviconElseLogo
+      ? `/api/noauth/whiteLabel/loginFavicon/${type}/${key}`
+      : `/api/noauth/whiteLabel/loginLogo/${type}/${key}`;
+    return this.loadImageDataUrl(imageLink, asString, emptyUrl);
+  }
+
+  private loadImageDataUrl(imageLink: string, asString = false, emptyUrl = NO_IMAGE_DATA_URI): Observable<SafeUrl | string> {
     const options = defaultHttpOptionsFromConfig({ignoreLoading: true, ignoreErrors: true});
     return this.http
     .get(imageLink, {...options, ...{ responseType: 'blob' } }).pipe(
       switchMap(val => blobToBase64(val).pipe(
-          map((dataUrl) => asString ? dataUrl : this.sanitizer.bypassSecurityTrustUrl(dataUrl))
-        )),
+        map((dataUrl) => asString ? dataUrl : this.sanitizer.bypassSecurityTrustUrl(dataUrl))
+      )),
       catchError(() => of(asString ? emptyUrl : this.sanitizer.bypassSecurityTrustUrl(emptyUrl)))
     );
   }
@@ -115,6 +130,16 @@ export class ImageService {
     imageUrl = removeTbImagePrefix(imageUrl);
     if (isImageResourceUrl(imageUrl)) {
       return this.getImageDataUrl(imageUrl, preview, asString, emptyUrl);
+    } else {
+      return of(asString ? imageUrl : this.sanitizer.bypassSecurityTrustUrl(imageUrl));
+    }
+  }
+
+  public resolveLoginImageUrl(imageUrl: string, faviconElseLogo: boolean,
+                              asString = false, emptyUrl = NO_IMAGE_DATA_URI): Observable<SafeUrl | string> {
+    imageUrl = removeTbImagePrefix(imageUrl);
+    if (isImageResourceUrl(imageUrl)) {
+      return this.getLoginImageDataUrl(imageUrl, faviconElseLogo, asString, emptyUrl);
     } else {
       return of(asString ? imageUrl : this.sanitizer.bypassSecurityTrustUrl(imageUrl));
     }
