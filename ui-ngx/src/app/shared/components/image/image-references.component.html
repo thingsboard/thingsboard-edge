@@ -39,14 +39,14 @@
       <ng-container *ngFor="let entry of referencedEntitiesEntries">
         <li class="tb-entities-container tb-primary-fill" *ngIf="isSystem(entry[0]); else holderEntities">
           <div class="tb-entities-title">{{ 'image.system-entities' | translate }}</div>
-          <ng-container *ngTemplateOutlet="referencesList; context:{entriesList: entry[1].entities, showDetailsLink: true}"></ng-container>
+          <ng-container *ngTemplateOutlet="referencesList; context:{entriesList: entry[1].entities, showDetailsLink: entry[1].currentHolder}"></ng-container>
         </li>
         <ng-template #holderEntities>
           <li class="tb-entities-container tb-primary-fill">
             <div class="tb-entities-title">
-              {{ holderName(entry[0]) }} <a class="tb-reference" [routerLink]="entry[1].detailsUrl">{{ entry[1].name }}</a> {{ 'image.entities' | translate }}
+              {{ holderName(entry[0]) }} <a *ngIf="!entry[1].currentHolder && entry[1].name" class="tb-reference" [routerLink]="entry[1].detailsUrl">{{ entry[1].name }}</a> {{ 'image.entities' | translate }}
             </div>
-            <ng-container *ngTemplateOutlet="referencesList; context:{entriesList: entry[1].entities, showDetailsLink: false}"></ng-container>
+            <ng-container *ngTemplateOutlet="referencesList; context:{entriesList: entry[1].entities, showDetailsLink: entry[1].currentHolder}"></ng-container>
           </li>
         </ng-template>
       </ng-container>

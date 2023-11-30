@@ -60,6 +60,7 @@ interface ReferencedEntityInfo {
 interface HolderReferencedEntities {
   name?: string;
   detailsUrl?: string;
+  currentHolder: boolean;
   entities: ReferencedEntityInfo[];
 }
 
@@ -178,12 +179,18 @@ export class ImageReferencesComponent implements OnInit {
       const customerId = referencedEntityInfo.entity.customerId?.id || NULL_UUID;
       let type = 'system';
       let id = NULL_UUID;
+      let currentHolder = this.authUser.authority === Authority.SYS_ADMIN;
       if (tenantId !== NULL_UUID) {
         type = 'tenant';
         id = tenantId;
+        currentHolder = id === this.authUser.tenantId && this.authUser.authority === Authority.TENANT_ADMIN;
         if (customerId !== NULL_UUID) {
           type = 'customer';
           id = customerId;
+          currentHolder = id === this.authUser.customerId && this.authUser.authority === Authority.CUSTOMER_USER;
+          if (id !== this.authUser.customerId) {
+            type = 'subCustomer';
+          }
         }
       }
       let holderEntitiesByType = referencedEntities[type];
@@ -194,7 +201,8 @@ export class ImageReferencesComponent implements OnInit {
       let holderEntitiesInfo = holderEntitiesByType[id];
       if (!holderEntitiesInfo) {
         holderEntitiesInfo = {
-          entities: []
+          entities: [],
+          currentHolder
         };
         holderEntitiesByType[id] = holderEntitiesInfo;
       }
@@ -207,6 +215,12 @@ export class ImageReferencesComponent implements OnInit {
         return -1;
       } else if (type1 === 'tenant') {
         if (type2 === 'system') {
+          return 1;
+        } else {
+          return -1;
+        }
+      } else if (type1 === 'customer') {
+        if (type2 === 'system' || type2 === 'tenant') {
           return 1;
         } else {
           return -1;
@@ -224,29 +238,33 @@ export class ImageReferencesComponent implements OnInit {
     const tasks: Observable<any>[] = [];
     for (const type of Object.keys(referencedEntities)) {
       if (type === 'tenant') {
-        const tenantEntities = referencedEntities[type];
-        const tenantIds = Object.keys(tenantEntities);
-        tasks.push(this.entityService.getEntities(EntityType.TENANT, tenantIds).pipe(
-          map((tenants) => {
-            for (const tenant of tenants) {
-              const holderEntitiesInfo = tenantEntities[tenant.id.id];
-              holderEntitiesInfo.name = tenant.name;
-              holderEntitiesInfo.detailsUrl = getEntityDetailsPageURL(tenant.id.id, EntityType.TENANT);
-            }
-          })
-        ));
-      } else if (type === 'customer') {
-        const customerEntities = referencedEntities[type];
-        const customerIds = Object.keys(customerEntities);
-        tasks.push(this.entityService.getEntities(EntityType.CUSTOMER, customerIds).pipe(
-          map((customers) => {
-            for (const customer of customers) {
-              const holderEntitiesInfo = customerEntities[customer.id.id];
-              holderEntitiesInfo.name = customer.name;
-              holderEntitiesInfo.detailsUrl = getEntityDetailsPageURL(customer.id.id, EntityType.CUSTOMER);
-            }
-          })
-        ));
+        if (this.authUser.authority === Authority.SYS_ADMIN) {
+          const tenantEntities = referencedEntities[type];
+          const tenantIds = Object.keys(tenantEntities);
+          tasks.push(this.entityService.getEntities(EntityType.TENANT, tenantIds).pipe(
+            map((tenants) => {
+              for (const tenant of tenants) {
+                const holderEntitiesInfo = tenantEntities[tenant.id.id];
+                holderEntitiesInfo.name = tenant.name;
+                holderEntitiesInfo.detailsUrl = getEntityDetailsPageURL(tenant.id.id, EntityType.TENANT);
+              }
+            })
+          ));
+        }
+      } else if (type === 'customer' || type === 'subCustomer') {
+        if (this.authUser.authority === Authority.TENANT_ADMIN || this.authUser.authority === Authority.CUSTOMER_USER) {
+          const customerEntities = referencedEntities[type];
+          const customerIds = Object.keys(customerEntities);
+          tasks.push(this.entityService.getEntities(EntityType.CUSTOMER, customerIds).pipe(
+            map((customers) => {
+              for (const customer of customers) {
+                const holderEntitiesInfo = customerEntities[customer.id.id];
+                holderEntitiesInfo.name = customer.name;
+                holderEntitiesInfo.detailsUrl = getEntityDetailsPageURL(customer.id.id, EntityType.CUSTOMER);
+              }
+            })
+          ));
+        }
       }
     }
     return (tasks.length ? forkJoin(tasks) : of(null)).pipe(
