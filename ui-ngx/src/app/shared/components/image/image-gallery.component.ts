@@ -274,7 +274,7 @@ export class ImageGalleryComponent extends PageComponent implements OnInit, OnDe
         }
       } else {
         this.gridImagesFilter = {
-          search: isNotEmptyStr(value) ? encodeURI(value) : null,
+          search: isNotEmptyStr(value) ? value.trim() : null,
           includeSystemImages: this.includeSystemImages
         };
         this.cd.markForCheck();
