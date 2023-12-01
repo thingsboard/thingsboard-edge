@@ -30,20 +30,9 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [formGroup]="originatorFormGroup" class="tb-originator-select" fxLayout="column" [ngClass]="{'optional': !required}">
-  <mat-radio-group color="primary" formControlName="originator" fxLayout="row" fxLayout.xs="column"
-                    fxLayoutGap="16px"
-                    style="padding: 16px 0;">
-    <mat-radio-button [value]="'entity'" color="primary">
-      <span>{{ singleEntityText | translate }}</span>
-    </mat-radio-button>
-    <mat-radio-button [value]="'groupTenant'" color="primary">
-      <span>{{ groupOfEntitiesText | translate }}</span>
-    </mat-radio-button>
-    <mat-radio-button [value]="'ownerGroup'" color="primary">
-      <span>{{ entitiesGroupOwnerText | translate }}</span>
-    </mat-radio-button>
-  </mat-radio-group>
+<section [formGroup]="originatorFormGroup" fxLayoutGap="16px" class="tb-originator-select" fxLayout="column" [ngClass]="{'optional': !required}">
+  <tb-toggle-select appearance="fill" [options]="headerOptions" formControlName="originator">
+  </tb-toggle-select>
   <tb-entity-select
     [fxShow]="originatorFormGroup.get('originator').value === 'entity'"
     [allowedEntityTypes]="allowedEntityTypes"
@@ -62,6 +51,8 @@
     </tb-owner-autocomplete>
     <tb-entity-group-select
       fxFlex
+      *ngIf="originatorFormGroup.get('groupOwnerId').value ||
+             originatorFormGroup.get('originator').value === 'groupTenant'"
       [ownerId]="originatorFormGroup.get('groupOwnerId').value"
       [originator]="originatorFormGroup.get('originator').value"
       [allowedGroupTypes]="allowedEntityTypes"
