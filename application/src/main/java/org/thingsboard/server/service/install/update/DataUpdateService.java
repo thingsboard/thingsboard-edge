@@ -20,4 +20,6 @@ public interface DataUpdateService {
     void updateData(String fromVersion) throws Exception;
 
     void upgradeRuleNodes();
+
+    void deleteAllWidgetBundlesAndTypes();
 }
