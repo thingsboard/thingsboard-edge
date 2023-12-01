@@ -77,12 +77,12 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static org.thingsboard.server.utils.LwM2mObjectModelUtils.toLwm2mResource;
@@ -114,6 +114,7 @@ public class InstallScripts {
     public static final String MAIL_TEMPLATES_DIR = "mail_templates";
     public static final String MAIL_TEMPLATES_JSON = "mail_templates.json";
     public static final String MODELS_LWM2M_DIR = "lwm2m-registry";
+    public static final String SOLUTIONS_DIR = "solutions";
 
     public static final String JSON_EXT = ".json";
     public static final String XML_EXT = ".xml";
@@ -192,7 +193,7 @@ public class InstallScripts {
         Map<String, RuleChainId> ruleChainIdMap = loadAdditionalTenantRuleChains(tenantId, getTenantRuleChainsDir());
         Path rootRuleChainFile = getRootTenantRuleChainFile();
         loadRootRuleChain(tenantId, ruleChainIdMap, rootRuleChainFile);
-   }
+    }
 
     private RuleChain loadRuleChain(Path path, JsonNode ruleChainJson, TenantId tenantId, String newRuleChainName) {
         try {
@@ -351,7 +352,18 @@ public class InstallScripts {
     @SneakyThrows
     public void loadSystemImages() {
         log.info("Loading system images...");
-        Stream<Path> dashboardsFiles = Files.list(Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, DASHBOARDS_DIR));
+        Stream<Path> dashboardsFiles = Stream.concat(
+                Files.list(Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, DASHBOARDS_DIR)),
+                Files.list(Paths.get(getDataDir(), JSON_DIR, SOLUTIONS_DIR))
+                        .filter(file -> file.toFile().isDirectory())
+                        .flatMap(solutionDir -> {
+                            try {
+                                return Files.list(solutionDir.resolve(DASHBOARDS_DIR));
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        })
+        );
         try (dashboardsFiles) {
             dashboardsFiles.forEach(file -> {
                 try {
