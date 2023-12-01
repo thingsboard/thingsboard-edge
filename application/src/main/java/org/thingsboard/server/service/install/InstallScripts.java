@@ -343,15 +343,14 @@ public class InstallScripts {
     public void updateImages() {
         imagesUpdater.updateWidgetsBundlesImages();
         imagesUpdater.updateWidgetTypesImages();
-        createSystemImages();
-
         imagesUpdater.updateDashboardsImages();
         imagesUpdater.updateDeviceProfilesImages();
         imagesUpdater.updateAssetProfilesImages();
     }
 
     @SneakyThrows
-    public void createSystemImages() {
+    public void loadSystemImages() {
+        log.info("Loading system images...");
         Stream<Path> dashboardsFiles = Files.list(Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, DASHBOARDS_DIR));
         try (dashboardsFiles) {
             dashboardsFiles.forEach(file -> {
