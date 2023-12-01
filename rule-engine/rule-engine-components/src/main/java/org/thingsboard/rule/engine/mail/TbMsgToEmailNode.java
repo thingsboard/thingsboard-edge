@@ -47,17 +47,16 @@ import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RuleNode(
@@ -125,14 +124,11 @@ public class TbMsgToEmailNode implements TbNode {
         builder.html(Boolean.parseBoolean(htmlStr));
         builder.subject(fromTemplateWithDate(this.config.getSubjectTemplate(), msg, currentDate, tz));
         builder.body(fromTemplateWithDate(this.config.getBodyTemplate(), msg, currentDate, tz));
-        List<BlobEntityId> attachments = new ArrayList<>();
         String attachmentsStr = msg.getMetaData().getValue(ATTACHMENTS);
         if (!StringUtils.isEmpty(attachmentsStr)) {
-            String[] attachmentsStrArray = attachmentsStr.split(",");
-            for (String attachmentStr : attachmentsStrArray) {
-                attachments.add(new BlobEntityId(UUID.fromString(attachmentStr)));
-            }
-            builder.attachments(attachments);
+            builder.attachments(Arrays.stream(attachmentsStr.split(","))
+                    .map(UUID::fromString)
+                    .map(BlobEntityId::new).collect(Collectors.toList()));
         }
         String imagesStr = msg.getMetaData().getValue(IMAGES);
         if (!StringUtils.isEmpty(imagesStr)) {

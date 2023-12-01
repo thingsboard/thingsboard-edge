@@ -34,7 +34,10 @@ import com.google.common.util.concurrent.Futures;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
@@ -67,40 +70,36 @@ import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class TbDuplicateMsgToRelatedNodeTest {
 
-    private static final DeviceId ORIGINATOR_ID = new DeviceId(UUID.randomUUID());
-    private static final TenantId TENANT_ID = new TenantId(UUID.randomUUID());
+    private final DeviceId ORIGINATOR_ID = new DeviceId(UUID.fromString("61e68586-466f-41e3-abca-9457b80da8d6"));
+    private final TenantId TENANT_ID = new TenantId(UUID.fromString("9cc6c3c8-b90f-4d00-bfb2-fd38ccf79f63"));
 
-    private static final ListeningExecutor dbCallbackExecutor = new TestDbCallbackExecutor();
+    private final ListeningExecutor dbCallbackExecutor = new TestDbCallbackExecutor();
 
     private TbDuplicateMsgToRelatedNode node;
     private TbDuplicateMsgToRelatedNodeConfiguration config;
 
+    @Mock
     private TbContext ctxMock;
+    @Mock
     private RelationService relationServiceMock;
 
     @BeforeEach
     void setUp() {
-        ctxMock = mock(TbContext.class);
-        relationServiceMock = mock(RelationService.class);
-        when(ctxMock.getDbCallbackExecutor()).thenReturn(dbCallbackExecutor);
-        when(ctxMock.getTenantId()).thenReturn(TENANT_ID);
-        when(ctxMock.getRelationService()).thenReturn(relationServiceMock);
-
         node = new TbDuplicateMsgToRelatedNode();
     }
 
@@ -123,9 +122,9 @@ class TbDuplicateMsgToRelatedNodeTest {
         // GIVEN-WHEN
         var configuration = new TbDuplicateMsgToRelatedNodeConfiguration().defaultConfiguration();
         configuration.setRelationsQuery(null);
-        var exception = assertThrows(IllegalArgumentException.class, () -> initWithConfig(configuration));
-        assertThat(exception.getMessage())
-                .isEqualTo("Relation query should be specified!");
+        assertThatThrownBy(() -> initWithConfig(configuration))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Relation query should be specified!");
     }
 
     @Test
@@ -151,8 +150,13 @@ class TbDuplicateMsgToRelatedNodeTest {
 
         var relationList = List.of(firstRelation, secondRelation);
 
+        when(ctxMock.getDbCallbackExecutor()).thenReturn(dbCallbackExecutor);
+        when(ctxMock.getTenantId()).thenReturn(TENANT_ID);
+        when(ctxMock.getRelationService()).thenReturn(relationServiceMock);
+
+        var entityRelationsQuery = buildQuery(config.getRelationsQuery());
         when(relationServiceMock.findByQuery(
-                eq(TENANT_ID), eq(buildQuery(config.getRelationsQuery()))))
+                eq(TENANT_ID), eq(entityRelationsQuery)))
                 .thenReturn(Futures.immediateFuture(relationList));
 
         doAnswer((Answer<TbMsg>) invocationOnMock -> {
@@ -176,19 +180,23 @@ class TbDuplicateMsgToRelatedNodeTest {
         node.onMsg(ctxMock, msg);
 
         // THEN
-        verify(relationServiceMock, times(1))
-                .findByQuery(any(TenantId.class), any(EntityRelationsQuery.class));
+        verify(relationServiceMock)
+                .findByQuery(eq(TENANT_ID), eq(entityRelationsQuery));
         verify(ctxMock, never()).transformMsgOriginator(any(TbMsg.class), any(EntityId.class));
         verify(ctxMock, never()).tellFailure(any(), any(Throwable.class));
 
         ArgumentCaptor<TbMsg> newMsgCaptor = ArgumentCaptor.forClass(TbMsg.class);
         ArgumentCaptor<Runnable> onSuccessCaptor = ArgumentCaptor.forClass(Runnable.class);
         ArgumentCaptor<Consumer<Throwable>> onFailureCaptor = ArgumentCaptor.forClass(Consumer.class);
+
         verify(ctxMock, times(relationList.size())).enqueueForTellNext(newMsgCaptor.capture(), eq(TbNodeConnectionType.SUCCESS), onSuccessCaptor.capture(), onFailureCaptor.capture());
+
         for (Runnable successCaptor : onSuccessCaptor.getAllValues()) {
             successCaptor.run();
         }
-        verify(ctxMock, times(1)).ack(msg);
+
+        verify(ctxMock).ack(msg);
+
         List<TbMsg> allValues = newMsgCaptor.getAllValues();
         IntStream.range(0, allValues.size()).forEach(i -> {
             TbMsg newMsg = allValues.get(i);
@@ -214,8 +222,13 @@ class TbDuplicateMsgToRelatedNodeTest {
         relation.setTypeGroup(RelationTypeGroup.COMMON);
         relation.setType(EntityRelation.CONTAINS_TYPE);
 
+        when(ctxMock.getDbCallbackExecutor()).thenReturn(dbCallbackExecutor);
+        when(ctxMock.getTenantId()).thenReturn(TENANT_ID);
+        when(ctxMock.getRelationService()).thenReturn(relationServiceMock);
+
+        var entityRelationsQuery = buildQuery(config.getRelationsQuery());
         when(relationServiceMock.findByQuery(
-                eq(TENANT_ID), eq(buildQuery(config.getRelationsQuery()))))
+                eq(TENANT_ID), eq(entityRelationsQuery)))
                 .thenReturn(Futures.immediateFuture(List.of(relation)));
 
         doAnswer((Answer<TbMsg>) invocationOnMock -> {
@@ -230,8 +243,8 @@ class TbDuplicateMsgToRelatedNodeTest {
         node.onMsg(ctxMock, msg);
 
         // THEN
-        verify(relationServiceMock, times(1))
-                .findByQuery(any(TenantId.class), any(EntityRelationsQuery.class));
+        verify(relationServiceMock)
+                .findByQuery(eq(TENANT_ID), eq(entityRelationsQuery));
         verify(ctxMock, never()).newMsg(anyString(),
                 anyString(),
                 any(EntityId.class),
@@ -241,9 +254,13 @@ class TbDuplicateMsgToRelatedNodeTest {
         verify(ctxMock, never()).tellFailure(any(), any(Throwable.class));
         verify(ctxMock, never()).enqueueForTellNext(any(), eq(TbNodeConnectionType.SUCCESS), any(), any());
         verify(ctxMock, never()).ack(any());
+
         ArgumentCaptor<TbMsg> newMsgCaptor = ArgumentCaptor.forClass(TbMsg.class);
-        verify(ctxMock, times(1)).tellSuccess(newMsgCaptor.capture());
+
+        verify(ctxMock).tellSuccess(newMsgCaptor.capture());
+
         var actualMsg = newMsgCaptor.getValue();
+
         assertThat(actualMsg).isNotNull();
         assertThat(actualMsg).isNotSameAs(msg);
         assertThat(actualMsg.getType()).isSameAs(msg.getType());
@@ -258,16 +275,21 @@ class TbDuplicateMsgToRelatedNodeTest {
 
         var msg = getTbMsg();
 
+        when(ctxMock.getDbCallbackExecutor()).thenReturn(dbCallbackExecutor);
+        when(ctxMock.getTenantId()).thenReturn(TENANT_ID);
+        when(ctxMock.getRelationService()).thenReturn(relationServiceMock);
+
+        var entityRelationsQuery = buildQuery(config.getRelationsQuery());
         when(relationServiceMock.findByQuery(
-                eq(TENANT_ID), eq(buildQuery(config.getRelationsQuery()))))
+                eq(TENANT_ID), eq(entityRelationsQuery)))
                 .thenReturn(Futures.immediateFuture(Collections.emptyList()));
 
         // WHEN
         node.onMsg(ctxMock, msg);
 
         // THEN
-        verify(relationServiceMock, times(1))
-                .findByQuery(any(TenantId.class), any(EntityRelationsQuery.class));
+        verify(relationServiceMock)
+                .findByQuery(eq(TENANT_ID), eq(entityRelationsQuery));
         verify(ctxMock, never()).newMsg(anyString(),
                 anyString(),
                 any(EntityId.class),
@@ -278,12 +300,10 @@ class TbDuplicateMsgToRelatedNodeTest {
         verify(ctxMock, never()).enqueueForTellNext(any(), eq(TbNodeConnectionType.SUCCESS), any(), any());
         verify(ctxMock, never()).tellSuccess(any());
         verify(ctxMock, never()).ack(msg);
-        ArgumentCaptor<TbMsg> newMsgCaptor = ArgumentCaptor.forClass(TbMsg.class);
+
         ArgumentCaptor<Throwable> throwableCaptor = ArgumentCaptor.forClass(Throwable.class);
-        verify(ctxMock, times(1)).tellFailure(newMsgCaptor.capture(), throwableCaptor.capture());
-        var actualMsg = newMsgCaptor.getValue();
-        assertThat(actualMsg).isNotNull();
-        assertThat(actualMsg).isSameAs(msg);
+
+        verify(ctxMock).tellFailure(eq(msg), throwableCaptor.capture());
 
         String expectedExceptionMessage = "Message or messages list are empty!";
 
@@ -303,7 +323,7 @@ class TbDuplicateMsgToRelatedNodeTest {
         node.init(ctxMock, nodeConfiguration);
     }
 
-    private static TbMsg getTbMsg() {
+    private TbMsg getTbMsg() {
         return TbMsg.newMsg(
                 TbMsgType.POST_TELEMETRY_REQUEST, ORIGINATOR_ID, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
     }
@@ -317,10 +337,10 @@ class TbDuplicateMsgToRelatedNodeTest {
         return relationsQuery;
     }
 
-    private static EntityRelationsQuery buildQuery(RelationsQuery relationsQuery) {
+    private EntityRelationsQuery buildQuery(RelationsQuery relationsQuery) {
         var query = new EntityRelationsQuery();
         var parameters = new RelationsSearchParameters(
-                TbDuplicateMsgToRelatedNodeTest.ORIGINATOR_ID,
+                ORIGINATOR_ID,
                 relationsQuery.getDirection(),
                 relationsQuery.getMaxLevel(),
                 relationsQuery.isFetchLastLevelOnly()

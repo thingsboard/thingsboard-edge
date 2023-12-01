@@ -56,10 +56,9 @@ import java.util.concurrent.ExecutionException;
         name = "duplicate to group by name",
         configClazz = TbDuplicateMsgToGroupByNameNodeConfiguration.class,
         nodeDescription = "Duplicates message to all entities belonging to resolved Entity Group",
-        nodeDetails = "Entities are fetched from Entity Group detected according to the configuration. Entity Group is dynamically resolved based on it's name and type." +
-                "By default, rule node attempts to find the group by name that belongs to the same customer which owns the device (or other message originator). " +
-                "If no such group on the customer level, rule node will search for parent customer level and finally for the tenant level. " +
-                "You may configure rule node to search only tenant level entity groups.",
+        nodeDetails = "Entities are fetched from Entity Group that is detected according to the configuration. " +
+                "Entity Group is dynamically resolved based on it's name and type.<br><br>" +
+                "Output connections: <code>Success</code>, <code>Failure</code>.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbTransformationNodeDuplicateToGroupByNameConfig",
         icon = "call_split"
