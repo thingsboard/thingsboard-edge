@@ -51,7 +51,7 @@ import java.nio.file.Paths;
 @RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "edges", value = "enabled", havingValue = "true")
 @TbCoreComponent
-public class DefaultEdgeInstallService implements EdgeInstallService {
+public class DefaultEdgeInstallInstructionsService implements EdgeInstallInstructionsService {
 
     private static final String EDGE_DIR = "edge";
     private static final String INSTRUCTIONS_DIR = "instructions";
@@ -80,6 +80,11 @@ public class DefaultEdgeInstallService implements EdgeInstallService {
             default:
                 throw new IllegalArgumentException("Unsupported installation method for Edge: " + installationMethod);
         }
+    }
+
+    @Override
+    public void updateApplicationVersion(String version) {
+        appVersion = version;
     }
 
     private EdgeInstructions getDockerInstallInstructions(Edge edge, HttpServletRequest request) {

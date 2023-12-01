@@ -30,9 +30,16 @@
  */
 package org.thingsboard.server.service.edge.instructions;
 
+import org.thingsboard.server.common.data.UpgradeInfo;
 import org.thingsboard.server.common.data.edge.EdgeInstructions;
 
-public interface EdgeUpgradeService {
+import java.util.Map;
+
+public interface EdgeUpgradeInstructionsService {
 
     EdgeInstructions getUpgradeInstructions(String edgeVersion, String upgradeMethod);
+
+    void updateInstructionMap(Map<String, UpgradeInfo> upgradeVersions);
+
+    void updateApplicationVersion(String version);
 }

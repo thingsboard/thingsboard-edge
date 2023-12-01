@@ -35,7 +35,9 @@ import org.thingsboard.server.common.data.edge.EdgeInstructions;
 
 import javax.servlet.http.HttpServletRequest;
 
-public interface EdgeInstallService {
+public interface EdgeInstallInstructionsService {
 
     EdgeInstructions getInstallInstructions(Edge edge, String installationMethod, HttpServletRequest request);
+
+    void updateApplicationVersion(String version);
 }

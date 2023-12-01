@@ -28,43 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.mqtt.sparkplug.attributes;
+package org.thingsboard.server.common.data;
 
-import org.eclipse.paho.mqttv5.common.MqttException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.thingsboard.server.dao.service.DaoSqlTest;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-import java.util.HashSet;
-
-/**
- * Created by nickAS21 on 12.01.23
- */
-@DaoSqlTest
-public class MqttV5ClientSparkplugBAttributesInProfileTest extends AbstractMqttV5ClientSparkplugAttributesTest {
-
-    @Before
-    public void beforeTest() throws Exception {
-        sparkplugAttributesMetricNames = new HashSet<>();
-        sparkplugAttributesMetricNames.add(metricBirthName_Int32);
-        beforeSparkplugTest();
-    }
-
-    @After
-    public void afterTest () throws MqttException {
-        if (client.isConnected()) {
-            client.disconnect();        }
-    }
-
-    @Test
-    public void testClientNodeWithCorrectAccessTokenPublish_AttributesInProfileContainsKeyAttributes() throws Exception {
-        processClientNodeWithCorrectAccessTokenPublish_AttributesInProfileContainsKeyAttributes();
-    }
-
-    @Test
-    public void testClientDeviceWithCorrectAccessTokenPublish_AttributesInProfileContainsKeyAttributes() throws Exception {
-        processClientDeviceWithCorrectAccessTokenPublish_AttributesInProfileContainsKeyAttributes();
-    }
-
+@AllArgsConstructor
+@Getter
+public class UpgradeInfo {
+    private boolean requiresUpdateDb;
+    private String nextEdgeVersion;
 }
