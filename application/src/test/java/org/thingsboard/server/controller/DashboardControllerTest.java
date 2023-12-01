@@ -224,7 +224,8 @@ public class DashboardControllerTest extends AbstractControllerTest {
     @Test
     public void testSaveDashboardWithEmptyTitle() throws Exception {
         Dashboard dashboard = new Dashboard();
-        String msgError = "Dashboard title " + msgErrorShouldBeSpecified;;
+        String msgError = "Dashboard title " + msgErrorShouldBeSpecified;
+        ;
 
         Mockito.reset(tbClusterService, auditLogService);
 
@@ -373,24 +374,6 @@ public class DashboardControllerTest extends AbstractControllerTest {
 
     @Test
     public void testFindCustomerUserDashboards() throws Exception {
-        List<DashboardInfo> tenantAdminDashboards = new ArrayList<>();
-        PageLink pageLink = new PageLink(100);
-        PageData<DashboardInfo> pageData;
-        do {
-            pageData = doGetTypedWithPageLink("/api/user/dashboards?",
-                    new TypeReference<>() {
-                    }, pageLink);
-            tenantAdminDashboards.addAll(pageData.getData());
-            if (pageData.hasNext()) {
-                pageLink = pageLink.nextPageLink();
-            }
-        } while (pageData.hasNext());
-        for (DashboardInfo dashboard : tenantAdminDashboards) {
-            doDelete("/api/dashboard/" + dashboard.getId().getId().toString())
-                    .andExpect(status().isOk());
-        }
-        tenantAdminDashboards = new ArrayList<>();
-
         Customer customer = new Customer();
         customer.setTitle("My customer");
         customer.setTenantId(savedTenant.getTenantId());
@@ -407,7 +390,7 @@ public class DashboardControllerTest extends AbstractControllerTest {
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAnyWithGroup(customerUserGroup, customerUserGroup,
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, ActionType.ADDED, 1, 1 , 1);
+                ActionType.ADDED, ActionType.ADDED, 1, 1, 1);
 
         EntityGroup tenantDashboardGroup = new EntityGroup();
         tenantDashboardGroup.setType(EntityType.DASHBOARD);
@@ -466,6 +449,9 @@ public class DashboardControllerTest extends AbstractControllerTest {
         sharedDashboard.setTitle("Shared Dashboard");
         new DashboardInfo(doPost("/api/dashboard?entityGroupId={entityGroupId}", sharedDashboard, Dashboard.class, tenantDashboardGroup.getId().getId().toString()));
 
+        List<DashboardInfo> tenantAdminDashboards = new ArrayList<>();
+        PageLink pageLink = new PageLink(100);
+        PageData<DashboardInfo> pageData;
         do {
             pageData = doGetTypedWithPageLink("/api/user/dashboards?",
                     new TypeReference<>() {
