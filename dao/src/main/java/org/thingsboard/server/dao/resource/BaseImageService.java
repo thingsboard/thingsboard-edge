@@ -34,6 +34,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Strings;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -85,6 +86,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -326,9 +328,13 @@ public class BaseImageService extends BaseResourceService implements ImageServic
         boolean updated = result.isUpdated();
         if (entity.getDescriptor().isObject()) {
             ObjectNode descriptor = (ObjectNode) entity.getDescriptor();
-            JsonNode defaultConfig = JacksonUtil.toJsonNode(descriptor.get("defaultConfig").asText());
-            updated |= base64ToImageUrlUsingMapping(entity.getTenantId(), WIDGET_TYPE_BASE64_MAPPING, Collections.singletonMap("prefix", prefix), defaultConfig);
-            descriptor.put("defaultConfig", defaultConfig.toString());
+            JsonNode defaultConfig = Optional.ofNullable(descriptor.get("defaultConfig"))
+                    .filter(JsonNode::isTextual).map(JsonNode::asText)
+                    .map(JacksonUtil::toJsonNode).orElse(null);
+            if (defaultConfig != null) {
+                updated |= base64ToImageUrlUsingMapping(entity.getTenantId(), WIDGET_TYPE_BASE64_MAPPING, Collections.singletonMap("prefix", prefix), defaultConfig);
+                descriptor.put("defaultConfig", defaultConfig.toString());
+            }
         }
         updated |= base64ToImageUrlRecursively(entity.getTenantId(), prefix, entity.getDescriptor());
         return updated;
@@ -375,6 +381,9 @@ public class BaseImageService extends BaseResourceService implements ImageServic
                 JsonPathProcessingTask task = tasks.poll();
                 String token = task.currentToken();
                 JsonNode node = task.getNode();
+                if (node == null) {
+                    continue;
+                }
                 if (token.equals("*") || token.startsWith("$")) {
                     String variableName = token.startsWith("$") ? token.substring(1) : null;
                     if (node.isArray()) {
@@ -407,8 +416,8 @@ public class BaseImageService extends BaseResourceService implements ImageServic
                         }
                         if (task.isLast()) {
                             String name = expression;
-                            for (var replacements : task.getVariables().entrySet()) {
-                                name = name.replace("$" + replacements.getKey(), replacements.getValue());
+                            for (var replacement : task.getVariables().entrySet()) {
+                                name = name.replace("$" + replacement.getKey(), Strings.nullToEmpty(replacement.getValue()));
                             }
                             if (node.isObject() && value.isTextual()) {
                                 var result = base64ToImageUrl(tenantId, name, value.asText());
@@ -424,7 +433,7 @@ public class BaseImageService extends BaseResourceService implements ImageServic
                                 }
                             }
                         } else {
-                            if (StringUtils.isNotEmpty(variableName) && StringUtils.isNotEmpty(variableValue)) {
+                            if (StringUtils.isNotEmpty(variableName)) {
                                 tasks.add(task.next(value, variableName, variableValue));
                             } else {
                                 tasks.add(task.next(value));
@@ -466,6 +475,9 @@ public class BaseImageService extends BaseResourceService implements ImageServic
         byte[] imageData = Base64.getDecoder().decode(base64Data);
         String etag = calculateEtag(imageData);
         var imageInfo = findImageByTenantIdAndEtag(tenantId, etag);
+        if (imageInfo == null && !tenantId.isSysTenantId()) {
+            imageInfo = findImageByTenantIdAndEtag(TenantId.SYS_TENANT_ID, etag);
+        }
         if (imageInfo == null) {
             TbResource image = new TbResource();
             image.setTenantId(tenantId);
@@ -477,9 +489,9 @@ public class BaseImageService extends BaseResourceService implements ImageServic
 
             String fileName;
             if (StringUtils.isBlank(mdResourceKey)) {
-                fileName = mdResourceName.toLowerCase()
-                        .replace("'", "").replace("\"", "")
-                        .replace(" ", "_").replace("/", "_")
+                fileName = StringUtils.strip(mdResourceName.toLowerCase()
+                        .replaceAll("['\"]", "")
+                        .replaceAll("[^\\pL\\d]+", "_"), "_") // leaving only letters and numbers
                         + "." + extension;
             } else {
                 fileName = mdResourceKey;
@@ -499,6 +511,9 @@ public class BaseImageService extends BaseResourceService implements ImageServic
         while (!tasks.isEmpty()) {
             JsonNodeProcessingTask task = tasks.poll();
             JsonNode node = task.getNode();
+            if (node == null) {
+                continue;
+            }
             String currentPath = StringUtils.isBlank(task.getPath()) ? "" : (task.getPath() + " ");
             if (node.isObject()) {
                 ObjectNode on = (ObjectNode) node;
