@@ -48,6 +48,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.HasImage;
 import org.thingsboard.server.common.data.ImageDescriptor;
 import org.thingsboard.server.common.data.ResourceType;
@@ -63,7 +64,6 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
-import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.dao.ImageContainerDao;
 import org.thingsboard.server.dao.asset.AssetProfileDao;
@@ -305,6 +305,11 @@ public class BaseImageService extends BaseResourceService implements ImageServic
         return resourceInfoDao.findSystemOrTenantImageByEtag(tenantId, ResourceType.IMAGE, etag);
     }
 
+    @Override
+    public TbResourceInfo findCustomerImageByEtag(TenantId tenantId, CustomerId customerId, String etag) {
+        return resourceInfoDao.findCustomerImageByEtag(tenantId, customerId, ResourceType.IMAGE, etag);
+    }
+
     @Transactional(propagation = Propagation.NOT_SUPPORTED)// we don't want transaction to rollback in case of an image processing failure
     @Override
     public boolean replaceBase64WithImageUrl(HasImage entity, String type) {
@@ -313,8 +318,8 @@ public class BaseImageService extends BaseResourceService implements ImageServic
             imageName += "system ";
         }
         imageName = imageName + type + " image";
-
-        UpdateResult result = base64ToImageUrl(entity.getTenantId(), imageName, entity.getImage());
+        CustomerId customerId = entity instanceof HasCustomerId ? ((HasCustomerId) entity).getCustomerId() : null;
+        UpdateResult result = base64ToImageUrl(entity.getTenantId(), customerId, imageName, entity.getImage());
         entity.setImage(result.getValue());
         return result.isUpdated();
     }
@@ -327,7 +332,7 @@ public class BaseImageService extends BaseResourceService implements ImageServic
             prefix += "system ";
         }
         prefix += "widget";
-        UpdateResult result = base64ToImageUrl(entity.getTenantId(), prefix + " image", entity.getImage());
+        UpdateResult result = base64ToImageUrl(entity.getTenantId(), null, prefix + " image", entity.getImage());
         entity.setImage(result.getValue());
         boolean updated = result.isUpdated();
         if (entity.getDescriptor().isObject()) {
@@ -336,11 +341,11 @@ public class BaseImageService extends BaseResourceService implements ImageServic
                     .filter(JsonNode::isTextual).map(JsonNode::asText)
                     .map(JacksonUtil::toJsonNode).orElse(null);
             if (defaultConfig != null) {
-                updated |= base64ToImageUrlUsingMapping(entity.getTenantId(), WIDGET_TYPE_BASE64_MAPPING, Collections.singletonMap("prefix", prefix), defaultConfig);
+                updated |= base64ToImageUrlUsingMapping(entity.getTenantId(), null, WIDGET_TYPE_BASE64_MAPPING, Collections.singletonMap("prefix", prefix), defaultConfig);
                 descriptor.put("defaultConfig", defaultConfig.toString());
             }
         }
-        updated |= base64ToImageUrlRecursively(entity.getTenantId(), prefix, entity.getDescriptor());
+        updated |= base64ToImageUrlRecursively(entity.getTenantId(), null, prefix, entity.getDescriptor());
         return updated;
     }
 
@@ -352,7 +357,8 @@ public class BaseImageService extends BaseResourceService implements ImageServic
             if (!whiteLabeling.getTenantId().isSysTenantId()) {
                 prefix = "\"" + whiteLabeling.getDomain() + "\" " + prefix.toLowerCase();
             }
-            base64ToImageUrlUsingMapping(whiteLabeling.getTenantId(), WHITE_LABELING_BASE64_MAPPING, Collections.singletonMap("prefix", prefix), whiteLabeling.getSettings());
+            base64ToImageUrlUsingMapping(whiteLabeling.getTenantId(), whiteLabeling.getCustomerId(),
+                    WHITE_LABELING_BASE64_MAPPING, Collections.singletonMap("prefix", prefix), whiteLabeling.getSettings());
         } else if (WhiteLabelingType.GENERAL.equals(whiteLabeling.getType())) {
             String prefix;
             if (whiteLabeling.getCustomerId() != null && !whiteLabeling.getCustomerId().isNullUid()) {
@@ -360,7 +366,8 @@ public class BaseImageService extends BaseResourceService implements ImageServic
             } else {
                 prefix = "White labeling";
             }
-            base64ToImageUrlUsingMapping(whiteLabeling.getTenantId(), WHITE_LABELING_BASE64_MAPPING, Collections.singletonMap("prefix", prefix), whiteLabeling.getSettings());
+            base64ToImageUrlUsingMapping(whiteLabeling.getTenantId(), whiteLabeling.getCustomerId(),
+                    WHITE_LABELING_BASE64_MAPPING, Collections.singletonMap("prefix", prefix), whiteLabeling.getSettings());
         }
         return true;
     }
@@ -368,15 +375,15 @@ public class BaseImageService extends BaseResourceService implements ImageServic
     @Override
     public boolean replaceBase64WithImageUrl(Dashboard entity) {
         String prefix = "\"" + entity.getTitle() + "\" dashboard";
-        var result = base64ToImageUrl(entity.getTenantId(), prefix + " image", entity.getImage());
+        var result = base64ToImageUrl(entity.getTenantId(), entity.getCustomerId(), prefix + " image", entity.getImage());
         boolean updated = result.isUpdated();
         entity.setImage(result.getValue());
-        updated |= base64ToImageUrlUsingMapping(entity.getTenantId(), DASHBOARD_BASE64_MAPPING, Collections.singletonMap("prefix", prefix), entity.getConfiguration());
-        updated |= base64ToImageUrlRecursively(entity.getTenantId(), prefix, entity.getConfiguration());
+        updated |= base64ToImageUrlUsingMapping(entity.getTenantId(), entity.getCustomerId(), DASHBOARD_BASE64_MAPPING, Collections.singletonMap("prefix", prefix), entity.getConfiguration());
+        updated |= base64ToImageUrlRecursively(entity.getTenantId(), entity.getCustomerId(), prefix, entity.getConfiguration());
         return updated;
     }
 
-    private boolean base64ToImageUrlUsingMapping(TenantId tenantId, Map<String, String> mapping, Map<String, String> templateParams, JsonNode configuration) {
+    private boolean base64ToImageUrlUsingMapping(TenantId tenantId, CustomerId customerId, Map<String, String> mapping, Map<String, String> templateParams, JsonNode configuration) {
         boolean updated = false;
         for (var entry : mapping.entrySet()) {
             String expression = entry.getValue();
@@ -425,14 +432,14 @@ public class BaseImageService extends BaseResourceService implements ImageServic
                                 name = name.replace("$" + replacement.getKey(), Strings.nullToEmpty(replacement.getValue()));
                             }
                             if (node.isObject() && value.isTextual()) {
-                                var result = base64ToImageUrl(tenantId, name, value.asText());
+                                var result = base64ToImageUrl(tenantId, customerId, name, value.asText());
                                 ((ObjectNode) node).put(token, result.getValue());
                                 updated |= result.isUpdated();
                             } else if (value.isArray()) {
                                 ArrayNode array = (ArrayNode) value;
                                 for (int i = 0; i < array.size(); i++) {
                                     String arrayElementName = name.replace("$index", Integer.toString(i));
-                                    UpdateResult result = base64ToImageUrl(tenantId, arrayElementName, array.get(i).asText());
+                                    UpdateResult result = base64ToImageUrl(tenantId, customerId, arrayElementName, array.get(i).asText());
                                     array.set(i, result.getValue());
                                     updated |= result.isUpdated();
                                 }
@@ -451,13 +458,13 @@ public class BaseImageService extends BaseResourceService implements ImageServic
         return updated;
     }
 
-    private UpdateResult base64ToImageUrl(TenantId tenantId, String name, String data) {
-        return base64ToImageUrl(tenantId, name, data, false);
+    private UpdateResult base64ToImageUrl(TenantId tenantId, CustomerId customerId, String name, String data) {
+        return base64ToImageUrl(tenantId, customerId, name, data, false);
     }
 
     private static final Pattern TB_IMAGE_METADATA_PATTERN = Pattern.compile("^tb-image:(.*):(.*);data:(.*);.*");
 
-    private UpdateResult base64ToImageUrl(TenantId tenantId, String name, String data, boolean strict) {
+    private UpdateResult base64ToImageUrl(TenantId tenantId, CustomerId customerId, String name, String data, boolean strict) {
         if (StringUtils.isBlank(data)) {
             return UpdateResult.of(false, data);
         }
@@ -479,10 +486,16 @@ public class BaseImageService extends BaseResourceService implements ImageServic
         String extension = ImageUtils.mediaTypeToFileExtension(mdMediaType);
         byte[] imageData = Base64.getDecoder().decode(base64Data);
         String etag = calculateEtag(imageData);
-        var imageInfo = findSystemOrTenantImageByEtag(tenantId, etag);
+        TbResourceInfo imageInfo;
+        if (customerId != null && !customerId.isNullUid()){
+            imageInfo = findCustomerImageByEtag(tenantId, customerId, etag);
+        } else {
+            imageInfo = findSystemOrTenantImageByEtag(tenantId, etag);
+        }
         if (imageInfo == null) {
             TbResource image = new TbResource();
             image.setTenantId(tenantId);
+            image.setCustomerId(customerId);
             image.setResourceType(ResourceType.IMAGE);
             if (StringUtils.isBlank(mdResourceName)) {
                 mdResourceName = name;
@@ -511,7 +524,7 @@ public class BaseImageService extends BaseResourceService implements ImageServic
         return UpdateResult.of(true, DataConstants.TB_IMAGE_PREFIX + imageInfo.getLink());
     }
 
-    private boolean base64ToImageUrlRecursively(TenantId tenantId, String title, JsonNode root) {
+    private boolean base64ToImageUrlRecursively(TenantId tenantId, CustomerId customerId, String title, JsonNode root) {
         boolean updated = false;
         Queue<JsonNodeProcessingTask> tasks = new LinkedList<>();
         tasks.add(new JsonNodeProcessingTask(title, root));
@@ -528,7 +541,7 @@ public class BaseImageService extends BaseResourceService implements ImageServic
                     String childName = it.next();
                     JsonNode childValue = on.get(childName);
                     if (childValue.isTextual()) {
-                        UpdateResult result = base64ToImageUrl(tenantId, currentPath + childName, childValue.asText(), true);
+                        UpdateResult result = base64ToImageUrl(tenantId, customerId, currentPath + childName, childValue.asText(), true);
                         on.put(childName, result.getValue());
                         updated |= result.isUpdated();
                     } else if (childValue.isObject() || childValue.isArray()) {
@@ -542,7 +555,7 @@ public class BaseImageService extends BaseResourceService implements ImageServic
                     if (element.isObject()) {
                         tasks.add(new JsonNodeProcessingTask(currentPath + " " + i, element));
                     } else if (element.isTextual()) {
-                        UpdateResult result = base64ToImageUrl(tenantId, currentPath + "." + i, element.asText(), true);
+                        UpdateResult result = base64ToImageUrl(tenantId, customerId, currentPath + "." + i, element.asText(), true);
                         childArray.set(i, result.getValue());
                         updated |= result.isUpdated();
                     }

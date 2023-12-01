@@ -37,6 +37,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.TbResourceInfoFilter;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -134,5 +135,10 @@ public class JpaTbResourceInfoDao extends JpaAbstractDao<TbResourceInfoEntity, T
     @Override
     public TbResourceInfo findSystemOrTenantImageByEtag(TenantId tenantId, ResourceType resourceType, String etag) {
         return DaoUtil.getData(resourceInfoRepository.findSystemOrTenantImageByEtag(TenantId.SYS_TENANT_ID.getId(), tenantId.getId(), resourceType.name(), etag));
+    }
+
+    @Override
+    public TbResourceInfo findCustomerImageByEtag(TenantId tenantId, CustomerId customerId, ResourceType resourceType, String etag) {
+        return DaoUtil.getData(resourceInfoRepository.findCustomerImageByEtag(tenantId.getId(), customerId.getId(), resourceType.name(), etag));
     }
 }

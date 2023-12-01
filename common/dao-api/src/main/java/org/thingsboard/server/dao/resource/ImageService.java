@@ -66,6 +66,8 @@ public interface ImageService {
 
     TbResourceInfo findSystemOrTenantImageByEtag(TenantId tenantId, String etag);
 
+    TbResourceInfo findCustomerImageByEtag(TenantId tenantId, CustomerId customerId, String etag);
+
     boolean replaceBase64WithImageUrl(HasImage entity, String type);
     boolean replaceBase64WithImageUrl(Dashboard dashboard);
     boolean replaceBase64WithImageUrl(WidgetTypeDetails widgetType);
