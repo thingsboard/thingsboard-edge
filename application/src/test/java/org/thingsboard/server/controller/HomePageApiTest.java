@@ -108,6 +108,8 @@ public class HomePageApiTest extends AbstractControllerTest {
     @MockBean
     private SmsService smsService;
 
+    private static final int DEFAULT_DASHBOARDS_COUNT = 1;
+
     //For system administrator
     @Test
     public void testTenantsCountWsCmd() throws Exception {
@@ -435,7 +437,7 @@ public class HomePageApiTest extends AbstractControllerTest {
         Assert.assertEquals(3, usageInfo.getUsers());
         Assert.assertEquals(configuration.getMaxUsers(), usageInfo.getMaxUsers());
 
-        Assert.assertEquals(0, usageInfo.getDashboards());
+        Assert.assertEquals(DEFAULT_DASHBOARDS_COUNT, usageInfo.getDashboards());
         Assert.assertEquals(configuration.getMaxDashboards(), usageInfo.getMaxDashboards());
 
         Assert.assertEquals(0, usageInfo.getTransportMessages());
@@ -505,7 +507,8 @@ public class HomePageApiTest extends AbstractControllerTest {
         }
 
         usageInfo = doGet("/api/usage", UsageInfo.class);
-        Assert.assertEquals(dashboards.size(), usageInfo.getDashboards());
+        int expectedDashboardsCount = dashboards.size() + DEFAULT_DASHBOARDS_COUNT;
+        Assert.assertEquals(expectedDashboardsCount, usageInfo.getDashboards());
     }
 
     private Long getInitialEntityCount(EntityType entityType) throws Exception {

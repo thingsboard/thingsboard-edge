@@ -184,14 +184,6 @@ public abstract class AbstractContainerTest {
         return values;
     }
 
-    protected Converter createUplink(JsonNode config) {
-        Converter converter = new Converter();
-        converter.setName("My converter" + StringUtils.randomAlphanumeric(7));
-        converter.setType(ConverterType.UPLINK);
-        converter.setConfiguration(config);
-        return testRestClient.postConverter(converter);
-    }
-
     protected enum CmdsType {
         TS_SUB_CMDS("tsSubCmds"),
         HISTORY_CMDS("historyCmds"),
