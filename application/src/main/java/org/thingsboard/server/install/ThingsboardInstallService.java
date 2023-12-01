@@ -350,6 +350,7 @@ public class ThingsboardInstallService {
 //                systemDataLoaderService.loadSystemPlugins();
 //                systemDataLoaderService.loadSystemRules();
                 installScripts.loadSystemLwm2mResources();
+                installScripts.createSystemImages();
 
                 if (loadDemo) {
                     log.info("Loading demo data...");
