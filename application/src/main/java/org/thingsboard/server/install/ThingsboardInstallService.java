@@ -314,6 +314,9 @@ public class ThingsboardInstallService {
                     entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
                     dataUpdateService.updateData("ce");
 
+                    // edge specific
+                    dataUpdateService.deleteAllWidgetBundlesAndTypes();
+
                     // @voba - system widgets update is not required - uploaded from cloud
                     // log.info("Updating system data...");
                     // dataUpdateService.upgradeRuleNodes();
