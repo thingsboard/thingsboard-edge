@@ -266,14 +266,14 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 // reset full sync required - to upload latest widgets from cloud
                 tenantsFullSyncRequiredUpdater.updateEntities(null);
 
-                deleteAllWidgetBundlesAndTypes();
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
         }
     }
 
-    private void deleteAllWidgetBundlesAndTypes() {
+    @Override
+    public void deleteAllWidgetBundlesAndTypes() {
         PageData<Tenant> tenants = tenantService.findTenants(new PageLink(Integer.MAX_VALUE));
         for (Tenant tenant : tenants.getData()) {
             deleteWidgetBundlesAndTypes(tenant.getId());
