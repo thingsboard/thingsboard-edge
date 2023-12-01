@@ -638,7 +638,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
 
     @Override
     public String findEdgeMissingAttributes(TenantId tenantId, EdgeId edgeId, List<IntegrationId> integrationIds) throws Exception {
-        ObjectNode result = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode result = JacksonUtil.newObjectNode();
         for (IntegrationId integrationId : integrationIds) {
             Integration integration = integrationService.findIntegrationById(tenantId, integrationId);
             Set<String> attributesKeys = EdgeUtils.getAttributeKeysFromConfiguration(integration.getConfiguration().toString());
@@ -657,7 +657,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     public String findAllRelatedEdgesMissingAttributes(TenantId tenantId, IntegrationId integrationId) throws Exception {
         Integration integration = integrationService.findIntegrationById(tenantId, integrationId);
         Set<String> attributesKeys = EdgeUtils.getAttributeKeysFromConfiguration(integration.getConfiguration().toString());
-        ObjectNode result = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode result = JacksonUtil.newObjectNode();
         PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
         PageData<EdgeId> pageData;
         do {
@@ -763,7 +763,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
             return null;
         }
 
-        ArrayNode array = JacksonUtil.OBJECT_MAPPER.createArrayNode();
+        ArrayNode array = JacksonUtil.newArrayNode();
         for (String missingAttributeKey : missingAttributeKeys) {
             array.add(missingAttributeKey);
         }
