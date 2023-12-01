@@ -55,9 +55,11 @@ import java.util.concurrent.ExecutionException;
         type = ComponentType.TRANSFORMATION,
         name = "duplicate to group by name",
         configClazz = TbDuplicateMsgToGroupByNameNodeConfiguration.class,
-        nodeDescription = "Duplicates message to all entities belonging to resolved Entity Group",
-        nodeDetails = "Entities are fetched from Entity Group that is detected according to the configuration. " +
-                "Entity Group is dynamically resolved based on it's name and type.<br><br>" +
+        nodeDescription = "Duplicates message to all entities belonging to resolved Entity group",
+        nodeDetails = "Entities are fetched from entity group that is detected according to the configuration. " +
+                "Entity group is dynamically resolved based on it's name and type. " +
+                "For each entity from group new message is created with entity as originator " +
+                "and message parameters copied from original message.<br><br>" +
                 "Output connections: <code>Success</code>, <code>Failure</code>.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbTransformationNodeDuplicateToGroupByNameConfig",

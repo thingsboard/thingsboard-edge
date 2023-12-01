@@ -50,8 +50,10 @@ import java.util.List;
         name = "duplicate to related",
         configClazz = TbDuplicateMsgToRelatedNodeConfiguration.class,
         nodeDescription = "Duplicates message to related entities fetched by relation query",
-        nodeDetails = "Related Entities found using configured relation direction and Relation Type. " +
-                "For each found related entity new message is created with related entity as originator and message parameters copied from original message.",
+        nodeDetails = "Related entities found using configured relation direction and Relation type. " +
+                "For each found related entity new message is created with related entity as originator" +
+                " and message parameters copied from original message.<br><br>" +
+                "Output connections: <code>Success</code>, <code>Failure</code>.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbTransformationNodeDuplicateToRelatedConfig",
         icon = "call_split"

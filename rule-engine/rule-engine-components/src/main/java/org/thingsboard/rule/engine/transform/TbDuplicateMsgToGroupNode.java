@@ -51,9 +51,12 @@ import java.util.List;
         type = ComponentType.TRANSFORMATION,
         name = "duplicate to group",
         configClazz = TbDuplicateMsgToGroupNodeConfiguration.class,
-        nodeDescription = "Duplicates message to all entities belonging to specific Entity Group",
-        nodeDetails = "Entities are fetched from Entity Group detected according to the configuration. Entity Group can be specified directly or can be message originator entity itself. " +
-                "For each entity from group new message is created with entity as originator and message parameters copied from original message.",
+        nodeDescription = "Duplicates message to all entities belonging to specific entity group",
+        nodeDetails = "Entities are fetched from entity group that is detected according to the configuration. " +
+                "Entity group can be specified directly or can be message originator entity itself. " +
+                "For each entity from group new message is created with entity as originator " +
+                "and message parameters copied from original message.<br><br>" +
+                "Output connections: <code>Success</code>, <code>Failure</code>.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbTransformationNodeDuplicateToGroupConfig",
         icon = "call_split"
