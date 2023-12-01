@@ -42,7 +42,6 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
-import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 
 public interface ImageService {
 
@@ -72,7 +71,7 @@ public interface ImageService {
     boolean replaceBase64WithImageUrl(Dashboard dashboard);
     boolean replaceBase64WithImageUrl(WidgetTypeDetails widgetType);
 
-    boolean replaceBase64WithImageUrl(WhiteLabeling widgetType);
+    boolean replaceBase64WithImageUrl(WhiteLabeling whiteLabeling);
 
     void inlineImage(HasImage entity);
 

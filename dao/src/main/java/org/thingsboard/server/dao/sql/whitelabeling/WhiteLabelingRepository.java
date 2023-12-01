@@ -30,15 +30,17 @@
  */
 package org.thingsboard.server.dao.sql.whitelabeling;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.thingsboard.server.common.data.wl.WhiteLabeling;
-import org.thingsboard.server.dao.model.sql.DashboardInfoEntity;
+import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.dao.model.sql.WhiteLabelingCompositeKey;
 import org.thingsboard.server.dao.model.sql.WhiteLabelingEntity;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 
@@ -56,4 +58,8 @@ public interface WhiteLabelingRepository extends JpaRepository<WhiteLabelingEnti
             value = "SELECT * FROM white_labeling wl WHERE wl.settings ILIKE CONCAT('%\"', :imageLink, '\"%') limit :lmt"
     )
     List<WhiteLabelingEntity> findByImageLink(@Param("imageLink") String imageLink, @Param("lmt") int lmt);
+
+    @Query("SELECT w FROM WhiteLabelingEntity w WHERE w.type IN :types")
+    Page<WhiteLabelingEntity> findAllByTypeIn(@Param("types") Set<WhiteLabelingType> types, Pageable pageable);
+
 }

@@ -38,6 +38,8 @@ import org.thingsboard.server.common.data.HasImage;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageDataIterable;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
+import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.asset.AssetProfileDao;
 import org.thingsboard.server.dao.dashboard.DashboardDao;
@@ -45,7 +47,9 @@ import org.thingsboard.server.dao.device.DeviceProfileDao;
 import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.dao.widget.WidgetTypeDao;
 import org.thingsboard.server.dao.widget.WidgetsBundleDao;
+import org.thingsboard.server.dao.wl.WhiteLabelingDao;
 
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -56,6 +60,7 @@ public class ImagesUpdater {
     private final ImageService imageService;
     private final WidgetsBundleDao widgetsBundleDao;
     private final WidgetTypeDao widgetTypeDao;
+    private final WhiteLabelingDao whiteLabelingDao;
     private final DashboardDao dashboardDao;
     private final DeviceProfileDao deviceProfileDao;
     private final AssetProfileDao assetProfileDao;
@@ -70,6 +75,32 @@ public class ImagesUpdater {
         log.info("Updating widget types images...");
         var widgetTypesIds = new PageDataIterable<>(widgetTypeDao::findAllWidgetTypesIds, 1024);
         updateImages(widgetTypesIds, "widget type", imageService::replaceBase64WithImageUrl, widgetTypeDao);
+    }
+
+    public void updateWhiteLabelingImages() {
+        log.info("Updating white-labeling images...");
+        var whiteLabelingEntities = new PageDataIterable<>(pageLink -> {
+            return whiteLabelingDao.findAllByType(pageLink, Set.of(WhiteLabelingType.GENERAL, WhiteLabelingType.LOGIN));
+        }, 64);
+        int updatedCount = 0;
+        int totalCount = 0;
+        for (WhiteLabeling whiteLabeling : whiteLabelingEntities) {
+            totalCount++;
+            try {
+                boolean updated = imageService.replaceBase64WithImageUrl(whiteLabeling);
+                if (updated) {
+                    whiteLabelingDao.save(whiteLabeling.getTenantId(), whiteLabeling);
+                    log.debug("[{}] Updated white-labeling images", whiteLabeling.getTenantId());
+                    updatedCount++;
+                }
+            } catch (Exception e) {
+                log.error("[{}] Failed to update white-labeling images", whiteLabeling.getTenantId(), e);
+            }
+            if (totalCount % 100 == 0) {
+                log.info("Processed {} white-labeling entities so far", totalCount);
+            }
+        }
+        log.info("Updated {} white-labeling entities out of {}", updatedCount, totalCount);
     }
 
     public void updateDashboardsImages() {

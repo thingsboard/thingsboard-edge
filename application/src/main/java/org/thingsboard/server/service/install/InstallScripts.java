@@ -344,6 +344,7 @@ public class InstallScripts {
     public void updateImages() {
         imagesUpdater.updateWidgetsBundlesImages();
         imagesUpdater.updateWidgetTypesImages();
+        imagesUpdater.updateWhiteLabelingImages();
         imagesUpdater.updateDashboardsImages();
         imagesUpdater.updateDeviceProfilesImages();
         imagesUpdater.updateAssetProfilesImages();
