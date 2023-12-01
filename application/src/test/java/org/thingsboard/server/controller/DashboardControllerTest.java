@@ -225,7 +225,6 @@ public class DashboardControllerTest extends AbstractControllerTest {
     public void testSaveDashboardWithEmptyTitle() throws Exception {
         Dashboard dashboard = new Dashboard();
         String msgError = "Dashboard title " + msgErrorShouldBeSpecified;
-        ;
 
         Mockito.reset(tbClusterService, auditLogService);
 
