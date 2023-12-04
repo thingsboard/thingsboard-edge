@@ -29,7 +29,16 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, ChangeDetectorRef, Component, forwardRef, Input, Output, EventEmitter, OnDestroy, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component, EventEmitter,
+  forwardRef,
+  Input,
+  OnDestroy,
+  Output,
+  ViewChild
+} from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -42,6 +51,8 @@ import { UtilsService } from '@core/services/utils.service';
 import { DialogService } from '@core/services/dialog.service';
 import { TranslateService } from '@ngx-translate/core';
 import { FileSizePipe } from '@shared/pipe/file-size.pipe';
+import { coerceBoolean } from '@shared/decorators/coercion';
+import { ImagePipe } from '@shared/pipe/image.pipe';
 
 @Component({
   selector: 'tb-image-input',
@@ -68,9 +79,6 @@ export class ImageInputComponent extends PageComponent implements AfterViewInit,
 
   @Input()
   noImageText = this.translate.instant('dashboard.no-image');
-
-  @Input()
-  inputId = this.utils.guid();
 
   @Input()
   dropLabel = this.translate.instant('image-input.drag-and-drop');
@@ -119,8 +127,31 @@ export class ImageInputComponent extends PageComponent implements AfterViewInit,
   @Input()
   showPreview = true;
 
+  @Input()
+  inputId = this.utils.guid();
+
+  @Input()
+  @coerceBoolean()
+  processImageApiLink = false;
+
+  @Input()
+  @coerceBoolean()
+  resultAsFile = false;
+
+  @Input()
+  @coerceBoolean()
+  showFileName = false;
+
+  @Input()
+  fileName: string;
+
+  @Output()
+  fileNameChanged = new EventEmitter<string>();
+
   imageType: string;
   imageUrl: string;
+  file: File;
+
   safeImageUrl: SafeUrl;
 
   @ViewChild('flow', {static: true})
@@ -134,6 +165,7 @@ export class ImageInputComponent extends PageComponent implements AfterViewInit,
               private translate: TranslateService,
               private utils: UtilsService,
               private sanitizer: DomSanitizer,
+              private imagePipe: ImagePipe,
               private dialog: DialogService,
               private fileSize: FileSizePipe,
               private cd: ChangeDetectorRef) {
@@ -143,7 +175,9 @@ export class ImageInputComponent extends PageComponent implements AfterViewInit,
   ngAfterViewInit() {
     this.autoUploadSubscription = this.flow.events$.subscribe(event => {
       if (event.type === 'fileAdded') {
-        const file = (event.event[0] as flowjs.FlowFile).file;
+        const flowFile = event.event[0] as flowjs.FlowFile;
+        const file = flowFile.file;
+        const fileName = flowFile.name;
         if (this.maxSizeByte && this.maxSizeByte < file.size) {
           this.dialog.alert(
             this.translate.instant('dashboard.cannot-upload-file'),
@@ -173,6 +207,8 @@ export class ImageInputComponent extends PageComponent implements AfterViewInit,
             this.imageType = type;
             this.imageUrl = dataUrl;
             this.safeImageUrl = this.sanitizer.bypassSecurityTrustUrl(dataUrl);
+            this.file = file;
+            this.fileName = fileName;
             this.updateModel();
           } else {
             this.imageTypeError.emit();
@@ -221,7 +257,15 @@ export class ImageInputComponent extends PageComponent implements AfterViewInit,
     this.imageUrl = value;
     this.imageType = this.extractType(value);
     if (this.imageUrl) {
-      this.safeImageUrl = this.sanitizer.bypassSecurityTrustUrl(this.imageUrl);
+      if (this.processImageApiLink) {
+        this.imagePipe.transform(this.imageUrl, {preview: true, ignoreLoadingImage: true}).subscribe(
+          (res) => {
+            this.safeImageUrl = res;
+          }
+        );
+      } else {
+        this.safeImageUrl = this.sanitizer.bypassSecurityTrustUrl(this.imageUrl);
+      }
     } else {
       this.safeImageUrl = null;
     }
@@ -229,14 +273,21 @@ export class ImageInputComponent extends PageComponent implements AfterViewInit,
 
   private updateModel() {
     this.cd.markForCheck();
-    this.propagateChange(this.imageUrl);
-    this.imageTypeChanged.emit(this.imageType);
+    if (this.resultAsFile) {
+      this.propagateChange(this.file);
+    } else {
+      this.propagateChange(this.imageUrl);
+      this.imageTypeChanged.emit(this.imageType);
+    }
+    this.fileNameChanged.emit(this.fileName);
   }
 
   clearImage() {
     this.imageType = null;
     this.imageUrl = null;
     this.safeImageUrl = null;
+    this.file = null;
+    this.fileName = null;
     this.updateModel();
     this.imageCleared.emit();
   }

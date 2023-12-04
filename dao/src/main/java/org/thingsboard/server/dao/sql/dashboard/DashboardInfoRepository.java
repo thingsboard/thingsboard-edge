@@ -158,4 +158,16 @@ public interface DashboardInfoRepository extends JpaRepository<DashboardInfoEnti
 
     @Query("SELECT di.title FROM DashboardInfoEntity di WHERE di.tenantId = :tenantId AND di.id = :dashboardId")
     String findTitleByTenantIdAndId(@Param("tenantId") UUID tenantId, @Param("dashboardId") UUID dashboardId);
+
+    @Query(nativeQuery = true,
+            value = "SELECT * FROM dashboard_info_view d WHERE d.tenant_id = :tenantId " +
+                    "and (d.image = :imageLink or d.configuration ILIKE CONCAT('%\"', :imageLink, '\"%')) limit :lmt"
+    )
+    List<DashboardInfoEntity> findByTenantAndImageLink(@Param("tenantId") UUID tenantId, @Param("imageLink") String imageLink, @Param("lmt") int lmt);
+
+    @Query(nativeQuery = true,
+            value = "SELECT * FROM dashboard_info_view d WHERE d.image = :imageLink or d.configuration ILIKE CONCAT('%\"', :imageLink, '\"%') limit :lmt"
+    )
+    List<DashboardInfoEntity> findByImageLink(@Param("imageLink") String imageLink, @Param("lmt") int lmt);
+
 }

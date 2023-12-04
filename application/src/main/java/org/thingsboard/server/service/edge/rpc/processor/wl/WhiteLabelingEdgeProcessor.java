@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
@@ -82,7 +83,8 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
             if (EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_6_1)) {
                 return constructDeprecatedWhiteLabelingEvent(edgeEvent, entityId);
             }
-            WhiteLabeling whiteLabeling = whiteLabelingService.findByEntityId(edgeEvent.getTenantId(), entityId, getWhiteLabelingType(edgeEvent.getType()));
+            CustomerId customerId = EntityType.CUSTOMER.equals(entityId.getEntityType()) ? new CustomerId(entityId.getId()) : null;
+            WhiteLabeling whiteLabeling = whiteLabelingService.findByEntityId(edgeEvent.getTenantId(), customerId, getWhiteLabelingType(edgeEvent.getType()));
             if (whiteLabeling == null) {
                 return null;
             }
@@ -114,7 +116,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
             case TENANT:
                 if (TenantId.SYS_TENANT_ID.equals(entityId)) {
                     WhiteLabelingParams systemWhiteLabelingParams =
-                            whiteLabelingService.getSystemWhiteLabelingParams(edgeEvent.getTenantId());
+                            whiteLabelingService.getSystemWhiteLabelingParams();
                     if (isDefaultWhiteLabeling(systemWhiteLabelingParams)) {
                         return null;
                     }
@@ -169,7 +171,8 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
             if (EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_6_1)) {
                 return constructDeprecatedLoginWhiteLabelingEvent(edgeEvent, entityId);
             }
-            WhiteLabeling whiteLabeling = whiteLabelingService.findByEntityId(edgeEvent.getTenantId(), entityId, WhiteLabelingType.LOGIN);
+            CustomerId customerId = EntityType.CUSTOMER.equals(entityId.getEntityType()) ? new CustomerId(entityId.getId()) : null;
+            WhiteLabeling whiteLabeling = whiteLabelingService.findByEntityId(edgeEvent.getTenantId(), customerId, WhiteLabelingType.LOGIN);
             if (whiteLabeling == null) {
                 return null;
             }
@@ -190,7 +193,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
             case TENANT:
                 if (TenantId.SYS_TENANT_ID.equals(entityId)) {
                     LoginWhiteLabelingParams systemLoginWhiteLabelingParams =
-                            whiteLabelingService.getSystemLoginWhiteLabelingParams(edgeEvent.getTenantId());
+                            whiteLabelingService.getSystemLoginWhiteLabelingParams();
                     if (isDefaultLoginWhiteLabeling(systemLoginWhiteLabelingParams)) {
                         return null;
                     }

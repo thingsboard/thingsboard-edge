@@ -33,7 +33,9 @@ package org.thingsboard.server.common.data.wl;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
@@ -47,7 +49,8 @@ public class WhiteLabeling implements Serializable {
 
     private static final long serialVersionUID = 2628323657987010348L;
 
-    private EntityId entityId;
+    private TenantId tenantId;
+    private CustomerId customerId;
 
     @NoXss
     @Length(fieldName = "type", max = 50)
