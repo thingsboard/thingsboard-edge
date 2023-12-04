@@ -335,7 +335,7 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
             try {
                 String deviceId = getDeviceIdentifier(downlinkData.getMetadata());
                 ObjectNode commandsNode = JacksonUtil.newObjectNode();
-                ArrayNode arrayNode = JacksonUtil.OBJECT_MAPPER.createArrayNode();
+                ArrayNode arrayNode = JacksonUtil.newArrayNode();
                 JsonNode data = JacksonUtil.fromBytes(downlinkData.getData());
                 ServiceRPC serviceRPC = extractServiceRPC(data);
                 if (!hasValidAccessToken()) {

@@ -224,7 +224,7 @@ public class DashboardControllerTest extends AbstractControllerTest {
     @Test
     public void testSaveDashboardWithEmptyTitle() throws Exception {
         Dashboard dashboard = new Dashboard();
-        String msgError = "Dashboard title " + msgErrorShouldBeSpecified;;
+        String msgError = "Dashboard title " + msgErrorShouldBeSpecified;
 
         Mockito.reset(tbClusterService, auditLogService);
 
@@ -389,7 +389,7 @@ public class DashboardControllerTest extends AbstractControllerTest {
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAnyWithGroup(customerUserGroup, customerUserGroup,
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, ActionType.ADDED, 1, 1 , 1);
+                ActionType.ADDED, ActionType.ADDED, 1, 1, 1);
 
         EntityGroup tenantDashboardGroup = new EntityGroup();
         tenantDashboardGroup.setType(EntityType.DASHBOARD);
@@ -461,8 +461,8 @@ public class DashboardControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        // Tenant admin user must have access to both dashboards
-        Assert.assertEquals(2, tenantAdminDashboards.size());
+        // Tenant admin user must have access to both dashboards and default gateways dashboard
+        Assert.assertEquals(3, tenantAdminDashboards.size());
 
         User customerUser = new User();
         customerUser.setAuthority(Authority.CUSTOMER_USER);

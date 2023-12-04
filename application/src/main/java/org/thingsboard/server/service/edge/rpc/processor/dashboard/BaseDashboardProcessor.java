@@ -35,33 +35,36 @@ import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 import java.util.UUID;
 
 @Slf4j
 public abstract class BaseDashboardProcessor extends BaseEdgeProcessor {
 
-    protected boolean saveOrUpdateDashboard(TenantId tenantId, DashboardId dashboardId, DashboardUpdateMsg dashboardUpdateMsg, CustomerId customerId) throws ThingsboardException {
+    protected boolean saveOrUpdateDashboard(TenantId tenantId, DashboardId dashboardId, DashboardUpdateMsg dashboardUpdateMsg, EdgeVersion edgeVersion) throws ThingsboardException {
         boolean created = false;
-        Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
+        Dashboard dashboard = EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)
+                ? createDashboard(tenantId, dashboardId, dashboardUpdateMsg)
+                : JacksonUtil.fromStringIgnoreUnknownProperties(dashboardUpdateMsg.getEntity(), Dashboard.class);
         if (dashboard == null) {
+            throw new RuntimeException("[{" + tenantId + "}] dashboardUpdateMsg {" + dashboardUpdateMsg + "} cannot be converted to dashboard");
+        }
+        Dashboard dashboardById = dashboardService.findDashboardById(tenantId, dashboardId);
+        if (dashboardById == null) {
             created = true;
-            dashboard = new Dashboard();
-            dashboard.setTenantId(tenantId);
-            dashboard.setCreatedTime(Uuids.unixTimestamp(dashboardId.getId()));
+            dashboard.setId(null);
         } else {
+            dashboard.setId(dashboardId);
             changeOwnerIfRequired(tenantId, null, dashboardId);
         }
-        dashboard.setTitle(dashboardUpdateMsg.getTitle());
-        dashboard.setImage(dashboardUpdateMsg.hasImage() ? dashboardUpdateMsg.getImage() : null);
-        dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
-        dashboard.setCustomerId(customerId);
+
         dashboardValidator.validate(dashboard, Dashboard::getTenantId);
         if (created) {
             dashboard.setId(dashboardId);
@@ -72,6 +75,18 @@ public abstract class BaseDashboardProcessor extends BaseEdgeProcessor {
         }
         safeAddToEntityGroup(tenantId, dashboardUpdateMsg, dashboardId);
         return created;
+    }
+
+    private Dashboard createDashboard(TenantId tenantId, DashboardId dashboardId, DashboardUpdateMsg dashboardUpdateMsg) {
+        Dashboard dashboard = new Dashboard();
+        dashboard.setTenantId(tenantId);
+        dashboard.setCreatedTime(Uuids.unixTimestamp(dashboardId.getId()));
+        dashboard.setTitle(dashboardUpdateMsg.getTitle());
+        dashboard.setImage(dashboardUpdateMsg.hasImage() ? dashboardUpdateMsg.getImage() : null);
+        dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
+        dashboard.setMobileOrder(dashboardUpdateMsg.hasMobileOrder() ? dashboardUpdateMsg.getMobileOrder() : null);
+        dashboard.setMobileHide(dashboardUpdateMsg.getMobileHide());
+        return dashboard;
     }
 
     private void safeAddToEntityGroup(TenantId tenantId, DashboardUpdateMsg dashboardUpdateMsg, DashboardId dashboardId) {

@@ -36,4 +36,8 @@ public interface FstStatsService {
 
     void incrementDecode(Class<?> clazz);
 
+    void recordEncodeTime(Class<?> clazz, long startTime);
+
+    void recordDecodeTime(Class<?> clazz, long startTime);
+
 }

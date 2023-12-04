@@ -5051,7 +5051,13 @@
         "every-hour": "every { count, plural, =1 {hour} other {# hours} }",
         "every-minute": "every { count, plural, =1 {minute} other {# minutes} }",
         "every-second": "every { count, plural, =1 {second} other {# seconds} }",
-        "invalid-time": "Invalid time"
+        "invalid-time": "Invalid time",
+        "rpc-request-timeout": "RPC request timeout (ms)",
+        "rpc-request-persistent": "RPC request persistent",
+        "rpc-request-oneway-command": "One-way RPC request",
+        "rpc-value-min-error": "Value must be more then {{min}} ms.",
+        "set": "Set",
+        "rpc-settings": "RPC settings"
     },
     "report": {
         "report-config": "Report configuration",
