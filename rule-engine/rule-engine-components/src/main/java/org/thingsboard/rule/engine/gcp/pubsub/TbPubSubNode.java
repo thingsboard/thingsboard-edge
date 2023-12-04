@@ -35,6 +35,7 @@ import com.google.api.core.ApiFutureCallback;
 import com.google.api.core.ApiFutures;
 import com.google.api.gax.core.CredentialsProvider;
 import com.google.api.gax.core.FixedCredentialsProvider;
+import com.google.api.gax.core.FixedExecutorProvider;
 import com.google.api.gax.retrying.RetrySettings;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.pubsub.v1.Publisher;
@@ -83,7 +84,7 @@ public class TbPubSubNode extends TbAbstractExternalNode {
         super.init(ctx);
         this.config = TbNodeUtils.convert(configuration, TbPubSubNodeConfiguration.class);
         try {
-            this.pubSubClient = initPubSubClient();
+            this.pubSubClient = initPubSubClient(ctx);
         } catch (Exception e) {
             throw new TbNodeException(e);
         }
@@ -143,7 +144,7 @@ public class TbPubSubNode extends TbAbstractExternalNode {
         return TbMsg.transformMsgMetadata(origMsg, metaData);
     }
 
-    private Publisher initPubSubClient() throws IOException {
+    private Publisher initPubSubClient(TbContext ctx) throws IOException {
         ProjectTopicName topicName = ProjectTopicName.of(config.getProjectId(), config.getTopicName());
         ServiceAccountCredentials credentials =
                 ServiceAccountCredentials.fromStream(
@@ -163,6 +164,7 @@ public class TbPubSubNode extends TbAbstractExternalNode {
         return Publisher.newBuilder(topicName)
                 .setCredentialsProvider(credProvider)
                 .setRetrySettings(retrySettings)
+                .setExecutorProvider(FixedExecutorProvider.create(ctx.getPubSubRuleNodeExecutorProvider().getExecutor()))
                 .build();
     }
 }
