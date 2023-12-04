@@ -30,11 +30,16 @@
  */
 package org.thingsboard.rule.engine.transform;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -64,6 +69,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -114,7 +120,6 @@ class TbDuplicateMsgToGroupNodeTest {
         // THEN
         assertThat(config.isEntityGroupIsMessageOriginator()).isEqualTo(true);
         assertThat(config.getEntityGroupId()).isEqualTo(null);
-        assertThat(config.getGroupOwnerId()).isEqualTo(null);
     }
 
     @Test
@@ -324,6 +329,38 @@ class TbDuplicateMsgToGroupNodeTest {
         assertInstanceOf(RuntimeException.class, actualThrowable);
         assertThat(actualThrowable.getMessage()).isEqualTo(expectedExceptionMessage);
     }
+
+    private static Stream<Arguments> givenFromVersionAndConfig_whenUpgrade_thenVerifyUpgradeResultAndConfig() {
+        return Stream.of(
+                Arguments.of(0, "{\"entityGroupIsMessageOriginator\":true,\"entityGroupId\":null}",
+                        false, "{\"entityGroupIsMessageOriginator\":true,\"entityGroupId\":null}"),
+                Arguments.of(0, "{\"entityGroupIsMessageOriginator\":true,\"entityGroupId\":null,\"groupOwnerId\":null}",
+                        true, "{\"entityGroupIsMessageOriginator\":true,\"entityGroupId\":null}"),
+                Arguments.of(0, "{\"entityGroupIsMessageOriginator\":false," +
+                                "\"entityGroupId\":{\"entityType\":\"ENTITY_GROUP\",\"id\":\"5817b4c0-2628-11ee-9561-472ccbbe8f70\"}," +
+                                "\"groupOwnerId\":{\"entityType\":\"CUSTOMER\",\"id\":\"58139610-2628-11ee-9561-472ccbbe8f70\"}}",
+                        true, "{\"entityGroupIsMessageOriginator\":false," +
+                                "\"entityGroupId\":{\"entityType\":\"ENTITY_GROUP\",\"id\":\"5817b4c0-2628-11ee-9561-472ccbbe8f70\"}}")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    void givenFromVersionAndConfig_whenUpgrade_thenVerifyUpgradeResultAndConfig(int givenVersion, String givenConfigStr,
+                                                                                boolean hasChanges, String expectedConfigStr) throws Exception {
+        // GIVEN
+        JsonNode givenConfig = JacksonUtil.toJsonNode(givenConfigStr);
+        JsonNode expectedConfig = JacksonUtil.toJsonNode(expectedConfigStr);
+
+        // WHEN
+        var upgradeResult = node.upgrade(givenVersion, givenConfig);
+
+        // THEN
+        assertThat(upgradeResult.getFirst()).isEqualTo(hasChanges);
+        ObjectNode upgradedConfig = (ObjectNode) upgradeResult.getSecond();
+        assertThat(upgradedConfig).isEqualTo(expectedConfig);
+    }
+
 
 
     private void init() throws TbNodeException {
