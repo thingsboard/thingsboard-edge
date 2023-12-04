@@ -39,6 +39,7 @@ import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -175,6 +176,7 @@ public class BaseImageService extends BaseResourceService implements ImageServic
         image.setDescriptorValue(descriptor);
         image.setPreview(result.getRight());
 
+        log.debug("[{}] Creating image {} ('{}')", image.getTenantId(), image.getResourceKey(), image.getName());
         return new TbResourceInfo(doSaveResource(image));
     }
 
@@ -215,21 +217,25 @@ public class BaseImageService extends BaseResourceService implements ImageServic
             resourceKey = basename + "_(" + idx + ")." + extension;
             idx++;
         }
+        log.debug("[{}] Generated unique key {} for image {}", tenantId, resourceKey, filename);
         return resourceKey;
     }
 
     @Override
     public TbResourceInfo saveImageInfo(TbResourceInfo imageInfo) {
+        log.trace("Executing saveImageInfo [{}] [{}]", imageInfo.getTenantId(), imageInfo.getId());
         return saveResource(new TbResource(imageInfo));
     }
 
     @Override
     public TbResourceInfo getImageInfoByTenantIdAndKey(TenantId tenantId, String key) {
+        log.trace("Executing getImageInfoByTenantIdAndKey [{}] [{}]", tenantId, key);
         return findResourceInfoByTenantIdAndKey(tenantId, ResourceType.IMAGE, key);
     }
 
     @Override
     public PageData<TbResourceInfo> getImagesByTenantId(TenantId tenantId, PageLink pageLink) {
+        log.trace("Executing getImagesByTenantId [{}]", tenantId);
         TbResourceInfoFilter filter = TbResourceInfoFilter.builder()
                 .tenantId(tenantId)
                 .resourceTypes(Set.of(ResourceType.IMAGE))
@@ -249,6 +255,7 @@ public class BaseImageService extends BaseResourceService implements ImageServic
 
     @Override
     public PageData<TbResourceInfo> getAllImagesByTenantId(TenantId tenantId, PageLink pageLink) {
+        log.trace("Executing getAllImagesByTenantId [{}]", tenantId);
         TbResourceInfoFilter filter = TbResourceInfoFilter.builder()
                 .tenantId(tenantId)
                 .resourceTypes(Set.of(ResourceType.IMAGE))
@@ -258,11 +265,13 @@ public class BaseImageService extends BaseResourceService implements ImageServic
 
     @Override
     public byte[] getImageData(TenantId tenantId, TbResourceId imageId) {
+        log.trace("Executing getImageData [{}] [{}]", tenantId, imageId);
         return resourceDao.getResourceData(tenantId, imageId);
     }
 
     @Override
     public byte[] getImagePreview(TenantId tenantId, TbResourceId imageId) {
+        log.trace("Executing getImagePreview [{}] [{}]", tenantId, imageId);
         return resourceDao.getResourcePreview(tenantId, imageId);
     }
 
@@ -302,17 +311,20 @@ public class BaseImageService extends BaseResourceService implements ImageServic
 
     @Override
     public TbResourceInfo findSystemOrTenantImageByEtag(TenantId tenantId, String etag) {
+        log.trace("Executing findSystemOrTenantImageByEtag [{}] [{}]", tenantId, etag);
         return resourceInfoDao.findSystemOrTenantImageByEtag(tenantId, ResourceType.IMAGE, etag);
     }
 
     @Override
-    public TbResourceInfo findCustomerImageByEtag(TenantId tenantId, CustomerId customerId, String etag) {
-        return resourceInfoDao.findCustomerImageByEtag(tenantId, customerId, ResourceType.IMAGE, etag);
+    public TbResourceInfo findSystemOrCustomerImageByEtag(TenantId tenantId, CustomerId customerId, String etag) {
+        log.trace("Executing findSystemOrCustomerImageByEtag [{}] [{}] [{}]", tenantId, customerId, etag);
+        return resourceInfoDao.findSystemOrCustomerImageByEtag(tenantId, customerId, ResourceType.IMAGE, etag);
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)// we don't want transaction to rollback in case of an image processing failure
     @Override
     public boolean replaceBase64WithImageUrl(HasImage entity, String type) {
+        log.trace("Executing replaceBase64WithImageUrl [{}] [{}] [{}]", entity.getTenantId(), type, entity.getName());
         String imageName = "\"" + entity.getName() + "\" ";
         if (entity.getTenantId() == null || entity.getTenantId().isSysTenantId()) {
             imageName += "system ";
@@ -327,6 +339,7 @@ public class BaseImageService extends BaseResourceService implements ImageServic
     @Transactional(propagation = Propagation.NOT_SUPPORTED)// we don't want transaction to rollback in case of an image processing failure
     @Override
     public boolean replaceBase64WithImageUrl(WidgetTypeDetails entity) {
+        log.trace("Executing replaceBase64WithImageUrl [{}] [WidgetTypeDetails] [{}]", entity.getTenantId(), entity.getId());
         String prefix = "\"" + entity.getName() + "\" ";
         if (entity.getTenantId() == null || entity.getTenantId().isSysTenantId()) {
             prefix += "system ";
@@ -374,6 +387,7 @@ public class BaseImageService extends BaseResourceService implements ImageServic
 
     @Override
     public boolean replaceBase64WithImageUrl(Dashboard entity) {
+        log.trace("Executing replaceBase64WithImageUrl [{}] [Dashboard] [{}]", entity.getTenantId(), entity.getId());
         String prefix = "\"" + entity.getTitle() + "\" dashboard";
         var result = base64ToImageUrl(entity.getTenantId(), entity.getCustomerId(), prefix + " image", entity.getImage());
         boolean updated = result.isUpdated();
@@ -488,7 +502,7 @@ public class BaseImageService extends BaseResourceService implements ImageServic
         String etag = calculateEtag(imageData);
         TbResourceInfo imageInfo;
         if (customerId != null && !customerId.isNullUid()){
-            imageInfo = findCustomerImageByEtag(tenantId, customerId, etag);
+            imageInfo = findSystemOrCustomerImageByEtag(tenantId, customerId, etag);
         } else {
             imageInfo = findSystemOrTenantImageByEtag(tenantId, etag);
         }
@@ -517,7 +531,11 @@ public class BaseImageService extends BaseResourceService implements ImageServic
             try {
                 imageInfo = saveImage(image);
             } catch (Exception e) {
-                log.warn("[{}][{}] Failed to replace Base64 with image url: {}", tenantId, name, StringUtils.abbreviate(data, 50), e);
+                if (log.isDebugEnabled()) { // printing stacktrace
+                    log.warn("[{}][{}] Failed to replace Base64 with image url for {}", tenantId, name, StringUtils.abbreviate(data, 50), e);
+                } else {
+                    log.warn("[{}][{}] Failed to replace Base64 with image url for {}: {}", tenantId, name, StringUtils.abbreviate(data, 50), ExceptionUtils.getMessage(e));
+                }
                 return UpdateResult.of(false, data);
             }
         }
@@ -567,17 +585,20 @@ public class BaseImageService extends BaseResourceService implements ImageServic
 
     @Override
     public void inlineImage(HasImage entity) {
+        log.trace("Executing inlineImage [{}] [{}] [{}]", entity.getTenantId(), entity.getClass().getSimpleName(), entity.getName());
         entity.setImage(inlineImage(entity.getTenantId(), "image", entity.getImage()));
     }
 
     @Override
     public void inlineImages(Dashboard dashboard) {
+        log.trace("Executing inlineImage [{}] [Dashboard] [{}]", dashboard.getTenantId(), dashboard.getId());
         inlineImage(dashboard);
         inlineIntoJson(dashboard.getTenantId(), dashboard.getConfiguration());
     }
 
     @Override
     public void inlineImages(WidgetTypeDetails widgetTypeDetails) {
+        log.trace("Executing inlineImage [{}] [WidgetTypeDetails] [{}]", widgetTypeDetails.getTenantId(), widgetTypeDetails.getId());
         inlineImage(widgetTypeDetails);
         inlineIntoJson(widgetTypeDetails.getTenantId(), widgetTypeDetails.getDescriptor());
     }
