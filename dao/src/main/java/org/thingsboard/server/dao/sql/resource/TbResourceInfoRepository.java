@@ -96,9 +96,12 @@ public interface TbResourceInfoRepository extends JpaRepository<TbResourceInfoEn
                                                        @Param("resourceType") String resourceType,
                                                        @Param("etag") String etag);
 
-    @Query(value = "SELECT * FROM resource r WHERE r.tenant_id = :tenantId AND r.customer_id = :customerId AND r.resource_type = :resourceType AND r.etag = :etag LIMIT 1", nativeQuery = true)
-    TbResourceInfoEntity findCustomerImageByEtag(@Param("tenantId") UUID tenantId,
-                                                 @Param("customerId") UUID customerId,
-                                                 @Param("resourceType") String resourceType,
-                                                 @Param("etag") String etag);
+    @Query(value = "SELECT * FROM resource r WHERE (r.tenant_id = '13814000-1dd2-11b2-8080-808080808080' " +
+            "OR (r.tenant_id = :tenantId AND r.customer_id = :customerId)) " +
+            "AND r.resource_type = :resourceType AND r.etag = :etag LIMIT 1", nativeQuery = true)
+    TbResourceInfoEntity findSystemOrCustomerImageByEtag(@Param("tenantId") UUID tenantId,
+                                                         @Param("customerId") UUID customerId,
+                                                         @Param("resourceType") String resourceType,
+                                                         @Param("etag") String etag);
+
 }

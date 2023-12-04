@@ -138,7 +138,7 @@ public class JpaTbResourceInfoDao extends JpaAbstractDao<TbResourceInfoEntity, T
     }
 
     @Override
-    public TbResourceInfo findCustomerImageByEtag(TenantId tenantId, CustomerId customerId, ResourceType resourceType, String etag) {
-        return DaoUtil.getData(resourceInfoRepository.findCustomerImageByEtag(tenantId.getId(), customerId.getId(), resourceType.name(), etag));
+    public TbResourceInfo findSystemOrCustomerImageByEtag(TenantId tenantId, CustomerId customerId, ResourceType resourceType, String etag) {
+        return DaoUtil.getData(resourceInfoRepository.findSystemOrCustomerImageByEtag(tenantId.getId(), customerId.getId(), resourceType.name(), etag));
     }
 }

@@ -58,5 +58,5 @@ public interface TbResourceInfoDao extends Dao<TbResourceInfo> {
 
     TbResourceInfo findSystemOrTenantImageByEtag(TenantId tenantId, ResourceType resourceType, String etag);
 
-    TbResourceInfo findCustomerImageByEtag(TenantId tenantId, CustomerId customerId, ResourceType resourceType, String etag);
+    TbResourceInfo findSystemOrCustomerImageByEtag(TenantId tenantId, CustomerId customerId, ResourceType resourceType, String etag);
 }

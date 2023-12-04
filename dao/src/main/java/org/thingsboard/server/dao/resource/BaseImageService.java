@@ -316,8 +316,9 @@ public class BaseImageService extends BaseResourceService implements ImageServic
     }
 
     @Override
-    public TbResourceInfo findCustomerImageByEtag(TenantId tenantId, CustomerId customerId, String etag) {
-        return resourceInfoDao.findCustomerImageByEtag(tenantId, customerId, ResourceType.IMAGE, etag);
+    public TbResourceInfo findSystemOrCustomerImageByEtag(TenantId tenantId, CustomerId customerId, String etag) {
+        log.trace("Executing findSystemOrCustomerImageByEtag [{}] [{}] [{}]", tenantId, customerId, etag);
+        return resourceInfoDao.findSystemOrCustomerImageByEtag(tenantId, customerId, ResourceType.IMAGE, etag);
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)// we don't want transaction to rollback in case of an image processing failure
@@ -501,7 +502,7 @@ public class BaseImageService extends BaseResourceService implements ImageServic
         String etag = calculateEtag(imageData);
         TbResourceInfo imageInfo;
         if (customerId != null && !customerId.isNullUid()){
-            imageInfo = findCustomerImageByEtag(tenantId, customerId, etag);
+            imageInfo = findSystemOrCustomerImageByEtag(tenantId, customerId, etag);
         } else {
             imageInfo = findSystemOrTenantImageByEtag(tenantId, etag);
         }
