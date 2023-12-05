@@ -195,6 +195,9 @@
                   <ng-template [ngSwitchCase]="'groups'">
                     <tb-group-chips [groupEntity]="entity"></tb-group-chips>
                   </ng-template>
+                  <ng-template [ngSwitchCase]="'link'">
+                    <a [routerLink]="column.entityURL(entity)" [innerHTML]="cellContent(entity, column, row)" (click)="$event.stopPropagation();"></a>
+                  </ng-template>
                   <ng-template ngSwitchDefault>
                     <span [innerHTML]="cellContent(entity, column, row)"></span>
                   </ng-template>
