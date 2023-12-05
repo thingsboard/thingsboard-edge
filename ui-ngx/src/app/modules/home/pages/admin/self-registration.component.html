@@ -159,7 +159,7 @@
                       [copyText]="selfRegistrationFormGroup.get('appSecret').value"
                       tooltipText="{{ 'self-registration.copy-mobile-app-secret' | translate }}"
                       tooltipPosition="above"
-                      mdiIcon="mdi:clipboard-arrow-left">
+                      icon="mdi:clipboard-arrow-left">
                     </tb-copy-button>
                     <mat-error *ngIf="selfRegistrationFormGroup.get('appSecret').invalid">
                       {{ 'self-registration.invalid-mobile-app-secret' | translate }}
