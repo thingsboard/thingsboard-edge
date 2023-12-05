@@ -50,9 +50,7 @@ export const exportableEntityTypes: Array<EntityType> = [
   EntityType.RULE_CHAIN,
   EntityType.WIDGET_TYPE,
   EntityType.WIDGETS_BUNDLE,
-  EntityType.CONVERTER,
-  EntityType.INTEGRATION,
-  EntityType.ROLE,
+  EntityType.TB_RESOURCE,
   EntityType.NOTIFICATION_TEMPLATE,
   EntityType.NOTIFICATION_TARGET,
   EntityType.NOTIFICATION_RULE
@@ -61,7 +59,8 @@ export const exportableEntityTypes: Array<EntityType> = [
 export const entityTypesWithoutRelatedData: Set<EntityType> = new Set([
   EntityType.NOTIFICATION_TEMPLATE,
   EntityType.NOTIFICATION_TARGET,
-  EntityType.NOTIFICATION_RULE
+  EntityType.NOTIFICATION_RULE,
+  EntityType.TB_RESOURCE
 ]);
 
 export interface VersionCreateConfig {

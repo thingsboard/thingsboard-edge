@@ -59,7 +59,7 @@ import {
   CdkConnectedOverlay,
   CdkOverlayOrigin,
   ConnectedOverlayPositionChange,
-  ConnectionPositionPair
+  ConnectionPositionPair, NoopScrollStrategy
 } from '@angular/cdk/overlay';
 import { Subject, Subscription } from 'rxjs';
 import {
@@ -326,6 +326,7 @@ export class TbPopoverDirective implements OnChanges, OnDestroy, AfterViewInit {
       [cdkConnectedOverlayHasBackdrop]="hasBackdrop"
       [cdkConnectedOverlayOrigin]="origin"
       [cdkConnectedOverlayPositions]="positions"
+      [cdkConnectedOverlayScrollStrategy]="scrollStrategy"
       [cdkConnectedOverlayOpen]="visible"
       [cdkConnectedOverlayPush]="true"
       (overlayOutsideClick)="onClickOutside($event)"
@@ -393,6 +394,7 @@ export class TbPopoverComponent<T = any> implements OnDestroy, OnInit {
 
   tbAnimationState = 'active';
 
+  tbHideStart = new Subject<void>();
   tbVisibleChange = new Subject<boolean>();
   tbAnimationDone = new Subject<void>();
   tbComponentChange = new Subject<ComponentRef<any>>();
@@ -465,6 +467,7 @@ export class TbPopoverComponent<T = any> implements OnDestroy, OnInit {
   public dir: Direction = 'ltr';
   classMap: { [klass: string]: any } = {};
   positions: ConnectionPositionPair[] = [...DEFAULT_POPOVER_POSITIONS];
+  scrollStrategy = new NoopScrollStrategy();
   private parentScrollSubscription: Subscription = null;
   private intersectionObserver = new IntersectionObserver((entries) => {
     if (this.lastIsIntersecting !== entries[0].isIntersecting) {
@@ -501,6 +504,7 @@ export class TbPopoverComponent<T = any> implements OnDestroy, OnInit {
     }
     this.intersectionObserver.disconnect();
     this.intersectionObserver = null;
+    this.tbHideStart.complete();
     this.tbVisibleChange.complete();
     this.tbAnimationDone.complete();
     this.tbDestroy.next();
@@ -543,6 +547,7 @@ export class TbPopoverComponent<T = any> implements OnDestroy, OnInit {
     if (!this.tbVisible) {
       return;
     }
+    this.tbHideStart.next();
     if (this.parentScrollSubscription) {
       this.parentScrollSubscription.unsubscribe();
       this.parentScrollSubscription = null;

@@ -260,7 +260,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
 
         @Override
         public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
-            if (!whiteLabelingService.isWhiteLabelingAllowed(user.getTenantId(), user.getTenantId())) {
+            if (!whiteLabelingService.isWhiteLabelingAllowed(user.getTenantId(), null)) {
                 return false;
             } else {
                 return user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation);

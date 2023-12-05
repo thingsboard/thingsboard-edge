@@ -153,7 +153,7 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
         integration.setAllowCreateDevicesOrAssets(allowCreateDevicesOrAssets);
         integration.setEdgeTemplate(edgeTemplate);
         integration.setStats(StringUtils.isEmpty(stats) ?
-                JacksonUtil.OBJECT_MAPPER.createArrayNode() : JacksonUtil.fromString(stats, ArrayNode.class));
+                JacksonUtil.newArrayNode() : JacksonUtil.fromString(stats, ArrayNode.class));
 
         if (StringUtils.isNotEmpty(status)) {
             integration.setStatus(JacksonUtil.fromString(status, ObjectNode.class));

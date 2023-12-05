@@ -60,13 +60,6 @@ import { WINDOW } from '@core/services/window.service';
 })
 export class WhiteLabelingComponent extends PageComponent implements OnInit, OnDestroy, HasConfirmForm {
 
-  maxFaviconSize = 262144;
-  maxFaviconSizeKb = this.maxFaviconSize / 1024;
-  faviconTypes = ['image/x-icon', 'image/png', 'image/gif', 'image/vnd.microsoft.icon'];
-
-  maxLogoSize = 4194304;
-  maxLogoSizeKb = this.maxLogoSize / 1024;
-
   wlSettings: UntypedFormGroup;
   whiteLabelingParams: WhiteLabelingParams & LoginWhiteLabelingParams;
 
@@ -225,39 +218,6 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, OnD
     }
     this.wlSettings.get('platformName').updateValueAndValidity();
     this.wlSettings.get('platformVersion').updateValueAndValidity();
-  }
-
-  onFaviconTypeError() {
-    this.showError(this.translate.instant('white-labeling.favicon-type-error'));
-  }
-
-  onFaviconSizeError() {
-    this.showError(this.translate.instant('white-labeling.favicon-size-error', {kbSize: this.maxFaviconSizeKb}));
-  }
-
-  onFaviconCleared() {
-    this.wlSettings.get('favicon').get('type').setValue(null);
-    this.wlSettings.get('faviconChecksum').setValue(null);
-  }
-
-  onLogoTypeError() {
-    this.showError(this.translate.instant('white-labeling.logo-type-error'));
-  }
-
-  onLogoSizeError() {
-    this.showError(this.translate.instant('white-labeling.logo-size-error', {kbSize: this.maxLogoSizeKb}));
-  }
-
-  onLogoCleared() {
-    this.wlSettings.get('logoImageChecksum').setValue(null);
-  }
-
-  private showError(error: string) {
-    this.store.dispatch(new ActionNotificationShow(
-      {
-        message: error,
-        type: 'error'
-      }));
   }
 
   editCustomCss(): void {

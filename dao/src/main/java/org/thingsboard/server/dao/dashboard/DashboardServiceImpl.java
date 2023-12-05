@@ -68,6 +68,7 @@ import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
@@ -103,6 +104,9 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
 
     @Autowired
     private CustomerDao customerDao;
+
+    @Autowired
+    private ImageService imageService;
 
     @Autowired
     private DataValidator<Dashboard> dashboardValidator;
@@ -185,15 +189,16 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
             dashboardValidator.validate(dashboard, Dashboard::getTenantId);
         }
         try {
-            Dashboard savedDashboard = dashboardDao.save(dashboard.getTenantId(), dashboard);
+            imageService.replaceBase64WithImageUrl(dashboard);
+            var saved = dashboardDao.save(dashboard.getTenantId(), dashboard);
             if (dashboard.getId() == null) {
-                entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());
-                countService.publishCountEntityEvictEvent(savedDashboard.getTenantId(), EntityType.DASHBOARD);
+                entityGroupService.addEntityToEntityGroupAll(saved.getTenantId(), saved.getOwnerId(), saved.getId());
+                countService.publishCountEntityEvictEvent(saved.getTenantId(), EntityType.DASHBOARD);
             }
-            publishEvictEvent(new DashboardTitleEvictEvent(savedDashboard.getId()));
-            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedDashboard.getTenantId())
-                    .entityId(savedDashboard.getId()).added(dashboard.getId() == null).build());
-            return savedDashboard;
+            publishEvictEvent(new DashboardTitleEvictEvent(saved.getId()));
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(saved.getTenantId())
+                    .entityId(saved.getId()).added(dashboard.getId() == null).build());
+            return saved;
         } catch (Exception e) {
             if (dashboard.getId() != null) {
                 publishEvictEvent(new DashboardTitleEvictEvent(dashboard.getId()));
@@ -202,6 +207,8 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
             throw e;
         }
     }
+
+
 
     @Override
     public Dashboard assignDashboardToCustomer(TenantId tenantId, DashboardId dashboardId, CustomerId customerId) {
