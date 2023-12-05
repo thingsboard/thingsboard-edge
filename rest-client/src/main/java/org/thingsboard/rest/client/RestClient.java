@@ -558,7 +558,7 @@ public class RestClient implements Closeable {
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<List<EntitySubtype>>() {
-        }).getBody();
+                }).getBody();
     }
 
     public AlarmComment saveAlarmComment(AlarmId alarmId, AlarmComment alarmComment) {
@@ -677,6 +677,7 @@ public class RestClient implements Closeable {
                 }).getBody();
     }
 
+    @Deprecated(since = "3.6.2")
     public List<EntitySubtype> getAssetTypes() {
         return restTemplate.exchange(URI.create(
                         baseURL + "/api/asset/types"),
@@ -684,6 +685,15 @@ public class RestClient implements Closeable {
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<List<EntitySubtype>>() {
                 }).getBody();
+    }
+
+    public List<EntitySubtype> getAssetProfileNames(boolean activeOnly) {
+        return restTemplate.exchange(
+                baseURL + "/api/assetProfile/names?activeOnly={activeOnly}",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<List<EntitySubtype>>() {
+                }, activeOnly).getBody();
     }
 
     public BulkImportResult<Asset> processAssetsBulkImport(BulkImportRequest request) {
@@ -1182,6 +1192,7 @@ public class RestClient implements Closeable {
                 }).getBody();
     }
 
+    @Deprecated(since = "3.6.2")
     public List<EntitySubtype> getDeviceTypes() {
         return restTemplate.exchange(
                 baseURL + "/api/device/types",
@@ -1189,6 +1200,15 @@ public class RestClient implements Closeable {
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<List<EntitySubtype>>() {
                 }).getBody();
+    }
+
+    public List<EntitySubtype> getDeviceProfileNames(boolean activeOnly) {
+        return restTemplate.exchange(
+                baseURL + "/api/deviceProfile/names?activeOnly={activeOnly}",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<List<EntitySubtype>>() {
+                }, activeOnly).getBody();
     }
 
     public JsonNode claimDevice(String deviceName, ClaimRequest claimRequest) {

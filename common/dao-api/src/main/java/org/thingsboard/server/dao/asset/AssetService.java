@@ -82,6 +82,7 @@ public interface AssetService extends EntityDaoService {
 
     ListenableFuture<List<Asset>> findAssetsByQuery(TenantId tenantId, AssetSearchQuery query);
 
+    @Deprecated(since = "3.6.2", forRemoval = true)
     ListenableFuture<List<EntitySubtype>> findAssetTypesByTenantId(TenantId tenantId);
 
     PageData<Asset> findAssetsByEntityGroupId(EntityGroupId groupId, PageLink pageLink);

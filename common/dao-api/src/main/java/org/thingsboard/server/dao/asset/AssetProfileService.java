@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.asset;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.asset.AssetProfileInfo;
 import org.thingsboard.server.common.data.id.AssetProfileId;
@@ -76,5 +77,7 @@ public interface AssetProfileService extends EntityDaoService {
     boolean setDefaultAssetProfile(TenantId tenantId, AssetProfileId assetProfileId);
 
     void deleteAssetProfilesByTenantId(TenantId tenantId);
+
+    List<EntityInfo> findAssetProfileNamesByTenantId(TenantId tenantId, boolean activeOnly);
 
 }

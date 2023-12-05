@@ -45,6 +45,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.asset.AssetProfileInfo;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -264,4 +265,19 @@ public class AssetProfileController extends BaseController {
         }
         return checkNotNull(assetProfileService.findAssetProfilesByIdsAsync(tenantId, assetProfileIds).get());
     }
+
+    @ApiOperation(value = "Get Asset Profile names (getAssetProfileNames)",
+            notes = "Returns a set of unique asset profile names owned by the tenant."
+                    + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/assetProfile/names", method = RequestMethod.GET)
+    @ResponseBody
+    public List<EntityInfo> getAssetProfileNames(
+            @ApiParam(value = "Flag indicating whether to retrieve exclusively the names of asset profiles that are referenced by tenant's assets.")
+            @RequestParam(value = "activeOnly", required = false, defaultValue = "false") boolean activeOnly) throws ThingsboardException {
+        SecurityUser user = getCurrentUser();
+        TenantId tenantId = user.getTenantId();
+        return checkNotNull(assetProfileService.findAssetProfileNamesByTenantId(tenantId, activeOnly));
+    }
+
 }
