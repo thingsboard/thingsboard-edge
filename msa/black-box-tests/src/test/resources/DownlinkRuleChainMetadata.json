@@ -23,7 +23,7 @@
       "debugMode": false,
       "configuration": {
         "scope": "CLIENT_SCOPE",
-        "notifyDevice": "false"
+        "notifyDevice": false
       }
     },
     {

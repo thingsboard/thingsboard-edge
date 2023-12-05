@@ -77,6 +77,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
+import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.dashboard.TbDashboardService;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -96,6 +97,8 @@ import static org.thingsboard.server.controller.ControllerConstants.DASHBOARD_TE
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.INCLUDE_CUSTOMERS_OR_SUB_CUSTOMERS;
+import static org.thingsboard.server.controller.ControllerConstants.INLINE_IMAGES;
+import static org.thingsboard.server.controller.ControllerConstants.INLINE_IMAGES_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
@@ -122,6 +125,7 @@ import static org.thingsboard.server.controller.ControllerConstants.WL_WRITE_CHE
 public class DashboardController extends BaseController {
 
     private final TbDashboardService tbDashboardService;
+    private final ImageService imageService;
     public static final String DASHBOARD_ID = "dashboardId";
     private static final String HOME_DASHBOARD_ID = "homeDashboardId";
     private static final String HOME_DASHBOARD_HIDE_TOOLBAR = "homeDashboardHideToolbar";
@@ -183,10 +187,16 @@ public class DashboardController extends BaseController {
     @ResponseBody
     public Dashboard getDashboardById(
             @ApiParam(value = DASHBOARD_ID_PARAM_DESCRIPTION)
-            @PathVariable(DASHBOARD_ID) String strDashboardId) throws ThingsboardException {
+            @PathVariable(DASHBOARD_ID) String strDashboardId,
+            @ApiParam(value = INLINE_IMAGES_DESCRIPTION)
+            @RequestParam(value = INLINE_IMAGES, required = false) boolean inlineImages) throws ThingsboardException {
         checkParameter(DASHBOARD_ID, strDashboardId);
         DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));
-        return checkDashboardId(dashboardId, Operation.READ);
+        var result = checkDashboardId(dashboardId, Operation.READ);
+        if (inlineImages) {
+            imageService.inlineImages(result);
+        }
+        return result;
     }
 
     @ApiOperation(value = "Create Or Update Dashboard (saveDashboard)",
@@ -523,7 +533,7 @@ public class DashboardController extends BaseController {
         JsonNode additionalInfo;
         HomeDashboard homeDashboard = null;
 
-        boolean ownerWhiteLabelingAllowed = whiteLabelingService.isWhiteLabelingAllowed(getTenantId(), user.getOwnerId());
+        boolean ownerWhiteLabelingAllowed = whiteLabelingService.isWhiteLabelingAllowed(getTenantId(), user.getCustomerId());
 
         if (ownerWhiteLabelingAllowed) {
             additionalInfo = user.getAdditionalInfo();
@@ -535,8 +545,9 @@ public class DashboardController extends BaseController {
                 additionalInfo = customer.getAdditionalInfo();
                 homeDashboard = extractHomeDashboardFromAdditionalInfo(additionalInfo);
             }
+            //TODO: merge with parent customers if any.
             if (homeDashboard == null && ((securityUser.isTenantAdmin() && ownerWhiteLabelingAllowed) ||
-                    (securityUser.isCustomerUser() && whiteLabelingService.isWhiteLabelingAllowed(getTenantId(), getTenantId())))) {
+                    (securityUser.isCustomerUser() && whiteLabelingService.isWhiteLabelingAllowed(getTenantId(), null)))) {
                 Tenant tenant = tenantService.findTenantById(securityUser.getTenantId());
                 additionalInfo = tenant.getAdditionalInfo();
                 homeDashboard = extractHomeDashboardFromAdditionalInfo(additionalInfo);
@@ -670,8 +681,8 @@ public class DashboardController extends BaseController {
         }
         Customer customer = customerService.findCustomerById(getTenantId(), getCurrentUser().getCustomerId());
         JsonNode additionalInfo = customer.getAdditionalInfo();
-        if (additionalInfo == null || !(additionalInfo instanceof ObjectNode)) {
-            additionalInfo = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        if (!(additionalInfo instanceof ObjectNode)) {
+            additionalInfo = JacksonUtil.newObjectNode();
         }
         if (homeDashboardInfo.getDashboardId() != null) {
             ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_ID, homeDashboardInfo.getDashboardId().getId().toString());

@@ -40,6 +40,7 @@ import lombok.Setter;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
+import org.thingsboard.server.common.data.HasImage;
 import org.thingsboard.server.common.data.HasTitle;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -49,7 +50,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 
 @ApiModel
 @EqualsAndHashCode(callSuper = true)
-public class WidgetsBundle extends BaseData<WidgetsBundleId> implements TenantEntity, ExportableEntity<WidgetsBundleId>, HasTitle {
+public class WidgetsBundle extends BaseData<WidgetsBundleId> implements TenantEntity, ExportableEntity<WidgetsBundleId>, HasTitle, HasImage {
 
     private static final long serialVersionUID = -7627368878362410489L;
 
@@ -75,12 +76,13 @@ public class WidgetsBundle extends BaseData<WidgetsBundleId> implements TenantEn
     @Length(fieldName = "image", max = 1000000)
     @Getter
     @Setter
-    @ApiModelProperty(position = 6, value = "Base64 encoded thumbnail", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @ApiModelProperty(position = 6, value = "Relative or external image URL. Replaced with image data URL (Base64) in case of relative URL and 'inlineImages' option enabled.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private String image;
 
     @NoXss
     @Length(fieldName = "description", max = 1024)
     @Getter
+
     @Setter
     @ApiModelProperty(position = 7, value = "Description", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private String description;
