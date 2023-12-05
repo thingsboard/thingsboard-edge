@@ -817,6 +817,14 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                         log.info("Updating schema ...");
                         schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.6.1", SCHEMA_UPDATE_SQL);
                         loadSql(schemaUpdateFile, conn);
+                        try {
+                            conn.createStatement().execute("UPDATE rule_node SET " +
+                                    "configuration = (configuration::jsonb - 'groupOwnerId')::varchar, " +
+                                    "configuration_version = 1 " +
+                                    "WHERE type = 'org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNode' AND configuration_version < 1;");
+                        } catch (Exception e) {
+                            log.warn("Failed to execute update script for duplicate to group rule nodes due to: ", e);
+                        }
                         conn.createStatement().execute("UPDATE tb_schema_settings SET schema_version = 3006002;");
                         log.info("Schema updated to version 3.6.2.");
                     } else {
