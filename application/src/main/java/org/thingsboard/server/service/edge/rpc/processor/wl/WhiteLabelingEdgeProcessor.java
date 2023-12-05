@@ -83,8 +83,9 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
             if (EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_6_1)) {
                 return constructDeprecatedWhiteLabelingEvent(edgeEvent, entityId);
             }
+            TenantId tenantId = EntityType.TENANT.equals(entityId.getEntityType()) ? (TenantId) entityId : edgeEvent.getTenantId();
             CustomerId customerId = EntityType.CUSTOMER.equals(entityId.getEntityType()) ? new CustomerId(entityId.getId()) : null;
-            WhiteLabeling whiteLabeling = whiteLabelingService.findByEntityId(edgeEvent.getTenantId(), customerId, getWhiteLabelingType(edgeEvent.getType()));
+            WhiteLabeling whiteLabeling = whiteLabelingService.findByEntityId(tenantId, customerId, getWhiteLabelingType(edgeEvent.getType()));
             if (whiteLabeling == null) {
                 return null;
             }
@@ -171,8 +172,9 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
             if (EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_6_1)) {
                 return constructDeprecatedLoginWhiteLabelingEvent(edgeEvent, entityId);
             }
+            TenantId tenantId = EntityType.TENANT.equals(entityId.getEntityType()) ? (TenantId) entityId : edgeEvent.getTenantId();
             CustomerId customerId = EntityType.CUSTOMER.equals(entityId.getEntityType()) ? new CustomerId(entityId.getId()) : null;
-            WhiteLabeling whiteLabeling = whiteLabelingService.findByEntityId(edgeEvent.getTenantId(), customerId, WhiteLabelingType.LOGIN);
+            WhiteLabeling whiteLabeling = whiteLabelingService.findByEntityId(tenantId, customerId, WhiteLabelingType.LOGIN);
             if (whiteLabeling == null) {
                 return null;
             }

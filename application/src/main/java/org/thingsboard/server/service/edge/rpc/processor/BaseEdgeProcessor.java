@@ -149,6 +149,9 @@ import org.thingsboard.server.service.edge.rpc.constructor.translation.CustomTra
 import org.thingsboard.server.service.edge.rpc.constructor.user.UserMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.widget.WidgetMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.wl.WhiteLabelingParamsProtoConstructor;
+import org.thingsboard.server.service.edge.rpc.processor.alarm.AlarmEdgeProcessorFactory;
+import org.thingsboard.server.service.edge.rpc.processor.asset.AssetEdgeProcessorFactory;
+import org.thingsboard.server.service.edge.rpc.processor.entityview.EntityViewProcessorFactory;
 import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
@@ -336,6 +339,15 @@ public abstract class BaseEdgeProcessor {
 
     @Autowired
     protected ResourceMsgConstructorFactory resourceMsgConstructorFactory;
+
+    @Autowired
+    protected AlarmEdgeProcessorFactory alarmEdgeProcessorFactory;
+
+    @Autowired
+    protected AssetEdgeProcessorFactory assetEdgeProcessorFactory;
+
+    @Autowired
+    protected EntityViewProcessorFactory entityViewProcessorFactory;
 
     @Autowired
     protected EdgeSynchronizationManager edgeSynchronizationManager;
