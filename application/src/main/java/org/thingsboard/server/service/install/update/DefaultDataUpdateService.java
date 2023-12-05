@@ -46,12 +46,10 @@ import org.thingsboard.rule.engine.flow.TbRuleChainInputNode;
 import org.thingsboard.rule.engine.flow.TbRuleChainInputNodeConfiguration;
 import org.thingsboard.rule.engine.profile.TbDeviceProfileNode;
 import org.thingsboard.rule.engine.profile.TbDeviceProfileNodeConfiguration;
-import org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNode;
-import org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNodeConfiguration;
+import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
-import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
@@ -109,8 +107,8 @@ import org.thingsboard.server.dao.audit.AuditLogDao;
 import org.thingsboard.server.dao.blob.BlobEntityDao;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
-import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.device.DeviceConnectivityConfiguration;
+import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeEventDao;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.EntityService;
@@ -336,8 +334,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 } else {
                     systemDataLoaderService.updateMailTemplates(mailTemplatesSettings);
                 }
-                // todo: update TbDuplicateMsgToGroupNode to use TbVersionedNode interface.
-                updateDuplicateMsgRuleNode();
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
@@ -576,28 +572,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
         } catch (Exception e) {
             log.error("Unable to update Tenant", e);
         }
-    }
-
-    private void updateDuplicateMsgRuleNode() {
-        PageDataIterable<RuleNode> ruleNodesIterator = new PageDataIterable<>(
-                link -> ruleChainService.findAllRuleNodesByType(TbDuplicateMsgToGroupNode.class.getName(), link), 1024);
-        ruleNodesIterator.forEach(ruleNode -> {
-            TbDuplicateMsgToGroupNodeConfiguration configNode = JacksonUtil.convertValue(ruleNode.getConfiguration(), TbDuplicateMsgToGroupNodeConfiguration.class);
-            if (!configNode.isEntityGroupIsMessageOriginator()) {
-                if (configNode.getGroupOwnerId() == null) {
-                    RuleChain targetRuleChain = ruleChainService.findRuleChainById(TenantId.SYS_TENANT_ID, ruleNode.getRuleChainId());
-                    if (targetRuleChain != null) {
-                        TenantId tenantId = targetRuleChain.getTenantId();
-                        EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, configNode.getEntityGroupId());
-                        if (entityGroup != null) {
-                            configNode.setGroupOwnerId(entityGroup.getOwnerId());
-                            ruleNode.setConfiguration(JacksonUtil.valueToTree(configNode));
-                            ruleChainService.saveRuleNode(tenantId, ruleNode);
-                        }
-                    }
-                }
-            }
-        });
     }
 
     private final PaginatedUpdater<String, Tenant> tenantsDefaultEdgeRuleChainUpdater =

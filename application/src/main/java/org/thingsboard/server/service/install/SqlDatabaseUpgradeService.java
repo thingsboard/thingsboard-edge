@@ -785,6 +785,14 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     } catch (Exception e) {
                         log.warn("Failed to execute update script for save attributes rule nodes due to: ", e);
                     }
+                    try {
+                        connection.createStatement().execute("UPDATE rule_node SET " +
+                                "configuration = (configuration::jsonb - 'groupOwnerId')::varchar, " +
+                                "configuration_version = 1 " +
+                                "WHERE type = 'org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNode' AND configuration_version < 1;");
+                    } catch (Exception e) {
+                        log.warn("Failed to execute update script for duplicate to group rule nodes due to: ", e);
+                    }
                 });
                 break;
             case "ce":

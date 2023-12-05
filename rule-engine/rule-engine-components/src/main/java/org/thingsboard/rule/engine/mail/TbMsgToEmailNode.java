@@ -30,7 +30,6 @@
  */
 package org.thingsboard.rule.engine.mail;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
@@ -48,17 +47,16 @@ import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RuleNode(
@@ -66,8 +64,8 @@ import java.util.regex.Pattern;
         name = "to email",
         configClazz = TbMsgToEmailNodeConfiguration.class,
         nodeDescription = "Transforms message to email message",
-        nodeDetails = "Transforms message to email message by populating email fields using values derived from message metadata. " +
-                      "Set 'SEND_EMAIL' output message type.",
+        nodeDetails = "Transforms message to email message. If transformation completed successfully output message type will be set to <code>SEND_EMAIL</code>.<br><br>" +
+                "Output connections: <code>Success</code>, <code>Failure</code>.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbTransformationNodeToEmailConfig",
         icon = "email"
@@ -83,12 +81,12 @@ public class TbMsgToEmailNode implements TbNode {
     private static final Pattern dateVarPattern = Pattern.compile("%d\\{([^\\}]*)\\}");
 
     private TbMsgToEmailNodeConfiguration config;
-    private boolean isDynamicHtmlTemplate;
+    private boolean dynamicMailBodyType;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbMsgToEmailNodeConfiguration.class);
-        this.isDynamicHtmlTemplate = DYNAMIC.equals(this.config.getMailBodyType());
+        this.dynamicMailBodyType = DYNAMIC.equals(this.config.getMailBodyType());
      }
 
     @Override
@@ -103,13 +101,12 @@ public class TbMsgToEmailNode implements TbNode {
         }
     }
 
-    private TbMsg buildEmailMsg(TbContext ctx, TbMsg msg, TbEmail email) throws JsonProcessingException {
+    private TbMsg buildEmailMsg(TbContext ctx, TbMsg msg, TbEmail email) {
         String emailJson = JacksonUtil.toString(email);
         return ctx.transformMsg(msg, TbMsgType.SEND_EMAIL, msg.getOriginator(), msg.getMetaData().copy(), emailJson);
     }
 
-
-    private TbEmail convert(TbMsg msg) throws IOException {
+    private TbEmail convert(TbMsg msg) {
         TimeZone tz = null;
         String emailTimezone = msg.getMetaData().getValue(EMAIL_TIMEZONE);
         if (!StringUtils.isEmpty(emailTimezone)) {
@@ -122,44 +119,32 @@ public class TbMsgToEmailNode implements TbNode {
         builder.to(fromTemplate(this.config.getToTemplate(), msg));
         builder.cc(fromTemplate(this.config.getCcTemplate(), msg));
         builder.bcc(fromTemplate(this.config.getBccTemplate(), msg));
-        if(isDynamicHtmlTemplate) {
-            builder.html(Boolean.parseBoolean(fromTemplate(this.config.getIsHtmlTemplate(), msg)));
-        } else {
-            builder.html(Boolean.parseBoolean(this.config.getMailBodyType()));
-        }
+        String htmlStr = dynamicMailBodyType ?
+                fromTemplate(config.getIsHtmlTemplate(), msg) : config.getMailBodyType();
+        builder.html(Boolean.parseBoolean(htmlStr));
         builder.subject(fromTemplateWithDate(this.config.getSubjectTemplate(), msg, currentDate, tz));
         builder.body(fromTemplateWithDate(this.config.getBodyTemplate(), msg, currentDate, tz));
-        List<BlobEntityId> attachments = new ArrayList<>();
         String attachmentsStr = msg.getMetaData().getValue(ATTACHMENTS);
         if (!StringUtils.isEmpty(attachmentsStr)) {
-            String[] attachmentsStrArray = attachmentsStr.split(",");
-            for (String attachmentStr : attachmentsStrArray) {
-                attachments.add(new BlobEntityId(UUID.fromString(attachmentStr)));
-            }
+            builder.attachments(Arrays.stream(attachmentsStr.split(","))
+                    .map(UUID::fromString)
+                    .map(BlobEntityId::new).collect(Collectors.toList()));
         }
         String imagesStr = msg.getMetaData().getValue(IMAGES);
         if (!StringUtils.isEmpty(imagesStr)) {
             Map<String, String> imgMap = JacksonUtil.fromString(imagesStr, new TypeReference<HashMap<String, String>>() {});
             builder.images(imgMap);
         }
-        builder.attachments(attachments);
         return builder.build();
     }
 
     private String fromTemplate(String template, TbMsg msg) {
-        if (!StringUtils.isEmpty(template)) {
-            return TbNodeUtils.processPattern(template, msg);
-        } else {
-            return null;
-        }
+        return StringUtils.isNotEmpty(template) ? TbNodeUtils.processPattern(template, msg) : null;
     }
 
     private String fromTemplateWithDate(String template, TbMsg msg, Date currentDate, TimeZone tz) {
-        if (!StringUtils.isEmpty(template)) {
-            return processDatePatterns(TbNodeUtils.processPattern(template, msg), currentDate, tz);
-        } else {
-            return null;
-        }
+        return StringUtils.isNotEmpty(template) ?
+                processDatePatterns(TbNodeUtils.processPattern(template, msg), currentDate, tz) : null;
     }
 
     private String processDatePatterns(String datePattern, Date currentDate, TimeZone tz) {
