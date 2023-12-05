@@ -85,6 +85,7 @@ export class DefaultTenantProfileConfigurationComponent implements ControlValueA
       maxSchedulerEvents: [null, [Validators.required, Validators.min(0)]],
       maxResourcesInBytes: [null, [Validators.required, Validators.min(0)]],
       maxOtaPackagesInBytes: [null, [Validators.required, Validators.min(0)]],
+      maxResourceSize: [null, [Validators.required, Validators.min(0)]],
       transportTenantMsgRateLimit: [null, []],
       transportTenantTelemetryMsgRateLimit: [null, []],
       transportTenantTelemetryDataPointsRateLimit: [null, []],

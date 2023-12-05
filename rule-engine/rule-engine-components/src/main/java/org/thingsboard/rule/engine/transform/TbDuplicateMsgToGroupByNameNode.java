@@ -38,6 +38,7 @@ import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IdBased;
@@ -52,13 +53,14 @@ import java.util.concurrent.ExecutionException;
 @Slf4j
 @RuleNode(
         type = ComponentType.TRANSFORMATION,
-        name = "duplicate to group by group name",
+        name = "duplicate to group by name",
         configClazz = TbDuplicateMsgToGroupByNameNodeConfiguration.class,
-        nodeDescription = "Duplicates message to all entities belonging to resolved Entity Group",
-        nodeDetails = "Entities are fetched from Entity Group detected according to the configuration. Entity Group is dynamically resolved based on it's name and type." +
-                "By default, rule node attempts to find the group by name that belongs to the same customer which owns the device (or other message originator). " +
-                "If no such group on the customer level, rule node will search for parent customer level and finally for the tenant level. " +
-                "You may configure rule node to search only tenant level entity groups.",
+        nodeDescription = "Duplicates message to all entities belonging to resolved Entity group",
+        nodeDetails = "Entities are fetched from entity group that is detected according to the configuration. " +
+                "Entity group is dynamically resolved based on it's name and type. " +
+                "For each entity from group new message is created with entity as originator " +
+                "and message parameters copied from original message.<br><br>" +
+                "Output connections: <code>Success</code>, <code>Failure</code>.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbTransformationNodeDuplicateToGroupByNameConfig",
         icon = "call_split"
@@ -69,7 +71,11 @@ public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgNode<
     protected TbDuplicateMsgToGroupByNameNodeConfiguration loadNodeConfiguration(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         var config = TbNodeUtils.convert(configuration, TbDuplicateMsgToGroupByNameNodeConfiguration.class);
         if (Resource.groupResourceFromGroupType(config.getGroupType()) == null) {
-            throw new IllegalArgumentException("Wrong configuration. Specified Entity Type is not a group entity.");
+            throw new IllegalArgumentException("Entity Type :" + config.getGroupType() + " is not a group entity. " +
+                    "Only " + EntityType.GROUP_ENTITY_TYPES + " types are allowed!");
+        }
+        if (StringUtils.isEmpty(config.getGroupName())) {
+            throw new IllegalArgumentException("Group name should be specified!");
         }
         return config;
     }
@@ -81,24 +87,16 @@ public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgNode<
 
     @Override
     protected ListenableFuture<List<EntityId>> getNewOriginators(TbContext ctx, EntityId original) {
-        try {
-            return ctx.getPeContext().getEntityGroupService().findAllEntityIdsAsync(ctx.getTenantId(), detectTargetEntityGroupId(ctx, original), new PageLink(Integer.MAX_VALUE));
-        } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        var entityGroupId = detectTargetEntityGroupId(ctx, original);
+        return ctx.getPeContext().getEntityGroupService().findAllEntityIdsAsync(ctx.getTenantId(), entityGroupId, new PageLink(Integer.MAX_VALUE));
     }
 
-    private EntityGroupId detectTargetEntityGroupId(TbContext ctx, EntityId originator) throws ExecutionException, InterruptedException {
-        EntityId ownerId;
-        if (config.isSearchEntityGroupForTenantOnly()) {
-            ownerId = ctx.getTenantId();
-        } else {
-            ownerId = ctx.getPeContext().getOwner(ctx.getTenantId(), originator);
-        }
+    private EntityGroupId detectTargetEntityGroupId(TbContext ctx, EntityId originator) {
+        EntityId ownerId = config.isSearchEntityGroupForTenantOnly() ? ctx.getTenantId() : ctx.getPeContext().getOwner(ctx.getTenantId(), originator);
         return tryFindGroupByOwnerId(ctx, ownerId);
     }
 
-    private EntityGroupId tryFindGroupByOwnerId(TbContext ctx, EntityId ownerId) throws ExecutionException, InterruptedException {
+    private EntityGroupId tryFindGroupByOwnerId(TbContext ctx, EntityId ownerId) {
         EntityGroupId entityGroupId = ctx.getPeContext().getEntityGroupService()
                 .findEntityGroupByTypeAndName(ctx.getTenantId(), ownerId, config.getGroupType(), config.getGroupName())
                 .map(IdBased::getId).orElse(null);

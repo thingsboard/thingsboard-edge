@@ -327,6 +327,12 @@ message CoreStartupMsg {
   int64 ts = 3;
 }
 
+message ResourceCacheInvalidateMsg {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  string resourceKey = 3;
+}
+
 message LwM2MRegistrationRequestMsg {
   string tenantId = 1;
   string endpoint = 2;
@@ -1092,6 +1098,13 @@ message RemoveRpcActorMsgProto {
   int64 deviceIdLSB = 6;
 }
 
+message DeviceDeleteMsgProto {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  int64 deviceIdMSB = 3;
+  int64 deviceIdLSB = 4;
+}
+
 message ToDeviceActorNotificationMsgProto {
   DeviceEdgeUpdateMsgProto deviceEdgeUpdateMsg = 1;
   DeviceNameOrTypeUpdateMsgProto deviceNameOrTypeMsg = 2;
@@ -1100,6 +1113,7 @@ message ToDeviceActorNotificationMsgProto {
   ToDeviceRpcRequestActorMsgProto toDeviceRpcRequestMsg = 5;
   FromDeviceRpcResponseActorMsgProto fromDeviceRpcResponseMsg = 6;
   RemoveRpcActorMsgProto removeRpcActorMsg = 7;
+  DeviceDeleteMsgProto deviceDeleteMsg = 8;
 }
 
 /**
@@ -1367,6 +1381,7 @@ message ToCoreNotificationMsg {
   EdgeEventUpdateMsgProto edgeEventUpdate = 17;
   ToEdgeSyncRequestMsgProto toEdgeSyncRequest = 18;
   FromEdgeSyncResponseMsgProto fromEdgeSyncResponse = 19;
+  ResourceCacheInvalidateMsg resourceCacheInvalidateMsg = 20;
 }
 
 /* Messages that are handled by ThingsBoard RuleEngine Service */

@@ -42,7 +42,7 @@ import java.util.UUID;
 public class JacksonUtilTest {
 
     @Test
-    public void allow_unquoted_field_mapper_test() {
+    public void allowUnquotedFieldMapperTest() {
         String data = "{data: 123}";
         JsonNode actualResult = JacksonUtil.toJsonNode(data, JacksonUtil.ALLOW_UNQUOTED_FIELD_NAMES_MAPPER); // should be: {"data": 123}
         ObjectNode expectedResult = JacksonUtil.newObjectNode();
@@ -58,7 +58,7 @@ public class JacksonUtilTest {
         asset.setName("Test");
         asset.setType("type");
         String serializedAsset = JacksonUtil.toString(asset);
-        JsonNode jsonNode = JacksonUtil.toJsonNode(serializedAsset, JacksonUtil.IGNORE_UNKNOWN_PROPERTIES_JSON_MAPPER);
+        JsonNode jsonNode = JacksonUtil.toJsonNode(serializedAsset);
         // case: add new field to serialized Asset string and check for backward compatibility with original Asset object
         Assert.assertNotNull(jsonNode);
         ((ObjectNode) jsonNode).put("test", (String) null);

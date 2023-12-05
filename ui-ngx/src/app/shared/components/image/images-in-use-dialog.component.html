@@ -1,0 +1,97 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<h2 mat-dialog-title>{{title}}</h2>
+<div mat-dialog-content class="tb-images-in-use-content" [class]="{multiple: data.multiple}">
+  <div [innerHTML]="message | safe: 'html'"></div>
+  <ng-container *ngIf="data.multiple; else singleImageReferences">
+    <div class="table-container">
+      <table mat-table [dataSource]="dataSource">
+        <ng-container matColumnDef="select" sticky>
+          <mat-header-cell *matHeaderCellDef style="width: 30px;">
+            <mat-checkbox (change)="$event ? dataSource.masterToggle() : null"
+                          [checked]="dataSource.selection.hasValue() && (dataSource.isAllSelected() | async)"
+                          [indeterminate]="dataSource.selection.hasValue() && (dataSource.isAllSelected() | async) === false">
+            </mat-checkbox>
+          </mat-header-cell>
+          <mat-cell *matCellDef="let image">
+            <mat-checkbox (click)="$event.stopPropagation()"
+                          (change)="$event ? dataSource.selection.toggle(image) : null"
+                          [checked]="dataSource.selection.isSelected(image)">
+            </mat-checkbox>
+          </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="preview">
+          <mat-header-cell *matHeaderCellDef style="width: 50px; min-width: 50px;"></mat-header-cell>
+          <mat-cell *matCellDef="let image">
+            <img class="tb-image-preview" [src]="image.link | image: {preview: true} | async" alt="{{ image.title }}">
+          </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="title">
+          <mat-header-cell *matHeaderCellDef style="width: 100%;">
+            <ng-container *ngIf="dataSource.selection.isEmpty(); else selectedImages">
+              {{ 'image.name' | translate }}
+            </ng-container>
+            <ng-template #selectedImages>
+              {{ translate.get('image.selected-images', {count: dataSource.selection.selected.length}) | async }}
+            </ng-template>
+          </mat-header-cell>
+          <mat-cell *matCellDef="let image">
+            {{ image.title }}
+          </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="references">
+          <mat-header-cell *matHeaderCellDef></mat-header-cell>
+          <mat-cell *matCellDef="let image">
+            <button #showReferencesButton
+                    mat-stroked-button
+                    color="primary"
+                    (click)="toggleShowReferences($event, image, showReferencesButton)">{{ 'image.references' | translate }}</button>
+          </mat-cell>
+        </ng-container>
+        <mat-header-row [ngClass]="{'mat-row-select': true}" *matHeaderRowDef="['select', 'preview', 'title', 'references']; sticky: true"></mat-header-row>
+        <mat-row [ngClass]="{'mat-row-select': true,
+                                 'mat-selected': dataSource.selection.isSelected(image)}"
+                 *matRowDef="let image; columns: ['select', 'preview', 'title', 'references'];"></mat-row>
+      </table>
+    </div>
+  </ng-container>
+</div>
+<div mat-dialog-actions fxLayoutAlign="end center">
+  <button mat-button color="primary" (click)="cancel()">{{'action.cancel' | translate}}</button>
+  <button mat-raised-button color="accent" (click)="delete()" [disabled]="data.multiple && dataSource.selection.isEmpty()"
+          cdkFocusInitial>{{ (data.multiple ? 'action.delete-selected' : 'action.delete-anyway') | translate}}</button>
+</div>
+<ng-template #singleImageReferences>
+  <tb-image-references [references]="references"></tb-image-references>
+  <div [innerHTML]="'image.delete-image-in-use-text' | translate | safe: 'html'"></div>
+</ng-template>
