@@ -265,7 +265,8 @@ export interface NonConfirmedNotificationEscalation {
   targets: Array<string>;
 }
 
-export interface NotificationTarget extends Omit<BaseData<NotificationTargetId>, 'label'>, ExportableEntity<NotificationTargetId> {
+export interface NotificationTarget extends Omit<BaseData<NotificationTargetId>, 'label'>,
+  ExportableEntity<NotificationTargetId> {
   tenantId: TenantId;
   configuration: NotificationTargetConfig;
 }
@@ -327,7 +328,8 @@ export const NotificationTargetTypeTranslationMap = new Map<NotificationTargetTy
   [NotificationTargetType.MICROSOFT_TEAMS, 'notification.delivery-method.microsoft-teams'],
 ]);
 
-export interface NotificationTemplate extends Omit<BaseData<NotificationTemplateId>, 'label'>, ExportableEntity<NotificationTemplateId> {
+export interface NotificationTemplate extends Omit<BaseData<NotificationTemplateId>, 'label'>,
+  ExportableEntity<NotificationTemplateId> {
   tenantId: TenantId;
   notificationType: NotificationType;
   configuration: NotificationTemplateConfig;

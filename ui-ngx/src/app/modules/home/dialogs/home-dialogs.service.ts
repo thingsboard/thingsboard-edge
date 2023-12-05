@@ -36,7 +36,7 @@ import { forkJoin, Observable, of } from 'rxjs';
 import {
   ImportDialogCsvComponent,
   ImportDialogCsvData
-} from '@home/components/import-export/import-dialog-csv.component';
+} from '@shared/import-export/import-dialog-csv.component';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { DialogService } from '@core/services/dialog.service';
 import { EntityGroupService } from '@core/http/entity-group.service';

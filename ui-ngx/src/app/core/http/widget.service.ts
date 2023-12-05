@@ -117,6 +117,11 @@ export class WidgetService {
     return this.http.get<WidgetsBundle>(`/api/widgetsBundle/${widgetsBundleId}`, defaultHttpOptionsFromConfig(config));
   }
 
+  public exportWidgetsBundle(widgetsBundleId: string,
+                             config?: RequestConfig): Observable<WidgetsBundle> {
+    return this.http.get<WidgetsBundle>(`/api/widgetsBundle/${widgetsBundleId}?inlineImages=true`, defaultHttpOptionsFromConfig(config));
+  }
+
   public getWidgetsBundlesByIds(widgetsBundleIds: Array<string>, config?: RequestConfig): Observable<Array<WidgetsBundle>> {
     return this.http.get<Array<WidgetsBundle>>(`/api/widgetsBundles?widgetsBundleIds=${widgetsBundleIds.join(',')}`,
       defaultHttpOptionsFromConfig(config)).pipe(
@@ -163,9 +168,9 @@ export class WidgetService {
       defaultHttpOptionsFromConfig(config));
   }
 
-  public getBundleWidgetTypesDetails(widgetsBundleId: string,
+  public exportBundleWidgetTypesDetails(widgetsBundleId: string,
                                      config?: RequestConfig): Observable<Array<WidgetTypeDetails>> {
-    return this.http.get<Array<WidgetTypeDetails>>(`/api/widgetTypesDetails?widgetsBundleId=${widgetsBundleId}`,
+    return this.http.get<Array<WidgetTypeDetails>>(`/api/widgetTypesDetails?widgetsBundleId=${widgetsBundleId}?inlineImages=true`,
       defaultHttpOptionsFromConfig(config));
   }
 
@@ -227,6 +232,12 @@ export class WidgetService {
   public getWidgetTypeById(widgetTypeId: string,
                            config?: RequestConfig): Observable<WidgetTypeDetails> {
     return this.http.get<WidgetTypeDetails>(`/api/widgetType/${widgetTypeId}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public exportWidgetType(widgetTypeId: string,
+                          config?: RequestConfig): Observable<WidgetTypeDetails> {
+    return this.http.get<WidgetTypeDetails>(`/api/widgetType/${widgetTypeId}?inlineImages=true`,
       defaultHttpOptionsFromConfig(config));
   }
 
