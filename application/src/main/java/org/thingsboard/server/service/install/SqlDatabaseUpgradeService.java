@@ -780,6 +780,12 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
             case "3.6.1":
                 updateSchema("3.6.1", 3006001, "3.6.2", 3006002, connection -> {
                     try {
+                        Path saveAttributesNodeUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.6.1", "save_attributes_node_update.sql");
+                        loadSql(saveAttributesNodeUpdateFile, connection);
+                    } catch (Exception e) {
+                        log.warn("Failed to execute update script for save attributes rule nodes due to: ", e);
+                    }
+                    try {
                         connection.createStatement().execute("UPDATE rule_node SET " +
                                 "configuration = (configuration::jsonb - 'groupOwnerId')::varchar, " +
                                 "configuration_version = 1 " +
