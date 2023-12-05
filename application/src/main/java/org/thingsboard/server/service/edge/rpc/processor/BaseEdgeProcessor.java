@@ -133,7 +133,6 @@ import org.thingsboard.server.service.edge.rpc.constructor.dashboard.DashboardMs
 import org.thingsboard.server.service.edge.rpc.constructor.device.DeviceMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.edge.EdgeMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.entityview.EntityViewMsgConstructorFactory;
-import org.thingsboard.server.service.edge.rpc.constructor.entityview.EntityViewMsgConstructorV1;
 import org.thingsboard.server.service.edge.rpc.constructor.group.GroupMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.integration.IntegrationMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.ota.OtaPackageMsgConstructorFactory;
@@ -310,9 +309,6 @@ public abstract class BaseEdgeProcessor {
 
     @Autowired
     protected EntityViewMsgConstructorFactory entityViewMsgConstructorFactory;
-
-    @Autowired
-    protected EntityViewMsgConstructorV1 entityViewMsgConstructorV1;
 
     @Autowired
     protected DashboardMsgConstructorFactory dashboardMsgConstructorFactory;
