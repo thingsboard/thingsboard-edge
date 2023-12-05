@@ -71,6 +71,9 @@ DO
 $$
     BEGIN
         IF NOT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name = 'white_labeling' AND column_name = 'tenant_id') THEN
+
+            DELETE from white_labeling WHERE entity_type = 'TENANT' AND entity_id != '13814000-1dd2-11b2-8080-808080808080' AND NOT EXISTS(SELECT id FROM tenant WHERE id = entity_id);
+            DELETE from white_labeling WHERE entity_type = 'CUSTOMER' AND NOT EXISTS(SELECT id FROM customer WHERE id = entity_id);
             ALTER TABLE white_labeling ADD COLUMN tenant_id uuid not null default '13814000-1dd2-11b2-8080-808080808080';
             ALTER TABLE white_labeling ADD COLUMN customer_id uuid not null default '13814000-1dd2-11b2-8080-808080808080';
 
