@@ -282,7 +282,7 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
 
         if (!isBaseUrlSet(loginWhiteLabelingParams)) {
             try {
-                loginWhiteLabelingParams = whiteLabelingService.getSystemLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID);
+                loginWhiteLabelingParams = whiteLabelingService.getSystemLoginWhiteLabelingParams();
             } catch (Exception e) {
                 log.warn("Failed to fetch TenantLoginWhiteLabelingParams.");
             }

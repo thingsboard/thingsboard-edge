@@ -39,11 +39,12 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.ExportableEntityDao;
+import org.thingsboard.server.dao.ImageContainerDao;
 
 import java.util.List;
 import java.util.UUID;
 
-public interface AssetProfileDao extends Dao<AssetProfile>, ExportableEntityDao<AssetProfileId, AssetProfile> {
+public interface AssetProfileDao extends Dao<AssetProfile>, ExportableEntityDao<AssetProfileId, AssetProfile>, ImageContainerDao<AssetProfileInfo> {
 
     AssetProfileInfo findAssetProfileInfoById(TenantId tenantId, UUID assetProfileId);
 
@@ -62,4 +63,7 @@ public interface AssetProfileDao extends Dao<AssetProfile>, ExportableEntityDao<
     AssetProfileInfo findDefaultAssetProfileInfo(TenantId tenantId);
 
     AssetProfile findByName(TenantId tenantId, String profileName);
+
+    PageData<AssetProfile> findAllWithImages(PageLink pageLink);
+
 }

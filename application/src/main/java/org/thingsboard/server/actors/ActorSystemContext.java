@@ -46,6 +46,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.service.executors.PubSubRuleNodeExecutorProvider;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.NotificationCenter;
 import org.thingsboard.rule.engine.api.ReportService;
@@ -379,6 +380,11 @@ public class ActorSystemContext {
     @Autowired
     @Getter
     private NotificationExecutorService notificationExecutor;
+
+    @Lazy
+    @Autowired
+    @Getter
+    private PubSubRuleNodeExecutorProvider pubSubRuleNodeExecutorProvider;
 
     @Autowired
     @Getter

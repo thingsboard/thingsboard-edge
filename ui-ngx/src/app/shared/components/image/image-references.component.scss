@@ -1,0 +1,106 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+
+:host {
+  ul.tb-references {
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  li.tb-entities-container {
+    padding: 8px 12px 12px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    border-radius: 8px;
+  }
+  a.tb-reference {
+    color: var(--tb-primary-500);
+    font-weight: inherit;
+  }
+  .tb-entities-title {
+    display: flex;
+    gap: 8px;
+    color: rgba(0, 0, 0, 0.87);
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 24px;
+    letter-spacing: 0.25px;
+  }
+  table.tb-entities-list-table {
+    position: relative;
+    overflow: hidden;
+    padding: 8px 10px 8px 4px;
+    border-radius: 4px;
+    background: #fff;
+    align-self: stretch;
+    z-index: 1;
+    color: rgba(0, 0, 0, 0.76);
+    &:before {
+      display: block;
+      height: auto;
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 4px;
+      border: 1px solid var(--tb-primary-500);
+      background: transparent;
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    td.tb-entity-type {
+      white-space: nowrap;
+      padding-right: 20px;
+      font-size: 14px;
+      font-style: normal;
+      font-weight: 500;
+      line-height: 20px;
+      letter-spacing: 0.25px;
+      &:before {
+        content: "•";
+        padding-left: 8px;
+        padding-right: 8px;
+      }
+    }
+    td.tb-entity-name {
+      width: 100%;
+      font-size: 14px;
+      font-style: normal;
+      font-weight: 400;
+      line-height: 20px;
+      letter-spacing: 0.2px;
+    }
+  }
+}

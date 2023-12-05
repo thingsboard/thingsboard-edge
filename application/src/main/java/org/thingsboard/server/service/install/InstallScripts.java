@@ -32,8 +32,10 @@ package org.thingsboard.server.service.install;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -41,7 +43,6 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ResourceType;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -62,11 +63,11 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.oauth2.OAuth2ConfigTemplateService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
-import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.exception.DataValidationException;
+import org.thingsboard.server.service.install.update.ImagesUpdater;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -74,15 +75,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static org.thingsboard.server.utils.LwM2mObjectModelUtils.toLwm2mResource;
 
@@ -113,6 +114,7 @@ public class InstallScripts {
     public static final String MAIL_TEMPLATES_DIR = "mail_templates";
     public static final String MAIL_TEMPLATES_JSON = "mail_templates.json";
     public static final String MODELS_LWM2M_DIR = "lwm2m-registry";
+    public static final String SOLUTIONS_DIR = "solutions";
 
     public static final String JSON_EXT = ".json";
     public static final String XML_EXT = ".xml";
@@ -146,6 +148,9 @@ public class InstallScripts {
 
     @Autowired
     private ResourceService resourceService;
+
+    @Autowired
+    private ImagesUpdater imagesUpdater;
 
     Path getTenantRuleChainsDir() {
         return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, RULE_CHAINS_DIR);
@@ -188,7 +193,7 @@ public class InstallScripts {
         Map<String, RuleChainId> ruleChainIdMap = loadAdditionalTenantRuleChains(tenantId, getTenantRuleChainsDir());
         Path rootRuleChainFile = getRootTenantRuleChainFile();
         loadRootRuleChain(tenantId, ruleChainIdMap, rootRuleChainFile);
-   }
+    }
 
     private RuleChain loadRuleChain(Path path, JsonNode ruleChainJson, TenantId tenantId, String newRuleChainName) {
         try {
@@ -233,6 +238,7 @@ public class InstallScripts {
     }
 
     public void loadSystemWidgets() throws Exception {
+        log.info("Loading system widgets");
         Map<Path, JsonNode> widgetsBundlesMap = new HashMap<>();
         Path widgetBundlesDir = Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, WIDGET_BUNDLES_DIR);
         try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(widgetBundlesDir, path -> path.toString().endsWith(JSON_EXT))) {
@@ -335,8 +341,53 @@ public class InstallScripts {
         }
     }
 
+    public void updateImages() {
+        imagesUpdater.updateWidgetsBundlesImages();
+        imagesUpdater.updateWidgetTypesImages();
+        imagesUpdater.updateWhiteLabelingImages();
+        imagesUpdater.updateDashboardsImages();
+        imagesUpdater.updateDeviceProfilesImages();
+        imagesUpdater.updateAssetProfilesImages();
+    }
+
+    @SneakyThrows
+    public void loadSystemImages() {
+        log.info("Loading system images...");
+        Stream<Path> dashboardsFiles = Stream.concat(
+                Files.list(Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, DASHBOARDS_DIR)),
+                Files.list(Paths.get(getDataDir(), JSON_DIR, SOLUTIONS_DIR))
+                        .filter(file -> file.toFile().isDirectory())
+                        .flatMap(solutionDir -> {
+                            try {
+                                return Files.list(solutionDir.resolve(DASHBOARDS_DIR));
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        })
+        );
+        try (dashboardsFiles) {
+            dashboardsFiles.forEach(file -> {
+                try {
+                    Dashboard dashboard = JacksonUtil.OBJECT_MAPPER.readValue(file.toFile(), Dashboard.class);
+                    imagesUpdater.createSystemImages(dashboard);
+                } catch (Exception e) {
+                    log.error("Failed to create system images for default dashboard {}", file.getFileName(), e);
+                }
+            });
+        }
+    }
+
     public void loadDashboards(TenantId tenantId, CustomerId customerId) throws Exception {
         Path dashboardsDir = Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, DASHBOARDS_DIR);
+        loadDashboardsFromDir(tenantId, customerId, dashboardsDir);
+    }
+
+    public void createDefaultTenantDashboards(TenantId tenantId, CustomerId customerId) throws Exception {
+        Path dashboardsDir = Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, DASHBOARDS_DIR);
+        loadDashboardsFromDir(tenantId, customerId, dashboardsDir);
+    }
+
+    private void loadDashboardsFromDir(TenantId tenantId, CustomerId customerId, Path dashboardsDir) throws IOException {
         try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(dashboardsDir, path -> path.toString().endsWith(JSON_EXT))) {
             dirStream.forEach(
                     path -> {
@@ -470,7 +521,7 @@ public class InstallScripts {
             dirStream.forEach(
                     path -> {
                         try {
-                            String data = Base64.getEncoder().encodeToString(Files.readAllBytes(path));
+                            byte[] data = Files.readAllBytes(path);
                             TbResource tbResource = new TbResource();
                             tbResource.setTenantId(TenantId.SYS_TENANT_ID);
                             tbResource.setData(data);
@@ -491,15 +542,13 @@ public class InstallScripts {
 
     private void doSaveLwm2mResource(TbResource resource) throws ThingsboardException {
         log.trace("Executing saveResource [{}]", resource);
-        if (StringUtils.isEmpty(resource.getData())) {
+        if (resource.getData() == null || resource.getData().length == 0) {
             throw new DataValidationException("Resource data should be specified!");
         }
         toLwm2mResource(resource);
-        TbResource foundResource =
-                resourceService.getResource(TenantId.SYS_TENANT_ID, ResourceType.LWM2M_MODEL, resource.getResourceKey());
+        TbResource foundResource = resourceService.findResourceByTenantIdAndKey(TenantId.SYS_TENANT_ID, ResourceType.LWM2M_MODEL, resource.getResourceKey());
         if (foundResource == null) {
             resourceService.saveResource(resource);
         }
     }
 }
-
