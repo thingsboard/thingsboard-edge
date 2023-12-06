@@ -128,6 +128,7 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
             securitySettings = new SecuritySettings();
             securitySettings.setPasswordPolicy(new UserPasswordPolicy());
             securitySettings.getPasswordPolicy().setMinimumLength(6);
+            securitySettings.getPasswordPolicy().setMaximumLength(72);
         }
         return securitySettings;
     }
@@ -152,16 +153,25 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
 
     @Override
     public void validateUserCredentials(TenantId tenantId, UserCredentials userCredentials, String username, String password) throws AuthenticationException {
+        SecuritySettings securitySettings = self.getSecuritySettings(tenantId);
+        UserPasswordPolicy passwordPolicy = securitySettings.getPasswordPolicy();
+
+        if (Boolean.TRUE.equals(passwordPolicy.getForceUserToResetPasswordIfNotValid())) {
+            try {
+                validatePasswordByPolicy(password, passwordPolicy);
+            } catch (DataValidationException e) {
+                throw new BadCredentialsException("The entered password violates our policies. If this is your real password, please reset it.");
+            }
+        }
         if (!encoder.matches(password, userCredentials.getPassword())) {
             int failedLoginAttempts = userService.increaseFailedLoginAttempts(tenantId, userCredentials.getUserId());
-            SecuritySettings securitySettings = self.getSecuritySettings(tenantId);
             if (securitySettings.getMaxFailedLoginAttempts() != null && securitySettings.getMaxFailedLoginAttempts() > 0) {
                 if (failedLoginAttempts > securitySettings.getMaxFailedLoginAttempts() && userCredentials.isEnabled()) {
                     lockAccount(tenantId, userCredentials.getUserId(), username, securitySettings.getUserLockoutNotificationEmail(), securitySettings.getMaxFailedLoginAttempts());
                     throw new LockedException("Authentication Failed. Username was locked due to security policy.");
                 }
             }
-            throw new BadCredentialsException("Authentication Failed. Username or Password not valid.");
+            throw new BadCredentialsException("Invalid username or Password.");
         }
 
         if (!userCredentials.isEnabled()) {
@@ -170,7 +180,6 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
 
         userService.resetFailedLoginAttempts(tenantId, userCredentials.getUserId());
 
-        SecuritySettings securitySettings = self.getSecuritySettings(tenantId);
         if (isPositiveInteger(securitySettings.getPasswordPolicy().getPasswordExpirationPeriodDays())) {
             if ((userCredentials.getCreatedTime()
                     + TimeUnit.DAYS.toMillis(securitySettings.getPasswordPolicy().getPasswordExpirationPeriodDays()))
@@ -220,8 +229,31 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
         SecuritySettings securitySettings = self.getSecuritySettings(tenantId);
         UserPasswordPolicy passwordPolicy = securitySettings.getPasswordPolicy();
 
+        validatePasswordByPolicy(password, passwordPolicy);
+
+        if (userCredentials != null && isPositiveInteger(passwordPolicy.getPasswordReuseFrequencyDays())) {
+            long passwordReuseFrequencyTs = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(passwordPolicy.getPasswordReuseFrequencyDays());
+            JsonNode additionalInfo = userCredentials.getAdditionalInfo();
+            if (additionalInfo instanceof ObjectNode && additionalInfo.has(UserServiceImpl.USER_PASSWORD_HISTORY)) {
+                JsonNode userPasswordHistoryJson = additionalInfo.get(UserServiceImpl.USER_PASSWORD_HISTORY);
+                Map<String, String> userPasswordHistoryMap = JacksonUtil.convertValue(userPasswordHistoryJson, new TypeReference<>() {});
+                for (Map.Entry<String, String> entry : userPasswordHistoryMap.entrySet()) {
+                    if (encoder.matches(password, entry.getValue()) && Long.parseLong(entry.getKey()) > passwordReuseFrequencyTs) {
+                        throw new DataValidationException("Password was already used for the last " + passwordPolicy.getPasswordReuseFrequencyDays() + " days");
+                    }
+                }
+            }
+        }
+    }
+
+    private void validatePasswordByPolicy(String password, UserPasswordPolicy passwordPolicy) {
         List<Rule> passwordRules = new ArrayList<>();
-        passwordRules.add(new LengthRule(passwordPolicy.getMinimumLength(), Integer.MAX_VALUE));
+
+        Integer maximumLength = passwordPolicy.getMaximumLength();
+        Integer minLengthBound = passwordPolicy.getMinimumLength();
+        int maxLengthBound = (maximumLength != null && maximumLength > passwordPolicy.getMinimumLength()) ? maximumLength : Integer.MAX_VALUE;
+
+        passwordRules.add(new LengthRule(minLengthBound, maxLengthBound));
         if (isPositiveInteger(passwordPolicy.getMinimumUppercaseLetters())) {
             passwordRules.add(new CharacterRule(EnglishCharacterData.UpperCase, passwordPolicy.getMinimumUppercaseLetters()));
         }
@@ -243,20 +275,6 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
         if (!result.isValid()) {
             String message = String.join("\n", validator.getMessages(result));
             throw new DataValidationException(message);
-        }
-
-        if (userCredentials != null && isPositiveInteger(passwordPolicy.getPasswordReuseFrequencyDays())) {
-            long passwordReuseFrequencyTs = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(passwordPolicy.getPasswordReuseFrequencyDays());
-            JsonNode additionalInfo = userCredentials.getAdditionalInfo();
-            if (additionalInfo instanceof ObjectNode && additionalInfo.has(UserServiceImpl.USER_PASSWORD_HISTORY)) {
-                JsonNode userPasswordHistoryJson = additionalInfo.get(UserServiceImpl.USER_PASSWORD_HISTORY);
-                Map<String, String> userPasswordHistoryMap = JacksonUtil.convertValue(userPasswordHistoryJson, new TypeReference<>() {});
-                for (Map.Entry<String, String> entry : userPasswordHistoryMap.entrySet()) {
-                    if (encoder.matches(password, entry.getValue()) && Long.parseLong(entry.getKey()) > passwordReuseFrequencyTs) {
-                        throw new DataValidationException("Password was already used for the last " + passwordPolicy.getPasswordReuseFrequencyDays() + " days");
-                    }
-                }
-            }
         }
     }
 
