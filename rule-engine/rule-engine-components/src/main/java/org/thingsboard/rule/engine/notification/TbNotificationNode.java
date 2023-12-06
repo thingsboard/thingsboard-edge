@@ -39,7 +39,7 @@ import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.rule.engine.external.TbAbstractExternalNode;
-import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.notification.NotificationRequest;
 import org.thingsboard.server.common.data.notification.NotificationRequestConfig;
 import org.thingsboard.server.common.data.notification.NotificationRequestStats;
@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 @RuleNode(
@@ -74,8 +75,8 @@ public class TbNotificationNode extends TbAbstractExternalNode {
     public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
         RuleEngineOriginatedNotificationInfo notificationInfo = RuleEngineOriginatedNotificationInfo.builder()
                 .msgOriginator(msg.getOriginator())
-                .msgCustomerId(msg.getOriginator().getEntityType() == EntityType.CUSTOMER
-                        && msg.getOriginator().equals(msg.getCustomerId()) ? null : msg.getCustomerId())
+                .msgCustomerId((CustomerId) Optional.ofNullable(ctx.getPeContext().getOwner(ctx.getTenantId(), msg.getOriginator()))
+                        .filter(ownerId -> ownerId instanceof CustomerId).orElse(null))
                 .msgMetadata(msg.getMetaData().getData())
                 .msgData(JacksonUtil.toFlatMap(JacksonUtil.toJsonNode(msg.getData())))
                 .msgType(msg.getType())
