@@ -299,13 +299,13 @@ class TbDuplicateMsgToRelatedNodeTest {
         verify(ctxMock, never()).transformMsgOriginator(any(TbMsg.class), any(EntityId.class));
         verify(ctxMock, never()).enqueueForTellNext(any(), eq(TbNodeConnectionType.SUCCESS), any(), any());
         verify(ctxMock, never()).tellSuccess(any());
-        verify(ctxMock, never()).ack(msg);
+        verify(ctxMock, never()).ack(any());
 
         ArgumentCaptor<Throwable> throwableCaptor = ArgumentCaptor.forClass(Throwable.class);
 
         verify(ctxMock).tellFailure(eq(msg), throwableCaptor.capture());
 
-        String expectedExceptionMessage = "Message or messages list are empty!";
+        String expectedExceptionMessage = "Failed to find new originators for configured relation query!";
 
         Throwable actualThrowable = throwableCaptor.getValue();
         assertInstanceOf(RuntimeException.class, actualThrowable);

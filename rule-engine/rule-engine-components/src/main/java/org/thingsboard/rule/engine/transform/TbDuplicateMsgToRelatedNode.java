@@ -30,7 +30,9 @@
  */
 package org.thingsboard.rule.engine.transform;
 
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -76,7 +78,13 @@ public class TbDuplicateMsgToRelatedNode extends TbAbstractDuplicateMsgNode<TbDu
 
     @Override
     protected ListenableFuture<List<EntityId>> getNewOriginators(TbContext ctx, EntityId original) {
-        return EntitiesRelatedEntityIdAsyncLoader.findEntitiesAsync(ctx, original, config.getRelationsQuery());
+        var newOriginatorsFuture = EntitiesRelatedEntityIdAsyncLoader.findEntitiesAsync(ctx, original, config.getRelationsQuery());
+        return Futures.transform(newOriginatorsFuture, newOriginators -> {
+            if (newOriginators == null || newOriginators.isEmpty()) {
+                throw new RuntimeException("Failed to find new originators for configured relation query!");
+            }
+            return newOriginators;
+        }, MoreExecutors.directExecutor());
     }
 
 }
