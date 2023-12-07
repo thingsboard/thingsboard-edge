@@ -93,7 +93,7 @@ public class AlarmEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof AlarmUpdateMsg);
         AlarmUpdateMsg alarmUpdateMsg = (AlarmUpdateMsg) latestMessage;
-        Alarm alarmMsg = JacksonUtil.fromStringIgnoreUnknownProperties(alarmUpdateMsg.getEntity(), Alarm.class);
+        Alarm alarmMsg = JacksonUtil.fromString(alarmUpdateMsg.getEntity(), Alarm.class, true);
         Assert.assertNotNull(alarmMsg);
         Assert.assertEquals(savedAlarm, alarmMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, alarmUpdateMsg.getMsgType());
@@ -106,7 +106,7 @@ public class AlarmEdgeTest extends AbstractEdgeTest {
         Assert.assertTrue(latestMessage instanceof AlarmUpdateMsg);
         alarmUpdateMsg = (AlarmUpdateMsg) latestMessage;
         Assert.assertEquals(UpdateMsgType.ALARM_ACK_RPC_MESSAGE, alarmUpdateMsg.getMsgType());
-        alarmMsg = JacksonUtil.fromStringIgnoreUnknownProperties(alarmUpdateMsg.getEntity(), Alarm.class);
+        alarmMsg = JacksonUtil.fromString(alarmUpdateMsg.getEntity(), Alarm.class, true);
         Assert.assertNotNull(alarmMsg);
         Assert.assertEquals(savedAlarm.getType(), alarmMsg.getType());
         Assert.assertEquals(savedAlarm.getName(), alarmMsg.getName());
@@ -120,7 +120,7 @@ public class AlarmEdgeTest extends AbstractEdgeTest {
         Assert.assertTrue(latestMessage instanceof AlarmUpdateMsg);
         alarmUpdateMsg = (AlarmUpdateMsg) latestMessage;
         Assert.assertEquals(UpdateMsgType.ALARM_CLEAR_RPC_MESSAGE, alarmUpdateMsg.getMsgType());
-        alarmMsg = JacksonUtil.fromStringIgnoreUnknownProperties(alarmUpdateMsg.getEntity(), Alarm.class);
+        alarmMsg = JacksonUtil.fromString(alarmUpdateMsg.getEntity(), Alarm.class, true);
         Assert.assertNotNull(alarmMsg);
         Assert.assertEquals(savedAlarm.getType(), alarmMsg.getType());
         Assert.assertEquals(savedAlarm.getName(), alarmMsg.getName());
@@ -135,7 +135,7 @@ public class AlarmEdgeTest extends AbstractEdgeTest {
         Assert.assertTrue(latestMessage instanceof AlarmUpdateMsg);
         alarmUpdateMsg = (AlarmUpdateMsg) latestMessage;
         Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, alarmUpdateMsg.getMsgType());
-        alarmMsg = JacksonUtil.fromStringIgnoreUnknownProperties(alarmUpdateMsg.getEntity(), Alarm.class);
+        alarmMsg = JacksonUtil.fromString(alarmUpdateMsg.getEntity(), Alarm.class, true);
         Assert.assertNotNull(alarmMsg);
         Assert.assertEquals(savedAlarm.getType(), alarmMsg.getType());
         Assert.assertEquals(savedAlarm.getName(), alarmMsg.getName());

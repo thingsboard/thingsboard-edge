@@ -176,7 +176,7 @@ public abstract class AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> {
                     try {
-                        return edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 24;
+                        return edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 25;
                     } catch (Throwable e) {
                         return false;
                     }
