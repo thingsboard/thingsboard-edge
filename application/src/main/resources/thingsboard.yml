@@ -533,6 +533,17 @@ integrations:
       privateKey: "${INTEGRATIONS_RPC_SSL_PRIVATE_KEY:privateKeyFile.pem}"
     # Disconnect a client if no keepalive ping received in the specified time
     client_max_keep_alive_time_sec: "${INTEGRATIONS_RPC_CLIENT_MAX_KEEP_ALIVE_TIME_SEC:300}"
+  activity:
+    # This property defines the time interval, in milliseconds, for reporting activity events like post telemetry or post attributes.
+    # The value set here determines how frequently the system will report on activities.
+    # For instance, a value of 3000 means the system will gather and potentially report activities every 3 seconds.
+    reporting_period: "${INTEGRATIONS_ACTIVITY_REPORTING_PERIOD:3000}"
+    # This property specifies the strategy for reporting activity events within each reporting period.
+    # The accepted values are 'first', 'last', and 'first and last'.
+    # - 'first': Only the first activity event in each reporting period is reported.
+    # - 'last': Only the last activity event in the reporting period is reported.
+    # - 'first-and-last': Both the first and last activity events in the reporting period are reported.
+    reporting_strategy: "${INTEGRATIONS_ACTIVITY_REPORTING_STRATEGY:first-and-last}"
 
 # Reports parameters
 reports:
@@ -966,6 +977,13 @@ transport:
     inactivity_timeout: "${TB_TRANSPORT_SESSIONS_INACTIVITY_TIMEOUT:300000}"
     # Interval of periodic check for expired sessions and report of the changes to session last activity time
     report_timeout: "${TB_TRANSPORT_SESSIONS_REPORT_TIMEOUT:3000}"
+  activity:
+      # This property specifies the strategy for reporting activity events within each reporting period.
+      # The accepted values are 'first', 'last', and 'first and last'.
+      # - 'first': Only the first activity event in each reporting period is reported.
+      # - 'last': Only the last activity event in the reporting period is reported.
+      # - 'first-and-last': Both the first and last activity events in the reporting period are reported.
+      reporting_strategy: "${TB_TRANSPORT_ACTIVITY_REPORTING_STRATEGY:first-and-last}"
   json:
     # Cast String data types to Numeric if possible when processing Telemetry/Attributes JSON
     type_cast_enabled: "${JSON_TYPE_CAST_ENABLED:true}"
