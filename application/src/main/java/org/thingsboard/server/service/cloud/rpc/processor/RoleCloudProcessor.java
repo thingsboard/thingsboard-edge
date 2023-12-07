@@ -91,7 +91,7 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
             switch (roleProto.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    Role role = JacksonUtil.fromStringIgnoreUnknownProperties(roleProto.getEntity(), Role.class);
+                    Role role = JacksonUtil.fromString(roleProto.getEntity(), Role.class, true);
                     if (role == null) {
                         throw new RuntimeException("[{" + tenantId + "}] roleProto {" + roleProto + "} cannot be converted to rolo");
                     }

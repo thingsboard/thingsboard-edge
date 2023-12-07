@@ -72,12 +72,12 @@ public class AlarmCloudProcessor extends BaseAlarmProcessor {
 
     @Override
     protected EntityId getAlarmOriginatorFromMsg(TenantId tenantId, AlarmUpdateMsg alarmUpdateMsg) {
-        Alarm alarm = JacksonUtil.fromStringIgnoreUnknownProperties(alarmUpdateMsg.getEntity(), Alarm.class);
+        Alarm alarm = JacksonUtil.fromString(alarmUpdateMsg.getEntity(), Alarm.class, true);
         return alarm != null ? alarm.getOriginator() : null;
     }
 
     @Override
     protected Alarm constructAlarmFromUpdateMsg(TenantId tenantId, AlarmId alarmId, EntityId originatorId, AlarmUpdateMsg alarmUpdateMsg) {
-        return JacksonUtil.fromStringIgnoreUnknownProperties(alarmUpdateMsg.getEntity(), Alarm.class);
+        return JacksonUtil.fromString(alarmUpdateMsg.getEntity(), Alarm.class, true);
     }
 }

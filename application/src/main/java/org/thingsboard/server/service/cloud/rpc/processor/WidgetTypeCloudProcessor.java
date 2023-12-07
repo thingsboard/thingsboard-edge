@@ -64,7 +64,7 @@ public class WidgetTypeCloudProcessor extends BaseEdgeProcessor {
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     widgetCreationLock.lock();
                     try {
-                        WidgetTypeDetails widgetTypeDetails = JacksonUtil.fromStringIgnoreUnknownProperties(widgetTypeUpdateMsg.getEntity(), WidgetTypeDetails.class);
+                        WidgetTypeDetails widgetTypeDetails = JacksonUtil.fromString(widgetTypeUpdateMsg.getEntity(), WidgetTypeDetails.class, true);
                         if (widgetTypeDetails == null) {
                             throw new RuntimeException("[{" + tenantId + "}] widgetTypeUpdateMsg {" + widgetTypeUpdateMsg + "} cannot be converted to widget type");
                         }

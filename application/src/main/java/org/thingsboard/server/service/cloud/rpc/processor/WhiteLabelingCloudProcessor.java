@@ -65,7 +65,7 @@ public class WhiteLabelingCloudProcessor extends BaseEdgeProcessor {
     public ListenableFuture<Void> processCustomTranslationMsgFromCloud(TenantId tenantId, CustomTranslationProto customTranslationProto) {
         try {
             EntityId entityId = constructEntityId(customTranslationProto.getEntityType(), customTranslationProto.getEntityIdMSB(), customTranslationProto.getEntityIdLSB());
-            CustomTranslation customTranslation = JacksonUtil.fromStringIgnoreUnknownProperties(customTranslationProto.getEntity(), CustomTranslation.class);
+            CustomTranslation customTranslation = JacksonUtil.fromString(customTranslationProto.getEntity(), CustomTranslation.class, true);
             if (customTranslation == null) {
                 throw new RuntimeException("[{" + tenantId + "}] customTranslationProto {" + customTranslationProto + "} cannot be converted to custom translation");
             }
@@ -90,7 +90,7 @@ public class WhiteLabelingCloudProcessor extends BaseEdgeProcessor {
     }
 
     public ListenableFuture<Void> processWhiteLabelingMsgFromCloud(TenantId tenantId, CustomerId customerId, WhiteLabelingProto whiteLabelingProto) throws Exception {
-        WhiteLabeling whiteLabeling = JacksonUtil.fromStringIgnoreUnknownProperties(whiteLabelingProto.getEntity(), WhiteLabeling.class);
+        WhiteLabeling whiteLabeling = JacksonUtil.fromString(whiteLabelingProto.getEntity(), WhiteLabeling.class, true);
         if (whiteLabeling == null) {
             throw new RuntimeException("[{" + tenantId + "}] whiteLabelingProto {" + whiteLabelingProto + " } cannot be converted to white labeling");
         }

@@ -69,7 +69,7 @@ public class GroupPermissionCloudProcessor extends BaseEdgeProcessor {
             switch (groupPermissionProto.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    GroupPermission groupPermission = JacksonUtil.fromStringIgnoreUnknownProperties(groupPermissionProto.getEntity(), GroupPermission.class);
+                    GroupPermission groupPermission = JacksonUtil.fromString(groupPermissionProto.getEntity(), GroupPermission.class, true);
                     if (groupPermission == null) {
                         throw new RuntimeException("[{" + tenantId + "}] groupPermissionProto {" + groupPermissionProto + "} cannot be converted to group permission");
                     }

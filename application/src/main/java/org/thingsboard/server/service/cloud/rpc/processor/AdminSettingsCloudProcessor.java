@@ -52,7 +52,7 @@ import java.util.List;
 public class AdminSettingsCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processAdminSettingsMsgFromCloud(TenantId tenantId, AdminSettingsUpdateMsg adminSettingsUpdateMsg) {
-        AdminSettings adminSettingsMsg = JacksonUtil.fromStringIgnoreUnknownProperties(adminSettingsUpdateMsg.getEntity(), AdminSettings.class);
+        AdminSettings adminSettingsMsg = JacksonUtil.fromString(adminSettingsUpdateMsg.getEntity(), AdminSettings.class, true);
         if (adminSettingsMsg == null) {
             throw new RuntimeException("[{" + tenantId + "}] adminSettingsUpdateMsg {" + adminSettingsUpdateMsg + " } cannot be converted to admin settings");
         }

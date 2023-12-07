@@ -59,7 +59,7 @@ public class ConverterCloudProcessor extends BaseEdgeProcessor {
             switch (converterUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    Converter converter = JacksonUtil.fromStringIgnoreUnknownProperties(converterUpdateMsg.getEntity(), Converter.class);
+                    Converter converter = JacksonUtil.fromString(converterUpdateMsg.getEntity(), Converter.class, true);
                     if (converter == null) {
                         throw new RuntimeException("[{" + tenantId + "}] converterUpdateMsg {" + converterUpdateMsg + "} cannot be converted to convertor");
                     }

@@ -81,7 +81,7 @@ public class EntityGroupCloudProcessor extends BaseEdgeProcessor {
         EntityGroup entityGroup = null;
         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(entityGroupUpdateMsg.getMsgType()) ||
                 UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(entityGroupUpdateMsg.getMsgType())) {
-            entityGroup = JacksonUtil.fromStringIgnoreUnknownProperties(entityGroupUpdateMsg.getEntity(), EntityGroup.class);
+            entityGroup = JacksonUtil.fromString(entityGroupUpdateMsg.getEntity(), EntityGroup.class, true);
             if (entityGroup == null) {
                 throw new RuntimeException("[{" + tenantId + "}] entityGroupUpdateMsg {" + entityGroupUpdateMsg + "} cannot be converted to entity group");
             }

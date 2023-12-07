@@ -60,7 +60,7 @@ public class OtaPackageCloudProcessor extends BaseEdgeProcessor {
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     otaPackageCreationLock.lock();
                     try {
-                        OtaPackage otaPackage = JacksonUtil.fromStringIgnoreUnknownProperties(otaPackageUpdateMsg.getEntity(), OtaPackage.class);
+                        OtaPackage otaPackage = JacksonUtil.fromString(otaPackageUpdateMsg.getEntity(), OtaPackage.class, true);
                         if (otaPackage == null) {
                             throw new RuntimeException("[{" + tenantId + "}] otaPackageUpdateMsg {" + otaPackageUpdateMsg + "} cannot be converted to ota package");
                         }

@@ -69,7 +69,7 @@ public class IntegrationCloudProcessor extends BaseEdgeProcessor {
             switch (integrationUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    Integration integration = JacksonUtil.fromStringIgnoreUnknownProperties(integrationUpdateMsg.getEntity(), Integration.class);
+                    Integration integration = JacksonUtil.fromString(integrationUpdateMsg.getEntity(), Integration.class, true);
                     if (integration == null) {
                         throw new RuntimeException("[{" + tenantId + "}] integrationUpdateMsg {" + integrationUpdateMsg + "} cannot be converted to integration");
                     }

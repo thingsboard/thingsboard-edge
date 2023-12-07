@@ -63,7 +63,7 @@ public class SchedulerEventCloudProcessor extends BaseEdgeProcessor {
             switch (schedulerEventUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    SchedulerEvent schedulerEvent = JacksonUtil.fromStringIgnoreUnknownProperties(schedulerEventUpdateMsg.getEntity(), SchedulerEvent.class);
+                    SchedulerEvent schedulerEvent = JacksonUtil.fromString(schedulerEventUpdateMsg.getEntity(), SchedulerEvent.class, true);
                     if (schedulerEvent == null) {
                         throw new RuntimeException("[{" + tenantId + "}] schedulerEventUpdateMsg {" + schedulerEventUpdateMsg + "} cannot be converted to scheduler event");
                     }
