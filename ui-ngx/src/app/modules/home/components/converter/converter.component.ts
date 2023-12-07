@@ -161,7 +161,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       {
         name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
         type: [entity?.type ? entity.type : ConverterType.UPLINK, [Validators.required]],
-        debugMode: [entity?.debugMode ? entity.debugMode : true],
+        debugMode: [isDefinedAndNotNull(entity?.debugMode) ? entity.debugMode : true],
         configuration: this.fb.group(
           {
             scriptLang: [entity?.configuration ? entity.configuration.scriptLang : ScriptLanguage.JS],
@@ -253,7 +253,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     this.entityForm.patchValue({
       type: entity.type,
       name: entity?.name ? entity.name : '',
-      debugMode: entity?.debugMode ? entity.debugMode : true,
+      debugMode: isDefinedAndNotNull(entity?.debugMode) ? entity.debugMode : true,
       configuration: {
         scriptLang,
         decoder: entity.configuration ? entity.configuration.decoder : null,

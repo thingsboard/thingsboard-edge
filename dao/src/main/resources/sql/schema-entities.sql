@@ -585,6 +585,7 @@ CREATE TABLE IF NOT EXISTS widget_type (
     image varchar(1000000),
     deprecated boolean NOT NULL DEFAULT false,
     description varchar(1024),
+    tags text[],
     external_id uuid,
     CONSTRAINT uq_widget_type_fqn UNIQUE (tenant_id, fqn),
     CONSTRAINT widget_type_external_id_unq_key UNIQUE (tenant_id, external_id)
@@ -598,6 +599,7 @@ CREATE TABLE IF NOT EXISTS widgets_bundle (
     title varchar(255),
     image varchar(1000000),
     description varchar(1024),
+    widgets_bundle_order int,
     external_id uuid,
     CONSTRAINT uq_widgets_bundle_alias UNIQUE (tenant_id, alias),
     CONSTRAINT widgets_bundle_external_id_unq_key UNIQUE (tenant_id, external_id)
@@ -872,13 +874,17 @@ CREATE TABLE IF NOT EXISTS resource (
     id uuid NOT NULL CONSTRAINT resource_pkey PRIMARY KEY,
     created_time bigint NOT NULL,
     tenant_id uuid NOT NULL,
+    customer_id uuid,
     title varchar(255) NOT NULL,
     resource_type varchar(32) NOT NULL,
     resource_key varchar(255) NOT NULL,
     search_text varchar(255),
     file_name varchar(255) NOT NULL,
-    data varchar,
+    data bytea,
     etag varchar,
+    descriptor varchar,
+    preview bytea,
+    external_id uuid,
     CONSTRAINT resource_unq_key UNIQUE (tenant_id, resource_type, resource_key)
 );
 
@@ -1038,8 +1044,8 @@ CREATE TABLE IF NOT EXISTS notification_request (
 CREATE TABLE IF NOT EXISTS notification (
     id UUID NOT NULL,
     created_time BIGINT NOT NULL,
-    request_id UUID NULL CONSTRAINT fk_notification_request_id REFERENCES notification_request(id) ON DELETE CASCADE,
-    recipient_id UUID NOT NULL CONSTRAINT fk_notification_recipient_id REFERENCES tb_user(id) ON DELETE CASCADE,
+    request_id UUID,
+    recipient_id UUID NOT NULL,
     type VARCHAR(50) NOT NULL,
     subject VARCHAR(255),
     body VARCHAR(1000) NOT NULL,
@@ -1048,12 +1054,12 @@ CREATE TABLE IF NOT EXISTS notification (
 ) PARTITION BY RANGE (created_time);
 
 CREATE TABLE IF NOT EXISTS white_labeling (
-    entity_type varchar(255),
-    entity_id uuid,
+    tenant_id UUID NOT NULL,
+    customer_id UUID NOT NULL default '13814000-1dd2-11b2-8080-808080808080',
     type VARCHAR(16),
     settings VARCHAR(10000000),
     domain_name VARCHAR(255) UNIQUE,
-    CONSTRAINT white_labeling_pkey PRIMARY KEY (entity_type, entity_id, type));
+    CONSTRAINT white_labeling_pkey PRIMARY KEY (tenant_id, customer_id, type));
 
 CREATE TABLE IF NOT EXISTS alarm_types (
     tenant_id uuid NOT NULL,

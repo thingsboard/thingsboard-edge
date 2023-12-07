@@ -41,51 +41,69 @@ import java.util.stream.Collectors;
  * @author Andrew Shvayka
  */
 public enum EntityType {
-    TENANT,
-    CUSTOMER,
-    USER,
-    DASHBOARD,
-    ASSET,
-    DEVICE,
-    ALARM,
-    ENTITY_GROUP {
+    TENANT(1),
+    CUSTOMER(2, true),
+    USER(3, true),
+    DASHBOARD(4, true),
+    ASSET(5, true),
+    DEVICE(6, true),
+    ALARM (7),
+    ENTITY_GROUP(100) {
         // backward compatibility for TbOriginatorTypeSwitchNode to return correct rule node connection.
         @Override
         public String getNormalName() {
             return "Entity Group";
         }
     },
-    CONVERTER,
-    INTEGRATION,
-    RULE_CHAIN,
-    RULE_NODE,
-    SCHEDULER_EVENT,
-    BLOB_ENTITY,
-    ENTITY_VIEW {
+    CONVERTER(101),
+    INTEGRATION(102),
+    RULE_CHAIN (11),
+    RULE_NODE (12),
+    SCHEDULER_EVENT(103),
+    BLOB_ENTITY(104),
+    ENTITY_VIEW(15, true) {
         // backward compatibility for TbOriginatorTypeSwitchNode to return correct rule node connection.
         @Override
         public String getNormalName() {
             return "Entity View";
         }
     },
-    WIDGETS_BUNDLE,
-    WIDGET_TYPE,
-    ROLE,
-    GROUP_PERMISSION,
-    TENANT_PROFILE,
-    DEVICE_PROFILE,
-    ASSET_PROFILE,
-    API_USAGE_STATE,
-    TB_RESOURCE,
-    OTA_PACKAGE,
-    EDGE,
-    RPC,
-    QUEUE,
-    NOTIFICATION_TARGET,
-    NOTIFICATION_TEMPLATE,
-    NOTIFICATION_REQUEST,
-    NOTIFICATION,
-    NOTIFICATION_RULE;
+    WIDGETS_BUNDLE (16),
+    WIDGET_TYPE (17),
+    ROLE(105),
+    GROUP_PERMISSION(106),
+    TENANT_PROFILE (20),
+    DEVICE_PROFILE (21),
+    ASSET_PROFILE (22),
+    API_USAGE_STATE (23),
+    TB_RESOURCE (24),
+    OTA_PACKAGE (25),
+    EDGE (26, true),
+    RPC (27),
+    QUEUE (28),
+    NOTIFICATION_TARGET (29),
+    NOTIFICATION_TEMPLATE (30),
+    NOTIFICATION_REQUEST (31),
+    NOTIFICATION (32),
+    NOTIFICATION_RULE (33);
+
+    @Getter
+    private final int protoNumber; // Corresponds to EntityTypeProto
+
+    @Getter
+    private final boolean groupEntityType;
+
+    EntityType(int protoNumber) {
+        this(protoNumber, false);
+    }
+
+    EntityType(int protoNumber, boolean groupEntityType) {
+        this.protoNumber = protoNumber;
+        this.groupEntityType = groupEntityType;
+    }
+
+    public static final List<EntityType> GROUP_ENTITY_TYPES = EnumSet.allOf(EntityType.class).stream()
+            .filter(EntityType::isGroupEntityType).collect(Collectors.toUnmodifiableList());
 
     public static final List<String> NORMAL_NAMES = EnumSet.allOf(EntityType.class).stream()
             .map(EntityType::getNormalName).collect(Collectors.toUnmodifiableList());

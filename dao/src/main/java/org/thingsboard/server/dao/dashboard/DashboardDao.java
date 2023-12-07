@@ -33,6 +33,8 @@ package org.thingsboard.server.dao.dashboard;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.ExportableCustomerEntityDao;
 import org.thingsboard.server.dao.TenantEntityDao;
@@ -55,6 +57,10 @@ public interface DashboardDao extends Dao<Dashboard>, TenantEntityDao, Exportabl
 
     List<Dashboard> findByTenantIdAndTitle(UUID tenantId, String title);
 
+    PageData<DashboardId> findIdsByTenantId(TenantId tenantId, PageLink pageLink);
+
     Long countDashboards();
+
+    PageData<DashboardId> findAllIds(PageLink pageLink);
 
 }

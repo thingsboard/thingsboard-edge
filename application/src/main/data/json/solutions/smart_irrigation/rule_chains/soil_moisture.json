@@ -266,7 +266,7 @@
         "configuration": {
           "scriptLang": "TBEL",
           "jsScript": "var newMsg = {};\nnewMsg.maxMoistureThreshold = parseInt(metadata[\"maxMoistureThreshold\"]);\nnewMsg.minMoistureThreshold = parseInt(metadata[\"minMoistureThreshold\"]);\nreturn {\n    msg: newMsg, \n    metadata: metadata, \n    msgType: \"POST_ATTRIBUTES_REQUEST\"\n};",
-          "tbelScript": "var newMsg = {};\nnewMsg.maxMoistureThreshold = parseInt(metadata[\"maxMoistureThreshold\"]);\nnewMsg.minMoistureThreshold = parseInt(metadata[\"minMoistureThreshold\"]);\nreturn {\n    msg: newMsg, \n    metadata: metadata, \n    msgType: \"POST_ATTRIBUTES_REQUEST\"\n};"
+          "tbelScript": "var newMsg = {};\nnewMsg.maxMoistureThreshold = parseFloat(metadata[\"maxMoistureThreshold\"]);\nnewMsg.minMoistureThreshold = parseFloat(metadata[\"minMoistureThreshold\"]);\nreturn {\n    msg: newMsg, \n    metadata: metadata, \n    msgType: \"POST_ATTRIBUTES_REQUEST\"\n};"
         },
         "externalId": null
       },

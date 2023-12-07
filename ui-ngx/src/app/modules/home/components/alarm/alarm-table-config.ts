@@ -32,6 +32,7 @@
 import {
   CellActionDescriptorType,
   DateEntityTableColumn,
+  EntityLinkTableColumn,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
@@ -77,7 +78,7 @@ import {
   AlarmAssigneePanelData
 } from '@home/components/alarm/alarm-assignee-panel.component';
 import { ComponentPortal } from '@angular/cdk/portal';
-import { isDefinedAndNotNull } from '@core/utils';
+import { getEntityDetailsPageURL, isDefinedAndNotNull } from '@core/utils';
 import { UtilsService } from '@core/services/utils.service';
 import { AlarmFilterConfig } from '@shared/models/query/query.models';
 import { EntityService } from '@core/http/entity.service';
@@ -134,8 +135,9 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
     this.columns.push(
       new DateEntityTableColumn<AlarmInfo>('createdTime', 'alarm.created-time', this.datePipe, '150px'));
     this.columns.push(
-      new EntityTableColumn<AlarmInfo>('originatorName', 'alarm.originator', '25%',
-        (entity) => entity.originatorName, entity => ({}), false));
+      new EntityLinkTableColumn<AlarmInfo>('originatorName', 'alarm.originator', '25%',
+        (entity) => entity.originatorName,
+        (entity) => getEntityDetailsPageURL(entity.originator.id, entity.originator.entityType as EntityType)));
     this.columns.push(
       new EntityTableColumn<AlarmInfo>('type', 'alarm.type', '25%',
           entity => this.utilsService.customTranslation(entity.type, entity.type)));
@@ -347,9 +349,7 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
     if ($event) {
       $event.stopPropagation();
     }
-    const unacknowledgedAlarms = alarms.filter(alarm => {
-      return alarm.status === AlarmStatus.CLEARED_UNACK || alarm.status === AlarmStatus.ACTIVE_UNACK;
-    })
+    const unacknowledgedAlarms = alarms.filter(alarm => !alarm.acknowledged);
     let title = '';
     let content = '';
     if (!unacknowledgedAlarms.length) {
@@ -384,9 +384,7 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
     if ($event) {
       $event.stopPropagation();
     }
-    const activeAlarms = alarms.filter(alarm => {
-      return alarm.status === AlarmStatus.ACTIVE_ACK || alarm.status === AlarmStatus.ACTIVE_UNACK;
-    })
+    const activeAlarms = alarms.filter(alarm => !alarm.cleared);
     let title = '';
     let content = '';
     if (!activeAlarms.length) {

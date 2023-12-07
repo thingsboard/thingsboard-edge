@@ -30,33 +30,38 @@
  */
 package org.thingsboard.server.dao.wl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabelingType;
+import org.thingsboard.server.dao.resource.ImageCacheKey;
 
 public interface WhiteLabelingService {
 
-    WhiteLabelingParams getSystemWhiteLabelingParams(TenantId tenantId);
+    WhiteLabelingParams getSystemWhiteLabelingParams();
 
-    LoginWhiteLabelingParams getSystemLoginWhiteLabelingParams(TenantId tenantId);
+    LoginWhiteLabelingParams getSystemLoginWhiteLabelingParams();
 
     WhiteLabelingParams getTenantWhiteLabelingParams(TenantId tenantId);
 
     WhiteLabelingParams getCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId);
 
-    WhiteLabelingParams getMergedSystemWhiteLabelingParams(TenantId tenantId, String logoImageChecksum, String faviconChecksum);
+    WhiteLabelingParams getMergedTenantWhiteLabelingParams(TenantId tenantId) throws Exception;
 
-    WhiteLabelingParams getMergedTenantWhiteLabelingParams(TenantId tenantId, String logoImageChecksum, String faviconChecksum) throws Exception;
-
-    WhiteLabelingParams getMergedCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, String logoImageChecksum, String faviconChecksum) throws Exception;
+    WhiteLabelingParams getMergedCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId) throws Exception;
 
     LoginWhiteLabelingParams getTenantLoginWhiteLabelingParams(TenantId tenantId) throws Exception;
 
     LoginWhiteLabelingParams getCustomerLoginWhiteLabelingParams(TenantId tenantId, CustomerId customerId) throws Exception;
 
-    LoginWhiteLabelingParams getMergedLoginWhiteLabelingParams(TenantId tenantId, String domainName, String logoImageChecksum, String faviconChecksum) throws Exception;
+    LoginWhiteLabelingParams getMergedLoginWhiteLabelingParams(String domainName) throws Exception;
+
+    ImageCacheKey getLoginImageKey(String domainName, boolean faviconElseLogo) throws Exception;
 
     WhiteLabelingParams saveSystemWhiteLabelingParams(WhiteLabelingParams whiteLabelingParams);
 
@@ -72,16 +77,25 @@ public interface WhiteLabelingService {
 
     WhiteLabelingParams mergeSystemWhiteLabelingParams(WhiteLabelingParams whiteLabelingParams);
 
-    WhiteLabelingParams mergeTenantWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams);
+    WhiteLabelingParams mergeTenantWhiteLabelingParams(WhiteLabelingParams whiteLabelingParams);
 
-    WhiteLabelingParams mergeCustomerWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams);
+    WhiteLabelingParams mergeCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, WhiteLabelingParams whiteLabelingParams);
 
-    void deleteDomainWhiteLabelingByEntityId(TenantId tenantId, EntityId entityId);
+    void deleteDomainWhiteLabelingByEntityId(TenantId tenantId, CustomerId customerId);
 
-    boolean isWhiteLabelingAllowed(TenantId tenantId, EntityId entityId);
+    boolean isWhiteLabelingAllowed(TenantId tenantId, CustomerId customerId);
 
     boolean isCustomerWhiteLabelingAllowed(TenantId tenantId);
 
     boolean isWhiteLabelingConfigured(TenantId tenantId);
 
+    JsonNode saveMailTemplates(TenantId tenantId, JsonNode mailTemplates);
+
+    JsonNode getCurrentTenantMailTemplates(TenantId tenantId, boolean systemByDefault);
+
+    JsonNode findMailTemplatesByTenantId(TenantId tenantId, TenantId settingsTenantId);
+
+    JsonNode getMergedTenantMailTemplates(TenantId tenantId) throws ThingsboardException;
+
+    WhiteLabeling findByEntityId(TenantId tenantId, CustomerId customerId, WhiteLabelingType type);
 }

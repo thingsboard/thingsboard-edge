@@ -136,13 +136,7 @@ public class SystemInfoController extends BaseController {
         }
         if (currentUser.isTenantAdmin() || currentUser.isCustomerUser()) {
             systemParams.setPersistDeviceStateToTelemetry(persistToTelemetry);
-            EntityId entityId;
-            if (currentUser.isTenantAdmin()) {
-                entityId = tenantId;
-            } else {
-                entityId = customerId;
-            }
-            systemParams.setWhiteLabelingAllowed(whiteLabelingService.isWhiteLabelingAllowed(getTenantId(), entityId));
+            systemParams.setWhiteLabelingAllowed(whiteLabelingService.isWhiteLabelingAllowed(tenantId, customerId));
             if (currentUser.isTenantAdmin()) {
                 systemParams.setCustomerWhiteLabelingAllowed(whiteLabelingService.isCustomerWhiteLabelingAllowed(tenantId));
             } else {

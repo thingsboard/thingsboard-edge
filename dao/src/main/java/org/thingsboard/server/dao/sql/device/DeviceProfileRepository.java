@@ -37,6 +37,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.DeviceProfileInfo;
 import org.thingsboard.server.common.data.DeviceTransportType;
+import org.thingsboard.server.common.data.asset.AssetProfileInfo;
 import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.DeviceProfileEntity;
 
@@ -50,22 +51,22 @@ public interface DeviceProfileRepository extends JpaRepository<DeviceProfileEnti
             "WHERE d.id = :deviceProfileId")
     DeviceProfileInfo findDeviceProfileInfoById(@Param("deviceProfileId") UUID deviceProfileId);
 
-    @Query("SELECT d FROM DeviceProfileEntity d WHERE " +
-            "d.tenantId = :tenantId AND LOWER(d.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+    @Query("SELECT d FROM DeviceProfileEntity d WHERE d.tenantId = :tenantId " +
+            "AND (:textSearch IS NULL OR ilike(d.name, CONCAT('%', :textSearch, '%')) = true)")
     Page<DeviceProfileEntity> findDeviceProfiles(@Param("tenantId") UUID tenantId,
                                                  @Param("textSearch") String textSearch,
                                                  Pageable pageable);
 
     @Query("SELECT new org.thingsboard.server.common.data.DeviceProfileInfo(d.id, d.tenantId, d.name, d.image, d.defaultDashboardId, d.type, d.transportType) " +
-            "FROM DeviceProfileEntity d WHERE " +
-            "d.tenantId = :tenantId AND LOWER(d.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "FROM DeviceProfileEntity d WHERE d.tenantId = :tenantId " +
+            "AND (:textSearch IS NULL OR ilike(d.name, CONCAT('%', :textSearch, '%')) = true)")
     Page<DeviceProfileInfo> findDeviceProfileInfos(@Param("tenantId") UUID tenantId,
                                                    @Param("textSearch") String textSearch,
                                                    Pageable pageable);
 
     @Query("SELECT new org.thingsboard.server.common.data.DeviceProfileInfo(d.id, d.tenantId, d.name, d.image, d.defaultDashboardId, d.type, d.transportType) " +
-            "FROM DeviceProfileEntity d WHERE " +
-            "d.tenantId = :tenantId AND d.transportType = :transportType AND LOWER(d.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "FROM DeviceProfileEntity d WHERE d.tenantId = :tenantId AND d.transportType = :transportType " +
+            "AND (:textSearch IS NULL OR ilike(d.name, CONCAT('%', :textSearch, '%')) = true)")
     Page<DeviceProfileInfo> findDeviceProfileInfos(@Param("tenantId") UUID tenantId,
                                                    @Param("textSearch") String textSearch,
                                                    @Param("transportType") DeviceTransportType transportType,
@@ -90,7 +91,17 @@ public interface DeviceProfileRepository extends JpaRepository<DeviceProfileEnti
 
     DeviceProfileEntity findByProvisionDeviceKey(@Param("provisionDeviceKey") String provisionDeviceKey);
 
+    @Query("SELECT new org.thingsboard.server.common.data.DeviceProfileInfo(d.id, d.tenantId, d.name, d.image, d.defaultDashboardId, d.type, d.transportType) " +
+            "FROM DeviceProfileEntity d WHERE d.tenantId = :tenantId AND d.image = :imageLink")
+    List<DeviceProfileInfo> findByTenantAndImageLink(@Param("tenantId") UUID tenantId, @Param("imageLink") String imageLink, Pageable page);
+
+    @Query("SELECT new org.thingsboard.server.common.data.DeviceProfileInfo(d.id, d.tenantId, d.name, d.image, d.defaultDashboardId, d.type, d.transportType) " +
+            "FROM DeviceProfileEntity d WHERE d.image = :imageLink")
+    List<DeviceProfileInfo> findByImageLink(@Param("imageLink") String imageLink, Pageable page);
+
     @Query("SELECT externalId FROM DeviceProfileEntity WHERE id = :id")
     UUID getExternalIdById(@Param("id") UUID id);
+
+    Page<DeviceProfileEntity> findAllByImageNotNull(Pageable pageable);
 
 }

@@ -50,7 +50,7 @@ import { RoleService } from '@core/http/role.service';
 import { AlarmService } from '@core/http/alarm.service';
 import { Router } from '@angular/router';
 import { BroadcastService } from '@core/services/broadcast.service';
-import { ImportExportService } from '@home/components/import-export/import-export.service';
+import { ImportExportService } from '@shared/import-export/import-export.service';
 import { EdgeService } from '@core/http/edge.service';
 import { SchedulerEventService } from '@core/http/scheduler-event.service';
 import { DeviceProfileService } from '@core/http/device-profile.service';

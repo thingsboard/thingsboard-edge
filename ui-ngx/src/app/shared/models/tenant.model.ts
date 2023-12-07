@@ -51,6 +51,7 @@ export interface DefaultTenantProfileConfiguration {
   maxSchedulerEvents: number;
   maxResourcesInBytes: number;
   maxOtaPackagesInBytes: number;
+  maxResourceSize: number;
 
   transportTenantMsgRateLimit?: string;
   transportTenantTelemetryMsgRateLimit?: string;
@@ -71,6 +72,7 @@ export interface DefaultTenantProfileConfiguration {
   maxTransportDataPoints: number;
   maxREExecutions: number;
   maxJSExecutions: number;
+  maxTbelExecutions: number;
   maxDPStorageDays: number;
   maxRuleNodeExecutionsPerMessage: number;
   maxEmails: number;
@@ -97,6 +99,8 @@ export interface DefaultTenantProfileConfiguration {
   defaultStorageTtlDays: number;
   alarmsTtlDays: number;
   rpcTtlDays: number;
+  queueStatsTtlDays: number;
+  ruleEngineExceptionsTtlDays: number;
 }
 
 export type TenantProfileConfigurations = DefaultTenantProfileConfiguration;
@@ -122,10 +126,12 @@ export function createTenantProfileConfiguration(type: TenantProfileType): Tenan
           maxSchedulerEvents: 0,
           maxResourcesInBytes: 0,
           maxOtaPackagesInBytes: 0,
+          maxResourceSize: 0,
           maxTransportMessages: 0,
           maxTransportDataPoints: 0,
           maxREExecutions: 0,
           maxJSExecutions: 0,
+          maxTbelExecutions: 0,
           maxDPStorageDays: 0,
           maxRuleNodeExecutionsPerMessage: 0,
           maxEmails: 0,
@@ -148,6 +154,8 @@ export function createTenantProfileConfiguration(type: TenantProfileType): Tenan
           defaultStorageTtlDays: 0,
           alarmsTtlDays: 0,
           rpcTtlDays: 0,
+          queueStatsTtlDays: 0,
+          ruleEngineExceptionsTtlDays: 0
         };
         configuration = {...defaultConfiguration, type: TenantProfileType.DEFAULT};
         break;

@@ -48,7 +48,6 @@ import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 
@@ -84,7 +83,7 @@ public class JpaDashboardInfoDao extends JpaAbstractDao<DashboardInfoEntity, Das
         return DaoUtil.toPageData(dashboardInfoRepository
                 .findByTenantId(
                         tenantId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink, DashboardInfoEntity.dashboardColumnMap)));
     }
 
@@ -93,7 +92,7 @@ public class JpaDashboardInfoDao extends JpaAbstractDao<DashboardInfoEntity, Das
         return DaoUtil.toPageData(dashboardInfoRepository
                 .findTenantDashboardsByTenantId(
                         tenantId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink, DashboardInfoEntity.dashboardColumnMap)));
     }
 
@@ -107,7 +106,7 @@ public class JpaDashboardInfoDao extends JpaAbstractDao<DashboardInfoEntity, Das
         return DaoUtil.toPageData(dashboardInfoRepository
                 .findMobileByTenantId(
                         tenantId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink, DashboardInfoEntity.dashboardColumnMap, sortOrders)));
     }
 
@@ -117,7 +116,7 @@ public class JpaDashboardInfoDao extends JpaAbstractDao<DashboardInfoEntity, Das
                 .findByTenantIdAndCustomerId(
                         tenantId,
                         customerId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink, DashboardInfoEntity.dashboardColumnMap)));
     }
 
@@ -127,7 +126,7 @@ public class JpaDashboardInfoDao extends JpaAbstractDao<DashboardInfoEntity, Das
                 .findByTenantIdAndCustomerIdIncludingSubCustomers(
                         tenantId,
                         customerId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink, DashboardInfoEntity.dashboardColumnMap)));
     }
 
@@ -142,7 +141,7 @@ public class JpaDashboardInfoDao extends JpaAbstractDao<DashboardInfoEntity, Das
                 .findMobileByTenantIdAndCustomerId(
                         tenantId,
                         customerId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink, DashboardInfoEntity.dashboardColumnMap, sortOrders)));
     }
 
@@ -156,7 +155,7 @@ public class JpaDashboardInfoDao extends JpaAbstractDao<DashboardInfoEntity, Das
         return DaoUtil.toPageData(dashboardInfoRepository
                 .findByEntityGroupId(
                         groupId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink, DashboardInfoEntity.dashboardColumnMap)));
     }
 
@@ -165,7 +164,7 @@ public class JpaDashboardInfoDao extends JpaAbstractDao<DashboardInfoEntity, Das
         return DaoUtil.toPageData(dashboardInfoRepository
                 .findByEntityGroupIds(
                         groupIds,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink, DashboardInfoEntity.dashboardColumnMap)));
     }
 
@@ -179,7 +178,7 @@ public class JpaDashboardInfoDao extends JpaAbstractDao<DashboardInfoEntity, Das
         return DaoUtil.toPageData(dashboardInfoRepository
                 .findMobileByEntityGroupIds(
                         groupIds,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink, DashboardInfoEntity.dashboardColumnMap, sortOrders)));
     }
 
@@ -191,5 +190,15 @@ public class JpaDashboardInfoDao extends JpaAbstractDao<DashboardInfoEntity, Das
     @Override
     public String findTitleById(UUID tenantId, UUID dashboardId) {
         return dashboardInfoRepository.findTitleByTenantIdAndId(tenantId, dashboardId);
+    }
+
+    @Override
+    public List<DashboardInfo> findByTenantAndImageLink(TenantId tenantId, String imageLink, int limit) {
+        return DaoUtil.convertDataList(dashboardInfoRepository.findByTenantAndImageLink(tenantId.getId(), imageLink, limit));
+    }
+
+    @Override
+    public List<DashboardInfo> findByImageLink(String imageLink, int limit) {
+        return DaoUtil.convertDataList(dashboardInfoRepository.findByImageLink(imageLink, limit));
     }
 }

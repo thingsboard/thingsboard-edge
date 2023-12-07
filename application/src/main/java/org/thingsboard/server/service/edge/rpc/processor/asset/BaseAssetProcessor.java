@@ -30,15 +30,12 @@
  */
 package org.thingsboard.server.service.edge.rpc.processor.asset;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.AssetId;
-import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -50,38 +47,33 @@ import java.util.UUID;
 @Slf4j
 public abstract class BaseAssetProcessor extends BaseEdgeProcessor {
 
-    protected Pair<Boolean, Boolean> saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, CustomerId customerId) throws ThingsboardException {
+    protected Pair<Boolean, Boolean> saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg) throws ThingsboardException {
         boolean created = false;
         boolean assetNameUpdated = false;
         assetCreationLock.lock();
         try {
-            Asset asset = assetService.findAssetById(tenantId, assetId);
-            String assetName = assetUpdateMsg.getName();
+            Asset asset = constructAssetFromUpdateMsg(tenantId, assetId, assetUpdateMsg);
             if (asset == null) {
-                created = true;
-                asset = new Asset();
-                asset.setTenantId(tenantId);
-                asset.setCreatedTime(Uuids.unixTimestamp(assetId.getId()));
-            } else {
-                changeOwnerIfRequired(tenantId, customerId, assetId);
+                throw new RuntimeException("[{" + tenantId + "}] assetUpdateMsg {" + assetUpdateMsg + " } cannot be converted to asset");
             }
+            Asset assetById = assetService.findAssetById(tenantId, assetId);
+            if (assetById == null) {
+                created = true;
+                asset.setId(null);
+            } else {
+                asset.setId(assetId);
+                changeOwnerIfRequired(tenantId, asset.getCustomerId(), assetId);
+            }
+            String assetName = asset.getName();
             Asset assetByName = assetService.findAssetByTenantIdAndName(tenantId, assetName);
             if (assetByName != null && !assetByName.getId().equals(assetId)) {
                 assetName = assetName + "_" + StringUtils.randomAlphanumeric(15);
                 log.warn("[{}] Asset with name {} already exists. Renaming asset name to {}",
-                        tenantId, assetUpdateMsg.getName(), assetName);
+                        tenantId, asset.getName(), assetName);
                 assetNameUpdated = true;
             }
             asset.setName(assetName);
-            asset.setType(assetUpdateMsg.getType());
-            asset.setLabel(assetUpdateMsg.hasLabel() ? assetUpdateMsg.getLabel() : null);
-            asset.setAdditionalInfo(assetUpdateMsg.hasAdditionalInfo()
-                    ? JacksonUtil.toJsonNode(assetUpdateMsg.getAdditionalInfo()) : null);
-
-            UUID assetProfileUUID = safeGetUUID(assetUpdateMsg.getAssetProfileIdMSB(), assetUpdateMsg.getAssetProfileIdLSB());
-            asset.setAssetProfileId(assetProfileUUID != null ? new AssetProfileId(assetProfileUUID) : null);
-
-            asset.setCustomerId(customerId);
+            setCustomerId(tenantId, created ? null : assetById.getCustomerId(), asset, assetUpdateMsg);
 
             assetValidator.validate(asset, Asset::getTenantId);
             if (created) {
@@ -108,4 +100,9 @@ public abstract class BaseAssetProcessor extends BaseEdgeProcessor {
             safeAddEntityToGroup(tenantId, new EntityGroupId(entityGroupUUID), assetId);
         }
     }
+
+    protected abstract Asset constructAssetFromUpdateMsg(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg);
+
+
+    protected abstract void setCustomerId(TenantId tenantId, CustomerId customerId, Asset asset, AssetUpdateMsg assetUpdateMsg);
 }

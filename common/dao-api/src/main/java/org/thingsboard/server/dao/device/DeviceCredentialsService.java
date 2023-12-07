@@ -51,4 +51,6 @@ public interface DeviceCredentialsService {
 
     void deleteDeviceCredentials(TenantId tenantId, DeviceCredentials deviceCredentials);
 
+    void deleteDeviceCredentialsByDeviceId(TenantId tenantId, DeviceId deviceId);
+
 }

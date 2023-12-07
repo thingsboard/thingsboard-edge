@@ -41,15 +41,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.awaitility.Awaitility;
 import org.testng.SkipException;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
@@ -67,15 +63,13 @@ import static org.thingsboard.server.common.data.DataConstants.DEVICE;
 import static org.thingsboard.server.common.data.DataConstants.SHARED_SCOPE;
 import static org.thingsboard.server.common.data.integration.IntegrationType.AWS_IOT;
 import static org.thingsboard.server.msa.prototypes.AwsIotIntegrationPrototypes.defaultConfig;
-import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.downlinkConverterPrototype;
-import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.uplinkConverterPrototype;
 
 @Slf4j
 public class AwsIotIntegrationTest extends AbstractIntegrationTest {
     private static final String ROUTING_KEY = "routing-key-1234599";
     private static final String SECRET_KEY = "secret-key-1234599";
 
-    private static final String CONFIG_CONVERTER = "var payloadStr = decodeToString(payload);\n" +
+    private static final JsonNode CONFIG_CONVERTER = JacksonUtil.newObjectNode().put("decoder", "var payloadStr = decodeToString(payload);\n" +
             "var data = decodeToJson(payload);\n" +
             "var result = {};\n" +
             "var topic = metadata['topic'].split('/');\n" +
@@ -93,7 +87,7 @@ public class AwsIotIntegrationTest extends AbstractIntegrationTest {
             "   return data;\n" +
             "}\n" +
             "\n" +
-            "return result;";
+            "return result;");
 
     private final JsonNode DOWNLINK_CONVERTER_CONFIGURATION = JacksonUtil.newObjectNode()
             .put("encoder", "var data = {};\n" +
@@ -111,13 +105,11 @@ public class AwsIotIntegrationTest extends AbstractIntegrationTest {
                     "    }\n" +
                     "};\n" +
                     "return result;");
-    private Converter uplinkConverter;
-    private Converter downlinkConverter;
-    private RuleChainId defaultRuleChainId;
-    private static final String CLIENT_ENDPOINT = System.getProperty("blackBoxTests.aws.endpoint", "");;
+    private static final String CLIENT_ENDPOINT = System.getProperty("blackBoxTests.aws.endpoint", "");
     private static final String ROOT_CA = System.getProperty("blackBoxTests.aws.rootCA", "");
     private static final String CERTIFICATE = System.getProperty("blackBoxTests.aws.cert", "");
     private static final String PRIVATE_KEY = System.getProperty("blackBoxTests.aws.privateKey", "");
+
     @BeforeClass
     public void beforeClass() {
         if (Boolean.parseBoolean(System.getProperty("blackBoxTests.integrations.skip", "true"))) {
@@ -125,37 +117,9 @@ public class AwsIotIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
-    @BeforeMethod
-    public void setUp() {
-        JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder", CONFIG_CONVERTER);
-        uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(configConverter));
-        downlinkConverter = testRestClient.postConverter(downlinkConverterPrototype(DOWNLINK_CONVERTER_CONFIGURATION));
-        defaultRuleChainId = getDefaultRuleChainId();
-    }
-
-    @AfterMethod
-    public void tearDown()  {
-        testRestClient.setRootRuleChain(defaultRuleChainId);
-    }
-
     @Test
     public void telemetryUploadWithLocalIntegration() throws Exception {
-        JsonNode configuration = getIntegrationConfig();
-        integration = Integration.builder()
-                .type(AWS_IOT)
-                .name("aws_iot_" + RandomStringUtils.randomAlphanumeric(7))
-                .configuration(configuration)
-                .defaultConverterId(uplinkConverter.getId())
-                .routingKey(ROUTING_KEY)
-                .secret(SECRET_KEY)
-                .isRemote(false)
-                .enabled(true)
-                .debugMode(true)
-                .allowCreateDevicesOrAssets(true)
-                .build();
-
-        integration = testRestClient.postIntegration(integration);
-        waitUntilIntegrationStarted(integration.getId(), integration.getTenantId());
+        createIntegration(AWS_IOT, getIntegrationConfig(), CONFIG_CONVERTER, ROUTING_KEY, SECRET_KEY, false);
 
         String value = "13";
         String content = createPayloadForUplink(value).toString();
@@ -190,23 +154,7 @@ public class AwsIotIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void checkDownlinkMessageWasSent() throws Exception {
-        JsonNode configuration = getIntegrationConfig();
-        integration = Integration.builder()
-                .type(AWS_IOT)
-                .name("aws_iot_" + RandomStringUtils.randomAlphanumeric(7))
-                .configuration(configuration)
-                .defaultConverterId(uplinkConverter.getId())
-                .downlinkConverterId(downlinkConverter.getId())
-                .routingKey(ROUTING_KEY)
-                .secret(SECRET_KEY)
-                .isRemote(false)
-                .enabled(true)
-                .debugMode(true)
-                .allowCreateDevicesOrAssets(true)
-                .build();
-
-        integration = testRestClient.postIntegration(integration);
-        waitUntilIntegrationStarted(integration.getId(), integration.getTenantId());
+        createIntegration(AWS_IOT, getIntegrationConfig(), CONFIG_CONVERTER, DOWNLINK_CONVERTER_CONFIGURATION, ROUTING_KEY, SECRET_KEY, false);
 
         //subscribe for aws iot topic
         AWSIotMqttClient awsIotClient = getAwsIotClient();
@@ -260,25 +208,24 @@ public class AwsIotIntegrationTest extends AbstractIntegrationTest {
     }
 
     private JsonNode getIntegrationConfig() throws IOException {
-        String rootCA =new String(Files.readAllBytes(Paths.get(ROOT_CA))).replace("\n", "\\n");
+        String rootCA = new String(Files.readAllBytes(Paths.get(ROOT_CA))).replace("\n", "\\n");
         String cert = new String(Files.readAllBytes(Paths.get(CERTIFICATE))).replace("\n", "\\n");
         String privateKey = new String(Files.readAllBytes(Paths.get(PRIVATE_KEY))).replace("\n", "\\n");
         return defaultConfig(CLIENT_ENDPOINT, rootCA, cert, privateKey);
     }
+
     private JsonNode createPayloadForUplink(String value) {
         ObjectNode values = JacksonUtil.newObjectNode();
         values.put("value", value);
         return values;
     }
+
     private AWSIotMqttClient getAwsIotClient() {
         String clientId = RandomStringUtils.randomAlphanumeric(10);
 
         SampleUtil.KeyStorePasswordPair pair = SampleUtil.getKeyStorePasswordPair(CERTIFICATE, PRIVATE_KEY);
         AWSIotMqttClient awsIotClient = new AWSIotMqttClient(CLIENT_ENDPOINT, clientId, pair.keyStore, pair.keyPassword);
 
-        if (awsIotClient == null) {
-            throw new IllegalArgumentException("Failed to construct client due to missing certificate or credentials.");
-        }
         return awsIotClient;
     }
 }

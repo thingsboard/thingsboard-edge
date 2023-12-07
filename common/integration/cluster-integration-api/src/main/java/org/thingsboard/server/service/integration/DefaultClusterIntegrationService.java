@@ -44,6 +44,7 @@ import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.common.util.ProtoUtils;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.queue.TbQueueConsumer;
@@ -272,7 +273,11 @@ public class DefaultClusterIntegrationService extends TbApplicationEventListener
 
     private void handleNotification(UUID id, TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg> msg, TbCallback callback) {
         ToIntegrationExecutorNotificationMsg nf = msg.getValue();
-        if (!nf.getComponentLifecycleMsg().isEmpty()) {
+        if (nf.hasComponentLifecycle()) {
+            handleComponentLifecycleMsg(id, ProtoUtils.fromProto(nf.getComponentLifecycle()));
+            callback.onSuccess();
+        } else if (!nf.getComponentLifecycleMsg().isEmpty()) {
+            //will be removed in 3.6.1 in favour of hasComponentLifecycle()
             handleComponentLifecycleMsg(id, nf.getComponentLifecycleMsg());
             callback.onSuccess();
         }
@@ -282,15 +287,19 @@ public class DefaultClusterIntegrationService extends TbApplicationEventListener
         Optional<TbActorMsg> actorMsgOpt = encodingService.decode(nfMsg.toByteArray());
         if (actorMsgOpt.isPresent()) {
             TbActorMsg actorMsg = actorMsgOpt.get();
-            if (actorMsg instanceof ComponentLifecycleMsg) {
-                ComponentLifecycleMsg componentLifecycleMsg = (ComponentLifecycleMsg) actorMsg;
-                log.info("[{}][{}][{}] Received Lifecycle event: {}", componentLifecycleMsg.getTenantId(),
-                        componentLifecycleMsg.getEntityId().getEntityType(),
-                        componentLifecycleMsg.getEntityId(), componentLifecycleMsg.getEvent());
-                integrationManagerService.handleComponentLifecycleMsg(componentLifecycleMsg);
-            }
-            log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg);
+            handleComponentLifecycleMsg(id, actorMsg);
         }
+    }
+
+    protected void handleComponentLifecycleMsg(UUID id, TbActorMsg actorMsg) {
+        if (actorMsg instanceof ComponentLifecycleMsg) {
+            ComponentLifecycleMsg componentLifecycleMsg = (ComponentLifecycleMsg) actorMsg;
+            log.info("[{}][{}][{}] Received Lifecycle event: {}", componentLifecycleMsg.getTenantId(),
+                    componentLifecycleMsg.getEntityId().getEntityType(),
+                    componentLifecycleMsg.getEntityId(), componentLifecycleMsg.getEvent());
+            integrationManagerService.handleComponentLifecycleMsg(componentLifecycleMsg);
+        }
+        log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg);
     }
 
     private void refreshIntegrationsByType(IntegrationType type) {

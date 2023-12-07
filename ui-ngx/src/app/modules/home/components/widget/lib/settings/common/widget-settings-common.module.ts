@@ -42,7 +42,10 @@ import {
 } from '@home/components/widget/lib/settings/common/image-cards-select.component';
 import { FontSettingsComponent } from '@home/components/widget/lib/settings/common/font-settings.component';
 import { FontSettingsPanelComponent } from '@home/components/widget/lib/settings/common/font-settings-panel.component';
-import { ColorSettingsComponent } from '@home/components/widget/lib/settings/common/color-settings.component';
+import {
+  ColorSettingsComponent,
+  ColorSettingsComponentService
+} from '@home/components/widget/lib/settings/common/color-settings.component';
 import {
   ColorSettingsPanelComponent
 } from '@home/components/widget/lib/settings/common/color-settings-panel.component';
@@ -57,7 +60,12 @@ import {
 } from '@home/components/widget/lib/settings/common/background-settings-panel.component';
 import {
   CountWidgetSettingsComponent
-} from "@home/components/widget/lib/settings/common/count-widget-settings.component";
+} from '@home/components/widget/lib/settings/common/count-widget-settings.component';
+import { ColorRangeListComponent } from '@home/components/widget/lib/settings/common/color-range-list.component';
+import { ColorRangePanelComponent } from '@home/components/widget/lib/settings/common/color-range-panel.component';
+import {
+  ColorRangeSettingsComponent, ColorRangeSettingsComponentService
+} from '@home/components/widget/lib/settings/common/color-range-settings.component';
 
 @NgModule({
   declarations: [
@@ -75,7 +83,10 @@ import {
     ValueSourceComponent,
     LegendConfigComponent,
     WidgetFontComponent,
-    CountWidgetSettingsComponent
+    CountWidgetSettingsComponent,
+    ColorRangeListComponent,
+    ColorRangePanelComponent,
+    ColorRangeSettingsComponent
   ],
   imports: [
     CommonModule,
@@ -97,7 +108,14 @@ import {
     ValueSourceComponent,
     LegendConfigComponent,
     WidgetFontComponent,
-    CountWidgetSettingsComponent
+    CountWidgetSettingsComponent,
+    ColorRangeListComponent,
+    ColorRangePanelComponent,
+    ColorRangeSettingsComponent
+  ],
+  providers: [
+    ColorSettingsComponentService,
+    ColorRangeSettingsComponentService
   ]
 })
 export class WidgetSettingsCommonModule {

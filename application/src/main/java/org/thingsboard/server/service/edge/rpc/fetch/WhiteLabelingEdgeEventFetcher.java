@@ -49,6 +49,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.customer.CustomerService;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -66,91 +67,35 @@ public class WhiteLabelingEdgeEventFetcher implements EdgeEventFetcher {
     @Override
     public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) {
         List<EdgeEvent> result = new ArrayList<>();
-        List<EdgeEvent> loginWhiteLabelingEdgeEvents = getLoginWhiteLabelingEdgeEvents(tenantId, edge);
-        if (!loginWhiteLabelingEdgeEvents.isEmpty()) {
-            result.addAll(loginWhiteLabelingEdgeEvents);
-        }
-        List<EdgeEvent> whiteLabelingEdgeEvents = getWhiteLabelingEdgeEvents(tenantId, edge);
-        if (!whiteLabelingEdgeEvents.isEmpty()) {
-            result.addAll(whiteLabelingEdgeEvents);
-        }
-        List<EdgeEvent> customTranslationEdgeEvents = getCustomTranslationEdgeEvents(tenantId, edge);
-        if (!customTranslationEdgeEvents.isEmpty()) {
-            result.addAll(customTranslationEdgeEvents);
+        List<EdgeEventType> wlTypes = Arrays.asList(EdgeEventType.WHITE_LABELING, EdgeEventType.LOGIN_WHITE_LABELING, EdgeEventType.MAIL_TEMPLATES);
+        for (EdgeEventType wlType : wlTypes) {
+            List<EdgeEvent> wlEdgeEvents = getWhiteLabelingEdgeEvents(tenantId, edge, wlType);
+            result.addAll(wlEdgeEvents);
         }
         // @voba - returns PageData object to be in sync with other fetchers
         return new PageData<>(result, 1, result.size(), false);
     }
 
-    private List<EdgeEvent> getLoginWhiteLabelingEdgeEvents(TenantId tenantId, Edge edge) {
+    private List<EdgeEvent> getWhiteLabelingEdgeEvents(TenantId tenantId, Edge edge, EdgeEventType eventType) {
         try {
             EntityId ownerId = edge.getOwnerId();
             List<EdgeEvent> result = new ArrayList<>();
             result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
-                    EdgeEventType.LOGIN_WHITE_LABELING, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(new TenantId(EntityId.NULL_UUID))));
+                    eventType, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(new TenantId(EntityId.NULL_UUID))));
             result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
-                    EdgeEventType.LOGIN_WHITE_LABELING, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(tenantId)));
+                    eventType, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(tenantId)));
             if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
                 CustomerId customerId = new CustomerId(ownerId.getId());
                 result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
-                        EdgeEventType.LOGIN_WHITE_LABELING, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(customerId)));
+                        eventType, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(customerId)));
                 Customer customer = customerService.findCustomerById(tenantId, customerId);
                 if (customer.isSubCustomer()) {
-                    getParentCustomerEvents(tenantId, edge.getId(), customer.getParentCustomerId(), EdgeEventType.LOGIN_WHITE_LABELING, result);
-                }
-            }
-            return result;
-        } catch (Exception e) {
-            log.error("Can't load login white labeling params", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    private List<EdgeEvent> getWhiteLabelingEdgeEvents(TenantId tenantId, Edge edge) {
-        try {
-            EntityId ownerId = edge.getOwnerId();
-            List<EdgeEvent> result = new ArrayList<>();
-            result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
-                    EdgeEventType.WHITE_LABELING, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(new TenantId(EntityId.NULL_UUID))));
-            result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
-                    EdgeEventType.WHITE_LABELING, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(tenantId)));
-            if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
-                CustomerId customerId = new CustomerId(ownerId.getId());
-                result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
-                        EdgeEventType.WHITE_LABELING, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(customerId)));
-                Customer customer = customerService.findCustomerById(tenantId, customerId);
-                if (customer.isSubCustomer()) {
-                    getParentCustomerEvents(tenantId, edge.getId(), customer.getParentCustomerId(), EdgeEventType.WHITE_LABELING, result);
+                    getParentCustomerEvents(tenantId, edge.getId(), customer.getParentCustomerId(), eventType, result);
                 }
             }
             return result;
         } catch (Exception e) {
             log.error("Can't load white labeling params", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    private List<EdgeEvent> getCustomTranslationEdgeEvents(TenantId tenantId, Edge edge) {
-        try {
-
-            EntityId ownerId = edge.getOwnerId();
-            List<EdgeEvent> result = new ArrayList<>();
-            result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
-                    EdgeEventType.CUSTOM_TRANSLATION, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(new TenantId(EntityId.NULL_UUID))));
-            result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
-                    EdgeEventType.CUSTOM_TRANSLATION, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(tenantId)));
-            if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
-                CustomerId customerId = new CustomerId(ownerId.getId());
-                result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
-                        EdgeEventType.CUSTOM_TRANSLATION, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(customerId)));
-                Customer customer = customerService.findCustomerById(tenantId, customerId);
-                if (customer.isSubCustomer()) {
-                    getParentCustomerEvents(tenantId, edge.getId(), customer.getParentCustomerId(), EdgeEventType.CUSTOM_TRANSLATION, result);
-                }
-            }
-            return result;
-        } catch (Exception e) {
-            log.error("Can't load custom translation", e);
             throw new RuntimeException(e);
         }
     }
@@ -163,7 +108,3 @@ public class WhiteLabelingEdgeEventFetcher implements EdgeEventFetcher {
         }
     }
 }
-
-
-
-

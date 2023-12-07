@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
@@ -48,7 +49,6 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -65,15 +65,20 @@ public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
         return null;
     }
 
-    @Override
     public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) throws Exception {
+        List<EdgeEvent> result = fetchAdminSettingsForKeys(tenantId, edge.getId(), List.of("general", "mail", "connectivity", "jwt", "customTranslation", "customMenu"));
+
+        // return PageData object to be in sync with other fetchers
+        return new PageData<>(result, 1, result.size(), false);
+    }
+
+    private List<EdgeEvent> fetchAdminSettingsForKeys(TenantId tenantId, EdgeId edgeId, List<String> keys) throws Exception {
         List<EdgeEvent> result = new ArrayList<>();
-        List<String> adminSettingsKeys = Arrays.asList("general", "mail", "mailTemplates");
-        for (String key : adminSettingsKeys) {
-            AdminSettings sysAdminMainSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key);
-            if (sysAdminMainSettings != null) {
-                result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
-                        EdgeEventActionType.UPDATED, null, JacksonUtil.OBJECT_MAPPER.valueToTree(sysAdminMainSettings)));
+        for (String key : keys) {
+            AdminSettings adminSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key);
+            if (adminSettings != null) {
+                result.add(EdgeUtils.constructEdgeEvent(tenantId, edgeId, EdgeEventType.ADMIN_SETTINGS,
+                        EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(adminSettings)));
             }
             Optional<AttributeKvEntry> tenantMailSettingsAttr = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, key).get();
             if (tenantMailSettingsAttr.isPresent()) {
@@ -81,12 +86,11 @@ public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
                 tenantMailSettings.setTenantId(tenantId);
                 tenantMailSettings.setKey(key);
                 String value = tenantMailSettingsAttr.get().getValueAsString();
-                tenantMailSettings.setJsonValue(JacksonUtil.OBJECT_MAPPER.readTree(value));
-                result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
-                        EdgeEventActionType.UPDATED, null, JacksonUtil.OBJECT_MAPPER.valueToTree(tenantMailSettings)));
+                tenantMailSettings.setJsonValue(JacksonUtil.toJsonNode(value));
+                result.add(EdgeUtils.constructEdgeEvent(tenantId, edgeId, EdgeEventType.ADMIN_SETTINGS,
+                        EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(tenantMailSettings)));
             }
         }
-        // @voba - returns PageData object to be in sync with other fetchers
-        return new PageData<>(result, 1, result.size(), false);
+        return result;
     }
 }
