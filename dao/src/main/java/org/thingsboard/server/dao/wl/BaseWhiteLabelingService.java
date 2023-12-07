@@ -174,7 +174,6 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
                     var key = parts[4];
                     return new ImageCacheKey(imageTenantId, key, false);
                 }
-                result.merge(getTenantLoginWhiteLabelingParams(customer.getTenantId()));
             }
         }
         return null;
@@ -585,15 +584,15 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     private final Lock edgeLoginWhiteLabelSettingsLock = new ReentrantLock();
 
     @Override
-    public void saveOrUpdateEdgeLoginWhiteLabelSettings(TenantId tenantId, EntityId currentEntityId) {
+    public void saveOrUpdateEdgeLoginWhiteLabelSettings(TenantId tenantId, CustomerId customerId) {
         edgeLoginWhiteLabelSettingsLock.lock();
         try {
-            checkAndRemoveIfDomainAlreadyUsedByOtherEntity(tenantId, currentEntityId);
-            WhiteLabeling whiteLabeling = findByEntityId(tenantId, currentEntityId, WhiteLabelingType.LOGIN);
+            checkAndRemoveIfDomainAlreadyUsedByOtherEntity(tenantId, customerId);
+            WhiteLabeling whiteLabeling = findByEntityId(tenantId, customerId, WhiteLabelingType.LOGIN);
             if (whiteLabeling == null) {
                 whiteLabeling = new WhiteLabeling();
             }
-            whiteLabeling.setEntityId(currentEntityId);
+            whiteLabeling.setCustomerId(customerId);
             whiteLabeling.setType(WhiteLabelingType.LOGIN);
             if (whiteLabeling.getSettings() == null) {
                 whiteLabeling.setSettings(JacksonUtil.valueToTree(new LoginWhiteLabelingParams()));
@@ -605,10 +604,10 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         }
     }
 
-    private void checkAndRemoveIfDomainAlreadyUsedByOtherEntity(TenantId tenantId, EntityId currentEntityId) {
+    private void checkAndRemoveIfDomainAlreadyUsedByOtherEntity(TenantId tenantId, CustomerId customerId) {
         WhiteLabeling whiteLabeling = whiteLabelingDao.findByDomain(tenantId, EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME);
-        if (whiteLabeling != null && whiteLabeling.getEntityId() != null && !whiteLabeling.getEntityId().equals(currentEntityId)) {
-            deleteDomainWhiteLabelingByEntityId(tenantId, whiteLabeling.getEntityId());
+        if (whiteLabeling != null && whiteLabeling.getCustomerId() != null && !whiteLabeling.getCustomerId().equals(customerId)) {
+            deleteDomainWhiteLabelingByEntityId(tenantId, whiteLabeling.getCustomerId());
         }
     }
 }

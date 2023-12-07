@@ -450,13 +450,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                 this.customerId = null;
                 break;
         }
-
-        updateEdgeLoginDomainWhiteLabelingSettings(tenantId);
-    }
-
-    private void updateEdgeLoginDomainWhiteLabelingSettings(TenantId tenantId) {
-        EntityId ownerId = this.customerId != null && !this.customerId.isNullUid() ? this.customerId : tenantId;
-        whiteLabelingService.saveOrUpdateEdgeLoginWhiteLabelSettings(tenantId, ownerId);
+        whiteLabelingService.saveOrUpdateEdgeLoginWhiteLabelSettings(tenantId, this.customerId);
     }
 
     private ListenableFuture<Void> processDeviceCredentialsRequestMsg(TenantId tenantId, DeviceCredentialsRequestMsg deviceCredentialsRequestMsg) {

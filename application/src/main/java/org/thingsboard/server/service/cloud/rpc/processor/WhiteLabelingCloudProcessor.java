@@ -94,44 +94,40 @@ public class WhiteLabelingCloudProcessor extends BaseEdgeProcessor {
         if (whiteLabeling == null) {
             throw new RuntimeException("[{" + tenantId + "}] whiteLabelingProto {" + whiteLabelingProto + " } cannot be converted to white labeling");
         }
-        boolean isSysAdmin = EntityId.NULL_UUID.equals(whiteLabeling.getEntityId().getId());
+        boolean isSysAdmin = EntityId.NULL_UUID.equals(whiteLabeling.getCustomerId().getId());
         boolean isLogin = WhiteLabelingType.LOGIN.equals(whiteLabeling.getType());
         boolean isGeneral = WhiteLabelingType.GENERAL.equals(whiteLabeling.getType());
-        switch (whiteLabeling.getEntityId().getEntityType()) {
-            case TENANT:
-                if (isLogin) {
-                    if (isSysAdmin) {
-                        whiteLabelingService.saveSystemLoginWhiteLabelingParams(constructLoginWlParams(whiteLabeling.getSettings()));
-                    } else {
-                        LoginWhiteLabelingParams loginWhiteLabelingParams = constructLoginWlParams(whiteLabeling.getSettings());
-                        if (customerId == null || customerId.isNullUid()) {
-                            loginWhiteLabelingParams.setDomainName(WhiteLabelingService.EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME);
-                        }
-                        whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams);
-                    }
-                } else if (isGeneral) {
-                    if (isSysAdmin) {
-                        whiteLabelingService.saveSystemWhiteLabelingParams(constructWlParams(whiteLabeling.getSettings(), true));
-                    } else {
-                        whiteLabelingService.saveTenantWhiteLabelingParams(tenantId, constructWlParams(whiteLabeling.getSettings(), false));
-                    }
-                } else if (WhiteLabelingType.MAIL_TEMPLATES.equals(whiteLabeling.getType())) {
-                    whiteLabelingService.saveMailTemplates(isSysAdmin ? TenantId.SYS_TENANT_ID : tenantId, whiteLabeling.getSettings());
-                }
-                break;
-            case CUSTOMER:
-                if (isLogin) {
+        if (whiteLabeling.getCustomerId().isNullUid()) {
+            if (isLogin) {
+                if (isSysAdmin) {
+                    whiteLabelingService.saveSystemLoginWhiteLabelingParams(constructLoginWlParams(whiteLabeling.getSettings()));
+                } else {
                     LoginWhiteLabelingParams loginWhiteLabelingParams = constructLoginWlParams(whiteLabeling.getSettings());
-                    if (customerId != null && !customerId.isNullUid()) {
+                    if (customerId == null || customerId.isNullUid()) {
                         loginWhiteLabelingParams.setDomainName(WhiteLabelingService.EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME);
                     }
-                    whiteLabelingService.saveCustomerLoginWhiteLabelingParams(tenantId, new CustomerId(whiteLabeling.getEntityId().getId()), loginWhiteLabelingParams);
-                } else if (isGeneral) {
-                    whiteLabelingService.saveCustomerWhiteLabelingParams(tenantId, new CustomerId(whiteLabeling.getEntityId().getId()), constructWlParams(whiteLabeling.getSettings(), false));
+                    whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams);
                 }
-                break;
+            } else if (isGeneral) {
+                if (isSysAdmin) {
+                    whiteLabelingService.saveSystemWhiteLabelingParams(constructWlParams(whiteLabeling.getSettings(), true));
+                } else {
+                    whiteLabelingService.saveTenantWhiteLabelingParams(tenantId, constructWlParams(whiteLabeling.getSettings(), false));
+                }
+            } else if (WhiteLabelingType.MAIL_TEMPLATES.equals(whiteLabeling.getType())) {
+                whiteLabelingService.saveMailTemplates(isSysAdmin ? TenantId.SYS_TENANT_ID : tenantId, whiteLabeling.getSettings());
+            }
+        } else {
+            if (isLogin) {
+                LoginWhiteLabelingParams loginWhiteLabelingParams = constructLoginWlParams(whiteLabeling.getSettings());
+                if (customerId != null && !customerId.isNullUid()) {
+                    loginWhiteLabelingParams.setDomainName(WhiteLabelingService.EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME);
+                }
+                whiteLabelingService.saveCustomerLoginWhiteLabelingParams(tenantId, new CustomerId(whiteLabeling.getCustomerId().getId()), loginWhiteLabelingParams);
+            } else if (isGeneral) {
+                whiteLabelingService.saveCustomerWhiteLabelingParams(tenantId, new CustomerId(whiteLabeling.getCustomerId().getId()), constructWlParams(whiteLabeling.getSettings(), false));
+            }
         }
-
         return Futures.immediateFuture(null);
     }
 

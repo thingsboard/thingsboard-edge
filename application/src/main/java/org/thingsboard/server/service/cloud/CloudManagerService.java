@@ -607,9 +607,7 @@ public class CloudManagerService {
 
         // TODO: voba - check this
         UUID customerUUID = new UUID(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
-        CustomerId customerId = new CustomerId(customerUUID);
-        EntityId ownerId = !customerId.isNullUid() ? customerId : tenantId;
-        whiteLabelingService.saveOrUpdateEdgeLoginWhiteLabelSettings(tenantId, ownerId);
+        whiteLabelingService.saveOrUpdateEdgeLoginWhiteLabelSettings(tenantId, new CustomerId(customerUUID));
 
         updateConnectivityStatus(true);
 

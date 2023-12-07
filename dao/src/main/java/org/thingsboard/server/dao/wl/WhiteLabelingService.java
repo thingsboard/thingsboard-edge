@@ -102,5 +102,5 @@ public interface WhiteLabelingService {
     WhiteLabeling findByEntityId(TenantId tenantId, CustomerId customerId, WhiteLabelingType type);
 
     // TODO: @voba - methods added on edge for login whitelabeling
-    void saveOrUpdateEdgeLoginWhiteLabelSettings(TenantId tenantId, EntityId currentEntityId);
+    void saveOrUpdateEdgeLoginWhiteLabelSettings(TenantId tenantId, CustomerId customerId);
 }
