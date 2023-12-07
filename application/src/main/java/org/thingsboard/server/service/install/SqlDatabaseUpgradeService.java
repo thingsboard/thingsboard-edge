@@ -755,9 +755,9 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                 });
                 break;
             case "3.6.0":
-                updateSchema("3.6.0", 3006000, "3.6.1", 3006001, connection -> {
+                updateSchema("3.6.0", 3006000, "3.6.1", 3006001, conn -> {
                     try {
-                        connection.createStatement().execute("DELETE FROM resource");
+                        conn.createStatement().execute("DELETE FROM resource");
                     } catch (Exception e) {
                     }
                 });

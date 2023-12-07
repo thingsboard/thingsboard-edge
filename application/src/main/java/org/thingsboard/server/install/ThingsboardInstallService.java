@@ -370,10 +370,10 @@ public class ThingsboardInstallService {
                 // systemDataLoaderService.createQueues();
                 // systemDataLoaderService.createDefaultNotificationConfigs();
 
-//                systemDataLoaderService.loadSystemPlugins();
-//                systemDataLoaderService.loadSystemRules();
-//                installScripts.loadSystemLwm2mResources();
-//                installScripts.loadSystemImages();
+                // systemDataLoaderService.loadSystemPlugins();
+                // systemDataLoaderService.loadSystemRules();
+                // installScripts.loadSystemLwm2mResources();
+                // installScripts.loadSystemImages();
 
                 if (loadDemo) {
                     // log.info("Loading demo data...");
