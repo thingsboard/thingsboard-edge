@@ -68,7 +68,6 @@ import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -335,7 +334,12 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
         }
 
         assets = Futures.transform(assets, assetList ->
-                assetList == null ? Collections.emptyList() : assetList.stream().filter(asset -> query.getAssetTypes().contains(asset.getType())).collect(Collectors.toList()), MoreExecutors.directExecutor()
+                        assetList == null ?
+                                Collections.emptyList() :
+                                assetList.stream()
+                                        .filter(asset -> query.getAssetTypes().contains(asset.getType()))
+                                        .collect(Collectors.toList()),
+                MoreExecutors.directExecutor()
         );
 
         return assets;
@@ -345,14 +349,7 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
     public ListenableFuture<List<EntitySubtype>> findAssetTypesByTenantId(TenantId tenantId) {
         log.trace("Executing findAssetTypesByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        ListenableFuture<List<EntitySubtype>> tenantAssetTypes = assetDao.findTenantAssetTypesAsync(tenantId.getId());
-        return Futures.transform(tenantAssetTypes,
-                assetTypes -> {
-                    if (assetTypes != null) {
-                        assetTypes.sort(Comparator.comparing(EntitySubtype::getType));
-                    }
-                    return assetTypes;
-                }, MoreExecutors.directExecutor());
+        return assetDao.findTenantAssetTypesAsync(tenantId.getId());
     }
 
     @Override
