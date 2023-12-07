@@ -60,7 +60,6 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
 
     public ListenableFuture<Void> processDeviceMsgFromCloud(TenantId tenantId,
                                                             DeviceUpdateMsg deviceUpdateMsg,
-                                                            EdgeVersion edgeVersion,
                                                             Long queueStartTs) {
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
         try {
@@ -68,7 +67,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
             switch (deviceUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, edgeVersion, queueStartTs);
+                    saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, queueStartTs);
                     return Futures.transformAsync(requestForAdditionalData(tenantId, deviceId, queueStartTs),
                             ignored -> cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_REQUEST,
                             deviceId, null, queueStartTs), dbCallbackExecutorService);
@@ -88,8 +87,8 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         }
     }
 
-    private void saveOrUpdateDevice(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg, EdgeVersion edgeVersion, Long queueStartTs) {
-        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, edgeVersion);
+    private void saveOrUpdateDevice(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg, Long queueStartTs) {
+        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg);
         Boolean created = resultPair.getFirst();
         if (created) {
             pushDeviceCreatedEventToRuleEngine(tenantId, deviceId);
@@ -118,11 +117,11 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         }
     }
 
-    public ListenableFuture<Void> processDeviceCredentialsMsgFromCloud(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg, EdgeVersion edgeVersion) {
+    public ListenableFuture<Void> processDeviceCredentialsMsgFromCloud(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {
         try {
             cloudSynchronizationManager.getSync().set(true);
 
-            updateDeviceCredentials(tenantId, deviceCredentialsUpdateMsg, edgeVersion);
+            updateDeviceCredentials(tenantId, deviceCredentialsUpdateMsg);
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }
@@ -268,12 +267,22 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
     }
 
     @Override
-    protected void setCustomerId(TenantId tenantId, CustomerId customerId, Device device, DeviceUpdateMsg deviceUpdateMsg, EdgeVersion edgeVersion) {
+    protected Device constructDeviceFromUpdateMsg(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg) {
+        return JacksonUtil.fromStringIgnoreUnknownProperties(deviceUpdateMsg.getEntity(), Device.class);
+    }
+
+    @Override
+    protected void setCustomerId(TenantId tenantId, CustomerId customerId, Device device, DeviceUpdateMsg deviceUpdateMsg) {
         CustomerId assignedCustomerId = device.getCustomerId();
         Customer customer = null;
         if (assignedCustomerId != null) {
             customer = customerService.findCustomerById(tenantId, assignedCustomerId);
         }
         device.setCustomerId(customer != null ? customer.getId() : null);
+    }
+
+    @Override
+    protected DeviceCredentials constructDeviceCredentialsFromUpdateMsg(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {
+        return JacksonUtil.fromStringIgnoreUnknownProperties(deviceCredentialsUpdateMsg.getEntity(), DeviceCredentials.class);
     }
 }

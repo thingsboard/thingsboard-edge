@@ -105,6 +105,7 @@ import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
+import org.thingsboard.server.service.executors.PubSubRuleNodeExecutorProvider;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
 import org.thingsboard.server.service.script.RuleNodeTbelScriptEngine;
 
@@ -537,6 +538,11 @@ class DefaultTbContext implements TbContext {
     @Override
     public ListeningExecutor getNotificationExecutor() {
         return mainCtx.getNotificationExecutor();
+    }
+
+    @Override
+    public PubSubRuleNodeExecutorProvider getPubSubRuleNodeExecutorProvider() {
+        return mainCtx.getPubSubRuleNodeExecutorProvider();
     }
 
     @Override

@@ -51,7 +51,6 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
 
     public ListenableFuture<Void> processEntityViewMsgFromCloud(TenantId tenantId,
                                                                 EntityViewUpdateMsg entityViewUpdateMsg,
-                                                                EdgeVersion edgeVersion,
                                                                 Long queueStartTs) {
         EntityViewId entityViewId = new EntityViewId(new UUID(entityViewUpdateMsg.getIdMSB(), entityViewUpdateMsg.getIdLSB()));
         try {
@@ -60,7 +59,7 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
             switch (entityViewUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg, edgeVersion, queueStartTs);
+                    saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg, queueStartTs);
                     return requestForAdditionalData(tenantId, entityViewId, queueStartTs);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     EntityView entityViewById = entityViewService.findEntityViewById(tenantId, entityViewId);
@@ -79,8 +78,8 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
         }
     }
 
-    private void saveOrUpdateEntityView(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg, EdgeVersion edgeVersion, Long queueStartTs) {
-        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg, edgeVersion);
+    private void saveOrUpdateEntityView(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg, Long queueStartTs) {
+        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg);
         Boolean created = resultPair.getFirst();
         tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityViewId,
                 created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
@@ -156,7 +155,12 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
     }
 
     @Override
-    protected void setCustomerId(TenantId tenantId, CustomerId customerId, EntityView entityView, EntityViewUpdateMsg entityViewUpdateMsg, EdgeVersion edgeVersion) {
+    protected EntityView constructEntityViewFromUpdateMsg(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg) {
+        return JacksonUtil.fromStringIgnoreUnknownProperties(entityViewUpdateMsg.getEntity(), EntityView.class);
+    }
+
+    @Override
+    protected void setCustomerId(TenantId tenantId, CustomerId customerId, EntityView entityView, EntityViewUpdateMsg entityViewUpdateMsg) {
         CustomerId assignedCustomerId = entityView.getCustomerId();
         Customer customer = null;
         if (assignedCustomerId != null) {
