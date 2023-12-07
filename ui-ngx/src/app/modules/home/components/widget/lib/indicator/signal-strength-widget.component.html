@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-signal-strength-panel" [style]="backgroundStyle" [class.tb-signal-strength-pointer]="hasCardClickAction" (click)="cardClick($event)">
+<div class="tb-signal-strength-panel" [style]="backgroundStyle$ | async" [class.tb-signal-strength-pointer]="hasCardClickAction" (click)="cardClick($event)">
     <div class="tb-signal-strength-overlay" [style]="overlayStyle"></div>
     <div *ngIf="widgetComponent.dashboardWidget.showWidgetTitlePanel || showDate" class="tb-signal-strength-title-panel">
         <ng-container *ngTemplateOutlet="widgetTitlePanel"></ng-container>

@@ -57,7 +57,7 @@ import { Customer } from '@app/shared/models/customer.model';
 import { DialogService } from '@core/services/dialog.service';
 import { Dashboard, DashboardInfo } from '@app/shared/models/dashboard.models';
 import { DashboardService } from '@app/core/http/dashboard.service';
-import { ImportExportService } from '@home/components/import-export/import-export.service';
+import { ImportExportService } from '@shared/import-export/import-export.service';
 import { UtilsService } from '@core/services/utils.service';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { DashboardFormComponent } from '@home/pages/dashboard/dashboard-form.component';
@@ -69,6 +69,13 @@ import { DashboardTableHeaderComponent } from '@home/pages/dashboard/dashboard-t
 import { resolveGroupParams } from '@shared/models/entity-group.models';
 import { AllEntitiesTableConfigService } from '@home/components/entity/all-entities-table-config.service';
 import { GroupEntityTabsComponent } from '@home/components/group/group-entity-tabs.component';
+import { Widget } from '@shared/models/widget.models';
+import { EntityAliases } from '@shared/models/alias.models';
+import {
+  EntityAliasesDialogComponent,
+  EntityAliasesDialogData
+} from '@home/components/alias/entity-aliases-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Injectable()
 export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<DashboardInfo>> {
@@ -84,7 +91,8 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
               private translate: TranslateService,
               private datePipe: DatePipe,
               private router: Router,
-              private utils: UtilsService) {
+              private utils: UtilsService,
+              private dialog: MatDialog) {
   }
 
   resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<DashboardInfo>> {
@@ -139,6 +147,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     config.entityTranslations = entityTypeTranslations.get(EntityType.DASHBOARD);
     config.entityResources = entityTypeResources.get(EntityType.DASHBOARD);
     config.addDialogStyle = {height: '800px'};
+    config.addDialogOwnerAndGroupWizard = false;
 
     config.entityTitle = (dashboard) => dashboard ?
       this.utils.customTranslation(dashboard.title, dashboard.title) : '';
@@ -246,13 +255,37 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
 
   importDashboard($event: Event, config: EntityTableConfig<DashboardInfo>) {
     const customerId = config.customerId ? new CustomerId(config.customerId) : null;
-    this.importExport.importDashboard(customerId).subscribe(
+    this.importExport.importDashboard(customerId, this.editMissingAliases.bind(this)).subscribe(
       (dashboard) => {
         if (dashboard) {
           config.updateData();
         }
       }
     );
+  }
+
+  private editMissingAliases(widgets: Array<Widget>, isSingleWidget: boolean,
+                             customTitle: string, missingEntityAliases: EntityAliases): Observable<EntityAliases> {
+    return this.dialog.open<EntityAliasesDialogComponent, EntityAliasesDialogData,
+      EntityAliases>(EntityAliasesDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        entityAliases: missingEntityAliases,
+        widgets,
+        customTitle,
+        isSingleWidget,
+        disableAdd: true
+      }
+    }).afterClosed().pipe(
+      map((updatedEntityAliases) => {
+          if (updatedEntityAliases) {
+            return updatedEntityAliases;
+          } else {
+            throw new Error('Unable to resolve missing entity aliases!');
+          }
+        }
+      ));
   }
 
   exportDashboard($event: Event, dashboard: DashboardInfo) {
@@ -286,5 +319,18 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     }
     return false;
   }
+
+  // saveAndAssignDashboard(dashboard: DashboardSetup): Observable<Dashboard> {
+  //   const {assignedCustomerIds, ...dashboardToCreate} = dashboard;
+  //
+  //   return this.dashboardService.saveDashboard(dashboardToCreate as Dashboard).pipe(
+  //     mergeMap((createdDashboard) => {
+  //       if (assignedCustomerIds?.length) {
+  //         return this.dashboardService.addDashboardCustomers(createdDashboard.id.id, assignedCustomerIds);
+  //       }
+  //       return of(createdDashboard);
+  //     })
+  //   );
+  // }
 
 }

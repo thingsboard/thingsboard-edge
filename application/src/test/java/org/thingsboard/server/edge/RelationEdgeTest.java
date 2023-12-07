@@ -70,7 +70,7 @@ public class RelationEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof RelationUpdateMsg);
         RelationUpdateMsg relationUpdateMsg = (RelationUpdateMsg) latestMessage;
-        EntityRelation entityRelation = JacksonUtil.fromStringIgnoreUnknownProperties(relationUpdateMsg.getEntity(), EntityRelation.class);
+        EntityRelation entityRelation = JacksonUtil.fromString(relationUpdateMsg.getEntity(), EntityRelation.class, true);
         Assert.assertNotNull(entityRelation);
         Assert.assertEquals(relation, entityRelation);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, relationUpdateMsg.getMsgType());
@@ -89,7 +89,7 @@ public class RelationEdgeTest extends AbstractEdgeTest {
         latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof RelationUpdateMsg);
         relationUpdateMsg = (RelationUpdateMsg) latestMessage;
-        entityRelation = JacksonUtil.fromStringIgnoreUnknownProperties(relationUpdateMsg.getEntity(), EntityRelation.class);
+        entityRelation = JacksonUtil.fromString(relationUpdateMsg.getEntity(), EntityRelation.class, true);
         Assert.assertNotNull(entityRelation);
         Assert.assertEquals(relation, entityRelation);
         Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, relationUpdateMsg.getMsgType());
@@ -170,7 +170,7 @@ public class RelationEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof RelationUpdateMsg);
         RelationUpdateMsg relationUpdateMsg = (RelationUpdateMsg) latestMessage;
-        EntityRelation entityRelation = JacksonUtil.fromStringIgnoreUnknownProperties(relationUpdateMsg.getEntity(), EntityRelation.class);
+        EntityRelation entityRelation = JacksonUtil.fromString(relationUpdateMsg.getEntity(), EntityRelation.class, true);
         Assert.assertNotNull(entityRelation);
         Assert.assertEquals(deviceToAssetRelation, entityRelation);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, relationUpdateMsg.getMsgType());

@@ -130,6 +130,8 @@ public class ThingsboardInstallService {
                 } else if ("3.0.1-cassandra".equals(upgradeFromVersion)) {
                     log.info("Migrating ThingsBoard latest timeseries data from cassandra to SQL database ...");
                     latestMigrateService.migrate();
+                } else if (upgradeFromVersion.equals("3.6.2-images")) {
+                    installScripts.updateImages();
                 } else {
                     switch (upgradeFromVersion) {
                         /* merge comment
@@ -291,14 +293,20 @@ public class ThingsboardInstallService {
                             dataUpdateService.updateData("3.6.0");
                         case "3.6.1":
                             log.info("Upgrading ThingsBoard from version 3.6.1 to 3.6.2 ...");
-                            //TODO DON'T FORGET to update switch statement in the CacheCleanupService if you need to clear the cache
                             databaseEntitiesUpgradeService.upgradeDatabase("3.6.1");
+                            installScripts.loadSystemImages();
+                            if (!getEnv("SKIP_IMAGES_MIGRATION", false)) {
+                                installScripts.updateImages();
+                            } else {
+                                log.info("Skipping images migration. Run the upgrade with fromVersion as '3.6.2-images' to migrate");
+                            }
 
                             // reset full sync required - to upload the latest widgets from cloud
                             // fromVersion must be updated per release
                             // DefaultDataUpdateService must be updated as well
                             // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to 'edge' version
                             dataUpdateService.updateData("edge");
+
                             break;
                         case "CE":
                             log.info("Upgrading ThingsBoard from version CE to PE ...");
@@ -362,9 +370,10 @@ public class ThingsboardInstallService {
                 // systemDataLoaderService.createQueues();
                 // systemDataLoaderService.createDefaultNotificationConfigs();
 
-                // systemDataLoaderService.loadSystemPlugins();
-                // systemDataLoaderService.loadSystemRules();
-                // installScripts.loadSystemLwm2mResources();
+//                systemDataLoaderService.loadSystemPlugins();
+//                systemDataLoaderService.loadSystemRules();
+//                installScripts.loadSystemLwm2mResources();
+//                installScripts.loadSystemImages();
 
                 if (loadDemo) {
                     // log.info("Loading demo data...");

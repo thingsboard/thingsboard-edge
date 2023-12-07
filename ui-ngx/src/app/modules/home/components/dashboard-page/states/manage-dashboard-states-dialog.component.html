@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form [formGroup]="statesFormGroup" (ngSubmit)="save()" style="min-width: 480px;">
+<form [formGroup]="statesFormGroup" (ngSubmit)="save()" style="width: 750px;">
   <mat-toolbar color="primary">
     <h2 translate>dashboard.manage-states</h2>
     <span fxFlex></span>
@@ -111,7 +111,7 @@
                   </mat-cell>
                 </ng-container>
                 <ng-container matColumnDef="actions" stickyEnd>
-                  <mat-header-cell *matHeaderCellDef style="min-width: 80px; max-width: 80px; width: 80px">
+                  <mat-header-cell *matHeaderCellDef style="min-width: 120px; max-width: 120px; width: 120px">
                   </mat-header-cell>
                   <mat-cell *matCellDef="let state">
                     <div fxFlex fxLayout="row">
@@ -121,6 +121,13 @@
                               matTooltipPosition="above"
                               (click)="editState($event, state)">
                         <mat-icon>edit</mat-icon>
+                      </button>
+                      <button mat-icon-button [disabled]="isLoading$ | async"
+                              type="button"
+                              matTooltip="{{ 'dashboard.duplicate-state-action' | translate }}"
+                              matTooltipPosition="above"
+                              (click)="duplicateState($event, state)">
+                        <mat-icon>content_copy</mat-icon>
                       </button>
                       <button [fxShow]="!state.root" mat-icon-button [disabled]="isLoading$ | async"
                               type="button"

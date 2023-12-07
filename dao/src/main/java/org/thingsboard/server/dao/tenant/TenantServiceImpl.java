@@ -299,7 +299,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     public void deleteTenant(TenantId tenantId) {
         log.trace("Executing deleteTenant [{}]", tenantId);
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        whiteLabelingService.deleteDomainWhiteLabelingByEntityId(tenantId, tenantId);
+        whiteLabelingService.deleteDomainWhiteLabelingByEntityId(tenantId, null);
         entityViewService.deleteEntityViewsByTenantId(tenantId);
         widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
         widgetTypeService.deleteWidgetTypesByTenantId(tenantId);

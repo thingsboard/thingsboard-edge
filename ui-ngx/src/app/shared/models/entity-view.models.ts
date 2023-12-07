@@ -35,7 +35,6 @@ import { CustomerId } from '@shared/models/id/customer-id';
 import { EntityViewId } from '@shared/models/id/entity-view-id';
 import { EntityId } from '@shared/models/id/entity-id';
 import { EntitySearchQuery } from '@shared/models/relation.models';
-import { EntityInfoData } from '@shared/models/entity.models';
 
 export interface AttributesEntityView {
   cs: Array<string>;

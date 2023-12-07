@@ -51,6 +51,7 @@ export interface DefaultTenantProfileConfiguration {
   maxSchedulerEvents: number;
   maxResourcesInBytes: number;
   maxOtaPackagesInBytes: number;
+  maxResourceSize: number;
 
   transportTenantMsgRateLimit?: string;
   transportTenantTelemetryMsgRateLimit?: string;
@@ -125,6 +126,7 @@ export function createTenantProfileConfiguration(type: TenantProfileType): Tenan
           maxSchedulerEvents: 0,
           maxResourcesInBytes: 0,
           maxOtaPackagesInBytes: 0,
+          maxResourceSize: 0,
           maxTransportMessages: 0,
           maxTransportDataPoints: 0,
           maxREExecutions: 0,

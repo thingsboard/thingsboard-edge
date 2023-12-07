@@ -177,6 +177,7 @@ import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
+import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rpc.RpcService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
@@ -373,7 +374,7 @@ public abstract class BaseController {
     protected TbServiceInfoProvider serviceInfoProvider;
 
     @Autowired
-    protected TbResourceService resourceService;
+    protected ResourceService resourceService;
 
     @Autowired
     protected OtaPackageService otaPackageService;
@@ -888,7 +889,7 @@ public abstract class BaseController {
                     checkGroupPermissionId(new GroupPermissionId(entityId.getId()), operation);
                     return;
                 case TB_RESOURCE:
-                    checkResourceId(new TbResourceId(entityId.getId()), operation);
+                    checkResourceInfoId(new TbResourceId(entityId.getId()), operation);
                     return;
                 case OTA_PACKAGE:
                     checkOtaPackageId(new OtaPackageId(entityId.getId()), operation);

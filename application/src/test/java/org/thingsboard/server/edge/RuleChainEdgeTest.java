@@ -78,7 +78,7 @@ public class RuleChainEdgeTest extends AbstractEdgeTest {
         Optional<RuleChainUpdateMsg> ruleChainUpdateMsgOpt = edgeImitator.findMessageByType(RuleChainUpdateMsg.class);
         Assert.assertTrue(ruleChainUpdateMsgOpt.isPresent());
         RuleChainUpdateMsg ruleChainUpdateMsg = ruleChainUpdateMsgOpt.get();
-        RuleChain ruleChainMsg = JacksonUtil.fromStringIgnoreUnknownProperties(ruleChainUpdateMsg.getEntity(), RuleChain.class);
+        RuleChain ruleChainMsg = JacksonUtil.fromString(ruleChainUpdateMsg.getEntity(), RuleChain.class, true);
         Assert.assertNotNull(ruleChainMsg);
         Assert.assertTrue(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(ruleChainUpdateMsg.getMsgType()) ||
                 UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(ruleChainUpdateMsg.getMsgType()));
@@ -129,7 +129,7 @@ public class RuleChainEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof RuleChainMetadataUpdateMsg);
         RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg = (RuleChainMetadataUpdateMsg) latestMessage;
-        RuleChainMetaData ruleChainMetadataMsg = JacksonUtil.fromStringIgnoreUnknownProperties(ruleChainMetadataUpdateMsg.getEntity(), RuleChainMetaData.class);
+        RuleChainMetaData ruleChainMetadataMsg = JacksonUtil.fromString(ruleChainMetadataUpdateMsg.getEntity(), RuleChainMetaData.class, true);
         Assert.assertNotNull(ruleChainMetadataMsg);
         Assert.assertEquals(edgeRootRuleChainId, ruleChainMetadataMsg.getRuleChainId());
 
@@ -155,7 +155,7 @@ public class RuleChainEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof RuleChainMetadataUpdateMsg);
         RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg = (RuleChainMetadataUpdateMsg) latestMessage;
-        RuleChainMetaData ruleChainMetadataMsg = JacksonUtil.fromStringIgnoreUnknownProperties(ruleChainMetadataUpdateMsg.getEntity(), RuleChainMetaData.class);
+        RuleChainMetaData ruleChainMetadataMsg = JacksonUtil.fromString(ruleChainMetadataUpdateMsg.getEntity(), RuleChainMetaData.class, true);
         Assert.assertNotNull(ruleChainMetadataMsg);
         Assert.assertEquals(ruleChainId, ruleChainMetadataMsg.getRuleChainId());
 
@@ -226,7 +226,7 @@ public class RuleChainEdgeTest extends AbstractEdgeTest {
         Optional<RuleChainUpdateMsg> ruleChainUpdateMsgOpt = edgeImitator.findMessageByType(RuleChainUpdateMsg.class);
         Assert.assertTrue(ruleChainUpdateMsgOpt.isPresent());
         RuleChainUpdateMsg ruleChainUpdateMsg = ruleChainUpdateMsgOpt.get();
-        RuleChain ruleChainMsg = JacksonUtil.fromStringIgnoreUnknownProperties(ruleChainUpdateMsg.getEntity(), RuleChain.class);
+        RuleChain ruleChainMsg = JacksonUtil.fromString(ruleChainUpdateMsg.getEntity(), RuleChain.class, true);
         Assert.assertNotNull(ruleChainMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, ruleChainUpdateMsg.getMsgType());
         Assert.assertTrue(ruleChainMsg.isRoot());

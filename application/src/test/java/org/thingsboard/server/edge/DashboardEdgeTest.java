@@ -77,7 +77,7 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof DashboardUpdateMsg);
         DashboardUpdateMsg dashboardUpdateMsg = (DashboardUpdateMsg) latestMessage;
-        Dashboard dashboardMsg = JacksonUtil.fromStringIgnoreUnknownProperties(dashboardUpdateMsg.getEntity(), Dashboard.class);
+        Dashboard dashboardMsg = JacksonUtil.fromString(dashboardUpdateMsg.getEntity(), Dashboard.class, true);
         Assert.assertNotNull(dashboardMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, dashboardUpdateMsg.getMsgType());
         Assert.assertEquals(savedDashboard.getTitle(), dashboardMsg.getTitle());
@@ -106,7 +106,7 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
         latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof DashboardUpdateMsg);
         dashboardUpdateMsg = (DashboardUpdateMsg) latestMessage;
-        dashboardMsg = JacksonUtil.fromStringIgnoreUnknownProperties(dashboardUpdateMsg.getEntity(), Dashboard.class);
+        dashboardMsg = JacksonUtil.fromString(dashboardUpdateMsg.getEntity(), Dashboard.class, true);
         Assert.assertNotNull(dashboardMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, dashboardUpdateMsg.getMsgType());
         Assert.assertEquals(dashboardEntityGroup2.getUuidId().getMostSignificantBits(), dashboardUpdateMsg.getEntityGroupIdMSB());
@@ -124,7 +124,7 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
         latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof DashboardUpdateMsg);
         dashboardUpdateMsg = (DashboardUpdateMsg) latestMessage;
-        dashboardMsg = JacksonUtil.fromStringIgnoreUnknownProperties(dashboardUpdateMsg.getEntity(), Dashboard.class);
+        dashboardMsg = JacksonUtil.fromString(dashboardUpdateMsg.getEntity(), Dashboard.class, true);
         Assert.assertNotNull(dashboardMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, dashboardUpdateMsg.getMsgType());
         Assert.assertEquals("Edge Dashboard 1 Updated", dashboardMsg.getTitle());

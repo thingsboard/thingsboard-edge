@@ -46,6 +46,6 @@ public class ResourceEdgeProcessorV2 extends ResourceEdgeProcessor {
 
     @Override
     protected TbResource constructResourceFromUpdateMsg(TenantId tenantId, TbResourceId tbResourceId, ResourceUpdateMsg resourceUpdateMsg) {
-        return JacksonUtil.fromStringIgnoreUnknownProperties(resourceUpdateMsg.getEntity(), TbResource.class);
+        return JacksonUtil.fromString(resourceUpdateMsg.getEntity(), TbResource.class, true);
     }
 }

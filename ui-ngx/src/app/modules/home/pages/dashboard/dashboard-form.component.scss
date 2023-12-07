@@ -29,5 +29,9 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
-
+  .tb-dashboard-details {
+    .tb-form-panel.stroked {
+      margin-bottom: 22px;
+    }
+  }
 }
