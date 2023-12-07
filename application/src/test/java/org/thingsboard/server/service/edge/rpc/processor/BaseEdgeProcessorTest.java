@@ -84,7 +84,6 @@ import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.service.edge.rpc.CustomersHierarchyEdgeService;
-import org.thingsboard.server.service.edge.rpc.constructor.wl.WhiteLabelingParamsProtoConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.alarm.AlarmMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.alarm.AlarmMsgConstructorV1;
 import org.thingsboard.server.service.edge.rpc.constructor.alarm.AlarmMsgConstructorV2;
@@ -131,13 +130,39 @@ import org.thingsboard.server.service.edge.rpc.constructor.telemetry.EntityDataM
 import org.thingsboard.server.service.edge.rpc.constructor.tenant.TenantMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.tenant.TenantMsgConstructorV1;
 import org.thingsboard.server.service.edge.rpc.constructor.tenant.TenantMsgConstructorV2;
+import org.thingsboard.server.service.edge.rpc.constructor.translation.CustomTranslationConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.user.UserMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.user.UserMsgConstructorV1;
 import org.thingsboard.server.service.edge.rpc.constructor.user.UserMsgConstructorV2;
 import org.thingsboard.server.service.edge.rpc.constructor.widget.WidgetMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.widget.WidgetMsgConstructorV1;
 import org.thingsboard.server.service.edge.rpc.constructor.widget.WidgetMsgConstructorV2;
-import org.thingsboard.server.service.edge.rpc.constructor.translation.CustomTranslationConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.wl.WhiteLabelingParamsProtoConstructor;
+import org.thingsboard.server.service.edge.rpc.processor.alarm.AlarmEdgeProcessorFactory;
+import org.thingsboard.server.service.edge.rpc.processor.alarm.AlarmEdgeProcessorV1;
+import org.thingsboard.server.service.edge.rpc.processor.alarm.AlarmEdgeProcessorV2;
+import org.thingsboard.server.service.edge.rpc.processor.asset.AssetEdgeProcessorFactory;
+import org.thingsboard.server.service.edge.rpc.processor.asset.AssetEdgeProcessorV1;
+import org.thingsboard.server.service.edge.rpc.processor.asset.AssetEdgeProcessorV2;
+import org.thingsboard.server.service.edge.rpc.processor.asset.profile.AssetProfileEdgeProcessorV1;
+import org.thingsboard.server.service.edge.rpc.processor.asset.profile.AssetProfileEdgeProcessorV2;
+import org.thingsboard.server.service.edge.rpc.processor.dashboard.DashboardEdgeProcessorFactory;
+import org.thingsboard.server.service.edge.rpc.processor.dashboard.DashboardEdgeProcessorV1;
+import org.thingsboard.server.service.edge.rpc.processor.dashboard.DashboardEdgeProcessorV2;
+import org.thingsboard.server.service.edge.rpc.processor.device.DeviceEdgeProcessorFactory;
+import org.thingsboard.server.service.edge.rpc.processor.device.DeviceEdgeProcessorV1;
+import org.thingsboard.server.service.edge.rpc.processor.device.DeviceEdgeProcessorV2;
+import org.thingsboard.server.service.edge.rpc.processor.device.profile.DeviceProfileEdgeProcessorV1;
+import org.thingsboard.server.service.edge.rpc.processor.device.profile.DeviceProfileEdgeProcessorV2;
+import org.thingsboard.server.service.edge.rpc.processor.entityview.EntityViewProcessorFactory;
+import org.thingsboard.server.service.edge.rpc.processor.entityview.EntityViewProcessorV1;
+import org.thingsboard.server.service.edge.rpc.processor.entityview.EntityViewProcessorV2;
+import org.thingsboard.server.service.edge.rpc.processor.relation.RelationEdgeProcessorFactory;
+import org.thingsboard.server.service.edge.rpc.processor.relation.RelationEdgeProcessorV1;
+import org.thingsboard.server.service.edge.rpc.processor.relation.RelationEdgeProcessorV2;
+import org.thingsboard.server.service.edge.rpc.processor.resource.ResourceEdgeProcessorFactory;
+import org.thingsboard.server.service.edge.rpc.processor.resource.ResourceEdgeProcessorV1;
+import org.thingsboard.server.service.edge.rpc.processor.resource.ResourceEdgeProcessorV2;
 import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
@@ -360,6 +385,60 @@ public abstract class BaseEdgeProcessorTest {
     @MockBean
     protected WidgetMsgConstructorV2 widgetMsgConstructorV2;
 
+    @MockBean
+    protected AlarmEdgeProcessorV1 alarmProcessorV1;
+
+    @MockBean
+    protected AlarmEdgeProcessorV2 alarmProcessorV2;
+
+    @SpyBean
+    protected AssetEdgeProcessorV1 assetProcessorV1;
+
+    @SpyBean
+    protected AssetEdgeProcessorV2 assetProcessorV2;
+
+    @SpyBean
+    protected AssetProfileEdgeProcessorV1 assetProfileProcessorV1;
+
+    @SpyBean
+    protected AssetProfileEdgeProcessorV2 assetProfileProcessorV2;
+
+    @MockBean
+    protected DashboardEdgeProcessorV1 dashboardProcessorV1;
+
+    @MockBean
+    protected DashboardEdgeProcessorV2 dashboardProcessorV2;
+
+    @SpyBean
+    protected DeviceEdgeProcessorV1 deviceEdgeProcessorV1;
+
+    @SpyBean
+    protected DeviceEdgeProcessorV2 deviceEdgeProcessorV2;
+
+    @SpyBean
+    protected DeviceProfileEdgeProcessorV1 deviceProfileProcessorV1;
+
+    @SpyBean
+    protected DeviceProfileEdgeProcessorV2 deviceProfileProcessorV2;
+
+    @MockBean
+    protected EntityViewProcessorV1 entityViewProcessorV1;
+
+    @MockBean
+    protected EntityViewProcessorV2 entityViewProcessorV2;
+
+    @MockBean
+    protected ResourceEdgeProcessorV1 resourceEdgeProcessorV1;
+
+    @MockBean
+    protected ResourceEdgeProcessorV2 resourceEdgeProcessorV2;
+
+    @MockBean
+    protected RelationEdgeProcessorV1 relationEdgeProcessorV1;
+
+    @MockBean
+    protected RelationEdgeProcessorV2 relationEdgeProcessorV2;
+
     @SpyBean
     protected RuleChainMsgConstructorFactory ruleChainMsgConstructorFactory;
 
@@ -422,6 +501,27 @@ public abstract class BaseEdgeProcessorTest {
 
     @MockBean
     protected CustomTranslationConstructorFactory whiteLabelingConstructorFactory;
+
+    @MockBean
+    protected AlarmEdgeProcessorFactory alarmEdgeProcessorFactory;
+
+    @SpyBean
+    protected AssetEdgeProcessorFactory assetEdgeProcessorFactory;
+
+    @MockBean
+    protected DashboardEdgeProcessorFactory dashboardEdgeProcessorFactory;
+
+    @SpyBean
+    protected DeviceEdgeProcessorFactory deviceEdgeProcessorFactory;
+
+    @MockBean
+    protected EntityViewProcessorFactory entityViewProcessorFactory;
+
+    @MockBean
+    protected RelationEdgeProcessorFactory relationEdgeProcessorFactory;
+
+    @MockBean
+    protected ResourceEdgeProcessorFactory resourceEdgeProcessorFactory;
 
     @MockBean
     protected EdgeSynchronizationManager edgeSynchronizationManager;

@@ -32,10 +32,10 @@ package org.thingsboard.server.service.edge.rpc.constructor.scheduler;
 
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.edge.rpc.constructor.MsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.BaseMsgConstructorFactory;
 
 @Component
 @TbCoreComponent
-public class SchedulerEventMsgConstructorFactory extends MsgConstructorFactory<SchedulerEventMsgConstructorV1, SchedulerEventMsgConstructorV2> {
+public class SchedulerEventMsgConstructorFactory extends BaseMsgConstructorFactory<SchedulerEventMsgConstructorV1, SchedulerEventMsgConstructorV2> {
 
 }

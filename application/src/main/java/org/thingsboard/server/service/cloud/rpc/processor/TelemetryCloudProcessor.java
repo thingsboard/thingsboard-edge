@@ -56,7 +56,7 @@ public class TelemetryCloudProcessor extends BaseTelemetryProcessor {
         return DataConstants.CLOUD_MSG_SOURCE;
     }
 
-    public UplinkMsg convertTelemetryEventToUplink(TenantId tenantId, CloudEvent cloudEvent) throws Exception {
+    public UplinkMsg convertTelemetryEventToUplink(TenantId tenantId, CloudEvent cloudEvent) {
         EntityType entityType = EntityType.valueOf(cloudEvent.getType().name());
         EntityDataProto entityDataProto = convertTelemetryEventToEntityDataProto(
                 tenantId, entityType, cloudEvent.getEntityId(),

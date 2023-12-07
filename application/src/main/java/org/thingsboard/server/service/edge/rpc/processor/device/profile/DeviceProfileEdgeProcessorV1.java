@@ -28,13 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.processor.device;
+package org.thingsboard.server.service.edge.rpc.processor.device.profile;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.util.Pair;
-import org.thingsboard.common.util.JacksonUtil;
+import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.DeviceProfileType;
@@ -47,74 +44,18 @@ import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
-import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
-import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.UUID;
 
-@Slf4j
-public abstract class BaseDeviceProfileProcessor extends BaseEdgeProcessor {
+@Component
+@TbCoreComponent
+public class DeviceProfileEdgeProcessorV1 extends DeviceProfileEdgeProcessor {
 
-    @Autowired
-    private DataDecodingEncodingService dataDecodingEncodingService;
-
-    protected Pair<Boolean, Boolean> saveOrUpdateDeviceProfile(TenantId tenantId, DeviceProfileId deviceProfileId, DeviceProfileUpdateMsg deviceProfileUpdateMsg, EdgeVersion edgeVersion) {
-        boolean created = false;
-        boolean deviceProfileNameUpdated = false;
-        deviceCreationLock.lock();
-        try {
-            DeviceProfile deviceProfile = EdgeVersionUtils.isEdgeVersionOlderThan_3_6_2(edgeVersion)
-                    ? createDeviceProfile(tenantId, deviceProfileId, deviceProfileUpdateMsg)
-                    : JacksonUtil.fromStringIgnoreUnknownProperties(deviceProfileUpdateMsg.getEntity(), DeviceProfile.class);
-            if (deviceProfile == null) {
-                throw new RuntimeException("[{" + tenantId + "}] deviceProfileUpdateMsg {" + deviceProfileUpdateMsg + "} cannot be converted to device profile");
-            }
-            boolean isDefault = deviceProfile.isDefault();
-            DeviceProfile deviceProfileById = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
-            if (deviceProfileById == null) {
-                created = true;
-                deviceProfile.setId(null);
-            } else {
-                deviceProfile.setId(deviceProfileId);
-            }
-            String deviceProfileName = deviceProfile.getName();
-            DeviceProfile deviceProfileByName = deviceProfileService.findDeviceProfileByName(tenantId, deviceProfileName);
-            if (deviceProfileByName != null && !deviceProfileByName.getId().equals(deviceProfileId)) {
-                deviceProfileName = deviceProfileName + "_" + StringUtils.randomAlphabetic(15);
-                log.warn("[{}] Device profile with name {} already exists. Renaming device profile name to {}",
-                        tenantId, deviceProfile.getName(), deviceProfileName);
-                deviceProfileNameUpdated = true;
-            }
-            deviceProfile.setDefault(false);
-            deviceProfile.setName(deviceProfileName);
-
-            RuleChainId ruleChainId = deviceProfile.getDefaultRuleChainId();
-            setDefaultRuleChainId(tenantId, deviceProfile, created ? null : deviceProfileById.getDefaultRuleChainId());
-            setDefaultEdgeRuleChainId(deviceProfile, ruleChainId, deviceProfileUpdateMsg, edgeVersion);
-            setDefaultDashboardId(tenantId, created ? null : deviceProfileById.getDefaultDashboardId(), deviceProfile, deviceProfileUpdateMsg, edgeVersion);
-
-            deviceProfileValidator.validate(deviceProfile, DeviceProfile::getTenantId);
-            if (created) {
-                deviceProfile.setId(deviceProfileId);
-            }
-            deviceProfileService.saveDeviceProfile(deviceProfile, false);
-            if (isDefault) {
-                deviceProfileService.setDefaultDeviceProfile(tenantId, deviceProfileId);
-            }
-        } catch (Exception e) {
-            log.error("[{}] Failed to process device profile update msg [{}]", tenantId, deviceProfileUpdateMsg, e);
-            throw e;
-        } finally {
-            deviceCreationLock.unlock();
-        }
-        return Pair.of(created, deviceProfileNameUpdated);
-    }
-
-    private DeviceProfile createDeviceProfile(TenantId tenantId, DeviceProfileId deviceProfileId, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
+    @Override
+    protected DeviceProfile constructDeviceProfileFromUpdateMsg(TenantId tenantId, DeviceProfileId deviceProfileId, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
         DeviceProfile deviceProfile = new DeviceProfile();
         deviceProfile.setTenantId(tenantId);
         deviceProfile.setCreatedTime(Uuids.unixTimestamp(deviceProfileId.getId()));
@@ -148,9 +89,20 @@ public abstract class BaseDeviceProfileProcessor extends BaseEdgeProcessor {
         return deviceProfile;
     }
 
-    protected abstract void setDefaultRuleChainId(TenantId tenantId, DeviceProfile deviceProfile, RuleChainId ruleChainId);
+    @Override
+    protected void setDefaultRuleChainId(TenantId tenantId, DeviceProfile deviceProfile, RuleChainId ruleChainId) {
+        deviceProfile.setDefaultRuleChainId(ruleChainId);
+    }
 
-    protected abstract void setDefaultEdgeRuleChainId(DeviceProfile deviceProfile, RuleChainId ruleChainId, DeviceProfileUpdateMsg deviceProfileUpdateMsg, EdgeVersion edgeVersion);
+    @Override
+    protected void setDefaultEdgeRuleChainId(DeviceProfile deviceProfile, RuleChainId ruleChainId, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
+        UUID defaultEdgeRuleChainUUID = safeGetUUID(deviceProfileUpdateMsg.getDefaultRuleChainIdMSB(), deviceProfileUpdateMsg.getDefaultRuleChainIdLSB());
+        deviceProfile.setDefaultEdgeRuleChainId(defaultEdgeRuleChainUUID != null ? new RuleChainId(defaultEdgeRuleChainUUID) : ruleChainId);
+    }
 
-    protected abstract void setDefaultDashboardId(TenantId tenantId, DashboardId dashboardId, DeviceProfile deviceProfile, DeviceProfileUpdateMsg deviceProfileUpdateMsg, EdgeVersion edgeVersion);
+    @Override
+    protected void setDefaultDashboardId(TenantId tenantId, DashboardId dashboardId, DeviceProfile deviceProfile, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
+        UUID defaultDashboardUUID = safeGetUUID(deviceProfileUpdateMsg.getDefaultDashboardIdMSB(), deviceProfileUpdateMsg.getDefaultDashboardIdLSB());
+        deviceProfile.setDefaultDashboardId(defaultDashboardUUID != null ? new DashboardId(defaultDashboardUUID) : dashboardId);
+    }
 }

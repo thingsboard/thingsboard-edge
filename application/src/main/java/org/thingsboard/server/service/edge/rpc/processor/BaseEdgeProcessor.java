@@ -145,6 +145,7 @@ import org.thingsboard.server.service.edge.rpc.constructor.dashboard.DashboardMs
 import org.thingsboard.server.service.edge.rpc.constructor.device.DeviceMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.edge.EdgeMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.entityview.EntityViewMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.entityview.EntityViewMsgConstructorV1;
 import org.thingsboard.server.service.edge.rpc.constructor.group.GroupMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.integration.IntegrationMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.ota.OtaPackageMsgConstructorFactory;
@@ -161,6 +162,9 @@ import org.thingsboard.server.service.edge.rpc.constructor.translation.CustomTra
 import org.thingsboard.server.service.edge.rpc.constructor.user.UserMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.widget.WidgetMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.wl.WhiteLabelingParamsProtoConstructor;
+import org.thingsboard.server.service.edge.rpc.processor.alarm.AlarmEdgeProcessorFactory;
+import org.thingsboard.server.service.edge.rpc.processor.asset.AssetEdgeProcessorFactory;
+import org.thingsboard.server.service.edge.rpc.processor.entityview.EntityViewProcessorFactory;
 import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
 import org.thingsboard.server.service.entitiy.queue.TbQueueService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
@@ -359,6 +363,9 @@ public abstract class BaseEdgeProcessor {
     protected EntityViewMsgConstructorFactory entityViewMsgConstructorFactory;
 
     @Autowired
+    protected EntityViewMsgConstructorV1 entityViewMsgConstructorV1;
+
+    @Autowired
     protected DashboardMsgConstructorFactory dashboardMsgConstructorFactory;
 
     @Autowired
@@ -387,6 +394,15 @@ public abstract class BaseEdgeProcessor {
 
     @Autowired
     protected ResourceMsgConstructorFactory resourceMsgConstructorFactory;
+
+    @Autowired
+    protected AlarmEdgeProcessorFactory alarmEdgeProcessorFactory;
+
+    @Autowired
+    protected AssetEdgeProcessorFactory assetEdgeProcessorFactory;
+
+    @Autowired
+    protected EntityViewProcessorFactory entityViewProcessorFactory;
 
     @Autowired
     protected EdgeSynchronizationManager edgeSynchronizationManager;

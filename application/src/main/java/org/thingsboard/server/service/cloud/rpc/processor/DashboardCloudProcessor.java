@@ -64,7 +64,6 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
 
     public ListenableFuture<Void> processDashboardMsgFromCloud(TenantId tenantId,
                                                                DashboardUpdateMsg dashboardUpdateMsg,
-                                                               EdgeVersion edgeVersion,
                                                                Long queueStartTs) throws ThingsboardException {
         DashboardId dashboardId = new DashboardId(new UUID(dashboardUpdateMsg.getIdMSB(), dashboardUpdateMsg.getIdLSB()));
         try {
@@ -72,7 +71,7 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
             switch (dashboardUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    boolean created = super.saveOrUpdateDashboard(tenantId, dashboardId, dashboardUpdateMsg, edgeVersion);
+                    boolean created = super.saveOrUpdateDashboard(tenantId, dashboardId, dashboardUpdateMsg);
                     if (created) {
                         pushDashboardCreatedEventToRuleEngine(tenantId, dashboardId);
                     }
@@ -149,5 +148,10 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
                 break;
         }
         return msg;
+    }
+
+    @Override
+    protected Dashboard constructDashboardFromUpdateMsg(TenantId tenantId, DashboardId dashboardId, DashboardUpdateMsg dashboardUpdateMsg) {
+        return JacksonUtil.fromStringIgnoreUnknownProperties(dashboardUpdateMsg.getEntity(), Dashboard.class);
     }
 }
