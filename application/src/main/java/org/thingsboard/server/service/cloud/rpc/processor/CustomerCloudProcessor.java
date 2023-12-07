@@ -51,7 +51,7 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     customerCreationLock.lock();
                     try {
-                        Customer customer = JacksonUtil.fromStringIgnoreUnknownProperties(customerUpdateMsg.getEntity(), Customer.class);
+                        Customer customer = JacksonUtil.fromString(customerUpdateMsg.getEntity(), Customer.class, true);
                         if (customer == null) {
                             throw new RuntimeException("[{" + tenantId + "}] customerUpdateMsg {" + customerUpdateMsg + "} cannot be converted to customer");
                         }

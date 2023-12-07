@@ -49,7 +49,7 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
             switch (resourceUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    TbResource tbResource = JacksonUtil.fromStringIgnoreUnknownProperties(resourceUpdateMsg.getEntity(), TbResource.class);
+                    TbResource tbResource = JacksonUtil.fromString(resourceUpdateMsg.getEntity(), TbResource.class, true);
                     if (tbResource == null) {
                         throw new RuntimeException("[{" + tenantId + "}] resourceUpdateMsg {" + resourceUpdateMsg + "} cannot be converted to tb resource");
                     }
@@ -132,6 +132,6 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
 
     @Override
     protected TbResource constructResourceFromUpdateMsg(TenantId tenantId, TbResourceId tbResourceId, ResourceUpdateMsg resourceUpdateMsg) {
-        return JacksonUtil.fromStringIgnoreUnknownProperties(resourceUpdateMsg.getEntity(), TbResource.class);
+        return JacksonUtil.fromString(resourceUpdateMsg.getEntity(), TbResource.class, true);
     }
 }

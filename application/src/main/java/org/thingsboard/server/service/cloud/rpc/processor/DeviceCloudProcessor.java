@@ -268,7 +268,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
 
     @Override
     protected Device constructDeviceFromUpdateMsg(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg) {
-        return JacksonUtil.fromStringIgnoreUnknownProperties(deviceUpdateMsg.getEntity(), Device.class);
+        return JacksonUtil.fromString(deviceUpdateMsg.getEntity(), Device.class, true);
     }
 
     @Override
@@ -283,6 +283,6 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
 
     @Override
     protected DeviceCredentials constructDeviceCredentialsFromUpdateMsg(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {
-        return JacksonUtil.fromStringIgnoreUnknownProperties(deviceCredentialsUpdateMsg.getEntity(), DeviceCredentials.class);
+        return JacksonUtil.fromString(deviceCredentialsUpdateMsg.getEntity(), DeviceCredentials.class, true);
     }
 }

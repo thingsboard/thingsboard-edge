@@ -76,6 +76,6 @@ public class RelationCloudProcessor extends BaseRelationProcessor {
 
     @Override
     protected EntityRelation constructEntityRelationFromUpdateMsg(RelationUpdateMsg relationUpdateMsg) {
-        return JacksonUtil.fromStringIgnoreUnknownProperties(relationUpdateMsg.getEntity(), EntityRelation.class);
+        return JacksonUtil.fromString(relationUpdateMsg.getEntity(), EntityRelation.class, true);
     }
 }

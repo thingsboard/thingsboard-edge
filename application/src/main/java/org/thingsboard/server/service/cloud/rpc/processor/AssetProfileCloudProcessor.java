@@ -70,7 +70,7 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     assetCreationLock.lock();
                     try {
-                        AssetProfile assetProfileMsg = JacksonUtil.fromStringIgnoreUnknownProperties(assetProfileUpdateMsg.getEntity(), AssetProfile.class);
+                        AssetProfile assetProfileMsg = JacksonUtil.fromString(assetProfileUpdateMsg.getEntity(), AssetProfile.class, true);
                         if (assetProfileMsg == null) {
                             throw new RuntimeException("[{" + tenantId + "}] assetProfileUpdateMsg {" + assetProfileUpdateMsg + "} cannot be converted to asset profile");
                         }
@@ -180,7 +180,7 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
 
     @Override
     protected AssetProfile constructAssetProfileFromUpdateMsg(TenantId tenantId, AssetProfileId assetProfileId, AssetProfileUpdateMsg assetProfileUpdateMsg) {
-        return JacksonUtil.fromStringIgnoreUnknownProperties(assetProfileUpdateMsg.getEntity(), AssetProfile.class);
+        return JacksonUtil.fromString(assetProfileUpdateMsg.getEntity(), AssetProfile.class, true);
     }
 
     @Override

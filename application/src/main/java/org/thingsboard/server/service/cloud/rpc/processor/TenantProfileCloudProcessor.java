@@ -37,7 +37,7 @@ import java.util.List;
 public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processTenantProfileMsgFromCloud(TenantId tenantId, TenantProfileUpdateMsg tenantProfileUpdateMsg) {
-        TenantProfile tenantProfileMsg  = JacksonUtil.fromStringIgnoreUnknownProperties(tenantProfileUpdateMsg.getEntity(), TenantProfile.class);
+        TenantProfile tenantProfileMsg  = JacksonUtil.fromString(tenantProfileUpdateMsg.getEntity(), TenantProfile.class, true);
         if (tenantProfileMsg == null) {
             throw new RuntimeException("[{" + tenantId + "}] tenantProfileUpdateMsg {" + tenantProfileUpdateMsg + "} cannot be converted to tenant profile");
         }

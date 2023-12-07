@@ -156,7 +156,7 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
 
     @Override
     protected EntityView constructEntityViewFromUpdateMsg(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg) {
-        return JacksonUtil.fromStringIgnoreUnknownProperties(entityViewUpdateMsg.getEntity(), EntityView.class);
+        return JacksonUtil.fromString(entityViewUpdateMsg.getEntity(), EntityView.class, true);
     }
 
     @Override
