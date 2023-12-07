@@ -81,7 +81,7 @@ public class TbDuplicateMsgToRelatedNode extends TbAbstractDuplicateMsgNode<TbDu
         var newOriginatorsFuture = EntitiesRelatedEntityIdAsyncLoader.findEntitiesAsync(ctx, original, config.getRelationsQuery());
         return Futures.transform(newOriginatorsFuture, newOriginators -> {
             if (newOriginators == null || newOriginators.isEmpty()) {
-                throw new RuntimeException("Failed to find new originators for configured relation query!");
+                throw new RuntimeException("No related entities were found!");
             }
             return newOriginators;
         }, MoreExecutors.directExecutor());

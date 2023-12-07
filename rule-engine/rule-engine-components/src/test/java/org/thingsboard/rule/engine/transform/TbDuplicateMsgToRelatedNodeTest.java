@@ -305,7 +305,7 @@ class TbDuplicateMsgToRelatedNodeTest {
 
         verify(ctxMock).tellFailure(eq(msg), throwableCaptor.capture());
 
-        String expectedExceptionMessage = "Failed to find new originators for configured relation query!";
+        String expectedExceptionMessage = "No related entities were found!";
 
         Throwable actualThrowable = throwableCaptor.getValue();
         assertInstanceOf(RuntimeException.class, actualThrowable);
