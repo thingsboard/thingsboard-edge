@@ -107,14 +107,14 @@ public class DefaultEdgeUpgradeInstructionsService implements EdgeUpgradeInstruc
             } else {
                 dockerUpgradeInstructions = dockerUpgradeInstructions.replace("${UPGRADE_DB}", "");
             }
-            dockerUpgradeInstructions = dockerUpgradeInstructions.replace("${TB_EDGE_VERSION}", edgeVersion + "EDGE");
-            dockerUpgradeInstructions = dockerUpgradeInstructions.replace("${FROM_TB_EDGE_VERSION}", currentEdgeVersion + "EDGE");
+            dockerUpgradeInstructions = dockerUpgradeInstructions.replace("${TB_EDGE_VERSION}", edgeVersion + "EDGEPE");
+            dockerUpgradeInstructions = dockerUpgradeInstructions.replace("${FROM_TB_EDGE_VERSION}", currentEdgeVersion + "EDGEPE");
             currentEdgeVersion = edgeVersion;
             edgeUpgradeInfo = upgradeVersionHashMap.get(edgeUpgradeInfo.getNextEdgeVersion());
             result.append(dockerUpgradeInstructions);
         }
         String startService = readFile(resolveFile("docker", "start_service.md"));
-        startService = startService.replace("${TB_EDGE_VERSION}", currentEdgeVersion + "EDGE");
+        startService = startService.replace("${TB_EDGE_VERSION}", currentEdgeVersion + "EDGEPE");
         result.append(startService);
         return new EdgeInstructions(result.toString());
     }
