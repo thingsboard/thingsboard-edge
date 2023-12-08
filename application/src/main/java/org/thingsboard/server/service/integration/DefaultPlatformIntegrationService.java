@@ -230,6 +230,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     @Autowired
     private ActivityManager<IntegrationActivityKey, ActivityState> activityManager;
+    private static final String ACTIVITY_MANAGER_NAME = "integration-activity-manager";
 
     @Value("${integrations.activity.reporting_period:3000}")
     private long reportingPeriodMillis;
@@ -266,10 +267,11 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         tbCoreMsgProducer = producerProvider.getTbCoreMsgProducer();
         integrationRuleEngineMsgProducer = producerProvider.getIntegrationRuleEngineMsgProducer();
         this.callbackExecutor = ThingsBoardExecutors.newWorkStealingPool(20, "default-integration-callback");
-        activityManager.init("integration-activity-manager", reportingPeriodMillis, activityReporter);
+        activityManager.init(ACTIVITY_MANAGER_NAME, reportingPeriodMillis, activityReporter);
     }
 
     private final ActivityStateReporter<IntegrationActivityKey, ActivityState> activityReporter = (key, timeToReport, state, reportCallback) -> {
+        log.debug("[{}] Reporting activity state for key: [{}]. Time to report: [{}].", ACTIVITY_MANAGER_NAME, key, timeToReport);
         var tenantId = key.getTenantId();
         var deviceId = key.getDeviceId();
         TransportProtos.ToCoreMsg toCoreMsg = buildActivityMsg(tenantId, deviceId, timeToReport);
