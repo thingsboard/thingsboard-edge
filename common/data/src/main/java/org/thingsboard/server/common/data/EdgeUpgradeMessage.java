@@ -28,43 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.mqtt.sparkplug.attributes;
+package org.thingsboard.server.common.data;
 
-import org.eclipse.paho.mqttv5.common.MqttException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.thingsboard.server.dao.service.DaoSqlTest;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
-import java.util.HashSet;
+import java.io.Serializable;
+import java.util.Map;
 
-/**
- * Created by nickAS21 on 12.01.23
- */
-@DaoSqlTest
-public class MqttV5ClientSparkplugBAttributesInProfileTest extends AbstractMqttV5ClientSparkplugAttributesTest {
+@Data
+@ApiModel
+public class EdgeUpgradeMessage implements Serializable {
 
-    @Before
-    public void beforeTest() throws Exception {
-        sparkplugAttributesMetricNames = new HashSet<>();
-        sparkplugAttributesMetricNames.add(metricBirthName_Int32);
-        beforeSparkplugTest();
-    }
+    private static final long serialVersionUID = 2872965507642822989L;
 
-    @After
-    public void afterTest () throws MqttException {
-        if (client.isConnected()) {
-            client.disconnect();        }
-    }
-
-    @Test
-    public void testClientNodeWithCorrectAccessTokenPublish_AttributesInProfileContainsKeyAttributes() throws Exception {
-        processClientNodeWithCorrectAccessTokenPublish_AttributesInProfileContainsKeyAttributes();
-    }
-
-    @Test
-    public void testClientDeviceWithCorrectAccessTokenPublish_AttributesInProfileContainsKeyAttributes() throws Exception {
-        processClientDeviceWithCorrectAccessTokenPublish_AttributesInProfileContainsKeyAttributes();
-    }
-
+    @ApiModelProperty(position = 1, value = "Mapping for upgrade versions and upgrade strategy (next ver).")
+    private final Map<String, EdgeUpgradeInfo> edgeVersions;
 }

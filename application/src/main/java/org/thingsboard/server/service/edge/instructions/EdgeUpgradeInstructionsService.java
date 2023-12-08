@@ -28,20 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.edge;
+package org.thingsboard.server.service.edge.instructions;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.EdgeUpgradeInfo;
+import org.thingsboard.server.common.data.edge.EdgeInstructions;
 
-@ApiModel
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class EdgeInstallInstructions {
+import java.util.Map;
 
-    @ApiModelProperty(position = 1, value = "Markdown with install instructions")
-    private String installInstructions;
+public interface EdgeUpgradeInstructionsService {
+
+    EdgeInstructions getUpgradeInstructions(String edgeVersion, String upgradeMethod);
+
+    void updateInstructionMap(Map<String, EdgeUpgradeInfo> upgradeVersions);
+
+    void setAppVersion(String version);
 }
