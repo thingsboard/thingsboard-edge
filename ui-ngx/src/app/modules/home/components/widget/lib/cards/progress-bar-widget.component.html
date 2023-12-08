@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div #progressBarPanel class="tb-progress-bar-panel" [style]="backgroundStyle">
+<div #progressBarPanel class="tb-progress-bar-panel" [style]="backgroundStyle$ | async">
   <div class="tb-progress-bar-overlay" [style]="overlayStyle"></div>
   <div #progressBarContainer class="tb-progress-bar-container" [class]="layoutClass">
     <ng-container *ngIf="layout === progressBarLayout.default">

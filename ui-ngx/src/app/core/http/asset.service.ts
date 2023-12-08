@@ -39,7 +39,7 @@ import { EntitySubtype } from '@app/shared/models/entity-type.models';
 import { Asset, AssetInfo, AssetSearchQuery } from '@app/shared/models/asset.models';
 import { map } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
-import { BulkImportRequest, BulkImportResult } from '@home/components/import-export/import-export.models';
+import { BulkImportRequest, BulkImportResult } from '@shared/import-export/import-export.models';
 
 @Injectable({
   providedIn: 'root'

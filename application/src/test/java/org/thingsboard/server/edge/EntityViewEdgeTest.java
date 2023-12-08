@@ -77,7 +77,7 @@ public class EntityViewEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof EntityViewUpdateMsg);
         EntityViewUpdateMsg entityViewUpdateMsg = (EntityViewUpdateMsg) latestMessage;
-        EntityView entityView = JacksonUtil.fromStringIgnoreUnknownProperties(entityViewUpdateMsg.getEntity(), EntityView.class);
+        EntityView entityView = JacksonUtil.fromString(entityViewUpdateMsg.getEntity(), EntityView.class, true);
         Assert.assertNotNull(entityView);
         Assert.assertEquals(savedEntityView, entityView);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, entityViewUpdateMsg.getMsgType());
@@ -110,7 +110,7 @@ public class EntityViewEdgeTest extends AbstractEdgeTest {
         latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof EntityViewUpdateMsg);
         entityViewUpdateMsg = (EntityViewUpdateMsg) latestMessage;
-        entityView = JacksonUtil.fromStringIgnoreUnknownProperties(entityViewUpdateMsg.getEntity(), EntityView.class);
+        entityView = JacksonUtil.fromString(entityViewUpdateMsg.getEntity(), EntityView.class, true);
         Assert.assertNotNull(entityView);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, entityViewUpdateMsg.getMsgType());
         Assert.assertEquals("Edge Entity View 1 Updated", entityView.getName());
@@ -204,7 +204,7 @@ public class EntityViewEdgeTest extends AbstractEdgeTest {
         Optional<EntityViewUpdateMsg> entityViewUpdateMsgOpt = edgeImitator.findMessageByType(EntityViewUpdateMsg.class);
         Assert.assertTrue(entityViewUpdateMsgOpt.isPresent());
         EntityViewUpdateMsg latestEntityViewUpdateMsg = entityViewUpdateMsgOpt.get();
-        entityViewMsg = JacksonUtil.fromStringIgnoreUnknownProperties(latestEntityViewUpdateMsg.getEntity(), EntityView.class);
+        entityViewMsg = JacksonUtil.fromString(latestEntityViewUpdateMsg.getEntity(), EntityView.class, true);
         Assert.assertNotNull(entityViewMsg);
         Assert.assertNotEquals(entityViewOnCloudName, entityViewMsg.getName());
         Assert.assertNotEquals(entityViewOnCloud.getId(), entityViewMsg.getId());

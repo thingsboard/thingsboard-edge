@@ -35,8 +35,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.id.EntityIdFactory;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.dao.model.ModelConstants;
@@ -53,8 +54,8 @@ import javax.persistence.Table;
 import java.io.Serializable;
 import java.util.UUID;
 
-import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_ID_COLUMN;
-import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_TYPE_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.CUSTOMER_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.TENANT_ID_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.WHITE_LABELING_SETTINGS_TYPE;
 
 @Data
@@ -66,12 +67,12 @@ import static org.thingsboard.server.dao.model.ModelConstants.WHITE_LABELING_SET
 public class WhiteLabelingEntity implements ToData<WhiteLabeling>, Serializable {
 
     @Id
-    @Column(name = ENTITY_TYPE_COLUMN)
-    private String entityType;
+    @Column(name = TENANT_ID_COLUMN, columnDefinition = "uuid")
+    private UUID tenantId;
 
     @Id
-    @Column(name = ENTITY_ID_COLUMN, columnDefinition = "uuid")
-    private UUID entityId;
+    @Column(name = CUSTOMER_ID_PROPERTY, columnDefinition = "uuid")
+    private UUID customerId;
 
     @Id
     @Enumerated(EnumType.STRING)
@@ -86,8 +87,12 @@ public class WhiteLabelingEntity implements ToData<WhiteLabeling>, Serializable 
     private String domain;
 
     public WhiteLabelingEntity(WhiteLabeling whiteLabeling) {
-        this.entityType = whiteLabeling.getEntityId().getEntityType().name();
-        this.entityId = whiteLabeling.getEntityId().getId();
+        this.tenantId = whiteLabeling.getTenantId().getId();
+        if (whiteLabeling.getCustomerId() != null) {
+            this.customerId = whiteLabeling.getCustomerId().getId();
+        } else {
+            this.customerId = EntityId.NULL_UUID;
+        }
         this.type = whiteLabeling.getType();
         if (whiteLabeling.getSettings() != null) {
             this.settings = whiteLabeling.getSettings();
@@ -98,7 +103,10 @@ public class WhiteLabelingEntity implements ToData<WhiteLabeling>, Serializable 
     @Override
     public WhiteLabeling toData() {
         WhiteLabeling whiteLabeling = new WhiteLabeling();
-        whiteLabeling.setEntityId(EntityIdFactory.getByTypeAndId(entityType, entityId.toString()));
+        whiteLabeling.setTenantId(TenantId.fromUUID(tenantId));
+        if (!EntityId.NULL_UUID.equals(customerId)) {
+            whiteLabeling.setCustomerId(new CustomerId(customerId));
+        }
         whiteLabeling.setType(type);
         if (settings != null) {
             whiteLabeling.setSettings(settings);

@@ -46,6 +46,8 @@ import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { WidgetTypesTableConfigResolver } from '@home/pages/widget/widget-types-table-config.resolver';
 import { WidgetsBundleWidgetsComponent } from '@home/pages/widget/widgets-bundle-widgets.component';
+import { EntityDetailsPageComponent } from '@home/components/entity/entity-details-page.component';
+import { entityDetailsPageBreadcrumbLabelFunction } from '@home/pages/home-pages.models';
 
 export interface WidgetEditorData {
   widgetTypeDetails: WidgetTypeDetails;
@@ -137,6 +139,29 @@ const widgetTypesRoutes: Routes = [
           entitiesTableConfig: WidgetTypesTableConfigResolver
         }
       },
+      {
+        path: 'details',
+        children: [
+          {
+            path: ':entityId',
+            component: EntityDetailsPageComponent,
+            canDeactivate: [ConfirmOnExitGuard],
+            data: {
+              breadcrumb: {
+                labelFunction: entityDetailsPageBreadcrumbLabelFunction,
+                icon: 'now_widgets'
+              } as BreadCrumbConfig<EntityDetailsPageComponent>,
+              auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
+              title: 'widget.widgets',
+              hideTabs: true,
+              backNavigationCommands: ['../..']
+            },
+            resolve: {
+              entitiesTableConfig: WidgetTypesTableConfigResolver
+            }
+          }
+        ]
+      },
       ...widgetEditorRouter
     ]
   },
@@ -162,6 +187,29 @@ const widgetsBundlesRoutes: Routes = [
         resolve: {
           entitiesTableConfig: WidgetsBundlesTableConfigResolver
         }
+      },
+      {
+        path: 'details',
+        children: [
+          {
+            path: ':entityId',
+            component: EntityDetailsPageComponent,
+            canDeactivate: [ConfirmOnExitGuard],
+            data: {
+              breadcrumb: {
+                labelFunction: entityDetailsPageBreadcrumbLabelFunction,
+                icon: 'now_widgets'
+              } as BreadCrumbConfig<EntityDetailsPageComponent>,
+              auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
+              title: 'widgets-bundle.widgets-bundles',
+              hideTabs: true,
+              backNavigationCommands: ['../..']
+            },
+            resolve: {
+              entitiesTableConfig: WidgetsBundlesTableConfigResolver
+            }
+          }
+        ]
       },
       {
         path: ':widgetsBundleId',

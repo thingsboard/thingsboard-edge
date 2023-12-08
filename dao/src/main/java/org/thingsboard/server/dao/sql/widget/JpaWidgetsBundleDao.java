@@ -50,7 +50,6 @@ import java.util.List;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -120,6 +119,11 @@ public class JpaWidgetsBundleDao extends JpaAbstractDao<WidgetsBundleEntity, Wid
         return findTenantWidgetsBundlesByTenantIds(Collections.singletonList(tenantId), fullSearch, pageLink);
     }
 
+    @Override
+    public PageData<WidgetsBundle> findAllWidgetsBundles(PageLink pageLink) {
+        return DaoUtil.toPageData(widgetsBundleRepository.findAll(DaoUtil.toPageable(pageLink)));
+    }
+
     private PageData<WidgetsBundle> findTenantWidgetsBundlesByTenantIds(List<UUID> tenantIds, boolean fullSearch, PageLink pageLink) {
         if (fullSearch) {
             return DaoUtil.toPageData(
@@ -168,6 +172,16 @@ public class JpaWidgetsBundleDao extends JpaAbstractDao<WidgetsBundleEntity, Wid
     public WidgetsBundleId getExternalIdByInternal(WidgetsBundleId internalId) {
         return Optional.ofNullable(widgetsBundleRepository.getExternalIdById(internalId.getId()))
                 .map(WidgetsBundleId::new).orElse(null);
+    }
+
+    @Override
+    public List<WidgetsBundle> findByTenantAndImageLink(TenantId tenantId, String imageUrl, int limit) {
+        return DaoUtil.convertDataList(widgetsBundleRepository.findByTenantAndImageUrl(tenantId.getId(), imageUrl, limit));
+    }
+
+    @Override
+    public List<WidgetsBundle> findByImageLink(String imageUrl, int limit) {
+         return DaoUtil.convertDataList(widgetsBundleRepository.findByImageUrl(imageUrl, limit));
     }
 
     @Override

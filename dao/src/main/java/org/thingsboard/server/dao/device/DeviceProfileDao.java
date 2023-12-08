@@ -39,11 +39,12 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.ExportableEntityDao;
+import org.thingsboard.server.dao.ImageContainerDao;
 
 import java.util.List;
 import java.util.UUID;
 
-public interface DeviceProfileDao extends Dao<DeviceProfile>, ExportableEntityDao<DeviceProfileId, DeviceProfile> {
+public interface DeviceProfileDao extends Dao<DeviceProfile>, ExportableEntityDao<DeviceProfileId, DeviceProfile>, ImageContainerDao<DeviceProfileInfo> {
 
     DeviceProfileInfo findDeviceProfileInfoById(TenantId tenantId, UUID deviceProfileId);
 
@@ -64,4 +65,7 @@ public interface DeviceProfileDao extends Dao<DeviceProfile>, ExportableEntityDa
     DeviceProfile findByProvisionDeviceKey(String provisionDeviceKey);
 
     DeviceProfile findByName(TenantId tenantId, String profileName);
+
+    PageData<DeviceProfile> findAllWithImages(PageLink pageLink);
+
 }

@@ -154,7 +154,7 @@
         "name": "Duplicate To Group Entities",
         "debugMode": false,
         "singletonMode": false,
-        "configurationVersion": 0,
+        "configurationVersion": 1,
         "configuration": {
           "entityGroupId": null,
           "entityGroupIsMessageOriginator": true

@@ -50,14 +50,20 @@ import { DashboardInfo } from '@shared/models/dashboard.models';
 import { DashboardService } from '@core/http/dashboard.service';
 import { DashboardFormComponent } from '@home/pages/dashboard/dashboard-form.component';
 import { Operation, Resource } from '@shared/models/security.models';
-import { ImportExportService } from '@home/components/import-export/import-export.service';
+import { ImportExportService } from '@shared/import-export/import-export.service';
 import { ActivatedRoute, Router, UrlTree } from '@angular/router';
 import {
   PublicDashboardLinkDialogComponent,
   PublicDashboardLinkDialogData
 } from '@home/pages/dashboard/public-dashboard-link.dialog.component';
 import { WINDOW } from '@core/services/window.service';
-import { mergeMap } from 'rxjs/operators';
+import { map, mergeMap } from 'rxjs/operators';
+import { Widget } from '@shared/models/widget.models';
+import { EntityAliases } from '@shared/models/alias.models';
+import {
+  EntityAliasesDialogComponent,
+  EntityAliasesDialogData
+} from '@home/components/alias/entity-aliases-dialog.component';
 
 // @dynamic
 @Injectable()
@@ -201,11 +207,35 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
     if (entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
       customerId = entityGroup.ownerId as CustomerId;
     }
-    this.importExport.importDashboard(customerId, entityGroupId).subscribe((res) => {
+    this.importExport.importDashboard(customerId, this.editMissingAliases.bind(this), entityGroupId).subscribe((res) => {
       if (res) {
         config.updateData();
       }
     });
+  }
+
+  private editMissingAliases(widgets: Array<Widget>, isSingleWidget: boolean,
+                             customTitle: string, missingEntityAliases: EntityAliases): Observable<EntityAliases> {
+    return this.dialog.open<EntityAliasesDialogComponent, EntityAliasesDialogData,
+      EntityAliases>(EntityAliasesDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        entityAliases: missingEntityAliases,
+        widgets,
+        customTitle,
+        isSingleWidget,
+        disableAdd: true
+      }
+    }).afterClosed().pipe(
+      map((updatedEntityAliases) => {
+          if (updatedEntityAliases) {
+            return updatedEntityAliases;
+          } else {
+            throw new Error('Unable to resolve missing entity aliases!');
+          }
+        }
+      ));
   }
 
   openPublicDashboardLinkDialog($event: Event, dashboard: ShortEntityView | DashboardInfo, config: GroupEntityTableConfig<DashboardInfo>) {

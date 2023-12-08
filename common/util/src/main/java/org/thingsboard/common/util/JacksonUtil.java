@@ -112,15 +112,6 @@ public class JacksonUtil {
         }
     }
 
-    public static <T> T fromString(String string, JavaType valueType) {
-        try {
-            return OBJECT_MAPPER.readValue(string, valueType);
-        } catch (IOException e) {
-            throw new IllegalArgumentException("The given string value: "
-                    + string + " cannot be transformed to Json object");
-        }
-    }
-
     public static <T> T fromString(String string, TypeReference<T> valueTypeRef) {
         try {
             return string != null ? OBJECT_MAPPER.readValue(string, valueTypeRef) : null;
@@ -129,7 +120,15 @@ public class JacksonUtil {
         }
     }
 
-    public static <T> T fromStringIgnoreUnknownProperties(String string, Class<T> clazz) {
+    public static <T> T fromString(String string, JavaType javaType) {
+        try {
+            return string != null ? OBJECT_MAPPER.readValue(string, javaType) : null;
+        } catch (IOException e) {
+            throw new IllegalArgumentException("The given String value cannot be transformed to Json object: " + string, e);
+        }
+    }
+
+    public static <T> T fromString(String string, Class<T> clazz, boolean ignoreUnknownFields) {
         try {
             return string != null ? IGNORE_UNKNOWN_PROPERTIES_JSON_MAPPER.readValue(string, clazz) : null;
         } catch (IOException e) {

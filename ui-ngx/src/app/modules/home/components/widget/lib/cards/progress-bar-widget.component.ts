@@ -58,6 +58,9 @@ import {
 import { WidgetComponent } from '@home/components/widget/widget.component';
 import { progressBarDefaultSettings, ProgressBarLayout, ProgressBarWidgetSettings } from './progress-bar-widget.models';
 import { ResizeObserver } from '@juggle/resize-observer';
+import { Observable } from 'rxjs';
+import { ImagePipe } from '@shared/pipe/image.pipe';
+import { DomSanitizer } from '@angular/platform-browser';
 
 const defaultLayoutHeight = 80;
 const simplifiedLayoutHeight = 75;
@@ -108,7 +111,7 @@ export class ProgressBarWidgetComponent implements OnInit, OnDestroy, AfterViewI
 
   value: number;
 
-  backgroundStyle: ComponentStyle = {};
+  backgroundStyle$: Observable<ComponentStyle>;
   overlayStyle: ComponentStyle = {};
 
   progressBarPanelResize$: ResizeObserver;
@@ -117,6 +120,8 @@ export class ProgressBarWidgetComponent implements OnInit, OnDestroy, AfterViewI
   private units = '';
 
   constructor(private date: DatePipe,
+              private imagePipe: ImagePipe,
+              private sanitizer: DomSanitizer,
               private widgetComponent: WidgetComponent,
               private renderer: Renderer2,
               private cd: ChangeDetectorRef) {
@@ -159,7 +164,7 @@ export class ProgressBarWidgetComponent implements OnInit, OnDestroy, AfterViewI
       this.ticksStyle.color = this.settings.ticksColor;
     }
 
-    this.backgroundStyle = backgroundStyle(this.settings.background);
+    this.backgroundStyle$ = backgroundStyle(this.settings.background, this.imagePipe, this.sanitizer);
     this.overlayStyle = overlayStyle(this.settings.background.overlay);
   }
 

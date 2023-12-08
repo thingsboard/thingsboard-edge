@@ -34,6 +34,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import java.util.function.UnaryOperator;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -50,6 +51,16 @@ public class RegexUtils {
 
     public static boolean matches(String input, Pattern pattern) {
         return pattern.matcher(input).matches();
+    }
+
+    public static String getMatch(String input, Pattern pattern, int group) {
+        Matcher matcher = pattern.matcher(input);
+        if (matcher.find()) {
+            try {
+                return matcher.group(group);
+            } catch (Exception ignored) {}
+        }
+        return null;
     }
 
 }

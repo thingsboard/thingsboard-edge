@@ -30,24 +30,33 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResource;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
+import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.util.UUID;
 
+import static org.thingsboard.server.dao.model.ModelConstants.CUSTOMER_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_CUSTOMER_ID_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_DATA_COLUMN;
-import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_FILE_NAME_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_DESCRIPTOR_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_ETAG_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_FILE_NAME_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_KEY_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_PREVIEW_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_TENANT_ID_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_TITLE_COLUMN;
@@ -57,11 +66,15 @@ import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPER
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
+@TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = RESOURCE_TABLE_NAME)
-public class TbResourceEntity extends BaseSqlEntity<TbResource> implements BaseEntity<TbResource> {
+public class TbResourceEntity extends BaseSqlEntity<TbResource> {
 
     @Column(name = RESOURCE_TENANT_ID_COLUMN, columnDefinition = "uuid")
     private UUID tenantId;
+
+    @Column(name = RESOURCE_CUSTOMER_ID_COLUMN, columnDefinition = "uuid")
+    private UUID customerId;
 
     @Column(name = RESOURCE_TITLE_COLUMN)
     private String title;
@@ -79,10 +92,20 @@ public class TbResourceEntity extends BaseSqlEntity<TbResource> implements BaseE
     private String fileName;
 
     @Column(name = RESOURCE_DATA_COLUMN)
-    private String data;
+    private byte[] data;
 
     @Column(name = RESOURCE_ETAG_COLUMN)
     private String etag;
+
+    @Type(type = "json")
+    @Column(name = RESOURCE_DESCRIPTOR_COLUMN)
+    private JsonNode descriptor;
+
+    @Column(name = RESOURCE_PREVIEW_COLUMN)
+    private byte[] preview;
+
+    @Column(name = EXTERNAL_ID_PROPERTY)
+    private UUID externalId;
 
     public TbResourceEntity() {
     }
@@ -95,6 +118,9 @@ public class TbResourceEntity extends BaseSqlEntity<TbResource> implements BaseE
         if (resource.getTenantId() != null) {
             this.tenantId = resource.getTenantId().getId();
         }
+        if (resource.getCustomerId() != null) {
+            this.customerId = resource.getCustomerId().getId();
+        }
         this.title = resource.getTitle();
         this.resourceType = resource.getResourceType().name();
         this.resourceKey = resource.getResourceKey();
@@ -102,6 +128,9 @@ public class TbResourceEntity extends BaseSqlEntity<TbResource> implements BaseE
         this.fileName = resource.getFileName();
         this.data = resource.getData();
         this.etag = resource.getEtag();
+        this.descriptor = resource.getDescriptor();
+        this.preview = resource.getPreview();
+        this.externalId = getUuid(resource.getExternalId());
     }
 
     @Override
@@ -109,6 +138,9 @@ public class TbResourceEntity extends BaseSqlEntity<TbResource> implements BaseE
         TbResource resource = new TbResource(new TbResourceId(id));
         resource.setCreatedTime(createdTime);
         resource.setTenantId(TenantId.fromUUID(tenantId));
+        if (customerId != null) {
+            resource.setCustomerId(new CustomerId(customerId));
+        }
         resource.setTitle(title);
         resource.setResourceType(ResourceType.valueOf(resourceType));
         resource.setResourceKey(resourceKey);
@@ -116,6 +148,9 @@ public class TbResourceEntity extends BaseSqlEntity<TbResource> implements BaseE
         resource.setFileName(fileName);
         resource.setData(data);
         resource.setEtag(etag);
+        resource.setDescriptor(descriptor);
+        resource.setPreview(preview);
+        resource.setExternalId(getEntityId(externalId, TbResourceId::new));
         return resource;
     }
 

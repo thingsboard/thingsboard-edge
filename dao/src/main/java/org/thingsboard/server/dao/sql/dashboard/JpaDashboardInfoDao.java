@@ -48,7 +48,6 @@ import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 
@@ -191,5 +190,15 @@ public class JpaDashboardInfoDao extends JpaAbstractDao<DashboardInfoEntity, Das
     @Override
     public String findTitleById(UUID tenantId, UUID dashboardId) {
         return dashboardInfoRepository.findTitleByTenantIdAndId(tenantId, dashboardId);
+    }
+
+    @Override
+    public List<DashboardInfo> findByTenantAndImageLink(TenantId tenantId, String imageLink, int limit) {
+        return DaoUtil.convertDataList(dashboardInfoRepository.findByTenantAndImageLink(tenantId.getId(), imageLink, limit));
+    }
+
+    @Override
+    public List<DashboardInfo> findByImageLink(String imageLink, int limit) {
+        return DaoUtil.convertDataList(dashboardInfoRepository.findByImageLink(imageLink, limit));
     }
 }

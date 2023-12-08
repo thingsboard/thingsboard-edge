@@ -63,16 +63,12 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
 
     @After
     public void afterTest() {
-        WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey();
-        key.setType(WhiteLabelingType.MAIL_TEMPLATES);
-        key.setEntityType(EntityType.TENANT.name());
-        key.setEntityId(tenantId.getId());
-
+        WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(tenantId, WhiteLabelingType.MAIL_TEMPLATES);
         if (whiteLabelingDao.findById(SYS_TENANT_ID, key) != null) {
             whiteLabelingDao.removeById(SYS_TENANT_ID, key);
         }
 
-        key.setEntityId(SYS_TENANT_ID.getId());
+        key.setTenantId(SYS_TENANT_ID.getId());
 
         if (whiteLabelingDao.findById(SYS_TENANT_ID, key) != null) {
             whiteLabelingDao.removeById(SYS_TENANT_ID, key);
@@ -203,8 +199,7 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
         ((ObjectNode) systemMailTemplates).put("subject", newSubject);
         doPost("/api/whiteLabel/mailTemplates", systemMailTemplates, JsonNode.class);
 
-        WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(EntityType.TENANT.name(),
-                tenantId.getId(), WhiteLabelingType.MAIL_TEMPLATES);
+        WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(tenantId, WhiteLabelingType.MAIL_TEMPLATES);
         if (whiteLabelingDao.findById(tenantId, key) != null) {
             whiteLabelingDao.removeById(tenantId, key);
         }

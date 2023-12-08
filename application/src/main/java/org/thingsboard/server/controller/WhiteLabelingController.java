@@ -35,10 +35,16 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -74,9 +80,6 @@ import static org.thingsboard.server.controller.ControllerConstants.WL_WRITE_CHE
 @RequestMapping("/api")
 public class WhiteLabelingController extends BaseController {
 
-    private static final String LOGO_CHECKSUM_DESC = "Logo image checksum. Expects value from the browser cache to compare it with the value from settings. If value matches, the 'logoImageUrl' will be null.";
-    private static final String FAVICON_CHECKSUM_DESC = "Favicon image checksum. Expects value from the browser cache to compare it with the value from settings. If value matches, the 'faviconImageUrl' will be null.";
-
     @Autowired
     private WhiteLabelingService whiteLabelingService;
 
@@ -85,21 +88,16 @@ public class WhiteLabelingController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/whiteLabel/whiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
-    public WhiteLabelingParams getWhiteLabelParams(
-            @ApiParam(value = LOGO_CHECKSUM_DESC)
-            @RequestParam(required = false) String logoImageChecksum,
-            @ApiParam(value = FAVICON_CHECKSUM_DESC)
-            @RequestParam(required = false) String faviconChecksum) throws Exception {
+    public WhiteLabelingParams getWhiteLabelParams() throws Exception {
         Authority authority = getCurrentUser().getAuthority();
         WhiteLabelingParams whiteLabelingParams = null;
         if (Authority.SYS_ADMIN.equals(authority)) {
-            whiteLabelingParams = whiteLabelingService.getMergedSystemWhiteLabelingParams(TenantId.SYS_TENANT_ID, logoImageChecksum, faviconChecksum);
+            whiteLabelingParams = whiteLabelingService.getSystemWhiteLabelingParams();
         } else if (Authority.TENANT_ADMIN.equals(authority)) {
-            whiteLabelingParams = whiteLabelingService.getMergedTenantWhiteLabelingParams(getTenantId(),
-                    logoImageChecksum, faviconChecksum);
+            whiteLabelingParams = whiteLabelingService.getMergedTenantWhiteLabelingParams(getTenantId());
         } else if (Authority.CUSTOMER_USER.equals(authority)) {
             whiteLabelingParams = whiteLabelingService.getMergedCustomerWhiteLabelingParams(getTenantId(),
-                    getCurrentUser().getCustomerId(), logoImageChecksum, faviconChecksum);
+                    getCurrentUser().getCustomerId());
         }
         return whiteLabelingParams;
     }
@@ -108,13 +106,8 @@ public class WhiteLabelingController extends BaseController {
             notes = "Returns login white-labeling parameters based on the hostname from request.", produces = MediaType.APPLICATION_JSON_VALUE)
     @RequestMapping(value = "/noauth/whiteLabel/loginWhiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
-    public LoginWhiteLabelingParams getLoginWhiteLabelParams(
-            @ApiParam(value = LOGO_CHECKSUM_DESC)
-            @RequestParam(required = false) String logoImageChecksum,
-            @ApiParam(value = FAVICON_CHECKSUM_DESC)
-            @RequestParam(required = false) String faviconChecksum,
-            HttpServletRequest request) throws Exception {
-        return whiteLabelingService.getMergedLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID, request.getServerName(), logoImageChecksum, faviconChecksum);
+    public LoginWhiteLabelingParams getLoginWhiteLabelParams(HttpServletRequest request) throws Exception {
+        return whiteLabelingService.getMergedLoginWhiteLabelingParams(request.getServerName());
     }
 
     @ApiOperation(value = "Get White Labeling configuration (getCurrentWhiteLabelParams)",
@@ -135,7 +128,7 @@ public class WhiteLabelingController extends BaseController {
         checkWhiteLabelingPermissions(Operation.READ);
         WhiteLabelingParams whiteLabelingParams = null;
         if (Authority.SYS_ADMIN.equals(authority)) {
-            whiteLabelingParams = whiteLabelingService.getSystemWhiteLabelingParams(TenantId.SYS_TENANT_ID);
+            whiteLabelingParams = whiteLabelingService.getSystemWhiteLabelingParams();
         } else if (Authority.TENANT_ADMIN.equals(authority)) {
             if (StringUtils.isEmpty(strCustomerId)) {
                 whiteLabelingParams = whiteLabelingService.getTenantWhiteLabelingParams(getTenantId());
@@ -168,7 +161,7 @@ public class WhiteLabelingController extends BaseController {
         checkWhiteLabelingPermissions(Operation.READ);
         LoginWhiteLabelingParams loginWhiteLabelingParams = null;
         if (Authority.SYS_ADMIN.equals(authority)) {
-            loginWhiteLabelingParams = whiteLabelingService.getSystemLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID);
+            loginWhiteLabelingParams = whiteLabelingService.getSystemLoginWhiteLabelingParams();
         } else if (Authority.TENANT_ADMIN.equals(authority)) {
             if (StringUtils.isEmpty(strCustomerId)) {
                 loginWhiteLabelingParams = whiteLabelingService.getTenantLoginWhiteLabelingParams(getTenantId());
@@ -258,9 +251,9 @@ public class WhiteLabelingController extends BaseController {
         if (Authority.SYS_ADMIN.equals(authority)) {
             mergedWhiteLabelingParams = whiteLabelingService.mergeSystemWhiteLabelingParams(whiteLabelingParams);
         } else if (Authority.TENANT_ADMIN.equals(authority)) {
-            mergedWhiteLabelingParams = whiteLabelingService.mergeTenantWhiteLabelingParams(getTenantId(), whiteLabelingParams);
+            mergedWhiteLabelingParams = whiteLabelingService.mergeTenantWhiteLabelingParams(whiteLabelingParams);
         } else if (Authority.CUSTOMER_USER.equals(authority)) {
-            mergedWhiteLabelingParams = whiteLabelingService.mergeCustomerWhiteLabelingParams(getTenantId(), whiteLabelingParams);
+            mergedWhiteLabelingParams = whiteLabelingService.mergeCustomerWhiteLabelingParams(getTenantId(), getCurrentUser().getCustomerId(), whiteLabelingParams);
         }
         return mergedWhiteLabelingParams;
     }
@@ -273,13 +266,7 @@ public class WhiteLabelingController extends BaseController {
     @ResponseBody
     public Boolean isWhiteLabelingAllowed() throws ThingsboardException {
         Authority authority = getCurrentUser().getAuthority();
-        EntityId entityId;
-        if (Authority.TENANT_ADMIN.equals(authority)) {
-            entityId = getCurrentUser().getTenantId();
-        } else {
-            entityId = getCurrentUser().getCustomerId();
-        }
-        return whiteLabelingService.isWhiteLabelingAllowed(getTenantId(), entityId);
+        return whiteLabelingService.isWhiteLabelingAllowed(getTenantId(), getCurrentUser().getCustomerId());
     }
 
     @ApiOperation(value = "Check Customer White Labeling Allowed",

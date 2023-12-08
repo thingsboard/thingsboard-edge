@@ -83,9 +83,6 @@ public class WhiteLabelingParamsProtoConstructor {
         if (whiteLabelingParams.getLogoImageUrl() != null) {
             builder.setLogoImageUrl(whiteLabelingParams.getLogoImageUrl());
         }
-        if (whiteLabelingParams.getLogoImageChecksum() != null) {
-            builder.setLogoImageChecksum(whiteLabelingParams.getLogoImageChecksum());
-        }
         if (whiteLabelingParams.getLogoImageHeight() != null) {
             builder.setLogoImageHeight(whiteLabelingParams.getLogoImageHeight().longValue());
         }
@@ -94,9 +91,6 @@ public class WhiteLabelingParamsProtoConstructor {
         }
         if (whiteLabelingParams.getFavicon() != null) {
             builder.setFavicon(constructFaviconProto(whiteLabelingParams.getFavicon()));
-        }
-        if (whiteLabelingParams.getFaviconChecksum() != null) {
-            builder.setFaviconChecksum(whiteLabelingParams.getFaviconChecksum());
         }
         if (whiteLabelingParams.getPaletteSettings() != null) {
             builder.setPaletteSettings(constructPaletteSettingsProto(whiteLabelingParams.getPaletteSettings()));
@@ -126,9 +120,6 @@ public class WhiteLabelingParamsProtoConstructor {
         FaviconProto.Builder builder = FaviconProto.newBuilder();
         if (favicon.getUrl() != null) {
             builder.setUrl(favicon.getUrl());
-        }
-        if (favicon.getType() != null) {
-            builder.setType(favicon.getType());
         }
         return builder.build();
     }

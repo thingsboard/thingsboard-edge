@@ -58,7 +58,7 @@ public class ConverterEdgeProcessor extends BaseEdgeProcessor {
                 if (converter != null) {
                     return DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addConverterMsg(((ConverterMsgConstructor)converterMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructConverterUpdateMsg(msgType, converter))
+                            .addConverterMsg(((ConverterMsgConstructor) converterMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructConverterUpdateMsg(msgType, converter))
                             .build();
                 }
                 break;

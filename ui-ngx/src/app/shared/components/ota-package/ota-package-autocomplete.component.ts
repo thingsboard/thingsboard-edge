@@ -29,8 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
-import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { Component, ElementRef, forwardRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { merge, Observable, of, Subject } from 'rxjs';
 import { catchError, debounceTime, map, share, switchMap, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
@@ -47,6 +47,9 @@ import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
 import { getEntityDetailsPageURL, isDefinedAndNotNull } from '@core/utils';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
+import { AuthUser } from '@shared/models/user.model';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { Authority } from '@shared/models/authority.enum';
 
 @Component({
   selector: 'tb-ota-package-autocomplete',
@@ -58,7 +61,7 @@ import { emptyPageData, PageData } from '@shared/models/page/page-data';
     multi: true
   }]
 })
-export class OtaPackageAutocompleteComponent implements ControlValueAccessor, OnInit {
+export class OtaPackageAutocompleteComponent implements ControlValueAccessor, OnInit, OnDestroy {
 
   otaPackageFormGroup: UntypedFormGroup;
 
@@ -136,6 +139,10 @@ export class OtaPackageAutocompleteComponent implements ControlValueAccessor, On
   searchText = '';
   packageURL: string;
 
+  usePackageLink = true;
+
+  private authUser: AuthUser;
+
   private dirty = false;
   private cleanFilteredPackages: Subject<Array<OtaPackageInfo>> = new Subject();
 
@@ -147,6 +154,10 @@ export class OtaPackageAutocompleteComponent implements ControlValueAccessor, On
               private entityService: EntityService,
               private otaPackageService: OtaPackageService,
               private fb: UntypedFormBuilder) {
+    this.authUser = getCurrentAuthUser(this.store);
+    if (this.authUser.authority === Authority.CUSTOMER_USER) {
+      this.usePackageLink = false;
+    }
     this.otaPackageFormGroup = this.fb.group({
       packageId: [null]
     });
@@ -181,9 +192,6 @@ export class OtaPackageAutocompleteComponent implements ControlValueAccessor, On
       );
 
     this.filteredPackages = merge(this.cleanFilteredPackages, getPackages);
-  }
-
-  ngAfterViewInit(): void {
   }
 
   ngOnDestroy() {
@@ -225,7 +233,9 @@ export class OtaPackageAutocompleteComponent implements ControlValueAccessor, On
       if (packageId !== '') {
         this.entityService.getEntity(EntityType.OTA_PACKAGE, packageId, {ignoreLoading: true, ignoreErrors: true}).subscribe(
           (entity) => {
-            this.packageURL = getEntityDetailsPageURL(entity.id.id, EntityType.OTA_PACKAGE);
+            if (this.usePackageLink) {
+              this.packageURL = getEntityDetailsPageURL(entity.id.id, EntityType.OTA_PACKAGE);
+            }
             this.modelValue = this.useFullEntityId ? entity.id : entity.id.id;
             this.otaPackageFormGroup.get('packageId').patchValue(entity, {emitEvent: false});
           },

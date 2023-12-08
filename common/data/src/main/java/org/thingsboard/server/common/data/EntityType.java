@@ -42,11 +42,11 @@ import java.util.stream.Collectors;
  */
 public enum EntityType {
     TENANT(1),
-    CUSTOMER(2),
-    USER(3),
-    DASHBOARD(4),
-    ASSET(5),
-    DEVICE(6),
+    CUSTOMER(2, true),
+    USER(3, true),
+    DASHBOARD(4, true),
+    ASSET(5, true),
+    DEVICE(6, true),
     ALARM (7),
     ENTITY_GROUP(100) {
         // backward compatibility for TbOriginatorTypeSwitchNode to return correct rule node connection.
@@ -61,7 +61,7 @@ public enum EntityType {
     RULE_NODE (12),
     SCHEDULER_EVENT(103),
     BLOB_ENTITY(104),
-    ENTITY_VIEW(15) {
+    ENTITY_VIEW(15, true) {
         // backward compatibility for TbOriginatorTypeSwitchNode to return correct rule node connection.
         @Override
         public String getNormalName() {
@@ -78,7 +78,7 @@ public enum EntityType {
     API_USAGE_STATE (23),
     TB_RESOURCE (24),
     OTA_PACKAGE (25),
-    EDGE (26),
+    EDGE (26, true),
     RPC (27),
     QUEUE (28),
     NOTIFICATION_TARGET (29),
@@ -90,9 +90,20 @@ public enum EntityType {
     @Getter
     private final int protoNumber; // Corresponds to EntityTypeProto
 
-    private EntityType(int protoNumber) {
-        this.protoNumber = protoNumber;
+    @Getter
+    private final boolean groupEntityType;
+
+    EntityType(int protoNumber) {
+        this(protoNumber, false);
     }
+
+    EntityType(int protoNumber, boolean groupEntityType) {
+        this.protoNumber = protoNumber;
+        this.groupEntityType = groupEntityType;
+    }
+
+    public static final List<EntityType> GROUP_ENTITY_TYPES = EnumSet.allOf(EntityType.class).stream()
+            .filter(EntityType::isGroupEntityType).collect(Collectors.toUnmodifiableList());
 
     public static final List<String> NORMAL_NAMES = EnumSet.allOf(EntityType.class).stream()
             .map(EntityType::getNormalName).collect(Collectors.toUnmodifiableList());

@@ -29,13 +29,14 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, EventEmitter, forwardRef, Input, OnInit, Output } from '@angular/core';
-import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { Component, EventEmitter, forwardRef, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { AliasFilterType, aliasFilterTypeTranslationMap, EntityAliasFilter } from '@shared/models/alias.models';
 import { AliasEntityType, EntityType } from '@shared/models/entity-type.models';
-import { TranslateService } from '@ngx-translate/core';
 import { EntityService } from '@core/http/entity.service';
 import { EntitySearchDirection, entitySearchDirectionTranslations } from '@shared/models/relation.models';
+import { Subject, Subscription } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { entityGroupTypes } from '@app/shared/models/entity-group.models';
 
 @Component({
@@ -50,7 +51,7 @@ import { entityGroupTypes } from '@app/shared/models/entity-group.models';
     }
   ]
 })
-export class EntityFilterComponent implements ControlValueAccessor, OnInit {
+export class EntityFilterComponent implements ControlValueAccessor, OnInit, OnDestroy {
 
   @Input() disabled: boolean;
 
@@ -60,8 +61,8 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
 
   @Output() resolveMultipleChanged: EventEmitter<boolean> = new EventEmitter<boolean>();
 
-  entityFilterFormGroup: UntypedFormGroup;
-  filterFormGroup: UntypedFormGroup;
+  entityFilterFormGroup: FormGroup;
+  filterFormGroup: FormGroup;
 
   aliasFilterTypes: Array<AliasFilterType>;
   entityGroupTypes: Array<EntityType>;
@@ -76,9 +77,11 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
 
   private propagateChange = null;
 
-  constructor(private translate: TranslateService,
-              private entityService: EntityService,
-              private fb: UntypedFormBuilder) {
+  private destroy$ = new Subject<void>();
+  private subscriptions = new Subscription();
+
+  constructor(private entityService: EntityService,
+              private fb: FormBuilder) {
   }
 
   ngOnInit(): void {
@@ -91,13 +94,23 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
     this.entityFilterFormGroup = this.fb.group({
       type: [null, [Validators.required]]
     });
-    this.entityFilterFormGroup.get('type').valueChanges.subscribe((type: AliasFilterType) => {
+    this.entityFilterFormGroup.get('type').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe((type: AliasFilterType) => {
       this.filterTypeChanged(type);
     });
-    this.entityFilterFormGroup.valueChanges.subscribe(() => {
+    this.entityFilterFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
       this.updateModel();
     });
     this.filterFormGroup = this.fb.group({});
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.subscriptions.unsubscribe();
   }
 
   registerOnChange(fn: any): void {
@@ -125,6 +138,8 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
   }
 
   private updateFilterFormGroup(type: AliasFilterType, filter?: EntityAliasFilter) {
+    this.subscriptions.unsubscribe();
+    this.subscriptions = new Subscription();
     switch (type) {
       case AliasFilterType.singleEntity:
         this.filterFormGroup = this.fb.group({
@@ -140,18 +155,28 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
           groupType: [filter ? filter.groupType : null, (filter && filter.groupStateEntity) ? [] : [Validators.required]],
           entityGroup: [filter ? filter.entityGroup : null, (filter && filter.groupStateEntity) ? [] : [Validators.required]],
         });
-        this.filterFormGroup.get('groupStateEntity').valueChanges.subscribe((groupStateEntity: boolean) => {
+        const groupStateEntitySubscription = this.filterFormGroup.get('groupStateEntity').valueChanges.subscribe((groupStateEntity: boolean) => {
           this.filterFormGroup.get('groupType').setValidators(groupStateEntity ? [] : [Validators.required]);
           this.filterFormGroup.get('entityGroup').setValidators(groupStateEntity ? [] : [Validators.required]);
           this.filterFormGroup.get('groupType').updateValueAndValidity();
           this.filterFormGroup.get('entityGroup').updateValueAndValidity();
         });
+        this.subscriptions.add(groupStateEntitySubscription);
         break;
       case AliasFilterType.entityList:
         this.filterFormGroup = this.fb.group({
           entityType: [filter ? filter.entityType : null, [Validators.required]],
-          entityList: [filter ? filter.entityList : [], [Validators.required]],
+          entityList: [{
+            value: filter ? filter.entityList : [],
+            disabled: !filter?.entityType
+          }, [Validators.required]],
         });
+        const entityTypeSubscription = this.filterFormGroup.get('entityType').valueChanges.subscribe((entityType) => {
+          if (entityType && this.filterFormGroup.get('entityList').disabled) {
+            this.filterFormGroup.get('entityList').enable({emitEvent: false});
+          }
+        });
+        this.subscriptions.add(entityTypeSubscription);
         break;
       case AliasFilterType.entityName:
         this.filterFormGroup = this.fb.group({
@@ -167,8 +192,17 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
       case AliasFilterType.entityGroupList:
         this.filterFormGroup = this.fb.group({
           groupType: [filter ? filter.groupType : null, [Validators.required]],
-          entityGroupList: [filter ? filter.entityGroupList : [], [Validators.required]],
+          entityGroupList: [{
+            value: filter ? filter.entityGroupList : [],
+            disabled: !filter?.groupType
+          }, [Validators.required]],
         });
+        const groupTypeSubscription = this.filterFormGroup.get('groupType').valueChanges.subscribe((groupType) => {
+          if (groupType && this.filterFormGroup.get('entityGroupList').disabled) {
+            this.filterFormGroup.get('entityGroupList').enable({emitEvent: false});
+          }
+        });
+        this.subscriptions.add(groupTypeSubscription);
         break;
       case AliasFilterType.entityGroupName:
         this.filterFormGroup = this.fb.group({
@@ -232,10 +266,11 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
           maxLevel: [filter ? filter.maxLevel : 1, []],
           fetchLastLevelOnly: [filter ? filter.fetchLastLevelOnly : false, []]
         });
-        this.filterFormGroup.get('rootStateEntity').valueChanges.subscribe((rootStateEntity: boolean) => {
+        const rootStateSubscription = this.filterFormGroup.get('rootStateEntity').valueChanges.subscribe((rootStateEntity: boolean) => {
           this.filterFormGroup.get('rootEntity').setValidators(rootStateEntity ? [] : [Validators.required]);
           this.filterFormGroup.get('rootEntity').updateValueAndValidity();
         });
+        this.subscriptions.add(rootStateSubscription);
         if (type === AliasFilterType.relationsQuery) {
           this.filterFormGroup.addControl('filters',
             this.fb.control(filter ? filter.filters : [], []));
@@ -267,9 +302,10 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
         });
         break;
     }
-    this.filterFormGroup.valueChanges.subscribe(() => {
+    const filterFormSubscription = this.filterFormGroup.valueChanges.subscribe(() => {
       this.updateModel();
     });
+    this.subscriptions.add(filterFormSubscription);
   }
 
   private filterTypeChanged(type: AliasFilterType) {
