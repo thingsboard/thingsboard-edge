@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.integration.activity;
 
+import lombok.NonNull;
 import lombok.Value;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -37,7 +38,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 @Value
 public class IntegrationActivityKey {
 
-    TenantId tenantId;
-    DeviceId deviceId;
+    @NonNull TenantId tenantId;
+    @NonNull DeviceId deviceId;
 
 }

@@ -266,10 +266,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         tbCoreMsgProducer = producerProvider.getTbCoreMsgProducer();
         integrationRuleEngineMsgProducer = producerProvider.getIntegrationRuleEngineMsgProducer();
         this.callbackExecutor = ThingsBoardExecutors.newWorkStealingPool(20, "default-integration-callback");
-        activityManager.setName("integration-activity-manager");
-        activityManager.setActivityReporter(activityReporter);
-        activityManager.setReportingPeriod(reportingPeriodMillis);
-        activityManager.init();
+        activityManager.init("integration-activity-manager", reportingPeriodMillis, activityReporter);
     }
 
     private final ActivityStateReporter<IntegrationActivityKey, ActivityState> activityReporter = (key, timeToReport, state, reportCallback) -> {
@@ -479,9 +476,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     @Override
     public void process(SessionInfoProto sessionInfo, PostTelemetryMsg msg, IntegrationCallback<Void> callback) {
-        recordActivity(sessionInfo);
         TenantId tenantId = new TenantId(new UUID(sessionInfo.getTenantIdMSB(), sessionInfo.getTenantIdLSB()));
         DeviceId deviceId = new DeviceId(new UUID(sessionInfo.getDeviceIdMSB(), sessionInfo.getDeviceIdLSB()));
+        recordActivity(tenantId, deviceId);
         int dataPoints = 0;
         for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
             dataPoints += tsKv.getKvCount();
@@ -499,9 +496,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     @Override
     public void process(SessionInfoProto sessionInfo, PostAttributeMsg msg, IntegrationCallback<Void> callback) {
-        recordActivity(sessionInfo);
         TenantId tenantId = new TenantId(new UUID(sessionInfo.getTenantIdMSB(), sessionInfo.getTenantIdLSB()));
         DeviceId deviceId = new DeviceId(new UUID(sessionInfo.getDeviceIdMSB(), sessionInfo.getDeviceIdLSB()));
+        recordActivity(tenantId, deviceId);
         JsonObject json = JsonUtils.getJsonObject(msg.getKvList());
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("deviceName", sessionInfo.getDeviceName());
@@ -510,8 +507,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(tenantId, getCustomerId(sessionInfo), msg.getKvList().size(), callback)));
     }
 
-    private void recordActivity(SessionInfoProto sessionInfo) {
-        activityManager.onActivity(new IntegrationActivityKey(getTenantId(sessionInfo), getDeviceId(sessionInfo)), ActivityState::new);
+    private void recordActivity(TenantId tenantId, DeviceId deviceId) {
+        activityManager.onActivity(new IntegrationActivityKey(tenantId, deviceId), ActivityState::new);
     }
 
     @Override
