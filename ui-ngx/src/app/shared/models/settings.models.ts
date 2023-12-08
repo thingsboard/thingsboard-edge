@@ -155,12 +155,14 @@ export interface MailTemplatesSettings {
 
 export interface UserPasswordPolicy {
   minimumLength: number;
+  maximumLength: number;
   minimumUppercaseLetters: number;
   minimumLowercaseLetters: number;
   minimumDigits: number;
   minimumSpecialCharacters: number;
   passwordExpirationPeriodDays: number;
   allowWhitespaces: boolean;
+  forceUserToResetPasswordIfNotValid: boolean;
 }
 
 export interface SecuritySettings {
