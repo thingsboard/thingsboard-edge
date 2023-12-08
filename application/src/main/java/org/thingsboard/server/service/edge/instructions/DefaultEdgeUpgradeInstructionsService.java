@@ -97,7 +97,6 @@ public class DefaultEdgeUpgradeInstructionsService implements EdgeUpgradeInstruc
         if (edgeUpgradeInfo == null || edgeUpgradeInfo.getNextEdgeVersion() == null || tbVersion.equals(currentEdgeVersion)) {
             return new EdgeInstructions("Edge upgrade instruction for " + currentEdgeVersion + "EDGE is not available.");
         }
-        boolean rmUpgradeCompose = false;
         StringBuilder result = new StringBuilder(readFile(resolveFile("docker", "upgrade_preparing.md")));
         while (edgeUpgradeInfo.getNextEdgeVersion() != null || !tbVersion.equals(currentEdgeVersion)) {
             String edgeVersion = edgeUpgradeInfo.getNextEdgeVersion();
@@ -108,15 +107,8 @@ public class DefaultEdgeUpgradeInstructionsService implements EdgeUpgradeInstruc
             } else {
                 ubuntuUpgradeInstructions = ubuntuUpgradeInstructions.replace("${UPGRADE_DB}", "");
             }
-            if (!rmUpgradeCompose) {
-                rmUpgradeCompose = true;
-                ubuntuUpgradeInstructions = ubuntuUpgradeInstructions.replace("${CLEAR_DOCKER_UPGRADE}", "");
-            } else {
-                String rmUpgrade = readFile(resolveFile("docker", "upgrade_rm.md"));
-                ubuntuUpgradeInstructions = ubuntuUpgradeInstructions.replace("${CLEAR_DOCKER_UPGRADE}", rmUpgrade);
-            }
-            ubuntuUpgradeInstructions = ubuntuUpgradeInstructions.replace("${TB_EDGE_VERSION}", edgeVersion + "EDGEPE");
-            ubuntuUpgradeInstructions = ubuntuUpgradeInstructions.replace("${FROM_TB_EDGE_VERSION}", currentEdgeVersion + "EDGEPE");
+            ubuntuUpgradeInstructions = ubuntuUpgradeInstructions.replace("${TB_EDGE_VERSION}", edgeVersion + "EDGE");
+            ubuntuUpgradeInstructions = ubuntuUpgradeInstructions.replace("${FROM_TB_EDGE_VERSION}", currentEdgeVersion + "EDGE");
             currentEdgeVersion = edgeVersion;
             edgeUpgradeInfo = upgradeVersionHashMap.get(edgeUpgradeInfo.getNextEdgeVersion());
             result.append(ubuntuUpgradeInstructions);
