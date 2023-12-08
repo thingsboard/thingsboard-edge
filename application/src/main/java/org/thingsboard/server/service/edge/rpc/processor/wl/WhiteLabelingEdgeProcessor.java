@@ -89,7 +89,8 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
             if (whiteLabeling == null) {
                 return null;
             }
-            WhiteLabelingProto whiteLabelingProto = whiteLabelingParamsProtoConstructor.constructWhiteLabeling(whiteLabeling);
+            boolean isEdgeVersionOlderThan_3_6_2 = EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_6_2);
+            WhiteLabelingProto whiteLabelingProto = whiteLabelingParamsProtoConstructor.constructWhiteLabeling(whiteLabeling, isEdgeVersionOlderThan_3_6_2);
             result = DownlinkMsg.newBuilder()
                     .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                     .setWhiteLabelingProto(whiteLabelingProto)
@@ -178,7 +179,8 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
             if (whiteLabeling == null) {
                 return null;
             }
-            WhiteLabelingProto whiteLabelingProto = whiteLabelingParamsProtoConstructor.constructWhiteLabeling(whiteLabeling);
+            boolean isEdgeVersionOlderThan_3_6_2 = EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_6_2);
+            WhiteLabelingProto whiteLabelingProto = whiteLabelingParamsProtoConstructor.constructWhiteLabeling(whiteLabeling, isEdgeVersionOlderThan_3_6_2);
             result = DownlinkMsg.newBuilder()
                     .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                     .setWhiteLabelingProto(whiteLabelingProto)
