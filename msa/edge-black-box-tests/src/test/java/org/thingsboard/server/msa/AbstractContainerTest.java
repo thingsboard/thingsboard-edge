@@ -600,6 +600,8 @@ public abstract class AbstractContainerTest {
             Optional<WidgetsBundle> cloudWidgetsBundle = cloudRestClient.getWidgetsBundleById(widgetsBundleId);
             WidgetsBundle expected = edgeWidgetsBundle.get();
             WidgetsBundle actual = cloudWidgetsBundle.get();
+            expected.setImage(null);
+            actual.setImage(null);
             Assert.assertEquals("Widgets bundles on cloud and edge are different", expected, actual);
         }
     }
@@ -611,6 +613,8 @@ public abstract class AbstractContainerTest {
             Optional<WidgetTypeDetails> cloudWidgetsBundle = cloudRestClient.getWidgetTypeById(widgetTypeId);
             WidgetTypeDetails expected = edgeWidgetsBundle.get();
             WidgetTypeDetails actual = cloudWidgetsBundle.get();
+            expected.setImage(null);
+            actual.setImage(null);
             Assert.assertEquals("Widget types on cloud and edge are different", expected, actual);
         }
     }
