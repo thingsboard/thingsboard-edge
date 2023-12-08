@@ -277,12 +277,12 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         tbCoreMsgProducer.send(tpi, new TbProtoQueueMsg<>(deviceId.getId(), toCoreMsg), new TbQueueCallback() {
             @Override
             public void onSuccess(TbQueueMsgMetadata metadata) {
-                callbackExecutor.submit(() -> reportCallback.onSuccess(key, timeToReport));
+                reportCallback.onSuccess(key, timeToReport);
             }
 
             @Override
             public void onFailure(Throwable t) {
-                callbackExecutor.submit(() -> reportCallback.onFailure(key, t));
+                reportCallback.onFailure(key, t);
             }
         });
     };
