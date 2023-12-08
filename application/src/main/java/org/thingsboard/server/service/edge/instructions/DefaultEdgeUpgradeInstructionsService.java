@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.edge.instructions;
 
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -63,6 +64,7 @@ public class DefaultEdgeUpgradeInstructionsService implements EdgeUpgradeInstruc
     private final InstallScripts installScripts;
 
     @Value("${app.version:unknown}")
+    @Setter
     private String appVersion;
 
     @Override
@@ -78,11 +80,6 @@ public class DefaultEdgeUpgradeInstructionsService implements EdgeUpgradeInstruc
             default:
                 throw new IllegalArgumentException("Unsupported upgrade method for Edge: " + upgradeMethod);
         }
-    }
-
-    @Override
-    public void updateApplicationVersion(String version) {
-        appVersion = version;
     }
 
     @Override

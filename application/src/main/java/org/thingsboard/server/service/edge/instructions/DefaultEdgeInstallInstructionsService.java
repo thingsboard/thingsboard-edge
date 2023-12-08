@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.edge.instructions;
 
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -67,6 +68,7 @@ public class DefaultEdgeInstallInstructionsService implements EdgeInstallInstruc
     private boolean sslEnabled;
 
     @Value("${app.version:unknown}")
+    @Setter
     private String appVersion;
 
     @Override
@@ -81,11 +83,6 @@ public class DefaultEdgeInstallInstructionsService implements EdgeInstallInstruc
             default:
                 throw new IllegalArgumentException("Unsupported installation method for Edge: " + installationMethod);
         }
-    }
-
-    @Override
-    public void updateApplicationVersion(String version) {
-        appVersion = version;
     }
 
     private EdgeInstructions getDockerInstallInstructions(Edge edge, HttpServletRequest request) {
