@@ -101,6 +101,7 @@ import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_TY
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_AWS_IOT_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_KNP_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_SIGFOX_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_SIGFOX_UPLINK_CONVERTER_METADATA;
@@ -144,7 +145,8 @@ public class ConverterController extends AutoCommitController {
             IntegrationType.AZURE_IOT_HUB, DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE,
             IntegrationType.AZURE_EVENT_HUB, DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE,
             IntegrationType.AZURE_SERVICE_BUS, DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE,
-            IntegrationType.AWS_IOT, DEFAULT_AWS_IOT_UPLINK_CONVERTER_MESSAGE
+            IntegrationType.AWS_IOT, DEFAULT_AWS_IOT_UPLINK_CONVERTER_MESSAGE,
+            IntegrationType.KPN, DEFAULT_KNP_UPLINK_CONVERTER_MESSAGE
     );
 
     private final static Map<IntegrationType, String> converterDefaultMetadatas = Map.of(
