@@ -101,7 +101,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof WhiteLabelingProto);
         WhiteLabelingProto login = (WhiteLabelingProto) latestMessage;
-        WhiteLabeling whiteLabeling = JacksonUtil.fromStringIgnoreUnknownProperties(login.getEntity(), WhiteLabeling.class);
+        WhiteLabeling whiteLabeling = JacksonUtil.fromString(login.getEntity(), WhiteLabeling.class, true);
         Assert.assertNotNull(whiteLabeling);
         WhiteLabelingParams result = JacksonUtil.treeToValue(whiteLabeling.getSettings(), WhiteLabelingParams.class);
         Assert.assertEquals(updatedAppTitle, result.getAppTitle());
@@ -157,7 +157,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof WhiteLabelingProto);
         WhiteLabelingProto login = (WhiteLabelingProto) latestMessage;
-        WhiteLabeling whiteLabeling = JacksonUtil.fromStringIgnoreUnknownProperties(login.getEntity(), WhiteLabeling.class);
+        WhiteLabeling whiteLabeling = JacksonUtil.fromString(login.getEntity(), WhiteLabeling.class, true);
         Assert.assertNotNull(whiteLabeling);
         LoginWhiteLabelingParams result = JacksonUtil.treeToValue(whiteLabeling.getSettings(), LoginWhiteLabelingParams.class);
         Assert.assertEquals(color, result.getPageBackgroundColor());
@@ -172,7 +172,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof WhiteLabelingProto);
         WhiteLabelingProto login = (WhiteLabelingProto) latestMessage;
-        WhiteLabeling whiteLabeling = JacksonUtil.fromStringIgnoreUnknownProperties(login.getEntity(), WhiteLabeling.class);
+        WhiteLabeling whiteLabeling = JacksonUtil.fromString(login.getEntity(), WhiteLabeling.class, true);
         Assert.assertNotNull(whiteLabeling);
         LoginWhiteLabelingParams result = JacksonUtil.treeToValue(whiteLabeling.getSettings(), LoginWhiteLabelingParams.class);
         Assert.assertEquals(updatedDomainName.toLowerCase(), result.getDomainName());
@@ -242,7 +242,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof CustomTranslationProto);
         CustomTranslationProto customTranslationProto = (CustomTranslationProto) latestMessage;
-        CustomTranslation ct = JacksonUtil.fromStringIgnoreUnknownProperties(customTranslationProto.getEntity(), CustomTranslation.class);
+        CustomTranslation ct = JacksonUtil.fromString(customTranslationProto.getEntity(), CustomTranslation.class, true);
         Assert.assertNotNull(ct);
         String enUsLangObject = ct.getTranslationMap().get("en_US");
         Assert.assertEquals(updatedHomeValue, JacksonUtil.toJsonNode(enUsLangObject).get("home").asText());

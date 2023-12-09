@@ -95,7 +95,7 @@ public class CustomerEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, customerUpdateMsg.getMsgType());
         Assert.assertEquals(customer.getUuidId().getMostSignificantBits(), customerUpdateMsg.getIdMSB());
         Assert.assertEquals(customer.getUuidId().getLeastSignificantBits(), customerUpdateMsg.getIdLSB());
-        Customer result = JacksonUtil.fromStringIgnoreUnknownProperties(customerUpdateMsg.getEntity(), Customer.class);
+        Customer result = JacksonUtil.fromString(customerUpdateMsg.getEntity(), Customer.class, true);
         Assert.assertNotNull(result);
         Assert.assertEquals(updatedTitle, result.getTitle());
     }

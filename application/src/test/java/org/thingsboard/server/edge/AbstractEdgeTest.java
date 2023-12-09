@@ -343,7 +343,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertTrue(tenantUpdateMsgOpt.isPresent());
         TenantUpdateMsg tenantUpdateMsg = tenantUpdateMsgOpt.get();
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, tenantUpdateMsg.getMsgType());
-        Tenant tenantMsg = JacksonUtil.fromStringIgnoreUnknownProperties(tenantUpdateMsg.getEntity(), Tenant.class);
+        Tenant tenantMsg = JacksonUtil.fromString(tenantUpdateMsg.getEntity(), Tenant.class, true);
         Assert.assertNotNull(tenantMsg);
         Tenant tenant = doGet("/api/tenant/" + tenantMsg.getUuidId(), Tenant.class);
         Assert.assertNotNull(tenant);
@@ -355,7 +355,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertTrue(tenantProfileUpdateMsgOpt.isPresent());
         TenantProfileUpdateMsg tenantProfileUpdateMsg = tenantProfileUpdateMsgOpt.get();
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, tenantProfileUpdateMsg.getMsgType());
-        TenantProfile tenantProfile = JacksonUtil.fromStringIgnoreUnknownProperties(tenantProfileUpdateMsg.getEntity(), TenantProfile.class);
+        TenantProfile tenantProfile = JacksonUtil.fromString(tenantProfileUpdateMsg.getEntity(), TenantProfile.class, true);
         Assert.assertNotNull(tenantProfile);
         Tenant tenant = doGet("/api/tenant/" + tenantId.getId(), Tenant.class);
         Assert.assertNotNull(tenant);
@@ -371,7 +371,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(expectedMsgCnt, deviceProfileUpdateMsgList.size());
         Optional<DeviceProfileUpdateMsg> thermostatProfileUpdateMsgOpt =
                 deviceProfileUpdateMsgList.stream().filter(dfum -> {
-                    DeviceProfile deviceProfile = JacksonUtil.fromStringIgnoreUnknownProperties(dfum.getEntity(), DeviceProfile.class);
+                    DeviceProfile deviceProfile = JacksonUtil.fromString(dfum.getEntity(), DeviceProfile.class, true);
                     Assert.assertNotNull(deviceProfile);
                     return THERMOSTAT_DEVICE_PROFILE_NAME.equals(deviceProfile.getName());
                 }).findAny();
@@ -412,7 +412,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertTrue(ruleChainMetadataUpdateOpt.isPresent());
         RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg = ruleChainMetadataUpdateOpt.get();
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, ruleChainMetadataUpdateMsg.getMsgType());
-        RuleChainMetaData ruleChainMetaData = JacksonUtil.fromStringIgnoreUnknownProperties(ruleChainMetadataUpdateMsg.getEntity(), RuleChainMetaData.class);
+        RuleChainMetaData ruleChainMetaData = JacksonUtil.fromString(ruleChainMetadataUpdateMsg.getEntity(), RuleChainMetaData.class, true);
         Assert.assertNotNull(ruleChainMetaData);
         Assert.assertEquals(expectedRuleChainUUID, ruleChainMetaData.getRuleChainId().getId());
     }
@@ -422,7 +422,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(expectedMsgCnt, adminSettingsUpdateMsgs.size());
 
         for (AdminSettingsUpdateMsg adminSettingsUpdateMsg : adminSettingsUpdateMsgs) {
-            AdminSettings adminSettings = JacksonUtil.fromStringIgnoreUnknownProperties(adminSettingsUpdateMsg.getEntity(), AdminSettings.class);
+            AdminSettings adminSettings = JacksonUtil.fromString(adminSettingsUpdateMsg.getEntity(), AdminSettings.class, true);
             Assert.assertNotNull(adminSettings);
             if (adminSettings.getKey().equals("general")) {
                 validateGeneralAdminSettings(adminSettings);
@@ -531,14 +531,14 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(2, whiteLabelingProto.size());
         Optional<WhiteLabelingProto> loginWhiteLabeling =
                 whiteLabelingProto.stream().filter(login -> {
-                    WhiteLabeling whiteLabeling = JacksonUtil.fromStringIgnoreUnknownProperties(login.getEntity(), WhiteLabeling.class);
+                    WhiteLabeling whiteLabeling = JacksonUtil.fromString(login.getEntity(), WhiteLabeling.class, true);
                     Assert.assertNotNull(whiteLabeling);
                     return WhiteLabelingType.LOGIN.equals(whiteLabeling.getType());
                 }).findAny();
         Assert.assertTrue(loginWhiteLabeling.isPresent());
         Optional<WhiteLabelingProto> generalWhiteLabeling =
                 whiteLabelingProto.stream().filter(general -> {
-                    WhiteLabeling whiteLabeling = JacksonUtil.fromStringIgnoreUnknownProperties(general.getEntity(), WhiteLabeling.class);
+                    WhiteLabeling whiteLabeling = JacksonUtil.fromString(general.getEntity(), WhiteLabeling.class, true);
                     Assert.assertNotNull(whiteLabeling);
                     return WhiteLabelingType.LOGIN.equals(whiteLabeling.getType());
                 }).findAny();
@@ -666,7 +666,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     protected void verifyEntityGroupUpdateMsg(AbstractMessage latestMessage, EntityGroup entityGroup) {
         Assert.assertTrue(latestMessage instanceof EntityGroupUpdateMsg);
         EntityGroupUpdateMsg entityGroupUpdateMsg = (EntityGroupUpdateMsg) latestMessage;
-        EntityGroup entityGroupMsg = JacksonUtil.fromStringIgnoreUnknownProperties(entityGroupUpdateMsg.getEntity(), EntityGroup.class);
+        EntityGroup entityGroupMsg = JacksonUtil.fromString(entityGroupUpdateMsg.getEntity(), EntityGroup.class, true);
         Assert.assertNotNull(entityGroupMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, entityGroupUpdateMsg.getMsgType());
         Assert.assertEquals(entityGroup, entityGroupMsg);
@@ -698,7 +698,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Optional<CustomerUpdateMsg> customerUpdateMsgs = edgeImitator.findMessageByType(CustomerUpdateMsg.class);
         Assert.assertTrue(customerUpdateMsgs.isPresent());
         CustomerUpdateMsg customerAUpdateMsg = customerUpdateMsgs.get();
-        Customer customerMsg = JacksonUtil.fromStringIgnoreUnknownProperties(customerAUpdateMsg.getEntity(), Customer.class);
+        Customer customerMsg = JacksonUtil.fromString(customerAUpdateMsg.getEntity(), Customer.class, true);
         Assert.assertNotNull(customerMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, customerAUpdateMsg.getMsgType());
         Assert.assertEquals(customer.getUuidId().getMostSignificantBits(), customerAUpdateMsg.getIdMSB());
@@ -761,7 +761,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(previousCustomer.getUuidId().getLeastSignificantBits(), previousCustomerDeleteMsg.getIdLSB());
 
         CustomerUpdateMsg newCustomerUpdateMsg =  customerMsgs.get(1);
-        Customer customerMsg = JacksonUtil.fromStringIgnoreUnknownProperties(newCustomerUpdateMsg.getEntity(), Customer.class);
+        Customer customerMsg = JacksonUtil.fromString(newCustomerUpdateMsg.getEntity(), Customer.class, true);
         Assert.assertNotNull(customerMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, newCustomerUpdateMsg.getMsgType());
         Assert.assertEquals(newCustomer.getUuidId().getMostSignificantBits(), newCustomerUpdateMsg.getIdMSB());
@@ -800,7 +800,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         List<CustomerUpdateMsg> customerUpdateMsgs = edgeImitator.findAllMessagesByType(CustomerUpdateMsg.class);
         Assert.assertEquals(2, customerUpdateMsgs.size());
         CustomerUpdateMsg customerAUpdateMsg = customerUpdateMsgs.get(0);
-        Customer customerMsg = JacksonUtil.fromStringIgnoreUnknownProperties(customerAUpdateMsg.getEntity(), Customer.class);
+        Customer customerMsg = JacksonUtil.fromString(customerAUpdateMsg.getEntity(), Customer.class, true);
         Assert.assertNotNull(customerMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, customerAUpdateMsg.getMsgType());
         Assert.assertEquals(parentCustomer.getUuidId().getMostSignificantBits(), customerAUpdateMsg.getIdMSB());
@@ -808,7 +808,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(parentCustomer.getTitle(), customerMsg.getTitle());
         testAutoGeneratedCodeByProtobuf(customerAUpdateMsg);
         CustomerUpdateMsg subCustomerAUpdateMsg = customerUpdateMsgs.get(1);
-        customerMsg = JacksonUtil.fromStringIgnoreUnknownProperties(subCustomerAUpdateMsg.getEntity(), Customer.class);
+        customerMsg = JacksonUtil.fromString(subCustomerAUpdateMsg.getEntity(), Customer.class, true);
         Assert.assertNotNull(customerMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, subCustomerAUpdateMsg.getMsgType());
         Assert.assertEquals(customer.getUuidId().getMostSignificantBits(), subCustomerAUpdateMsg.getIdMSB());
@@ -874,7 +874,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof EntityGroupUpdateMsg);
         EntityGroupUpdateMsg entityGroupUpdateMsg = (EntityGroupUpdateMsg) latestMessage;
-        EntityGroup entityGroupMsg = JacksonUtil.fromStringIgnoreUnknownProperties(entityGroupUpdateMsg.getEntity(), EntityGroup.class);
+        EntityGroup entityGroupMsg = JacksonUtil.fromString(entityGroupUpdateMsg.getEntity(), EntityGroup.class, true);
         Assert.assertNotNull(entityGroupMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, entityGroupUpdateMsg.getMsgType());
         Assert.assertEquals(savedEntityGroup, entityGroupMsg);

@@ -74,5 +74,4 @@ public class WhiteLabeling implements Serializable {
     public void setSettings(JsonNode settings) {
         setJson(settings, json -> this.settings = json, bytes -> this.settingsBytes = bytes);
     }
-
 }

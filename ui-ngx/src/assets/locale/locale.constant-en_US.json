@@ -1388,7 +1388,8 @@
         "assign-dashboard-to-edge": "Assign Dashboard(s) To Edge",
         "assign-dashboard-to-edge-text": "Please select the dashboards to assign to the edge",
         "non-existent-dashboard-state-error": "Dashboard state with id \"{{ stateId }}\" is not found",
-        "edit-mode": "Edit mode"
+        "edit-mode": "Edit mode",
+        "duplicate-state-action": "Duplicate state"
     },
     "datakey": {
         "settings": "Settings",
@@ -2287,7 +2288,8 @@
         "missing-attributes-text": "Integration(s), assigned to edge, have attribute placeholders that are not available on this edge. <br><br> List of missing edge attributes(s): <br> {{missingEdgeAttributes}}",
         "missing-all-related-attributes-title": "Edge(s) have missing attribute(s)",
         "missing-all-related-attributes-text": "Edge(s), related to integration, don't have attributes that are present inside integration configuration as attribute placeholders. <br><br> List of missing edge attributes(s): <br> {{missingEdgeAttributes}}",
-        "quick-overview-widget-header": "{{edgeName}} Quick Overview"
+        "quick-overview-widget-header": "{{edgeName}} Quick Overview",
+        "upgrade-instructions": "Upgrade Instructions"
     },
     "edge-event": {
         "type-dashboard": "Dashboard",
@@ -3179,7 +3181,7 @@
         "connectors-table-key": "Key",
         "connectors-table-class": "Class",
         "rpc-command-send": "Send",
-        "rpc-command-result": "Result",
+        "rpc-command-result": "Response",
         "rpc-command-edit-params": "Edit parameters",
         "gateway-configuration": "General Configuration",
         "docker-label": "In order to run ThingsBoard IoT gateway in docker with credentials for this device you can use the following commands.",
@@ -3703,6 +3705,11 @@
         "username-required": "Username is required.",
         "password": "Password",
         "password-required": "Password is required.",
+        "destination-shared-secret": "Destination shared secret",
+        "destination-shared-secret-required": "Destination shared secret required",
+        "customer-id": "Customer id",
+        "grip-tenant-id": "GRIP tenant id",
+        "api-id": "API id",
         "azure-ca-cert": "CA certificate file",
         "ca-cert": "CA certificate file",
         "private-key": "Private key file",
@@ -3813,6 +3820,8 @@
         "type-chirpstack-description": "LoRaWAN network configuration server.",
         "type-particle": "Particle",
         "type-particle-description": "IoT enablement platform-as-a-service.",
+        "type-kpn": "KPN Things",
+        "type-kpn-description": "IoT platform provided by KPN, offering robust connectivity and data management solutions for IoT devices.",
         "type-azure-event-hub": "Azure Event Hub",
         "type-azure-event-hub-description": "Big data streaming platform and event ingestion service.",
         "type-azure-iot-hub": "Azure IoT Hub",
@@ -4314,7 +4323,6 @@
         "recipient-type": {
             "affected-tenant-administrators": "Affected tenant administrators",
             "affected-user": "Affected user",
-            "affected-user-hint": "Affected user hint",
             "all-users": "All users",
             "customer-users": "Customer users",
             "system-administrators": "System administrators",
@@ -4323,8 +4331,7 @@
             "user-group-list": "User group list",
             "user-list": "User list",
             "user-role": "User role",
-            "users-entity-owner": "Users of the entity owner",
-            "users-entity-owner-hint": "Users of the entity owner hint"
+            "users-entity-owner": "Users of the entity owner"
         },
         "recipients": "Recipients",
         "notification-recipients": "Notifications / Recipients",
@@ -5876,6 +5883,7 @@
         "gram-per-cubic-centimeter": "Gram per cubic centimeter",
         "kilogram-per-square-meter": "Kilogram per square metre",
         "milligram-per-milliliter": "Milligram per milliliter",
+        "milligram-per-cubic-meter": "Milligram per cubic meter",
         "pound-per-cubic-foot": "Pound per cubic foot",
         "ounces-per-cubic-inch": "Ounces per cubic inch",
         "tons-per-cubic-yard": "Tons per cubic yard",
@@ -7813,8 +7821,7 @@
             "hidden-cell-button-display-mode": "Hidden cell button actions display mode",
             "show-empty-space-hidden-action": "Show empty space instead of hidden cell button action",
             "dont-reserve-space-hidden-action": "Don't reserve space for hidden action buttons",
-            "display-timestamp": "Display timestamp column",
-            "display-milliseconds": "Display timestamp milliseconds",
+            "display-timestamp": "Timestamp",
             "display-pagination": "Display pagination",
             "default-page-size": "Default page size",
             "use-entity-label-tab-name": "Use entity label in tab name",
@@ -8223,9 +8230,9 @@
             "ka_GE": "ქართული",
             "ko_KR": "한국어",
             "lv_LV": "Latviešu",
+            "nl_BE": "Koninkrijk België",
             "pt_BR": "Português do Brasil",
             "ro_RO": "Română",
-            "ru_RU": "Русский",
             "sl_SI": "Slovenščina",
             "tr_TR": "Türkçe",
             "uk_UA": "Українська",

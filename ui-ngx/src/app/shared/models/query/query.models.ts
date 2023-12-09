@@ -51,6 +51,7 @@ import { AlarmInfo, AlarmSearchStatus, AlarmSeverity } from '../alarm.models';
 import { Filter } from '@material-ui/icons';
 import { DatePipe } from '@angular/common';
 import { UserId } from '../id/user-id';
+import { Direction } from '@shared/models/page/sort-order';
 
 export enum EntityKeyType {
   ATTRIBUTE = 'ATTRIBUTE',
@@ -712,11 +713,6 @@ export interface Filters {
 
 export interface EntityFilter extends EntityFilters {
   type?: AliasFilterType;
-}
-
-export enum Direction {
-  ASC = 'ASC',
-  DESC = 'DESC'
 }
 
 export interface EntityDataSortOrder {

@@ -63,7 +63,8 @@ public enum IntegrationType {
     LORIOT(false),
     COAP(false),
     TUYA(true),
-    AZURE_SERVICE_BUS(true);
+    AZURE_SERVICE_BUS(true),
+    KPN(false);
 
     IntegrationType(boolean singleton) {
         this.singleton = singleton;
