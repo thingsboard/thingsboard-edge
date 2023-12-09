@@ -152,6 +152,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultPlatformIntegrationService implements PlatformIntegrationService {
 
     private static final ReentrantLock entityCreationLock = new ReentrantLock();
+    private static final String ACTIVITY_MANAGER_NAME = "integration-activity-manager";
 
     @Autowired
     private TbClusterService clusterService;
@@ -230,7 +231,6 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     @Autowired
     private ActivityManager<IntegrationActivityKey, ActivityState> activityManager;
-    private static final String ACTIVITY_MANAGER_NAME = "integration-activity-manager";
 
     @Value("${integrations.activity.reporting_period:3000}")
     private long reportingPeriodMillis;
@@ -271,9 +271,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     }
 
     private final ActivityStateReporter<IntegrationActivityKey, ActivityState> activityReporter = (key, timeToReport, state, reportCallback) -> {
-        log.debug("[{}] Reporting activity state for key: [{}]. Time to report: [{}].", ACTIVITY_MANAGER_NAME, key, timeToReport);
         var tenantId = key.getTenantId();
         var deviceId = key.getDeviceId();
+        log.debug("[{}][{}] Reporting activity state for key: [{}]. Time to report: [{}].", tenantId.getId(), ACTIVITY_MANAGER_NAME, deviceId.getId(), timeToReport);
         TransportProtos.ToCoreMsg toCoreMsg = buildActivityMsg(tenantId, deviceId, timeToReport);
         TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenantId, deviceId);
         tbCoreMsgProducer.send(tpi, new TbProtoQueueMsg<>(deviceId.getId(), toCoreMsg), new TbQueueCallback() {
