@@ -55,7 +55,7 @@ import java.util.concurrent.TimeUnit;
 public class AssetClientTest extends AbstractContainerTest {
 
     @Test
-    public void testAssets() throws Exception {
+    public void testAssets() {
         // create asset #1, add to group #1 and assign group #1 to edge
         EntityGroup savedAssetEntityGroup1 = createEntityGroup(EntityType.ASSET);
         Asset savedAsset1 = saveAssetAndAssignEntityGroupToEdge("Building", savedAssetEntityGroup1);

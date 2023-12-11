@@ -94,10 +94,10 @@ public class WhiteLabelingCloudProcessor extends BaseEdgeProcessor {
         if (whiteLabeling == null) {
             throw new RuntimeException("[{" + tenantId + "}] whiteLabelingProto {" + whiteLabelingProto + " } cannot be converted to white labeling");
         }
-        boolean isSysAdmin = EntityId.NULL_UUID.equals(whiteLabeling.getCustomerId().getId());
+        boolean isSysAdmin = TenantId.SYS_TENANT_ID.equals(whiteLabeling.getTenantId());
         boolean isLogin = WhiteLabelingType.LOGIN.equals(whiteLabeling.getType());
         boolean isGeneral = WhiteLabelingType.GENERAL.equals(whiteLabeling.getType());
-        if (whiteLabeling.getCustomerId().isNullUid()) {
+        if (whiteLabeling.getCustomerId() == null || whiteLabeling.getCustomerId().isNullUid()) {
             if (isLogin) {
                 if (isSysAdmin) {
                     whiteLabelingService.saveSystemLoginWhiteLabelingParams(constructLoginWlParams(whiteLabeling.getSettings()));
@@ -123,9 +123,9 @@ public class WhiteLabelingCloudProcessor extends BaseEdgeProcessor {
                 if (customerId != null && !customerId.isNullUid()) {
                     loginWhiteLabelingParams.setDomainName(WhiteLabelingService.EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME);
                 }
-                whiteLabelingService.saveCustomerLoginWhiteLabelingParams(tenantId, new CustomerId(whiteLabeling.getCustomerId().getId()), loginWhiteLabelingParams);
+                whiteLabelingService.saveCustomerLoginWhiteLabelingParams(tenantId, whiteLabeling.getCustomerId(), loginWhiteLabelingParams);
             } else if (isGeneral) {
-                whiteLabelingService.saveCustomerWhiteLabelingParams(tenantId, new CustomerId(whiteLabeling.getCustomerId().getId()), constructWlParams(whiteLabeling.getSettings(), false));
+                whiteLabelingService.saveCustomerWhiteLabelingParams(tenantId, whiteLabeling.getCustomerId(), constructWlParams(whiteLabeling.getSettings(), false));
             }
         }
         return Futures.immediateFuture(null);

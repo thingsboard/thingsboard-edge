@@ -592,6 +592,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
             if (whiteLabeling == null) {
                 whiteLabeling = new WhiteLabeling();
             }
+            whiteLabeling.setTenantId(tenantId);
             whiteLabeling.setCustomerId(customerId);
             whiteLabeling.setType(WhiteLabelingType.LOGIN);
             if (whiteLabeling.getSettings() == null) {
@@ -606,8 +607,12 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
 
     private void checkAndRemoveIfDomainAlreadyUsedByOtherEntity(TenantId tenantId, CustomerId customerId) {
         WhiteLabeling whiteLabeling = whiteLabelingDao.findByDomain(tenantId, EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME);
-        if (whiteLabeling != null && whiteLabeling.getCustomerId() != null && !whiteLabeling.getCustomerId().equals(customerId)) {
-            deleteDomainWhiteLabelingByEntityId(tenantId, whiteLabeling.getCustomerId());
+        if (whiteLabeling != null) {
+            if (whiteLabeling.getCustomerId() != null && !whiteLabeling.getCustomerId().equals(customerId)) {
+                deleteDomainWhiteLabelingByEntityId(tenantId, whiteLabeling.getCustomerId());
+            } else {
+                deleteDomainWhiteLabelingByEntityId(tenantId, null);
+            }
         }
     }
 }

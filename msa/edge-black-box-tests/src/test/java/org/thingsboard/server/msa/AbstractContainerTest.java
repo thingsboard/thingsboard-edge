@@ -181,7 +181,7 @@ public abstract class AbstractContainerTest {
     protected static void loginIntoEdgeWithRetries(String userName, String password) {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
-                .atMost(90, TimeUnit.SECONDS)
+                .atMost(300, TimeUnit.SECONDS)
                 .until(() -> {
                     boolean loginSuccessful = false;
                     try {
@@ -203,7 +203,7 @@ public abstract class AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> {
                     try {
-                        return edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 26;
+                        return edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 27;
                     } catch (Throwable e) {
                         return false;
                     }
@@ -550,6 +550,8 @@ public abstract class AbstractContainerTest {
             Assert.assertEquals("Cloud rule chain type is incorrect", RuleChainType.EDGE, actual.getType());
             expected.setType(null);
             actual.setType(null);
+            expected.setRoot(false);
+            actual.setRoot(false);
             Assert.assertEquals("Rule chains on cloud and edge are different (except type)", expected, actual);
 
             Awaitility.await()

@@ -35,6 +35,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
@@ -73,6 +75,7 @@ import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.TenantProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.TenantUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetTypeUpdateMsg;
@@ -260,7 +263,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                 }
             }
             if (downlinkMsg.getAssetProfileUpdateMsgCount() > 0) {
-                for (AssetProfileUpdateMsg assetProfileUpdateMsg  : downlinkMsg.getAssetProfileUpdateMsgList()) {
+                for (AssetProfileUpdateMsg assetProfileUpdateMsg : downlinkMsg.getAssetProfileUpdateMsgList()) {
                     result.add(assetProfileProcessor.processAssetProfileMsgFromCloud(tenantId, assetProfileUpdateMsg));
                 }
             }
@@ -299,7 +302,12 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                     sequenceDependencyLock.lock();
                     try {
                         result.add(customerProcessor.processCustomerMsgFromCloud(tenantId, customerUpdateMsg, queueStartTs));
-                        if (!CustomerServiceImpl.PUBLIC_CUSTOMER_TITLE.equals(customerUpdateMsg.getTitle())) {
+                        String title = null;
+                        if (!UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE.equals(customerUpdateMsg.getMsgType())) {
+                            Customer customer = JacksonUtil.fromString(customerUpdateMsg.getEntity(), Customer.class, true);
+                            title = customer != null ? customer.getTitle() : null;
+                        }
+                        if (!CustomerServiceImpl.PUBLIC_CUSTOMER_TITLE.equals(title)) {
                             updateCustomerId(tenantId, customerUpdateMsg);
                         }
                     } finally {

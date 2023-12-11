@@ -131,7 +131,7 @@ public class ThingsboardInstallService {
                     log.info("Migrating ThingsBoard latest timeseries data from cassandra to SQL database ...");
                     latestMigrateService.migrate();
                 } else if (upgradeFromVersion.equals("3.6.2-images")) {
-                    installScripts.updateImages();
+//                    installScripts.updateImages();
                 } else {
                     switch (upgradeFromVersion) {
                         /* merge comment
@@ -296,7 +296,7 @@ public class ThingsboardInstallService {
                             databaseEntitiesUpgradeService.upgradeDatabase("3.6.1");
                             installScripts.loadSystemImages();
                             if (!getEnv("SKIP_IMAGES_MIGRATION", false)) {
-                                installScripts.updateImages();
+//                                installScripts.updateImages();
                             } else {
                                 log.info("Skipping images migration. Run the upgrade with fromVersion as '3.6.2-images' to migrate");
                             }
