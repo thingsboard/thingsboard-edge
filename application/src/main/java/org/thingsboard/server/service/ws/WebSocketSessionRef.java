@@ -31,8 +31,7 @@
 package org.thingsboard.server.service.ws;
 
 import lombok.Builder;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.Data;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.net.InetSocketAddress;
@@ -42,15 +41,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Created by ashvayka on 27.03.18.
  */
-@RequiredArgsConstructor
 @Builder
-@Getter
+@Data
 public class WebSocketSessionRef {
 
     private static final long serialVersionUID = 1L;
 
     private final String sessionId;
-    private final SecurityUser securityCtx;
+    private SecurityUser securityCtx;
     private final InetSocketAddress localAddress;
     private final InetSocketAddress remoteAddress;
     private final WebSocketSessionType sessionType;

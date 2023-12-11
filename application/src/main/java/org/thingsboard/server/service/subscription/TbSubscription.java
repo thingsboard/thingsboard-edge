@@ -36,6 +36,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
 @Data
@@ -49,6 +50,8 @@ public abstract class TbSubscription<T> {
     private final EntityId entityId;
     private final TbSubscriptionType type;
     private final BiConsumer<TbSubscription<T>, T> updateProcessor;
+
+    protected final AtomicInteger sequence = new AtomicInteger();
 
     @Override
     public boolean equals(Object o) {
