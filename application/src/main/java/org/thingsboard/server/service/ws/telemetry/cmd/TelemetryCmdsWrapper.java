@@ -28,12 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.ws.notification.cmd;
+package org.thingsboard.server.service.ws.telemetry.cmd;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.thingsboard.server.service.ws.WsCommandsWrapper;
+import org.thingsboard.server.service.ws.telemetry.cmd.v1.AttributesSubscriptionCmd;
+import org.thingsboard.server.service.ws.telemetry.cmd.v1.GetHistoryCmd;
+import org.thingsboard.server.service.ws.telemetry.cmd.v1.TimeseriesSubscriptionCmd;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.AlarmCountCmd;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.AlarmCountUnsubscribeCmd;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.AlarmDataCmd;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.AlarmDataUnsubscribeCmd;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityCountCmd;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityCountUnsubscribeCmd;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityDataCmd;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityDataUnsubscribeCmd;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -43,24 +56,40 @@ import java.util.stream.Stream;
  * */
 @Data
 @Deprecated
-public class NotificationCmdsWrapper {
+public class TelemetryCmdsWrapper {
 
-    private NotificationsCountSubCmd unreadCountSubCmd;
+    private List<AttributesSubscriptionCmd> attrSubCmds;
 
-    private NotificationsSubCmd unreadSubCmd;
+    private List<TimeseriesSubscriptionCmd> tsSubCmds;
 
-    private MarkNotificationsAsReadCmd markAsReadCmd;
+    private List<GetHistoryCmd> historyCmds;
 
-    private MarkAllNotificationsAsReadCmd markAllAsReadCmd;
+    private List<EntityDataCmd> entityDataCmds;
 
-    private NotificationsUnsubCmd unsubCmd;
+    private List<EntityDataUnsubscribeCmd> entityDataUnsubscribeCmds;
+
+    private List<AlarmDataCmd> alarmDataCmds;
+
+    private List<AlarmDataUnsubscribeCmd> alarmDataUnsubscribeCmds;
+
+    private List<EntityCountCmd> entityCountCmds;
+
+    private List<EntityCountUnsubscribeCmd> entityCountUnsubscribeCmds;
+
+    private List<AlarmCountCmd> alarmCountCmds;
+
+    private List<AlarmCountUnsubscribeCmd> alarmCountUnsubscribeCmds;
 
     @JsonIgnore
     public WsCommandsWrapper toCommonCmdsWrapper() {
         return new WsCommandsWrapper(null, Stream.of(
-                        unreadCountSubCmd, unreadSubCmd, markAsReadCmd, markAllAsReadCmd, unsubCmd
+                        attrSubCmds, tsSubCmds, historyCmds, entityDataCmds,
+                        entityDataUnsubscribeCmds, alarmDataCmds, alarmDataUnsubscribeCmds,
+                        entityCountCmds, entityCountUnsubscribeCmds,
+                        alarmCountCmds, alarmCountUnsubscribeCmds
                 )
                 .filter(Objects::nonNull)
+                .flatMap(Collection::stream)
                 .collect(Collectors.toList()));
     }
 

@@ -28,33 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.ws.telemetry.cmd.v1;
+package org.thingsboard.server.service.ws;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.thingsboard.server.service.ws.WsCmdType;
 
-/**
- * @author Andrew Shvayka
- */
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
-public class GetHistoryCmd implements TelemetryPluginCmd {
-
+public class AuthCmd implements WsCmd {
     private int cmdId;
-    private String entityType;
-    private String entityId;
-    private String keys;
-    private long startTs;
-    private long endTs;
-    private long interval;
-    private int limit;
-    private String agg;
+    private String token;
 
     @Override
     public WsCmdType getType() {
-        return WsCmdType.TIMESERIES_HISTORY;
+        return WsCmdType.AUTH;
     }
 }
