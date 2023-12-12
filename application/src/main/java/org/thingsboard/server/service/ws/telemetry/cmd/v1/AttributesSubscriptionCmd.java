@@ -31,7 +31,7 @@
 package org.thingsboard.server.service.ws.telemetry.cmd.v1;
 
 import lombok.NoArgsConstructor;
-import org.thingsboard.server.service.ws.telemetry.TelemetryFeature;
+import org.thingsboard.server.service.ws.WsCmdType;
 
 /**
  * @author Andrew Shvayka
@@ -40,8 +40,8 @@ import org.thingsboard.server.service.ws.telemetry.TelemetryFeature;
 public class AttributesSubscriptionCmd extends SubscriptionCmd {
 
     @Override
-    public TelemetryFeature getType() {
-        return TelemetryFeature.ATTRIBUTES;
+    public WsCmdType getType() {
+        return WsCmdType.ATTRIBUTES;
     }
 
 }

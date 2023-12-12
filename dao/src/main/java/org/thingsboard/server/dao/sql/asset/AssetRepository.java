@@ -128,9 +128,6 @@ public interface AssetRepository extends JpaRepository<AssetEntity, UUID>, Expor
                                                          @Param("textSearch") String textSearch,
                                                          Pageable pageable);
 
-    @Query("SELECT DISTINCT a.type FROM AssetEntity a WHERE a.tenantId = :tenantId")
-    List<String> findTenantAssetTypes(@Param("tenantId") UUID tenantId);
-
     Long countByAssetProfileId(UUID assetProfileId);
 
     Long countByTenantIdAndTypeIsNot(UUID tenantId, String type);

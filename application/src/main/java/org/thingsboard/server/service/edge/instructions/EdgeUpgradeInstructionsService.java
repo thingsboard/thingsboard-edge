@@ -28,8 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.ws.notification.cmd;
+package org.thingsboard.server.service.edge.instructions;
 
-public interface WsCmd {
-    int getCmdId();
+import org.thingsboard.server.common.data.EdgeUpgradeInfo;
+import org.thingsboard.server.common.data.edge.EdgeInstructions;
+
+import java.util.Map;
+
+public interface EdgeUpgradeInstructionsService {
+
+    EdgeInstructions getUpgradeInstructions(String edgeVersion, String upgradeMethod);
+
+    void updateInstructionMap(Map<String, EdgeUpgradeInfo> upgradeVersions);
+
+    void setAppVersion(String version);
 }

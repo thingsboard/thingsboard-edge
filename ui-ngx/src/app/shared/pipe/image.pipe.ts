@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Pipe, PipeTransform } from '@angular/core';
+import { NgZone, Pipe, PipeTransform } from '@angular/core';
 import { ImageService } from '@core/http/image.service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { AsyncSubject, BehaviorSubject, Observable } from 'rxjs';
@@ -50,7 +50,8 @@ export interface UrlHolder {
 export class ImagePipe implements PipeTransform {
 
   constructor(private imageService: ImageService,
-              private sanitizer: DomSanitizer) { }
+              private sanitizer: DomSanitizer,
+              private zone: NgZone) { }
 
   transform(urlData: string | UrlHolder, args?: any): Observable<SafeUrl | string> {
     const ignoreLoadingImage = !!args?.ignoreLoadingImage;
@@ -73,14 +74,18 @@ export class ImagePipe implements PipeTransform {
       }
       imageObservable.subscribe((imageUrl) => {
         Promise.resolve().then(() => {
-          image$.next(imageUrl);
-          image$.complete();
+          this.zone.run(() => {
+            image$.next(imageUrl);
+            image$.complete();
+          });
         });
       });
     } else {
       Promise.resolve().then(() => {
-        image$.next(asString ? emptyUrl : this.sanitizer.bypassSecurityTrustUrl(emptyUrl));
-        image$.complete();
+        this.zone.run(() => {
+          image$.next(asString ? emptyUrl : this.sanitizer.bypassSecurityTrustUrl(emptyUrl));
+          image$.complete();
+        });
       });
     }
     return image$.asObservable();
