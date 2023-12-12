@@ -596,7 +596,7 @@ public class BaseImageService extends BaseResourceService implements ImageServic
     public void inlineImages(Dashboard dashboard) {
         log.trace("Executing inlineImage [{}] [Dashboard] [{}]", dashboard.getTenantId(), dashboard.getId());
         inlineImage(dashboard);
-        inlineIntoJson(dashboard.getTenantId(), dashboard.getConfiguration(), true);
+        inlineIntoJson(dashboard.getTenantId(), dashboard.getConfiguration());
     }
 
     @Override
@@ -640,6 +640,10 @@ public class BaseImageService extends BaseResourceService implements ImageServic
     public void inlineImagesForEdge(TenantId tenantId, JsonNode settings) {
         log.trace("Executing inlineImagesForEdge [{}] [WhiteLabeling] [{}]", tenantId, settings);
         inlineIntoJson(tenantId, settings, false);
+    }
+
+    private void inlineIntoJson(TenantId tenantId, JsonNode root) {
+        inlineIntoJson(tenantId, root, true);
     }
 
     private void inlineIntoJson(TenantId tenantId, JsonNode root, boolean addTbImagePrefix) {
