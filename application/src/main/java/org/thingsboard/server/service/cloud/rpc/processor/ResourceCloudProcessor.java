@@ -133,14 +133,6 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
                             .build();
                 }
                 break;
-            case DELETED:
-                ResourceUpdateMsg resourceUpdateMsg = ((ResourceMsgConstructor)
-                        resourceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructResourceDeleteMsg(tbResourceId);
-                msg = UplinkMsg.newBuilder()
-                        .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addResourceUpdateMsg(resourceUpdateMsg)
-                        .build();
-                break;
         }
         return msg;
     }

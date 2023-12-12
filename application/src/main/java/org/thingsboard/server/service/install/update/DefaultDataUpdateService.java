@@ -101,8 +101,6 @@ import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileQueueConfiguration;
-import org.thingsboard.server.common.data.widget.DeprecatedFilter;
-import org.thingsboard.server.common.data.widget.WidgetTypeInfo;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
@@ -381,33 +379,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
-        }
-    }
-
-    @Override
-    public void deleteAllWidgetBundlesAndTypes() {
-        PageData<Tenant> tenants = tenantService.findTenants(new PageLink(Integer.MAX_VALUE));
-        for (Tenant tenant : tenants.getData()) {
-            deleteWidgetBundlesAndTypes(tenant.getId());
-        }
-        deleteWidgetBundlesAndTypes(TenantId.SYS_TENANT_ID);
-    }
-
-    private void deleteWidgetBundlesAndTypes(TenantId tenantId) {
-        List<WidgetsBundle> systemWidgetsBundles = widgetsBundleService.findSystemWidgetsBundles(tenantId);
-        for (WidgetsBundle systemWidgetsBundle : systemWidgetsBundles) {
-            if (systemWidgetsBundle != null) {
-                PageData<WidgetTypeInfo> widgetTypes;
-                var pageLink = new PageLink(1024);
-                do {
-                    widgetTypes = widgetTypeService.findWidgetTypesInfosByWidgetsBundleId(tenantId, systemWidgetsBundle.getId(), false, DeprecatedFilter.ALL, null, pageLink);
-                    for (var widgetType : widgetTypes.getData()) {
-                        widgetTypeService.deleteWidgetType(tenantId, widgetType.getId());
-                    }
-                    pageLink.nextPageLink();
-                } while (widgetTypes.hasNext());
-                widgetsBundleService.deleteWidgetsBundle(tenantId, systemWidgetsBundle.getId());
-            }
         }
     }
 
