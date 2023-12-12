@@ -295,13 +295,10 @@ public class ThingsboardInstallService {
                     entityDatabaseSchemaService.createOrUpdateViewsAndFunctions();
                     entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
 
-                    // edge specific
-                    dataUpdateService.deleteAllWidgetBundlesAndTypes();
-
                     // @voba - system widgets update is not required - uploaded from cloud
                     // log.info("Updating system data...");
                     // dataUpdateService.upgradeRuleNodes();
-                    // systemDataLoaderService.loadSystemWidgets();
+                    systemDataLoaderService.loadSystemWidgets();
                     // installScripts.loadSystemLwm2mResources();
                 }
 
@@ -338,7 +335,7 @@ public class ThingsboardInstallService {
                 systemDataLoaderService.createDefaultTenantProfiles();
                 systemDataLoaderService.createAdminSettings();
                 systemDataLoaderService.createRandomJwtSettings();
-                // systemDataLoaderService.loadSystemWidgets();
+                systemDataLoaderService.loadSystemWidgets();
                 // systemDataLoaderService.createOAuth2Templates();
                 // systemDataLoaderService.createQueues();
                 // systemDataLoaderService.createDefaultNotificationConfigs();
@@ -346,7 +343,7 @@ public class ThingsboardInstallService {
                 // systemDataLoaderService.loadSystemPlugins();
                 // systemDataLoaderService.loadSystemRules();
                 // installScripts.loadSystemLwm2mResources();
-                // installScripts.loadSystemImages();
+                installScripts.loadSystemImages();
 
                 if (loadDemo) {
                     // log.info("Loading demo data...");
