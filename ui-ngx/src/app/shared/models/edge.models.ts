@@ -286,8 +286,8 @@ export interface EdgeEvent extends BaseData<EventId> {
   body: string;
 }
 
-export interface EdgeInstallInstructions {
-  installInstructions: string;
+export interface EdgeInstructions {
+  instructions: string;
 }
 
 export enum EdgeInstructionsMethod {
@@ -295,3 +295,5 @@ export enum EdgeInstructionsMethod {
   centos,
   docker
 }
+
+export const edgeVersionAttributeKey = 'edgeVersion';
