@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.resource;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.HasImage;
 import org.thingsboard.server.common.data.TbImageDeleteResult;
@@ -87,5 +88,5 @@ public interface ImageService {
 
     void inlineImagesForEdge(WidgetTypeDetails widgetTypeDetails);
 
-    void inlineImagesForEdge(WhiteLabeling whiteLabeling);
+    void inlineImagesForEdge(TenantId tenantId, JsonNode settings);
 }

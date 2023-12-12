@@ -624,9 +624,9 @@ public class BaseImageService extends BaseResourceService implements ImageServic
     }
 
     @Override
-    public void inlineImagesForEdge(WhiteLabeling whiteLabeling) {
-        log.trace("Executing inlineImagesForEdge [{}] [WhiteLabeling] [{}]", whiteLabeling.getTenantId(), whiteLabeling.getType());
-        inlineIntoJson(whiteLabeling.getTenantId(), whiteLabeling.getSettings(), false);
+    public void inlineImagesForEdge(TenantId tenantId, JsonNode settings) {
+        log.trace("Executing inlineImagesForEdge [{}] [WhiteLabeling] [{}]", tenantId, settings);
+        inlineIntoJson(tenantId, settings, false);
     }
 
     private void inlineIntoJson(TenantId tenantId, JsonNode root, boolean addTbImagePrefix) {
