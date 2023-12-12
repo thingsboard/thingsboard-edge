@@ -28,22 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.fetch;
+package org.thingsboard.server.service.ws;
 
-import org.thingsboard.server.common.data.TbResource;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.resource.ResourceService;
+public enum WsCmdType {
+    AUTH,
 
-public class SystemResourcesEdgeEventFetcher extends BaseResourceEdgeEventFetcher {
+    ATTRIBUTES,
+    TIMESERIES,
+    TIMESERIES_HISTORY,
+    ENTITY_DATA,
+    ENTITY_COUNT,
+    ALARM_DATA,
+    ALARM_COUNT,
 
-    public SystemResourcesEdgeEventFetcher(ResourceService resourceService) {
-        super(resourceService);
-    }
+    NOTIFICATIONS,
+    NOTIFICATIONS_COUNT,
+    MARK_NOTIFICATIONS_AS_READ,
+    MARK_ALL_NOTIFICATIONS_AS_READ,
 
-    @Override
-    protected PageData<TbResource> findTenantResources(TenantId tenantId, PageLink pageLink) {
-        return resourceService.findAllTenantResources(TenantId.SYS_TENANT_ID, pageLink);
-    }
+    ALARM_DATA_UNSUBSCRIBE,
+    ALARM_COUNT_UNSUBSCRIBE,
+    ENTITY_DATA_UNSUBSCRIBE,
+    ENTITY_COUNT_UNSUBSCRIBE,
+    NOTIFICATIONS_UNSUBSCRIBE
 }

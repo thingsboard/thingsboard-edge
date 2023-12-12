@@ -56,6 +56,7 @@ public class NotificationsCountSubscription extends TbSubscription<Notifications
         return UnreadNotificationsCountUpdate.builder()
                 .cmdId(getSubscriptionId())
                 .totalUnreadCount(unreadCounter.get())
+                .sequenceNumber(sequence.incrementAndGet())
                 .build();
     }
 

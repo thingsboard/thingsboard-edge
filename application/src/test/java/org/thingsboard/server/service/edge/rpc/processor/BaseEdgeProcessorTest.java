@@ -67,6 +67,7 @@ import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -408,6 +409,9 @@ public abstract class BaseEdgeProcessorTest {
 
     @MockBean
     protected DashboardEdgeProcessorV2 dashboardProcessorV2;
+
+    @MockBean
+    protected ImageService imageService;
 
     @SpyBean
     protected DeviceEdgeProcessorV1 deviceEdgeProcessorV1;

@@ -68,7 +68,6 @@ public class Dashboard extends BaseData<DashboardId> implements GroupEntity<Dash
     @NoXss
     @Length(fieldName = "title")
     private String title;
-    @Length(fieldName = "image", max = 1000000)
     private String image;
     @Valid
     private Set<ShortCustomerInfo> assignedCustomers;

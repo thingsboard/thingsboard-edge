@@ -34,6 +34,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.thingsboard.server.common.data.query.AlarmDataQuery;
+import org.thingsboard.server.service.ws.WsCmdType;
 
 public class AlarmDataCmd extends DataCmd {
 
@@ -44,5 +45,10 @@ public class AlarmDataCmd extends DataCmd {
     public AlarmDataCmd(@JsonProperty("cmdId") int cmdId, @JsonProperty("query") AlarmDataQuery query) {
         super(cmdId);
         this.query = query;
+    }
+
+    @Override
+    public WsCmdType getType() {
+        return WsCmdType.ALARM_DATA;
     }
 }
