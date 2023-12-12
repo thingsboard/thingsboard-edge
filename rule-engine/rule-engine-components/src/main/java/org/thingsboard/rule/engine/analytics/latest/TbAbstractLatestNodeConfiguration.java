@@ -43,7 +43,6 @@ public abstract class TbAbstractLatestNodeConfiguration {
     private TimeUnit periodTimeUnit;
     private int periodValue;
 
-    private String queueName;
     private String outMsgType;
 
 }

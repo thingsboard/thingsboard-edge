@@ -41,7 +41,6 @@ public class TbMsgDeduplicationNodeConfiguration implements NodeConfiguration<Tb
 
     // only for DeduplicationStrategy.ALL:
     private String outMsgType;
-    private String queueName;
 
     // Advanced settings:
     private int maxPendingMsgs;

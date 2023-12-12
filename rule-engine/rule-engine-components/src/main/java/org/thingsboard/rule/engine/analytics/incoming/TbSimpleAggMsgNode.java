@@ -66,12 +66,15 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import static org.thingsboard.rule.engine.api.util.TbNodeUtils.QUEUE_NAME;
+
 @Slf4j
 @RuleNode(
         type = ComponentType.ANALYTICS,
         name = "aggregate stream",
         configClazz = TbSimpleAggMsgNodeConfiguration.class,
-        version = 1,
+        version = 2,
+        hasQueueName = true,
         nodeDescription = "Aggregates incoming data stream grouped by originator Entity Id",
         nodeDetails = "Calculates MIN/MAX/SUM/AVG/COUNT/UNIQUE based on the incoming data stream. " +
                 "Groups incoming data stream based on originator id of the message (i.e. particular device, asset, customer) and <b>\"aggregation interval value\"</b> into Intervals.<br/><br/>" +
@@ -106,7 +109,7 @@ public class TbSimpleAggMsgNode implements TbNode {
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbSimpleAggMsgNodeConfiguration.class);
-        this.queueName = config.getQueueName();
+        this.queueName = ctx.getSelf().getQueueName();
         this.statePersistPolicy = StatePersistPolicy.valueOf(config.getStatePersistencePolicy());
         this.intervalPersistPolicy = IntervalPersistPolicy.valueOf(config.getIntervalPersistencePolicy());
         this.intervals = new TbIntervalTable(ctx, config);
@@ -311,14 +314,22 @@ public class TbSimpleAggMsgNode implements TbNode {
 
     @Override
     public TbPair<Boolean, JsonNode> upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
-        if (fromVersion == 0) {
-            if (!oldConfiguration.hasNonNull("outMsgType")) {
-                ObjectNode newConfig = (ObjectNode) oldConfiguration;
-                newConfig.put("outMsgType", TbMsgType.POST_TELEMETRY_REQUEST.name());
-                return new TbPair<>(true, newConfig);
-            }
+        boolean hasChanges = false;
+        switch (fromVersion) {
+            case 0:
+                if (!oldConfiguration.hasNonNull("outMsgType")) {
+                    ((ObjectNode) oldConfiguration).put("outMsgType", TbMsgType.POST_TELEMETRY_REQUEST.name());
+                    hasChanges = true;
+                }
+                break;
+            case 1:
+                if (oldConfiguration.has(QUEUE_NAME)) {
+                    hasChanges = true;
+                    ((ObjectNode) oldConfiguration).remove(QUEUE_NAME);
+                }
+                break;
         }
-        return new TbPair<>(false, oldConfiguration);
+        return new TbPair<>(hasChanges, oldConfiguration);
     }
 
 }

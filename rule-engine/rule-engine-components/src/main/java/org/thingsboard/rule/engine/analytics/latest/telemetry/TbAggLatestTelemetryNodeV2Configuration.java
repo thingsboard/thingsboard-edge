@@ -44,7 +44,6 @@ public class TbAggLatestTelemetryNodeV2Configuration implements NodeConfiguratio
 
     private static final int MIN_DEDUPLICATION_IN_SEC = 10;
 
-    private String queueName;
     private String outMsgType;
 
     private EntitySearchDirection direction;
