@@ -96,7 +96,7 @@ export class KpnIntegrationFormComponent extends IntegrationForm implements Cont
     }
     this.kpnIntegrationConfigForm = this.fb.group({
       baseUrl: [baseUrl(), baseURLValidators],
-      destinationSharedSecret: ['', Validators.required],
+      destinationSharedSecret: [],
       httpEndpoint: [{
         value: integrationEndPointUrl(this.integrationType, baseUrl(), this.routingKey),
         disabled: true

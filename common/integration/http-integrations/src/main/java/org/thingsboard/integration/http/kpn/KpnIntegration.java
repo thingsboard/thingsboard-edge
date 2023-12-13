@@ -156,11 +156,13 @@ public class KpnIntegration<T extends HttpIntegrationMsg<?>> extends BasicHttpIn
     protected boolean checkSecurity(HttpIntegrationMsg<?> msg) throws Exception {
         Map<String, String> requestHeaders = msg.getRequestHeaders();
         log.trace("Validating request using the following request headers: {}", requestHeaders);
-        String signed = requestHeaders.get(SIGNED_BODY_REQUEST_HEADER);
-        byte[] dataForHash = ArrayUtils.addAll(msg.getMsgInBytes(), kpnConfiguration.getDestinationSharedSecret().getBytes());
-        String hashed = new DigestUtils("SHA-256").digestAsHex(dataForHash);
-        if (!signed.equals(hashed)) {
-            return false;
+        if (requestHeaders.get(SIGNED_BODY_REQUEST_HEADER) != null) {
+            String signed = requestHeaders.get(SIGNED_BODY_REQUEST_HEADER);
+            byte[] dataForHash = ArrayUtils.addAll(msg.getMsgInBytes(), kpnConfiguration.getDestinationSharedSecret().getBytes());
+            String hashed = new DigestUtils("SHA-256").digestAsHex(dataForHash);
+            if (!signed.equals(hashed)) {
+                return false;
+            }
         }
         if (kpnConfiguration.getEnableSecurity()) {
             for (Map.Entry<String, String> headerFilter : headersFilter.entrySet()) {

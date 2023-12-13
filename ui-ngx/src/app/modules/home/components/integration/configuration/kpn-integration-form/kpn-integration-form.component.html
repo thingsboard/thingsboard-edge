@@ -43,11 +43,8 @@
   </mat-form-field>
   <mat-form-field class="mat-block">
     <mat-label translate>integration.destination-shared-secret</mat-label>
-    <input matInput formControlName="destinationSharedSecret" required type="password" >
+    <input matInput formControlName="destinationSharedSecret" type="password" >
     <tb-toggle-password matSuffix></tb-toggle-password>
-    <mat-error translate *ngIf="kpnIntegrationConfigForm.get('destinationSharedSecret').hasError('required')">
-      integration.destination-shared-secret-required
-    </mat-error>
   </mat-form-field>
   <div fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start center">
     <mat-form-field class="mat-block" fxFlex>
