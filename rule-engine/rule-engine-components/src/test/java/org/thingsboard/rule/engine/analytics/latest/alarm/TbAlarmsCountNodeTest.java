@@ -262,7 +262,7 @@ public class TbAlarmsCountNodeTest {
     public void givenOldConfig_whenUpgrade_thenShouldReturnTrueResultWithNewConfig() throws Exception {
         var node = new TbAlarmsCountNode();
         var defaultConfig = new TbAlarmsCountNodeConfiguration().defaultConfiguration();
-        String oldConfig = "{\"parentEntitiesQuery\":{\"type\":\"group\",\"entityGroupId\":null},\"periodTimeUnit\":\"MINUTES\",\"periodValue\":5,\"queueName\":null,\"countAlarmsForChildEntities\":false,\"alarmsCountMappings\":[{\"target\":\"alarmsCount\",\"typesList\":null,\"severityList\":null,\"statusList\":null,\"latestInterval\":0}]}";
+        String oldConfig = "{\"parentEntitiesQuery\":{\"type\":\"group\",\"entityGroupId\":null},\"periodTimeUnit\":\"MINUTES\",\"periodValue\":5,\"countAlarmsForChildEntities\":false,\"alarmsCountMappings\":[{\"target\":\"alarmsCount\",\"typesList\":null,\"severityList\":null,\"statusList\":null,\"latestInterval\":0}]}";
         TbPair<Boolean, JsonNode> upgrade = node.upgrade(0, JacksonUtil.toJsonNode(oldConfig));
         Assertions.assertTrue(upgrade.getFirst());
         Assertions.assertEquals(defaultConfig, JacksonUtil.treeToValue(upgrade.getSecond(), TbAlarmsCountNodeConfiguration.class));

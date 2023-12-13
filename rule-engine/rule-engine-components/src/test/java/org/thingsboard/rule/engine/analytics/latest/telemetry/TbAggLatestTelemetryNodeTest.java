@@ -424,7 +424,7 @@ public class TbAggLatestTelemetryNodeTest {
         var node = new TbAggLatestTelemetryNode();
         TbAggLatestTelemetryNodeConfiguration defaultConfig = new TbAggLatestTelemetryNodeConfiguration().defaultConfiguration();
         String oldConfig = "{\"parentEntitiesQuery\":{\"type\":\"group\",\"entityGroupId\":null}," +
-                "\"periodTimeUnit\":\"MINUTES\",\"periodValue\":5,\"queueName\":null," +
+                "\"periodTimeUnit\":\"MINUTES\",\"periodValue\":5," +
                 "\"aggMappings\":[{\"source\":\"temperature\",\"sourceScope\":\"LATEST_TELEMETRY\"," +
                 "\"defaultValue\":0.0,\"target\":\"latestAvgTemperature\",\"aggFunction\":\"AVG\",\"filter\":null}]}";
         TbPair<Boolean, JsonNode> upgrade = node.upgrade(0, JacksonUtil.toJsonNode(oldConfig));
