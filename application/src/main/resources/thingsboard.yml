@@ -1366,6 +1366,8 @@ swagger:
   enabled: "${SWAGGER_ENABLED:true}"
   # General swagger match pattern of swagger UI links
   api_path_regex: "${SWAGGER_API_PATH_REGEX:/api/.*}"
+  # Excluded API path match pattern of swagger UI links
+  exclude_api_path_regex: "${SWAGGER_API_PATH_REGEX:/api/v1/integrations/.*}"
   # General swagger match pattern path of swagger UI links
   security_path_regex: "${SWAGGER_SECURITY_PATH_REGEX:/api/.*}"
   # Nonsecurity API path match pattern of swagger UI links

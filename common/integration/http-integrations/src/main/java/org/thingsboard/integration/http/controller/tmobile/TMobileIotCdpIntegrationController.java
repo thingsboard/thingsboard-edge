@@ -45,6 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.integration.api.controller.BaseIntegrationController;
 import org.thingsboard.integration.api.controller.JsonHttpIntegrationMsg;
+import org.thingsboard.integration.api.util.TbIntegrationExecutorOrIntegrationComponent;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 
 import java.util.Map;
@@ -52,6 +53,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/integrations/tmobile_iot_cdp")
 @Slf4j
+@TbIntegrationExecutorOrIntegrationComponent
 public class TMobileIotCdpIntegrationController extends BaseIntegrationController {
 
     @ApiOperation(value = "Process request from T Mobile IoT integration", hidden = true)
