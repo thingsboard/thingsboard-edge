@@ -105,7 +105,7 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbAggLatestTelemetryNodeV2Configuration.class);
-        queueName = ctx.getSelf().getQueueName();
+        queueName = ctx.getQueueName();
         config.getAggMappings().forEach(mapping -> {
             var filter = mapping.getFilter();
             if (filter != null) {

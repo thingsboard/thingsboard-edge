@@ -91,7 +91,7 @@ public class TbAlarmsCountNodeV2 implements TbNode {
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbAlarmsCountNodeV2Configuration.class);
-        this.queueName = ctx.getSelf().getQueueName();
+        this.queueName = ctx.getQueueName();
         this.outMsgType = StringUtils.isNotBlank(config.getOutMsgType()) ? config.getOutMsgType() : TbMsgType.POST_TELEMETRY_REQUEST.name();
     }
 

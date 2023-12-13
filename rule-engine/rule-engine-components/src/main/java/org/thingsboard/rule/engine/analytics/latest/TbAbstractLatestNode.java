@@ -76,7 +76,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = loadMapperNodeConfig(configuration);
-        this.queueName = ctx.getSelf().getQueueName();
+        this.queueName = ctx.getQueueName();
         this.delay = config.getPeriodTimeUnit().toMillis(config.getPeriodValue());
         this.outMsgType = StringUtils.isNotBlank(config.getOutMsgType()) ? config.getOutMsgType() : TbMsgType.POST_TELEMETRY_REQUEST.name();
         this.parentEntitiesQuery = config.getParentEntitiesQuery();

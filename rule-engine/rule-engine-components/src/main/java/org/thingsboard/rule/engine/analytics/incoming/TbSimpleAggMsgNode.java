@@ -109,7 +109,7 @@ public class TbSimpleAggMsgNode implements TbNode {
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbSimpleAggMsgNodeConfiguration.class);
-        this.queueName = ctx.getSelf().getQueueName();
+        this.queueName = ctx.getQueueName();
         this.statePersistPolicy = StatePersistPolicy.valueOf(config.getStatePersistencePolicy());
         this.intervalPersistPolicy = IntervalPersistPolicy.valueOf(config.getIntervalPersistencePolicy());
         this.intervals = new TbIntervalTable(ctx, config);
