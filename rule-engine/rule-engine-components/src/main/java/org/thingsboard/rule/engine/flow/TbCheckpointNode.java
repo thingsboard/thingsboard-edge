@@ -65,7 +65,7 @@ public class TbCheckpointNode implements TbNode {
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
-        this.queueName = ctx.getSelf().getQueueName();
+        this.queueName = ctx.getQueueName();
     }
 
     @Override
