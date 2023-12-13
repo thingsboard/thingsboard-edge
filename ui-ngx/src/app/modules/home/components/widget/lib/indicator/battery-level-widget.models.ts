@@ -93,7 +93,7 @@ export const batteryLevelDefaultSettings: BatteryLevelWidgetSettings = {
   },
   valueColor: constantColor('rgba(0, 0, 0, 0.87)'),
   batteryLevelColor: {
-    color: 'rgba(92, 223, 144, 1)',
+    color: 'rgba(224, 224, 224, 1)',
     type: ColorType.range,
     rangeList: [
       {from: 0, to: 25, color: 'rgba(227, 71, 71, 1)'},
@@ -103,7 +103,7 @@ export const batteryLevelDefaultSettings: BatteryLevelWidgetSettings = {
     colorFunction: defaultColorFunction
   },
   batteryShapeColor: {
-    color: 'rgba(92, 223, 144, 0.32)',
+    color: 'rgba(224, 224, 224, 0.32)',
     type: ColorType.range,
     rangeList: [
       {from: 0, to: 25, color: 'rgba(227, 71, 71, 0.32)'},
