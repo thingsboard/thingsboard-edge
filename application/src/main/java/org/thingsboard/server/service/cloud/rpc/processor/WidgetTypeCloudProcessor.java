@@ -22,18 +22,11 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.widget.DeprecatedFilter;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
-import org.thingsboard.server.common.data.widget.WidgetTypeInfo;
-import org.thingsboard.server.common.data.widget.WidgetsBundle;
-import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.gen.edge.v1.WidgetTypeUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
-import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -53,17 +46,11 @@ public class WidgetTypeCloudProcessor extends BaseEdgeProcessor {
                         if (widgetTypeDetails == null) {
                             throw new RuntimeException("[{" + tenantId + "}] widgetTypeUpdateMsg {" + widgetTypeUpdateMsg + "} cannot be converted to widget type");
                         }
-                        try {
-                            widgetTypeService.saveWidgetType(widgetTypeDetails, false);
-                        } catch (Exception e) {
-                            if (e instanceof DataValidationException && e.getMessage().contains("fqn already exists")) {
-                                deleteWidgetBundlesAndTypes(TenantId.SYS_TENANT_ID);
-                                deleteWidgetBundlesAndTypes(tenantId);
-                                widgetTypeService.saveWidgetType(widgetTypeDetails, false);
-                            } else {
-                                throw new RuntimeException(e);
-                            }
+                        WidgetType widgetTypeByTenantIdAndFqn = widgetTypeService.findWidgetTypeByTenantIdAndFqn(widgetTypeDetails.getTenantId(), widgetTypeDetails.getFqn());
+                        if (widgetTypeByTenantIdAndFqn != null && !widgetTypeByTenantIdAndFqn.getId().equals(widgetTypeDetails.getId())) {
+                            widgetTypeService.deleteWidgetType(widgetTypeByTenantIdAndFqn.getTenantId(), widgetTypeByTenantIdAndFqn.getId());
                         }
+                        widgetTypeService.saveWidgetType(widgetTypeDetails, false);
                     } finally {
                         widgetCreationLock.unlock();
                     }
@@ -81,23 +68,5 @@ public class WidgetTypeCloudProcessor extends BaseEdgeProcessor {
             cloudSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
-    }
-
-    private void deleteWidgetBundlesAndTypes(TenantId tenantId) {
-        List<WidgetsBundle> systemWidgetsBundles = widgetsBundleService.findSystemWidgetsBundles(tenantId);
-        for (WidgetsBundle systemWidgetsBundle : systemWidgetsBundles) {
-            if (systemWidgetsBundle != null) {
-                PageData<WidgetTypeInfo> widgetTypes;
-                var pageLink = new PageLink(1024);
-                do {
-                    widgetTypes = widgetTypeService.findWidgetTypesInfosByWidgetsBundleId(tenantId, systemWidgetsBundle.getId(), false, DeprecatedFilter.ALL, null, pageLink);
-                    for (var widgetType : widgetTypes.getData()) {
-                        widgetTypeService.deleteWidgetType(tenantId, widgetType.getId());
-                    }
-                    pageLink.nextPageLink();
-                } while (widgetTypes.hasNext());
-                widgetsBundleService.deleteWidgetsBundle(tenantId, systemWidgetsBundle.getId());
-            }
-        }
     }
 }
