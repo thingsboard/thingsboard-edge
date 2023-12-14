@@ -124,8 +124,13 @@ public class TbCopyKeysNode extends TbAbstractTransformNodeWithTbMsgSource {
     }
 
     @Override
-    protected String getKeyToUpgradeFromVersionZero() {
+    protected String getNewKeyForUpgradeFromVersionZero() {
         return "copyFrom";
+    }
+
+    @Override
+    protected String getKeyToUpgradeFromVersionOne() {
+        return FROM_METADATA_PROPERTY;
     }
 
     boolean matches(String key) {
