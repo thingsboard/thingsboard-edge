@@ -79,14 +79,14 @@ public class KpnIntegration<T extends HttpIntegrationMsg<?>> extends BasicHttpIn
     private final static String SIGNED_BODY_REQUEST_HEADER = "things-message-token";
 
     private final RestTemplate httpClient = new RestTemplate();
-    private AtomicLong tokenExpiresIn = new AtomicLong(0);
+    private final AtomicLong tokenExpiresIn = new AtomicLong(0);
     private String token;
     private String gripAuthEndpoint;
 
     byte[] destinationSharedSecret = null;
 
-    private Map<String, String> headersFilter = new HashMap<>();
-    private ConcurrentHashMap<String, Boolean> subCustomersRetrievedAccess = new ConcurrentHashMap<>();
+    private final Map<String, String> headersFilter = new HashMap<>();
+    private final ConcurrentHashMap<String, Boolean> subCustomersRetrievedAccess = new ConcurrentHashMap<>();
 
     private KpnConfiguration kpnConfiguration;
 
@@ -113,7 +113,7 @@ public class KpnIntegration<T extends HttpIntegrationMsg<?>> extends BasicHttpIn
     }
 
     @Override
-    protected ResponseEntity doProcess(HttpIntegrationMsg<?> msg) throws Exception {
+    protected ResponseEntity<?> doProcess(HttpIntegrationMsg<?> msg) throws Exception {
         if (checkSecurity(msg)) {
             Map<String, UplinkData> result = processUplinkData(context, msg);
             if (result.isEmpty()) {
@@ -240,7 +240,7 @@ public class KpnIntegration<T extends HttpIntegrationMsg<?>> extends BasicHttpIn
         RequestEntity<Object> requestEntity = new RequestEntity<>(null, headers, HttpMethod.POST, URI.create(accessRequestUrl));
         ResponseEntity<ObjectNode> response = httpClient.exchange(requestEntity, ObjectNode.class);
         if (response.getStatusCode().is2xxSuccessful()) {
-            subCustomersRetrievedAccess.put(subCustomerId, true);
+            subCustomersRetrievedAccess.putIfAbsent(subCustomerId, true);
         } else {
             throw new RuntimeException(String.format("Cannot retrieve access for sub customer with id %s", subCustomerId));
         }
