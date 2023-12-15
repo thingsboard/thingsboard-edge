@@ -83,6 +83,7 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
                             entityViewUpdateMsg.getEntityGroupIdLSB());
                     EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
                     entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, entityViewId);
+                    return removeEntityIfInSingleAllGroup(tenantId, entityViewId, () -> entityViewService.deleteEntityView(tenantId, entityViewId));
                 } else {
                     EntityView entityViewById = entityViewService.findEntityViewById(tenantId, entityViewId);
                     if (entityViewById != null) {

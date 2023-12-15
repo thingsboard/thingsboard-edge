@@ -82,6 +82,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
                         EntityGroupId entityGroupId =
                                 new EntityGroupId(entityGroupUUID);
                         entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, assetId);
+                        return removeEntityIfInSingleAllGroup(tenantId, assetId, () -> assetService.deleteAsset(tenantId, assetId));
                     } else {
                         Asset assetById = assetService.findAssetById(tenantId, assetId);
                         if (assetById != null) {

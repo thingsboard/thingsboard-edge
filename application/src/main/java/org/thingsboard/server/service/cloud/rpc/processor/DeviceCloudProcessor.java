@@ -93,6 +93,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                                 deviceUpdateMsg.getEntityGroupIdLSB());
                         EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
                         entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, deviceId);
+                        return removeEntityIfInSingleAllGroup(tenantId, deviceId, () -> deviceService.deleteDevice(tenantId, deviceId));
                     } else {
                         Device deviceById = deviceService.findDeviceById(tenantId, deviceId);
                         if (deviceById != null) {

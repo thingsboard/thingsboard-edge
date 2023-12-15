@@ -108,7 +108,7 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                                 userUpdateMsg.getEntityGroupIdLSB());
                         EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
                         entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, userId);
-                        // TODO: @voba - check if entity has any more groups, except 'All' - in case only 'All' - remove entity from edge
+                        return removeEntityIfInSingleAllGroup(tenantId, userId, () -> userService.deleteUser(tenantId, userId));
                     } else {
                         User userToDelete = userService.findUserById(tenantId, userId);
                         if (userToDelete != null) {

@@ -78,6 +78,7 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.transport.snmp.AuthenticationProtocol;
 import org.thingsboard.server.common.data.transport.snmp.PrivacyProtocol;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
 import java.util.Collections;
@@ -189,20 +190,29 @@ public class DeviceClientTest extends AbstractContainerTest {
 
         // remove device #2 from group #2
         cloudRestClient.removeEntitiesFromEntityGroup(savedDeviceEntityGroup2.getId(), Collections.singletonList(savedDevice2.getId()));
-        Awaitility.await()
-                .pollInterval(500, TimeUnit.MILLISECONDS)
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> {
-                    List<EntityGroupId> device2Groups = edgeRestClient.getEntityGroupsForEntity(savedDevice2.getId());
-                    return !device2Groups.contains(savedDeviceEntityGroup2.getId());
-                });
+        if (edgeVersion.ordinal() < EdgeVersion.V_3_6_2.ordinal()) {
+            Awaitility.await()
+                    .pollInterval(500, TimeUnit.MILLISECONDS)
+                    .atMost(30, TimeUnit.SECONDS)
+                    .until(() -> {
+                        List<EntityGroupId> device2Groups = edgeRestClient.getEntityGroupsForEntity(savedDevice2.getId());
+                        return !device2Groups.contains(savedDeviceEntityGroup2.getId());
+                    });
+        } else {
+            Awaitility.await()
+                    .pollInterval(500, TimeUnit.MILLISECONDS)
+                    .atMost(30, TimeUnit.SECONDS)
+                    .until(() -> edgeRestClient.getDeviceById(savedDevice2.getId()).isEmpty());
+        }
 
         // delete device #2
         cloudRestClient.deleteDevice(savedDevice2.getId());
-        Awaitility.await()
-                .pollInterval(500, TimeUnit.MILLISECONDS)
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getDeviceById(savedDevice2.getId()).isEmpty());
+        if (edgeVersion.ordinal() < EdgeVersion.V_3_6_2.ordinal()) {
+            Awaitility.await()
+                    .pollInterval(500, TimeUnit.MILLISECONDS)
+                    .atMost(30, TimeUnit.SECONDS)
+                    .until(() -> edgeRestClient.getDeviceById(savedDevice2.getId()).isEmpty());
+        }
 
         // unassign group #1 from edge
         cloudRestClient.unassignEntityGroupFromEdge(edge.getId(), savedDeviceEntityGroup1.getId(), EntityType.DEVICE);

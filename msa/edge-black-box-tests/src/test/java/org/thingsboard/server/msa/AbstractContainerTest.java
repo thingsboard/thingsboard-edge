@@ -169,9 +169,9 @@ public abstract class AbstractContainerTest {
 
             edge = createEdge("test", CLOUD_ROUTING_KEY, CLOUD_ROUTING_SECRET);
 
-            getEdgeVersion();
-
             loginIntoEdgeWithRetries("tenant@thingsboard.org", "tenant");
+
+            getEdgeVersion();
 
             Optional<Tenant> tenant = edgeRestClient.getTenantById(edge.getTenantId());
             Assert.assertTrue(tenant.isPresent());

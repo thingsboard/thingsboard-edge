@@ -1056,4 +1056,15 @@ public abstract class BaseEdgeProcessor {
         } while (pageData != null && pageData.hasNext());
         return true;
     }
+
+    protected ListenableFuture<Void> removeEntityIfInSingleAllGroup(TenantId tenantId, EntityId entityId, Runnable provider) {
+        ListenableFuture<List<EntityGroupId>> future =
+                entityGroupService.findEntityGroupsForEntityAsync(tenantId, entityId);
+        return Futures.transform(future, input -> {
+            if (input.size() == 1) {
+                provider.run();
+            }
+            return null;
+        }, dbCallbackExecutorService);
+    }
 }
