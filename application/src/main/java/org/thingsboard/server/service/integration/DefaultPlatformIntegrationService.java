@@ -273,7 +273,6 @@ public class DefaultPlatformIntegrationService extends AbstractActivityManager<I
 
     @PreDestroy
     public void destroy() {
-        super.destroy();
         if (callbackExecutor != null) {
             callbackExecutor.shutdownNow();
         }
@@ -491,7 +490,7 @@ public class DefaultPlatformIntegrationService extends AbstractActivityManager<I
 
     @Override
     protected boolean hasExpired(IntegrationActivityKey key, ActivityState<Void> state) {
-        return (System.currentTimeMillis() - reportingPeriodMillis) < state.getLastRecordedTime();
+        return (System.currentTimeMillis() - reportingPeriodMillis) > state.getLastRecordedTime();
     }
 
     @Override
