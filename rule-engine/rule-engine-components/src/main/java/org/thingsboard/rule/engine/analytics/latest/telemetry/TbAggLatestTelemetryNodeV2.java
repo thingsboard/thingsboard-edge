@@ -72,7 +72,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static org.thingsboard.rule.engine.api.util.TbNodeUtils.QUEUE_NAME;
+import static org.thingsboard.server.common.data.DataConstants.QUEUE_NAME;
 
 @SuppressWarnings("UnstableApiUsage")
 @Slf4j

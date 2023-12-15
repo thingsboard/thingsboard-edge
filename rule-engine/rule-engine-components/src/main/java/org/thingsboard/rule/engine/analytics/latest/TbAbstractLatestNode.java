@@ -57,7 +57,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.thingsboard.common.util.DonAsynchron.withCallback;
-import static org.thingsboard.rule.engine.api.util.TbNodeUtils.QUEUE_NAME;
+import static org.thingsboard.server.common.data.DataConstants.QUEUE_NAME;
 import static org.thingsboard.server.common.data.msg.TbNodeConnectionType.SUCCESS;
 
 @Slf4j
@@ -168,7 +168,6 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
                     ((ObjectNode) oldConfiguration).put("outMsgType", TbMsgType.POST_TELEMETRY_REQUEST.name());
                     hasChanges = true;
                 }
-                break;
             case 1:
                 if (oldConfiguration.has(QUEUE_NAME)) {
                     hasChanges = true;

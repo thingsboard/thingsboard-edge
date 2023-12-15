@@ -66,7 +66,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import static org.thingsboard.rule.engine.api.util.TbNodeUtils.QUEUE_NAME;
+import static org.thingsboard.server.common.data.DataConstants.QUEUE_NAME;
 
 @Slf4j
 @RuleNode(
@@ -321,7 +321,6 @@ public class TbSimpleAggMsgNode implements TbNode {
                     ((ObjectNode) oldConfiguration).put("outMsgType", TbMsgType.POST_TELEMETRY_REQUEST.name());
                     hasChanges = true;
                 }
-                break;
             case 1:
                 if (oldConfiguration.has(QUEUE_NAME)) {
                     hasChanges = true;

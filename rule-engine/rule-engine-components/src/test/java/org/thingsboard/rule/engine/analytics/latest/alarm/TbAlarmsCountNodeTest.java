@@ -31,29 +31,30 @@
 package org.thingsboard.rule.engine.analytics.latest.alarm;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.jupiter.api.Assertions;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.provider.Arguments;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.internal.verification.Times;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.Stubber;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
+import org.thingsboard.rule.engine.AbstractRuleNodeUpgradeTest;
 import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesRelationsQuery;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
 import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.TbPeContext;
@@ -68,8 +69,6 @@ import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
@@ -80,7 +79,6 @@ import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
-import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -94,19 +92,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 @Slf4j
-public class TbAlarmsCountNodeTest {
+public class TbAlarmsCountNodeTest extends AbstractRuleNodeUpgradeTest {
 
     private final Gson gson = new Gson();
 
@@ -128,9 +127,6 @@ public class TbAlarmsCountNodeTest {
     private TbAlarmsCountNode node;
     private TbNodeConfiguration nodeConfiguration;
 
-    private RuleChainId ruleChainId = new RuleChainId(Uuids.timeBased());
-    private RuleNodeId ruleNodeId = new RuleNodeId(Uuids.timeBased());
-
     private RelationsQuery relationsQuery;
     private EntityId rootEntityId;
 
@@ -141,13 +137,13 @@ public class TbAlarmsCountNodeTest {
     private Map<EntityId, Integer> expectedLastDayAlarmsCountMap;
     private Set<Long> alarmCreatedTimes;
 
-    @Before
+    @BeforeEach
     @SuppressWarnings("unchecked")
     public void init() {
         TbAlarmsCountNodeConfiguration config = new TbAlarmsCountNodeConfiguration();
-        node = new TbAlarmsCountNode();
+        node = spy(new TbAlarmsCountNode());
 
-        doAnswer((Answer<TbMsg>) invocationOnMock -> {
+        lenient().doAnswer((Answer<TbMsg>) invocationOnMock -> {
             TbMsgType type = (TbMsgType) (invocationOnMock.getArguments())[1];
             EntityId originator = (EntityId) (invocationOnMock.getArguments())[2];
             TbMsgMetaData metaData = (TbMsgMetaData) (invocationOnMock.getArguments())[3];
@@ -158,7 +154,7 @@ public class TbAlarmsCountNodeTest {
 
         scheduleCount = 0;
 
-        doAnswer((Answer<Void>) invocationOnMock -> {
+        lenient().doAnswer((Answer<Void>) invocationOnMock -> {
             scheduleCount++;
             if (scheduleCount == 1) {
                 TbMsg msg = (TbMsg) (invocationOnMock.getArguments())[0];
@@ -167,12 +163,12 @@ public class TbAlarmsCountNodeTest {
             return null;
         }).when(ctx).tellSelf(ArgumentMatchers.any(TbMsg.class), ArgumentMatchers.anyLong());
 
-        when(ctx.getPeContext()).thenReturn(peCtx);
+        lenient().when(ctx.getPeContext()).thenReturn(peCtx);
 
-        when(peCtx.isLocalEntity(ArgumentMatchers.any(EntityId.class))).thenReturn(true);
-        when(ctx.getDbCallbackExecutor()).thenReturn(executor);
+        lenient().when(peCtx.isLocalEntity(ArgumentMatchers.any(EntityId.class))).thenReturn(true);
+        lenient().when(ctx.getDbCallbackExecutor()).thenReturn(executor);
 
-        Stubber executorAnswer = doAnswer(invocationOnMock -> {
+        Stubber executorAnswer = lenient().doAnswer(invocationOnMock -> {
             try {
                 Object arg = (invocationOnMock.getArguments())[0];
                 Object result = null;
@@ -191,15 +187,15 @@ public class TbAlarmsCountNodeTest {
 
         executorAnswer.when(executor).execute(ArgumentMatchers.any(Runnable.class));
 
-        when(ctx.getRelationService()).thenReturn(relationService);
+        lenient().when(ctx.getRelationService()).thenReturn(relationService);
 
-        doAnswer((Answer<List<Long>>) invocationOnMock -> {
+        lenient().doAnswer((Answer<List<Long>>) invocationOnMock -> {
             AlarmQuery query = (AlarmQuery) (invocationOnMock.getArguments())[1];
             List<AlarmFilter> filters = (List<AlarmFilter>) (invocationOnMock.getArguments())[2];
             return findAlarmCounts(alarmService, query, filters);
         }).when(alarmService).findAlarmCounts(ArgumentMatchers.any(), ArgumentMatchers.any(AlarmQuery.class), ArgumentMatchers.any(List.class));
 
-        when(ctx.getAlarmService()).thenReturn(alarmService);
+        lenient().when(ctx.getAlarmService()).thenReturn(alarmService);
 
         relationsQuery = new RelationsQuery();
         relationsQuery.setDirection(EntitySearchDirection.FROM);
@@ -258,36 +254,58 @@ public class TbAlarmsCountNodeTest {
         performAlarmsCountTest(true);
     }
 
-    @Test
-    public void givenOldConfig_whenUpgrade_thenShouldReturnTrueResultWithNewConfig() throws Exception {
-        var node = new TbAlarmsCountNode();
-        var defaultConfig = new TbAlarmsCountNodeConfiguration().defaultConfiguration();
-        String oldConfig = "{\"parentEntitiesQuery\":{\"type\":\"group\",\"entityGroupId\":null},\"periodTimeUnit\":\"MINUTES\",\"periodValue\":5,\"countAlarmsForChildEntities\":false,\"alarmsCountMappings\":[{\"target\":\"alarmsCount\",\"typesList\":null,\"severityList\":null,\"statusList\":null,\"latestInterval\":0}]}";
-        TbPair<Boolean, JsonNode> upgrade = node.upgrade(0, JacksonUtil.toJsonNode(oldConfig));
-        Assertions.assertTrue(upgrade.getFirst());
-        Assertions.assertEquals(defaultConfig, JacksonUtil.treeToValue(upgrade.getSecond(), TbAlarmsCountNodeConfiguration.class));
-    }
-
-    @Test
-    public void givenNewConfigWithOldVersion_whenUpgrade_thenShouldReturnFalseResultWithTheSameConfig() throws Exception {
-        var node = new TbAlarmsCountNode();
-        var defaultConfig = new TbAlarmsCountNodeConfiguration().defaultConfiguration();
-        JsonNode expectedConfig = JacksonUtil.valueToTree(defaultConfig);
-        TbPair<Boolean, JsonNode> upgrade = node.upgrade(0, expectedConfig);
-        Assertions.assertFalse(upgrade.getFirst());
-        Assertions.assertEquals(defaultConfig, JacksonUtil.treeToValue(upgrade.getSecond(), defaultConfig.getClass()));
+    // Rule nodes upgrade
+    private static Stream<Arguments> givenFromVersionAndConfig_whenUpgrade_thenVerifyHasChangesAndConfig() {
+        return Stream.of(
+                // default config for version 0
+                Arguments.of(0,
+                        "{\"parentEntitiesQuery\":{\"type\":\"group\",\"entityGroupId\":null},\"periodTimeUnit\":\"MINUTES\"," +
+                                "\"periodValue\":5,\"countAlarmsForChildEntities\":false,\"queueName\":null," +
+                                "\"alarmsCountMappings\":[{\"target\":\"alarmsCount\",\"typesList\":null,\"severityList\":null,\"statusList\":null,\"latestInterval\":0}]}",
+                        true,
+                        "{\"parentEntitiesQuery\":{\"type\":\"group\",\"entityGroupId\":null},\"periodTimeUnit\":\"MINUTES\"," +
+                                "\"periodValue\":5,\"countAlarmsForChildEntities\":false,\"outMsgType\":\"POST_TELEMETRY_REQUEST\"," +
+                                "\"alarmsCountMappings\":[{\"target\":\"alarmsCount\",\"typesList\":null,\"severityList\":null,\"statusList\":null,\"latestInterval\":0}]}"),
+                // default config for version 0 with queueName
+                Arguments.of(0,
+                        "{\"parentEntitiesQuery\":{\"type\":\"group\",\"entityGroupId\":null},\"periodTimeUnit\":\"MINUTES\"," +
+                                "\"periodValue\":5,\"countAlarmsForChildEntities\":false,\"queueName\":\"Main\"," +
+                                "\"alarmsCountMappings\":[{\"target\":\"alarmsCount\",\"typesList\":null,\"severityList\":null,\"statusList\":null,\"latestInterval\":0}]}",
+                        true,
+                        "{\"parentEntitiesQuery\":{\"type\":\"group\",\"entityGroupId\":null},\"periodTimeUnit\":\"MINUTES\"," +
+                                "\"periodValue\":5,\"countAlarmsForChildEntities\":false,\"outMsgType\":\"POST_TELEMETRY_REQUEST\"," +
+                                "\"alarmsCountMappings\":[{\"target\":\"alarmsCount\",\"typesList\":null,\"severityList\":null,\"statusList\":null,\"latestInterval\":0}]}"),
+                // default config for version 1 with upgrade from version 1
+                Arguments.of(1,
+                        "{\"parentEntitiesQuery\":{\"type\":\"group\",\"entityGroupId\":null},\"periodTimeUnit\":\"MINUTES\"," +
+                                "\"periodValue\":5,\"countAlarmsForChildEntities\":false,\"queueName\":\"Main\",\"outMsgType\":\"POST_TELEMETRY_REQUEST\"," +
+                                "\"alarmsCountMappings\":[{\"target\":\"alarmsCount\",\"typesList\":null,\"severityList\":null,\"statusList\":null,\"latestInterval\":0}]}",
+                        true,
+                        "{\"parentEntitiesQuery\":{\"type\":\"group\",\"entityGroupId\":null},\"periodTimeUnit\":\"MINUTES\"," +
+                                "\"periodValue\":5,\"countAlarmsForChildEntities\":false,\"outMsgType\":\"POST_TELEMETRY_REQUEST\"," +
+                                "\"alarmsCountMappings\":[{\"target\":\"alarmsCount\",\"typesList\":null,\"severityList\":null,\"statusList\":null,\"latestInterval\":0}]}"),
+                // default config for version 2 with upgrade from version 0
+                Arguments.of(0,
+                        "{\"parentEntitiesQuery\":{\"type\":\"group\",\"entityGroupId\":null},\"periodTimeUnit\":\"MINUTES\"," +
+                                "\"periodValue\":5,\"countAlarmsForChildEntities\":false,\"outMsgType\":\"POST_TELEMETRY_REQUEST\"," +
+                                "\"alarmsCountMappings\":[{\"target\":\"alarmsCount\",\"typesList\":null,\"severityList\":null,\"statusList\":null,\"latestInterval\":0}]}",
+                        false,
+                        "{\"parentEntitiesQuery\":{\"type\":\"group\",\"entityGroupId\":null},\"periodTimeUnit\":\"MINUTES\"," +
+                                "\"periodValue\":5,\"countAlarmsForChildEntities\":false,\"outMsgType\":\"POST_TELEMETRY_REQUEST\"," +
+                                "\"alarmsCountMappings\":[{\"target\":\"alarmsCount\",\"typesList\":null,\"severityList\":null,\"statusList\":null,\"latestInterval\":0}]}")
+        );
     }
 
     private void performAlarmsCountTest(boolean genFailures) throws TbNodeException {
         List<EntityRelation> parentEntityRelations = new ArrayList<>();
 
-        int parentCount = 10 + (int)(Math.random()*20);
+        int parentCount = 10 + (int) (Math.random() * 20);
 
         int totalChildCount = 0;
 
         int failureCount = 0;
 
-        for (int i=0;i<parentCount;i++) {
+        for (int i = 0; i < parentCount; i++) {
             EntityId parentEntityId = new AssetId(Uuids.timeBased());
             parentEntityRelations.add(createEntityRelation(rootEntityId, parentEntityId));
 
@@ -343,7 +361,7 @@ public class TbAlarmsCountNodeTest {
 
             List<TbMsg> failedMessages = failureMsgCaptor.getAllValues();
             List<String> throwables = throwableCaptor.getAllValues();
-            for (int i=0;i<failedMessages.size();i++) {
+            for (int i = 0; i < failedMessages.size(); i++) {
                 TbMsg failedMsg = failedMessages.get(i);
                 String t = throwables.get(i);
                 Assert.assertTrue(t.startsWith("Failed to fetch child entities for parent entity"));
@@ -354,19 +372,18 @@ public class TbAlarmsCountNodeTest {
 
     private int countActive(List<AlarmInfo> alarms) {
         List<AlarmStatus> activeStatuses = Arrays.asList(AlarmStatus.ACTIVE_ACK, AlarmStatus.ACTIVE_UNACK);
-        return (int)alarms.stream().filter(alarm -> activeStatuses.contains(alarm.getStatus())).count();
+        return (int) alarms.stream().filter(alarm -> activeStatuses.contains(alarm.getStatus())).count();
     }
 
     private int countLastDay(List<AlarmInfo> alarms) {
         long maxTime = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1);
-        return (int)alarms.stream().filter(alarm -> alarm.getCreatedTime() >= maxTime ).count();
+        return (int) alarms.stream().filter(alarm -> alarm.getCreatedTime() >= maxTime).count();
     }
 
     private List<AlarmInfo> generateAlarms(EntityId entityId, List<AlarmInfo> childAlarms) {
         int alarmsCount = 10 + (int) (Math.random() * 20);
-        List<AlarmInfo> alarms = new ArrayList<>(alarmsCount+childAlarms.size());
-        List<EntityRelation> alarmRelations = new ArrayList<>(alarmsCount+childAlarms.size());
-        for (int i=0;i<alarmsCount;i++) {
+        List<AlarmInfo> alarms = new ArrayList<>(alarmsCount + childAlarms.size());
+        for (int i = 0; i < alarmsCount; i++) {
 
             AlarmInfo alarm = new AlarmInfo();
 
@@ -382,7 +399,7 @@ public class TbAlarmsCountNodeTest {
             alarmCreatedTimes.add(createdTime);
 
             alarm.setId(new AlarmId(Uuids.startOf(createdTime)));
-            int alarmStatusOrdinal = (int)Math.floor(Math.random() * AlarmStatus.values().length);
+            int alarmStatusOrdinal = (int) Math.floor(Math.random() * AlarmStatus.values().length);
             var alarmStatus = AlarmStatus.values()[alarmStatusOrdinal];
             alarm.setCleared(alarmStatus.isCleared());
             alarm.setAcknowledged(alarmStatus.isAck());
@@ -431,7 +448,6 @@ public class TbAlarmsCountNodeTest {
             Assert.assertEquals(expectedActiveAlarmsCountMap.get(entityId).intValue(), intVal);
         }
     }
-
 
     private static EntityRelation createEntityRelation(EntityId from, EntityId to) {
         EntityRelation relation = new EntityRelation();
@@ -499,4 +515,8 @@ public class TbAlarmsCountNodeTest {
         }
     }
 
+    @Override
+    protected TbNode getTestNode() {
+        return node;
+    }
 }

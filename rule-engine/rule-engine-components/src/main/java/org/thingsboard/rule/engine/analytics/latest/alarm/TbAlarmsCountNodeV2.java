@@ -63,7 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.thingsboard.rule.engine.api.util.TbNodeUtils.QUEUE_NAME;
+import static org.thingsboard.server.common.data.DataConstants.QUEUE_NAME;
 
 @Slf4j
 @RuleNode(
@@ -198,7 +198,6 @@ public class TbAlarmsCountNodeV2 implements TbNode {
                     ((ObjectNode) oldConfiguration).put("outMsgType", TbMsgType.POST_TELEMETRY_REQUEST.name());
                     hasChanges = true;
                 }
-                break;
             case 1:
                 if (oldConfiguration.has(QUEUE_NAME)) {
                     hasChanges = true;
