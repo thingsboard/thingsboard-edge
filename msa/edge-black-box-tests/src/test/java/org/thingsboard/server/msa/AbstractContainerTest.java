@@ -89,6 +89,7 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -116,6 +117,9 @@ public abstract class AbstractContainerTest {
     protected static RestClient edgeRestClient;
 
     protected static Edge edge;
+
+    protected static EdgeVersion edgeVersion;
+
     protected static String tbUrl;
     protected static String edgeUrl;
 
@@ -138,6 +142,8 @@ public abstract class AbstractContainerTest {
 
             edge = createEdge("test", CLOUD_ROUTING_KEY, CLOUD_ROUTING_SECRET);
 
+            getEdgeVersion();
+
             loginIntoEdgeWithRetries("tenant@thingsboard.org", "tenant");
 
             Optional<Tenant> tenant = edgeRestClient.getTenantById(edge.getTenantId());
@@ -149,6 +155,11 @@ public abstract class AbstractContainerTest {
             // This is a starting point to start other tests
             verifyWidgetBundles();
         }
+    }
+
+    private static void getEdgeVersion() {
+        List<AttributeKvEntry> attributes = cloudRestClient.getAttributeKvEntries(edge.getId(), List.of("edgeVersion"));
+        edgeVersion = EdgeVersion.valueOf(attributes.get(0).getValueAsString());
     }
 
     protected static void loginIntoEdgeWithRetries(String userName, String password) {
