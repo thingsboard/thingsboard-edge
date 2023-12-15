@@ -814,7 +814,7 @@ public class DefaultPlatformIntegrationService extends AbstractActivityManager<I
     }
 
     void sendToRuleEngine(TenantId tenantId, DeviceId deviceId, TransportProtos.SessionInfoProto sessionInfo, JsonObject json,
-                                  TbMsgMetaData metaData, TbMsgType msgType, TbQueueCallback callback) {
+                          TbMsgMetaData metaData, TbMsgType msgType, TbQueueCallback callback) {
         DeviceProfileId deviceProfileId = new DeviceProfileId(new UUID(sessionInfo.getDeviceProfileIdMSB(), sessionInfo.getDeviceProfileIdLSB()));
 
         DeviceProfile deviceProfile = deviceProfileCache.get(tenantId, deviceProfileId);
