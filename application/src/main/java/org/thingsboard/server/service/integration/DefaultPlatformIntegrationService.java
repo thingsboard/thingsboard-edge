@@ -92,7 +92,6 @@ import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.common.transport.activity.AbstractActivityManager;
 import org.thingsboard.server.common.transport.activity.ActivityReportCallback;
 import org.thingsboard.server.common.transport.activity.ActivityState;
-import org.thingsboard.server.common.transport.activity.strategy.ActivityStrategy;
 import org.thingsboard.server.common.transport.activity.strategy.ActivityStrategyFactory;
 import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.common.util.KvProtoUtil;
@@ -475,12 +474,9 @@ public class DefaultPlatformIntegrationService extends AbstractActivityManager<I
 
     @Override
     protected ActivityState<Void> createNewState(IntegrationActivityKey key) {
-        return new ActivityState<>();
-    }
-
-    @Override
-    protected ActivityStrategy getStrategy() {
-        return ActivityStrategyFactory.createStrategy(reportingStrategyName);
+        ActivityState<Void> newState = new ActivityState<>();
+        newState.setStrategy(ActivityStrategyFactory.createStrategy(reportingStrategyName));
+        return newState;
     }
 
     @Override
@@ -489,12 +485,16 @@ public class DefaultPlatformIntegrationService extends AbstractActivityManager<I
     }
 
     @Override
-    protected boolean hasExpired(IntegrationActivityKey key, ActivityState<Void> state) {
-        return (System.currentTimeMillis() - reportingPeriodMillis) > state.getLastRecordedTime();
+    protected boolean hasExpired(long lastRecordedTime) {
+        return (getCurrentTimeMillis() - reportingPeriodMillis) > lastRecordedTime;
+    }
+
+    long getCurrentTimeMillis() {
+        return System.currentTimeMillis();
     }
 
     @Override
-    protected void onStateExpire(IntegrationActivityKey key, Void currentMetadata) {
+    protected void onStateExpiry(IntegrationActivityKey key, Void currentMetadata) {
     }
 
     @Override
@@ -813,7 +813,7 @@ public class DefaultPlatformIntegrationService extends AbstractActivityManager<I
                 new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(asset.getTenantId(), asset.getCustomerId(), msg.getKvList().size(), callback)));
     }
 
-    private void sendToRuleEngine(TenantId tenantId, DeviceId deviceId, TransportProtos.SessionInfoProto sessionInfo, JsonObject json,
+    void sendToRuleEngine(TenantId tenantId, DeviceId deviceId, TransportProtos.SessionInfoProto sessionInfo, JsonObject json,
                                   TbMsgMetaData metaData, TbMsgType msgType, TbQueueCallback callback) {
         DeviceProfileId deviceProfileId = new DeviceProfileId(new UUID(sessionInfo.getDeviceProfileIdMSB(), sessionInfo.getDeviceProfileIdLSB()));
 
