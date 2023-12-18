@@ -92,7 +92,8 @@ import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.common.transport.activity.AbstractActivityManager;
 import org.thingsboard.server.common.transport.activity.ActivityReportCallback;
 import org.thingsboard.server.common.transport.activity.ActivityState;
-import org.thingsboard.server.common.transport.activity.strategy.ActivityStrategyFactory;
+import org.thingsboard.server.common.transport.activity.strategy.ActivityStrategy;
+import org.thingsboard.server.common.transport.activity.strategy.ActivityStrategyType;
 import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.common.util.KvProtoUtil;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -233,7 +234,7 @@ public class DefaultPlatformIntegrationService extends AbstractActivityManager<I
     private long reportingPeriodMillis;
 
     @Value("${integrations.activity.reporting_strategy:ALL}")
-    private String reportingStrategyName;
+    private ActivityStrategyType reportingStrategyType;
 
     @Value("${integrations.reinit.enabled:false}")
     private boolean reinitEnabled;
@@ -474,9 +475,12 @@ public class DefaultPlatformIntegrationService extends AbstractActivityManager<I
 
     @Override
     protected ActivityState<Void> createNewState(IntegrationActivityKey key) {
-        ActivityState<Void> newState = new ActivityState<>();
-        newState.setStrategy(ActivityStrategyFactory.createStrategy(reportingStrategyName));
-        return newState;
+        return new ActivityState<>();
+    }
+
+    @Override
+    protected ActivityStrategy getStrategy() {
+        return reportingStrategyType.toStrategy();
     }
 
     @Override
