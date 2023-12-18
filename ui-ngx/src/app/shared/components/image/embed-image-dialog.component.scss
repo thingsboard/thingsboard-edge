@@ -28,50 +28,59 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.resource;
-
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import lombok.With;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.gen.transport.TransportProtos.ImageCacheKeyProto;
-
-@Data
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class ImageCacheKey {
-
-    private final TenantId tenantId;
-    private final String resourceKey;
-    @With
-    private final boolean preview;
-
-    private final String publicResourceKey;
-
-    public static ImageCacheKey forImage(TenantId tenantId, String key, boolean preview) {
-        return new ImageCacheKey(tenantId, key, preview, null);
+:host {
+  .mat-mdc-dialog-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    .tb-embed-image-text {
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 20px;
+      color: rgba(0,0,0,0.54);
+      letter-spacing: 0.2px;
     }
-
-    public static ImageCacheKey forImage(TenantId tenantId, String key) {
-        return forImage(tenantId, key, false);
+    .tb-form-panel-title {
+      color: rgba(0, 0, 0, 0.87);
     }
+  }
+}
 
-    public static ImageCacheKey forPublicImage(String publicKey) {
-        return new ImageCacheKey(null, null, false, publicKey);
-    }
-
-    public ImageCacheKeyProto toProto() {
-        var msg = ImageCacheKeyProto.newBuilder();
-        if (resourceKey != null) {
-            msg.setResourceKey(resourceKey);
-        } else {
-            msg.setPublicResourceKey(publicResourceKey);
+:host ::ng-deep {
+  .tb-markdown-view {
+    max-width: 700px;
+    .tb-embed-image-code {
+      .code-wrapper {
+        padding: 0;
+        pre[class*=language-] {
+          margin: 0;
+          padding: 9px 38px 9px 16px;
         }
-        return msg.build();
+        code[class*="language-"], pre[class*="language-"] {
+          font-size: 12px;
+          overflow: hidden;
+          white-space: normal;
+          word-break: break-word;
+        }
+        button.clipboard-btn {
+          right: 0;
+          height: 36px;
+          p, div {
+            background: transparent;
+          }
+          p {
+            margin: 0;
+            padding: 6px;
+            font-size: 14px;
+          }
+          div {
+            top: 0;
+            padding: 8px;
+            height: 38px;
+            width: 38px;
+          }
+        }
+      }
     }
-
-    public boolean isPublic() {
-        return this.publicResourceKey != null;
-    }
-
+  }
 }

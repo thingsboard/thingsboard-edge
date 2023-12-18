@@ -104,4 +104,8 @@ public interface TbResourceInfoRepository extends JpaRepository<TbResourceInfoEn
                                                          @Param("resourceType") String resourceType,
                                                          @Param("etag") String etag);
 
+    boolean existsByResourceTypeAndPublicResourceKey(String resourceType, String publicResourceKey);
+
+    TbResourceInfoEntity findByResourceTypeAndPublicResourceKeyAndIsPublicTrue(String resourceType, String publicResourceKey);
+
 }
