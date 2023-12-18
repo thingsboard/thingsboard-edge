@@ -66,7 +66,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
-import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.util.ThrowingSupplier;
 import org.thingsboard.server.dao.resource.ImageCacheKey;
@@ -171,7 +170,7 @@ public class ImageController extends BaseController {
         return tbImageService.save(newImageInfo, imageInfo, getCurrentUser());
     }
 
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @PutMapping(IMAGE_URL + "/public/{isPublic}")
     public TbResourceInfo updateImagePublicStatus(@ApiParam(value = IMAGE_TYPE_PARAM_DESCRIPTION, allowableValues = IMAGE_TYPE_PARAM_ALLOWABLE_VALUES, required = true)
                                                   @PathVariable String type,
@@ -221,9 +220,9 @@ public class ImageController extends BaseController {
     private ResponseEntity<ByteArrayResource> downloadLoginImage(String domainName, String type,
                                                                  String key, String etag, boolean faviconElseLogo) throws Exception {
         var imageKey = whiteLabelingService.getLoginImageKey(domainName, faviconElseLogo);
-        if (imageKey != null && imageKey.getKey().equals(key) &&
+        if (imageKey != null && imageKey.getResourceKey().equals(key) &&
                 ((imageKey.getTenantId().isSysTenantId() && SYSTEM_IMAGE.equals(type)) || (!imageKey.getTenantId().isSysTenantId() && TENANT_IMAGE.equals(type)))) {
-            return downloadIfChanged(TenantId.SYS_TENANT_ID, imageKey, etag, false, true);
+            return downloadIfChanged(TenantId.SYS_TENANT_ID, imageKey, etag, true);
         } else {
             throw new ThingsboardException("Login image not found", ThingsboardErrorCode.ITEM_NOT_FOUND);
         }
@@ -331,13 +330,13 @@ public class ImageController extends BaseController {
     }
 
     private ResponseEntity<ByteArrayResource> downloadIfChanged(String type, String key, String etag, boolean preview) throws Exception {
-        ImageCacheKey cacheKey = new ImageCacheKey(getTenantId(type), key, preview);
-        return downloadIfChanged(getTenantId(), cacheKey, etag, preview, false);
+        ImageCacheKey cacheKey = ImageCacheKey.forImage(getTenantId(type), key, preview);
+        return downloadIfChanged(getTenantId(), cacheKey, etag, false);
     }
 
     private ResponseEntity<ByteArrayResource> downloadIfChanged(TenantId tenantId, ImageCacheKey cacheKey, String etag,
-                                                                boolean preview, boolean skipPermissionCheck) throws ThingsboardException, JsonProcessingException {
-        return downloadIfChanged(cacheKey, etag, () -> checkImageInfo(cacheKey.getTenantId(), cacheKey.getKey(), Operation.READ, skipPermissionCheck));
+                                                                boolean skipPermissionCheck) throws Exception {
+        return downloadIfChanged(cacheKey, etag, () -> checkImageInfo(cacheKey.getTenantId(), cacheKey.getResourceKey(), Operation.READ, skipPermissionCheck));
     }
 
     private ResponseEntity<ByteArrayResource> downloadIfChanged(ImageCacheKey cacheKey, String etag, ThrowingSupplier<TbResourceInfo> imageInfoSupplier) throws Exception {
