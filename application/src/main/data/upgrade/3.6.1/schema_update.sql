@@ -74,23 +74,22 @@ DROP FUNCTION generate_resource_public_key;
 
 -- WL UPDATE START
 
-UPDATE white_labeling w
-SET domain_name = LOWER(w.domain_name)
-WHERE type = 'LOGIN'
-  AND w.domain_name IS NOT NULL
-  AND w.domain_name != LOWER(w.domain_name)
-  AND NOT EXISTS(
-        SELECT 1
-        FROM white_labeling wl
-        WHERE type = 'LOGIN'
-          AND LOWER(wl.domain_name) = LOWER(w.domain_name)
-          AND wl.entity_id != w.entity_id
-);
-
 DO
 $$
     BEGIN
         IF NOT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name = 'white_labeling' AND column_name = 'tenant_id') THEN
+            UPDATE white_labeling w
+            SET domain_name = LOWER(w.domain_name)
+            WHERE type = 'LOGIN'
+              AND w.domain_name IS NOT NULL
+              AND w.domain_name != LOWER(w.domain_name)
+              AND NOT EXISTS(
+                    SELECT 1
+                    FROM white_labeling wl
+                    WHERE type = 'LOGIN'
+                      AND LOWER(wl.domain_name) = LOWER(w.domain_name)
+                      AND wl.entity_id != w.entity_id
+            );
 
             DELETE from white_labeling WHERE entity_type = 'TENANT' AND entity_id != '13814000-1dd2-11b2-8080-808080808080' AND NOT EXISTS(SELECT id FROM tenant WHERE id = entity_id);
             DELETE from white_labeling WHERE entity_type = 'CUSTOMER' AND NOT EXISTS(SELECT id FROM customer WHERE id = entity_id);
