@@ -192,7 +192,7 @@ public class TbMsgDeduplicationNode implements TbNode {
                     }
                     if (resultMsg != null) {
                         deduplicationResults.add(TbMsg.newMsg(
-                                queueName,
+                                queueName != null ? queueName : resultMsg.getQueueName(),
                                 resultMsg.getType(),
                                 resultMsg.getOriginator(),
                                 resultMsg.getCustomerId(),
