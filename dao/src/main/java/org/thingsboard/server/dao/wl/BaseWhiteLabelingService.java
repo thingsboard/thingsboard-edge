@@ -172,7 +172,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
                 var parts = url.split("/");
                 if (parts.length == 5) {
                     var key = parts[4];
-                    return new ImageCacheKey(imageTenantId, key, false);
+                    return ImageCacheKey.forImage(imageTenantId, key);
                 }
             }
         }
