@@ -247,6 +247,7 @@ import { ImageReferencesComponent } from '@shared/components/image/image-referen
 import { ImagesInUseDialogComponent } from '@shared/components/image/images-in-use-dialog.component';
 import { GalleryImageInputComponent } from '@shared/components/image/gallery-image-input.component';
 import { MultipleGalleryImageInputComponent } from '@shared/components/image/multiple-gallery-image-input.component';
+import { EmbedImageDialogComponent } from '@shared/components/image/embed-image-dialog.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -462,7 +463,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     ImageReferencesComponent,
     ImagesInUseDialogComponent,
     GalleryImageInputComponent,
-    MultipleGalleryImageInputComponent
+    MultipleGalleryImageInputComponent,
+    EmbedImageDialogComponent
   ],
   imports: [
     CommonModule,
@@ -730,7 +732,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     ImageReferencesComponent,
     ImagesInUseDialogComponent,
     GalleryImageInputComponent,
-    MultipleGalleryImageInputComponent
+    MultipleGalleryImageInputComponent,
+    EmbedImageDialogComponent
   ]
 })
 export class SharedModule { }
