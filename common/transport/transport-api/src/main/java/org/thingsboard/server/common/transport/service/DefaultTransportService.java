@@ -807,7 +807,7 @@ public class DefaultTransportService extends AbstractActivityManager<UUID, Trans
     }
 
     private void recordActivityInternal(TransportProtos.SessionInfoProto sessionInfo) {
-        onActivity(toSessionId(sessionInfo));
+        onActivity(toSessionId(sessionInfo), getCurrentTimeMillis());
     }
 
     @Override

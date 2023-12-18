@@ -443,7 +443,7 @@ public class DefaultPlatformIntegrationService extends AbstractActivityManager<I
     public void process(SessionInfoProto sessionInfo, PostTelemetryMsg msg, IntegrationCallback<Void> callback) {
         TenantId tenantId = new TenantId(new UUID(sessionInfo.getTenantIdMSB(), sessionInfo.getTenantIdLSB()));
         DeviceId deviceId = new DeviceId(new UUID(sessionInfo.getDeviceIdMSB(), sessionInfo.getDeviceIdLSB()));
-        onActivity(new IntegrationActivityKey(tenantId, deviceId));
+        onActivity(new IntegrationActivityKey(tenantId, deviceId), getCurrentTimeMillis());
         int dataPoints = 0;
         for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
             dataPoints += tsKv.getKvCount();
@@ -463,7 +463,7 @@ public class DefaultPlatformIntegrationService extends AbstractActivityManager<I
     public void process(SessionInfoProto sessionInfo, PostAttributeMsg msg, IntegrationCallback<Void> callback) {
         TenantId tenantId = new TenantId(new UUID(sessionInfo.getTenantIdMSB(), sessionInfo.getTenantIdLSB()));
         DeviceId deviceId = new DeviceId(new UUID(sessionInfo.getDeviceIdMSB(), sessionInfo.getDeviceIdLSB()));
-        onActivity(new IntegrationActivityKey(tenantId, deviceId));
+        onActivity(new IntegrationActivityKey(tenantId, deviceId), getCurrentTimeMillis());
         JsonObject json = JsonUtils.getJsonObject(msg.getKvList());
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("deviceName", sessionInfo.getDeviceName());
