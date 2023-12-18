@@ -159,7 +159,6 @@ public class DefaultTransportService extends AbstractActivityManager<UUID, Trans
 
     public static final String OVERWRITE_ACTIVITY_TIME = "overwriteActivityTime";
     public static final String SESSION_EXPIRED_MESSAGE = "Session has expired due to last activity time!";
-    private static final String ACTIVITY_MANAGER_NAME = "transport-activity-manager";
     public static final TransportProtos.SessionEventMsg SESSION_EVENT_MSG_OPEN = getSessionEventMsg(TransportProtos.SessionEvent.OPEN);
     public static final TransportProtos.SessionEventMsg SESSION_EVENT_MSG_CLOSED = getSessionEventMsg(TransportProtos.SessionEvent.CLOSED);
     public static final TransportProtos.SessionCloseNotificationProto SESSION_EXPIRED_NOTIFICATION_PROTO = TransportProtos.SessionCloseNotificationProto.newBuilder()
@@ -261,7 +260,7 @@ public class DefaultTransportService extends AbstractActivityManager<UUID, Trans
 
     @PostConstruct
     public void init() {
-        super.init(ACTIVITY_MANAGER_NAME, sessionReportTimeout);
+        super.init();
         this.ruleEngineProducerStats = statsFactory.createMessagesStats(StatsType.RULE_ENGINE.getName() + ".producer");
         this.tbCoreProducerStats = statsFactory.createMessagesStats(StatsType.CORE.getName() + ".producer");
         this.transportApiStats = statsFactory.createMessagesStats(StatsType.TRANSPORT.getName() + ".producer");
@@ -812,6 +811,11 @@ public class DefaultTransportService extends AbstractActivityManager<UUID, Trans
     }
 
     @Override
+    protected long getReportingPeriodMillis() {
+        return sessionReportTimeout;
+    }
+
+    @Override
     protected ActivityState<TransportProtos.SessionInfoProto> createNewState(UUID sessionId) {
         SessionMetaData session = sessions.get(sessionId);
         if (session == null) {
@@ -849,9 +853,9 @@ public class DefaultTransportService extends AbstractActivityManager<UUID, Trans
 
         long lastRecordedTime = state.getLastRecordedTime();
         long gwLastRecordedTime = getLastRecordedTime(gwSessionId);
-        log.debug("[{}] Session with id: [{}] has gateway session with id: [{}] with overwrite activity time enabled. " +
+        log.debug("Session with id: [{}] has gateway session with id: [{}] with overwrite activity time enabled. " +
                         "Updating last activity time. Session last recorded time: [{}], gateway session last recorded time: [{}].",
-                name, sessionId, gwSessionId, lastRecordedTime, gwLastRecordedTime);
+                sessionId, gwSessionId, lastRecordedTime, gwLastRecordedTime);
         state.setLastRecordedTime(Math.max(lastRecordedTime, gwLastRecordedTime));
         return state;
     }
@@ -867,7 +871,7 @@ public class DefaultTransportService extends AbstractActivityManager<UUID, Trans
 
     @Override
     protected void onStateExpiry(UUID sessionId, TransportProtos.SessionInfoProto sessionInfo) {
-        log.debug("[{}] Session with id: [{}] has expired due to last activity time.", name, sessionId);
+        log.debug("Session with id: [{}] has expired due to last activity time.", sessionId);
         SessionMetaData expiredSession = sessions.remove(sessionId);
         if (expiredSession != null) {
             deregisterSession(sessionInfo);
@@ -878,7 +882,7 @@ public class DefaultTransportService extends AbstractActivityManager<UUID, Trans
 
     @Override
     protected void reportActivity(UUID sessionId, TransportProtos.SessionInfoProto currentSessionInfo, long timeToReport, ActivityReportCallback<UUID> callback) {
-        log.debug("[{}] Reporting activity state for session with id: [{}]. Time to report: [{}].", name, sessionId, timeToReport);
+        log.debug("Reporting activity state for session with id: [{}]. Time to report: [{}].", sessionId, timeToReport);
         SessionMetaData session = sessions.get(sessionId);
         TransportProtos.SubscriptionInfoProto subscriptionInfo = TransportProtos.SubscriptionInfoProto.newBuilder()
                 .setAttributeSubscription(session != null && session.isSubscribedToAttributes())

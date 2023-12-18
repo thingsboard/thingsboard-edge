@@ -153,7 +153,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultPlatformIntegrationService extends AbstractActivityManager<IntegrationActivityKey, Void> implements PlatformIntegrationService {
 
     private static final ReentrantLock entityCreationLock = new ReentrantLock();
-    private static final String ACTIVITY_MANAGER_NAME = "integration-activity-manager";
 
     @Autowired
     private TbClusterService clusterService;
@@ -264,7 +263,7 @@ public class DefaultPlatformIntegrationService extends AbstractActivityManager<I
 
     @PostConstruct
     public void init() {
-        super.init(ACTIVITY_MANAGER_NAME, reportingPeriodMillis);
+        super.init();
         ruleEngineMsgProducer = producerProvider.getRuleEngineMsgProducer();
         tbCoreMsgProducer = producerProvider.getTbCoreMsgProducer();
         integrationRuleEngineMsgProducer = producerProvider.getIntegrationRuleEngineMsgProducer();
@@ -474,6 +473,11 @@ public class DefaultPlatformIntegrationService extends AbstractActivityManager<I
     }
 
     @Override
+    protected long getReportingPeriodMillis() {
+        return reportingPeriodMillis;
+    }
+
+    @Override
     protected ActivityState<Void> createNewState(IntegrationActivityKey key) {
         return new ActivityState<>();
     }
@@ -505,7 +509,7 @@ public class DefaultPlatformIntegrationService extends AbstractActivityManager<I
     protected void reportActivity(IntegrationActivityKey key, Void metadata, long timeToReport, ActivityReportCallback<IntegrationActivityKey> callback) {
         var tenantId = key.getTenantId();
         var deviceId = key.getDeviceId();
-        log.debug("[{}][{}] Reporting activity state for device with id: [{}]. Time to report: [{}].", tenantId.getId(), name, deviceId.getId(), timeToReport);
+        log.debug("[{}][{}] Reporting activity state. Time to report: [{}].", tenantId.getId(), deviceId.getId(), timeToReport);
         TransportProtos.ToCoreMsg toCoreMsg = buildActivityMsg(tenantId, deviceId, timeToReport);
         TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenantId, deviceId);
         tbCoreMsgProducer.send(tpi, new TbProtoQueueMsg<>(deviceId.getId(), toCoreMsg), new TbQueueCallback() {
