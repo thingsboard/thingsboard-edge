@@ -38,6 +38,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.security.model.SecuritySettings;
+import org.thingsboard.server.common.data.security.model.UserPasswordPolicy;
 import org.thingsboard.server.common.data.security.model.mfa.PlatformTwoFaSettings;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -46,15 +47,17 @@ import javax.servlet.http.HttpServletRequest;
 
 public interface SystemSecurityService {
 
-    SecuritySettings getSecuritySettings(TenantId tenantId);
+    SecuritySettings getSecuritySettings();
 
-    SecuritySettings saveSecuritySettings(TenantId tenantId, SecuritySettings securitySettings);
+    SecuritySettings saveSecuritySettings(SecuritySettings securitySettings);
+
+    void validatePasswordByPolicy(String password, UserPasswordPolicy passwordPolicy);
 
     void validateUserCredentials(TenantId tenantId, UserCredentials userCredentials, String username, String password) throws AuthenticationException;
 
     void validateTwoFaVerification(SecurityUser securityUser, boolean verificationSuccess, PlatformTwoFaSettings twoFaSettings);
 
-    void validatePassword(TenantId tenantId, String password, UserCredentials userCredentials) throws DataValidationException;
+    void validatePassword(String password, UserCredentials userCredentials) throws DataValidationException;
 
     String getBaseUrl(Authority authority, TenantId tenantId, CustomerId customerId, HttpServletRequest httpServletRequest);
 
