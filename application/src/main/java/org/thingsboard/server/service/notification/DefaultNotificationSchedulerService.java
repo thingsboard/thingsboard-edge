@@ -56,6 +56,7 @@ import org.thingsboard.server.service.executors.NotificationExecutorService;
 import org.thingsboard.server.service.partition.AbstractPartitionBasedService;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -81,6 +82,7 @@ public class DefaultNotificationSchedulerService extends AbstractPartitionBasedS
 
     private final Map<NotificationRequestId, ScheduledRequestMetadata> scheduledNotificationRequests = new ConcurrentHashMap<>();
 
+    @Override
     @PostConstruct
     public void init() {
         super.init();
@@ -180,6 +182,13 @@ public class DefaultNotificationSchedulerService extends AbstractPartitionBasedS
     @Override
     protected String getSchedulerExecutorName() {
         return "notifications-scheduler";
+    }
+
+    @Override
+    @PreDestroy
+    public void stop() {
+        super.stop();
+        scheduler.shutdownNow();
     }
 
     @Data
