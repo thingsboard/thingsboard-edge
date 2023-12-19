@@ -248,6 +248,11 @@ public class BaseImageService extends BaseResourceService implements ImageServic
     }
 
     @Override
+    public TbResourceInfo getImageInfoByTenantIdAndCustomerIdAndKey(TenantId tenantId, CustomerId customerId, String key) {
+        return resourceInfoDao.findByTenantIdAndCustomerIdAndKey(tenantId, customerId, ResourceType.IMAGE, key);
+    }
+
+    @Override
     public TbResourceInfo getPublicImageInfoByKey(String publicResourceKey) {
         return resourceInfoDao.findPublicResourceByKey(ResourceType.IMAGE, publicResourceKey);
     }
@@ -521,7 +526,7 @@ public class BaseImageService extends BaseResourceService implements ImageServic
         byte[] imageData = Base64.getDecoder().decode(base64Data);
         String etag = calculateEtag(imageData);
         TbResourceInfo imageInfo;
-        if (customerId != null && !customerId.isNullUid()){
+        if (customerId != null && !customerId.isNullUid()) {
             imageInfo = findSystemOrCustomerImageByEtag(tenantId, customerId, etag);
         } else {
             imageInfo = findSystemOrTenantImageByEtag(tenantId, etag);

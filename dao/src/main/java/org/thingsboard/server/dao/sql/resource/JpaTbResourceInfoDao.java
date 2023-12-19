@@ -118,6 +118,11 @@ public class JpaTbResourceInfoDao extends JpaAbstractDao<TbResourceInfoEntity, T
     }
 
     @Override
+    public TbResourceInfo findByTenantIdAndCustomerIdAndKey(TenantId tenantId, CustomerId customerId, ResourceType resourceType, String resourceKey) {
+        return DaoUtil.getData(resourceInfoRepository.findByTenantIdAndCustomerIdAndResourceTypeAndResourceKey(tenantId.getId(), customerId.getId(), resourceType.name(), resourceKey));
+    }
+
+    @Override
     public boolean existsByTenantIdAndResourceTypeAndResourceKey(TenantId tenantId, ResourceType resourceType, String resourceKey) {
         return resourceInfoRepository.existsByTenantIdAndResourceTypeAndResourceKey(tenantId.getId(), resourceType.name(), resourceKey);
     }

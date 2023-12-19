@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.ImageDescriptor;
 import org.thingsboard.server.common.data.ImageExportData;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResourceInfo;
+import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.controller.ImageController.ImageSpecs;
@@ -199,6 +200,32 @@ public class ImageControllerTest extends AbstractControllerTest {
         assertThat(importedImageInfo.getFileName()).isEqualTo(filename);
         checkPngImageDescriptor(importedImageInfo.getDescriptor(ImageDescriptor.class));
         assertThat(downloadImage("tenant", filename)).containsExactly(PNG_IMAGE);
+    }
+
+    @Test
+    public void testExportImportImage_customerLevel() throws Exception {
+        String filename = "image.png";
+        TbResourceInfo tenantImage = uploadImage(HttpMethod.POST, "/api/image", filename, "image/png", PNG_IMAGE, false);
+        ImageExportData exportData = doGet("/api/images/tenant/" + filename + "/export", ImageExportData.class);
+
+        loginCustomerUser();
+        TbResourceInfo customerImage = doPut("/api/image/import", exportData, TbResourceInfo.class);
+        TbResourceId customerImageId = customerImage.getId();
+        assertThat(customerImage.getResourceKey()).isEqualTo("image_(1).png");
+        assertThat(customerImageId).isNotEqualTo(tenantImage.getId());
+        assertThat(getImages(null, false, 10)).extracting(TbResourceInfo::getId)
+                .containsOnly(customerImageId);
+
+        exportData = doGet("/api/images/tenant/" + customerImage.getResourceKey() + "/export", ImageExportData.class);
+        customerImage = doPut("/api/image/import", exportData, TbResourceInfo.class);
+        assertThat(customerImage.getResourceKey()).isEqualTo("image_(1).png");
+        assertThat(customerImage.getId()).isEqualTo(customerImageId);
+        assertThat(getImages(null, false, 10)).extracting(TbResourceInfo::getId)
+                .containsOnly(customerImageId);
+
+        loginTenantAdmin();
+        assertThat(getImages(null, false, 10)).extracting(TbResourceInfo::getResourceKey)
+                .containsOnly("image.png");
     }
 
     @Test
