@@ -83,6 +83,9 @@ public enum Table {
     EDGE_EVENT("edge_event", true, "created_time", "edge_event"),
     WIDGETS_BUNDLE("widgets_bundle"),
     WIDGET_TYPE("widget_type"),
+    WIDGETS_BUNDLE_WIDGET("widgets_bundle_widget", Pair.of(
+            "widgets_bundle_id", of(WIDGETS_BUNDLE)
+    )),
     DASHBOARD("dashboard"),
     DEVICE("device"),
     DEVICE_CREDENTIALS("device_credentials", Pair.of(
