@@ -185,4 +185,8 @@ export class EdgeService {
     const url = `/api/edge/integration/${edgeId}/missingAttributes?integrationIds=${integrationIds.join(',')}`;
     return this.http.get<string>(url, defaultHttpOptionsFromConfig(config));
   }
+
+  public isEdgeUpgradeAvailable(edgeId: string, config?: RequestConfig): Observable<boolean> {
+    return this.http.get<boolean>(`/api/edge/${edgeId}/upgrade/available`, defaultHttpOptionsFromConfig(config));
+  }
 }
