@@ -271,8 +271,11 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
       case 'syncEdge':
         this.syncEdge(action.event, action.entity);
         return true;
-      case 'openInstructions':
+      case 'openInstallInstructions':
         this.openInstructions(action.event, action.entity);
+        return true;
+      case 'openUpgradeInstructions':
+        this.openInstructions(action.event, action.entity, true);
         return true;
       case 'manageOwnerAndGroups':
         this.manageOwnerAndGroups(action.event, action.entity, config);
@@ -425,7 +428,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     );
   }
 
-  openInstructions($event: Event, edge: EdgeInfo) {
+  openInstructions($event: Event, edge: EdgeInfo, upgradeAvailable: boolean = false) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -435,7 +438,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
         edge,
-        afterAdd: false
+        afterAdd: false,
+        upgradeAvailable
       }
     }).afterClosed().subscribe();
   }

@@ -123,7 +123,7 @@ public class JwtTokenFactoryTest {
         AccessJwtToken accessToken = tokenFactory.createAccessJwtToken(securityUser);
         checkExpirationTime(accessToken, jwtSettings.getTokenExpirationTime());
 
-        SecurityUser parsedSecurityUser = tokenFactory.parseAccessJwtToken(new RawAccessJwtToken(accessToken.getToken()));
+        SecurityUser parsedSecurityUser = tokenFactory.parseAccessJwtToken(accessToken.getToken());
         assertThat(parsedSecurityUser.getId()).isEqualTo(securityUser.getId());
         assertThat(parsedSecurityUser.getEmail()).isEqualTo(securityUser.getEmail());
         assertThat(parsedSecurityUser.getUserPrincipal()).matches(userPrincipal -> {
@@ -152,7 +152,7 @@ public class JwtTokenFactoryTest {
         JwtToken refreshToken = tokenFactory.createRefreshToken(securityUser);
         checkExpirationTime(refreshToken, jwtSettings.getRefreshTokenExpTime());
 
-        SecurityUser parsedSecurityUser = tokenFactory.parseRefreshToken(new RawAccessJwtToken(refreshToken.getToken()));
+        SecurityUser parsedSecurityUser = tokenFactory.parseRefreshToken(refreshToken.getToken());
         assertThat(parsedSecurityUser.getId()).isEqualTo(securityUser.getId());
         assertThat(parsedSecurityUser.getUserPrincipal()).matches(userPrincipal -> {
             return userPrincipal.getType().equals(securityUser.getUserPrincipal().getType())
@@ -176,7 +176,7 @@ public class JwtTokenFactoryTest {
         JwtToken preVerificationToken = tokenFactory.createPreVerificationToken(securityUser, tokenLifetime);
         checkExpirationTime(preVerificationToken, tokenLifetime);
 
-        SecurityUser parsedSecurityUser = tokenFactory.parseAccessJwtToken(new RawAccessJwtToken(preVerificationToken.getToken()));
+        SecurityUser parsedSecurityUser = tokenFactory.parseAccessJwtToken(preVerificationToken.getToken());
         assertThat(parsedSecurityUser.getId()).isEqualTo(securityUser.getId());
         assertThat(parsedSecurityUser.getAuthority()).isEqualTo(Authority.PRE_VERIFICATION_TOKEN);
         assertThat(parsedSecurityUser.getTenantId()).isEqualTo(securityUser.getTenantId());
@@ -215,7 +215,7 @@ public class JwtTokenFactoryTest {
     }
 
     private void checkExpirationTime(JwtToken jwtToken, int tokenLifetime) {
-        Claims claims = tokenFactory.parseTokenClaims(jwtToken).getBody();
+        Claims claims = tokenFactory.parseTokenClaims(jwtToken.getToken()).getBody();
         assertThat(claims.getExpiration()).matches(actualExpirationTime -> {
             Calendar expirationTime = Calendar.getInstance();
             expirationTime.setTime(new Date());

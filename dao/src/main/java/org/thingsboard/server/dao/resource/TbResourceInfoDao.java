@@ -50,6 +50,8 @@ public interface TbResourceInfoDao extends Dao<TbResourceInfo> {
 
     TbResourceInfo findByTenantIdAndKey(TenantId tenantId, ResourceType resourceType, String resourceKey);
 
+    TbResourceInfo findByTenantIdAndCustomerIdAndKey(TenantId tenantId, CustomerId customerId, ResourceType resourceType, String resourceKey);
+
     boolean existsByTenantIdAndResourceTypeAndResourceKey(TenantId tenantId, ResourceType resourceType, String resourceKey);
 
     Set<String> findKeysByTenantIdAndResourceTypeAndResourceKeyPrefix(TenantId tenantId, ResourceType resourceType, String prefix);
@@ -59,4 +61,9 @@ public interface TbResourceInfoDao extends Dao<TbResourceInfo> {
     TbResourceInfo findSystemOrTenantImageByEtag(TenantId tenantId, ResourceType resourceType, String etag);
 
     TbResourceInfo findSystemOrCustomerImageByEtag(TenantId tenantId, CustomerId customerId, ResourceType resourceType, String etag);
+
+    boolean existsByPublicResourceKey(ResourceType resourceType, String publicResourceKey);
+
+    TbResourceInfo findPublicResourceByKey(ResourceType resourceType, String publicResourceKey);
+
 }

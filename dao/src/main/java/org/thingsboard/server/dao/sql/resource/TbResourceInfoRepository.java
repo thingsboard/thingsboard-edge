@@ -80,6 +80,8 @@ public interface TbResourceInfoRepository extends JpaRepository<TbResourceInfoEn
 
     TbResourceInfoEntity findByTenantIdAndResourceTypeAndResourceKey(UUID tenantId, String resourceType, String resourceKey);
 
+    TbResourceInfoEntity findByTenantIdAndCustomerIdAndResourceTypeAndResourceKey(UUID tenantId, UUID customerId, String resourceType, String resourceKey);
+
     boolean existsByTenantIdAndResourceTypeAndResourceKey(UUID tenantId, String resourceType, String resourceKey);
 
     @Query(value = "SELECT r.resource_key FROM resource r WHERE r.tenant_id = :tenantId AND r.resource_type = :resourceType " +
@@ -91,7 +93,7 @@ public interface TbResourceInfoRepository extends JpaRepository<TbResourceInfoEn
     List<TbResourceInfoEntity> findByTenantIdAndEtagAndResourceKeyStartingWith(UUID tenantId, String etag, String query);
 
     @Query(value = "SELECT * FROM resource r WHERE (r.tenant_id = '13814000-1dd2-11b2-8080-808080808080' OR r.tenant_id = :tenantId) " +
-            "AND r.resource_type = :resourceType AND r.etag = :etag LIMIT 1", nativeQuery = true)
+            "AND r.resource_type = :resourceType AND r.etag = :etag ORDER BY created_time, id LIMIT 1", nativeQuery = true)
     TbResourceInfoEntity findSystemOrTenantImageByEtag(@Param("tenantId") UUID tenantId,
                                                        @Param("resourceType") String resourceType,
                                                        @Param("etag") String etag);
@@ -103,5 +105,9 @@ public interface TbResourceInfoRepository extends JpaRepository<TbResourceInfoEn
                                                          @Param("customerId") UUID customerId,
                                                          @Param("resourceType") String resourceType,
                                                          @Param("etag") String etag);
+
+    boolean existsByResourceTypeAndPublicResourceKey(String resourceType, String publicResourceKey);
+
+    TbResourceInfoEntity findByResourceTypeAndPublicResourceKeyAndIsPublicTrue(String resourceType, String publicResourceKey);
 
 }

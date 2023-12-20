@@ -69,6 +69,8 @@ public class TbResourceInfo extends BaseData<TbResourceId> implements HasName, T
     @Length(fieldName = "resourceKey")
     @ApiModelProperty(position = 7, value = "Resource key.", example = "19_1.0", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private String resourceKey;
+    private boolean isPublic;
+    private String publicResourceKey;
     @ApiModelProperty(position = 8, value = "Resource search text.", example = "19_1.0:binaryappdatacontainer", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private String searchText;
 
@@ -98,6 +100,8 @@ public class TbResourceInfo extends BaseData<TbResourceId> implements HasName, T
         this.resourceType = resourceInfo.resourceType;
         this.resourceKey = resourceInfo.resourceKey;
         this.searchText = resourceInfo.searchText;
+        this.isPublic = resourceInfo.isPublic;
+        this.publicResourceKey = resourceInfo.publicResourceKey;
         this.etag = resourceInfo.etag;
         this.fileName = resourceInfo.fileName;
         this.descriptor = resourceInfo.descriptor != null ? resourceInfo.descriptor.deepCopy() : null;
@@ -128,7 +132,16 @@ public class TbResourceInfo extends BaseData<TbResourceId> implements HasName, T
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String getLink() {
         if (resourceType == ResourceType.IMAGE) {
-            return "/api/images/" + ((tenantId == null || !tenantId.isSysTenantId()) ? "tenant" : "system") + "/" + resourceKey; // tenantId is null in case of export to git
+            String type = (tenantId != null && tenantId.isSysTenantId()) ? "system" : "tenant"; // tenantId is null in case of export to git
+            return "/api/images/" + type + "/" + resourceKey;
+        }
+        return null;
+    }
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    public String getPublicLink() {
+        if (resourceType == ResourceType.IMAGE && isPublic) {
+            return "/api/images/public/" + getPublicResourceKey();
         }
         return null;
     }
