@@ -30,14 +30,14 @@
 #
 
 mode: ${MIGRATOR_MODE}  # TENANT_DATA_EXPORT, TENANT_DATA_IMPORT, CASSANDRA_LATEST_KV_EXPORT, POSTGRES_LATEST_KV_IMPORT
-working_directory: ${WORKING_DIRECTORY:/tmp/migrated-tenant}  # where tenant data will be stored or read from
+working_directory: ${WORKING_DIRECTORY:/tb-migrator/data}  # where tenant data will be stored or read from
 
 export:
   tenant_id: ${EXPORTED_TENANT_ID:}
   postgres:
     enabled: ${POSTGRES_EXPORT_ENABLED:true}
     batch_size: ${POSTGRES_EXPORT_BATCH_SIZE:500}
-    delay_between_queries: ${POSTGRES_EXPORT_DELAY_BETWEEN_QUERIES:20}  # in milliseconds
+    delay_between_queries: ${POSTGRES_EXPORT_DELAY_BETWEEN_QUERIES:0}  # in milliseconds
   cassandra:
     enabled: ${CASSANDRA_EXPORT_ENABLED:true}
 
@@ -81,6 +81,7 @@ spring:
       request:
         page-size: ${CASSANDRA_REQUEST_PAGE_SIZE:1000}
         timeout: ${CASSANDRA_REQUEST_TIMEOUT:10s}
+        consistency: ${CASSANDRA_CONSISTENCY_LEVEL:local_quorum}
       connection:
         connect-timeout: ${CASSANDRA_REQUEST_TIMEOUT:10s}
         init-query-timeout: ${CASSANDRA_REQUEST_TIMEOUT:10s}

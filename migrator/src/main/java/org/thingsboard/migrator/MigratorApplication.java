@@ -33,8 +33,8 @@ package org.thingsboard.migrator;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.thingsboard.migrator.utils.Storage;
 
 import java.util.List;
 
@@ -46,12 +46,12 @@ public class MigratorApplication {
     }
 
     @Bean
-    public ApplicationRunner runner(List<MigrationService> services, ConfigurableApplicationContext ctx) {
+    public ApplicationRunner runner(List<MigrationService> migrationServices, Storage storage) {
         return args -> {
-            for (MigrationService service : services) {
-                service.run();
+            for (MigrationService migrationService : migrationServices) {
+                migrationService.run();
             }
-            ctx.close();
+            storage.close();
         };
     }
 

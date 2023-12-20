@@ -43,7 +43,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -103,23 +102,6 @@ public class Storage {
         writer.write(serialized + System.lineSeparator());
     }
 
-    @PreDestroy
-    private void archiveAll() throws IOException {
-        if (createdFiles.isEmpty()) {
-            return;
-        }
-        log.info("Archiving {} files", createdFiles.size());
-        TarArchiveOutputStream tarArchive = new TarArchiveOutputStream(new FileOutputStream(Path.of(workingDir, FINAL_ARCHIVE_FILE).toFile()));
-        for (Path file : createdFiles) {
-            TarArchiveEntry archiveEntry = new TarArchiveEntry(file, file.getFileName().toString());
-            tarArchive.putArchiveEntry(archiveEntry);
-            Files.copy(file, tarArchive);
-            tarArchive.closeArchiveEntry();
-            Files.delete(file);
-        }
-        tarArchive.close();
-    }
-
     public void readAndProcess(String file, Consumer<Map<String, Object>> processor) throws IOException {
         try (BufferedReader reader = newReader(file)) {
             reader.lines().forEach(line -> {
@@ -161,4 +143,20 @@ public class Storage {
         return Path.of(workingDir, file + ".gz");
     }
 
+    @SneakyThrows
+    public void close() {
+        if (createdFiles.isEmpty()) {
+            return;
+        }
+        log.info("Archiving {} files", createdFiles.size());
+        TarArchiveOutputStream tarArchive = new TarArchiveOutputStream(new FileOutputStream(Path.of(workingDir, FINAL_ARCHIVE_FILE).toFile()));
+        for (Path file : createdFiles) {
+            TarArchiveEntry archiveEntry = new TarArchiveEntry(file, file.getFileName().toString());
+            tarArchive.putArchiveEntry(archiveEntry);
+            Files.copy(file, tarArchive);
+            tarArchive.closeArchiveEntry();
+            Files.delete(file);
+        }
+        tarArchive.close();
+    }
 }

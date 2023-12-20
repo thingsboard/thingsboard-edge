@@ -73,7 +73,7 @@ public class CassandraService {
         try {
             return cqlOperations.query(new CachedPreparedStatementCreator(query), new ArgumentPreparedStatementBinder(args), resultSetExtractor);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to execute Cassandra query: " + query + " with args " + Arrays.toString(args));
+            throw new RuntimeException("Failed to execute Cassandra query: " + query + " with args " + Arrays.toString(args), e);
         }
     }
 

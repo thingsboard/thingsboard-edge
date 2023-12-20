@@ -69,14 +69,9 @@ public abstract class MigrationService {
     }
 
     public final void run() throws Exception {
+        // TODO: more logs on tenant
         log.info("Starting...");
-        try {
-            start();
-        } catch (Exception e) {
-            log.error("Failure", e);
-            System.exit(1);
-            return;
-        }
+        start();
 
         executor.shutdown();
         executor.awaitTermination(Integer.MAX_VALUE, TimeUnit.SECONDS);
