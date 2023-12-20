@@ -74,6 +74,7 @@
         <commons-lang3.version>3.4</commons-lang3.version>
         <commons-codec.version>1.15</commons-codec.version>
         <commons-io.version>2.11.0</commons-io.version>
+        <commons-compress.version>1.21</commons-compress.version>
         <commons-logging.version>1.2</commons-logging.version>
         <commons-csv.version>1.4</commons-csv.version>
         <apache-httpclient.version>4.5.13</apache-httpclient.version>
@@ -1511,6 +1512,11 @@
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
                 <version>${commons-io.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>${commons-compress.version}</version>
             </dependency>
             <dependency>
                 <groupId>commons-codec</groupId>

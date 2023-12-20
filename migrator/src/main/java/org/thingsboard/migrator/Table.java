@@ -85,7 +85,7 @@ public enum Table {
     WIDGET_TYPE("widget_type"),
     WIDGETS_BUNDLE_WIDGET("widgets_bundle_widget", Pair.of(
             "widgets_bundle_id", of(WIDGETS_BUNDLE)
-    )),
+    ), of("widget_type_id")),
     DASHBOARD("dashboard"),
     DEVICE("device"),
     DEVICE_CREDENTIALS("device_credentials", Pair.of(

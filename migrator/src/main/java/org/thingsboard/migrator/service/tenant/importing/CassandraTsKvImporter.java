@@ -28,16 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.migrator.service.ts_kv;
+package org.thingsboard.migrator.service.tenant.importing;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
-import org.thingsboard.migrator.BaseMigrationService;
-import org.thingsboard.migrator.config.Modes;
+import org.thingsboard.migrator.MigrationService;
+import org.thingsboard.migrator.service.tenant.exporting.CassandraTsKvExporter;
 import org.thingsboard.migrator.utils.CassandraService;
 import org.thingsboard.migrator.utils.Storage;
 
@@ -49,13 +50,14 @@ import java.util.WeakHashMap;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
-import static org.thingsboard.migrator.service.ts_kv.CassandraTsKvExporter.TS_KV_PARTITIONS_TABLE;
-import static org.thingsboard.migrator.service.ts_kv.CassandraTsKvExporter.TS_KV_TABLE;
+import static org.thingsboard.migrator.service.tenant.exporting.CassandraTsKvExporter.TS_KV_PARTITIONS_TABLE;
+import static org.thingsboard.migrator.service.tenant.exporting.CassandraTsKvExporter.TS_KV_TABLE;
 
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "mode", havingValue = Modes.CASSANDRA_TENANT_DATA_IMPORT)
-public class CassandraTsKvImporter extends BaseMigrationService {
+@ConditionalOnExpression("'${mode}' == 'TENANT_DATA_IMPORT' and ${import.cassandra.enabled} == true")
+@Order(2)
+public class CassandraTsKvImporter extends MigrationService {
 
     private final Storage storage;
     private final CassandraService cassandraService;
@@ -67,12 +69,11 @@ public class CassandraTsKvImporter extends BaseMigrationService {
 
     @Override
     protected void start() throws Exception {
-        storage.readAndProcess(CassandraTsKvExporter.TS_KV_FILE, true, row -> {
+        storage.readAndProcess(CassandraTsKvExporter.TS_KV_FILE, row -> {
             try {
                 saveTsKv(row);
             } catch (Exception e) {
-                System.err.println("Failed to save row: " + row);
-                throw e;
+                throw new RuntimeException("Failed to save row: " + row, e);
             }
         });
     }

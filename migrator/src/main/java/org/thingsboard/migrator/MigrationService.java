@@ -31,44 +31,57 @@
 package org.thingsboard.migrator;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
+import org.thingsboard.migrator.utils.Storage;
 
-import java.time.LocalTime;
+import javax.annotation.PostConstruct;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class BaseMigrationService implements ApplicationRunner {
+public abstract class MigrationService {
 
-    @Autowired
+    public final Logger log = LoggerFactory.getLogger(getClass());
+
     protected ThreadPoolExecutor executor;
+    @Autowired
+    protected Storage storage;
 
     @Value("${stats_print_interval}")
     private int statsPrintInterval;
+    @Value("${parallelism_level}")
+    private int parallelismLevel;
 
     protected final ConcurrentMap<Object, AtomicInteger> processed = new ConcurrentHashMap<>();
 
-    @Override
-    public final void run(ApplicationArguments args) throws Exception {
-        System.out.println("Starting " + getClass().getSimpleName());
+    @PostConstruct
+    private void init() {
+        executor = new ThreadPoolExecutor(parallelismLevel, parallelismLevel,
+                0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(5000),
+                new ThreadPoolExecutor.CallerRunsPolicy());
+    }
+
+    public final void run() throws Exception {
+        log.info("Starting...");
         try {
             start();
         } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(0);
+            log.error("Failure", e);
+            System.exit(1);
             return;
         }
+
         executor.shutdown();
         executor.awaitTermination(Integer.MAX_VALUE, TimeUnit.SECONDS);
         afterFinished();
-        System.out.println("Finished successfully!");
-        System.exit(0);
+        log.info("Finished successfully!");
     }
 
     protected abstract void start() throws Exception;
@@ -89,8 +102,7 @@ public abstract class BaseMigrationService implements ApplicationRunner {
 
     protected void printStats(Object key, int n, Object lastData) {
         if (n > 0) {
-            System.out.println("[" + LocalTime.now() + "] [" + key + "] Processed: " + n +
-                    (lastData != null ? ". Last: " + StringUtils.abbreviate(lastData.toString(), 100) : ""));
+            log.info("[{}] Processed: {}", key, n + (lastData != null ? ". Last: " + StringUtils.abbreviate(lastData.toString(), 100) : ""));
         }
     }
 

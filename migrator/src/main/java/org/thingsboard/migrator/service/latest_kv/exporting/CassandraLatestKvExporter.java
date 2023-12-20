@@ -28,16 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.migrator.service.latest_kv;
+package org.thingsboard.migrator.service.latest_kv.exporting;
 
 import com.datastax.oss.driver.api.core.cql.ColumnDefinition;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Service;
-import org.thingsboard.migrator.BaseMigrationService;
-import org.thingsboard.migrator.config.Modes;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.stereotype.Component;
+import org.thingsboard.migrator.MigrationService;
 import org.thingsboard.migrator.utils.CassandraService;
 import org.thingsboard.migrator.utils.Storage;
 
@@ -45,21 +44,21 @@ import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 
-@Service
+@Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "mode", havingValue = Modes.CASSANDRA_LATEST_KV_EXPORT)
-public class CassandraLatestKvExporter extends BaseMigrationService {
+@ConditionalOnExpression("'${mode}' == 'CASSANDRA_LATEST_KV_EXPORT'")
+public class CassandraLatestKvExporter extends MigrationService {
 
     private final CassandraService cassandraService;
     private final Storage storage;
 
     private static final String LATEST_KV_TABLE = "ts_kv_latest_cf";
-    public static final String LATEST_KV_FILE = "latest_kv.gz";
+    public static final String LATEST_KV_FILE = "latest_kv";
 
     @Override
     protected void start() throws Exception {
         storage.newFile(LATEST_KV_FILE);
-        try (Writer writer = storage.newWriter(LATEST_KV_FILE, true)) {
+        try (Writer writer = storage.newWriter(LATEST_KV_FILE)) {
             String query = "SELECT * FROM " + LATEST_KV_TABLE;
             ResultSet rows = cassandraService.query(query);
             for (Row row : rows) {

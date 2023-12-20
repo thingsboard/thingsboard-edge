@@ -34,12 +34,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -50,7 +54,8 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -58,12 +63,15 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 @Component
+@Slf4j
 public class Storage {
 
     @Value("${working_directory}")
     private String workingDir;
+    private static final String FINAL_ARCHIVE_FILE = "data.tar";
 
     private final ObjectMapper jsonMapper = new ObjectMapper();
+    private final List<Path> createdFiles = new ArrayList<>();
 
     @PostConstruct
     private void init() throws IOException {
@@ -74,15 +82,13 @@ public class Storage {
         Path file = getPath(name);
         Files.deleteIfExists(file);
         Files.createFile(file);
+        createdFiles.add(file);
     }
 
-    public Writer newWriter(String file, boolean gzip) throws IOException {
-        if (gzip) {
-            FileOutputStream fileOutputStream = new FileOutputStream(getPath(file).toFile());
-            return new OutputStreamWriter(new GZIPOutputStream(fileOutputStream), StandardCharsets.UTF_8);
-        } else {
-            return Files.newBufferedWriter(getPath(file), StandardOpenOption.APPEND);
-        }
+    @SneakyThrows
+    public Writer newWriter(String file) {
+        FileOutputStream fileOutputStream = new FileOutputStream(getPath(file).toFile());
+        return new OutputStreamWriter(new GZIPOutputStream(fileOutputStream), StandardCharsets.UTF_8);
     }
 
     @SneakyThrows
@@ -97,9 +103,25 @@ public class Storage {
         writer.write(serialized + System.lineSeparator());
     }
 
+    @PreDestroy
+    private void archiveAll() throws IOException {
+        if (createdFiles.isEmpty()) {
+            return;
+        }
+        log.info("Archiving {} files", createdFiles.size());
+        TarArchiveOutputStream tarArchive = new TarArchiveOutputStream(new FileOutputStream(Path.of(workingDir, FINAL_ARCHIVE_FILE).toFile()));
+        for (Path file : createdFiles) {
+            TarArchiveEntry archiveEntry = new TarArchiveEntry(file, file.getFileName().toString());
+            tarArchive.putArchiveEntry(archiveEntry);
+            Files.copy(file, tarArchive);
+            tarArchive.closeArchiveEntry();
+            Files.delete(file);
+        }
+        tarArchive.close();
+    }
 
-    public void readAndProcess(String file, boolean gzip, Consumer<Map<String, Object>> processor) throws IOException {
-        try (BufferedReader reader = newReader(file, gzip)) {
+    public void readAndProcess(String file, Consumer<Map<String, Object>> processor) throws IOException {
+        try (BufferedReader reader = newReader(file)) {
             reader.lines().forEach(line -> {
                 if (StringUtils.isNotBlank(line)) {
                     Map<String, Object> data;
@@ -125,13 +147,9 @@ public class Storage {
         }
     }
 
-    private BufferedReader newReader(String file, boolean gzip) throws IOException {
-        if (gzip) {
-            FileInputStream fileInputStream = new FileInputStream(getPath(file).toFile());
-            return new BufferedReader(new InputStreamReader(new GZIPInputStream(fileInputStream)));
-        } else {
-            return Files.newBufferedReader(getPath(file));
-        }
+    private BufferedReader newReader(String file) throws IOException {
+        FileInputStream fileInputStream = new FileInputStream(getPath(file).toFile());
+        return new BufferedReader(new InputStreamReader(new GZIPInputStream(fileInputStream)));
     }
 
     @SneakyThrows
@@ -140,7 +158,7 @@ public class Storage {
     }
 
     private Path getPath(String file) {
-        return Path.of(workingDir, file);
+        return Path.of(workingDir, file + ".gz");
     }
 
 }

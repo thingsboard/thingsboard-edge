@@ -33,14 +33,17 @@ package org.thingsboard.migrator.config;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.cassandra.CassandraAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.data.cassandra.CassandraDataAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
+import org.thingsboard.migrator.service.latest_kv.exporting.CassandraLatestKvExporter;
+import org.thingsboard.migrator.service.tenant.exporting.CassandraTsKvExporter;
 
-/*
-* Disables Cassandra auto-configuration if mode is related to Postgres
-* */
+/**
+ * Disables Cassandra autoconfiguration if Cassandra export/import is disabled
+ * */
 @Configuration
 @EnableAutoConfiguration(exclude = {CassandraDataAutoConfiguration.class, CassandraAutoConfiguration.class})
-@ConditionalOnExpression("'${mode}'.startsWith('POSTGRES')")
-public class Config {
+@ConditionalOnExpression("('${mode}' == 'TENANT_DATA_EXPORT' && ${export.cassandra.enabled} == false) || ('${mode}' == 'TENANT_DATA_IMPORT' and ${import.cassandra.enabled} == false) || ('${mode}' == 'CASSANDRA_LATEST_KV_EXPORT')")
+public class CassandraConfig {
 }

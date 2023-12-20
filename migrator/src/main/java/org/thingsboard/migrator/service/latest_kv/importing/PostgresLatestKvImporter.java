@@ -28,17 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.migrator.service.latest_kv;
+package org.thingsboard.migrator.service.latest_kv.importing;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.thingsboard.migrator.BaseMigrationService;
-import org.thingsboard.migrator.config.Modes;
+import org.thingsboard.migrator.MigrationService;
+import org.thingsboard.migrator.service.latest_kv.exporting.CassandraLatestKvExporter;
 import org.thingsboard.migrator.utils.Storage;
 
 import java.io.IOException;
@@ -48,28 +49,30 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
-@Service
+@Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "mode", havingValue = Modes.POSTGRES_LATEST_KV_IMPORT)
-public class PostgresLatestKvImporter extends BaseMigrationService {
+@ConditionalOnExpression("'${mode}' == 'POSTGRES_LATEST_KV_IMPORT'")
+@Slf4j
+public class PostgresLatestKvImporter extends MigrationService {
 
     private final JdbcTemplate jdbcTemplate;
     private final TransactionTemplate transactionTemplate;
     private final Storage storage;
 
-    @Value("${import.sql.delay_between_queries}")
+    @Value("${import.postgres.delay_between_queries}")
     private int delayBetweenQueries;
-    @Value("${import.sql.ignore_conflicts}")
+    @Value("${import.postgres.ignore_conflicts}")
     private boolean ignoreConflicts;
 
     private static final String LATEST_KV_TABLE = "ts_kv_latest";
+
     private Map<String, String> columns;
 
     @Override
     protected void start() throws Exception {
         transactionTemplate.executeWithoutResult(status -> {
             try {
-                storage.readAndProcess(CassandraLatestKvExporter.LATEST_KV_FILE, true, row -> {
+                storage.readAndProcess(CassandraLatestKvExporter.LATEST_KV_FILE, row -> {
                     saveRow(row);
                 });
             } catch (IOException e) {
@@ -122,7 +125,7 @@ public class PostgresLatestKvImporter extends BaseMigrationService {
         if (keyId == null) {
             jdbcTemplate.update("INSERT INTO ts_kv_dictionary (key) VALUES (?)", keyName);
             keyId = jdbcTemplate.queryForObject("SELECT key_id FROM ts_kv_dictionary WHERE key = ?", Integer.class, keyName);
-            System.err.println("Inserted key '" + keyName + "' into ts_kv_dictionary (new key id: " + keyId + ")");
+            log.info("Inserted key '{}' into ts_kv_dictionary (new key id: {})", keyName, keyId);
         }
         row.put("key", keyId);
 

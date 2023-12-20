@@ -30,14 +30,29 @@
  */
 package org.thingsboard.migrator;
 
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
+
+import java.util.List;
 
 @SpringBootApplication
 public class MigratorApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(MigratorApplication.class, args);
+    }
+
+    @Bean
+    public ApplicationRunner runner(List<MigrationService> services, ConfigurableApplicationContext ctx) {
+        return args -> {
+            for (MigrationService service : services) {
+                service.run();
+            }
+            ctx.close();
+        };
     }
 
 }

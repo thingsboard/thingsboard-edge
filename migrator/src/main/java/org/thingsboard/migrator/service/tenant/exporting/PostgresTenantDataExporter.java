@@ -28,23 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.migrator.service.entities;
+package org.thingsboard.migrator.service.tenant.exporting;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.thingsboard.migrator.BaseMigrationService;
+import org.thingsboard.migrator.MigrationService;
 import org.thingsboard.migrator.Table;
-import org.thingsboard.migrator.config.Modes;
 import org.thingsboard.migrator.utils.SqlPartitionService;
-import org.thingsboard.migrator.utils.Storage;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -56,23 +56,25 @@ import static java.lang.String.format;
 
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "mode", havingValue = Modes.POSTGRES_TENANT_DATA_EXPORT)
-public class PostgresTenantDataExporter extends BaseMigrationService {
+@ConditionalOnExpression("'${mode}' == 'TENANT_DATA_EXPORT' and ${export.postgres.enabled} == true")
+@Order(1)
+public class PostgresTenantDataExporter extends MigrationService {
 
     private final JdbcTemplate jdbcTemplate;
-    private final Storage storage;
     private final SqlPartitionService partitionService;
 
     @Value("${export.tenant_id}")
     private UUID exportedTenantId;
-    @Value("${export.sql.batch_size}")
+    @Value("${export.postgres.batch_size}")
     private int batchSize;
-    @Value("${export.sql.delay_between_queries}")
+    @Value("${export.postgres.delay_between_queries}")
     private int delayBetweenQueries;
     @Value("${skipped_tables}")
     private Set<Table> skippedTables;
 
     private static final Set<Table> relatedTables = Set.of(Table.RELATION, Table.ATTRIBUTE, Table.LATEST_KV);
+
+    private final Map<Table, Writer> writers = new HashMap<>();
 
     @Override
     protected void start() throws Exception {
@@ -87,7 +89,11 @@ public class PostgresTenantDataExporter extends BaseMigrationService {
             finishedProcessing(table.getName());
         }
         for (Table relatedTable : relatedTables) {
-            finishedProcessing(relatedTable);
+            finishedProcessing(relatedTable.getName());
+        }
+
+        for (Writer writer : writers.values()) {
+            writer.close();
         }
     }
 
@@ -131,43 +137,42 @@ public class PostgresTenantDataExporter extends BaseMigrationService {
         queryAndSave(table, query);
     }
 
-    private void queryAndSave(Table table, String query) throws IOException {
-        try (Writer writer = storage.newWriter(table.getName(), false)) {
-            Consumer<Map<String, Object>> processor = row -> {
-                try {
-                    storage.addToFile(writer, row);
-                    reportProcessed(table.getName(), row);
-                    for (Table relatedTable : relatedTables) {
-                        if (skippedTables.contains(relatedTable)) {
-                            continue;
-                        }
-                        if (!relatedTable.getReference().getValue().contains(table)) {
-                            continue;
-                        }
-                        String relatedQuery;
-                        if (relatedTable.getCustomSelect() == null) {
-                            relatedQuery = format("SELECT %s.* FROM %s WHERE ", relatedTable.getName(), relatedTable.getName());
-                        } else {
-                            relatedQuery = relatedTable.getCustomSelect().apply(null);
-                        }
-                        relatedQuery = format(insertAfter(relatedQuery, "SELECT", " '%s' as table_name, "), table.toString());
-                        relatedQuery += format("%s = '%s'", relatedTable.getReference().getKey(), row.get("id"));
-                        relatedQuery += " ORDER BY " + String.join(", ", relatedTable.getSortColumns());
-                        queryAndSave(relatedTable, relatedQuery);
+    private void queryAndSave(Table table, String query) {
+        Writer writer = writers.computeIfAbsent(table, k -> storage.newWriter(table.getName()));
+        Consumer<Map<String, Object>> processor = row -> {
+            try {
+                storage.addToFile(writer, row);
+                reportProcessed(table.getName(), row);
+                for (Table relatedTable : relatedTables) {
+                    if (skippedTables.contains(relatedTable)) {
+                        continue;
                     }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    if (!relatedTable.getReference().getValue().contains(table)) {
+                        continue;
+                    }
+                    String relatedQuery;
+                    if (relatedTable.getCustomSelect() == null) {
+                        relatedQuery = format("SELECT %s.* FROM %s WHERE ", relatedTable.getName(), relatedTable.getName());
+                    } else {
+                        relatedQuery = relatedTable.getCustomSelect().apply(null);
+                    }
+                    relatedQuery = format(insertAfter(relatedQuery, "SELECT", " '%s' as table_name, "), table.toString());
+                    relatedQuery += format("%s = '%s'", relatedTable.getReference().getKey(), row.get("id"));
+                    relatedQuery += " ORDER BY " + String.join(", ", relatedTable.getSortColumns());
+                    queryAndSave(relatedTable, relatedQuery);
                 }
-            };
-            if (!table.isPartitioned()) {
-                query(query, processor);
-            } else {
-                partitionService.getPartitions(table).forEach((partitionStart, partitionEnd) -> {
-                    String tsFilter = format(" %s.%s >= %s AND %s.%s < %s AND ", table.getName(), table.getPartitionColumn(),
-                            partitionStart, table.getName(), table.getPartitionColumn(), partitionEnd);
-                    query(insertAfter(query, "WHERE", tsFilter), processor);
-                });
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
+        };
+        if (!table.isPartitioned()) {
+            query(query, processor);
+        } else {
+            partitionService.getPartitions(table).forEach((partitionStart, partitionEnd) -> {
+                String tsFilter = format(" %s.%s >= %s AND %s.%s < %s AND ", table.getName(), table.getPartitionColumn(),
+                        partitionStart, table.getName(), table.getPartitionColumn(), partitionEnd);
+                query(insertAfter(query, "WHERE", tsFilter), processor);
+            });
         }
     }
 

@@ -28,17 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.migrator.service.ts_kv;
+package org.thingsboard.migrator.service.tenant.exporting;
 
 import com.datastax.oss.driver.api.core.cql.ColumnDefinition;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
-import org.thingsboard.migrator.BaseMigrationService;
+import org.thingsboard.migrator.MigrationService;
 import org.thingsboard.migrator.Table;
-import org.thingsboard.migrator.config.Modes;
 import org.thingsboard.migrator.utils.CassandraService;
 import org.thingsboard.migrator.utils.Storage;
 
@@ -50,26 +50,31 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "mode", havingValue = Modes.CASSANDRA_TENANT_DATA_EXPORT)
-public class CassandraTsKvExporter extends BaseMigrationService {
+@ConditionalOnExpression("'${mode}' == 'TENANT_DATA_EXPORT' and ${export.cassandra.enabled} == true")
+@Order(2)
+public class CassandraTsKvExporter extends MigrationService {
 
     private final Storage storage;
     private final CassandraService cassandraService;
 
     public static final String TS_KV_TABLE = "ts_kv_cf";
     public static final String TS_KV_PARTITIONS_TABLE = "ts_kv_partitions_cf";
-    public static final String TS_KV_FILE = "ts_kv.gz";
+    public static final String TS_KV_FILE = "ts_kv";
 
     private Writer writer;
 
     @Override
     protected void start() throws Exception {
         storage.newFile(TS_KV_FILE);
-        writer = storage.newWriter(TS_KV_FILE, true);
+        writer = storage.newWriter(TS_KV_FILE);
 
-        storage.readAndProcess(Table.LATEST_KV.getName(), false, latestKvRow -> {
+        storage.readAndProcess(Table.LATEST_KV.getName(), latestKvRow -> {
             executor.submit(() -> {
-                getTsHistoryAndSave(latestKvRow);
+                try {
+                    getTsHistoryAndSave(latestKvRow);
+                } catch (Exception e) {
+                    log.error("Failed to retrieve timeseries history for {}", latestKvRow, e);
+                }
             });
         });
     }

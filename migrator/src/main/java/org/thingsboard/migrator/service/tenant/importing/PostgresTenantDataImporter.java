@@ -28,19 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.migrator.service.entities;
+package org.thingsboard.migrator.service.tenant.importing;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.thingsboard.migrator.BaseMigrationService;
+import org.thingsboard.migrator.MigrationService;
 import org.thingsboard.migrator.Table;
-import org.thingsboard.migrator.config.Modes;
 import org.thingsboard.migrator.utils.SqlPartitionService;
 import org.thingsboard.migrator.utils.Storage;
 
@@ -56,8 +57,10 @@ import static java.lang.String.format;
 
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "mode", havingValue = Modes.POSTGRES_TENANT_DATA_IMPORT)
-public class PostgresTenantDataImporter extends BaseMigrationService {
+@ConditionalOnExpression("'${mode}' == 'TENANT_DATA_IMPORT' and ${import.postgres.enabled} == true")
+@Order(1)
+@Slf4j
+public class PostgresTenantDataImporter extends MigrationService {
 
     private final JdbcTemplate jdbcTemplate;
     private final TransactionTemplate transactionTemplate;
@@ -66,16 +69,16 @@ public class PostgresTenantDataImporter extends BaseMigrationService {
 
     @Value("${skipped_tables}")
     private Set<Table> skippedTables;
-    @Value("${import.sql.delay_between_queries}")
+    @Value("${import.postgres.delay_between_queries}")
     private int delayBetweenQueries;
 
-    @Value("${import.sql.enable_partition_creation}")
+    @Value("${import.postgres.enable_partition_creation}")
     private boolean enablePartitionCreation;
-    @Value("${import.sql.update_tenant_profile}")
+    @Value("${import.postgres.update_tenant_profile}")
     private boolean updateTenantProfile;
-    @Value("${import.sql.update_ts_kv_dictionary}")
+    @Value("${import.postgres.update_ts_kv_dictionary}")
     private boolean updateTsKvDictionary;
-    @Value("${import.sql.resolve_unknown_roles}")
+    @Value("${import.postgres.resolve_unknown_roles}")
     private boolean resolveUnknownRoles;
 
     private final Map<Table, Map<String, String>> columns = new HashMap<>();
@@ -94,7 +97,7 @@ public class PostgresTenantDataImporter extends BaseMigrationService {
 
     @SneakyThrows
     private void importTableData(Table table) {
-        storage.readAndProcess(table.getName(), false, row -> {
+        storage.readAndProcess(table.getName(), row -> {
             saveRow(table, row);
         });
         finishedProcessing(table.getName());
@@ -164,7 +167,7 @@ public class PostgresTenantDataImporter extends BaseMigrationService {
                     throw new IllegalArgumentException("Role with id " + roleId + " not found");
                 }
                 // happens when system role is used (e.g. 'Tenant Administrators')
-                System.out.println("Role for id " + roleId + " does not exist. Finding by name " + roleName);
+                log.info("Role for id {} does not exist. Finding by name {}", roleId, roleName);
                 Map<String, Object> role = jdbcTemplate.queryForList("SELECT * FROM role WHERE name = ?", roleName).stream()
                         .findFirst().orElse(null);
                 if (role == null) {
@@ -182,7 +185,7 @@ public class PostgresTenantDataImporter extends BaseMigrationService {
         row.keySet().removeIf(column -> {
             boolean unknownColumn = !existingColumns.containsKey(column);
             if (unknownColumn) {
-                System.out.println("Unknown column " + column + " for table " + table.getName() + ". Skipping");
+                log.warn("Skipping unknown column {} for table {}", column, table.getName());
             }
             return unknownColumn;
         });
