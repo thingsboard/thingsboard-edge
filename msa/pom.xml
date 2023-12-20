@@ -67,6 +67,7 @@
         <!-- PE -->
         <module>integration</module>
         <module>web-report</module>
+        <module>migrator</module>
     </modules>
 
     <profiles>
