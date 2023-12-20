@@ -84,7 +84,7 @@ export class RecipientNotificationDialogComponent extends
 
   entityType = EntityType;
   isAdd = true;
-  dialogTitle = 'notification.edit-notification-recipients-group';
+  dialogTitle = 'notification.add-notification-recipients-group';
 
   private readonly destroy$ = new Subject<void>();
   private userFilterFormControls: string[];
@@ -99,7 +99,9 @@ export class RecipientNotificationDialogComponent extends
 
     if (isDefinedAndNotNull(data.isAdd)) {
       this.isAdd = data.isAdd;
-      this.dialogTitle = 'notification.add-notification-recipients-group';
+      if (!this.isAdd) {
+        this.dialogTitle = 'notification.edit-notification-recipients-group';
+      }
     }
 
     this.targetNotificationForm = this.fb.group({

@@ -30,7 +30,7 @@
 ///
 
 import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
-import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
@@ -46,6 +46,9 @@ import { Operation } from '@shared/models/security.models';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
 import { FloatLabelType, MatFormFieldAppearance, SubscriptSizing } from '@angular/material/form-field';
+import { getEntityDetailsPageURL } from '@core/utils';
+import { EntityType } from '@shared/models/entity-type.models';
+import { AuthUser } from '@shared/models/user.model';
 
 @Component({
   selector: 'tb-dashboard-autocomplete',
@@ -113,12 +116,23 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
 
   searchText = '';
 
+  dashboardURL: string;
+
+  useDashboardLink = true;
+
+  private authUser: AuthUser;
+
   private propagateChange = (v: any) => { };
 
   constructor(private store: Store<AppState>,
               public translate: TranslateService,
               private dashboardService: DashboardService,
               private fb: UntypedFormBuilder) {
+    this.authUser = getCurrentAuthUser(this.store);
+    if (this.authUser.authority === Authority.SYS_ADMIN) {
+      this.useDashboardLink = false;
+    }
+
     this.selectDashboardFormGroup = this.fb.group({
       dashboard: [null]
     });
@@ -189,6 +203,9 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
         this.dashboardService.getDashboardInfo(value, {ignoreLoading: true, ignoreErrors: true}).subscribe(
           (dashboard) => {
             this.modelValue = this.useIdValue ? dashboard.id.id : dashboard;
+            if (this.useDashboardLink) {
+              this.dashboardURL = getEntityDetailsPageURL(this.modelValue as string, EntityType.DASHBOARD);
+            }
             this.selectDashboardFormGroup.get('dashboard').patchValue(dashboard, {emitEvent: false});
           }
         );

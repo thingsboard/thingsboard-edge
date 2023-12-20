@@ -30,7 +30,9 @@
  */
 package org.thingsboard.rule.engine.transform;
 
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -50,8 +52,10 @@ import java.util.List;
         name = "duplicate to related",
         configClazz = TbDuplicateMsgToRelatedNodeConfiguration.class,
         nodeDescription = "Duplicates message to related entities fetched by relation query",
-        nodeDetails = "Related Entities found using configured relation direction and Relation Type. " +
-                "For each found related entity new message is created with related entity as originator and message parameters copied from original message.",
+        nodeDetails = "Related entities found using configured relation direction and Relation type. " +
+                "For each found related entity new message is created with related entity as originator" +
+                " and message parameters copied from original message.<br><br>" +
+                "Output connections: <code>Success</code>, <code>Failure</code>.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbTransformationNodeDuplicateToRelatedConfig",
         icon = "call_split"
@@ -62,8 +66,7 @@ public class TbDuplicateMsgToRelatedNode extends TbAbstractDuplicateMsgNode<TbDu
     protected TbDuplicateMsgToRelatedNodeConfiguration loadNodeConfiguration(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         var config = TbNodeUtils.convert(configuration, TbDuplicateMsgToRelatedNodeConfiguration.class);
         if (config.getRelationsQuery() == null) {
-            log.error("TbDuplicateMsgToRelatedNode configuration should have relations query");
-            throw new IllegalArgumentException("Wrong configuration for TbDuplicateMsgToRelatedNode: relation query is missing.");
+            throw new IllegalArgumentException("Relation query should be specified!");
         }
         return config;
     }
@@ -75,7 +78,13 @@ public class TbDuplicateMsgToRelatedNode extends TbAbstractDuplicateMsgNode<TbDu
 
     @Override
     protected ListenableFuture<List<EntityId>> getNewOriginators(TbContext ctx, EntityId original) {
-        return EntitiesRelatedEntityIdAsyncLoader.findEntitiesAsync(ctx, original, config.getRelationsQuery());
+        var newOriginatorsFuture = EntitiesRelatedEntityIdAsyncLoader.findEntitiesAsync(ctx, original, config.getRelationsQuery());
+        return Futures.transform(newOriginatorsFuture, newOriginators -> {
+            if (newOriginators == null || newOriginators.isEmpty()) {
+                throw new RuntimeException("No related entities were found!");
+            }
+            return newOriginators;
+        }, MoreExecutors.directExecutor());
     }
 
 }

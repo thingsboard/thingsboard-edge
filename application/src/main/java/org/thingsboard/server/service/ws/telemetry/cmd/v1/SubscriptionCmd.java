@@ -47,8 +47,6 @@ public abstract class SubscriptionCmd implements TelemetryPluginCmd {
     private String scope;
     private boolean unsubscribe;
 
-    public abstract TelemetryFeature getType();
-
     @Override
     public String toString() {
         return "SubscriptionCmd [entityType=" + entityType  + ", entityId=" + entityId + ", tags=" + keys + ", unsubscribe=" + unsubscribe + "]";

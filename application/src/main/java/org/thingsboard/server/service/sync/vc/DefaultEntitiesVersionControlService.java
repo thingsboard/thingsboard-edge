@@ -276,9 +276,9 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             } else {
                 if (config.isAllEntities()) {
                     //For Entity Types that belong to Tenant Level Only.
-                    DaoUtil.processInBatches(pageLink -> exportableEntitiesService.findEntitiesByTenantId(ctx.getTenantId(), entityType, pageLink)
-                            , 100, entity -> {
-                                saveEntityData(ctx, entity.getId());
+                    DaoUtil.processInBatches(pageLink -> exportableEntitiesService.findEntitiesIdsByTenantId(ctx.getTenantId(), entityType, pageLink)
+                            , 100, entityId -> {
+                                saveEntityData(ctx, entityId);
                             });
                 } else {
                     for (UUID entityId : config.getEntityIds()) {

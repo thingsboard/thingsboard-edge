@@ -1,0 +1,80 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<ng-container *ngIf="simpleList; else complexEntityReferences">
+  <ng-container *ngTemplateOutlet="referencesList; context:{entriesList: referencedEntitiesList, showDetailsLink: true}"></ng-container>
+</ng-container>
+<ng-template #complexEntityReferences>
+  <ng-container *ngIf="contentReady; else loading">
+    <ul class="tb-references">
+      <ng-container *ngFor="let entry of referencedEntitiesEntries">
+        <li class="tb-entities-container tb-primary-fill" *ngIf="isSystem(entry[0]); else holderEntities">
+          <div class="tb-entities-title">{{ 'image.system-entities' | translate }}</div>
+          <ng-container *ngTemplateOutlet="referencesList; context:{entriesList: entry[1].entities, showDetailsLink: entry[1].currentHolder}"></ng-container>
+        </li>
+        <ng-template #holderEntities>
+          <li class="tb-entities-container tb-primary-fill">
+            <div class="tb-entities-title">
+              {{ holderName(entry[0]) }} <a *ngIf="!entry[1].currentHolder && entry[1].name" class="tb-reference" [routerLink]="entry[1].detailsUrl">{{ entry[1].name }}</a> {{ 'image.entities' | translate }}
+            </div>
+            <ng-container *ngTemplateOutlet="referencesList; context:{entriesList: entry[1].entities, showDetailsLink: entry[1].currentHolder}"></ng-container>
+          </li>
+        </ng-template>
+      </ng-container>
+    </ul>
+  </ng-container>
+</ng-template>
+<ng-template #referencesList let-entriesList="entriesList" let-showDetailsLink="showDetailsLink">
+  <table class="tb-entities-list-table">
+    <tr *ngFor="let referencedEntity of entriesList">
+      <ng-container *ngIf="!referencedEntity.isWl; else whiteLabelEntity">
+        <td class="tb-entity-type">{{ referencedEntity.typeName }}</td>
+        <td class="tb-entity-name">
+          <a *ngIf="showDetailsLink" class="tb-reference" [routerLink]="referencedEntity.detailsUrl">{{ referencedEntity.entity.name }}</a>
+          <span *ngIf="!showDetailsLink">{{ referencedEntity.entity.name }}</span>
+        </td>
+      </ng-container>
+      <ng-template #whiteLabelEntity>
+        <td class="tb-entity-type">
+          <a *ngIf="showDetailsLink" class="tb-reference" [routerLink]="referencedEntity.detailsUrl">{{ referencedEntity.typeName }}</a>
+          <span *ngIf="!showDetailsLink">{{ referencedEntity.typeName }}</span>
+        </td>
+        <td class="tb-entity-name">
+        </td>
+      </ng-template>
+    </tr>
+  </table>
+</ng-template>
+
+<ng-template #loading>
+  <mat-spinner [diameter]="32" strokeWidth="2"></mat-spinner>
+</ng-template>

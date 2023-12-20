@@ -30,20 +30,50 @@
  */
 package org.thingsboard.server.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.junit.After;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.wl.Favicon;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabelingType;
+import org.thingsboard.server.dao.model.sql.WhiteLabelingCompositeKey;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.dao.wl.WhiteLabelingDao;
 
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.thingsboard.server.common.data.id.TenantId.SYS_TENANT_ID;
 
 @DaoSqlTest
 public class WhiteLabelingControllerTest extends AbstractControllerTest {
+
+    @Autowired
+    WhiteLabelingDao whiteLabelingDao;
+
+    @After
+    public void afterTest() {
+        WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(tenantId, WhiteLabelingType.MAIL_TEMPLATES);
+        if (whiteLabelingDao.findById(SYS_TENANT_ID, key) != null) {
+            whiteLabelingDao.removeById(SYS_TENANT_ID, key);
+        }
+
+        key.setTenantId(SYS_TENANT_ID.getId());
+
+        if (whiteLabelingDao.findById(SYS_TENANT_ID, key) != null) {
+            whiteLabelingDao.removeById(SYS_TENANT_ID, key);
+        }
+    }
 
     @Test
     public void shouldUpdateWhiteLabelParams() throws Exception {
@@ -133,6 +163,168 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
 
         LoginWhiteLabelingParams mergedLoginWhiteLabelParams = doGet("/api/noauth/whiteLabel/loginWhiteLabelParams", LoginWhiteLabelingParams.class);
         assertThat(mergedLoginWhiteLabelParams.isDarkForeground()).isTrue();
+    }
+
+    @Test
+    public void shouldUpdateSystemMailTemplates() throws Exception {
+        loginSysAdmin();
+        JsonNode mailTemplates = doGet("/api/whiteLabel/mailTemplates", JsonNode.class);
+
+        String newSubject = "new subject" + StringUtils.randomAlphabetic(5);
+        ((ObjectNode) mailTemplates).put("subject", newSubject);
+        doPost("/api/whiteLabel/mailTemplates", mailTemplates, JsonNode.class);
+
+        JsonNode updatedMailTemplates = doGet("/api/whiteLabel/mailTemplates", JsonNode.class);
+        assertThat(updatedMailTemplates.get("subject").asText()).isEqualTo(newSubject);
+    }
+
+    @Test
+    public void shouldUpdateTenantMailTemplates() throws Exception {
+        loginTenantAdmin();
+        JsonNode mailTemplates = doGet("/api/whiteLabel/mailTemplates", JsonNode.class);
+
+        String newSubject = "new subject" + StringUtils.randomAlphabetic(5);
+        ((ObjectNode) mailTemplates).put("subject", newSubject);
+        doPost("/api/whiteLabel/mailTemplates", mailTemplates, JsonNode.class);
+
+        JsonNode updatedMailTemplates = doGet("/api/whiteLabel/mailTemplates", JsonNode.class);
+        assertThat(updatedMailTemplates.get("subject").asText()).isEqualTo(newSubject);
+    }
+
+    @Test
+    public void shouldGetSystemMailTemplatesIfTenantOneDoesNotExistsAndSystemDefaultSetToTrue() throws Exception {
+        loginSysAdmin();
+        JsonNode systemMailTemplates = doGet("/api/whiteLabel/mailTemplates", JsonNode.class);
+        String newSubject = "new subject" + StringUtils.randomAlphabetic(5);
+        ((ObjectNode) systemMailTemplates).put("subject", newSubject);
+        doPost("/api/whiteLabel/mailTemplates", systemMailTemplates, JsonNode.class);
+
+        WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(tenantId, WhiteLabelingType.MAIL_TEMPLATES);
+        if (whiteLabelingDao.findById(tenantId, key) != null) {
+            whiteLabelingDao.removeById(tenantId, key);
+        }
+
+        loginTenantAdmin();
+        JsonNode tenantMailTemplates = doGet("/api/whiteLabel/mailTemplates?systemByDefault=true", JsonNode.class);
+        assertThat(tenantMailTemplates.get("subject")).isEqualTo(systemMailTemplates.get("subject"));
+    }
+
+    @Test
+    public void shouldNotSendMailIfMailTemplateContainsVulnerableCodeExecution() throws Exception {
+        loginTenantAdmin();
+        JsonNode mailTemplates = doGet("/api/whiteLabel/mailTemplates", JsonNode.class);
+
+        JsonNode badTemplate = JacksonUtil.toJsonNode("{\"subject\":\"Test message from ThingsBoard tenant\",\"body\":\"<#assign ex=\\\"freemarker.template.utility.Execute\\\"?new()> ${ex(\\\"id\\\")}\"}");
+        ((ObjectNode) mailTemplates).set("test", badTemplate);
+        ((ObjectNode) mailTemplates).put("useSystemMailSettings", false);
+        doPost("/api/whiteLabel/mailTemplates", mailTemplates, JsonNode.class);
+
+        mailTemplates = doGet("/api/whiteLabel/mailTemplates", JsonNode.class);
+        assertThat(mailTemplates.get("test")).isEqualTo(badTemplate);
+
+        AdminSettings adminSettings = doGet("/api/admin/settings/mail", AdminSettings.class);
+        ObjectNode objectNode = JacksonUtil.fromString(adminSettings.getJsonValue().toString(), ObjectNode.class);
+        objectNode.put("smtpHost", "smtp.gmail.com");
+        objectNode.put("smtpPort", "465");
+        objectNode.put("smtpProtocol", "smtps");
+        objectNode.put("mailFrom", "testMail@gmail.com");
+        objectNode.put("timeout", 1_000);
+        objectNode.put("username", "username");
+        objectNode.put("password", "password");
+        adminSettings.setJsonValue(objectNode);
+
+        //send test mail
+        MvcResult mvcResult = doPost("/api/admin/settings/testMail", adminSettings).andExpect(status().is5xxServerError())
+                .andReturn();
+        assertThat(mvcResult.getResponse().getContentAsString()).contains("Unable to send mail: Instantiating freemarker.template.utility.Execute is not allowed in the template for security reasons");
+
+        //update templates
+        badTemplate = JacksonUtil.toJsonNode("{\"subject\":\"Test message from ThingsBoard tenant\",\"body\":\"<#assign uri=object?api.class.getResource(\\\"/\\\").toURI()>\"}");
+        ((ObjectNode) mailTemplates).set("test", badTemplate);
+        doPost("/api/whiteLabel/mailTemplates", mailTemplates, JsonNode.class);
+
+        //send test mail
+        mvcResult = doPost("/api/admin/settings/testMail", adminSettings).andExpect(status().is5xxServerError())
+                .andReturn();
+        assertThat(mvcResult.getResponse().getContentAsString()).contains("Unable to send mail: Can't use ?api, because the \\\"api_builtin_enabled\\\" configuration setting is false.");
+    }
+
+    @Test
+    public void updateLoginWhiteLabelParamsForCustomerByTenant() throws Exception {
+        loginTenantAdmin();
+        LoginWhiteLabelingParams loginWhiteLabelingParams = doGet("/api/whiteLabel/currentLoginWhiteLabelParams?customerId=" + customerId, LoginWhiteLabelingParams.class);
+
+        String domainName = "customer-domain.com";
+        loginWhiteLabelingParams.setDomainName(domainName);
+
+        doPost("/api/whiteLabel/loginWhiteLabelParams?customerId=" + customerId, loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
+
+        LoginWhiteLabelingParams updated = doGet("/api/whiteLabel/currentLoginWhiteLabelParams?customerId=" + customerId, LoginWhiteLabelingParams.class);
+        assertThat(updated).isEqualTo(loginWhiteLabelingParams);
+
+        loginCustomerAdminUser();
+        LoginWhiteLabelingParams updated2 = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
+        assertThat(updated2).isEqualTo(loginWhiteLabelingParams);
+    }
+
+    @Test
+    public void shouldNotUpdateLoginWhiteLabelParamsForAnotherCustomerByTenant() throws Exception {
+        loginTenantAdmin();
+        doGet("/api/whiteLabel/currentLoginWhiteLabelParams?customerId=" + differentTenantCustomerId);
+
+        LoginWhiteLabelingParams loginWhiteLabelingParams = new LoginWhiteLabelingParams();
+        doPost("/api/whiteLabel/loginWhiteLabelParams?customerId=" + differentTenantCustomerId, loginWhiteLabelingParams);
+    }
+
+    @Test
+    public void updateWhiteLabelParamsForCustomerByTenant() throws Exception {
+        loginTenantAdmin();
+        WhiteLabelingParams whiteLabelingParams = doGet("/api/whiteLabel/currentWhiteLabelParams?customerId=" + customerId, WhiteLabelingParams.class);
+
+        String appTile = "customer title";
+        whiteLabelingParams.setAppTitle(appTile);
+
+        doPost("/api/whiteLabel/whiteLabelParams?customerId=" + customerId, whiteLabelingParams, WhiteLabelingParams.class);
+
+        WhiteLabelingParams updated = doGet("/api/whiteLabel/currentWhiteLabelParams?customerId=" + customerId, WhiteLabelingParams.class);
+        assertThat(updated).isEqualTo(whiteLabelingParams);
+
+        loginCustomerAdminUser();
+        WhiteLabelingParams updated2 = doGet("/api/whiteLabel/currentWhiteLabelParams", WhiteLabelingParams.class);
+        assertThat(updated2).isEqualTo(whiteLabelingParams);
+    }
+
+    @Test
+    public void shouldNotUpdateWhiteLabelParamsForAnotherCustomerByTenant() throws Exception {
+        loginTenantAdmin();
+        doGet("/api/whiteLabel/currentWhiteLabelParams?customerId=" + differentTenantCustomerId);
+
+        LoginWhiteLabelingParams loginWhiteLabelingParams = new LoginWhiteLabelingParams();
+        doPost("/api/whiteLabel/currentWhiteLabelParams?customerId=" + differentTenantCustomerId, loginWhiteLabelingParams);
+    }
+
+    @Test
+    public void testDomainAlwaysInLowerCase() throws Exception {
+        loginTenantAdmin();
+        LoginWhiteLabelingParams loginWhiteLabelingParams = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
+
+        String domainName = "my-domain.com";
+        loginWhiteLabelingParams.setDomainName(domainName);
+
+        doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
+
+        ObjectNode found = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", ObjectNode.class);
+
+        assertThat(found.get("domainName").asText()).isEqualTo(loginWhiteLabelingParams.getDomainName().toLowerCase());
+
+        domainName = "MY-DoMaIn.com";
+        loginWhiteLabelingParams.setDomainName(domainName);
+
+        doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
+
+        found = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", ObjectNode.class);
+
+        assertThat(found.get("domainName").asText()).isEqualTo(domainName.toLowerCase());
     }
 
     private void updateAppTitleAndVerify(String appTile) throws Exception {

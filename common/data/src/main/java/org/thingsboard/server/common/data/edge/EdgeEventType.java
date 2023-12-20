@@ -59,11 +59,13 @@ public enum EdgeEventType {
     SCHEDULER_EVENT(false, EntityType.SCHEDULER_EVENT),
     WHITE_LABELING(true, null),
     LOGIN_WHITE_LABELING(true, null),
+    MAIL_TEMPLATES(true, null),
     CUSTOM_TRANSLATION(true, null),
     ROLE(true, EntityType.ROLE),
     GROUP_PERMISSION(true, EntityType.GROUP_PERMISSION),
     CONVERTER(false, EntityType.CONVERTER),
-    INTEGRATION(false, EntityType.INTEGRATION);
+    INTEGRATION(false, EntityType.INTEGRATION),
+    TB_RESOURCE(true, EntityType.TB_RESOURCE);
 
     private final boolean allEdgesRelated;
 

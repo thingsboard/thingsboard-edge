@@ -68,7 +68,7 @@ export class DashboardImageDialogComponent extends DialogComponent<DashboardImag
   );
 
   dashboardId: DashboardId;
-  safeImageUrl?: SafeUrl;
+  imageUrl?: string;
   dashboardElement: HTMLElement;
 
   dashboardRectFormGroup: UntypedFormGroup;
@@ -180,10 +180,6 @@ export class DashboardImageDialogComponent extends DialogComponent<DashboardImag
   }
 
   private updateImage(imageUrl: string) {
-    if (imageUrl) {
-      this.safeImageUrl = this.sanitizer.bypassSecurityTrustUrl(imageUrl);
-    } else {
-      this.safeImageUrl = null;
-    }
+    this.imageUrl = imageUrl;
   }
 }

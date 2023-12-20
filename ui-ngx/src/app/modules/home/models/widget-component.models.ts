@@ -109,7 +109,7 @@ import { TbPopoverComponent } from '@shared/components/popover.component';
 import { EntityId } from '@shared/models/id/entity-id';
 import { ReportService } from '@core/http/report.service';
 import { AlarmQuery, AlarmSearchStatus, AlarmStatus } from '@app/shared/models/alarm.models';
-import { MillisecondsToTimeStringPipe, TelemetrySubscriber } from '@app/shared/public-api';
+import { ImagePipe, MillisecondsToTimeStringPipe, TelemetrySubscriber } from '@app/shared/public-api';
 import { UserId } from '@shared/models/id/user-id';
 import { UserSettingsService } from '@core/http/user-settings.service';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
@@ -209,6 +209,7 @@ export class WidgetContext {
   telemetryWsService: TelemetryWebsocketService;
   telemetrySubscribers?: TelemetrySubscriber[];
   date: DatePipe;
+  imagePipe: ImagePipe;
   milliSecondsToTimeString: MillisecondsToTimeStringPipe;
   translate: TranslateService;
   http: HttpClient;
@@ -541,6 +542,7 @@ export interface WidgetInfo extends WidgetTypeDescriptor, WidgetControllerDescri
   typeLatestDataKeySettingsSchema?: string | any;
   image?: string;
   description?: string;
+  tags?: string[];
   componentType?: Type<IDynamicWidgetComponent>;
   componentModuleRef?: NgModuleRef<DynamicComponentModule>;
 }
@@ -657,6 +659,7 @@ export const detailsToWidgetInfo = (widgetTypeDetailsEntity: WidgetTypeDetails):
   const widgetInfo = toWidgetInfo(widgetTypeDetailsEntity);
   widgetInfo.image = widgetTypeDetailsEntity.image;
   widgetInfo.description = widgetTypeDetailsEntity.description;
+  widgetInfo.tags = widgetTypeDetailsEntity.tags;
   return widgetInfo;
 };
 
@@ -697,6 +700,7 @@ export const toWidgetTypeDetails = (widgetInfo: WidgetInfo, id: WidgetTypeId, te
   return {
     ...widgetTypeEntity,
     description: widgetInfo.description,
+    tags: widgetInfo.tags,
     image: widgetInfo.image
   };
 };

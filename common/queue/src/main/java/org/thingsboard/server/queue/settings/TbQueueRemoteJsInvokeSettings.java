@@ -39,6 +39,9 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 public class TbQueueRemoteJsInvokeSettings {
+
+    @Value("${queue.prefix:}")
+    private String prefix;
     @Value("${queue.js.request_topic}")
     private String requestTopic;
 
@@ -53,4 +56,12 @@ public class TbQueueRemoteJsInvokeSettings {
 
     @Value("${queue.js.max_requests_timeout}")
     private long maxRequestsTimeout;
+
+    public String getRequestTopic(){
+        return prefix.isBlank() ? requestTopic : prefix + "." + requestTopic;
+    }
+
+    public String getResponseTopic(){
+        return prefix.isBlank() ? responseTopic : prefix + "." + responseTopic;
+    }
 }

@@ -32,13 +32,12 @@
 import { ChangeDetectorRef, Component, Inject, Optional } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { EntityComponent } from '../../components/entity/entity.component';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { User, UserInfo } from '@shared/models/user.model';
-import { selectAuth, selectAuthUser } from '@core/auth/auth.selectors';
+import { UserInfo } from '@shared/models/user.model';
+import { getCurrentAuthUser, selectAuth, selectAuthUser } from '@core/auth/auth.selectors';
 import { map } from 'rxjs/operators';
 import { Authority } from '@shared/models/authority.enum';
-import { isDefinedAndNotNull, isUndefined } from '@core/utils';
+import { isDefinedAndNotNull } from '@core/utils';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { ActionNotificationShow } from '@app/core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
@@ -70,6 +69,8 @@ export class UserComponent extends GroupEntityComponent<UserInfo> {
     map((auth) => auth?.authority === Authority.SYS_ADMIN)
   );
 
+  private authUser = getCurrentAuthUser(this.store);
+
   constructor(protected store: Store<AppState>,
               @Optional() @Inject('entity') protected entityValue: UserInfo,
               @Optional() @Inject('entitiesTableConfig')
@@ -89,12 +90,16 @@ export class UserComponent extends GroupEntityComponent<UserInfo> {
     }
   }
 
+  isCurrentUser(): boolean {
+    return this.authUser.userId === this.entity?.id?.id;
+  }
+
   isUserCredentialsEnabled(): boolean {
       return this.entity.additionalInfo.userCredentialsEnabled === true;
   }
 
   isUserCredentialPresent(): boolean {
-    return this.entity && this.entity.additionalInfo && isDefinedAndNotNull(this.entity.additionalInfo.userCredentialsEnabled);
+    return isDefinedAndNotNull(this.entity?.additionalInfo?.userCredentialsEnabled);
   }
 
   buildForm(entity: UserInfo): UntypedFormGroup {

@@ -70,7 +70,7 @@ public class JpaCustomerInfoDao extends JpaAbstractDao<CustomerInfoEntity, Custo
         return DaoUtil.toPageData(customerInfoRepository
                 .findByTenantId(
                         tenantId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink, CustomerEntity.customerColumnMap)));
     }
 
@@ -79,7 +79,7 @@ public class JpaCustomerInfoDao extends JpaAbstractDao<CustomerInfoEntity, Custo
         return DaoUtil.toPageData(customerInfoRepository
                 .findTenantCustomersByTenantId(
                         tenantId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink, CustomerEntity.customerColumnMap)));
     }
 
@@ -89,7 +89,7 @@ public class JpaCustomerInfoDao extends JpaAbstractDao<CustomerInfoEntity, Custo
                 .findByTenantIdAndCustomerId(
                         tenantId,
                         customerId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink, CustomerEntity.customerColumnMap)));
     }
 
@@ -99,7 +99,7 @@ public class JpaCustomerInfoDao extends JpaAbstractDao<CustomerInfoEntity, Custo
                 .findByTenantIdAndCustomerIdIncludingSubCustomers(
                         tenantId,
                         customerId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink, CustomerEntity.customerColumnMap)));
     }
 

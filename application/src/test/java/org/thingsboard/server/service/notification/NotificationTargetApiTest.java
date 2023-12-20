@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
+import org.thingsboard.server.common.data.notification.NotificationType;
 import org.thingsboard.server.common.data.notification.rule.trigger.config.EntityActionNotificationRuleTriggerConfig;
 import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
 import org.thingsboard.server.common.data.notification.targets.platform.AllUsersFilter;
@@ -257,6 +258,7 @@ public class NotificationTargetApiTest extends AbstractNotificationApiTest {
         notificationTarget.setConfiguration(targetConfig);
         save(notificationTarget, status().isOk());
         assertThat(notificationTargetDao.findByTenantIdAndPageLink(tenantId, new PageLink(10)).getData()).isNotEmpty();
+        assertThat(notificationTargetDao.findByTenantIdAndSupportedNotificationTypeAndPageLink(tenantId, NotificationType.GENERAL, new PageLink(10)).getData()).isNotEmpty();
 
         deleteDifferentTenant();
         assertThat(notificationTargetDao.findByTenantIdAndPageLink(tenantId, new PageLink(10)).getData()).isEmpty();

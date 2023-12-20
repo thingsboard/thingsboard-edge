@@ -30,7 +30,7 @@
 ///
 
 import _ from 'lodash';
-import { Observable, Subject } from 'rxjs';
+import { from, Observable, Subject } from 'rxjs';
 import { finalize, share } from 'rxjs/operators';
 import { Type } from '@angular/core';
 import { Datasource, DatasourceData, FormattedData, ReplaceInfo } from '@app/shared/models/widget.models';
@@ -235,6 +235,13 @@ export function checkNumericStringAndConvert(val: string): number | string {
   }
   return val;
 }
+
+export const blobToBase64 = (blob: Blob): Observable<string> => from(new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(blob);
+    }
+  ));
 
 const scrollRegex = /(auto|scroll)/;
 
@@ -846,7 +853,7 @@ export function genNextLabel(name: string, datasources: Datasource[]): string {
         if (datasource) {
           if (datasource.dataKeys) {
             datasource.dataKeys.forEach((dataKey) => {
-              if (dataKey.label === label) {
+              if (dataKey?.label === label) {
                 i++;
                 label = name + ' ' + i;
                 matches = true;
@@ -855,7 +862,7 @@ export function genNextLabel(name: string, datasources: Datasource[]): string {
           }
           if (datasource.latestDataKeys) {
             datasource.latestDataKeys.forEach((dataKey) => {
-              if (dataKey.label === label) {
+              if (dataKey?.label === label) {
                 i++;
                 label = name + ' ' + i;
                 matches = true;
@@ -894,4 +901,8 @@ export const getOS = (): string => {
 
 export const camelCase = (str: string): string => {
   return _.camelCase(str);
+};
+
+export const convertKeysToCamelCase = (obj: Record<string, any>): Record<string, any> => {
+  return _.mapKeys(obj, (value, key) => _.camelCase(key));
 };

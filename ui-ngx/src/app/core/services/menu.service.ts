@@ -203,6 +203,13 @@ export class MenuService {
             ]
           },
           {
+            id: 'images',
+            name: 'image.gallery',
+            type: 'link',
+            path: '/resources/images',
+            icon: 'filter'
+          },
+          {
             id: 'resources_library',
             name: 'resource.resources-library',
             type: 'link',
@@ -1142,7 +1149,13 @@ export class MenuService {
         }
       );
     }
-
+    resourcesPages.push({
+      id: 'images',
+      name: 'image.gallery',
+      type: 'link',
+      path: '/resources/images',
+      icon: 'filter'
+    });
     if (this.userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)) {
       resourcesPages.push({
         id: 'resources_library',
@@ -2243,6 +2256,28 @@ export class MenuService {
         );
       }
     }
+
+    const resourcesPages: Array<MenuSection> = [];
+    resourcesPages.push({
+      id: 'images',
+      name: 'image.gallery',
+      type: 'link',
+      path: '/resources/images',
+      icon: 'filter'
+    });
+    if (resourcesPages.length) {
+      sections.push(
+        {
+          id: 'resources',
+          name: 'admin.resources',
+          type: 'toggle',
+          path: '/resources',
+          icon: 'folder',
+          pages: resourcesPages
+        }
+      );
+    }
+
     const notificationPages: Array<MenuSection> = [];
     // TODO: permission check
     notificationPages.push(

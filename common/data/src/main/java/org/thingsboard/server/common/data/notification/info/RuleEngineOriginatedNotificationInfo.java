@@ -34,6 +34,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 
 import java.util.HashMap;
@@ -43,9 +44,10 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class RuleEngineOriginatedNotificationInfo implements NotificationInfo {
+public class RuleEngineOriginatedNotificationInfo implements RuleOriginatedNotificationInfo {
 
     private EntityId msgOriginator;
+    private CustomerId msgCustomerId;
     private String msgType;
     private Map<String, String> msgMetadata;
     private Map<String, String> msgData;
@@ -58,12 +60,18 @@ public class RuleEngineOriginatedNotificationInfo implements NotificationInfo {
         templateData.put("originatorType", msgOriginator.getEntityType().getNormalName());
         templateData.put("originatorId", msgOriginator.getId().toString());
         templateData.put("msgType", msgType);
+        templateData.put("customerId", msgCustomerId != null ? msgCustomerId.getId().toString() : "");
         return templateData;
     }
 
     @Override
     public EntityId getStateEntityId() {
         return msgOriginator;
+    }
+
+    @Override
+    public CustomerId getAffectedCustomerId() {
+        return msgCustomerId;
     }
 
 }

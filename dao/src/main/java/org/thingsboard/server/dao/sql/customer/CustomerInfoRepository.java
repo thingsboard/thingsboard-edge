@@ -45,21 +45,21 @@ public interface CustomerInfoRepository extends JpaRepository<CustomerInfoEntity
 
     @Query("SELECT ci FROM CustomerInfoEntity ci " +
             "WHERE ci.tenantId = :tenantId " +
-            "AND (LOWER(ci.title) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-            "OR LOWER(ci.ownerName) LIKE LOWER(CONCAT('%', :searchText, '%')))")
+            "AND (:searchText IS NULL OR ilike(ci.title, CONCAT('%', :searchText, '%')) = true " +
+            "OR ilike(ci.ownerName, CONCAT('%', :searchText, '%')) = true)")
     Page<CustomerInfoEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                             @Param("searchText") String searchText,
                                             Pageable pageable);
 
     @Query("SELECT ci FROM CustomerInfoEntity ci " +
             "WHERE ci.tenantId = :tenantId AND (ci.parentCustomerId IS NULL OR ci.parentCustomerId = '13814000-1dd2-11b2-8080-808080808080') " +
-            "AND LOWER(ci.title) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND (:searchText IS NULL OR ilike(ci.title, CONCAT('%', :searchText, '%')) = true)")
     Page<CustomerInfoEntity> findTenantCustomersByTenantId(@Param("tenantId") UUID tenantId,
                                                            @Param("searchText") String searchText,
                                                            Pageable pageable);
 
     @Query("SELECT ci FROM CustomerInfoEntity ci WHERE ci.tenantId = :tenantId AND ci.parentCustomerId = :customerId " +
-            "AND LOWER(ci.title) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND (:searchText IS NULL OR ilike(ci.title, CONCAT('%', :searchText, '%')) = true)")
     Page<CustomerInfoEntity> findByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
                                                          @Param("customerId") UUID customerId,
                                                          @Param("searchText") String searchText,
@@ -72,13 +72,13 @@ public interface CustomerInfoRepository extends JpaRepository<CustomerInfoEntity
             "c.title as owner_name from customer_info_view ce " +
             "LEFT JOIN customer c on c.id = ce.parent_customer_id AND c.id != :customerId) e " +
             "WHERE" + CUSTOMERS_SUB_CUSTOMERS_QUERY +
-            "AND (LOWER(e.title) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-            "OR LOWER(e.owner_name) LIKE LOWER(CONCAT('%', :searchText, '%')))",
+            "AND (:searchText IS NULL OR e.title ILIKE CONCAT('%', :searchText, '%') " +
+            "OR e.owner_name ILIKE CONCAT('%', :searchText, '%'))",
             countQuery = "SELECT count(e.id) FROM customer e " +
                     "LEFT JOIN customer c on c.id = e.parent_customer_id AND c.id != :customerId " +
                     "WHERE" + CUSTOMERS_SUB_CUSTOMERS_QUERY +
-                    "AND (LOWER(e.title) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-                    "OR LOWER(c.title) LIKE LOWER(CONCAT('%', :searchText, '%')))",
+                    "AND (:searchText IS NULL OR e.title ILIKE CONCAT('%', :searchText, '%') " +
+                    "OR c.title ILIKE CONCAT('%', :searchText, '%'))",
             nativeQuery = true)
     Page<CustomerInfoEntity> findByTenantIdAndCustomerIdIncludingSubCustomers(@Param("tenantId") UUID tenantId,
                                                                               @Param("customerId") UUID customerId,

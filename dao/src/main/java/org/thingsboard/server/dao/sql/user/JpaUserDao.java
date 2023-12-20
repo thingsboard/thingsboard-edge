@@ -104,7 +104,7 @@ public class JpaUserDao extends JpaAbstractDao<UserEntity, User> implements User
                         .findUsersByAuthority(
                                 tenantId,
                                 NULL_UUID,
-                                Objects.toString(pageLink.getTextSearch(), ""),
+                                pageLink.getTextSearch(),
                                 Authority.TENANT_ADMIN,
                                 DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
     }
@@ -117,7 +117,7 @@ public class JpaUserDao extends JpaAbstractDao<UserEntity, User> implements User
                     .findUsersByAuthority(
                             tenantId,
                             customerId,
-                            Objects.toString(pageLink.getTextSearch(), ""),
+                            pageLink.getTextSearch(),
                             Authority.CUSTOMER_USER,
                             DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
 
@@ -129,7 +129,7 @@ public class JpaUserDao extends JpaAbstractDao<UserEntity, User> implements User
                 userRepository
                         .findAllTenantUsersByAuthority(
                                 tenantId,
-                                Objects.toString(pageLink.getTextSearch(), ""),
+                                pageLink.getTextSearch(),
                                 Authority.CUSTOMER_USER,
                                 DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
     }
@@ -144,7 +144,7 @@ public class JpaUserDao extends JpaAbstractDao<UserEntity, User> implements User
         return DaoUtil.toPageData(userRepository
                 .findByEntityGroupId(
                         groupId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
     }
 
@@ -153,7 +153,7 @@ public class JpaUserDao extends JpaAbstractDao<UserEntity, User> implements User
         return DaoUtil.toPageData(userRepository
                 .findByEntityGroupIds(
                         groupIds,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
     }
 
@@ -185,7 +185,7 @@ public class JpaUserDao extends JpaAbstractDao<UserEntity, User> implements User
                         .findTenantAndCustomerUsers(
                                 tenantId,
                                 DaoUtil.toUUIDs(customerIds),
-                                Objects.toString(pageLink.getTextSearch(), ""),
+                                pageLink.getTextSearch(),
                                 DaoUtil.toPageable(pageLink)));
     }
 
