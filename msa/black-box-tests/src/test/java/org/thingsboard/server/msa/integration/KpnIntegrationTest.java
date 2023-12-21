@@ -32,7 +32,6 @@ package org.thingsboard.server.msa.integration;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.hash.Hashing;
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +53,6 @@ import java.util.concurrent.TimeUnit;
 
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
 import static org.thingsboard.server.common.data.DataConstants.DEVICE_NAME;
-import static org.thingsboard.server.common.data.DataConstants.DEVICE_TYPE;
 import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.uplinkConverterPrototype;
 
 
@@ -63,7 +61,7 @@ public class KpnIntegrationTest extends AbstractIntegrationTest {
 
     private static final String ROUTING_KEY = "routing-key-kpn-integration";
 
-    private static final ObjectNode UPLINK_CONVERTER_CODE = JacksonUtil
+    private final JsonNode UPLINK_CONVERTER_CODE = JacksonUtil
             .newObjectNode().put("decoder", "function decodeToString(payload) {\n" +
                     "   return String.fromCharCode.apply(String, payload);\n" +
                     "}\n" +
@@ -74,7 +72,7 @@ public class KpnIntegrationTest extends AbstractIntegrationTest {
                     "}\n" +
                     "return decodeToJson(payload);");
 
-    private static final JsonNode INTEGRATION_CONFIG = JacksonUtil.fromString("{\"baseUrl\": \"http://127.0.0.1:8080\",\n" +
+    private final JsonNode INTEGRATION_CONFIG = JacksonUtil.fromString("{\"baseUrl\": \"http://127.0.0.1:8080\",\n" +
             "\"destinationSharedSecret\": \"\"," +
             "\"enableSecurity\": false," +
             "\"headersFilter\": {" +
@@ -85,7 +83,7 @@ public class KpnIntegrationTest extends AbstractIntegrationTest {
             "\"apiKey\": null," +
             "\"metadata\": {}}", ObjectNode.class);
 
-    private static final JsonNode INTEGRATION_CONFIG_SECURITY_ENABLED = JacksonUtil.fromString("{\"baseUrl\": \"http://127.0.0.1:8080\"," +
+    private final JsonNode INTEGRATION_CONFIG_SECURITY_ENABLED = JacksonUtil.fromString("{\"baseUrl\": \"http://127.0.0.1:8080\"," +
             "\"destinationSharedSecret\": \"pnZxe#jVUBalFmNb(3%cNbRJATTe8(gj\"," +
             "\"enableSecurity\": true," +
             "\"headersFilter\": {" +
@@ -97,6 +95,8 @@ public class KpnIntegrationTest extends AbstractIntegrationTest {
             "\"apiKey\": null," +
             "\"metadata\": {}}", ObjectNode.class);
 
+    private final String MESSAGE_TEMPLATE = "{\"deviceType\":\"DEFAULT\",\"telemetry\":[{\"temperature\":\"42\"}]}";
+
     private WsClient wsClient;
 
     @AfterMethod
@@ -107,18 +107,12 @@ public class KpnIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void checkTelemetryUploadedSecurityDisabled() throws Exception {
+    public void shouldUploadTelemetryWhenSecurityIsDisabled() throws Exception {
         createIntegration(INTEGRATION_CONFIG);
         wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
 
-        ObjectNode payloadForUplink = JacksonUtil.newObjectNode();
+        ObjectNode payloadForUplink = JacksonUtil.fromString(MESSAGE_TEMPLATE, ObjectNode.class);
         payloadForUplink.put(DEVICE_NAME, device.getName());
-        payloadForUplink.put(DEVICE_TYPE, device.getType());
-        ObjectNode timeseriesObject = JacksonUtil.newObjectNode();
-        timeseriesObject.put(TELEMETRY_KEY, TELEMETRY_VALUE);
-        ArrayNode timeseriesNode = JacksonUtil.newArrayNode();
-        timeseriesNode.add(timeseriesObject);
-        payloadForUplink.set("telemetry", timeseriesNode);
 
         testRestClient.postUplinkPayloadForHttpBasedIntegration(integration.getRoutingKey(), payloadForUplink, integration.getType());
 
@@ -129,18 +123,13 @@ public class KpnIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void checkTelemetryUploadedSecurityEnabled() throws Exception {
+    public void shouldUploadTelemetryWhenSecurityIsEnabled() throws Exception {
         createIntegration(INTEGRATION_CONFIG_SECURITY_ENABLED);
         wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
 
-        ObjectNode payloadForUplink = JacksonUtil.newObjectNode();
+
+        ObjectNode payloadForUplink = JacksonUtil.fromString(MESSAGE_TEMPLATE, ObjectNode.class);
         payloadForUplink.put(DEVICE_NAME, device.getName());
-        payloadForUplink.put(DEVICE_TYPE, device.getType());
-        ObjectNode telemetryObject = JacksonUtil.newObjectNode();
-        telemetryObject.put(TELEMETRY_KEY, TELEMETRY_VALUE);
-        ArrayNode telemetryNode = JacksonUtil.newArrayNode();
-        telemetryNode.add(telemetryObject);
-        payloadForUplink.set("telemetry", telemetryNode);
         Map<String, Object> headers = JacksonUtil.fromString(INTEGRATION_CONFIG_SECURITY_ENABLED.get("headersFilter").toString(), new TypeReference<>() {
         });
 
@@ -158,14 +147,14 @@ public class KpnIntegrationTest extends AbstractIntegrationTest {
 
         headers.put("things-message-token", "wrong-token");
 
-        testRestClient.postUplinkPayloadForHttpBasedIntegrationForExpectedStatusCode(integration.getRoutingKey(), payloadForUplink, headers, integration.getType(), HTTP_FORBIDDEN);
+        testRestClient.postUplinkPayloadForHttpBasedIntegrationForExpectedErrorStatusCode(integration.getRoutingKey(), payloadForUplink, headers, integration.getType(), HTTP_FORBIDDEN);
 
         headers.remove("things-message-token");
 
-        testRestClient.postUplinkPayloadForHttpBasedIntegrationForExpectedStatusCode(integration.getRoutingKey(), payloadForUplink, headers, integration.getType(), HTTP_FORBIDDEN);
+        testRestClient.postUplinkPayloadForHttpBasedIntegrationForExpectedErrorStatusCode(integration.getRoutingKey(), payloadForUplink, headers, integration.getType(), HTTP_FORBIDDEN);
     }
 
-    protected Integration createIntegration(JsonNode config) {
+    private Integration createIntegration(JsonNode config) {
         Integration integration = new Integration();
         integration.setConfiguration(config);
 

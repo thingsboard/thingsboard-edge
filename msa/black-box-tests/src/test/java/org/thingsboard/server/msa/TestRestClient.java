@@ -431,7 +431,7 @@ public class TestRestClient {
                 .statusCode(HTTP_OK);
     }
 
-    public ValidatableResponse postUplinkPayloadForHttpBasedIntegrationForExpectedStatusCode(String integrationKey, JsonNode jsonNode, Map<String, Object> headers, IntegrationType integrationType, int statusCode) {
+    public ValidatableResponse postUplinkPayloadForHttpBasedIntegrationForExpectedErrorStatusCode(String integrationKey, JsonNode jsonNode, Map<String, Object> headers, IntegrationType integrationType, int statusCode) {
         RequestSpecification spec = given().spec(requestSpec);
         if (headers != null) {
             spec.headers(headers);
