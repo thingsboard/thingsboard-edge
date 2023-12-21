@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.msa.WsClient;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -144,14 +145,34 @@ public class KpnIntegrationTest extends AbstractIntegrationTest {
                 .await()
                 .atMost(10, TimeUnit.SECONDS)
                 .until(() -> wsClient.getMessage().getDataValuesByKey(TELEMETRY_KEY).get(1).equals(TELEMETRY_VALUE));
+    }
+
+    @Test
+    public void shouldRejectUploadTelemetryWhenSecurityIsEnabledAndTokenIsWrong() throws Exception {
+        createIntegration(INTEGRATION_CONFIG_SECURITY_ENABLED);
+        wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
+
+
+        ObjectNode payloadForUplink = JacksonUtil.fromString(MESSAGE_TEMPLATE, ObjectNode.class);
+        payloadForUplink.put(DEVICE_NAME, device.getName());
+        Map<String, Object> headers = JacksonUtil.fromString(INTEGRATION_CONFIG_SECURITY_ENABLED.get("headersFilter").toString(), new TypeReference<>() {
+        });
 
         headers.put("things-message-token", "wrong-token");
 
         testRestClient.postUplinkPayloadForHttpBasedIntegrationForExpectedErrorStatusCode(integration.getRoutingKey(), payloadForUplink, headers, integration.getType(), HTTP_FORBIDDEN);
+    }
 
-        headers.remove("things-message-token");
+    @Test
+    public void shouldRejectUploadTelemetryWhenSecurityIsEnabledAndTokenIsAbsent() throws Exception {
+        createIntegration(INTEGRATION_CONFIG_SECURITY_ENABLED);
+        wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
 
-        testRestClient.postUplinkPayloadForHttpBasedIntegrationForExpectedErrorStatusCode(integration.getRoutingKey(), payloadForUplink, headers, integration.getType(), HTTP_FORBIDDEN);
+
+        ObjectNode payloadForUplink = JacksonUtil.fromString(MESSAGE_TEMPLATE, ObjectNode.class);
+        payloadForUplink.put(DEVICE_NAME, device.getName());
+
+        testRestClient.postUplinkPayloadForHttpBasedIntegrationForExpectedErrorStatusCode(integration.getRoutingKey(), payloadForUplink, new HashMap<>(), integration.getType(), HTTP_FORBIDDEN);
     }
 
     private Integration createIntegration(JsonNode config) {
