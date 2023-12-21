@@ -740,7 +740,7 @@ export interface BaseWidgetInfo {
   type: widgetType;
 }
 
-export interface Widget extends BaseWidgetInfo {
+export interface Widget extends BaseWidgetInfo, ExportableEntity<WidgetTypeId> {
   typeId?: WidgetTypeId;
   sizeX: number;
   sizeY: number;

@@ -56,7 +56,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -69,7 +68,6 @@ import java.util.concurrent.TimeUnit;
 public class DefaultUpdateService implements UpdateService {
 
     private static final String INSTANCE_ID_FILE = ".instance_id";
-    // private static final String UPDATE_SERVER_BASE_URL = "https://updates.thingsboard.io";
     private static final String UPDATE_SERVER_BASE_URL = "https://updates.thingsboard.io";
 
     private static final String PLATFORM_PARAM = "platform";
@@ -97,8 +95,6 @@ public class DefaultUpdateService implements UpdateService {
     private final RestTemplate restClient = new RestTemplate();
 
     private UpdateMessage updateMessage;
-    private EdgeUpgradeMessage edgeUpgradeMessage;
-    private String edgeInstallVersion;
 
     private String platform;
     private String version;
@@ -110,7 +106,6 @@ public class DefaultUpdateService implements UpdateService {
         updateMessage = new UpdateMessage(false, version, "", "",
                 "https://thingsboard.io/docs/pe/reference/releases",
                 "https://thingsboard.io/docs/pe/reference/releases");
-        edgeUpgradeMessage = new EdgeUpgradeMessage(new HashMap<>());
         if (updatesEnabled) {
             try {
                 platform = System.getProperty("platform", "unknown");
@@ -189,5 +184,4 @@ public class DefaultUpdateService implements UpdateService {
     public UpdateMessage checkUpdates() {
         return updateMessage;
     }
-
 }

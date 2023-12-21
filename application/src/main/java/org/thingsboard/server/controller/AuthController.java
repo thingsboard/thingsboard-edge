@@ -134,7 +134,7 @@ public class AuthController extends BaseController {
         if (!passwordEncoder.matches(currentPassword, userCredentials.getPassword())) {
             throw new ThingsboardException("Current password doesn't match!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
-        systemSecurityService.validatePassword(securityUser.getTenantId(), newPassword, userCredentials);
+        systemSecurityService.validatePassword(newPassword, userCredentials);
         if (passwordEncoder.matches(newPassword, userCredentials.getPassword())) {
             throw new ThingsboardException("New password should be different from existing!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
@@ -154,7 +154,7 @@ public class AuthController extends BaseController {
     @ResponseBody
     public UserPasswordPolicy getUserPasswordPolicy() throws ThingsboardException {
         SecuritySettings securitySettings =
-                checkNotNull(systemSecurityService.getSecuritySettings(TenantId.SYS_TENANT_ID));
+                checkNotNull(systemSecurityService.getSecuritySettings());
         return securitySettings.getPasswordPolicy();
     }
 
@@ -263,7 +263,7 @@ public class AuthController extends BaseController {
             HttpServletRequest request) throws ThingsboardException {
         String activateToken = activateRequest.getActivateToken();
         String password = activateRequest.getPassword();
-        systemSecurityService.validatePassword(TenantId.SYS_TENANT_ID, password, null);
+        systemSecurityService.validatePassword(password, null);
         String encodedPassword = passwordEncoder.encode(password);
         UserCredentials credentials = userService.activateUserCredentials(TenantId.SYS_TENANT_ID, activateToken, encodedPassword);
         User user = userService.findUserById(TenantId.SYS_TENANT_ID, credentials.getUserId());
@@ -300,7 +300,7 @@ public class AuthController extends BaseController {
         String password = resetPasswordRequest.getPassword();
         UserCredentials userCredentials = userService.findUserCredentialsByResetToken(TenantId.SYS_TENANT_ID, resetToken);
         if (userCredentials != null) {
-            systemSecurityService.validatePassword(TenantId.SYS_TENANT_ID, password, userCredentials);
+            systemSecurityService.validatePassword(password, userCredentials);
             if (passwordEncoder.matches(password, userCredentials.getPassword())) {
                 throw new ThingsboardException("New password should be different from existing!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
             }

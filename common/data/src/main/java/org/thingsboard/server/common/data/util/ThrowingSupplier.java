@@ -28,22 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.fetch;
+package org.thingsboard.server.common.data.util;
 
-import org.thingsboard.server.common.data.TbResource;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.resource.ResourceService;
+@FunctionalInterface
+public interface ThrowingSupplier<T> {
 
-public class SystemResourcesEdgeEventFetcher extends BaseResourceEdgeEventFetcher {
+    T get() throws Exception;
 
-    public SystemResourcesEdgeEventFetcher(ResourceService resourceService) {
-        super(resourceService);
-    }
-
-    @Override
-    protected PageData<TbResource> findTenantResources(TenantId tenantId, PageLink pageLink) {
-        return resourceService.findAllTenantResources(TenantId.SYS_TENANT_ID, pageLink);
-    }
 }

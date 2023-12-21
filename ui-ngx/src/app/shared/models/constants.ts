@@ -243,6 +243,7 @@ export const HelpLinks = {
     recipientNotifications: helpBaseUrl + '/docs/pe/user-guide/notifications/#recipients',
     ruleNotifications: helpBaseUrl + '/docs/pe/user-guide/notifications/#rules',
     jwtSecuritySettings: helpBaseUrl + '/docs/pe/user-guide/ui/jwt-security-settings/',
+    gatewayInstall: helpBaseUrl + '/docs/iot-gateway/install/docker-installation/',
   }
 };
 
