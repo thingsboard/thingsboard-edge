@@ -150,28 +150,18 @@ public class KpnIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void shouldRejectUploadTelemetryWhenSecurityIsEnabledAndTokenIsWrong() throws Exception {
         createIntegration(INTEGRATION_CONFIG_SECURITY_ENABLED);
-        wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
-
-
         ObjectNode payloadForUplink = JacksonUtil.fromString(MESSAGE_TEMPLATE, ObjectNode.class);
         payloadForUplink.put(DEVICE_NAME, device.getName());
-        Map<String, Object> headers = JacksonUtil.fromString(INTEGRATION_CONFIG_SECURITY_ENABLED.get("headersFilter").toString(), new TypeReference<>() {
-        });
-
+        Map<String, Object> headers = JacksonUtil.fromString(INTEGRATION_CONFIG_SECURITY_ENABLED.get("headersFilter").toString(), new TypeReference<>() {});
         headers.put("things-message-token", "wrong-token");
-
         testRestClient.postUplinkPayloadForHttpBasedIntegrationForExpectedErrorStatusCode(integration.getRoutingKey(), payloadForUplink, headers, integration.getType(), HTTP_FORBIDDEN);
     }
 
     @Test
     public void shouldRejectUploadTelemetryWhenSecurityIsEnabledAndTokenIsAbsent() throws Exception {
         createIntegration(INTEGRATION_CONFIG_SECURITY_ENABLED);
-        wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
-
-
         ObjectNode payloadForUplink = JacksonUtil.fromString(MESSAGE_TEMPLATE, ObjectNode.class);
         payloadForUplink.put(DEVICE_NAME, device.getName());
-
         testRestClient.postUplinkPayloadForHttpBasedIntegrationForExpectedErrorStatusCode(integration.getRoutingKey(), payloadForUplink, new HashMap<>(), integration.getType(), HTTP_FORBIDDEN);
     }
 
