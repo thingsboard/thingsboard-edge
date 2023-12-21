@@ -181,6 +181,9 @@ public class KpnIntegration<T extends HttpIntegrationMsg<?>> extends BasicHttpIn
         log.trace("Validating request using the following request headers: {}", requestHeaders);
         if (destinationSharedSecret != null) {
             String signed = requestHeaders.get(SIGNED_BODY_REQUEST_HEADER);
+            if (StringUtils.isBlank(signed)) {
+                return false;
+            }
             byte[] dataForHash = ArrayUtils.addAll(msg.getMsgInBytes(), destinationSharedSecret);
             String hashed = Hashing.sha256().hashBytes(dataForHash).toString();
             if (!signed.equals(hashed)) {
