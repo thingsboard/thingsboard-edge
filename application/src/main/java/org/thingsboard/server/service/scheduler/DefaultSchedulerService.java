@@ -256,6 +256,7 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
         JsonNode node = event.getSchedule();
         long startTime = node.get("startTime").asLong();
         String timezone = node.get("timezone").asText();
+        boolean enabled = node.get("enabled").isNull() || node.get("enabled").asBoolean();
         JsonNode repeatNode = node.get("repeat");
         SchedulerRepeat repeat = null;
         if (repeatNode != null) {
@@ -265,7 +266,7 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
                 log.error("Failed to read scheduler config", e);
             }
         }
-        return new SchedulerEventMetaData(event, startTime, timezone, repeat);
+        return new SchedulerEventMetaData(event, startTime, timezone, repeat, enabled);
     }
 
     private void processEvent(TenantId tenantId, SchedulerEventId eventId) {
