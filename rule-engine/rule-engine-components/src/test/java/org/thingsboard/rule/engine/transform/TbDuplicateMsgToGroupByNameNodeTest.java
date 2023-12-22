@@ -78,8 +78,8 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.willCallRealMethod;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
@@ -505,8 +505,7 @@ class TbDuplicateMsgToGroupByNameNodeTest {
     }
 
     private TbMsg getTbMsg() {
-        return TbMsg.newMsg(
-                TbMsgType.POST_TELEMETRY_REQUEST, ORIGINATOR_ID, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
+        return getTbMsgByOriginator(ORIGINATOR_ID);
     }
 
     private TbMsg getTbMsgByOriginator(EntityId originatorId) {
