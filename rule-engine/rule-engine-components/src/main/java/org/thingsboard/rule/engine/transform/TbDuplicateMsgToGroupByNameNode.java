@@ -92,8 +92,13 @@ public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgNode<
     }
 
     private EntityGroupId detectTargetEntityGroupId(TbContext ctx, EntityId originator) {
-        EntityId ownerId = config.isSearchEntityGroupForTenantOnly() ? ctx.getTenantId() : ctx.getPeContext().getOwner(ctx.getTenantId(), originator);
-        return tryFindGroupByOwnerId(ctx, ownerId);
+        if (config.isSearchEntityGroupForTenantOnly()) {
+            return tryFindGroupByOwnerId(ctx, ctx.getTenantId());
+        }
+        if (config.isSearchCustomerEntitiesIfOriginatorCustomer() && originator.getEntityType() == EntityType.CUSTOMER) {
+            return tryFindGroupByOwnerId(ctx, originator);
+        }
+        return tryFindGroupByOwnerId(ctx, ctx.getPeContext().getOwner(ctx.getTenantId(), originator));
     }
 
     private EntityGroupId tryFindGroupByOwnerId(TbContext ctx, EntityId ownerId) {
