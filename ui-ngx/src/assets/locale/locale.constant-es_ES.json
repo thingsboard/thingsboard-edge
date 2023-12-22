@@ -4127,7 +4127,6 @@
         "assign-rulechains": "Asignar cadenas de reglas",
         "delete-rulechains": "Eliminar cadenas de reglas",
         "unassign-rulechain": "Anular asignación de cadena de reglas",
-        "assign-new-rulechain": "Asignar nueva cadena de reglas",
         "edge-template-root": "Raíz de plantilla",
         "assign-to-edge": "Asignar a Edge",
         "edge-rulechain": "Cadena de reglas de Edge",
