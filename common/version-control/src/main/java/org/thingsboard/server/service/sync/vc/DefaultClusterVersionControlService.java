@@ -82,9 +82,9 @@ import org.thingsboard.server.gen.transport.TransportProtos.VersionedEntityInfoP
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.TopicService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
+import org.thingsboard.server.queue.discovery.TopicService;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.provider.TbVersionControlQueueFactory;
@@ -141,7 +141,7 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
     private long packProcessingTimeout;
     @Value("${vc.git.io_pool_size:3}")
     private int ioPoolSize;
-    @Value("${queue.vc.msg-chunk-size:500000}")
+    @Value("${queue.vc.msg-chunk-size:250000}")
     private int msgChunkSize;
 
     //We need to manually manage the threads since tasks for particular tenant need to be processed sequentially.
@@ -334,6 +334,7 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
         if (StringUtils.isNotEmpty(request.getEntityType())) {
             path = path + getRelativePath(EntityType.valueOf(request.getEntityType()), new UUID(request.getEntityIdMSB(), request.getEntityIdLSB()).toString());
         }
+        log.debug("Executing handleEntityContentRequest [{}][{}]", ctx.getTenantId(), path);
         String data = vcService.getFileContentAtCommit(ctx.getTenantId(), path, request.getVersionId());
 
         Iterable<String> dataChunks = StringUtils.split(data, msgChunkSize);
@@ -426,6 +427,7 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
     }
 
     private void handleCommitRequest(VersionControlRequestCtx ctx, CommitRequestMsg request) throws Exception {
+        log.debug("Executing handleCommitRequest [{}][{}]", ctx.getTenantId(), ctx.getRequestId());
         var tenantId = ctx.getTenantId();
         UUID txId = UUID.fromString(request.getTxId());
         if (request.hasPrepareMsg()) {
@@ -476,6 +478,7 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
     }
 
     private void addToCommit(VersionControlRequestCtx ctx, PendingCommit commit, AddMsg addMsg) throws IOException {
+        log.debug("Executing addToCommit [{}][{}]", ctx.getTenantId(), ctx.getRequestId());
         log.trace("[{}] received chunk {} for 'addToCommit'", addMsg.getChunkedMsgId(), addMsg.getChunkIndex());
         Map<String, String[]> chunkedMsgs = commit.getChunkedMsgs();
         String[] msgChunks = chunkedMsgs.computeIfAbsent(addMsg.getChunkedMsgId(), id -> new String[addMsg.getChunksCount()]);
