@@ -119,7 +119,7 @@ public class KpnIntegrationTest extends AbstractIntegrationTest {
 
         Awaitility
                 .await()
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(TIMEOUT, TimeUnit.SECONDS)
                 .until(() -> wsClient.getMessage().getDataValuesByKey(TELEMETRY_KEY).get(1).equals(TELEMETRY_VALUE));
     }
 
@@ -143,7 +143,7 @@ public class KpnIntegrationTest extends AbstractIntegrationTest {
 
         Awaitility
                 .await()
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(TIMEOUT, TimeUnit.SECONDS)
                 .until(() -> wsClient.getMessage().getDataValuesByKey(TELEMETRY_KEY).get(1).equals(TELEMETRY_VALUE));
     }
 
