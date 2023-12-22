@@ -30,11 +30,16 @@
  */
 package org.thingsboard.rule.engine.transform;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -57,6 +62,7 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.group.EntityGroupService;
@@ -67,12 +73,13 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.willCallRealMethod;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
@@ -505,6 +512,38 @@ class TbDuplicateMsgToGroupByNameNodeTest {
     private TbMsg getTbMsgByOriginator(EntityId originatorId) {
         return TbMsg.newMsg(
                 TbMsgType.POST_TELEMETRY_REQUEST, originatorId, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
+    }
+
+    // Rule nodes upgrade
+    private static Stream<Arguments> givenFromVersionAndConfig_whenUpgrade_thenVerifyHasChangesAndConfig() {
+        return Stream.of(
+                // default config for version 0
+                Arguments.of(0,
+                        "{\"searchEntityGroupForTenantOnly\":false,\"groupType\":\"USER\",\"groupName\":\"All\"}",
+                        true,
+                        "{\"searchEntityGroupForTenantOnly\":false,\"searchCustomerEntitiesIfOriginatorCustomer\":false,\"groupType\":\"USER\",\"groupName\":\"All\"}"),
+                // default config for version 1 with upgrade from version 0
+                Arguments.of(0,
+                        "{\"searchEntityGroupForTenantOnly\":false,\"searchCustomerEntitiesIfOriginatorCustomer\":false,\"groupType\":\"USER\",\"groupName\":\"All\"}",
+                        false,
+                        "{\"searchEntityGroupForTenantOnly\":false,\"searchCustomerEntitiesIfOriginatorCustomer\":false,\"groupType\":\"USER\",\"groupName\":\"All\"}")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    void givenFromVersionAndConfig_whenUpgrade_thenVerifyHasChangesAndConfig(int givenVersion, String givenConfigStr, boolean hasChanges, String expectedConfigStr) throws TbNodeException {
+        // GIVEN
+        JsonNode givenConfig = JacksonUtil.toJsonNode(givenConfigStr);
+        JsonNode expectedConfig = JacksonUtil.toJsonNode(expectedConfigStr);
+
+        // WHEN
+        TbPair<Boolean, JsonNode> upgradeResult = node.upgrade(givenVersion, givenConfig);
+
+        // THEN
+        assertThat(upgradeResult.getFirst()).isEqualTo(hasChanges);
+        ObjectNode upgradedConfig = (ObjectNode) upgradeResult.getSecond();
+        assertThat(upgradedConfig).isEqualTo(expectedConfig);
     }
 
 }

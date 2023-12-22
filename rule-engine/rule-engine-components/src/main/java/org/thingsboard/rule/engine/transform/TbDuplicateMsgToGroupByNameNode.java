@@ -30,6 +30,8 @@
  */
 package org.thingsboard.rule.engine.transform;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.rule.engine.api.RuleNode;
@@ -45,15 +47,16 @@ import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @RuleNode(
         type = ComponentType.TRANSFORMATION,
         name = "duplicate to group by name",
+        version = 1,
         configClazz = TbDuplicateMsgToGroupByNameNodeConfiguration.class,
         nodeDescription = "Duplicates message to all entities belonging to resolved Entity group",
         nodeDetails = "Entities are fetched from entity group that is detected according to the configuration. " +
@@ -66,6 +69,8 @@ import java.util.concurrent.ExecutionException;
         icon = "call_split"
 )
 public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgNode<TbDuplicateMsgToGroupByNameNodeConfiguration> {
+
+    private static final String SEARCH_CUSTOMER_ENTITIES_IF_ORIGINATOR_CUSTOMER = "searchCustomerEntitiesIfOriginatorCustomer";
 
     @Override
     protected TbDuplicateMsgToGroupByNameNodeConfiguration loadNodeConfiguration(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
@@ -114,6 +119,18 @@ public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgNode<
                 throw new RuntimeException("Can't find group with type: " + config.getGroupType() + " name: " + config.getGroupName() + "!");
             }
         }
+    }
+
+    @Override
+    public TbPair<Boolean, JsonNode> upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
+        boolean hasChanges = false;
+        if (fromVersion == 0) {
+            if (!oldConfiguration.has(SEARCH_CUSTOMER_ENTITIES_IF_ORIGINATOR_CUSTOMER)) {
+                hasChanges = true;
+                ((ObjectNode) oldConfiguration).put(SEARCH_CUSTOMER_ENTITIES_IF_ORIGINATOR_CUSTOMER, false);
+            }
+        }
+        return new TbPair<>(hasChanges, oldConfiguration);
     }
 
 }
