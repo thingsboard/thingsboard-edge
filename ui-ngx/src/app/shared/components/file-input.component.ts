@@ -47,10 +47,12 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { FlowDirective } from '@flowjs/ngx-flow';
 import { TranslateService } from '@ngx-translate/core';
 import { UtilsService } from '@core/services/utils.service';
+import { DialogService } from '@core/services/dialog.service';
+import { FileSizePipe } from '@shared/pipe/file-size.pipe';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-file-input',
@@ -88,43 +90,28 @@ export class FileInputComponent extends PageComponent implements AfterViewInit, 
   dropLabel: string;
 
   @Input()
+  maxSizeByte: number;
+
+  @Input()
   contentConvertFunction: (content: string) => any;
 
-  private requiredValue: boolean;
-
-  get required(): boolean {
-    return this.requiredValue;
-  }
+  @Input()
+  @coerceBoolean()
+  required: boolean;
 
   @Input()
-  set required(value: boolean) {
-    const newVal = coerceBooleanProperty(value);
-    if (this.requiredValue !== newVal) {
-      this.requiredValue = newVal;
-    }
-  }
-
-  private requiredAsErrorValue: boolean;
-
-  get requiredAsError(): boolean {
-    return this.requiredAsErrorValue;
-  }
+  @coerceBoolean()
+  requiredAsError: boolean;
 
   @Input()
-  set requiredAsError(value: boolean) {
-    const newVal = coerceBooleanProperty(value);
-    if (this.requiredAsErrorValue !== newVal) {
-      this.requiredAsErrorValue = newVal;
-    }
-  }
-
-  @Input()
+  @coerceBoolean()
   disabled: boolean;
 
   @Input()
   existingFileName: string;
 
   @Input()
+  @coerceBoolean()
   readAsBinary = false;
 
   @Input()
@@ -163,7 +150,9 @@ export class FileInputComponent extends PageComponent implements AfterViewInit, 
 
   constructor(protected store: Store<AppState>,
               private utils: UtilsService,
-              public translate: TranslateService) {
+              private translate: TranslateService,
+              private dialog: DialogService,
+              private fileSize: FileSizePipe) {
     super(store);
   }
 
@@ -171,11 +160,22 @@ export class FileInputComponent extends PageComponent implements AfterViewInit, 
     this.autoUploadSubscription = this.flow.events$.subscribe(event => {
       if (event.type === 'filesAdded') {
         const readers = [];
+        let showMaxSizeAlert = false;
         (event.event[0] as flowjs.FlowFile[]).forEach(file => {
-          if (this.filterFile(file)) {
+          if (!this.checkMaxSize(file)) {
+            showMaxSizeAlert = true;
+          } else if (this.filterFile(file)) {
             readers.push(this.readerAsFile(file));
           }
         });
+
+        if (showMaxSizeAlert) {
+          this.dialog.alert(
+            this.translate.instant('dashboard.cannot-upload-file'),
+            this.translate.instant('dashboard.maximum-upload-file-size', {size: this.fileSize.transform(this.maxSizeByte)})
+          ).subscribe(() => { });
+        }
+
         if (readers.length) {
           Promise.all(readers).then((files) => {
             files = files.filter(file => file.fileContent != null || file.files != null);
@@ -231,6 +231,10 @@ export class FileInputComponent extends PageComponent implements AfterViewInit, 
         reader.readAsText(file.file);
       }
     });
+  }
+
+  private checkMaxSize(file: flowjs.FlowFile): boolean {
+    return !(this.maxSizeByte && this.maxSizeByte < file.size);
   }
 
   private filterFile(file: flowjs.FlowFile): boolean {

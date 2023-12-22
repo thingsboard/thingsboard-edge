@@ -31,7 +31,7 @@
 
 import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
-import { Store } from '@ngrx/store';
+import { select, Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
@@ -44,9 +44,10 @@ import {
   ResourceTypeMIMETypes,
   ResourceTypeTranslationMap
 } from '@shared/models/resource.models';
-import { filter, startWith, takeUntil } from 'rxjs/operators';
+import { filter, startWith, take, takeUntil } from 'rxjs/operators';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { isDefinedAndNotNull } from '@core/utils';
+import { selectMaxResourceSize } from '@core/auth/auth.selectors';
 
 @Component({
   selector: 'tb-resources-library',
@@ -58,6 +59,8 @@ export class ResourcesLibraryComponent extends EntityComponent<Resource> impleme
   readonly resourceTypes: ResourceType[] = Object.values(this.resourceType);
   readonly resourceTypesTranslationMap = ResourceTypeTranslationMap;
 
+  maxResourceSize = 0;
+
   private destroy$ = new Subject<void>();
 
   constructor(protected store: Store<AppState>,
@@ -67,6 +70,11 @@ export class ResourcesLibraryComponent extends EntityComponent<Resource> impleme
               public fb: FormBuilder,
               protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
+    this.store.pipe(select(selectMaxResourceSize)).pipe(
+      take(1)
+    ).subscribe(maxResourceSize => {
+      this.maxResourceSize = maxResourceSize;
+    });
   }
 
   ngOnInit() {
