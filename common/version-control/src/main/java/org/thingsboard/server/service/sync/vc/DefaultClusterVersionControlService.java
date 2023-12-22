@@ -39,6 +39,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.eclipse.jgit.errors.LargeObjectException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -276,7 +277,7 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
                 }
             }
         } catch (Exception e) {
-            reply(ctx, Optional.of(e));
+            reply(ctx, Optional.of(handleError(e)));
         } finally {
             lock.unlock();
         }
@@ -527,6 +528,13 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
             log.debug("[{}] Failed to connect to the repository: ", ctx, e);
             reply(ctx, Optional.of(e));
         }
+    }
+
+    private Exception handleError(Exception e) {
+        if (e instanceof LargeObjectException) {
+            return new RuntimeException("Version is too big");
+        }
+        return e;
     }
 
     private void reply(VersionControlRequestCtx ctx, VersionCreationResult result) {

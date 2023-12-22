@@ -445,7 +445,15 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
 
     private <R> VersionLoadResult doInTemplate(EntitiesImportCtx ctx, VersionLoadRequest vlr, Function<EntitiesImportCtx, VersionLoadResult> function) {
         try {
-            VersionLoadResult result = transactionTemplate.execute(status -> function.apply(ctx));
+            VersionLoadResult result = transactionTemplate.execute(status -> {
+                try {
+                    return function.apply(ctx);
+                } catch (RuntimeException e) {
+                    throw e;
+                } catch (Exception e) {
+                    throw new RuntimeException(e); // to prevent UndeclaredThrowableException
+                }
+            });
             for (ThrowingRunnable throwingRunnable : ctx.getEventCallbacks()) {
                 throwingRunnable.run();
             }
@@ -594,7 +602,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         for (var task : sw.getTaskInfo()) {
             log.debug("[{}] Executed: {} in {}ms", ctx.getTenantId(), task.getTaskName(), task.getTimeMillis());
         }
-        log.info("[{}] Total import time: {}ms", ctx.getTenantId(), sw.getTotalTimeMillis());
+        log.debug("[{}] Total import time: {}ms", ctx.getTenantId(), sw.getTotalTimeMillis());
         return VersionLoadResult.success(new ArrayList<>(ctx.getResults().values()));
     }
 
@@ -640,13 +648,18 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     }
 
     @SuppressWarnings("rawtypes")
+    @SneakyThrows
     private void importEntityGroups(EntitiesImportCtx ctx, EntityType entityType) throws InterruptedException, ExecutionException {
         int limit = 100;
         int offset = 0;
         List<EntityExportData> entityDataList;
         Map<EntityId, List<CustomerId>> ownersCache = new HashMap<>();
         do {
-            entityDataList = gitServiceQueue.getEntities(ctx.getTenantId(), ctx.getVersionId(), Collections.emptyList(), entityType, true, true, offset, limit).get();
+            try {
+                entityDataList = gitServiceQueue.getEntities(ctx.getTenantId(), ctx.getVersionId(), Collections.emptyList(), entityType, true, true, offset, limit).get();
+            } catch (ExecutionException e) {
+                throw e.getCause();
+            }
             List<EntityImportResult<?>> entityGroupResults = importEntityDataList(ctx, entityType, entityDataList);
             for (EntityImportResult<?> entityImportResult : entityGroupResults) {
                 EntityGroup savedGroup = (EntityGroup) entityImportResult.getSavedEntity();
