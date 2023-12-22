@@ -67,33 +67,15 @@
             <input matInput formControlName="appTitle"/>
           </mat-form-field>
           <div formGroupName="favicon" fxLayout="column">
-            <tb-image-input
+            <tb-gallery-image-input
               label="{{'white-labeling.favicon' | translate}}"
-              accept="image/x-icon, image/gif, image/png, image/vnd.microsoft.icon"
-              inputId="faviconSelect"
-              [maxImageSize]="maxFaviconSize"
-              [allowedImageMimeTypes]="faviconTypes"
-              (imageSizeOverflow)="onFaviconSizeError()"
-              (imageTypeError)="onFaviconTypeError()"
-              (imageTypeChanged)="wlSettings.get('favicon').get('type').setValue($event)"
-              (imageCleared)="onFaviconCleared()"
               formControlName="url"
-            ></tb-image-input>
-            <div *ngIf="!readonly"
-                 class="tb-hint">{{ 'white-labeling.favicon-description' | translate:{kbSize: maxFaviconSizeKb} }}</div>
+            ></tb-gallery-image-input>
           </div>
-          <tb-image-input
+          <tb-gallery-image-input
             label="{{'white-labeling.logo' | translate}}"
-            accept="image/*"
-            inputId="logoSelect"
-            [maxImageSize]="maxLogoSize"
-            (imageSizeOverflow)="onLogoSizeError()"
-            (imageTypeError)="onLogoTypeError()"
-            (imageCleared)="onLogoCleared()"
             formControlName="logoImageUrl"
-          ></tb-image-input>
-          <div *ngIf="!readonly"
-               class="tb-hint">{{ 'white-labeling.logo-description' | translate:{kbSize: maxLogoSizeKb} }}</div>
+          ></tb-gallery-image-input>
           <mat-form-field class="mat-block">
             <mat-label translate>white-labeling.logo-height</mat-label>
             <input matInput type="number" step="1" min="1" formControlName="logoImageHeight"/>

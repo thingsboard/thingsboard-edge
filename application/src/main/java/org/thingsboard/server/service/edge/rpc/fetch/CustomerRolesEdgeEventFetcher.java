@@ -53,5 +53,4 @@ public class CustomerRolesEdgeEventFetcher extends BaseRolesEdgeEventFetcher {
     PageData<Role> fetchPageData(TenantId tenantId, Edge edge, PageLink pageLink) {
         return roleService.findRolesByTenantIdAndCustomerId(tenantId, customerId, pageLink);
     }
-
 }

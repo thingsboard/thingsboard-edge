@@ -32,8 +32,9 @@ package org.thingsboard.server.service.ws.telemetry.cmd.v1;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.thingsboard.server.service.ws.telemetry.TelemetryFeature;
+import org.thingsboard.server.service.ws.WsCmdType;
 
 /**
  * @author Andrew Shvayka
@@ -41,6 +42,7 @@ import org.thingsboard.server.service.ws.telemetry.TelemetryFeature;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class TimeseriesSubscriptionCmd extends SubscriptionCmd {
 
     private long startTs;
@@ -50,7 +52,7 @@ public class TimeseriesSubscriptionCmd extends SubscriptionCmd {
     private String agg;
 
     @Override
-    public TelemetryFeature getType() {
-        return TelemetryFeature.TIMESERIES;
+    public WsCmdType getType() {
+        return WsCmdType.TIMESERIES;
     }
 }

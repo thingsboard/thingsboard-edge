@@ -44,7 +44,13 @@ import {
 import cssjs from '@core/css/css';
 import { UtilsService } from '@core/services/utils.service';
 import { ModulesWithFactories, ResourcesService } from '@core/services/resources.service';
-import { Widget, widgetActionSources, WidgetControllerDescriptor, WidgetType } from '@shared/models/widget.models';
+import {
+  IWidgetSettingsComponent,
+  Widget,
+  widgetActionSources,
+  WidgetControllerDescriptor,
+  WidgetType
+} from '@shared/models/widget.models';
 import { catchError, map, mergeMap, switchMap, tap } from 'rxjs/operators';
 import { isFunction, isUndefined } from '@core/utils';
 import { TranslateService } from '@ngx-translate/core';
@@ -63,6 +69,8 @@ import { IModulesMap } from '@modules/common/modules-map.models';
 import { HOME_COMPONENTS_MODULE_TOKEN } from '@home/components/tokens';
 import { widgetSettingsComponentsMap } from '@home/components/widget/lib/settings/widget-settings.module';
 import { ReportService } from '@core/http/report.service';
+import { basicWidgetConfigComponentsMap } from '@home/components/widget/config/basic/basic-widget-config.module';
+import { IBasicWidgetConfigComponent } from '@home/components/widget/config/widget-config.component.models';
 
 @Injectable()
 export class WidgetComponentService {
@@ -417,6 +425,7 @@ export class WidgetComponentService {
 
   private registerWidgetSettingsForms(widgetInfo: WidgetInfo, factories: ComponentFactory<any>[]) {
     const directives: string[] = [];
+    const basicDirectives: string[] = [];
     if (widgetInfo.settingsDirective && widgetInfo.settingsDirective.length) {
       directives.push(widgetInfo.settingsDirective);
     }
@@ -427,12 +436,19 @@ export class WidgetComponentService {
       directives.push(widgetInfo.latestDataKeySettingsDirective);
     }
     if (widgetInfo.basicModeDirective && widgetInfo.basicModeDirective.length) {
-      directives.push(widgetInfo.basicModeDirective);
+      basicDirectives.push(widgetInfo.basicModeDirective);
     }
+
+    this.expandSettingComponentMap(widgetSettingsComponentsMap, directives, factories);
+    this.expandSettingComponentMap(basicWidgetConfigComponentsMap, basicDirectives, factories);
+  }
+
+  private expandSettingComponentMap(settingsComponentsMap: {[key: string]: Type<IWidgetSettingsComponent | IBasicWidgetConfigComponent>},
+                                    directives: string[], factories: ComponentFactory<any>[]): void {
     if (directives.length) {
       factories.filter((factory) => directives.includes(factory.selector))
         .forEach((foundFactory) => {
-          widgetSettingsComponentsMap[foundFactory.selector] = foundFactory.componentType;
+          settingsComponentsMap[foundFactory.selector] = foundFactory.componentType;
         });
     }
   }
@@ -571,6 +587,12 @@ export class WidgetComponentService {
       }
       if (isUndefined(result.typeParameters.hideDataSettings)) {
         result.typeParameters.hideDataSettings = false;
+      }
+      if (!isFunction(result.typeParameters.defaultDataKeysFunction)) {
+        result.typeParameters.defaultDataKeysFunction = null;
+      }
+      if (!isFunction(result.typeParameters.defaultLatestDataKeysFunction)) {
+        result.typeParameters.defaultLatestDataKeysFunction = null;
       }
       if (isFunction(widgetTypeInstance.actionSources)) {
         result.actionSources = widgetTypeInstance.actionSources();

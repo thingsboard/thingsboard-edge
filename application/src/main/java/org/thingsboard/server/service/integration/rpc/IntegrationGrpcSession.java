@@ -549,7 +549,7 @@ public final class IntegrationGrpcSession implements Closeable {
     }
 
     void onDownlink(Device device, IntegrationDownlinkMsg msg) {
-        log.trace("[{}] Sending downlink msg [{}]", this.sessionId, msg);
+        log.debug("[{}] Sending downlink msg [{}]", this.sessionId, msg);
         if (isConnected()) {
             try {
                 outputStream.onNext(ResponseMsg.newBuilder()
@@ -568,7 +568,9 @@ public final class IntegrationGrpcSession implements Closeable {
                 connected = false;
                 sessionCloseListener.accept(configuration.getId());
             }
-            log.trace("[{}] Downlink msg successfully sent [{}]", this.sessionId, msg);
+            log.debug("[{}] Downlink msg successfully sent [{}]", this.sessionId, msg);
+        } else {
+            log.debug("[{}] Ignore downlink due to disconnected session", this.sessionId);
         }
     }
 

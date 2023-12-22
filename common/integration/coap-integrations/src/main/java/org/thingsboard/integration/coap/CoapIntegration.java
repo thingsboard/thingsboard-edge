@@ -229,7 +229,7 @@ public class CoapIntegration extends AbstractIntegration<CoapIntegrationMsg> {
         if (uplinkDataList != null && !uplinkDataList.isEmpty()) {
             for (UplinkData uplinkData : uplinkDataList) {
                 processUplinkData(context, uplinkData);
-                log.info("Processed uplink data: [{}]", uplinkData);
+                log.trace("Processed uplink data: [{}]", uplinkData);
             }
         }
     }

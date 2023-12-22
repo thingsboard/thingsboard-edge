@@ -80,7 +80,7 @@ export class RuleChainSelectComponent implements ControlValueAccessor, OnInit {
   }
 
   ngOnInit() {
-    const pageLink = new PageLink(100, 0, null, {
+    const pageLink = new PageLink(1024, 0, null, {
       property: 'name',
       direction: Direction.ASC
     });

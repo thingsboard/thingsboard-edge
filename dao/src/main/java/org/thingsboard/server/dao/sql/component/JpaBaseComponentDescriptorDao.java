@@ -104,7 +104,7 @@ public class JpaBaseComponentDescriptorDao extends JpaAbstractDao<ComponentDescr
         return DaoUtil.toPageData(componentDescriptorRepository
                 .findByType(
                         type,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -114,7 +114,7 @@ public class JpaBaseComponentDescriptorDao extends JpaAbstractDao<ComponentDescr
                 .findByScopeAndType(
                         type,
                         scope,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 

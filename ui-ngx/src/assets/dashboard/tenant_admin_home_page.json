@@ -994,7 +994,7 @@
         "keyFilters": [
           {
             "key": {
-              "type": "ATTRIBUTE",
+              "type": "SERVER_ATTRIBUTE",
               "key": "active"
             },
             "valueType": "BOOLEAN",
@@ -1026,7 +1026,7 @@
         "keyFilters": [
           {
             "key": {
-              "type": "ATTRIBUTE",
+              "type": "SERVER_ATTRIBUTE",
               "key": "active"
             },
             "valueType": "BOOLEAN",

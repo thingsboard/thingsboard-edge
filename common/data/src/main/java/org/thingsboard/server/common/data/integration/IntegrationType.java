@@ -58,12 +58,13 @@ public enum IntegrationType {
     TCP(false, true),
     KAFKA(true),
     AZURE_IOT_HUB(true),
-    APACHE_PULSAR(false),
+    APACHE_PULSAR(true),
     RABBITMQ(false),
     LORIOT(false),
     COAP(false),
-    TUYA(false),
-    AZURE_SERVICE_BUS(true);
+    TUYA(true),
+    AZURE_SERVICE_BUS(true),
+    KPN(false);
 
     IntegrationType(boolean singleton) {
         this.singleton = singleton;

@@ -69,6 +69,10 @@ export class FontSettingsComponent implements OnInit, ControlValueAccessor {
   @coerceBoolean()
   autoScale = false;
 
+  @Input()
+  @coerceBoolean()
+  disabledLineHeight = false;
+
   private modelValue: Font;
 
   private propagateChange = null;
@@ -107,7 +111,8 @@ export class FontSettingsComponent implements OnInit, ControlValueAccessor {
         font: this.modelValue,
         initialPreviewStyle: this.initialPreviewStyle,
         clearButton: this.clearButton,
-        autoScale: this.autoScale
+        autoScale: this.autoScale,
+        disabledLineHeight: this.disabledLineHeight
       };
       if (isDefinedAndNotNull(this.previewText)) {
         const previewText = typeof this.previewText === 'string' ? this.previewText : this.previewText();

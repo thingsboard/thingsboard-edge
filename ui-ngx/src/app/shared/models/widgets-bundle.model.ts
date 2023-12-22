@@ -39,4 +39,5 @@ export interface WidgetsBundle extends BaseData<WidgetsBundleId>, ExportableEnti
   title: string;
   image: string;
   description: string;
+  order: number;
 }

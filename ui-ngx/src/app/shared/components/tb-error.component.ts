@@ -36,10 +36,10 @@ import { coerceBoolean } from '@shared/decorators/coercion';
 @Component({
   selector: 'tb-error',
   template: `
-  <div [@animation]="state" [ngStyle]="{marginTop: noMargin ? '0' : '0.5rem', fontSize: '.75rem'}">
-      <mat-error >
-      {{message}}
-    </mat-error>
+    <div [@animation]="state" [ngStyle]="{marginTop: noMargin ? '0' : '0.5rem', fontSize: '.75rem'}">
+      <mat-error>
+        {{message}}
+      </mat-error>
     </div>
   `,
   styles: [`
@@ -81,7 +81,7 @@ export class TbErrorComponent {
         this.message = value;
       }
       this.state = value ? 'show' : 'hide';
-      this.cd.detectChanges();
+      this.cd.markForCheck();
     }
   }
 }

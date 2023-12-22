@@ -65,6 +65,7 @@ import org.thingsboard.server.gen.edge.v1.OtaPackageUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RoleProto;
+import org.thingsboard.server.gen.edge.v1.ResourceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
@@ -318,23 +319,8 @@ public class EdgeImitator {
         if (downlinkMsg.hasCustomerCustomTranslationMsg()) {
             result.add(saveDownlinkMsg(downlinkMsg.getCustomerCustomTranslationMsg()));
         }
-        if (downlinkMsg.hasSystemWhiteLabelingParams()) {
-            result.add(saveDownlinkMsg(downlinkMsg.getSystemWhiteLabelingParams()));
-        }
-        if (downlinkMsg.hasTenantWhiteLabelingParams()) {
-            result.add(saveDownlinkMsg(downlinkMsg.getTenantWhiteLabelingParams()));
-        }
-        if (downlinkMsg.hasCustomerWhiteLabelingParams()) {
-            result.add(saveDownlinkMsg(downlinkMsg.getCustomerWhiteLabelingParams()));
-        }
-        if (downlinkMsg.hasSystemLoginWhiteLabelingParams()) {
-            result.add(saveDownlinkMsg(downlinkMsg.getSystemLoginWhiteLabelingParams()));
-        }
-        if (downlinkMsg.hasTenantLoginWhiteLabelingParams()) {
-            result.add(saveDownlinkMsg(downlinkMsg.getTenantLoginWhiteLabelingParams()));
-        }
-        if (downlinkMsg.hasCustomerLoginWhiteLabelingParams()) {
-            result.add(saveDownlinkMsg(downlinkMsg.getCustomerLoginWhiteLabelingParams()));
+        if (downlinkMsg.hasWhiteLabelingProto()) {
+            result.add(saveDownlinkMsg(downlinkMsg.getWhiteLabelingProto()));
         }
         if (downlinkMsg.getSchedulerEventUpdateMsgCount() > 0) {
             for (SchedulerEventUpdateMsg schedulerEventUpdateMsg : downlinkMsg.getSchedulerEventUpdateMsgList()) {
@@ -379,6 +365,11 @@ public class EdgeImitator {
         if (downlinkMsg.getTenantProfileUpdateMsgCount() > 0) {
             for (TenantProfileUpdateMsg tenantProfileUpdateMsg : downlinkMsg.getTenantProfileUpdateMsgList()) {
                 result.add(saveDownlinkMsg(tenantProfileUpdateMsg));
+            }
+        }
+        if (downlinkMsg.getResourceUpdateMsgCount() > 0) {
+            for (ResourceUpdateMsg resourceUpdateMsg : downlinkMsg.getResourceUpdateMsgList()) {
+                result.add(saveDownlinkMsg(resourceUpdateMsg));
             }
         }
         if (downlinkMsg.hasEdgeConfiguration()) {

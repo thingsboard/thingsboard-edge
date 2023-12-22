@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data.wl;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -38,20 +39,17 @@ import org.thingsboard.server.common.data.StringUtils;
 @Schema
 @Data
 @EqualsAndHashCode
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class WhiteLabelingParams {
 
     @Schema(description = "Logo image URL", example = "https://company.com/images/logo.png")
     protected String logoImageUrl;
-    @Schema(description = "Logo image checksum. Used to detect the changes of the logo image.", accessMode = Schema.AccessMode.READ_ONLY)
-    protected String logoImageChecksum;
     @Schema(description = "The height of a logo container. Logo image will be automatically scaled.")
     protected Integer logoImageHeight;
     @Schema(description = "White-labeled name of the platform", example = "My Company IoT Platform")
     protected String appTitle;
     @Schema(description = "JSON object that contains website icon url and type")
     protected Favicon favicon;
-    @Schema(description = "Favicon image checksum. Used to detect the changes of the website icon", accessMode = Schema.AccessMode.READ_ONLY)
-    protected String faviconChecksum;
     @Schema(description = "Complex JSON that describes structure of the Angular Material Palette. See [theming](https://material.angular.io/guide/theming) for more details")
     protected PaletteSettings paletteSettings;
     @Schema(description = "Base URL for help link")
@@ -74,7 +72,6 @@ public class WhiteLabelingParams {
     public WhiteLabelingParams merge(WhiteLabelingParams otherWlParams) {
         if (StringUtils.isEmpty(this.logoImageUrl)) {
             this.logoImageUrl = otherWlParams.logoImageUrl;
-            this.logoImageChecksum = otherWlParams.logoImageChecksum;
         }
         if (this.logoImageHeight == null) {
             this.logoImageHeight = otherWlParams.logoImageHeight;
@@ -84,7 +81,6 @@ public class WhiteLabelingParams {
         }
         if (favicon == null || StringUtils.isEmpty(favicon.getUrl())) {
             this.favicon = otherWlParams.favicon;
-            this.faviconChecksum = otherWlParams.faviconChecksum;
         }
         if (this.paletteSettings == null) {
             this.paletteSettings = otherWlParams.paletteSettings;
@@ -114,14 +110,4 @@ public class WhiteLabelingParams {
         }
         return this;
     }
-
-    public void prepareImages(String logoImageChecksum, String faviconChecksum) {
-        if (!StringUtils.isEmpty(logoImageChecksum) && logoImageChecksum.equals(this.logoImageChecksum)) {
-            this.logoImageUrl = null;
-        }
-        if (!StringUtils.isEmpty(faviconChecksum) && faviconChecksum.equals(this.faviconChecksum)) {
-            this.favicon = null;
-        }
-    }
-
 }

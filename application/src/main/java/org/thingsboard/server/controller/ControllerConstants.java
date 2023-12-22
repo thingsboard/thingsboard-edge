@@ -50,6 +50,9 @@ public class ControllerConstants {
     protected static final String PAGE_DATA_PARAMETERS = "You can specify parameters to filter the results. " +
             "The result is wrapped with PageData object that allows you to iterate over result set using pagination. " +
             "See the 'Model' tab of the Response Class for more details. ";
+
+    protected static final String INLINE_IMAGES = "inlineImages";
+    protected static final String INLINE_IMAGES_DESCRIPTION = "Inline images as a data URL (Base64)";
     protected static final String DASHBOARD_ID_PARAM_DESCRIPTION = "A string value representing the dashboard id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String RPC_ID_PARAM_DESCRIPTION = "A string value representing the rpc id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String ENTITY_GROUP_ID_PARAM_DESCRIPTION = "A string value representing the Entity Group Id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
@@ -155,6 +158,8 @@ public class ControllerConstants {
     protected static final String RESOURCE_INFO_DESCRIPTION = "Resource Info is a lightweight object that includes main information about the Resource excluding the heavyweight data. ";
     protected static final String RESOURCE_DESCRIPTION = "Resource is a heavyweight object that includes main information about the Resource and also data. ";
     protected static final String INTEGRATION_DESCRIPTION = "The integration object contains information about the Integration, including the heavyweight configuration object. ";
+
+    protected static final String RESOURCE_INCLUDE_SYSTEM_IMAGES_DESCRIPTION = "Use 'true' to include system images. Disabled by default. Ignored for requests by users with system administrator authority.";
 
     protected static final String RESOURCE_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the resource title.";
     protected static final String RESOURCE_TYPE = "A string value representing the resource type.";
@@ -2372,6 +2377,21 @@ public class ControllerConstants {
             "  },\n" +
             "  \"fault_codes\": [100, 204, 301],\n" +
             "  \"battery_level\": 78.5\n" +
+            "}\n";
+
+    static final String DEFAULT_KNP_UPLINK_CONVERTER_MESSAGE = "{\n" +
+            "  \"deviceName\":\"Device A\",\n" +
+            "  \"deviceType\":\"thermostat\",\n" +
+            "  \"customerName\":\"customer\",\n" +
+            "  \"groupName\":\"thermostat devices\",\n" +
+            "  \"attributes\": {\n" +
+            "    \"model\":\"Model A\",\n" +
+            "    \"serialNumber\":\"SN111\"\n" +
+            "  },\n" +
+            "  \"telemetry\": {\n" +
+            "    \"temperature\":42,\n" +
+            "    \"humidity\":80\n" +
+            "  }\n" +
             "}\n";
 
     // Default converter uplinks messages

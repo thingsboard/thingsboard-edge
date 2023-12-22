@@ -30,12 +30,12 @@
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
         "name": "Save Attributes",
         "debugMode": false,
-        "configurationVersion": 1,
+        "configurationVersion": 2,
         "configuration": {
           "scope": "CLIENT_SCOPE",
-          "notifyDevice": "false",
-          "sendAttributesUpdatedNotification": "false",
-          "updateAttributesOnlyOnValueChange": "true"
+          "notifyDevice": false,
+          "sendAttributesUpdatedNotification": false,
+          "updateAttributesOnlyOnValueChange": true
         }
       },
       {
@@ -127,6 +127,7 @@
         "type": "org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNode",
         "name": "Duplicate To Group Entities",
         "debugMode": false,
+        "configurationVersion": 1,
         "configuration": {
           "entityGroupId": null,
           "entityGroupIsMessageOriginator": true

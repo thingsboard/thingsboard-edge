@@ -119,7 +119,7 @@ import { WidgetSubscription } from '@core/api/widget-subscription';
 import { EntityService } from '@core/http/entity.service';
 import { DatePipe } from '@angular/common';
 import { ServicesMap } from '@home/models/services.map';
-import { ImportExportService } from '@home/components/import-export/import-export.service';
+import { ImportExportService } from '@shared/import-export/import-export.service';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { EntityDataService } from '@core/api/entity-data.service';
 import { TranslateService } from '@ngx-translate/core';

@@ -53,7 +53,7 @@ public interface EntityGroupInfoRepository extends JpaRepository<EntityGroupInfo
             "WHERE e.ownerId = :parentEntityId " +
             "AND e.ownerType = :parentEntityType " +
             "AND e.type = :groupType " +
-            "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND (:textSearch IS NULL OR ilike(e.name, CONCAT('%', :textSearch, '%')) = true)")
     Page<EntityGroupInfoEntity> findEntityGroupsByType(@Param("parentEntityId") UUID parentEntityId,
                                                        @Param("parentEntityType") EntityType parentEntityType,
                                                        @Param("groupType") EntityType groupType,
@@ -65,7 +65,7 @@ public interface EntityGroupInfoRepository extends JpaRepository<EntityGroupInfo
             "WHERE e.ownerId = :parentEntityId " +
             "AND e.ownerType = :parentEntityType " +
             "AND e.type = :groupType " +
-            "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND (:textSearch IS NULL OR ilike(e.name, CONCAT('%', :textSearch, '%')) = true)")
     Page<EntityInfo> findEntityGroupEntityInfosByType(@Param("parentEntityId") UUID parentEntityId,
                                                       @Param("parentEntityType") EntityType parentEntityType,
                                                       @Param("groupType") EntityType groupType,
@@ -75,7 +75,7 @@ public interface EntityGroupInfoRepository extends JpaRepository<EntityGroupInfo
     @Query("SELECT e FROM EntityGroupInfoEntity e " +
             "WHERE e.ownerId IN :ownerIds " +
             "AND e.type = :groupType " +
-            "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND (:textSearch IS NULL OR ilike(e.name, CONCAT('%', :textSearch, '%')) = true)")
     Page<EntityGroupInfoEntity> findEntityGroupsByOwnerIdsAndType(@Param("ownerIds") List<UUID> ownerIds,
                                                                   @Param("groupType") EntityType groupType,
                                                                   @Param("textSearch") String textSearch,
@@ -85,7 +85,7 @@ public interface EntityGroupInfoRepository extends JpaRepository<EntityGroupInfo
             "FROM EntityGroupEntity e " +
             "WHERE e.ownerId IN :ownerIds " +
             "AND e.type = :groupType " +
-            "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND (:textSearch IS NULL OR ilike(e.name, CONCAT('%', :textSearch, '%')) = true)")
     Page<EntityInfo> findEntityGroupEntityInfosByOwnerIdsAndType(@Param("ownerIds") List<UUID> ownerIds,
                                                                  @Param("groupType") EntityType groupType,
                                                                  @Param("textSearch") String textSearch,
@@ -93,7 +93,7 @@ public interface EntityGroupInfoRepository extends JpaRepository<EntityGroupInfo
 
     @Query("SELECT e FROM EntityGroupInfoEntity e " +
             "WHERE e.id IN :entityGroupIds " +
-            "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND (:textSearch IS NULL OR ilike(e.name, CONCAT('%', :textSearch, '%')) = true)")
     Page<EntityGroupInfoEntity> findEntityGroupsByIds(@Param("entityGroupIds") List<UUID> entityGroupIds,
                                                       @Param("textSearch") String textSearch,
                                                       Pageable pageable);
@@ -101,7 +101,7 @@ public interface EntityGroupInfoRepository extends JpaRepository<EntityGroupInfo
     @Query("SELECT new org.thingsboard.server.common.data.EntityInfo(e.id, 'ENTITY_GROUP', e.name) " +
             "FROM EntityGroupEntity e " +
             "WHERE e.id IN :entityGroupIds " +
-            "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND (:textSearch IS NULL OR ilike(e.name, CONCAT('%', :textSearch, '%')) = true)")
     Page<EntityInfo> findEntityGroupEntityInfosByIds(@Param("entityGroupIds") List<UUID> entityGroupIds,
                                                      @Param("textSearch") String textSearch,
                                                      Pageable pageable);
@@ -111,7 +111,7 @@ public interface EntityGroupInfoRepository extends JpaRepository<EntityGroupInfo
             "AND e.ownerType = :parentEntityType " +
             "AND e.type = :groupType) " +
             "OR (e.id IN :entityGroupIds)) " +
-            "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND (:textSearch IS NULL OR ilike(e.name, CONCAT('%', :textSearch, '%')) = true)")
     Page<EntityGroupInfoEntity> findEntityGroupsByTypeOrIds(@Param("parentEntityId") UUID parentEntityId,
                                                             @Param("parentEntityType") EntityType parentEntityType,
                                                             @Param("groupType") EntityType groupType,
@@ -125,7 +125,7 @@ public interface EntityGroupInfoRepository extends JpaRepository<EntityGroupInfo
             "AND e.ownerType = :parentEntityType " +
             "AND e.type = :groupType) " +
             "OR (e.id IN :entityGroupIds)) " +
-            "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND (:textSearch IS NULL OR ilike(e.name, CONCAT('%', :textSearch, '%')) = true)")
     Page<EntityInfo> findEntityGroupEntityInfosByTypeOrIds(@Param("parentEntityId") UUID parentEntityId,
                                                            @Param("parentEntityType") EntityType parentEntityType,
                                                            @Param("groupType") EntityType groupType,
@@ -141,7 +141,7 @@ public interface EntityGroupInfoRepository extends JpaRepository<EntityGroupInfo
             "AND exists (select 1 from json_array_elements(owner_ids) as owners " +
             "WHERE owners->>'id' = :ownerId " +
             "AND owners->>'entityType' = :ownerType) " +
-            "AND (LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%')))",
+            "AND (:textSearch IS NULL OR e.name ILIKE CONCAT('%', :textSearch, '%'))",
             countQuery = "SELECT count(e.id) FROM entity_group_info_view e, relation re " +
                     "WHERE e.id = re.to_id AND re.to_type = 'ENTITY_GROUP' " +
                     "AND re.relation_type_group = 'EDGE' " +
@@ -150,7 +150,7 @@ public interface EntityGroupInfoRepository extends JpaRepository<EntityGroupInfo
                     "AND exists (select 1 from json_array_elements(owner_ids) as owners " +
                     "WHERE owners->>'id' = :ownerId " +
                     "AND owners->>'entityType' = :ownerType) " +
-                    "AND (LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%')))",
+                    "AND (:textSearch IS NULL OR e.name ILIKE CONCAT('%', :textSearch, '%'))",
             nativeQuery = true)
     Page<EntityGroupInfoEntity> findEdgeEntityGroupsByOwnerIdAndType(@Param("edgeId") UUID edgeId,
                                                                      @Param("ownerId") String ownerId,

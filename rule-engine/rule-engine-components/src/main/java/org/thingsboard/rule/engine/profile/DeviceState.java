@@ -36,7 +36,6 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.profile.state.PersistedAlarmState;
 import org.thingsboard.rule.engine.profile.state.PersistedDeviceState;
-import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
@@ -56,6 +55,7 @@ import org.thingsboard.server.common.data.query.EntityKey;
 import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.rule.RuleNodeState;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.dao.sql.query.EntityKeyMapping;
 
 import java.util.ArrayList;

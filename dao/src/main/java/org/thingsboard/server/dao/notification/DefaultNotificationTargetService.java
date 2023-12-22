@@ -184,8 +184,9 @@ public class DefaultNotificationTargetService extends AbstractEntityService impl
                     return userService.findAllUsers(pageLink);
                 }
             }
+            default:
+                throw new IllegalArgumentException("Recipient type not supported");
         }
-        return new PageData<>();
     }
 
     @Override
@@ -212,6 +213,8 @@ public class DefaultNotificationTargetService extends AbstractEntityService impl
                     return userService.findTenantAdmins(affectedTenantId, pageLink);
                 }
                 break;
+            default:
+                throw new IllegalArgumentException("Recipient type not supported");
         }
         return new PageData<>();
     }

@@ -36,9 +36,9 @@ import { HttpClient } from '@angular/common/http';
 import { PageLink, TimePageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
 import { EntitySubtype } from '@app/shared/models/entity-type.models';
-import { Edge, EdgeEvent, EdgeInfo, EdgeInstallInstructions, EdgeSearchQuery } from '@shared/models/edge.models';
+import { Edge, EdgeEvent, EdgeInfo, EdgeInstructions, EdgeSearchQuery } from '@shared/models/edge.models';
 import { EntityId } from '@shared/models/id/entity-id';
-import { BulkImportRequest, BulkImportResult } from '@home/components/import-export/import-export.models';
+import { BulkImportRequest, BulkImportResult } from '@shared/import-export/import-export.models';
 
 @Injectable({
   providedIn: 'root'
@@ -168,8 +168,12 @@ export class EdgeService {
     return this.http.post<BulkImportResult>('/api/edge/bulk_import', entitiesData, defaultHttpOptionsFromConfig(config));
   }
 
-  public getEdgeInstallInstructions(edgeId: string, method: string = 'ubuntu', config?: RequestConfig): Observable<EdgeInstallInstructions> {
-    return this.http.get<EdgeInstallInstructions>(`/api/edge/instructions/${edgeId}/${method}`, defaultHttpOptionsFromConfig(config));
+  public getEdgeInstallInstructions(edgeId: string, method: string = 'ubuntu', config?: RequestConfig): Observable<EdgeInstructions> {
+    return this.http.get<EdgeInstructions>(`/api/edge/instructions/install/${edgeId}/${method}`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public getEdgeUpgradeInstructions(edgeVersion: string, method: string = 'ubuntu', config?: RequestConfig): Observable<EdgeInstructions> {
+    return this.http.get<EdgeInstructions>(`/api/edge/instructions/upgrade/${edgeVersion}/${method}`, defaultHttpOptionsFromConfig(config));
   }
 
   public findAllRelatedEdgesMissingAttributes(integrationId: string, config?: RequestConfig): Observable<string> {
@@ -180,5 +184,9 @@ export class EdgeService {
   public findEdgeMissingAttributes(integrationIds: Array<string>, edgeId: string, config?: RequestConfig): Observable<string> {
     const url = `/api/edge/integration/${edgeId}/missingAttributes?integrationIds=${integrationIds.join(',')}`;
     return this.http.get<string>(url, defaultHttpOptionsFromConfig(config));
+  }
+
+  public isEdgeUpgradeAvailable(edgeId: string, config?: RequestConfig): Observable<boolean> {
+    return this.http.get<boolean>(`/api/edge/${edgeId}/upgrade/available`, defaultHttpOptionsFromConfig(config));
   }
 }

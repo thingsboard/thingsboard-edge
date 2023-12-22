@@ -31,23 +31,34 @@
 package org.thingsboard.server.edge;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
+import com.fasterxml.jackson.databind.node.TextNode;
+import org.awaitility.Awaitility;
 import org.junit.Assert;
 import org.junit.Test;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.Dashboard;
+import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
+import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.EdgeEntityType;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @DaoSqlTest
 public class EntityGroupEdgeTest extends AbstractEdgeTest {
@@ -77,52 +88,47 @@ public class EntityGroupEdgeTest extends AbstractEdgeTest {
 
         String currentEdgeName = edge.getName();
 
-        EntityGroup edgeAllDeviceGroup = findEdgeAllGroup(EntityType.DEVICE);
-        EntityGroup edgeAllAssetGroup = findEdgeAllGroup(EntityType.ASSET);
-        EntityGroup edgeAllEntityViewGroup = findEdgeAllGroup(EntityType.ENTITY_VIEW);
-        EntityGroup edgeAllDashboardGroup = findEdgeAllGroup(EntityType.DASHBOARD);
-
-        Assert.assertTrue(edgeAllDeviceGroup.getName().contains(currentEdgeName));
-        Assert.assertTrue(edgeAllAssetGroup.getName().contains(currentEdgeName));
-        Assert.assertTrue(edgeAllEntityViewGroup.getName().contains(currentEdgeName));
-        Assert.assertTrue(edgeAllDashboardGroup.getName().contains(currentEdgeName));
+        verifyEdgeAllGroupNamingConvention(EntityType.DEVICE, currentEdgeName);
+        verifyEdgeAllGroupNamingConvention(EntityType.ASSET, currentEdgeName);
+        verifyEdgeAllGroupNamingConvention(EntityType.ENTITY_VIEW, currentEdgeName);
+        verifyEdgeAllGroupNamingConvention(EntityType.DASHBOARD, currentEdgeName);
 
         String newEdgeName = "New Edge Name for rename test";
         edge.setName(newEdgeName);
         edge = doPost("/api/edge", edge, Edge.class);
 
-        edgeAllDeviceGroup = findEdgeAllGroup(EntityType.DEVICE);
-        edgeAllAssetGroup = findEdgeAllGroup(EntityType.ASSET);
-        edgeAllEntityViewGroup = findEdgeAllGroup(EntityType.ENTITY_VIEW);
-        edgeAllDashboardGroup = findEdgeAllGroup(EntityType.DASHBOARD);
-
-        Assert.assertTrue(edgeAllDeviceGroup.getName().contains(newEdgeName));
-        Assert.assertTrue(edgeAllAssetGroup.getName().contains(newEdgeName));
-        Assert.assertTrue(edgeAllEntityViewGroup.getName().contains(newEdgeName));
-        Assert.assertTrue(edgeAllDashboardGroup.getName().contains(newEdgeName));
+        verifyEdgeAllGroupNamingConvention(EntityType.DEVICE, newEdgeName);
+        verifyEdgeAllGroupNamingConvention(EntityType.ASSET, newEdgeName);
+        verifyEdgeAllGroupNamingConvention(EntityType.ENTITY_VIEW, newEdgeName);
+        verifyEdgeAllGroupNamingConvention(EntityType.DASHBOARD, newEdgeName);
 
         // rollback
         edge.setName(currentEdgeName);
         edge = doPost("/api/edge", edge, Edge.class);
 
-        edgeAllDeviceGroup = findEdgeAllGroup(EntityType.DEVICE);
-        edgeAllAssetGroup = findEdgeAllGroup(EntityType.ASSET);
-        edgeAllEntityViewGroup = findEdgeAllGroup(EntityType.ENTITY_VIEW);
-        edgeAllDashboardGroup = findEdgeAllGroup(EntityType.DASHBOARD);
+        verifyEdgeAllGroupNamingConvention(EntityType.DEVICE, currentEdgeName);
+        verifyEdgeAllGroupNamingConvention(EntityType.ASSET, currentEdgeName);
+        verifyEdgeAllGroupNamingConvention(EntityType.ENTITY_VIEW, currentEdgeName);
+        verifyEdgeAllGroupNamingConvention(EntityType.DASHBOARD, currentEdgeName);
+    }
 
-        Assert.assertTrue(edgeAllDeviceGroup.getName().contains(currentEdgeName));
-        Assert.assertTrue(edgeAllAssetGroup.getName().contains(currentEdgeName));
-        Assert.assertTrue(edgeAllEntityViewGroup.getName().contains(currentEdgeName));
-        Assert.assertTrue(edgeAllDashboardGroup.getName().contains(currentEdgeName));
+    private void verifyEdgeAllGroupNamingConvention(EntityType entityType, String edgeName) {
+        Awaitility.await()
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> {
+                    EntityGroup edgeAllGroup = findEdgeAllGroup(entityType);
+                    return edgeAllGroup.getName().contains(edgeName);
+                });
     }
 
     private void sendDeviceCreateMsgToCloud(String deviceName, UUID uuid) throws Exception {
+        Device device = buildDeviceForUplinkMsg(deviceName, uuid);
+
         UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
         DeviceUpdateMsg.Builder deviceUpdateMsgBuilder = DeviceUpdateMsg.newBuilder();
         deviceUpdateMsgBuilder.setIdMSB(uuid.getMostSignificantBits());
         deviceUpdateMsgBuilder.setIdLSB(uuid.getLeastSignificantBits());
-        deviceUpdateMsgBuilder.setName(deviceName);
-        deviceUpdateMsgBuilder.setType("default");
+        deviceUpdateMsgBuilder.setEntity(JacksonUtil.toString(device));
         deviceUpdateMsgBuilder.setMsgType(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE);
         uplinkMsgBuilder.addDeviceUpdateMsg(deviceUpdateMsgBuilder.build());
 
@@ -132,14 +138,13 @@ public class EntityGroupEdgeTest extends AbstractEdgeTest {
     }
 
     private void sendAssetCreateMsgToCloud(String assetName) throws Exception {
-        UUID uuid = Uuids.timeBased();
+        Asset asset = buildAssetForUplinkMsg(assetName);
 
         UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
         AssetUpdateMsg.Builder assetUpdateMsgBuilder = AssetUpdateMsg.newBuilder();
-        assetUpdateMsgBuilder.setIdMSB(uuid.getMostSignificantBits());
-        assetUpdateMsgBuilder.setIdLSB(uuid.getLeastSignificantBits());
-        assetUpdateMsgBuilder.setName(assetName);
-        assetUpdateMsgBuilder.setType("default");
+        assetUpdateMsgBuilder.setIdMSB(asset.getUuidId().getMostSignificantBits());
+        assetUpdateMsgBuilder.setIdLSB(asset.getUuidId().getLeastSignificantBits());
+        assetUpdateMsgBuilder.setEntity(JacksonUtil.toString(asset));
         assetUpdateMsgBuilder.setMsgType(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE);
         testAutoGeneratedCodeByProtobuf(assetUpdateMsgBuilder);
         uplinkMsgBuilder.addAssetUpdateMsg(assetUpdateMsgBuilder.build());
@@ -150,17 +155,13 @@ public class EntityGroupEdgeTest extends AbstractEdgeTest {
     }
 
     private void sendEntityViewCreateMsgToCloud(String entityViewName, UUID entityUuid) throws Exception {
-        UUID uuid = Uuids.timeBased();
+        EntityView entityView = buildEntityViewForUplinkMsg(entityUuid, entityViewName);
 
         UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
         EntityViewUpdateMsg.Builder entityViewUpdateMsgBuilder = EntityViewUpdateMsg.newBuilder();
-        entityViewUpdateMsgBuilder.setIdMSB(uuid.getMostSignificantBits());
-        entityViewUpdateMsgBuilder.setIdLSB(uuid.getLeastSignificantBits());
-        entityViewUpdateMsgBuilder.setName(entityViewName);
-        entityViewUpdateMsgBuilder.setType("default");
-        entityViewUpdateMsgBuilder.setEntityType(EdgeEntityType.DEVICE);
-        entityViewUpdateMsgBuilder.setEntityIdMSB(entityUuid.getMostSignificantBits());
-        entityViewUpdateMsgBuilder.setEntityIdLSB(entityUuid.getLeastSignificantBits());
+        entityViewUpdateMsgBuilder.setIdMSB(entityView.getUuidId().getMostSignificantBits());
+        entityViewUpdateMsgBuilder.setIdLSB(entityView.getUuidId().getLeastSignificantBits());
+        entityViewUpdateMsgBuilder.setEntity(JacksonUtil.toString(entityView));
         entityViewUpdateMsgBuilder.setMsgType(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE);
         uplinkMsgBuilder.addEntityViewUpdateMsg(entityViewUpdateMsgBuilder.build());
 
@@ -170,14 +171,13 @@ public class EntityGroupEdgeTest extends AbstractEdgeTest {
     }
 
     private void sendDashboardCreateMsgToCloud(String dashboardName) throws Exception {
-        UUID uuid = Uuids.timeBased();
+        Dashboard dashboard = buildDashboardForUplinkMsg(dashboardName);
 
         UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
         DashboardUpdateMsg.Builder dashboardUpdateMsgBuilder = DashboardUpdateMsg.newBuilder();
-        dashboardUpdateMsgBuilder.setIdMSB(uuid.getMostSignificantBits());
-        dashboardUpdateMsgBuilder.setIdLSB(uuid.getLeastSignificantBits());
-        dashboardUpdateMsgBuilder.setTitle(dashboardName);
-        dashboardUpdateMsgBuilder.setConfiguration("");
+        dashboardUpdateMsgBuilder.setIdMSB(dashboard.getUuidId().getMostSignificantBits());
+        dashboardUpdateMsgBuilder.setIdLSB(dashboard.getUuidId().getLeastSignificantBits());
+        dashboardUpdateMsgBuilder.setEntity(JacksonUtil.toString(dashboard));
         dashboardUpdateMsgBuilder.setMsgType(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE);
         uplinkMsgBuilder.addDashboardUpdateMsg(dashboardUpdateMsgBuilder.build());
 
@@ -197,5 +197,42 @@ public class EntityGroupEdgeTest extends AbstractEdgeTest {
         }
         Assert.assertNotNull(edgeAllAssetGroup);
         return edgeAllAssetGroup;
+    }
+
+    private Device buildDeviceForUplinkMsg(String name, UUID uuid) {
+        Device device = new Device();
+        device.setId(new DeviceId(uuid));
+        device.setTenantId(tenantId);
+        device.setType("default");
+        device.setName(name);
+        return device;
+    }
+
+    private Asset buildAssetForUplinkMsg(String name) {
+        Asset asset = new Asset();
+        asset.setId(new AssetId(Uuids.timeBased()));
+        asset.setTenantId(tenantId);
+        asset.setName(name);
+        asset.setType("default");
+        return asset;
+    }
+
+    private EntityView buildEntityViewForUplinkMsg(UUID uuid, String name) {
+        EntityView entityView = new EntityView();
+        entityView.setId(new EntityViewId(Uuids.timeBased()));
+        entityView.setTenantId(tenantId);
+        entityView.setName(name);
+        entityView.setType("default");
+        entityView.setEntityId(new DeviceId(uuid));
+        return entityView;
+    }
+
+    private Dashboard buildDashboardForUplinkMsg(String name) {
+        Dashboard dashboard = new Dashboard();
+        dashboard.setId(new DashboardId(Uuids.timeBased()));
+        dashboard.setTenantId(tenantId);
+        dashboard.setTitle(name);
+        dashboard.setConfiguration(TextNode.valueOf(""));
+        return dashboard;
     }
 }

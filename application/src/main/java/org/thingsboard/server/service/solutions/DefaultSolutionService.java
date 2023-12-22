@@ -1516,10 +1516,15 @@ public class DefaultSolutionService implements SolutionService {
     private void deleteEntity(TenantId tenantId, EntityId entityId, User user) {
         try {
             List<AlarmId> alarmIds = alarmService.findAlarms(tenantId, new AlarmQuery(entityId, new TimePageLink(Integer.MAX_VALUE), null, null, null, false))
-                    .get().getData().stream().map(AlarmInfo::getId).collect(Collectors.toList());
+                    .getData().stream().map(AlarmInfo::getId).collect(Collectors.toList());
+            Set<String> typesToRemove = new HashSet<>();
             alarmIds.forEach(alarmId -> {
-                alarmService.deleteAlarm(tenantId, alarmId);
+                var result = alarmService.delAlarm(tenantId, alarmId, false);
+                if (result.isSuccessful()) {
+                    typesToRemove.add(result.getAlarm().getType());
+                }
             });
+            alarmService.delAlarmTypes(tenantId, typesToRemove);
         } catch (Exception e) {
             log.error("[{}] Failed to delete alarms for entity", entityId.getId(), e);
         }

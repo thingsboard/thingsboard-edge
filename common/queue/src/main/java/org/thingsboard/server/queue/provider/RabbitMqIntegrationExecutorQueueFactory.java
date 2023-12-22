@@ -52,8 +52,8 @@ import org.thingsboard.server.queue.TbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.DefaultTbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.NotificationsTopicService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+import org.thingsboard.server.queue.discovery.TopicService;
 import org.thingsboard.server.queue.rabbitmq.TbRabbitMqAdmin;
 import org.thingsboard.server.queue.rabbitmq.TbRabbitMqConsumerTemplate;
 import org.thingsboard.server.queue.rabbitmq.TbRabbitMqProducerTemplate;
@@ -71,7 +71,7 @@ import java.nio.charset.StandardCharsets;
 @ConditionalOnExpression("'${queue.type:null}'=='rabbitmq' && '${service.type:null}'=='tb-integration-executor'")
 public class RabbitMqIntegrationExecutorQueueFactory implements TbIntegrationExecutorQueueFactory {
 
-    private final NotificationsTopicService notificationsTopicService;
+    private final TopicService topicService;
     private final TbQueueCoreSettings coreSettings;
     private final TbServiceInfoProvider serviceInfoProvider;
     private final TbRabbitMqSettings rabbitMqSettings;
@@ -85,14 +85,14 @@ public class RabbitMqIntegrationExecutorQueueFactory implements TbIntegrationExe
     private final TbQueueAdmin notificationAdmin;
     private final TbQueueAdmin integrationApiAdmin;
 
-    public RabbitMqIntegrationExecutorQueueFactory(NotificationsTopicService notificationsTopicService, TbQueueCoreSettings coreSettings,
+    public RabbitMqIntegrationExecutorQueueFactory(TopicService topicService, TbQueueCoreSettings coreSettings,
                                                    TbServiceInfoProvider serviceInfoProvider,
                                                    TbRabbitMqSettings rabbitMqSettings,
                                                    TbRabbitMqQueueArguments queueArguments,
                                                    TbQueueRemoteJsInvokeSettings jsInvokeSettings,
                                                    TbQueueIntegrationApiSettings integrationApiSettings,
                                                    TbQueueIntegrationExecutorSettings integrationExecutorSettings) {
-        this.notificationsTopicService = notificationsTopicService;
+        this.topicService = topicService;
         this.coreSettings = coreSettings;
         this.serviceInfoProvider = serviceInfoProvider;
         this.rabbitMqSettings = rabbitMqSettings;
@@ -109,12 +109,12 @@ public class RabbitMqIntegrationExecutorQueueFactory implements TbIntegrationExe
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createTbCoreIntegrationMsgProducer() {
-        return new TbRabbitMqProducerTemplate<>(coreAdmin, rabbitMqSettings, integrationExecutorSettings.getUplinkTopic());
+        return new TbRabbitMqProducerTemplate<>(coreAdmin, rabbitMqSettings, topicService.buildTopicName(integrationExecutorSettings.getUplinkTopic()));
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToCoreNotificationMsg>> createTbCoreNotificationMsgProducer() {
-        return new TbRabbitMqProducerTemplate<>(coreAdmin, rabbitMqSettings, coreSettings.getTopic());
+        return new TbRabbitMqProducerTemplate<>(coreAdmin, rabbitMqSettings, topicService.buildTopicName(coreSettings.getTopic()));
     }
 
     @Override
@@ -143,9 +143,9 @@ public class RabbitMqIntegrationExecutorQueueFactory implements TbIntegrationExe
     @Override
     @Bean
     public TbQueueRequestTemplate<TbProtoQueueMsg<IntegrationApiRequestMsg>, TbProtoQueueMsg<IntegrationApiResponseMsg>> createIntegrationApiRequestTemplate() {
-        TbQueueProducer<TbProtoQueueMsg<IntegrationApiRequestMsg>> producer = new TbRabbitMqProducerTemplate<>(integrationApiAdmin, rabbitMqSettings, integrationApiSettings.getRequestsTopic());
+        TbQueueProducer<TbProtoQueueMsg<IntegrationApiRequestMsg>> producer = new TbRabbitMqProducerTemplate<>(integrationApiAdmin, rabbitMqSettings, topicService.buildTopicName(integrationApiSettings.getRequestsTopic()));
         TbQueueConsumer<TbProtoQueueMsg<IntegrationApiResponseMsg>> consumer = new TbRabbitMqConsumerTemplate<>(integrationApiAdmin, rabbitMqSettings,
-                integrationApiSettings.getResponsesTopic() + "." + serviceInfoProvider.getServiceId(),
+                topicService.buildTopicName(integrationApiSettings.getResponsesTopic() + "." + serviceInfoProvider.getServiceId()),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), IntegrationApiResponseMsg.parseFrom(msg.getData()), msg.getHeaders()));
 
         DefaultTbQueueRequestTemplate.DefaultTbQueueRequestTemplateBuilder
@@ -161,13 +161,13 @@ public class RabbitMqIntegrationExecutorQueueFactory implements TbIntegrationExe
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> createToUsageStatsServiceMsgProducer() {
-        return new TbRabbitMqProducerTemplate<>(coreAdmin, rabbitMqSettings, coreSettings.getUsageStatsTopic());
+        return new TbRabbitMqProducerTemplate<>(coreAdmin, rabbitMqSettings, topicService.buildTopicName(coreSettings.getUsageStatsTopic()));
     }
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> createToIntegrationExecutorNotificationsMsgConsumer() {
         return new TbRabbitMqConsumerTemplate<>(notificationAdmin, rabbitMqSettings,
-                notificationsTopicService.getNotificationsTopic(ServiceType.TB_INTEGRATION_EXECUTOR, serviceInfoProvider.getServiceId()).getFullTopicName(),
+                topicService.getNotificationsTopic(ServiceType.TB_INTEGRATION_EXECUTOR, serviceInfoProvider.getServiceId()).getFullTopicName(),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorNotificationMsg.parseFrom(msg.getData()), msg.getHeaders())
         );
     }
@@ -175,7 +175,7 @@ public class RabbitMqIntegrationExecutorQueueFactory implements TbIntegrationExe
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createToIntegrationExecutorDownlinkMsgConsumer(IntegrationType integrationType) {
         return new TbRabbitMqConsumerTemplate<>(ruleEngineAdmin, rabbitMqSettings,
-                integrationExecutorSettings.getIntegrationDownlinkTopic(integrationType),
+                topicService.buildTopicName(integrationExecutorSettings.getIntegrationDownlinkTopic(integrationType)),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorDownlinkMsg.parseFrom(msg.getData()), msg.getHeaders())
         );
     }

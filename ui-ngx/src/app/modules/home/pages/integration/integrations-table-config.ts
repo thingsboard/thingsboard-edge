@@ -163,9 +163,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
     columns.push(
       new DateEntityTableColumn<IntegrationInfo>('createdTime', 'common.created-time', this.datePipe, '15%'),
       new EntityTableColumn<IntegrationInfo>('name', 'converter.name', '15%', this.entityTitle),
-      new EntityTableColumn<IntegrationInfo>('type', 'converter.type', '51%', (integration) => {
-        return this.translate.instant(integrationTypeInfoMap.get(integration.type).name);
-      }),
+      new EntityTableColumn<IntegrationInfo>('type', 'converter.type', '51%', (integration) => this.translate.instant(integrationTypeInfoMap.get(integration.type).name)),
       new ChartEntityTableColumn<IntegrationInfo>('dailyRate', 'integration.daily-activity', '9%',
         (integration) => integration.stats,
         () => ({
@@ -184,9 +182,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
         integration => this.integrationStatus(integration),
         integration => this.integrationStatusStyle(integration), false),
       new EntityTableColumn<IntegrationInfo>('remote', 'integration.remote', '60px',
-        integration => {
-            return checkBoxCell(integration.remote);
-        }, () => ({}), false)
+        integration => checkBoxCell(integration.remote), () => ({}), false)
     );
     return columns;
   }
@@ -236,9 +232,9 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
       name: '',
       nameFunction: (entity) =>
         this.translate.instant(entity.debugMode ? 'integration.disable-debug-mode' : 'integration.enable-debug-mode'),
-      mdiIcon: 'mdi:bug',
+      icon: 'mdi:bug',
       isEnabled: () => true,
-      mdiIconFunction: (entity) => entity.debugMode ? 'mdi:bug' : 'mdi:bug-outline',
+      iconFunction: (entity) => entity.debugMode ? 'mdi:bug' : 'mdi:bug-outline',
       onAction: ($event, entity) => this.toggleDebugMode($event, entity)
     }];
     if (params.integrationScope === 'edge') {

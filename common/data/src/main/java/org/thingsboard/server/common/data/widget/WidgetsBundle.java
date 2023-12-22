@@ -39,6 +39,7 @@ import lombok.Setter;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
+import org.thingsboard.server.common.data.HasImage;
 import org.thingsboard.server.common.data.HasTitle;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -48,7 +49,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 
 @Schema
 @EqualsAndHashCode(callSuper = true)
-public class WidgetsBundle extends BaseData<WidgetsBundleId> implements TenantEntity, ExportableEntity<WidgetsBundleId>, HasTitle {
+public class WidgetsBundle extends BaseData<WidgetsBundleId> implements TenantEntity, ExportableEntity<WidgetsBundleId>, HasTitle, HasImage {
 
     private static final long serialVersionUID = -7627368878362410489L;
 
@@ -71,10 +72,9 @@ public class WidgetsBundle extends BaseData<WidgetsBundleId> implements TenantEn
     @Schema(description = "Title used in search and UI", accessMode = Schema.AccessMode.READ_ONLY)
     private String title;
 
-    @Length(fieldName = "image", max = 1000000)
     @Getter
     @Setter
-    @Schema(description = "Base64 encoded thumbnail", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "Relative or external image URL. Replaced with image data URL (Base64) in case of relative URL and 'inlineImages' option enabled.", accessMode = Schema.AccessMode.READ_ONLY)
     private String image;
 
     @NoXss
@@ -83,6 +83,11 @@ public class WidgetsBundle extends BaseData<WidgetsBundleId> implements TenantEn
     @Setter
     @Schema(description = "Description", accessMode = Schema.AccessMode.READ_ONLY)
     private String description;
+
+    @Getter
+    @Setter
+    @Schema(description = "Order", accessMode = Schema.AccessMode.READ_ONLY)
+    private Integer order;
 
     @Getter
     @Setter
@@ -103,6 +108,7 @@ public class WidgetsBundle extends BaseData<WidgetsBundleId> implements TenantEn
         this.title = widgetsBundle.getTitle();
         this.image = widgetsBundle.getImage();
         this.description = widgetsBundle.getDescription();
+        this.order = widgetsBundle.getOrder();
         this.externalId = widgetsBundle.getExternalId();
     }
 

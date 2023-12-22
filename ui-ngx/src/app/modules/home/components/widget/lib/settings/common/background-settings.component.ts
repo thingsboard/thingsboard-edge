@@ -29,20 +29,32 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit, Renderer2, ViewContainerRef, ViewEncapsulation } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  forwardRef,
+  Input,
+  OnInit,
+  Renderer2,
+  ViewContainerRef,
+  ViewEncapsulation
+} from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import {
   BackgroundSettings,
   backgroundStyle,
   BackgroundType,
   ComponentStyle,
-  overlayStyle
+  overlayStyle, validateAndUpdateBackgroundSettings
 } from '@shared/models/widget-settings.models';
 import { MatButton } from '@angular/material/button';
 import { TbPopoverService } from '@shared/components/popover.service';
 import {
   BackgroundSettingsPanelComponent
 } from '@home/components/widget/lib/settings/common/background-settings-panel.component';
+import { Observable, of } from 'rxjs';
+import { ImagePipe } from '@shared/pipe/image.pipe';
+import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
   selector: 'tb-background-settings',
@@ -60,21 +72,24 @@ import {
 export class BackgroundSettingsComponent implements OnInit, ControlValueAccessor {
 
   @Input()
-  disabled: boolean;
+  disabled = false;
 
   backgroundType = BackgroundType;
 
   modelValue: BackgroundSettings;
 
-  backgroundStyle: ComponentStyle = {};
+  backgroundStyle$: Observable<ComponentStyle>;
 
   overlayStyle: ComponentStyle = {};
 
   private propagateChange = null;
 
-  constructor(private popoverService: TbPopoverService,
+  constructor(private imagePipe: ImagePipe,
+              private sanitizer: DomSanitizer,
+              private popoverService: TbPopoverService,
               private renderer: Renderer2,
-              private viewContainerRef: ViewContainerRef) {}
+              private viewContainerRef: ViewContainerRef,
+              private cd: ChangeDetectorRef) {}
 
   ngOnInit(): void {
   }
@@ -87,12 +102,14 @@ export class BackgroundSettingsComponent implements OnInit, ControlValueAccessor
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
-    this.updateBackgroundStyle();
+    if (this.disabled !== isDisabled) {
+      this.disabled = isDisabled;
+      this.updateBackgroundStyle();
+    }
   }
 
   writeValue(value: BackgroundSettings): void {
-    this.modelValue = value;
+    this.modelValue = validateAndUpdateBackgroundSettings(value);
     this.updateBackgroundStyle();
   }
 
@@ -124,12 +141,13 @@ export class BackgroundSettingsComponent implements OnInit, ControlValueAccessor
 
   private updateBackgroundStyle() {
     if (!this.disabled) {
-      this.backgroundStyle = backgroundStyle(this.modelValue);
+      this.backgroundStyle$ = backgroundStyle(this.modelValue, this.imagePipe, this.sanitizer,  true);
       this.overlayStyle = overlayStyle(this.modelValue.overlay);
     } else {
-      this.backgroundStyle = {};
+      this.backgroundStyle$ = of({});
       this.overlayStyle = {};
     }
+    this.cd.markForCheck();
   }
 
 }

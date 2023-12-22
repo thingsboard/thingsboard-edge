@@ -132,6 +132,60 @@ public class KvProtoUtil {
         return TransportProtos.TsKvProto.newBuilder().setTs(ts).setKv(dataBuilder);
     }
 
+    public static TransportProtos.TsValueProto toTsValueProto(long ts, KvEntry attr) {
+        TransportProtos.TsValueProto.Builder dataBuilder = TransportProtos.TsValueProto.newBuilder();
+        dataBuilder.setTs(ts);
+        dataBuilder.setType(TransportProtos.KeyValueType.forNumber(attr.getDataType().ordinal()));
+        switch (attr.getDataType()) {
+            case BOOLEAN:
+                attr.getBooleanValue().ifPresent(dataBuilder::setBoolV);
+                break;
+            case LONG:
+                attr.getLongValue().ifPresent(dataBuilder::setLongV);
+                break;
+            case DOUBLE:
+                attr.getDoubleValue().ifPresent(dataBuilder::setDoubleV);
+                break;
+            case JSON:
+                attr.getJsonValue().ifPresent(dataBuilder::setJsonV);
+                break;
+            case STRING:
+                attr.getStrValue().ifPresent(dataBuilder::setStringV);
+                break;
+        }
+        return dataBuilder.build();
+    }
+
+    public static List<TsKvEntry> toTsKvEntityList(String key, List<TransportProtos.TsValueProto> dataList) {
+        List<TsKvEntry> result = new ArrayList<>(dataList.size());
+        dataList.forEach(proto -> result.add(new BasicTsKvEntry(proto.getTs(), getKvEntry(key, proto))));
+        return result;
+    }
+
+    private static KvEntry getKvEntry(String key, TransportProtos.TsValueProto proto) {
+        KvEntry entry = null;
+        DataType type = DataType.values()[proto.getType().getNumber()];
+        switch (type) {
+            case BOOLEAN:
+                entry = new BooleanDataEntry(key, proto.getBoolV());
+                break;
+            case LONG:
+                entry = new LongDataEntry(key, proto.getLongV());
+                break;
+            case DOUBLE:
+                entry = new DoubleDataEntry(key, proto.getDoubleV());
+                break;
+            case STRING:
+                entry = new StringDataEntry(key, proto.getStringV());
+                break;
+            case JSON:
+                entry = new JsonDataEntry(key, proto.getJsonV());
+                break;
+        }
+        return entry;
+    }
+
+
     public static List<TsKvEntry> toTsKvEntityList(List<TransportProtos.TsKvProto> dataList) {
         List<TsKvEntry> result = new ArrayList<>(dataList.size());
         dataList.forEach(proto -> result.add(new BasicTsKvEntry(proto.getTs(), getKvEntry(proto.getKv()))));

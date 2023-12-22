@@ -33,7 +33,6 @@ package org.thingsboard.server.service.edge.rpc.processor.dashboard;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EdgeUtils;
@@ -42,7 +41,6 @@ import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -51,21 +49,21 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
-import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.constructor.dashboard.DashboardMsgConstructor;
 
 import java.util.UUID;
 
-@Component
 @Slf4j
-@TbCoreComponent
-public class DashboardEdgeProcessor extends BaseDashboardProcessor {
+public abstract class DashboardEdgeProcessor extends BaseDashboardProcessor implements DashboardProcessor {
 
+    @Override
     public ListenableFuture<Void> processDashboardMsgFromEdge(TenantId tenantId, Edge edge, DashboardUpdateMsg dashboardUpdateMsg) {
-        log.trace("[{}] executing processDashboardMsgFromEdge [{}] from edge [{}]", tenantId, dashboardUpdateMsg, edge.getName());
+        log.trace("[{}] executing processDashboardMsgFromEdge [{}] from edge [{}]", tenantId, dashboardUpdateMsg, edge.getId());
         DashboardId dashboardId = new DashboardId(new UUID(dashboardUpdateMsg.getIdMSB(), dashboardUpdateMsg.getIdLSB()));
         try {
-            edgeSynchronizationManager.getSync().set(true);
+            edgeSynchronizationManager.getEdgeId().set(edge.getId());
 
             switch (dashboardUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
@@ -93,13 +91,12 @@ public class DashboardEdgeProcessor extends BaseDashboardProcessor {
                 return Futures.immediateFailedFuture(e);
             }
         } finally {
-            edgeSynchronizationManager.getSync().remove();
+            edgeSynchronizationManager.getEdgeId().remove();
         }
     }
 
     private void saveOrUpdateDashboard(TenantId tenantId, DashboardId dashboardId, DashboardUpdateMsg dashboardUpdateMsg, Edge edge) throws ThingsboardException {
-        CustomerId customerId = safeGetCustomerId(dashboardUpdateMsg.getCustomerIdMSB(), dashboardUpdateMsg.getCustomerIdLSB());
-        boolean created = super.saveOrUpdateDashboard(tenantId, dashboardId, dashboardUpdateMsg, customerId);
+        boolean created = super.saveOrUpdateDashboard(tenantId, dashboardId, dashboardUpdateMsg);
         if (created) {
             createRelationFromEdge(tenantId, edge.getId(), dashboardId);
             pushDashboardCreatedEventToRuleEngine(tenantId, edge, dashboardId);
@@ -145,7 +142,8 @@ public class DashboardEdgeProcessor extends BaseDashboardProcessor {
         }
     }
 
-    public DownlinkMsg convertDashboardEventToDownlink(EdgeEvent edgeEvent) {
+    @Override
+    public DownlinkMsg convertDashboardEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         DashboardId dashboardId = new DashboardId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
         EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
@@ -157,8 +155,8 @@ public class DashboardEdgeProcessor extends BaseDashboardProcessor {
                 Dashboard dashboard = dashboardService.findDashboardById(edgeEvent.getTenantId(), dashboardId);
                 if (dashboard != null) {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
-                    DashboardUpdateMsg dashboardUpdateMsg =
-                            dashboardMsgConstructor.constructDashboardUpdatedMsg(msgType, dashboard, entityGroupId);
+                    DashboardUpdateMsg dashboardUpdateMsg = ((DashboardMsgConstructor)
+                            dashboardMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDashboardUpdatedMsg(msgType, dashboard, entityGroupId);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addDashboardUpdateMsg(dashboardUpdateMsg)
@@ -169,8 +167,8 @@ public class DashboardEdgeProcessor extends BaseDashboardProcessor {
             case REMOVED_FROM_ENTITY_GROUP:
             case UNASSIGNED_FROM_EDGE:
             case CHANGE_OWNER:
-                DashboardUpdateMsg dashboardUpdateMsg =
-                        dashboardMsgConstructor.constructDashboardDeleteMsg(dashboardId, entityGroupId);
+                DashboardUpdateMsg dashboardUpdateMsg = ((DashboardMsgConstructor)
+                        dashboardMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDashboardDeleteMsg(dashboardId, entityGroupId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addDashboardUpdateMsg(dashboardUpdateMsg)

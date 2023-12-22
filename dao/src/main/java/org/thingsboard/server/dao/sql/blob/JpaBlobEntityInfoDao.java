@@ -77,7 +77,7 @@ public class JpaBlobEntityInfoDao extends JpaAbstractDao<BlobEntityInfoEntity, B
         return DaoUtil.toPageData(
                 blobEntityInfoRepository.findByTenantId(
                         tenantId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         pageLink.getStartTime(),
                         pageLink.getEndTime(),
                         DaoUtil.toPageable(pageLink, BlobEntityWithCustomerInfoEntity.blobEntityWithCustomerInfoColumnMap)));
@@ -89,7 +89,7 @@ public class JpaBlobEntityInfoDao extends JpaAbstractDao<BlobEntityInfoEntity, B
                 blobEntityInfoRepository.findByTenantIdAndType(
                         tenantId,
                         type,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         pageLink.getStartTime(),
                         pageLink.getEndTime(),
                         DaoUtil.toPageable(pageLink, BlobEntityWithCustomerInfoEntity.blobEntityWithCustomerInfoColumnMap)));
@@ -101,7 +101,7 @@ public class JpaBlobEntityInfoDao extends JpaAbstractDao<BlobEntityInfoEntity, B
                 blobEntityInfoRepository.findByTenantIdAndCustomerId(
                         tenantId,
                         customerId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         pageLink.getStartTime(),
                         pageLink.getEndTime(),
                         DaoUtil.toPageable(pageLink, BlobEntityWithCustomerInfoEntity.blobEntityWithCustomerInfoColumnMap)));
@@ -114,7 +114,7 @@ public class JpaBlobEntityInfoDao extends JpaAbstractDao<BlobEntityInfoEntity, B
                         tenantId,
                         customerId,
                         type,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         pageLink.getStartTime(),
                         pageLink.getEndTime(),
                         DaoUtil.toPageable(pageLink, BlobEntityWithCustomerInfoEntity.blobEntityWithCustomerInfoColumnMap)));

@@ -31,7 +31,6 @@
 package org.thingsboard.server.service.install;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.thingsboard.server.common.data.id.AdminSettingsId;
 
 public interface SystemDataLoaderService {
 
@@ -47,17 +46,13 @@ public interface SystemDataLoaderService {
 
     void loadMailTemplates() throws Exception;
 
-    void updateMailTemplates(AdminSettingsId adminSettingsId, JsonNode value) throws Exception;
+    void updateMailTemplates(JsonNode value) throws Exception;
 
     void createOAuth2Templates() throws Exception;
 
     void loadSystemWidgets() throws Exception;
 
-    void updateSystemWidgets() throws Exception;
-
     void loadDemoData() throws Exception;
-
-    void deleteSystemWidgetBundle(String bundleAlias) throws Exception;
 
     void createQueues();
 

@@ -186,8 +186,9 @@
         "type": "org.thingsboard.rule.engine.transform.TbRenameKeysNode",
         "name": "Rename Msg Fields",
         "debugMode": false,
+        "configurationVersion": 2,
         "configuration": {
-          "fromMetadata": false,
+          "renameIn": "DATA",
           "renameKeysMapping": {
             "ss_roomXPos": "xPos",
             "ss_roomYPos": "yPos",
@@ -206,8 +207,9 @@
         "type": "org.thingsboard.rule.engine.transform.TbRenameKeysNode",
         "name": "Rename Metadata Fields",
         "debugMode": false,
+        "configurationVersion": 2,
         "configuration": {
-          "fromMetadata": true,
+          "renameIn": "METADATA",
           "renameKeysMapping": {
             "deviceName": "gateway"
           }

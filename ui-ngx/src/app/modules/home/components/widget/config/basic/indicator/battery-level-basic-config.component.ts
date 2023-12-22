@@ -29,13 +29,14 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Injector } from '@angular/core';
+import { Component } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { BasicWidgetConfigComponent } from '@home/components/widget/config/widget-config.component.models';
 import { WidgetConfigComponentData } from '@home/models/widget-component.models';
 import {
+  DataKey,
   datasourcesHasAggregation,
   datasourcesHasOnlyComparisonAggregation,
   WidgetConfig,
@@ -50,6 +51,7 @@ import { formatValue, isUndefined } from '@core/utils';
 import { cssSizeToStrSize, resolveCssSize } from '@shared/models/widget-settings.models';
 import {
   batteryLevelDefaultSettings,
+  BatteryLevelLayout,
   batteryLevelLayoutImages,
   batteryLevelLayouts,
   batteryLevelLayoutTranslations,
@@ -82,9 +84,13 @@ export class BatteryLevelBasicConfigComponent extends BasicWidgetConfigComponent
 
   valuePreviewFn = this._valuePreviewFn.bind(this);
 
+  get sectionsCountEnabled(): boolean {
+    const layout: BatteryLevelLayout = this.batteryLevelWidgetConfigForm.get('layout').value;
+    return [BatteryLevelLayout.vertical_divided, BatteryLevelLayout.horizontal_divided].includes(layout);
+  }
+
   constructor(protected store: Store<AppState>,
               protected widgetConfigComponent: WidgetConfigComponent,
-              private $injector: Injector,
               private fb: UntypedFormBuilder) {
     super(store, widgetConfigComponent);
   }
@@ -93,8 +99,8 @@ export class BatteryLevelBasicConfigComponent extends BasicWidgetConfigComponent
     return this.batteryLevelWidgetConfigForm;
   }
 
-  protected setupDefaults(configData: WidgetConfigComponentData) {
-    this.setupDefaultDatasource(configData, [{ name: 'batteryLevel', label: 'batteryLevel', type: DataKeyType.timeseries }]);
+  protected defaultDataKeys(configData: WidgetConfigComponentData): DataKey[] {
+    return [{ name: 'batteryLevel', label: 'batteryLevel', type: DataKeyType.timeseries }];
   }
 
   protected onConfigSet(configData: WidgetConfigComponentData) {
@@ -105,6 +111,7 @@ export class BatteryLevelBasicConfigComponent extends BasicWidgetConfigComponent
       datasources: [configData.config.datasources, []],
 
       layout: [settings.layout, []],
+      sectionsCount: [settings.sectionsCount, [Validators.min(2), Validators.max(20)]],
 
       showTitle: [configData.config.showTitle, []],
       title: [configData.config.title, []],
@@ -151,6 +158,7 @@ export class BatteryLevelBasicConfigComponent extends BasicWidgetConfigComponent
     this.widgetConfig.config.settings = this.widgetConfig.config.settings || {};
 
     this.widgetConfig.config.settings.layout = config.layout;
+    this.widgetConfig.config.settings.sectionsCount = config.sectionsCount;
 
     this.widgetConfig.config.settings.showValue = config.showValue;
     this.widgetConfig.config.settings.autoScaleValueSize = config.autoScaleValueSize === true;
@@ -170,13 +178,15 @@ export class BatteryLevelBasicConfigComponent extends BasicWidgetConfigComponent
   }
 
   protected validatorTriggers(): string[] {
-    return ['showTitle', 'showIcon', 'showValue'];
+    return ['showTitle', 'showIcon', 'showValue', 'layout'];
   }
 
   protected updateValidators(emitEvent: boolean, trigger?: string) {
     const showTitle: boolean = this.batteryLevelWidgetConfigForm.get('showTitle').value;
     const showIcon: boolean = this.batteryLevelWidgetConfigForm.get('showIcon').value;
     const showValue: boolean = this.batteryLevelWidgetConfigForm.get('showValue').value;
+    const layout: BatteryLevelLayout = this.batteryLevelWidgetConfigForm.get('layout').value;
+    const divided = [BatteryLevelLayout.vertical_divided, BatteryLevelLayout.horizontal_divided].includes(layout);
 
     if (showTitle) {
       this.batteryLevelWidgetConfigForm.get('title').enable();
@@ -213,6 +223,11 @@ export class BatteryLevelBasicConfigComponent extends BasicWidgetConfigComponent
       this.batteryLevelWidgetConfigForm.get('autoScaleValueSize').disable();
       this.batteryLevelWidgetConfigForm.get('valueFont').disable();
       this.batteryLevelWidgetConfigForm.get('valueColor').disable();
+    }
+    if (divided) {
+      this.batteryLevelWidgetConfigForm.get('sectionsCount').enable();
+    } else {
+      this.batteryLevelWidgetConfigForm.get('sectionsCount').disable();
     }
   }
 

@@ -56,7 +56,6 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.query.AlarmData;
 import org.thingsboard.server.common.data.query.AlarmDataQuery;
-import org.thingsboard.server.dao.alarm.AlarmOperationResult;
 
 import java.util.Collection;
 import java.util.List;
@@ -90,21 +89,6 @@ public interface RuleEngineAlarmService {
 
     AlarmApiCallResult unassignAlarm(TenantId tenantId, AlarmId alarmId, long assignTs);
 
-    /*
-     *  Legacy API, before 3.5.
-     */
-    @Deprecated(since = "3.5", forRemoval = true)
-    Alarm createOrUpdateAlarm(Alarm alarm);
-
-    @Deprecated(since = "3.5", forRemoval = true)
-    ListenableFuture<Boolean> ackAlarm(TenantId tenantId, AlarmId alarmId, long ackTs);
-
-    @Deprecated(since = "3.5", forRemoval = true)
-    ListenableFuture<Boolean> clearAlarm(TenantId tenantId, AlarmId alarmId, JsonNode details, long clearTs);
-
-    @Deprecated(since = "3.5", forRemoval = true)
-    ListenableFuture<AlarmOperationResult> clearAlarmForResult(TenantId tenantId, AlarmId alarmId, JsonNode details, long clearTs);
-
     // Other API
     Boolean deleteAlarm(TenantId tenantId, AlarmId alarmId);
 
@@ -114,7 +98,7 @@ public interface RuleEngineAlarmService {
 
     Alarm findLatestActiveByOriginatorAndType(TenantId tenantId, EntityId originator, String type);
 
-    ListenableFuture<Alarm> findLatestByOriginatorAndType(TenantId tenantId, EntityId originator, String type);
+    Alarm findLatestByOriginatorAndType(TenantId tenantId, EntityId originator, String type);
 
     AlarmInfo findAlarmInfoById(TenantId tenantId, AlarmId alarmId);
 
@@ -122,13 +106,13 @@ public interface RuleEngineAlarmService {
         return Futures.immediateFuture(findAlarmInfoById(tenantId, alarmId));
     }
 
-    ListenableFuture<PageData<AlarmInfo>> findAlarms(TenantId tenantId, AlarmQuery query);
+    PageData<AlarmInfo> findAlarms(TenantId tenantId, AlarmQuery query);
 
-    ListenableFuture<PageData<AlarmInfo>> findCustomerAlarms(TenantId tenantId, CustomerId customerId, AlarmQuery query);
+    PageData<AlarmInfo> findCustomerAlarms(TenantId tenantId, CustomerId customerId, AlarmQuery query);
 
-    ListenableFuture<PageData<AlarmInfo>> findAlarmsV2(TenantId tenantId, AlarmQueryV2 query);
+    PageData<AlarmInfo> findAlarmsV2(TenantId tenantId, AlarmQueryV2 query);
 
-    ListenableFuture<PageData<AlarmInfo>> findCustomerAlarmsV2(TenantId tenantId, CustomerId customerId, AlarmQueryV2 query);
+    PageData<AlarmInfo> findCustomerAlarmsV2(TenantId tenantId, CustomerId customerId, AlarmQueryV2 query);
 
     AlarmSeverity findHighestAlarmSeverity(TenantId tenantId, EntityId entityId, AlarmSearchStatus alarmSearchStatus, AlarmStatus alarmStatus, String assigneeId);
 

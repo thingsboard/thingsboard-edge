@@ -33,12 +33,14 @@ package org.thingsboard.server.dao.model.sql;
 import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.Immutable;
 import org.hibernate.annotations.Type;
+import org.hibernate.annotations.Immutable;
 import org.thingsboard.server.common.data.widget.BaseWidgetType;
 import org.thingsboard.server.common.data.widget.WidgetTypeInfo;
 import org.thingsboard.server.dao.model.ModelConstants;
 
+import java.util.HashMap;
+import java.util.Map;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -48,7 +50,15 @@ import jakarta.persistence.Table;
 @Entity
 @Immutable
 @Table(name = ModelConstants.WIDGET_TYPE_INFO_VIEW_TABLE_NAME)
-public final class WidgetTypeInfoEntity extends AbstractWidgetTypeEntity<WidgetTypeInfo> {
+public class WidgetTypeInfoEntity extends AbstractWidgetTypeEntity<WidgetTypeInfo> {
+
+    public static final Map<String, String> SEARCH_COLUMNS_MAP = new HashMap<>();
+
+    static {
+        SEARCH_COLUMNS_MAP.put("createdTime", "created_time");
+        SEARCH_COLUMNS_MAP.put("tenantId", "tenant_id");
+        SEARCH_COLUMNS_MAP.put("widgetType", "widget_type");
+    }
 
     @Column(name = ModelConstants.WIDGET_TYPE_IMAGE_PROPERTY)
     private String image;

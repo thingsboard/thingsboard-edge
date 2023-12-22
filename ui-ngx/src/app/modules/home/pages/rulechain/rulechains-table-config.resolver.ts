@@ -40,7 +40,7 @@ import { DatePipe } from '@angular/common';
 import { RuleChain, RuleChainParams } from '@shared/models/rule-chain.models';
 import { RuleChainService } from '@core/http/rule-chain.service';
 import { DialogService } from '@core/services/dialog.service';
-import { ImportExportService } from '@home/components/import-export/import-export.service';
+import { ImportExportService } from '@shared/import-export/import-export.service';
 import { ItemBufferService } from '@core/services/item-buffer.service';
 import { EdgeService } from '@core/http/edge.service';
 import { MatDialog } from '@angular/material/dialog';

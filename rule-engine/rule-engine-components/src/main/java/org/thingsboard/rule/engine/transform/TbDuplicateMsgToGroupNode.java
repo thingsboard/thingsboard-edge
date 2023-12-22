@@ -30,6 +30,8 @@
  */
 package org.thingsboard.rule.engine.transform;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.rule.engine.api.RuleNode;
@@ -42,6 +44,7 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.util.List;
@@ -49,24 +52,29 @@ import java.util.List;
 @Slf4j
 @RuleNode(
         type = ComponentType.TRANSFORMATION,
-        name = "duplicate to specific group",
+        name = "duplicate to group",
+        version = 1,
         configClazz = TbDuplicateMsgToGroupNodeConfiguration.class,
-        nodeDescription = "Duplicates message to all entities belonging to specific Entity Group",
-        nodeDetails = "Entities are fetched from Entity Group detected according to the configuration. Entity Group can be specified directly or can be message originator entity itself. " +
-                "For each entity from group new message is created with entity as originator and message parameters copied from original message.",
+        nodeDescription = "Duplicates message to all entities belonging to specific entity group",
+        nodeDetails = "Entities are fetched from entity group that is detected according to the configuration. " +
+                "Entity group can be specified directly or can be message originator entity itself. " +
+                "For each entity from group new message is created with entity as originator " +
+                "and message parameters copied from original message.<br><br>" +
+                "Output connections: <code>Success</code>, <code>Failure</code>.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbTransformationNodeDuplicateToGroupConfig",
         icon = "call_split"
 )
 public class TbDuplicateMsgToGroupNode extends TbAbstractDuplicateMsgNode<TbDuplicateMsgToGroupNodeConfiguration> {
 
+    static final String GROUP_OWNER_ID_KEY = "groupOwnerId";
+
     @Override
     protected TbDuplicateMsgToGroupNodeConfiguration loadNodeConfiguration(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         var config = TbNodeUtils.convert(configuration, TbDuplicateMsgToGroupNodeConfiguration.class);
         if (!config.isEntityGroupIsMessageOriginator()) {
             if (config.getEntityGroupId() == null || config.getEntityGroupId().isNullUid()) {
-                log.error("TbDuplicateMsgToGroupNode configuration should have valid Entity Group Id");
-                throw new IllegalArgumentException("Wrong configuration for TbDuplicateMsgToGroupNode: Entity Group Id is missing.");
+                throw new IllegalArgumentException("EntityGroupId should be specified!");
             }
             ctx.checkTenantEntity(config.getEntityGroupId());
         }
@@ -93,6 +101,22 @@ public class TbDuplicateMsgToGroupNode extends TbAbstractDuplicateMsgNode<TbDupl
         } else {
             return config.getEntityGroupId();
         }
+    }
+
+    @Override
+    public TbPair<Boolean, JsonNode> upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
+        boolean hasChanges = false;
+        switch (fromVersion) {
+            case 0:
+                if (oldConfiguration.has(GROUP_OWNER_ID_KEY)) {
+                    hasChanges = true;
+                    ((ObjectNode) oldConfiguration).remove(GROUP_OWNER_ID_KEY);
+                }
+                break;
+            default:
+                break;
+        }
+        return new TbPair<>(hasChanges, oldConfiguration);
     }
 
 }

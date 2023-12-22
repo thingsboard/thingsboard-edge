@@ -182,7 +182,7 @@ public class SignUpController extends BaseController {
             }
         }
 
-        systemSecurityService.validatePassword(tenantId, signUpRequest.getPassword(), null);
+        systemSecurityService.validatePassword(signUpRequest.getPassword(), null);
 
         Customer customer = new Customer();
 

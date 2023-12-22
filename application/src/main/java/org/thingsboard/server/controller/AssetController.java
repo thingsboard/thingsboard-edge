@@ -120,7 +120,7 @@ public class AssetController extends BaseController {
             notes = "Fetch the Asset object based on the provided Asset Id. " +
                     "If the user has the authority of 'Tenant Administrator', the server checks that the asset is owned by the same tenant. " +
                     "If the user has the authority of 'Customer User', the server checks that the asset is assigned to the same customer."
-                    + "\n\n" + RBAC_READ_CHECK, 
+                    + "\n\n" + RBAC_READ_CHECK,
             responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/asset/{assetId}", method = RequestMethod.GET)
@@ -154,7 +154,7 @@ public class AssetController extends BaseController {
                     "Specify existing Asset id to update the asset. " +
                     "Referencing non-existing Asset Id will cause 'Not Found' error. " +
                     "Remove 'id', 'tenantId' and optionally 'customerId' from the request body example (below) to create new Asset entity. "
-                    + "\n\n" + ControllerConstants.RBAC_WRITE_CHECK, 
+                    + "\n\n" + ControllerConstants.RBAC_WRITE_CHECK,
             responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/asset", method = RequestMethod.POST)
@@ -186,12 +186,12 @@ public class AssetController extends BaseController {
         checkParameter(ASSET_ID, strAssetId);
         AssetId assetId = new AssetId(toUUID(strAssetId));
         Asset asset = checkAssetId(assetId, Operation.DELETE);
-        tbAssetService.delete(asset, getCurrentUser()).get();
+        tbAssetService.delete(asset, getCurrentUser());
     }
 
     @ApiOperation(value = "Get Tenant Assets (getTenantAssets)",
             notes = "Returns a page of assets owned by tenant. " +
-                    PAGE_DATA_PARAMETERS + "\n\n" + RBAC_READ_CHECK, 
+                    PAGE_DATA_PARAMETERS + "\n\n" + RBAC_READ_CHECK,
             responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/tenant/assets", params = {"pageSize", "page"}, method = RequestMethod.GET)
@@ -222,7 +222,7 @@ public class AssetController extends BaseController {
     @ApiOperation(value = "Get Tenant Asset (getTenantAsset)",
             notes = "Requested asset must be owned by tenant that the user belongs to. " +
                     "Asset name is an unique property of asset. So it can be used to identify the asset."
-                    + "\n\n" + RBAC_READ_CHECK, 
+                    + "\n\n" + RBAC_READ_CHECK,
             responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/tenant/assets", params = {"assetName"}, method = RequestMethod.GET)
@@ -483,10 +483,12 @@ public class AssetController extends BaseController {
     }
 
     @ApiOperation(value = "Get Asset Types (getAssetTypes)",
-            notes = "Returns a set of unique asset types based on assets that are either owned by the tenant or assigned to the customer which user is performing the request.", responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "Deprecated. See 'getAssetProfileNames' API from Asset Profile Controller instead." + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
+            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/asset/types", method = RequestMethod.GET)
     @ResponseBody
+    @Deprecated(since = "3.6.2")
     public List<EntitySubtype> getAssetTypes() throws ThingsboardException, ExecutionException, InterruptedException {
         SecurityUser user = getCurrentUser();
         TenantId tenantId = user.getTenantId();
