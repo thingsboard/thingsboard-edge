@@ -354,7 +354,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                     });
         }
         DaoUtil.processInBatches(pageLink -> groupService.findEntityGroupsByType(ctx.getTenantId(), task.getOwnerId(), ctx.getEntityType(), pageLink)
-        , 1024, group -> {
+                , 1024, group -> {
                     try {
                         EntityExportData<ExportableEntity<EntityGroupId>> entityData = exportImportService.exportEntity(ctx, group.getId());
                         ctx.getFutures().add(gitServiceQueue.addToCommit(ctx.getCommit(), parents, entityData));
@@ -445,7 +445,15 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
 
     private <R> VersionLoadResult doInTemplate(EntitiesImportCtx ctx, VersionLoadRequest vlr, Function<EntitiesImportCtx, VersionLoadResult> function) {
         try {
-            VersionLoadResult result = transactionTemplate.execute(status -> function.apply(ctx));
+            VersionLoadResult result = transactionTemplate.execute(status -> {
+                try {
+                    return function.apply(ctx);
+                } catch (RuntimeException e) {
+                    throw e;
+                } catch (Exception e) {
+                    throw new RuntimeException(e); // to prevent UndeclaredThrowableException
+                }
+            });
             for (ThrowingRunnable throwingRunnable : ctx.getEventCallbacks()) {
                 throwingRunnable.run();
             }
@@ -594,7 +602,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         for (var task : sw.getTaskInfo()) {
             log.debug("[{}] Executed: {} in {}ms", ctx.getTenantId(), task.getTaskName(), task.getTimeMillis());
         }
-        log.info("[{}] Total import time: {}ms", ctx.getTenantId(), sw.getTotalTimeMillis());
+        log.debug("[{}] Total import time: {}ms", ctx.getTenantId(), sw.getTotalTimeMillis());
         return VersionLoadResult.success(new ArrayList<>(ctx.getResults().values()));
     }
 
@@ -610,13 +618,19 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 .build();
     }
 
+    @SneakyThrows
     private void importGroupEntities(EntitiesImportCtx ctx, List<CustomerId> ownerIds, EntityType entityType, EntityGroupId internalGroupId,
-                                     EntityId externalGroupId) throws InterruptedException, ExecutionException {
+                                     EntityId externalGroupId) {
 
         List<EntityId> allGroupEntityIds = gitServiceQueue.getGroupEntityIds(ctx.getTenantId(), ctx.getVersionId(), ownerIds, entityType, externalGroupId).get();
 
         for (List<UUID> entityIds : Lists.partition(allGroupEntityIds.stream().map(EntityId::getId).collect(Collectors.toList()), 100)) {
-            List<EntityExportData> entityDataList = gitServiceQueue.getEntities(ctx.getTenantId(), ctx.getVersionId(), ownerIds, entityType, entityIds).get();
+            List<EntityExportData> entityDataList;
+            try {
+                entityDataList = gitServiceQueue.getEntities(ctx.getTenantId(), ctx.getVersionId(), ownerIds, entityType, entityIds).get();
+            } catch (ExecutionException e) {
+                throw e.getCause();
+            }
             var result = importEntityDataList(ctx, entityType, entityDataList);
             var internalIds = result.stream().map(EntityImportResult::getSavedEntity).map(HasId::getId).collect(Collectors.toCollection(ArrayList<EntityId>::new));
             groupService.addEntitiesToEntityGroup(ctx.getTenantId(), internalGroupId, internalIds);
@@ -624,13 +638,18 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     }
 
     @SuppressWarnings("rawtypes")
-    private void importEntities(EntitiesImportCtx ctx, List<CustomerId> ownerIds, EntityType entityType, boolean recursive) throws InterruptedException, ExecutionException {
+    @SneakyThrows
+    private void importEntities(EntitiesImportCtx ctx, List<CustomerId> ownerIds, EntityType entityType, boolean recursive) {
         int limit = 100;
         int offset = 0;
         List<EntityExportData> entityDataList;
         do {
             long ts = System.currentTimeMillis();
-            entityDataList = gitServiceQueue.getEntities(ctx.getTenantId(), ctx.getVersionId(), ownerIds, entityType, false, recursive, offset, limit).get();
+            try {
+                entityDataList = gitServiceQueue.getEntities(ctx.getTenantId(), ctx.getVersionId(), ownerIds, entityType, false, recursive, offset, limit).get();
+            } catch (ExecutionException e) {
+                throw e.getCause();
+            }
             long getEntities = System.currentTimeMillis() - ts;
             importEntityDataList(ctx, entityType, entityDataList);
             long importEntities = System.currentTimeMillis() - ts;
@@ -640,13 +659,18 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     }
 
     @SuppressWarnings("rawtypes")
-    private void importEntityGroups(EntitiesImportCtx ctx, EntityType entityType) throws InterruptedException, ExecutionException {
+    @SneakyThrows
+    private void importEntityGroups(EntitiesImportCtx ctx, EntityType entityType) {
         int limit = 100;
         int offset = 0;
         List<EntityExportData> entityDataList;
         Map<EntityId, List<CustomerId>> ownersCache = new HashMap<>();
         do {
-            entityDataList = gitServiceQueue.getEntities(ctx.getTenantId(), ctx.getVersionId(), Collections.emptyList(), entityType, true, true, offset, limit).get();
+            try {
+                entityDataList = gitServiceQueue.getEntities(ctx.getTenantId(), ctx.getVersionId(), Collections.emptyList(), entityType, true, true, offset, limit).get();
+            } catch (ExecutionException e) {
+                throw e.getCause();
+            }
             List<EntityImportResult<?>> entityGroupResults = importEntityDataList(ctx, entityType, entityDataList);
             for (EntityImportResult<?> entityImportResult : entityGroupResults) {
                 EntityGroup savedGroup = (EntityGroup) entityImportResult.getSavedEntity();
