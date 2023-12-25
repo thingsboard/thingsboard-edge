@@ -45,6 +45,7 @@ public class SystemParams {
     boolean persistDeviceStateToTelemetry;
     JsonNode userSettings;
     long maxDatapointsLimit;
+    long maxResourceSize;
     boolean whiteLabelingAllowed;
     boolean customerWhiteLabelingAllowed;
 }

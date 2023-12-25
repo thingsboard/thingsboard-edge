@@ -28,32 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.sync.ie.exporting.impl;
+package org.thingsboard.server.service.executors;
 
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.TbResource;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.TbResourceId;
-import org.thingsboard.server.common.data.sync.ie.EntityExportData;
-import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.sync.vc.data.EntitiesExportCtx;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.AbstractListeningExecutor;
 
-import java.util.Set;
+@Component
+public class VersionControlExecutor extends AbstractListeningExecutor {
 
-@Service
-@TbCoreComponent
-public class ResourceExportService extends BaseEntityExportService<TbResourceId, TbResource, EntityExportData<TbResource>> {
+    @Value("${vc.thread_pool_size:6}")
+    private int threadPoolSize;
 
     @Override
-    protected void setAdditionalExportData(EntitiesExportCtx<?> ctx, TbResource resource, EntityExportData<TbResource> exportData) throws ThingsboardException {
-        super.setAdditionalExportData(ctx, resource, exportData);
-        resource.setPreview(null); // will be generated on import
+    protected int getThreadPollSize() {
+        return threadPoolSize;
     }
-
-    @Override
-    public Set<EntityType> getSupportedEntityTypes() {
-        return Set.of(EntityType.TB_RESOURCE);
-    }
-
 }
