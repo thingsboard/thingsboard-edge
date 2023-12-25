@@ -227,6 +227,7 @@ public class TbDeviceProfileNodeTest {
         registerCreateAlarmMock(alarmService.updateAlarm(any()), false);
 
 
+        Thread.sleep(1);
         TbMsg msg2 = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, deviceId, TbMsgMetaData.EMPTY,
                 TbMsgDataType.JSON, JacksonUtil.toString(data), null, null);
         node.onMsg(ctx, msg2);
@@ -659,7 +660,7 @@ public class TbDeviceProfileNodeTest {
 
         verify(ctx, Mockito.never()).tellNext(theMsg, "Alarm Created");
 
-        Thread.sleep(halfOfAlarmDelay);
+        Thread.sleep(halfOfAlarmDelay + 1);
 
         TbMsg msg2 = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, deviceId, TbMsgMetaData.EMPTY,
                 TbMsgDataType.JSON, JacksonUtil.toString(data), null, null);
@@ -783,7 +784,7 @@ public class TbDeviceProfileNodeTest {
 
         verify(ctx, Mockito.never()).tellNext(theMsg, "Alarm Created");
 
-        Thread.sleep(halfOfAlarmDelay);
+        Thread.sleep(halfOfAlarmDelay + 1);
 
         TbMsg msg2 = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, deviceId, TbMsgMetaData.EMPTY,
                 TbMsgDataType.JSON, JacksonUtil.toString(data), null, null);
@@ -1104,7 +1105,7 @@ public class TbDeviceProfileNodeTest {
 
         verify(ctx, Mockito.never()).tellNext(theMsg, "Alarm Created");
 
-        Thread.sleep(halfOfAlarmDelay);
+        Thread.sleep(halfOfAlarmDelay + 1);
 
         TbMsg msg2 = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, deviceId, TbMsgMetaData.EMPTY,
                 TbMsgDataType.JSON, JacksonUtil.toString(data), null, null);
