@@ -32,8 +32,8 @@ package org.thingsboard.server.common.data.page;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 import java.util.Collections;

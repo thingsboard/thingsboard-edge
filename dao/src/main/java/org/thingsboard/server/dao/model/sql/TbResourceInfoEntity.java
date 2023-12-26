@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.Convert;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.Type;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -42,11 +41,11 @@ import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
+import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
 import java.util.UUID;
 

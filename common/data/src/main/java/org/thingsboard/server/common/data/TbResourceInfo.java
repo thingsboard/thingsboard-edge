@@ -68,11 +68,11 @@ public class TbResourceInfo extends BaseData<TbResourceId> implements HasName, T
     @Length(fieldName = "resourceKey")
     @Schema(description = "Resource key.", example = "19_1.0", accessMode = Schema.AccessMode.READ_ONLY)
     private String resourceKey;
-    @Schema(description = "Resource search text.", example = "19_1.0:binaryappdatacontainer", accessMode = Schema.AccessMode.READ_ONLY)
     private boolean isPublic;
     private String publicResourceKey;
     @Schema(description = "Resource search text.", example = "19_1.0:binaryappdatacontainer", accessMode = Schema.AccessMode.READ_ONLY)
     private String searchText;
+
     @Schema(description = "Resource etag.", example = "33a64df551425fcc55e4d42a148795d9f25f89d4", accessMode = Schema.AccessMode.READ_ONLY)
     private String etag;
     @NoXss

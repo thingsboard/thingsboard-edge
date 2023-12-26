@@ -41,7 +41,6 @@ import org.assertj.core.data.Offset;
 import org.junit.Assert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.mvel2.ConversionException;
 import org.thingsboard.common.util.JacksonUtil;
 
 import java.time.DateTimeException;
