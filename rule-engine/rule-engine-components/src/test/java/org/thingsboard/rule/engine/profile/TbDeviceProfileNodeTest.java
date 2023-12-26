@@ -226,7 +226,6 @@ public class TbDeviceProfileNodeTest {
 
         registerCreateAlarmMock(alarmService.updateAlarm(any()), false);
 
-
         Thread.sleep(1);
         TbMsg msg2 = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, deviceId, TbMsgMetaData.EMPTY,
                 TbMsgDataType.JSON, JacksonUtil.toString(data), null, null);
