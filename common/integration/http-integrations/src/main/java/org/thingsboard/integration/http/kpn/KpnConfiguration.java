@@ -38,7 +38,6 @@ import lombok.Data;
 public class KpnConfiguration {
     private String destinationSharedSecret;
     private Boolean enableSecurity;
-    private String customerId;
     private String gripTenantId;
     private String apiId;
     private String apiKey;
