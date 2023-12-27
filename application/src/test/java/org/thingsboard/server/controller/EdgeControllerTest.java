@@ -59,12 +59,12 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.EdgeUpgradeInfo;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
-import org.thingsboard.server.common.data.EdgeUpgradeInfo;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
@@ -952,6 +952,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
         doPost("/api/admin/jwtSettings", settings).andExpect(status().isOk());
         loginTenantAdmin();
 
+        Edge edge = doPost("/api/edge", constructEdge("Test Sync Edge", "test"), Edge.class);
+
         Asset asset = new Asset();
         asset.setName("Test Sync Edge Asset 1");
         asset.setType("test");
@@ -961,8 +963,6 @@ public class EdgeControllerTest extends AbstractControllerTest {
         device.setName("Test Sync Edge Device 1");
         device.setType("default");
         Device savedDevice = doPost("/api/device", device, Device.class);
-
-        Edge edge = doPost("/api/edge", constructEdge("Test Sync Edge", "test"), Edge.class);
 
         simulateEdgeActivation(edge);
 
@@ -1625,5 +1625,41 @@ public class EdgeControllerTest extends AbstractControllerTest {
         String upgradeInstructions = doGet("/api/edge/instructions/upgrade/" + EdgeVersion.V_3_6_0.name() + "/docker", String.class);
         Assert.assertTrue(upgradeInstructions.contains("Upgrading to 3.6.1EDGE"));
         Assert.assertTrue(upgradeInstructions.contains("Upgrading to 3.6.2EDGE"));
+    }
+
+    @Test
+    public void testIsEdgeUpgradeAvailable() throws Exception {
+        Edge edge = constructEdge("Edge Upgrade Available", "default");
+        Edge savedEdge = doPost("/api/edge", edge, Edge.class);
+
+        // Test 3.5.0 Edge - upgrade not available
+        String body = "{\"edgeVersion\": \"V_3_5_0\"}";
+        doPostAsync("/api/plugins/telemetry/EDGE/" + savedEdge.getId().getId() + "/attributes/SERVER_SCOPE", body, String.class, status().isOk());
+        edgeUpgradeInstructionsService.setAppVersion("3.6.0PE");
+        Assert.assertFalse(edgeUpgradeInstructionsService.isUpgradeAvailable(savedEdge.getTenantId(), savedEdge.getId()));
+        edgeUpgradeInstructionsService.setAppVersion("3.6.2PE");
+        Assert.assertFalse(edgeUpgradeInstructionsService.isUpgradeAvailable(savedEdge.getTenantId(), savedEdge.getId()));
+        edgeUpgradeInstructionsService.setAppVersion("3.6.2.7PE");
+        Assert.assertFalse(edgeUpgradeInstructionsService.isUpgradeAvailable(savedEdge.getTenantId(), savedEdge.getId()));
+
+        // Test 3.6.0 Edge - upgrade available
+        body = "{\"edgeVersion\": \"V_3_6_0\"}";
+        doPostAsync("/api/plugins/telemetry/EDGE/" + savedEdge.getId().getId() + "/attributes/SERVER_SCOPE", body, String.class, status().isOk());
+        edgeUpgradeInstructionsService.setAppVersion("3.6.0PE");
+        Assert.assertFalse(edgeUpgradeInstructionsService.isUpgradeAvailable(savedEdge.getTenantId(), savedEdge.getId()));
+        edgeUpgradeInstructionsService.setAppVersion("3.6.1.5PE");
+        Assert.assertTrue(edgeUpgradeInstructionsService.isUpgradeAvailable(savedEdge.getTenantId(), savedEdge.getId()));
+        edgeUpgradeInstructionsService.setAppVersion("3.6.2PE");
+        Assert.assertTrue(edgeUpgradeInstructionsService.isUpgradeAvailable(savedEdge.getTenantId(), savedEdge.getId()));
+
+        // Test 3.6.1 Edge - upgrade available
+        body = "{\"edgeVersion\": \"V_3_6_1\"}";
+        doPostAsync("/api/plugins/telemetry/EDGE/" + savedEdge.getId().getId() + "/attributes/SERVER_SCOPE", body, String.class, status().isOk());
+        edgeUpgradeInstructionsService.setAppVersion("3.6.1PE");
+        Assert.assertFalse(edgeUpgradeInstructionsService.isUpgradeAvailable(savedEdge.getTenantId(), savedEdge.getId()));
+        edgeUpgradeInstructionsService.setAppVersion("3.6.2PE");
+        Assert.assertTrue(edgeUpgradeInstructionsService.isUpgradeAvailable(savedEdge.getTenantId(), savedEdge.getId()));
+        edgeUpgradeInstructionsService.setAppVersion("3.6.2.6PE");
+        Assert.assertTrue(edgeUpgradeInstructionsService.isUpgradeAvailable(savedEdge.getTenantId(), savedEdge.getId()));
     }
 }

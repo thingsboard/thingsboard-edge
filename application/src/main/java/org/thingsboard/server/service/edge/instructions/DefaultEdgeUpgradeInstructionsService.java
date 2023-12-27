@@ -36,8 +36,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EdgeUpgradeInfo;
 import org.thingsboard.server.common.data.edge.EdgeInstructions;
+import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.install.InstallScripts;
 
@@ -47,6 +52,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -62,6 +68,7 @@ public class DefaultEdgeUpgradeInstructionsService implements EdgeUpgradeInstruc
     private static final String UPGRADE_DIR = "upgrade";
 
     private final InstallScripts installScripts;
+    private final AttributesService attributesService;
 
     @Value("${app.version:unknown}")
     @Setter
@@ -89,13 +96,42 @@ public class DefaultEdgeUpgradeInstructionsService implements EdgeUpgradeInstruc
         }
     }
 
+    @Override
+    public boolean isUpgradeAvailable(TenantId tenantId, EdgeId edgeId) throws Exception {
+        Optional<AttributeKvEntry> attributeKvEntryOpt = attributesService.find(tenantId, edgeId, DataConstants.SERVER_SCOPE, DataConstants.EDGE_VERSION_ATTR_KEY).get();
+        if (attributeKvEntryOpt.isPresent()) {
+            String edgeVersionFormatted = convertEdgeVersionToDocsFormat(attributeKvEntryOpt.get().getValueAsString());
+            String versionTag = appVersion.replace("PE", "");
+            return isVersionGreaterOrEqualsThan(edgeVersionFormatted, "3.6.0") && !isVersionGreaterOrEqualsThan(edgeVersionFormatted, versionTag);
+        }
+        return false;
+    }
+
+    private boolean isVersionGreaterOrEqualsThan(String version1, String version2) {
+        String[] v1 = version1.split("\\.");
+        String[] v2 = version2.split("\\.");
+
+        int length = Math.max(v1.length, v2.length);
+        for (int i = 0; i < length; i++) {
+            int num1 = i < v1.length ? Integer.parseInt(v1[i]) : 0;
+            int num2 = i < v2.length ? Integer.parseInt(v2[i]) : 0;
+
+            if (num1 < num2) {
+                return false;
+            } else if (num1 > num2) {
+                return true;
+            }
+        }
+        return true;
+    }
+
     private EdgeInstructions getDockerUpgradeInstructions(String tbVersion, String currentEdgeVersion) {
         EdgeUpgradeInfo edgeUpgradeInfo = upgradeVersionHashMap.get(currentEdgeVersion);
         if (edgeUpgradeInfo == null || edgeUpgradeInfo.getNextEdgeVersion() == null || tbVersion.equals(currentEdgeVersion)) {
             return new EdgeInstructions("Edge upgrade instruction for " + currentEdgeVersion + "EDGE is not available.");
         }
         StringBuilder result = new StringBuilder(readFile(resolveFile("docker", "upgrade_preparing.md")));
-        while (edgeUpgradeInfo.getNextEdgeVersion() != null || !tbVersion.equals(currentEdgeVersion)) {
+        while (edgeUpgradeInfo.getNextEdgeVersion() != null && !tbVersion.equals(currentEdgeVersion)) {
             String edgeVersion = edgeUpgradeInfo.getNextEdgeVersion();
             String dockerUpgradeInstructions = readFile(resolveFile("docker", "instructions.md"));
             if (edgeUpgradeInfo.isRequiresUpdateDb()) {
@@ -124,7 +160,7 @@ public class DefaultEdgeUpgradeInstructionsService implements EdgeUpgradeInstruc
         String upgrade_preparing = readFile(resolveFile("upgrade_preparing.md"));
         upgrade_preparing = upgrade_preparing.replace("${OS}", os.equals("centos") ? "RHEL/CentOS 7/8" : "Ubuntu");
         StringBuilder result = new StringBuilder(upgrade_preparing);
-        while (edgeUpgradeInfo.getNextEdgeVersion() != null || !tbVersion.equals(currentEdgeVersion)) {
+        while (edgeUpgradeInfo.getNextEdgeVersion() != null && !tbVersion.equals(currentEdgeVersion)) {
             String edgeVersion = edgeUpgradeInfo.getNextEdgeVersion();
             String linuxUpgradeInstructions = readFile(resolveFile(os, "instructions.md"));
             if (edgeUpgradeInfo.isRequiresUpdateDb()) {

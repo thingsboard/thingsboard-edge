@@ -165,8 +165,8 @@ public class BaseImageService extends BaseResourceService implements ImageServic
     @Override
     @SneakyThrows
     public TbResourceInfo saveImage(TbResource image) {
-        if (image.getId() == null && StringUtils.isEmpty(image.getResourceKey())) {
-            image.setResourceKey(getUniqueKey(image.getTenantId(), image.getFileName()));
+        if (image.getId() == null) {
+            image.setResourceKey(getUniqueKey(image.getTenantId(), StringUtils.defaultIfEmpty(image.getResourceKey(), image.getFileName())));
         }
         resourceValidator.validate(image, TbResourceInfo::getTenantId);
 
@@ -177,13 +177,11 @@ public class BaseImageService extends BaseResourceService implements ImageServic
         image.setDescriptorValue(descriptor);
         image.setPreview(result.getRight());
 
-        if (image.getId() == null) {
-            if (StringUtils.isEmpty(image.getPublicResourceKey())) {
+        if (StringUtils.isEmpty(image.getPublicResourceKey())) {
+            image.setPublicResourceKey(generatePublicResourceKey());
+        } else {
+            if (resourceInfoDao.existsByPublicResourceKey(ResourceType.IMAGE, image.getPublicResourceKey())) {
                 image.setPublicResourceKey(generatePublicResourceKey());
-            } else {
-                if (resourceInfoDao.existsByPublicResourceKey(ResourceType.IMAGE, image.getPublicResourceKey())) {
-                    image.setPublicResourceKey(generatePublicResourceKey());
-                }
             }
         }
         log.debug("[{}] Creating image {} ('{}')", image.getTenantId(), image.getResourceKey(), image.getName());
@@ -245,6 +243,11 @@ public class BaseImageService extends BaseResourceService implements ImageServic
     public TbResourceInfo getImageInfoByTenantIdAndKey(TenantId tenantId, String key) {
         log.trace("Executing getImageInfoByTenantIdAndKey [{}] [{}]", tenantId, key);
         return findResourceInfoByTenantIdAndKey(tenantId, ResourceType.IMAGE, key);
+    }
+
+    @Override
+    public TbResourceInfo getImageInfoByTenantIdAndCustomerIdAndKey(TenantId tenantId, CustomerId customerId, String key) {
+        return resourceInfoDao.findByTenantIdAndCustomerIdAndKey(tenantId, customerId, ResourceType.IMAGE, key);
     }
 
     @Override
@@ -521,7 +524,7 @@ public class BaseImageService extends BaseResourceService implements ImageServic
         byte[] imageData = Base64.getDecoder().decode(base64Data);
         String etag = calculateEtag(imageData);
         TbResourceInfo imageInfo;
-        if (customerId != null && !customerId.isNullUid()){
+        if (customerId != null && !customerId.isNullUid()) {
             imageInfo = findSystemOrCustomerImageByEtag(tenantId, customerId, etag);
         } else {
             imageInfo = findSystemOrTenantImageByEtag(tenantId, etag);

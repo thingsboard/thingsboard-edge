@@ -45,7 +45,9 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.ImageDescriptor;
 import org.thingsboard.server.common.data.ImageExportData;
 import org.thingsboard.server.common.data.ResourceType;
+import org.thingsboard.server.common.data.SystemParams;
 import org.thingsboard.server.common.data.TbResourceInfo;
+import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.service.DaoSqlTest;
@@ -201,6 +203,32 @@ public class ImageControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    public void testExportImportImage_customerLevel() throws Exception {
+        String filename = "image.png";
+        TbResourceInfo tenantImage = uploadImage(HttpMethod.POST, "/api/image", filename, "image/png", PNG_IMAGE, false);
+        ImageExportData exportData = doGet("/api/images/tenant/" + filename + "/export", ImageExportData.class);
+
+        loginCustomerUser();
+        TbResourceInfo customerImage = doPut("/api/image/import", exportData, TbResourceInfo.class);
+        TbResourceId customerImageId = customerImage.getId();
+        assertThat(customerImage.getResourceKey()).isEqualTo("image_(1).png");
+        assertThat(customerImageId).isNotEqualTo(tenantImage.getId());
+        assertThat(getImages(null, false, 10)).extracting(TbResourceInfo::getId)
+                .containsOnly(customerImageId);
+
+        exportData = doGet("/api/images/tenant/" + customerImage.getResourceKey() + "/export", ImageExportData.class);
+        customerImage = doPut("/api/image/import", exportData, TbResourceInfo.class);
+        assertThat(customerImage.getResourceKey()).isEqualTo("image_(1).png");
+        assertThat(customerImage.getId()).isEqualTo(customerImageId);
+        assertThat(getImages(null, false, 10)).extracting(TbResourceInfo::getId)
+                .containsOnly(customerImageId);
+
+        loginTenantAdmin();
+        assertThat(getImages(null, false, 10)).extracting(TbResourceInfo::getResourceKey)
+                .containsOnly("image.png");
+    }
+
+    @Test
     public void testGetImages() throws Exception {
         loginSysAdmin();
         String systemImageName = "my_system_png_image.png";
@@ -253,6 +281,28 @@ public class ImageControllerTest extends AbstractControllerTest {
         loginTenantAdmin();
         updateImagePublicStatus(filename, false);
         doGet("/api/images/public/" + publicKey).andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testGetImageUploadSpecs() throws Exception {
+        SystemParams systemParams = doGet("/api/system/params", SystemParams.class);
+        assertThat(systemParams.getMaxResourceSize()).isZero();
+
+        loginSysAdmin();
+        updateDefaultTenantProfileConfig(tenantProfileConfig -> {
+            tenantProfileConfig.setMaxResourceSize(100);
+        });
+        loginTenantAdmin();
+        systemParams = doGet("/api/system/params", SystemParams.class);
+        assertThat(systemParams.getMaxResourceSize()).isEqualTo(100);
+
+        loginSysAdmin();
+        updateDefaultTenantProfileConfig(tenantProfileConfig -> {
+            tenantProfileConfig.setMaxResourceSize(0);
+        });
+        loginTenantAdmin();
+        systemParams = doGet("/api/system/params", SystemParams.class);
+        assertThat(systemParams.getMaxResourceSize()).isEqualTo(0);
     }
 
     private TbResourceInfo updateImagePublicStatus(String filename, boolean isPublic) throws Exception {

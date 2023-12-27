@@ -105,7 +105,11 @@ public class DefaultTbImageService extends AbstractTbEntityService implements Tb
             var oldEtag = getEtag(image);
             TbResourceInfo existingImage = null;
             if (image.getId() == null && StringUtils.isNotEmpty(image.getResourceKey())) {
-                existingImage = imageService.getImageInfoByTenantIdAndKey(tenantId, image.getResourceKey());
+                if (user.isCustomerUser()) {
+                    existingImage = imageService.getImageInfoByTenantIdAndCustomerIdAndKey(tenantId, user.getCustomerId(), image.getResourceKey());
+                } else {
+                    existingImage = imageService.getImageInfoByTenantIdAndKey(tenantId, image.getResourceKey());
+                }
                 if (existingImage != null) {
                     image.setId(existingImage.getId());
                 }

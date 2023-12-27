@@ -200,7 +200,6 @@ public class ImageController extends BaseController {
         return downloadIfChanged(cacheKey, etag, () -> imageService.getPublicImageInfoByKey(publicResourceKey));
     }
 
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @GetMapping(value = "/api/noauth/whiteLabel/loginLogo/{type}/{key}", produces = "image/*")
     public ResponseEntity<ByteArrayResource> downloadLoginLogo(HttpServletRequest request,
                                                                @PathVariable String type,

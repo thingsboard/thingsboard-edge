@@ -32,9 +32,10 @@ package org.thingsboard.integration.http.kpn;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.hash.Hashing;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -50,6 +51,7 @@ import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
+import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.http.basic.BasicHttpIntegration;
 import org.thingsboard.server.common.msg.TbMsg;
 
@@ -77,12 +79,14 @@ public class KpnIntegration<T extends HttpIntegrationMsg<?>> extends BasicHttpIn
     private final static String SIGNED_BODY_REQUEST_HEADER = "things-message-token";
 
     private final RestTemplate httpClient = new RestTemplate();
-    private AtomicLong tokenExpiresIn = new AtomicLong(0);
+    private final AtomicLong tokenExpiresIn = new AtomicLong(0);
     private String token;
     private String gripAuthEndpoint;
 
-    private Map<String, String> headersFilter = new HashMap<>();
-    private ConcurrentHashMap<String, Boolean> subCustomersRetrievedAccess = new ConcurrentHashMap<>();
+    byte[] destinationSharedSecret = null;
+
+    private final Map<String, String> headersFilter = new HashMap<>();
+    private final ConcurrentHashMap<String, Boolean> subCustomersRetrievedAccess = new ConcurrentHashMap<>();
 
     private KpnConfiguration kpnConfiguration;
 
@@ -99,7 +103,27 @@ public class KpnIntegration<T extends HttpIntegrationMsg<?>> extends BasicHttpIn
                 headersFilter.put(headerFilter.getKey(), headerFilter.getValue().asText());
             }
         }
+        final String destinationSharedSecretConfiguration = kpnConfiguration.getDestinationSharedSecret();
+        if (StringUtils.isNotBlank(destinationSharedSecretConfiguration)) {
+            destinationSharedSecret = destinationSharedSecretConfiguration.getBytes();
+        } else {
+            destinationSharedSecret = null;
+        }
         gripAuthEndpoint = GRIP_BASE_URL + "/v2/" + kpnConfiguration.getGripTenantId() + "/oidc/idp/c1/token";
+    }
+
+    @Override
+    protected ResponseEntity<?> doProcess(HttpIntegrationMsg<?> msg) throws Exception {
+        if (checkSecurity(msg)) {
+            Map<String, UplinkData> result = processUplinkData(context, msg);
+            if (result.isEmpty()) {
+                return fromStatus(HttpStatus.NO_CONTENT);
+            } else {
+                return fromStatus(HttpStatus.OK);
+            }
+        } else {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
     }
 
     @Override
@@ -152,15 +176,19 @@ public class KpnIntegration<T extends HttpIntegrationMsg<?>> extends BasicHttpIn
         return downlinkResult;
     }
 
-    @Override
     protected boolean checkSecurity(HttpIntegrationMsg<?> msg) throws Exception {
         Map<String, String> requestHeaders = msg.getRequestHeaders();
         log.trace("Validating request using the following request headers: {}", requestHeaders);
-        String signed = requestHeaders.get(SIGNED_BODY_REQUEST_HEADER);
-        byte[] dataForHash = ArrayUtils.addAll(msg.getMsgInBytes(), kpnConfiguration.getDestinationSharedSecret().getBytes());
-        String hashed = new DigestUtils("SHA-256").digestAsHex(dataForHash);
-        if (!signed.equals(hashed)) {
-            return false;
+        if (destinationSharedSecret != null) {
+            String signed = requestHeaders.get(SIGNED_BODY_REQUEST_HEADER);
+            if (StringUtils.isBlank(signed)) {
+                return false;
+            }
+            byte[] dataForHash = ArrayUtils.addAll(msg.getMsgInBytes(), destinationSharedSecret);
+            String hashed = Hashing.sha256().hashBytes(dataForHash).toString();
+            if (!signed.equals(hashed)) {
+                return false;
+            }
         }
         if (kpnConfiguration.getEnableSecurity()) {
             for (Map.Entry<String, String> headerFilter : headersFilter.entrySet()) {
@@ -215,7 +243,7 @@ public class KpnIntegration<T extends HttpIntegrationMsg<?>> extends BasicHttpIn
         RequestEntity<Object> requestEntity = new RequestEntity<>(null, headers, HttpMethod.POST, URI.create(accessRequestUrl));
         ResponseEntity<ObjectNode> response = httpClient.exchange(requestEntity, ObjectNode.class);
         if (response.getStatusCode().is2xxSuccessful()) {
-            subCustomersRetrievedAccess.put(subCustomerId, true);
+            subCustomersRetrievedAccess.putIfAbsent(subCustomerId, true);
         } else {
             throw new RuntimeException(String.format("Cannot retrieve access for sub customer with id %s", subCustomerId));
         }

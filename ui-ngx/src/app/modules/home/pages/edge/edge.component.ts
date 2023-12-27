@@ -34,7 +34,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { EntityType } from '@shared/models/entity-type.models';
-import { EdgeInfo, edgeVersionAttributeKey } from '@shared/models/edge.models';
+import { EdgeInfo } from '@shared/models/edge.models';
 import { TranslateService } from '@ngx-translate/core';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { generateSecret, guid } from '@core/utils';
@@ -45,9 +45,7 @@ import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { AuthUser } from '@shared/models/user.model';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { environment as env } from '@env/environment';
-import { AttributeService } from '@core/http/attribute.service';
-import { AttributeScope } from '@shared/models/telemetry/telemetry.models';
+import {EdgeService} from "@core/http/edge.service";
 
 @Component({
   selector: 'tb-edge',
@@ -63,7 +61,7 @@ export class EdgeComponent extends GroupEntityComponent<EdgeInfo> {
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
-              private attributeService: AttributeService,
+              private edgeService: EdgeService,
               @Inject('entity') protected entityValue: EdgeInfo,
               @Inject('entitiesTableConfig')
               protected entitiesTableConfigValue: EntityTableConfig<EdgeInfo> | GroupEntityTableConfig<EdgeInfo>,
@@ -176,7 +174,10 @@ export class EdgeComponent extends GroupEntityComponent<EdgeInfo> {
       }
     });
     this.generateRoutingKeyAndSecret(entity, this.entityForm);
-    this.checkEdgeVersion();
+    this.edgeService.isEdgeUpgradeAvailable(this.entity.id.id)
+      .subscribe(isUpgradeAvailable => {
+          this.upgradeAvailable = isUpgradeAvailable;
+      });
   }
 
   updateFormState() {
@@ -220,26 +221,5 @@ export class EdgeComponent extends GroupEntityComponent<EdgeInfo> {
       form.get('routingKey').patchValue(guid(), { emitEvent: false });
       form.get('secret').patchValue(generateSecret(20), { emitEvent: false });
     }
-  }
-
-  checkEdgeVersion() {
-    this.attributeService.getEntityAttributes(this.entity.id, AttributeScope.SERVER_SCOPE, [edgeVersionAttributeKey])
-      .subscribe(attributes => {
-        if (attributes?.length) {
-          const edgeVersion = attributes[0].value + 'PE';
-          const tbVersion = 'V_' + env.tbVersion.replaceAll('.', '_');
-          this.upgradeAvailable = this.versionUpgradeSupported(edgeVersion) && (edgeVersion !== tbVersion);
-        } else {
-          this.upgradeAvailable = false;
-        }
-      }
-    );
-  }
-
-  private versionUpgradeSupported(edgeVersion: string): boolean {
-    const edgeVersionArray = edgeVersion.split('_');
-    const major = parseInt(edgeVersionArray[1]);
-    const minor = parseInt(edgeVersionArray[2]);
-    return major >= 3 && minor >= 6;
   }
 }
