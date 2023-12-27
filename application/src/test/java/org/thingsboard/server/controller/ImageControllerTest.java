@@ -207,7 +207,7 @@ public class ImageControllerTest extends AbstractControllerTest {
     @Test
     public void testExportImportImage_customerLevel() throws Exception {
         String filename = "image.png";
-        TbResourceInfo tenantImage = uploadImage(HttpMethod.POST, "/api/image", filename, "image/png", PNG_IMAGE, false);
+        TbResourceInfo tenantImage = uploadImage(HttpMethod.POST, "/api/image", filename, "image/png", PNG_IMAGE);
         ImageExportData exportData = doGet("/api/images/tenant/" + filename + "/export", ImageExportData.class);
 
         loginCustomerUser();
