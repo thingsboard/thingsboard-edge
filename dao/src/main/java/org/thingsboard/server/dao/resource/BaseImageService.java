@@ -138,8 +138,8 @@ public class BaseImageService extends BaseResourceService implements ImageServic
     @Override
     @SneakyThrows
     public TbResourceInfo saveImage(TbResource image) {
-        if (image.getId() == null && StringUtils.isEmpty(image.getResourceKey())) {
-            image.setResourceKey(getUniqueKey(image.getTenantId(), image.getFileName()));
+        if (image.getId() == null) {
+            image.setResourceKey(getUniqueKey(image.getTenantId(), StringUtils.defaultIfEmpty(image.getResourceKey(), image.getFileName())));
         }
         resourceValidator.validate(image, TbResourceInfo::getTenantId);
 
@@ -150,13 +150,11 @@ public class BaseImageService extends BaseResourceService implements ImageServic
         image.setDescriptorValue(descriptor);
         image.setPreview(result.getRight());
 
-        if (image.getId() == null) {
-            if (StringUtils.isEmpty(image.getPublicResourceKey())) {
+        if (StringUtils.isEmpty(image.getPublicResourceKey())) {
+            image.setPublicResourceKey(generatePublicResourceKey());
+        } else {
+            if (resourceInfoDao.existsByPublicResourceKey(ResourceType.IMAGE, image.getPublicResourceKey())) {
                 image.setPublicResourceKey(generatePublicResourceKey());
-            } else {
-                if (resourceInfoDao.existsByPublicResourceKey(ResourceType.IMAGE, image.getPublicResourceKey())) {
-                    image.setPublicResourceKey(generatePublicResourceKey());
-                }
             }
         }
         log.debug("[{}] Creating image {} ('{}')", image.getTenantId(), image.getResourceKey(), image.getName());

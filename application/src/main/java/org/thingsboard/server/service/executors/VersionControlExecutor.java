@@ -13,22 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.tb-scroll-grid-viewport {
-  height: 100%;
-  .cdk-virtual-scroll-content-wrapper {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-  }
-  .cdk-virtual-scroll-spacer {
-    height: auto !important;
-  }
-  .tb-scroll-grid-items-row {
-    display: flex;
-    flex-direction: row;
-  }
-  .tb-scroll-grid-item-container {
-    flex: 1;
-    min-width: 0;
-  }
+package org.thingsboard.server.service.executors;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.AbstractListeningExecutor;
+
+@Component
+public class VersionControlExecutor extends AbstractListeningExecutor {
+
+    @Value("${vc.thread_pool_size:6}")
+    private int threadPoolSize;
+
+    @Override
+    protected int getThreadPollSize() {
+        return threadPoolSize;
+    }
 }
