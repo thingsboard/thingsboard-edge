@@ -56,11 +56,10 @@ import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.thingsboard.server.dao.DaoUtil.convertTenantEntityTypesToDto;
+import static org.thingsboard.server.dao.DaoUtil.convertTenantEntityInfosToDto;
 
 /**
  * Created by Valerii Sosliuk on 5/6/2017.
@@ -75,6 +74,9 @@ public class JpaDeviceDao extends JpaAbstractDao<DeviceEntity, Device> implement
 
     @Autowired
     private NativeDeviceRepository nativeDeviceRepository;
+
+    @Autowired
+    private DeviceProfileRepository deviceProfileRepository;
 
     @Override
     protected Class<DeviceEntity> getEntityClass() {
@@ -105,7 +107,7 @@ public class JpaDeviceDao extends JpaAbstractDao<DeviceEntity, Device> implement
             return DaoUtil.toPageData(
                     deviceRepository.findByTenantId(
                             tenantId,
-                            Objects.toString(pageLink.getTextSearch(), ""),
+                            pageLink.getTextSearch(),
                             DaoUtil.toPageable(pageLink)));
         }
     }
@@ -126,7 +128,7 @@ public class JpaDeviceDao extends JpaAbstractDao<DeviceEntity, Device> implement
         return DaoUtil.toPageData(deviceRepository
                 .findByEntityGroupId(
                         groupId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -135,7 +137,7 @@ public class JpaDeviceDao extends JpaAbstractDao<DeviceEntity, Device> implement
         return DaoUtil.toPageData(deviceRepository
                 .findByEntityGroupIds(
                         groupIds,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -145,7 +147,7 @@ public class JpaDeviceDao extends JpaAbstractDao<DeviceEntity, Device> implement
                 .findByEntityGroupIdsAndType(
                         groupIds,
                         type,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -165,7 +167,7 @@ public class JpaDeviceDao extends JpaAbstractDao<DeviceEntity, Device> implement
                 deviceRepository.findByTenantIdAndCustomerId(
                         tenantId,
                         customerId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -175,7 +177,7 @@ public class JpaDeviceDao extends JpaAbstractDao<DeviceEntity, Device> implement
                 deviceRepository.findByTenantIdAndProfileId(
                         tenantId,
                         profileId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -202,7 +204,7 @@ public class JpaDeviceDao extends JpaAbstractDao<DeviceEntity, Device> implement
                 deviceRepository.findByTenantIdAndType(
                         tenantId,
                         type,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -213,7 +215,7 @@ public class JpaDeviceDao extends JpaAbstractDao<DeviceEntity, Device> implement
                         tenantId,
                         customerId,
                         type,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -230,7 +232,7 @@ public class JpaDeviceDao extends JpaAbstractDao<DeviceEntity, Device> implement
 
     @Override
     public ListenableFuture<List<EntitySubtype>> findTenantDeviceTypesAsync(UUID tenantId) {
-        return service.submit(() -> convertTenantEntityTypesToDto(tenantId, EntityType.DEVICE, deviceRepository.findTenantDeviceTypes(tenantId)));
+        return service.submit(() -> convertTenantEntityInfosToDto(tenantId, EntityType.DEVICE, deviceProfileRepository.findActiveTenantDeviceProfileNames(tenantId)));
     }
 
     @Override
@@ -260,9 +262,9 @@ public class JpaDeviceDao extends JpaAbstractDao<DeviceEntity, Device> implement
                                                                                 PageLink pageLink) {
         Page<DeviceEntity> page = OtaPackageUtil.getByOtaPackageType(
                 () -> deviceRepository.findByEntityGroupIdAndDeviceProfileIdAndFirmwareIdIsNull(
-                        groupId, deviceProfileId, Objects.toString(pageLink.getTextSearch(), ""), DaoUtil.toPageable(pageLink)),
+                        groupId, deviceProfileId, pageLink.getTextSearch(), DaoUtil.toPageable(pageLink)),
                 () -> deviceRepository.findByEntityGroupIdAndDeviceProfileIdAndSoftwareIdIsNull(
-                        groupId, deviceProfileId, Objects.toString(pageLink.getTextSearch(), ""), DaoUtil.toPageable(pageLink)),
+                        groupId, deviceProfileId, pageLink.getTextSearch(), DaoUtil.toPageable(pageLink)),
                 type);
         return DaoUtil.toPageData(page);
     }

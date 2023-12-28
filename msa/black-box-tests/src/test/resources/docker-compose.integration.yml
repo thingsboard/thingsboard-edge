@@ -43,6 +43,9 @@ services:
       RPC_HOST: haproxy
       RPC_PORT: 9090
       JAVA_OPTS: "-Xmx256m -Xss256k"
+    volumes:
+      - ../tb-integration/http/conf/logback.xml:/usr/share/tb-http-integration/conf/logback.xml
+      - tb-http-integration-log-volume:/var/log/tb-http-integration
   tb-pe-mqtt-integration:
     restart: always
     image: "thingsboard/tb-pe-mqtt-integration:latest"
@@ -54,6 +57,9 @@ services:
       RPC_HOST: haproxy
       RPC_PORT: 9090
       JAVA_OPTS: "-Xmx256m -Xss256k"
+    volumes:
+      - ../tb-integration/mqtt/conf/logback.xml:/usr/share/tb-mqtt-integration/conf/logback.xml
+      - tb-mqtt-integration-log-volume:/var/log/tb-mqtt-integration
   tb-pe-tcp-integration:
     restart: always
     image: "thingsboard/tb-pe-tcp-udp-integration:latest"
@@ -65,6 +71,9 @@ services:
       RPC_HOST: haproxy
       RPC_PORT: 9090
       JAVA_OPTS: "-Xmx256m -Xss256k"
+    volumes:
+      - ../tb-integration/tcp/conf/logback.xml:/usr/share/tb-tcp-udp-integration/conf/logback.xml
+      - tb-tcp-integration-log-volume:/var/log/tb-tcp-udp-integration
   tb-pe-udp-integration:
     restart: always
     image: "thingsboard/tb-pe-tcp-udp-integration:latest"
@@ -76,6 +85,9 @@ services:
       RPC_HOST: haproxy
       RPC_PORT: 9090
       JAVA_OPTS: "-Xmx256m -Xss256k"
+    volumes:
+      - ../tb-integration/udp/conf/logback.xml:/usr/share/tb-tcp-udp-integration/conf/logback.xml
+      - tb-udp-integration-log-volume:/var/log/tb-tcp-udp-integration
   tb-pe-coap-integration:
     restart: always
     image: "thingsboard/tb-pe-coap-integration:latest"
@@ -87,3 +99,23 @@ services:
       RPC_HOST: haproxy
       RPC_PORT: 9090
       JAVA_OPTS: "-Xmx256m -Xss256k"
+    volumes:
+      - ../tb-integration/coap/conf/logback.xml:/usr/share/tb-coap-integration/conf/logback.xml
+      - tb-coap-integration-log-volume:/var/log/tb-coap-integration
+
+volumes:
+  tb-http-integration-log-volume:
+    external:
+      name: ${TB_HTTP_INTEGRATION_VOLUME}
+  tb-mqtt-integration-log-volume:
+    external:
+      name: ${TB_MQTT_INTEGRATION_VOLUME}
+  tb-coap-integration-log-volume:
+    external:
+      name: ${TB_COAP_INTEGRATION_VOLUME}
+  tb-tcp-integration-log-volume:
+    external:
+      name: ${TB_TCP_INTEGRATION_VOLUME}
+  tb-udp-integration-log-volume:
+    external:
+      name: ${TB_UDP_INTEGRATION_VOLUME}

@@ -44,15 +44,13 @@ import { DatePipe } from '@angular/common';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { TenantProfileService } from '@core/http/tenant-profile.service';
-import { TenantProfileComponent } from '../../components/profile/tenant-profile.component';
+import { TenantProfileComponent } from '@home/components/profile/tenant-profile.component';
 import { TenantProfileTabsComponent } from './tenant-profile-tabs.component';
 import { DialogService } from '@core/services/dialog.service';
-import { UserPermissionsService } from '../../../../core/http/user-permissions.service';
-import { UtilsService } from '../../../../core/services/utils.service';
-import { Operation, Resource } from '../../../../shared/models/security.models';
-import { ImportExportService } from '@home/components/import-export/import-export.service';
-import { map } from 'rxjs/operators';
-import { guid } from '@core/utils';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { UtilsService } from '@core/services/utils.service';
+import { Operation, Resource } from '@shared/models/security.models';
+import { ImportExportService } from '@shared/import-export/import-export.service';
 
 @Injectable()
 export class TenantProfilesTableConfigResolver implements Resolve<EntityTableConfig<TenantProfile>> {

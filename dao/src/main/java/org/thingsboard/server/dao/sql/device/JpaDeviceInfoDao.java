@@ -75,7 +75,7 @@ public class JpaDeviceInfoDao extends JpaAbstractDao<DeviceInfoEntity, DeviceInf
                         DaoUtil.getStringId(filter.getDeviceProfileId()),
                         filter.getActive() != null,
                         Boolean.TRUE.equals(filter.getActive()),
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
         } else {
             return DaoUtil.toPageData(
@@ -86,7 +86,7 @@ public class JpaDeviceInfoDao extends JpaAbstractDao<DeviceInfoEntity, DeviceInf
                             DaoUtil.getStringId(filter.getDeviceProfileId()),
                             filter.getActive() != null,
                             Boolean.TRUE.equals(filter.getActive()),
-                            Objects.toString(pageLink.getTextSearch(), ""),
+                            pageLink.getTextSearch(),
                             DaoUtil.toPageable(pageLink)));
         }
     }

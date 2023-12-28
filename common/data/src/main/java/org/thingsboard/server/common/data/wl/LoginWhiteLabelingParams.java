@@ -31,12 +31,14 @@
 package org.thingsboard.server.common.data.wl;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class LoginWhiteLabelingParams extends WhiteLabelingParams {
 
     @Schema(description = "Login page background color", example = "#d90f0f")

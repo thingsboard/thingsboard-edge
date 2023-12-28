@@ -38,7 +38,6 @@ import { RuleChainId } from '@shared/models/id/rule-chain-id';
 import { BaseEventBody } from '@shared/models/event.models';
 import { EventId } from '@shared/models/id/event-id';
 import { EntityType } from '@shared/models/entity-type.models';
-import { EntityInfoData } from '@shared/models/entity.models';
 
 export interface Edge extends BaseData<EdgeId> {
   tenantId?: TenantId;
@@ -214,8 +213,8 @@ export interface EdgeEvent extends BaseData<EventId> {
   body: string;
 }
 
-export interface EdgeInstallInstructions {
-  installInstructions: string;
+export interface EdgeInstructions {
+  instructions: string;
 }
 
 export enum EdgeInstructionsMethod {
@@ -232,3 +231,4 @@ export const edgeEntityGroupTypes: EntityType[] = [
   EntityType.DASHBOARD
 ];
 
+export const edgeVersionAttributeKey = 'edgeVersion';

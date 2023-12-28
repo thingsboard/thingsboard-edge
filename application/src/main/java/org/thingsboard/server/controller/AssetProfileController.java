@@ -47,6 +47,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.asset.AssetProfileInfo;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -56,6 +57,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.asset.profile.TbAssetProfileService;
@@ -70,6 +72,8 @@ import static org.thingsboard.server.controller.ControllerConstants.ASSET_PROFIL
 import static org.thingsboard.server.controller.ControllerConstants.ASSET_PROFILE_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ASSET_PROFILE_INFO_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ASSET_PROFILE_TEXT_SEARCH_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.INLINE_IMAGES;
+import static org.thingsboard.server.controller.ControllerConstants.INLINE_IMAGES_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
@@ -89,6 +93,7 @@ import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LI
 public class AssetProfileController extends BaseController {
 
     private final TbAssetProfileService tbAssetProfileService;
+    private final ImageService imageService;
 
     @ApiOperation(value = "Get Asset Profile (getAssetProfileById)",
             notes = "Fetch the Asset Profile object based on the provided Asset Profile Id. " +
@@ -99,10 +104,16 @@ public class AssetProfileController extends BaseController {
     @ResponseBody
     public AssetProfile getAssetProfileById(
             @Parameter(description = ASSET_PROFILE_ID_PARAM_DESCRIPTION)
-            @PathVariable(ASSET_PROFILE_ID) String strAssetProfileId) throws ThingsboardException {
+            @PathVariable(ASSET_PROFILE_ID) String strAssetProfileId,
+            @Parameter(description = INLINE_IMAGES_DESCRIPTION)
+            @RequestParam(value = INLINE_IMAGES, required = false) boolean inlineImages) throws ThingsboardException {
         checkParameter(ASSET_PROFILE_ID, strAssetProfileId);
         AssetProfileId assetProfileId = new AssetProfileId(toUUID(strAssetProfileId));
-        return checkAssetProfileId(assetProfileId, Operation.READ);
+        var result = checkAssetProfileId(assetProfileId, Operation.READ);
+        if (inlineImages) {
+            imageService.inlineImage(result);
+        }
+        return result;
     }
 
     @ApiOperation(value = "Get Asset Profile Info (getAssetProfileInfoById)",
@@ -254,4 +265,19 @@ public class AssetProfileController extends BaseController {
         }
         return checkNotNull(assetProfileService.findAssetProfilesByIdsAsync(tenantId, assetProfileIds).get());
     }
+
+    @ApiOperation(value = "Get Asset Profile names (getAssetProfileNames)",
+            notes = "Returns a set of unique asset profile names owned by the tenant."
+                    + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/assetProfile/names", method = RequestMethod.GET)
+    @ResponseBody
+    public List<EntityInfo> getAssetProfileNames(
+            @Parameter(description = "Flag indicating whether to retrieve exclusively the names of asset profiles that are referenced by tenant's assets.")
+            @RequestParam(value = "activeOnly", required = false, defaultValue = "false") boolean activeOnly) throws ThingsboardException {
+        SecurityUser user = getCurrentUser();
+        TenantId tenantId = user.getTenantId();
+        return checkNotNull(assetProfileService.findAssetProfileNamesByTenantId(tenantId, activeOnly));
+    }
+
 }

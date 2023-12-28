@@ -394,6 +394,7 @@ public class ModelConstants {
     public static final String WIDGETS_BUNDLE_TITLE_PROPERTY = TITLE_PROPERTY;
     public static final String WIDGETS_BUNDLE_IMAGE_PROPERTY = "image";
     public static final String WIDGETS_BUNDLE_DESCRIPTION = "description";
+    public static final String WIDGETS_BUNDLE_ORDER = "widgets_bundle_order";
 
     /**
      * Widget_type constants.
@@ -647,12 +648,18 @@ public class ModelConstants {
      */
     public static final String RESOURCE_TABLE_NAME = "resource";
     public static final String RESOURCE_TENANT_ID_COLUMN = TENANT_ID_COLUMN;
+
+    public static final String RESOURCE_CUSTOMER_ID_COLUMN = CUSTOMER_ID_PROPERTY;
     public static final String RESOURCE_TYPE_COLUMN = "resource_type";
     public static final String RESOURCE_KEY_COLUMN = "resource_key";
     public static final String RESOURCE_TITLE_COLUMN = TITLE_PROPERTY;
     public static final String RESOURCE_FILE_NAME_COLUMN = "file_name";
     public static final String RESOURCE_DATA_COLUMN = "data";
     public static final String RESOURCE_ETAG_COLUMN = "etag";
+    public static final String RESOURCE_DESCRIPTOR_COLUMN = "descriptor";
+    public static final String RESOURCE_PREVIEW_COLUMN = "preview";
+    public static final String RESOURCE_IS_PUBLIC_COLUMN = "is_public";
+    public static final String PUBLIC_RESOURCE_KEY_COLUMN = "public_resource_key";
 
     /**
      * Ota Package constants.

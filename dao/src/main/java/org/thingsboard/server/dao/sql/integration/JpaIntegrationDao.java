@@ -65,7 +65,7 @@ public class JpaIntegrationDao extends JpaAbstractDao<IntegrationEntity, Integra
         return DaoUtil.toPageData(
                 integrationRepository.findByTenantId(
                         tenantId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -74,7 +74,7 @@ public class JpaIntegrationDao extends JpaAbstractDao<IntegrationEntity, Integra
         return DaoUtil.toPageData(
                 integrationRepository.findByTenantIdAndIsEdgeTemplate(
                         tenantId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         false,
                         DaoUtil.toPageable(pageLink)));
     }
@@ -84,7 +84,7 @@ public class JpaIntegrationDao extends JpaAbstractDao<IntegrationEntity, Integra
         return DaoUtil.toPageData(
                 integrationRepository.findByTenantIdAndIsEdgeTemplate(
                         tenantId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         true,
                         DaoUtil.toPageable(pageLink)));
     }
@@ -117,7 +117,7 @@ public class JpaIntegrationDao extends JpaAbstractDao<IntegrationEntity, Integra
                 .findByTenantIdAndEdgeId(
                         tenantId,
                         edgeId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 

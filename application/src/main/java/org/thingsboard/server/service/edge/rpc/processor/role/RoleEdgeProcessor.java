@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.RoleId;
@@ -48,9 +49,11 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.constructor.role.RoleMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.ArrayList;
@@ -62,7 +65,7 @@ import java.util.UUID;
 @TbCoreComponent
 public class RoleEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg convertRoleEventToDownlink(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertRoleEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         RoleId roleId = new RoleId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
         UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
@@ -73,14 +76,14 @@ public class RoleEdgeProcessor extends BaseEdgeProcessor {
                 if (role != null) {
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addRoleMsg(roleProtoConstructor.constructRoleProto(msgType, role))
+                            .addRoleMsg(((RoleMsgConstructor) roleMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructRoleProto(msgType, role))
                             .build();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addRoleMsg(roleProtoConstructor.constructRoleDeleteMsg(roleId))
+                        .addRoleMsg(((RoleMsgConstructor) roleMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructRoleDeleteMsg(roleId))
                         .build();
                 break;
         }
@@ -92,6 +95,7 @@ public class RoleEdgeProcessor extends BaseEdgeProcessor {
         EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());
         EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(type,
                 new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
+        EdgeId originatorEdgeId = safeGetEdgeId(edgeNotificationMsg.getOriginatorEdgeIdMSB(), edgeNotificationMsg.getOriginatorEdgeIdLSB());
         switch (actionType) {
             case ADDED:
             case UPDATED:
@@ -120,7 +124,7 @@ public class RoleEdgeProcessor extends BaseEdgeProcessor {
                     return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
                 }, dbCallbackExecutorService);
             case DELETED:
-                return processActionForAllEdges(tenantId, type, actionType, entityId);
+                return processActionForAllEdges(tenantId, type, actionType, entityId, originatorEdgeId);
             default:
                 return Futures.immediateFuture(null);
         }

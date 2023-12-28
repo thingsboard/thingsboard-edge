@@ -80,7 +80,7 @@ public class JpaEntityGroupInfoDao extends JpaAbstractDao<EntityGroupInfoEntity,
                         parentEntityId,
                         parentEntityType,
                         groupType,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -91,7 +91,7 @@ public class JpaEntityGroupInfoDao extends JpaAbstractDao<EntityGroupInfoEntity,
                         parentEntityId,
                         parentEntityType,
                         groupType,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -101,7 +101,7 @@ public class JpaEntityGroupInfoDao extends JpaAbstractDao<EntityGroupInfoEntity,
                 .findEntityGroupsByOwnerIdsAndType(
                         ownerIds,
                         groupType,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -111,7 +111,7 @@ public class JpaEntityGroupInfoDao extends JpaAbstractDao<EntityGroupInfoEntity,
                 .findEntityGroupEntityInfosByOwnerIdsAndType(
                         ownerIds,
                         groupType,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -120,7 +120,7 @@ public class JpaEntityGroupInfoDao extends JpaAbstractDao<EntityGroupInfoEntity,
         return DaoUtil.toPageData(entityGroupInfoRepository
                 .findEntityGroupsByIds(
                         entityGroupIds,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -129,7 +129,7 @@ public class JpaEntityGroupInfoDao extends JpaAbstractDao<EntityGroupInfoEntity,
         return DaoUtil.pageToPageData(entityGroupInfoRepository
                 .findEntityGroupEntityInfosByIds(
                         entityGroupIds,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -142,7 +142,7 @@ public class JpaEntityGroupInfoDao extends JpaAbstractDao<EntityGroupInfoEntity,
                         parentEntityType,
                         groupType,
                         entityGroupIds,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -154,7 +154,7 @@ public class JpaEntityGroupInfoDao extends JpaAbstractDao<EntityGroupInfoEntity,
                         parentEntityType,
                         groupType,
                         entityGroupIds,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -165,7 +165,7 @@ public class JpaEntityGroupInfoDao extends JpaAbstractDao<EntityGroupInfoEntity,
                 ownerId.toString(),
                 ownerType.name(),
                 relationType,
-                Objects.toString(pageLink.getTextSearch(), ""),
+                pageLink.getTextSearch(),
                 DaoUtil.toPageable(pageLink)));
     }
 

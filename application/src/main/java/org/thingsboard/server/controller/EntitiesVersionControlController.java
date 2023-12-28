@@ -36,6 +36,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -98,6 +99,8 @@ public class EntitiesVersionControlController extends BaseController {
 
     private final EntitiesVersionControlService versionControlService;
 
+    @Value("${queue.vc.request-timeout:180000}")
+    private int vcRequestTimeout;
 
     @ApiOperation(value = "Save entities version (saveEntitiesVersion)", notes = "" +
             "Creates a new version of entities (or a single entity) by request.\n" +
@@ -551,6 +554,11 @@ public class EntitiesVersionControlController extends BaseController {
                     .map(b -> new BranchInfo(b.getName(), false)).collect(Collectors.toList()));
             return infos;
         }, MoreExecutors.directExecutor()));
+    }
+
+    @Override
+    protected <T> DeferredResult<T> wrapFuture(ListenableFuture<T> future) {
+        return wrapFuture(future, vcRequestTimeout);
     }
 
 }

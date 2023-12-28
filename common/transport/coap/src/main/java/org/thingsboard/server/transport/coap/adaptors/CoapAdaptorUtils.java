@@ -31,9 +31,9 @@
 package org.thingsboard.server.transport.coap.adaptors;
 
 import org.eclipse.californium.core.coap.Request;
-import org.thingsboard.server.common.adaptor.AdaptorException;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeRequestMsg;
+import org.thingsboard.server.common.adaptor.AdaptorException;
+import org.thingsboard.server.gen.transport.TransportProtos;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -42,9 +42,9 @@ import java.util.Set;
 
 public class CoapAdaptorUtils {
 
-    public static GetAttributeRequestMsg toGetAttributeRequestMsg(Request inbound) throws AdaptorException {
+    public static TransportProtos.GetAttributeRequestMsg toGetAttributeRequestMsg(Request inbound) throws AdaptorException {
         List<String> queryElements = inbound.getOptions().getUriQuery();
-        GetAttributeRequestMsg.Builder result = GetAttributeRequestMsg.newBuilder();
+        TransportProtos.GetAttributeRequestMsg.Builder result = TransportProtos.GetAttributeRequestMsg.newBuilder();
         if (queryElements != null && queryElements.size() > 0) {
             Set<String> clientKeys = toKeys(queryElements, "clientKeys");
             Set<String> sharedKeys = toKeys(queryElements, "sharedKeys");

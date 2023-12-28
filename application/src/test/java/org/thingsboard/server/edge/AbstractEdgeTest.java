@@ -30,13 +30,13 @@
  */
 package org.thingsboard.server.edge;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.MessageLite;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -44,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
@@ -55,6 +56,7 @@ import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.SaveOtaPackageInfoRequest;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
@@ -91,10 +93,14 @@ import org.thingsboard.server.common.data.query.FilterPredicateValue;
 import org.thingsboard.server.common.data.query.NumericFilterPredicate;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainType;
+import org.thingsboard.server.common.data.security.model.JwtSettings;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.controller.AbstractControllerTest;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.edge.imitator.EdgeImitator;
@@ -114,6 +120,7 @@ import org.thingsboard.server.gen.edge.v1.TenantProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.TenantUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.gen.edge.v1.WhiteLabelingProto;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 
 import java.util.ArrayList;
@@ -121,7 +128,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -131,6 +137,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "queue.rule-engine.stats.enabled=false",
         "edges.storage.sleep_between_batches=1000"
 })
+@Slf4j
 abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
     protected static final String THERMOSTAT_DEVICE_PROFILE_NAME = "Thermostat";
@@ -157,12 +164,17 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         doPost("/api/whiteLabel/whiteLabelParams", new WhiteLabelingParams(), WhiteLabelingParams.class);
         doPost("/api/customTranslation/customTranslation", new CustomTranslation(), CustomTranslation.class);
 
+        // get jwt settings from yaml config
+        JwtSettings settings = doGet("/api/admin/jwtSettings", JwtSettings.class);
+        // save jwt settings into db
+        doPost("/api/admin/jwtSettings", settings).andExpect(status().isOk());
+
         loginTenantAdmin();
 
         installation();
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.expectMessageAmount(25);
+        edgeImitator.expectMessageAmount(27);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();
@@ -195,9 +207,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     @After
     public void teardownEdgeTest() {
         try {
-            edgeImitator.expectMessageAmount(2);
             loginTenantAdmin();
-            Assert.assertTrue(edgeImitator.waitForMessages());
 
             doDelete("/api/edge/" + edge.getId().toString())
                     .andExpect(status().isOk());
@@ -210,11 +220,6 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
                 createMqttDeviceProfileTransportConfiguration(new JsonTransportPayloadConfiguration(), false));
         extendDeviceProfileData(thermostatDeviceProfile);
         thermostatDeviceProfile = doPost("/api/deviceProfile", thermostatDeviceProfile, DeviceProfile.class);
-
-        try {
-            // make sure to NOT include device profile save message into edge queue
-            TimeUnit.MILLISECONDS.sleep(500);
-        } catch (Exception ignored) {}
 
         edge = doPost("/api/edge", constructEdge("Test Edge", "test"), Edge.class);
     }
@@ -255,50 +260,76 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         validateEdgeConfiguration();
 
         // 1 message from queue fetcher
+        validateMsgsCnt(QueueUpdateMsg.class, 1);
         validateQueues();
 
-        // 2 messages  1 from rule chain fetcher and 1 from rule chain controller
+        // 1 from rule chain fetcher
+        validateMsgsCnt(RuleChainUpdateMsg.class, 1);
         UUID ruleChainUUID = validateRuleChains();
 
         // 1 from request message
+        validateMsgsCnt(RuleChainMetadataUpdateMsg.class, 1);
         validateRuleChainMetadataUpdates(ruleChainUUID);
 
-        // 2 messages - 2 messages from fetcher (general', 'mail')
-        validateAdminSettings();
+        // 5 messages ('general', 'mail', 'connectivity', 'jwt', 'customTranslation')
+        validateMsgsCnt(AdminSettingsUpdateMsg.class, 5);
+        validateAdminSettings(5);
 
         // 3 messages
         // - 1 from default profile fetcher
         // - 2 from device profile fetcher (default and thermostat)
-        validateDeviceProfiles();
+        validateMsgsCnt(DeviceProfileUpdateMsg.class, 3);
+        validateDeviceProfiles(3);
 
         // 2 messages
         // - 1 from default profile fetcher
         // - 1 message from asset profile fetcher
-        validateAssetProfiles();
+        validateMsgsCnt(AssetProfileUpdateMsg.class, 2);
+        validateAssetProfiles(2);
 
         // 1 message from public customer fetcher
+        validateMsgsCnt(CustomerUpdateMsg.class, 1);
         validatePublicCustomer();
 
         // 5 messages
         // - 2 messages from SysAdminRolesEdgeEventFetcher
         // - 2 messages from TenantRolesEdgeEventFetcher
         // - 1 message from public customer role
+        validateMsgsCnt(RoleProto.class, 5);
         validateRoles();
 
-        // 5 messages
+        // 3 messages
         // - 2 messages from fetcher
         // - 1 message from public customer user group
-        // - 2 messages from edge queue - added during edge creation
+        validateMsgsCnt(EntityGroupUpdateMsg.class, 3);
         validateEntityGroups();
 
         // 1 from tenant fetcher
+        validateMsgsCnt(TenantUpdateMsg.class, 1);
         validateTenant();
 
         // 1 from tenant profile fetcher
+        validateMsgsCnt(TenantProfileUpdateMsg.class, 1);
         validateTenantProfile();
 
+        // 2 messages from fetcher: 'login' and 'general'
+        validateMsgsCnt(WhiteLabelingProto.class, 2);
+        validateWhiteLabeling();
+
         // 1 message sync completed
+        validateMsgsCnt(SyncCompletedMsg.class, 1);
         validateSyncCompleted();
+    }
+
+    private <T extends AbstractMessage> void validateMsgsCnt(Class<T> clazz, int expectedMsgCnt) {
+        List<T> downlinkMsgsByType = edgeImitator.findAllMessagesByType(clazz);
+        if (downlinkMsgsByType.size() != expectedMsgCnt) {
+            List<AbstractMessage> downlinkMsgs = edgeImitator.getDownlinkMsgs();
+            for (AbstractMessage downlinkMsg : downlinkMsgs) {
+                log.error("{}\n{}", downlinkMsg.getClass(), downlinkMsg);
+            }
+            Assert.fail("Unexpected message count for " + clazz + "! Expected: " + expectedMsgCnt + ", but found: " + downlinkMsgsByType.size());
+        }
     }
 
     private void validateEdgeConfiguration() throws Exception {
@@ -312,8 +343,9 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertTrue(tenantUpdateMsgOpt.isPresent());
         TenantUpdateMsg tenantUpdateMsg = tenantUpdateMsgOpt.get();
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, tenantUpdateMsg.getMsgType());
-        UUID tenantUUID = new UUID(tenantUpdateMsg.getIdMSB(), tenantUpdateMsg.getIdLSB());
-        Tenant tenant = doGet("/api/tenant/" + tenantUUID, Tenant.class);
+        Tenant tenantMsg = JacksonUtil.fromString(tenantUpdateMsg.getEntity(), Tenant.class, true);
+        Assert.assertNotNull(tenantMsg);
+        Tenant tenant = doGet("/api/tenant/" + tenantMsg.getUuidId(), Tenant.class);
         Assert.assertNotNull(tenant);
         testAutoGeneratedCodeByProtobuf(tenantUpdateMsg);
     }
@@ -323,21 +355,26 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertTrue(tenantProfileUpdateMsgOpt.isPresent());
         TenantProfileUpdateMsg tenantProfileUpdateMsg = tenantProfileUpdateMsgOpt.get();
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, tenantProfileUpdateMsg.getMsgType());
-        UUID tenantProfileUUID = new UUID(tenantProfileUpdateMsg.getIdMSB(), tenantProfileUpdateMsg.getIdLSB());
+        TenantProfile tenantProfile = JacksonUtil.fromString(tenantProfileUpdateMsg.getEntity(), TenantProfile.class, true);
+        Assert.assertNotNull(tenantProfile);
         Tenant tenant = doGet("/api/tenant/" + tenantId.getId(), Tenant.class);
         Assert.assertNotNull(tenant);
-        Assert.assertEquals(tenantProfileUUID, tenant.getTenantProfileId().getId());
+        Assert.assertEquals(tenantProfile.getId(), tenant.getTenantProfileId());
         testAutoGeneratedCodeByProtobuf(tenantProfileUpdateMsg);
     }
 
-    private void validateDeviceProfiles() throws Exception {
+    private void validateDeviceProfiles(int expectedMsgCnt) throws Exception {
         List<DeviceProfileUpdateMsg> deviceProfileUpdateMsgList = edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class);
         // default msg default device profile from fetcher
         // default msg
-        // thermostat msg from fetcher
-        Assert.assertEquals(3, deviceProfileUpdateMsgList.size());
+        // thermostat msg from device profile fetcher
+        Assert.assertEquals(expectedMsgCnt, deviceProfileUpdateMsgList.size());
         Optional<DeviceProfileUpdateMsg> thermostatProfileUpdateMsgOpt =
-                deviceProfileUpdateMsgList.stream().filter(dfum -> THERMOSTAT_DEVICE_PROFILE_NAME.equals(dfum.getName())).findAny();
+                deviceProfileUpdateMsgList.stream().filter(dfum -> {
+                    DeviceProfile deviceProfile = JacksonUtil.fromString(dfum.getEntity(), DeviceProfile.class, true);
+                    Assert.assertNotNull(deviceProfile);
+                    return THERMOSTAT_DEVICE_PROFILE_NAME.equals(deviceProfile.getName());
+                }).findAny();
         Assert.assertTrue(thermostatProfileUpdateMsgOpt.isPresent());
         DeviceProfileUpdateMsg thermostatProfileUpdateMsg = thermostatProfileUpdateMsgOpt.get();
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, thermostatProfileUpdateMsg.getMsgType());
@@ -352,12 +389,10 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     private UUID validateRuleChains() throws Exception {
-        List<RuleChainUpdateMsg> ruleChainUpdateMsgs = edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class);
-        Assert.assertEquals(2, ruleChainUpdateMsgs.size());
-        RuleChainUpdateMsg ruleChainCreateMsg = ruleChainUpdateMsgs.get(0);
-        RuleChainUpdateMsg ruleChainUpdateMsg = ruleChainUpdateMsgs.get(1);
-        validateRuleChain(ruleChainCreateMsg, UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE);
-        validateRuleChain(ruleChainUpdateMsg, UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE);
+        Optional<RuleChainUpdateMsg> ruleChainUpdateMsgOpt = edgeImitator.findMessageByType(RuleChainUpdateMsg.class);
+        Assert.assertTrue(ruleChainUpdateMsgOpt.isPresent());
+        RuleChainUpdateMsg ruleChainUpdateMsg = ruleChainUpdateMsgOpt.get();
+        validateRuleChain(ruleChainUpdateMsg, UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE);
         return new UUID(ruleChainUpdateMsg.getIdMSB(), ruleChainUpdateMsg.getIdLSB());
     }
 
@@ -377,26 +412,42 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertTrue(ruleChainMetadataUpdateOpt.isPresent());
         RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg = ruleChainMetadataUpdateOpt.get();
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, ruleChainMetadataUpdateMsg.getMsgType());
-        UUID ruleChainUUID = new UUID(ruleChainMetadataUpdateMsg.getRuleChainIdMSB(), ruleChainMetadataUpdateMsg.getRuleChainIdLSB());
-        Assert.assertEquals(expectedRuleChainUUID, ruleChainUUID);
+        RuleChainMetaData ruleChainMetaData = JacksonUtil.fromString(ruleChainMetadataUpdateMsg.getEntity(), RuleChainMetaData.class, true);
+        Assert.assertNotNull(ruleChainMetaData);
+        Assert.assertEquals(expectedRuleChainUUID, ruleChainMetaData.getRuleChainId().getId());
     }
 
-    private void validateAdminSettings() throws JsonProcessingException {
+    private void validateAdminSettings(int expectedMsgCnt) {
         List<AdminSettingsUpdateMsg> adminSettingsUpdateMsgs = edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class);
-        Assert.assertEquals(2, adminSettingsUpdateMsgs.size());
+        Assert.assertEquals(expectedMsgCnt, adminSettingsUpdateMsgs.size());
 
         for (AdminSettingsUpdateMsg adminSettingsUpdateMsg : adminSettingsUpdateMsgs) {
-            if (adminSettingsUpdateMsg.getKey().equals("mail")) {
-                validateMailAdminSettings(adminSettingsUpdateMsg);
+            AdminSettings adminSettings = JacksonUtil.fromString(adminSettingsUpdateMsg.getEntity(), AdminSettings.class, true);
+            Assert.assertNotNull(adminSettings);
+            if (adminSettings.getKey().equals("general")) {
+                validateGeneralAdminSettings(adminSettings);
             }
-            if (adminSettingsUpdateMsg.getKey().equals("general")) {
-                validateGeneralAdminSettings(adminSettingsUpdateMsg);
+            if (adminSettings.getKey().equals("mail")) {
+                validateMailAdminSettings(adminSettings);
+            }
+            if (adminSettings.getKey().equals("connectivity")) {
+                validateConnectivityAdminSettings(adminSettings);
+            }
+            if (adminSettings.getKey().equals("jwt")) {
+                validateJwtAdminSettings(adminSettings);
+            }
+            if (adminSettings.getKey().equals("customTranslation")) {
+                validateCustomTranslationAdminSettings(adminSettings);
             }
         }
     }
 
-    private void validateMailAdminSettings(AdminSettingsUpdateMsg adminSettingsUpdateMsg) {
-        JsonNode jsonNode = JacksonUtil.toJsonNode(adminSettingsUpdateMsg.getJsonValue());
+    private void validateGeneralAdminSettings(AdminSettings adminSettings) {
+        Assert.assertNotNull(adminSettings.getJsonValue().get("baseUrl"));
+    }
+
+    private void validateMailAdminSettings(AdminSettings adminSettings) {
+        JsonNode jsonNode = adminSettings.getJsonValue();
         Assert.assertNotNull(jsonNode.get("mailFrom"));
         Assert.assertNotNull(jsonNode.get("smtpProtocol"));
         Assert.assertNotNull(jsonNode.get("smtpHost"));
@@ -404,14 +455,31 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertNotNull(jsonNode.get("timeout"));
     }
 
-    private void validateGeneralAdminSettings(AdminSettingsUpdateMsg adminSettingsUpdateMsg) {
-        JsonNode jsonNode = JacksonUtil.toJsonNode(adminSettingsUpdateMsg.getJsonValue());
-        Assert.assertNotNull(jsonNode.get("baseUrl"));
+    private void validateConnectivityAdminSettings(AdminSettings adminSettings) {
+        JsonNode jsonNode = adminSettings.getJsonValue();
+        Assert.assertNotNull(jsonNode.get("http"));
+        Assert.assertNotNull(jsonNode.get("https"));
+        Assert.assertNotNull(jsonNode.get("mqtt"));
+        Assert.assertNotNull(jsonNode.get("mqtts"));
+        Assert.assertNotNull(jsonNode.get("coap"));
+        Assert.assertNotNull(jsonNode.get("coaps"));
     }
 
-    private void validateAssetProfiles() throws Exception {
+    private void validateJwtAdminSettings(AdminSettings adminSettings) {
+        JsonNode jsonNode = adminSettings.getJsonValue();
+        Assert.assertNotNull(jsonNode.get("tokenExpirationTime"));
+        Assert.assertNotNull(jsonNode.get("refreshTokenExpTime"));
+        Assert.assertNotNull(jsonNode.get("tokenIssuer"));
+        Assert.assertNotNull(jsonNode.get("tokenSigningKey"));
+    }
+
+    private void validateCustomTranslationAdminSettings(AdminSettings adminSettings) {
+        Assert.assertNotNull(adminSettings.getJsonValue().get("value"));
+    }
+
+    private void validateAssetProfiles(int expectedMsgCnt) throws Exception {
         List<AssetProfileUpdateMsg> assetProfileUpdateMsgs = edgeImitator.findAllMessagesByType(AssetProfileUpdateMsg.class);
-        Assert.assertEquals(2, assetProfileUpdateMsgs.size());
+        Assert.assertEquals(expectedMsgCnt, assetProfileUpdateMsgs.size());
         AssetProfileUpdateMsg assetProfileUpdateMsg = assetProfileUpdateMsgs.get(0);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, assetProfileUpdateMsg.getMsgType());
         UUID assetProfileUUID = new UUID(assetProfileUpdateMsg.getIdMSB(), assetProfileUpdateMsg.getIdLSB());
@@ -430,16 +498,16 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         UUID queueUUID = new UUID(queueUpdateMsg.getIdMSB(), queueUpdateMsg.getIdLSB());
         Queue queue = doGet("/api/queues/" + queueUUID, Queue.class);
         Assert.assertNotNull(queue);
-        Assert.assertEquals(DataConstants.MAIN_QUEUE_NAME, queueUpdateMsg.getName());
-        Assert.assertEquals(DataConstants.MAIN_QUEUE_TOPIC, queueUpdateMsg.getTopic());
-        Assert.assertEquals(10, queueUpdateMsg.getPartitions());
-        Assert.assertEquals(25, queueUpdateMsg.getPollInterval());
+        Assert.assertEquals(DataConstants.MAIN_QUEUE_NAME, queue.getName());
+        Assert.assertEquals(DataConstants.MAIN_QUEUE_TOPIC, queue.getTopic());
+        Assert.assertEquals(10, queue.getPartitions());
+        Assert.assertEquals(25, queue.getPollInterval());
         testAutoGeneratedCodeByProtobuf(queueUpdateMsg);
     }
 
     private void validateEntityGroups() {
         List<EntityGroupUpdateMsg> entityGroupUpdateMsgList = edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class);
-        Assert.assertEquals(5, entityGroupUpdateMsgList.size());
+        Assert.assertEquals(3, entityGroupUpdateMsgList.size());
     }
 
     private void validateRoles() {
@@ -456,6 +524,25 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Customer customer = doGet("/api/customer/" + customerUUID, Customer.class);
         Assert.assertNotNull(customer);
         Assert.assertTrue(customer.isPublic());
+    }
+
+    private void validateWhiteLabeling() {
+        List<WhiteLabelingProto> whiteLabelingProto = edgeImitator.findAllMessagesByType(WhiteLabelingProto.class);
+        Assert.assertEquals(2, whiteLabelingProto.size());
+        Optional<WhiteLabelingProto> loginWhiteLabeling =
+                whiteLabelingProto.stream().filter(login -> {
+                    WhiteLabeling whiteLabeling = JacksonUtil.fromString(login.getEntity(), WhiteLabeling.class, true);
+                    Assert.assertNotNull(whiteLabeling);
+                    return WhiteLabelingType.LOGIN.equals(whiteLabeling.getType());
+                }).findAny();
+        Assert.assertTrue(loginWhiteLabeling.isPresent());
+        Optional<WhiteLabelingProto> generalWhiteLabeling =
+                whiteLabelingProto.stream().filter(general -> {
+                    WhiteLabeling whiteLabeling = JacksonUtil.fromString(general.getEntity(), WhiteLabeling.class, true);
+                    Assert.assertNotNull(whiteLabeling);
+                    return WhiteLabelingType.LOGIN.equals(whiteLabeling.getType());
+                }).findAny();
+        Assert.assertTrue(generalWhiteLabeling.isPresent());
     }
 
     private void validateSyncCompleted() {
@@ -579,11 +666,10 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     protected void verifyEntityGroupUpdateMsg(AbstractMessage latestMessage, EntityGroup entityGroup) {
         Assert.assertTrue(latestMessage instanceof EntityGroupUpdateMsg);
         EntityGroupUpdateMsg entityGroupUpdateMsg = (EntityGroupUpdateMsg) latestMessage;
+        EntityGroup entityGroupMsg = JacksonUtil.fromString(entityGroupUpdateMsg.getEntity(), EntityGroup.class, true);
+        Assert.assertNotNull(entityGroupMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, entityGroupUpdateMsg.getMsgType());
-        Assert.assertEquals(entityGroupUpdateMsg.getIdMSB(), entityGroup.getUuidId().getMostSignificantBits());
-        Assert.assertEquals(entityGroupUpdateMsg.getIdLSB(), entityGroup.getUuidId().getLeastSignificantBits());
-        Assert.assertEquals(entityGroupUpdateMsg.getName(), entityGroup.getName());
-        Assert.assertEquals(entityGroupUpdateMsg.getType(), entityGroup.getType().name());
+        Assert.assertEquals(entityGroup, entityGroupMsg);
     }
 
     protected EntityView saveEntityView(String name, DeviceId deviceId, EntityGroupId entityGroupId) {
@@ -612,10 +698,12 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Optional<CustomerUpdateMsg> customerUpdateMsgs = edgeImitator.findMessageByType(CustomerUpdateMsg.class);
         Assert.assertTrue(customerUpdateMsgs.isPresent());
         CustomerUpdateMsg customerAUpdateMsg = customerUpdateMsgs.get();
+        Customer customerMsg = JacksonUtil.fromString(customerAUpdateMsg.getEntity(), Customer.class, true);
+        Assert.assertNotNull(customerMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, customerAUpdateMsg.getMsgType());
         Assert.assertEquals(customer.getUuidId().getMostSignificantBits(), customerAUpdateMsg.getIdMSB());
         Assert.assertEquals(customer.getUuidId().getLeastSignificantBits(), customerAUpdateMsg.getIdLSB());
-        Assert.assertEquals(customer.getTitle(), customerAUpdateMsg.getTitle());
+        Assert.assertEquals(customer.getTitle(), customerMsg.getTitle());
 
         List<RoleProto> roleProtos = edgeImitator.findAllMessagesByType(RoleProto.class);
         Assert.assertEquals(2, roleProtos.size());
@@ -673,10 +761,12 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(previousCustomer.getUuidId().getLeastSignificantBits(), previousCustomerDeleteMsg.getIdLSB());
 
         CustomerUpdateMsg newCustomerUpdateMsg =  customerMsgs.get(1);
+        Customer customerMsg = JacksonUtil.fromString(newCustomerUpdateMsg.getEntity(), Customer.class, true);
+        Assert.assertNotNull(customerMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, newCustomerUpdateMsg.getMsgType());
         Assert.assertEquals(newCustomer.getUuidId().getMostSignificantBits(), newCustomerUpdateMsg.getIdMSB());
         Assert.assertEquals(newCustomer.getUuidId().getLeastSignificantBits(), newCustomerUpdateMsg.getIdLSB());
-        Assert.assertEquals(newCustomer.getTitle(), newCustomerUpdateMsg.getTitle());
+        Assert.assertEquals(newCustomer.getTitle(), customerMsg.getTitle());
 
         List<RoleProto> roleProtos = edgeImitator.findAllMessagesByType(RoleProto.class);
         Assert.assertEquals(2, roleProtos.size());
@@ -710,19 +800,22 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         List<CustomerUpdateMsg> customerUpdateMsgs = edgeImitator.findAllMessagesByType(CustomerUpdateMsg.class);
         Assert.assertEquals(2, customerUpdateMsgs.size());
         CustomerUpdateMsg customerAUpdateMsg = customerUpdateMsgs.get(0);
+        Customer customerMsg = JacksonUtil.fromString(customerAUpdateMsg.getEntity(), Customer.class, true);
+        Assert.assertNotNull(customerMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, customerAUpdateMsg.getMsgType());
         Assert.assertEquals(parentCustomer.getUuidId().getMostSignificantBits(), customerAUpdateMsg.getIdMSB());
         Assert.assertEquals(parentCustomer.getUuidId().getLeastSignificantBits(), customerAUpdateMsg.getIdLSB());
-        Assert.assertEquals(parentCustomer.getTitle(), customerAUpdateMsg.getTitle());
+        Assert.assertEquals(parentCustomer.getTitle(), customerMsg.getTitle());
         testAutoGeneratedCodeByProtobuf(customerAUpdateMsg);
         CustomerUpdateMsg subCustomerAUpdateMsg = customerUpdateMsgs.get(1);
+        customerMsg = JacksonUtil.fromString(subCustomerAUpdateMsg.getEntity(), Customer.class, true);
+        Assert.assertNotNull(customerMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, subCustomerAUpdateMsg.getMsgType());
         Assert.assertEquals(customer.getUuidId().getMostSignificantBits(), subCustomerAUpdateMsg.getIdMSB());
         Assert.assertEquals(customer.getUuidId().getLeastSignificantBits(), subCustomerAUpdateMsg.getIdLSB());
-        Assert.assertEquals(customer.getTitle(), subCustomerAUpdateMsg.getTitle());
-        Assert.assertEquals(EntityType.CUSTOMER.name(), subCustomerAUpdateMsg.getOwnerEntityType());
-        Assert.assertEquals(parentCustomer.getUuidId().getMostSignificantBits(), subCustomerAUpdateMsg.getOwnerIdMSB());
-        Assert.assertEquals(parentCustomer.getUuidId().getLeastSignificantBits(), subCustomerAUpdateMsg.getOwnerIdLSB());
+        Assert.assertEquals(customer.getTitle(), customerMsg.getTitle());
+        Assert.assertEquals(EntityType.CUSTOMER, customerMsg.getOwnerId().getEntityType());
+        Assert.assertEquals(parentCustomer.getId(), customerMsg.getOwnerId());
 
         List<RoleProto> roleProtos = edgeImitator.findAllMessagesByType(RoleProto.class);
         Assert.assertEquals(4, roleProtos.size());
@@ -781,11 +874,10 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof EntityGroupUpdateMsg);
         EntityGroupUpdateMsg entityGroupUpdateMsg = (EntityGroupUpdateMsg) latestMessage;
+        EntityGroup entityGroupMsg = JacksonUtil.fromString(entityGroupUpdateMsg.getEntity(), EntityGroup.class, true);
+        Assert.assertNotNull(entityGroupMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, entityGroupUpdateMsg.getMsgType());
-        Assert.assertEquals(savedEntityGroup.getUuidId().getMostSignificantBits(), entityGroupUpdateMsg.getIdMSB());
-        Assert.assertEquals(savedEntityGroup.getUuidId().getLeastSignificantBits(), entityGroupUpdateMsg.getIdLSB());
-        Assert.assertEquals(savedEntityGroup.getName(), entityGroupUpdateMsg.getName());
-        Assert.assertEquals(savedEntityGroup.getType().name(), entityGroupUpdateMsg.getType());
+        Assert.assertEquals(savedEntityGroup, entityGroupMsg);
         testAutoGeneratedCodeByProtobuf(entityGroupUpdateMsg);
         return savedEntityGroup;
     }
@@ -856,7 +948,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     protected ObjectNode getCustomTranslationHomeObject(String homeValue) {
-        ObjectNode objectNode = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode objectNode = JacksonUtil.newObjectNode();
         return objectNode.put("home", homeValue);
     }
 }

@@ -48,6 +48,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.service.executors.PubSubRuleNodeExecutorProvider;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.NotificationCenter;
 import org.thingsboard.rule.engine.api.ReportService;
@@ -93,6 +94,7 @@ import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
+import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
@@ -380,6 +382,11 @@ public class ActorSystemContext {
     @Getter
     private NotificationExecutorService notificationExecutor;
 
+    @Lazy
+    @Autowired
+    @Getter
+    private PubSubRuleNodeExecutorProvider pubSubRuleNodeExecutorProvider;
+
     @Autowired
     @Getter
     private SharedEventLoopGroupService sharedEventLoopGroupService;
@@ -522,6 +529,11 @@ public class ActorSystemContext {
     @Autowired(required = false)
     @Getter
     private WidgetTypeService widgetTypeService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private EntityService entityService;
 
     @Lazy
     @Autowired(required = false)

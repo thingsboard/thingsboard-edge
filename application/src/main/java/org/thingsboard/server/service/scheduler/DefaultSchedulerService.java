@@ -35,9 +35,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.OtaPackageInfo;
@@ -93,6 +95,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.emptyList;
+import static org.thingsboard.server.common.data.DataConstants.TIMEOUT;
+import static org.thingsboard.server.common.data.DataConstants.EXPIRATION_TIME;
 import static org.thingsboard.server.common.data.DataConstants.UPDATE_FIRMWARE;
 import static org.thingsboard.server.common.data.DataConstants.UPDATE_SOFTWARE;
 import static org.thingsboard.server.dao.scheduler.BaseSchedulerEventService.getOriginatorId;
@@ -105,7 +109,8 @@ import static org.thingsboard.server.dao.scheduler.BaseSchedulerEventService.get
 @Slf4j
 @RequiredArgsConstructor
 public class DefaultSchedulerService extends AbstractPartitionBasedService<TenantId> implements SchedulerService {
-
+    @Value("${server.rest.server_side_rpc.min_timeout:5000}")
+    protected long minTimeout;
     private final TenantService tenantService;
     private final TbClusterService clusterService;
     private final PartitionService partitionService;
@@ -374,6 +379,9 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
 
         if ("sendRpcRequest".equals(event.getType())) {
             metaData.put("originServiceId", serviceId);
+            if (metaData.get(TIMEOUT) != null) {
+                metaData.put(EXPIRATION_TIME, String.valueOf(System.currentTimeMillis() + Math.max(minTimeout, Long.parseLong(metaData.get(TIMEOUT)))));
+            }
         }
 
         return new TbMsgMetaData(metaData);

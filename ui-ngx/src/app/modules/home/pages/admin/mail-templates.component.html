@@ -63,13 +63,13 @@
           <mat-form-field class="mat-block">
             <mat-label translate>admin.mail-subject</mat-label>
             <input matInput [disabled]="(isLoading$ | async) || readonly"
-                   [(ngModel)]="adminSettings.jsonValue[mailTemplate].subject"
+                   [(ngModel)]="mailTemplatesSettings[mailTemplate].subject"
                    (ngModelChange)="isDirty = true"
                    [ngModelOptions]="{standalone: true}"/>
           </mat-form-field>
           <div class="tb-container tb-mail-body">
             <mat-label class="tb-title" translate>admin.mail-body</mat-label>
-            <editor [init]="tinyMceOptions" [(ngModel)]="adminSettings.jsonValue[mailTemplate].body"
+            <editor [init]="tinyMceOptions" [(ngModel)]="mailTemplatesSettings[mailTemplate].body"
                               (ngModelChange)="isDirty = true"
                               [ngModelOptions]="{standalone: true}"></editor>
           </div>

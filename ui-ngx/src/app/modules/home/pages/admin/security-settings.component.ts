@@ -34,7 +34,14 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
 import { Router } from '@angular/router';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup, ValidationErrors,
+  ValidatorFn,
+  Validators
+} from '@angular/forms';
 import { JwtSettings, SecuritySettings } from '@shared/models/settings.models';
 import { AdminService } from '@core/http/admin.service';
 import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
@@ -43,7 +50,10 @@ import { randomAlphanumeric } from '@core/utils';
 import { AuthService } from '@core/auth/auth.service';
 import { DialogService } from '@core/services/dialog.service';
 import { TranslateService } from '@ngx-translate/core';
-import { Observable, of } from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
+import { MatCheckboxChange } from '@angular/material/checkbox';
+import { AlarmInfo } from '@shared/models/alarm.models';
+import { QueueProcessingStrategyTypes, QueueProcessingStrategyTypesMap } from '@shared/models/queue.models';
 
 @Component({
   selector: 'tb-security-settings',
@@ -82,14 +92,16 @@ export class SecuritySettingsComponent extends PageComponent implements HasConfi
       userLockoutNotificationEmail: ['', []],
       passwordPolicy: this.fb.group(
         {
-          minimumLength: [null, [Validators.required, Validators.min(5), Validators.max(50)]],
+          minimumLength: [null, [Validators.required, Validators.min(6), Validators.max(50)]],
+          maximumLength: [null, [Validators.min(6), this.maxPasswordValidation()]],
           minimumUppercaseLetters: [null, Validators.min(0)],
           minimumLowercaseLetters: [null, Validators.min(0)],
           minimumDigits: [null, Validators.min(0)],
           minimumSpecialCharacters: [null, Validators.min(0)],
           passwordExpirationPeriodDays: [null, Validators.min(0)],
           passwordReuseFrequencyDays: [null, Validators.min(0)],
-          allowWhitespaces: [true]
+          allowWhitespaces: [true],
+          forceUserToResetPasswordIfNotValid: [false]
         }
       )
     });
@@ -126,6 +138,18 @@ export class SecuritySettingsComponent extends PageComponent implements HasConfi
       }
       return of(null);
     })).subscribe(() => {});
+  }
+
+  private maxPasswordValidation(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value: string = control.value;
+      if (value) {
+        if (value < control.parent.value?.minimumLength) {
+          return {lessMin: true};
+        }
+      }
+      return null;
+    };
   }
 
   discardSetting() {
@@ -204,5 +228,4 @@ export class SecuritySettingsComponent extends PageComponent implements HasConfi
   confirmForm(): UntypedFormGroup {
     return this.securitySettingsFormGroup.dirty ? this.securitySettingsFormGroup : this.jwtSecuritySettingsFormGroup;
   }
-
 }

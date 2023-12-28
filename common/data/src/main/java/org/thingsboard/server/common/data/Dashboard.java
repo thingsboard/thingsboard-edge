@@ -56,7 +56,7 @@ import java.util.stream.Collectors;
 
 @Schema
 @EqualsAndHashCode(callSuper = true)
-public class Dashboard extends BaseData<DashboardId> implements GroupEntity<DashboardId>, HasName, HasTenantId, HasTitle, ExportableEntity<DashboardId> {
+public class Dashboard extends BaseData<DashboardId> implements GroupEntity<DashboardId>, HasName, HasTenantId, HasTitle, ExportableEntity<DashboardId>, HasImage {
 
     private static final long serialVersionUID = 872682138346187503L;
 
@@ -67,7 +67,6 @@ public class Dashboard extends BaseData<DashboardId> implements GroupEntity<Dash
     @NoXss
     @Length(fieldName = "title")
     private String title;
-    @Length(fieldName = "image", max = 1000000)
     private String image;
     @Valid
     private Set<ShortCustomerInfo> assignedCustomers;

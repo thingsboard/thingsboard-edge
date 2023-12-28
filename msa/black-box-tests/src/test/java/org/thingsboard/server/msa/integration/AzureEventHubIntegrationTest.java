@@ -42,9 +42,10 @@ import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
+
+import static org.thingsboard.server.common.data.integration.IntegrationType.AZURE_EVENT_HUB;
 
 @Slf4j
 public class AzureEventHubIntegrationTest extends AbstractIntegrationTest {
@@ -87,12 +88,12 @@ public class AzureEventHubIntegrationTest extends AbstractIntegrationTest {
             throw new SkipException("AzureventHubIntegrationTest is skipped");
         }
     }
+
     @Test
     public void telemetryUploadWithLocalIntegration() throws Exception {
         JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder",
                 CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
-        integration = createIntegration(
-                IntegrationType.AZURE_EVENT_HUB, CONFIG_INTEGRATION, configConverter, ROUTING_KEY, SECRET_KEY, false);
+        integration = createIntegration(AZURE_EVENT_HUB, CONFIG_INTEGRATION, configConverter, ROUTING_KEY, SECRET_KEY, false);
 
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
 

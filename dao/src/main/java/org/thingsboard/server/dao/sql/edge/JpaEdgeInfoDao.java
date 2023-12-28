@@ -69,7 +69,7 @@ public class JpaEdgeInfoDao extends JpaAbstractDao<EdgeInfoEntity, EdgeInfo> imp
         return DaoUtil.toPageData(EdgeInfoRepository
                 .findByTenantId(
                         tenantId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -79,7 +79,7 @@ public class JpaEdgeInfoDao extends JpaAbstractDao<EdgeInfoEntity, EdgeInfo> imp
                 .findByTenantIdAndType(
                         tenantId,
                         type,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -88,7 +88,7 @@ public class JpaEdgeInfoDao extends JpaAbstractDao<EdgeInfoEntity, EdgeInfo> imp
         return DaoUtil.toPageData(EdgeInfoRepository
                 .findTenantEdgesByTenantId(
                         tenantId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -98,7 +98,7 @@ public class JpaEdgeInfoDao extends JpaAbstractDao<EdgeInfoEntity, EdgeInfo> imp
                 .findTenantEdgesByTenantIdAndType(
                         tenantId,
                         type,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -108,7 +108,7 @@ public class JpaEdgeInfoDao extends JpaAbstractDao<EdgeInfoEntity, EdgeInfo> imp
                 .findByTenantIdAndCustomerId(
                         tenantId,
                         customerId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -119,7 +119,7 @@ public class JpaEdgeInfoDao extends JpaAbstractDao<EdgeInfoEntity, EdgeInfo> imp
                         tenantId,
                         customerId,
                         type,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -129,7 +129,7 @@ public class JpaEdgeInfoDao extends JpaAbstractDao<EdgeInfoEntity, EdgeInfo> imp
                 .findByTenantIdAndCustomerIdIncludingSubCustomers(
                         tenantId,
                         customerId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -140,7 +140,7 @@ public class JpaEdgeInfoDao extends JpaAbstractDao<EdgeInfoEntity, EdgeInfo> imp
                         tenantId,
                         customerId,
                         type,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 }

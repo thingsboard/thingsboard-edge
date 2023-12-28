@@ -81,9 +81,9 @@ import org.thingsboard.server.gen.transport.TransportProtos.IntegrationValidatio
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.NotificationsTopicService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+import org.thingsboard.server.queue.discovery.TopicService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
@@ -124,7 +124,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     private final ConcurrentMap<String, IntegrationState> integrationsByRoutingKeyMap = new ConcurrentHashMap<>();
     private final TbServiceInfoProvider serviceInfoProvider;
     private final PartitionService partitionService;
-    private final NotificationsTopicService notificationsTopicService;
+    private final TopicService topicService;
     private final IntegrationContextProvider integrationContextProvider;
     private final IntegrationConfigurationService configurationService;
     private final DataConverterService dataConverterService;
@@ -262,7 +262,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             log.trace("[{}][{}] Integration validation failed: {}", validationRequestMsg.getType(), requestId, e);
             response.setError(ByteString.copyFrom(encodingService.encode(e)));
         }
-        TopicPartitionInfo tpi = notificationsTopicService.getNotificationsTopic(ServiceType.TB_CORE, validationRequestMsg.getServiceId());
+        TopicPartitionInfo tpi = topicService.getNotificationsTopic(ServiceType.TB_CORE, validationRequestMsg.getServiceId());
         TransportProtos.ToCoreNotificationMsg msg = TransportProtos.ToCoreNotificationMsg.newBuilder().setIntegrationValidationResponseMsg(response).build();
         producerProvider.getTbCoreNotificationsMsgProducer().send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), msg), new TbQueueCallback() {
             @Override

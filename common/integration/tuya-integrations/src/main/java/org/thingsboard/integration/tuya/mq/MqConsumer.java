@@ -39,6 +39,8 @@ import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.RegexSubscriptionMode;
 import org.apache.pulsar.client.api.SubscriptionType;
 
+import java.util.concurrent.TimeUnit;
+
 @Builder
 @Slf4j
 public class MqConsumer {
@@ -63,6 +65,8 @@ public class MqConsumer {
                 .serviceUrl(serviceUrl)
                 .allowTlsInsecureConnection(true)
                 .authentication(new MqAuthentication(accessId, accessKey))
+                .startingBackoffInterval(60, TimeUnit.SECONDS)
+                .maxBackoffInterval(10, TimeUnit.MINUTES)
                 .build();
     }
 

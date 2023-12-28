@@ -73,6 +73,7 @@ import org.thingsboard.server.dao.service.DaoSqlTest;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -214,7 +215,7 @@ public class AlarmControllerTest extends AbstractControllerTest {
         Assert.assertEquals(AlarmSeverity.MAJOR, updatedAlarm.getSeverity());
 
         AlarmInfo foundAlarm = doGet("/api/alarm/info/" + updatedAlarm.getId(), AlarmInfo.class);
-        testNotifyEntityEntityGroupNullAllOneTime(foundAlarm, updatedAlarm.getId(), updatedAlarm.getOriginator(),
+        testNotifyEntityOneTimeMsgToEdgeServiceNever(foundAlarm, updatedAlarm.getId(), updatedAlarm.getOriginator(),
                 tenantId, customerId, customerAdminUserId, CUSTOMER_ADMIN_EMAIL, ActionType.UPDATED);
 
     }
@@ -240,7 +241,7 @@ public class AlarmControllerTest extends AbstractControllerTest {
         Assert.assertEquals(AlarmSeverity.MAJOR, updatedAlarm.getSeverity());
 
         AlarmInfo foundAlarm = doGet("/api/alarm/info/" + updatedAlarm.getId(), AlarmInfo.class);
-        testNotifyEntityEntityGroupNullAllOneTime(foundAlarm, foundAlarm.getId(), foundAlarm.getOriginator(),
+        testNotifyEntityOneTimeMsgToEdgeServiceNever(foundAlarm, foundAlarm.getId(), foundAlarm.getOriginator(),
                 tenantId, customerId, tenantAdminUserId, TENANT_ADMIN_EMAIL, ActionType.UPDATED);
 
         alarm = updatedAlarm;
@@ -1136,10 +1137,14 @@ public class AlarmControllerTest extends AbstractControllerTest {
     }
 
     private AlarmInfo createAlarm(String type) throws Exception {
+        return createAlarm(type, customerDevice.getId(), customerId);
+    }
+
+    private AlarmInfo createAlarm(String type, EntityId originatorId, CustomerId customerId) throws Exception {
         Alarm alarm = Alarm.builder()
                 .tenantId(tenantId)
                 .customerId(customerId)
-                .originator(customerDevice.getId())
+                .originator(originatorId)
                 .severity(AlarmSeverity.CRITICAL)
                 .type(type)
                 .build();
@@ -1368,6 +1373,62 @@ public class AlarmControllerTest extends AbstractControllerTest {
         for (int i = 13; i < alarms.size(); i++) {
             doDelete("/api/alarm/" + alarms.get(i).getId()).andExpect(status().isOk());
         }
+
+        foundTypes = doGetTyped("/api/alarm/types?pageSize=1024&page=0", new TypeReference<PageData<EntitySubtype>>() {
+        })
+                .getData()
+                .stream()
+                .map(EntitySubtype::getType)
+                .sorted()
+                .collect(Collectors.toList());
+
+        Assert.assertTrue(foundTypes.isEmpty());
+    }
+
+    @Test
+    public void testDeleteAlarmTypesAfterDeletingAlarmOriginator() throws Exception {
+        loginTenantAdmin();
+
+        List<Device> devices = new ArrayList<>();
+        List<String> types = new ArrayList<>();
+
+        for (int i = 0; i < 13; i++) {
+            Device device = new Device();
+            device.setName("Test_device_" + i);
+            devices.add(device = doPost("/api/device", device, Device.class));
+            types.add(createAlarm(TEST_ALARM_TYPE + i, device.getId(), null).getType());
+        }
+
+        devices.sort(Comparator.comparing(Device::getName));
+        Collections.sort(types);
+
+        List<String> foundTypes = doGetTyped("/api/alarm/types?pageSize=1024&page=0", new TypeReference<PageData<EntitySubtype>>() {
+        })
+                .getData()
+                .stream()
+                .map(EntitySubtype::getType)
+                .sorted()
+                .collect(Collectors.toList());
+
+        Assert.assertEquals(13, foundTypes.size());
+        Assert.assertEquals(types, foundTypes);
+
+        for (int i = 0; i < 12; i++) {
+            doDelete("/api/device/" + devices.remove(0).getId()).andExpect(status().isOk());
+            types.remove(0);
+        }
+
+        foundTypes = doGetTyped("/api/alarm/types?pageSize=1024&page=0", new TypeReference<PageData<EntitySubtype>>() {
+        })
+                .getData()
+                .stream()
+                .map(EntitySubtype::getType)
+                .collect(Collectors.toList());
+
+        Assert.assertEquals(types.size(), foundTypes.size());
+        Assert.assertEquals(types, foundTypes);
+
+        doDelete("/api/device/" + devices.get(0).getId()).andExpect(status().isOk());
 
         foundTypes = doGetTyped("/api/alarm/types?pageSize=1024&page=0", new TypeReference<PageData<EntitySubtype>>() {
         })

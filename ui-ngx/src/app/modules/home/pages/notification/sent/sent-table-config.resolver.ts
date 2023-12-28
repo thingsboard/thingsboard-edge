@@ -128,7 +128,7 @@ export class SentTableConfigResolver implements Resolve<EntityTableConfig<Notifi
   private configureCellActions(): Array<CellActionDescriptor<NotificationRequestInfo>> {
     return [{
       name: this.translate.instant('notification.notify-again'),
-      mdiIcon: 'mdi:repeat-variant',
+      icon: 'mdi:repeat-variant',
       isEnabled: (request) => request.status !== NotificationRequestStatus.SCHEDULED &&
         this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE),
       onAction: ($event, entity) => this.createRequest($event, entity)

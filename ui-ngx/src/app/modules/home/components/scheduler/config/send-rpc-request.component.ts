@@ -30,18 +30,28 @@
 ///
 
 import { AfterViewInit, Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
-import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import {
+  ControlValueAccessor,
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  NG_VALUE_ACCESSOR,
+  Validators
+} from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { SchedulerEventConfiguration } from '@shared/models/scheduler-event.models';
-import { MessageType } from '@shared/models/rule-node.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { jsonRequired } from '@shared/components/json-object-edit.component';
+import { takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { safeMerge, sendRPCRequestDefaults } from '@home/components/scheduler/config/send-rpc-request.models';
+import { isEqual } from '@core/utils';
 
 @Component({
   selector: 'tb-send-rpc-request-event-config',
   templateUrl: './send-rpc-request.component.html',
-  styleUrls: [],
+  styleUrls: ['./send-rpc-request.component.scss'],
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => SendRpcRequestComponent),
@@ -56,13 +66,16 @@ export class SendRpcRequestComponent implements ControlValueAccessor, OnInit, Af
 
   entityType = EntityType;
 
+  private destroy$ = new Subject<void>();
+
   @Input()
   disabled: boolean;
 
   private propagateChange = (v: any) => { };
 
   constructor(private store: Store<AppState>,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private translate: TranslateService) {
     this.sendRpcRequestFormGroup = this.fb.group({
       originatorId: [null, [Validators.required]],
       msgBody: this.fb.group(
@@ -70,9 +83,19 @@ export class SendRpcRequestComponent implements ControlValueAccessor, OnInit, Af
           method: [null, [Validators.required, Validators.pattern(/^\S+$/)]],
           params: [null, [jsonRequired]]
         }
+      ),
+      metadata: this.fb.group(
+        {
+          oneway: [null, []],
+          timeout: [null, [Validators.min(0)]],
+          persistent: [null, []]
+        }
       )
     });
-    this.sendRpcRequestFormGroup.valueChanges.subscribe(() => {
+
+    this.sendRpcRequestFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
       this.updateModel();
     });
   }
@@ -91,6 +114,8 @@ export class SendRpcRequestComponent implements ControlValueAccessor, OnInit, Af
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   setDisabledState(isDisabled: boolean): void {
@@ -103,34 +128,13 @@ export class SendRpcRequestComponent implements ControlValueAccessor, OnInit, Af
   }
 
   writeValue(value: SchedulerEventConfiguration | null): void {
-    this.modelValue = value;
-    this.sendRpcRequestFormGroup.reset(undefined,{emitEvent: false});
-    let doUpdate = false;
-    if (this.modelValue) {
-      if (!this.modelValue.msgType) {
-        this.modelValue.msgType = MessageType.RPC_CALL_FROM_SERVER_TO_DEVICE
-        doUpdate = true;
-      }
-      if (!this.modelValue.originatorId) {
-        this.modelValue.originatorId = {
-          entityType: EntityType.DEVICE,
-          id: null
-        };
-        doUpdate = true;
-      }
-      if (!this.modelValue.metadata || !this.modelValue.metadata.oneway) {
-        const metadata = this.modelValue.metadata || {};
-        metadata.oneway = true;
-        this.modelValue.metadata = metadata;
-        doUpdate = true;
-      }
-      this.sendRpcRequestFormGroup.reset(this.modelValue, { emitEvent: false });
-    }
-    if (doUpdate) {
-      setTimeout(() => {
+    this.modelValue = safeMerge(sendRPCRequestDefaults, value);
+    this.sendRpcRequestFormGroup.reset(this.modelValue, { emitEvent: false });
+    setTimeout(() => {
+      if (isEqual(this.modelValue, sendRPCRequestDefaults)) {
         this.updateModel();
-      }, 0);
-    }
+      }
+    }, 0);
   }
 
   private updateModel() {
@@ -143,4 +147,14 @@ export class SendRpcRequestComponent implements ControlValueAccessor, OnInit, Af
     }
   }
 
+  public getMethodValidationText(): string {
+    const methodControl = this.sendRpcRequestFormGroup.get('msgBody.method');
+    if (methodControl.hasError('required')) {
+      return this.translate.instant('scheduler.rpc-method-required');
+    } else if (methodControl.hasError('pattern')) {
+      return this.translate.instant('scheduler.rpc-method-white-space');
+    }
+
+    return '';
+  }
 }

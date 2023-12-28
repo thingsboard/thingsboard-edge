@@ -68,6 +68,8 @@ public abstract class AbstractPulsarIntegration<T extends PulsarIntegrationMsg> 
                 .authentication(pulsarConfiguration.getCredentials().getAuthentication())
                 .serviceUrl(pulsarConfiguration.getServiceUrl())
                 .allowTlsInsecureConnection(true)
+                .startingBackoffInterval(60, TimeUnit.SECONDS)
+                .maxBackoffInterval(10, TimeUnit.MINUTES)
                 .build();
 
         BatchReceivePolicy batchReceivePolicy = BatchReceivePolicy.builder()

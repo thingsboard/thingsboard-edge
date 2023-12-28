@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.device;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileInfo;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -45,7 +46,11 @@ public interface DeviceProfileService extends EntityDaoService {
 
     DeviceProfile findDeviceProfileById(TenantId tenantId, DeviceProfileId deviceProfileId);
 
+    DeviceProfile findDeviceProfileById(TenantId tenantId, DeviceProfileId deviceProfileId, boolean putInCache);
+
     DeviceProfile findDeviceProfileByName(TenantId tenantId, String profileName);
+
+    DeviceProfile findDeviceProfileByName(TenantId tenantId, String profileName, boolean putInCache);
 
     DeviceProfileInfo findDeviceProfileInfoById(TenantId tenantId, DeviceProfileId deviceProfileId);
 
@@ -74,5 +79,7 @@ public interface DeviceProfileService extends EntityDaoService {
     boolean setDefaultDeviceProfile(TenantId tenantId, DeviceProfileId deviceProfileId);
 
     void deleteDeviceProfilesByTenantId(TenantId tenantId);
+
+    List<EntityInfo> findDeviceProfileNamesByTenantId(TenantId tenantId, boolean activeOnly);
 
 }

@@ -29,8 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Injectable, NgModule } from '@angular/core';
-import { ActivatedRouteSnapshot, Resolve, RouterModule, Routes } from '@angular/router';
+import { inject, Injectable, NgModule } from '@angular/core';
+import { ActivatedRouteSnapshot, Resolve, ResolveFn, RouterModule, RouterStateSnapshot, Routes } from '@angular/router';
 import { MailServerComponent } from '@modules/home/pages/admin/mail-server.component';
 import { SmsProviderComponent } from '@home/pages/admin/sms-provider.component';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
@@ -39,13 +39,7 @@ import { GeneralSettingsComponent } from '@home/pages/admin/general-settings.com
 import { SecuritySettingsComponent } from '@modules/home/pages/admin/security-settings.component';
 import { MailTemplatesComponent } from '@home/pages/admin/mail-templates.component';
 import { Observable } from 'rxjs';
-import { AdminSettings, MailTemplatesSettings } from '@shared/models/settings.models';
-import { AdminService } from '@core/http/admin.service';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
-import { getCurrentAuthUser } from '@core/auth/auth.selectors';
-import { map } from 'rxjs/operators';
-import { isDefined } from '@core/utils';
+import { MailTemplatesSettings } from '@shared/models/settings.models';
 import { CustomTranslation } from '@shared/models/custom-translation.model';
 import { CustomTranslationService } from '@core/http/custom-translation.service';
 import { CustomTranslationComponent } from '@home/pages/admin/custom-translation.component';
@@ -69,29 +63,15 @@ import { TwoFactorAuthSettingsComponent } from '@home/pages/admin/two-factor-aut
 import { widgetsLibraryRoutes } from '@home/pages/widget/widget-library-routing.module';
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { auditLogsRoutes } from '@home/pages/audit-log/audit-log-routing.module';
+import { ImageGalleryComponent } from '@shared/components/image/image-gallery.component';
 import { rolesRoutes } from '@home/pages/role/role-routing.module';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
-@Injectable()
-export class MailTemplateSettingsResolver implements Resolve<AdminSettings<MailTemplatesSettings>> {
-
-  constructor(private adminService: AdminService,
-              private store: Store<AppState>) {
-  }
-
-  resolve(route: ActivatedRouteSnapshot): Observable<AdminSettings<MailTemplatesSettings>> {
-    return this.adminService.getAdminSettings<MailTemplatesSettings>('mailTemplates', true).pipe(
-      map((adminSettings) => {
-        let useSystemMailSettings = false;
-        if (getCurrentAuthUser(this.store).authority === Authority.TENANT_ADMIN) {
-          useSystemMailSettings = isDefined(adminSettings.jsonValue.useSystemMailSettings) ?
-            adminSettings.jsonValue.useSystemMailSettings : true;
-        }
-        adminSettings.jsonValue.useSystemMailSettings = useSystemMailSettings;
-        return adminSettings;
-      })
-    );
-  }
-}
+export const mailTemplateSettingsResolver: ResolveFn<MailTemplatesSettings> = (
+  route: ActivatedRouteSnapshot,
+  state: RouterStateSnapshot,
+  wl = inject(WhiteLabelingService)
+): Observable<MailTemplatesSettings> => wl.getMailTemplates(true);
 
 @Injectable()
 export class CustomTranslationResolver implements Resolve<CustomTranslation> {
@@ -130,7 +110,7 @@ const routes: Routes = [
   {
     path: 'resources',
     data: {
-      auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
+      auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       breadcrumb: {
         label: 'admin.resources',
         icon: 'folder'
@@ -141,11 +121,34 @@ const routes: Routes = [
         path: '',
         children: [],
         data: {
-          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
-          redirectTo: '/resources/widgets-library'
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          redirectTo: {
+            SYS_ADMIN: '/resources/widgets-library',
+            TENANT_ADMIN: '/resources/widgets-library',
+            CUSTOMER_USER: '/resources/images'
+          }
         }
       },
       ...widgetsLibraryRoutes,
+      {
+        path: 'images',
+        data: {
+          breadcrumb: {
+            label: 'image.gallery',
+            icon: 'filter'
+          }
+        },
+        children: [
+          {
+            path: '',
+            component: ImageGalleryComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN, Authority.CUSTOMER_USER],
+              title: 'image.gallery',
+            },
+          }
+        ]
+      },
       {
         path: 'resources-library',
         data: {
@@ -501,7 +504,7 @@ const routes: Routes = [
           }
         },
         resolve: {
-          adminSettings: MailTemplateSettingsResolver
+          mailTemplatesSettings: mailTemplateSettingsResolver
         }
       },
       {
@@ -548,7 +551,6 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
   providers: [
-    MailTemplateSettingsResolver,
     CustomTranslationResolver,
     CustomMenuResolver,
     OAuth2LoginProcessingUrlResolver,

@@ -32,6 +32,7 @@ package org.thingsboard.server.queue.pubsub;
 
 import com.google.api.core.ApiFuture;
 import com.google.api.core.ApiFutures;
+import com.google.api.gax.core.FixedExecutorProvider;
 import com.google.cloud.pubsub.v1.stub.GrpcSubscriberStub;
 import com.google.cloud.pubsub.v1.stub.SubscriberStub;
 import com.google.cloud.pubsub.v1.stub.SubscriberStubSettings;
@@ -91,6 +92,7 @@ public class TbPubSubConsumerTemplate<T extends TbQueueMsg> extends AbstractPara
                                     SubscriberStubSettings.defaultGrpcTransportProviderBuilder()
                                             .setMaxInboundMessageSize(pubSubSettings.getMaxMsgSize())
                                             .build())
+                            .setExecutorProvider(pubSubSettings.getExecutorProvider())
                             .build();
             this.subscriber = GrpcSubscriberStub.create(subscriberStubSettings);
         } catch (IOException e) {

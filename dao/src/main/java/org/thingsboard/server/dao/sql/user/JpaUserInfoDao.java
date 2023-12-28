@@ -70,7 +70,7 @@ public class JpaUserInfoDao extends JpaAbstractDao<UserInfoEntity, UserInfo> imp
         return DaoUtil.toPageData(userInfoRepository
                 .findByTenantId(
                         tenantId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
     }
 
@@ -79,7 +79,7 @@ public class JpaUserInfoDao extends JpaAbstractDao<UserInfoEntity, UserInfo> imp
         return DaoUtil.toPageData(userInfoRepository
                 .findTenantUsersByTenantId(
                         tenantId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
     }
 
@@ -89,7 +89,7 @@ public class JpaUserInfoDao extends JpaAbstractDao<UserInfoEntity, UserInfo> imp
                 .findByTenantIdAndCustomerId(
                         tenantId,
                         customerId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
     }
 
@@ -99,7 +99,7 @@ public class JpaUserInfoDao extends JpaAbstractDao<UserInfoEntity, UserInfo> imp
                 .findByTenantIdAndCustomerIdIncludingSubCustomers(
                         tenantId,
                         customerId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
     }
 }

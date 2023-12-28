@@ -1,0 +1,139 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<ng-container [formGroup]="signalStrengthWidgetSettingsForm">
+  <div class="tb-form-panel">
+    <div class="tb-form-panel-title" translate>widgets.signal-strength.signal-strength-card-style</div>
+    <tb-image-cards-select rowHeight="2:1"
+                           [cols]="{columns: 2,
+                                    breakpoints: {
+                                      'lt-sm': 1
+                                    }}"
+                           label="{{ 'widgets.signal-strength.layout' | translate }}" formControlName="layout">
+      <tb-image-cards-select-option *ngFor="let layout of signalStrengthLayouts"
+                                    [value]="layout"
+                                    [image]="signalStrengthLayoutImageMap.get(layout)">
+        {{ signalStrengthLayoutTranslationMap.get(layout) | translate }}
+      </tb-image-cards-select-option>
+    </tb-image-cards-select>
+    <div class="tb-form-row column-xs">
+      <mat-slide-toggle class="mat-slide fixed-title-width" formControlName="showDate">
+        {{ 'widgets.signal-strength.date' | translate }}
+      </mat-slide-toggle>
+      <div fxFlex.gt-xs fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
+        <tb-date-format-select fxFlex formControlName="dateFormat"></tb-date-format-select>
+        <tb-font-settings formControlName="dateFont"
+                          [previewText]="datePreviewFn">
+        </tb-font-settings>
+        <tb-color-input asBoxInput
+                        colorClearButton
+                        formControlName="dateColor">
+        </tb-color-input>
+      </div>
+    </div>
+    <div class="tb-form-row space-between">
+      <div>{{ 'widgets.signal-strength.active-bars-color' | translate }}</div>
+      <tb-color-settings formControlName="activeBarsColor"
+                         settingsKey="{{'widgets.signal-strength.active-bars-color' | translate }}">
+      </tb-color-settings>
+    </div>
+    <div class="tb-form-row space-between">
+      <div>{{ 'widgets.signal-strength.inactive-bars-color' | translate }}</div>
+      <tb-color-input asBoxInput
+                      formControlName="inactiveBarsColor">
+      </tb-color-input>
+    </div>
+    <div class="tb-form-row space-between">
+      <div>{{ 'widgets.background.background' | translate }}</div>
+      <tb-background-settings formControlName="background">
+      </tb-background-settings>
+    </div>
+  </div>
+  <div class="tb-form-panel tb-slide-toggle">
+    <mat-expansion-panel class="tb-settings" [expanded]="signalStrengthWidgetSettingsForm.get('showTooltip').value"
+                         [disabled]="!signalStrengthWidgetSettingsForm.get('showTooltip').value">
+      <mat-expansion-panel-header fxLayout="row wrap">
+        <mat-panel-title>
+          <mat-slide-toggle class="mat-slide" formControlName="showTooltip" (click)="$event.stopPropagation()"
+                            fxLayoutAlign="center">
+            {{ 'widgets.signal-strength.tooltip' | translate }}
+          </mat-slide-toggle>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <ng-template matExpansionPanelContent>
+        <div class="tb-form-row space-between">
+          <mat-slide-toggle class="mat-slide" formControlName="showTooltipValue">
+            {{ 'widgets.signal-strength.value' | translate }}
+          </mat-slide-toggle>
+          <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
+            <tb-font-settings formControlName="tooltipValueFont"
+                              [previewText]="tooltipValuePreviewFn">
+            </tb-font-settings>
+            <tb-color-input asBoxInput
+                            colorClearButton
+                            formControlName="tooltipValueColor">
+            </tb-color-input>
+          </div>
+        </div>
+        <div class="tb-form-row column-xs">
+          <mat-slide-toggle class="mat-slide fixed-title-width" formControlName="showTooltipDate">
+            {{ 'widgets.signal-strength.date' | translate }}
+          </mat-slide-toggle>
+          <div fxFlex.gt-xs fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
+            <tb-date-format-select fxFlex formControlName="tooltipDateFormat"></tb-date-format-select>
+            <tb-font-settings formControlName="tooltipDateFont"
+                              [previewText]="tooltipDatePreviewFn">
+            </tb-font-settings>
+            <tb-color-input asBoxInput
+                            colorClearButton
+                            formControlName="tooltipDateColor">
+            </tb-color-input>
+          </div>
+        </div>
+        <div class="tb-form-row space-between">
+          <div>{{ 'widgets.signal-strength.background-color' | translate }}</div>
+          <tb-color-input asBoxInput
+                          formControlName="tooltipBackgroundColor">
+          </tb-color-input>
+        </div>
+        <div class="tb-form-row space-between">
+          <div translate>widgets.signal-strength.background-blur</div>
+          <mat-form-field appearance="outline" class="number" subscriptSizing="dynamic">
+            <input matInput formControlName="tooltipBackgroundBlur" type="number" min="0" step="1"
+                   placeholder="{{ 'widget-config.set' | translate }}">
+            <div matSuffix>px</div>
+          </mat-form-field>
+        </div>
+      </ng-template>
+    </mat-expansion-panel>
+  </div>
+</ng-container>

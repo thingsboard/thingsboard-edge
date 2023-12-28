@@ -59,7 +59,6 @@ public abstract class AbstractTbQueueConsumerTemplate<R, T extends TbQueueMsg> i
     protected volatile Set<TopicPartitionInfo> partitions;
     protected final ReentrantLock consumerLock = new ReentrantLock(); //NonfairSync
     final Queue<Set<TopicPartitionInfo>> subscribeQueue = new ConcurrentLinkedQueue<>();
-    protected volatile boolean queueDeleted = false;
 
     @Getter
     private final String topic;
@@ -70,7 +69,7 @@ public abstract class AbstractTbQueueConsumerTemplate<R, T extends TbQueueMsg> i
 
     @Override
     public void subscribe() {
-        log.info("enqueue topic subscribe {} ", topic);
+        log.debug("enqueue topic subscribe {} ", topic);
         if (stopped) {
             log.error("trying subscribe, but consumer stopped for topic {}", topic);
             return;
@@ -80,7 +79,7 @@ public abstract class AbstractTbQueueConsumerTemplate<R, T extends TbQueueMsg> i
 
     @Override
     public void subscribe(Set<TopicPartitionInfo> partitions) {
-        log.info("enqueue topics subscribe {} ", partitions);
+        log.debug("enqueue topics subscribe {} ", partitions);
         if (stopped) {
             log.error("trying subscribe, but consumer stopped for topic {}", topic);
             return;
@@ -93,7 +92,8 @@ public abstract class AbstractTbQueueConsumerTemplate<R, T extends TbQueueMsg> i
         List<R> records;
         long startNanos = System.nanoTime();
         if (stopped) {
-            return errorAndReturnEmpty();
+            log.error("poll invoked but consumer stopped for topic " + topic, new RuntimeException("stacktrace"));
+            return emptyList();
         }
         if (!subscribed && partitions == null && subscribeQueue.isEmpty()) {
             return sleepAndReturnEmpty(startNanos, durationInMillis);
@@ -111,6 +111,7 @@ public abstract class AbstractTbQueueConsumerTemplate<R, T extends TbQueueMsg> i
             }
             if (!subscribed) {
                 List<String> topicNames = getFullTopicNames();
+                log.info("Subscribing to topics {}", topicNames);
                 doSubscribe(topicNames);
                 subscribed = true;
             }
@@ -140,11 +141,6 @@ public abstract class AbstractTbQueueConsumerTemplate<R, T extends TbQueueMsg> i
             }
         });
         return result;
-    }
-
-    List<T> errorAndReturnEmpty() {
-        log.error("poll invoked but consumer stopped for topic" + topic, new RuntimeException("stacktrace"));
-        return emptyList();
     }
 
     List<T> sleepAndReturnEmpty(final long startNanos, final long durationInMillis) {
@@ -179,14 +175,19 @@ public abstract class AbstractTbQueueConsumerTemplate<R, T extends TbQueueMsg> i
     }
 
     @Override
+    public void stop() {
+        stopped = true;
+    }
+
+    @Override
     public void unsubscribe() {
-        log.info("Unsubscribing from topics and stopping consumer for topics {}", partitions.stream()
-                .map(TopicPartitionInfo::getFullTopicName)
-                .collect(Collectors.joining(", ")));
+        log.info("Unsubscribing and stopping consumer for topics {}", getFullTopicNames());
         stopped = true;
         consumerLock.lock();
         try {
-            doUnsubscribe();
+            if (subscribed) {
+                doUnsubscribe();
+            }
         } finally {
             consumerLock.unlock();
         }
@@ -208,16 +209,10 @@ public abstract class AbstractTbQueueConsumerTemplate<R, T extends TbQueueMsg> i
     abstract protected void doUnsubscribe();
 
     @Override
-    public void onQueueDelete() {
-        queueDeleted = true;
-    }
-
-    public boolean isQueueDeleted() {
-        return queueDeleted;
-    }
-
-    @Override
     public List<String> getFullTopicNames() {
+        if (partitions == null) {
+            return Collections.emptyList();
+        }
         return partitions.stream().map(TopicPartitionInfo::getFullTopicName).collect(Collectors.toList());
     }
 

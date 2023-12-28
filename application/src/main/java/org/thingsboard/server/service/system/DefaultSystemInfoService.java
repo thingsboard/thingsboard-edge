@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.protobuf.ProtocolStringList;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
@@ -110,6 +111,11 @@ public class DefaultSystemInfoService extends TbApplicationEventListener<Partiti
     private final SmsService smsService;
     private volatile ScheduledExecutorService scheduler;
 
+    @Value("${metrics.system_info.persist_frequency:60}")
+    private int systemInfoPersistFrequencySeconds;
+    @Value("#{${metrics.system_info.ttl:7} * 86400}")
+    private int systemInfoTtlSeconds;
+
     @Override
     protected void onTbApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
         if (ServiceType.TB_CORE.equals(partitionChangeEvent.getServiceType())) {
@@ -118,7 +124,7 @@ public class DefaultSystemInfoService extends TbApplicationEventListener<Partiti
                 if (myPartition) {
                     if (scheduler == null) {
                         scheduler = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("tb-system-info-scheduler"));
-                        scheduler.scheduleAtFixedRate(this::saveCurrentSystemInfo, 0, 1, TimeUnit.MINUTES);
+                        scheduler.scheduleWithFixedDelay(this::saveCurrentSystemInfo, systemInfoPersistFrequencySeconds, systemInfoPersistFrequencySeconds, TimeUnit.SECONDS);
                     }
                 } else {
                     destroy();
@@ -213,7 +219,7 @@ public class DefaultSystemInfoService extends TbApplicationEventListener<Partiti
 
     private void doSave(List<TsKvEntry> telemetry) {
         ApiUsageState apiUsageState = apiUsageStateClient.getApiUsageState(TenantId.SYS_TENANT_ID);
-        telemetryService.saveAndNotifyInternal(TenantId.SYS_TENANT_ID, apiUsageState.getId(), telemetry, CALLBACK);
+        telemetryService.saveAndNotifyInternal(TenantId.SYS_TENANT_ID, apiUsageState.getId(), telemetry, systemInfoTtlSeconds, CALLBACK);
     }
 
     private List<SystemInfoData> getSystemData(ServiceInfo serviceInfo) {

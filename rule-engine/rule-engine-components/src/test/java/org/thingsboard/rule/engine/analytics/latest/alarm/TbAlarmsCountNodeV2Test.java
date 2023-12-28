@@ -32,7 +32,6 @@ package org.thingsboard.rule.engine.analytics.latest.alarm;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.util.concurrent.Futures;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -84,7 +83,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
@@ -438,7 +436,7 @@ public class TbAlarmsCountNodeV2Test {
         PageData<AlarmInfo> pageData = new PageData<>(alarms, 1, alarms.size(), false);
         when(alarmService.findAlarms(ArgumentMatchers.any(), argThat(query ->
                 query != null && query.getAffectedEntityId().equals(entityId)
-        ))).thenReturn(Futures.immediateFuture(pageData));
+        ))).thenReturn(pageData);
         return alarms;
     }
 
@@ -481,19 +479,14 @@ public class TbAlarmsCountNodeV2Test {
         }
         PageData<AlarmInfo> alarms;
         do {
-            try {
-                alarms = service.findAlarms(TenantId.SYS_TENANT_ID, query).get();
-                for (int i = 0; i < filters.size(); i++) {
-                    Predicate<AlarmInfo> filter = matchAlarmFilter(filters.get(i));
-                    long count = alarms.getData().stream().filter(filter).map(AlarmInfo::getId).distinct().count() + alarmCounts.get(i);
-                    alarmCounts.set(i, count);
-                }
-                if (alarms.hasNext()) {
-                    query = new AlarmQuery(query.getAffectedEntityId(), query.getPageLink(), query.getSearchStatus(), query.getStatus(), null,false);
-                }
-            } catch (ExecutionException | InterruptedException e) {
-                log.warn("Failed to find alarms by query. Query: [{}]", query);
-                throw new RuntimeException(e);
+            alarms = service.findAlarms(TenantId.SYS_TENANT_ID, query);
+            for (int i = 0; i < filters.size(); i++) {
+                Predicate<AlarmInfo> filter = matchAlarmFilter(filters.get(i));
+                long count = alarms.getData().stream().filter(filter).map(AlarmInfo::getId).distinct().count() + alarmCounts.get(i);
+                alarmCounts.set(i, count);
+            }
+            if (alarms.hasNext()) {
+                query = new AlarmQuery(query.getAffectedEntityId(), query.getPageLink(), query.getSearchStatus(), query.getStatus(), null, false);
             }
         } while (alarms.hasNext());
         return alarmCounts;

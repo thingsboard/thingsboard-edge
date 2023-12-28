@@ -42,6 +42,7 @@ export interface SysParamsState {
   tbelEnabled: boolean;
   persistDeviceStateToTelemetry: boolean;
   userSettings: UserSettings;
+  maxResourceSize: number;
 }
 
 export interface SysParams extends SysParamsState {

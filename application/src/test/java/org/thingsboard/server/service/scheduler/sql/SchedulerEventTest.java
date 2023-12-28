@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.scheduler.sql;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import org.junit.Before;
@@ -49,6 +50,8 @@ import org.thingsboard.server.service.scheduler.DefaultSchedulerService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.byLessThan;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -75,6 +78,8 @@ public class SchedulerEventTest extends AbstractControllerTest {
     }
 
     private static final String testRpc = "{\"method\":\"test\",\"params\":{\"p1\":1,\"p2\":\"2\"}}";
+    private static final Boolean PERSISTENT_TEST_VALUE = true;
+    private static final Long TIMEOUT_TEST_VALUE = 7000L;
 
     @Test
     public void sendRpcRequestToDevice() throws Exception {
@@ -107,6 +112,9 @@ public class SchedulerEventTest extends AbstractControllerTest {
                         assertEquals(tbMsg.getOriginator(), savedDevice.getId());
                         assertEquals(testRpc, tbMsg.getData());
                         assertEquals(serviceInfoProvider.getServiceId(), tbMsg.getMetaData().getValue("originServiceId"));
+                        assertThat(Long.parseLong(tbMsg.getMetaData().getValue("expirationTime"))).isCloseTo(System.currentTimeMillis() + TIMEOUT_TEST_VALUE, byLessThan(10000L));
+                        assertThat(tbMsg.getMetaData().getValue("persistent")).isEqualTo(PERSISTENT_TEST_VALUE.toString());
+                        assertEquals(serviceInfoProvider.getServiceId(), tbMsg.getMetaData().getValue("originServiceId"));
                         return true;
                     }
                     return false;
@@ -127,6 +135,10 @@ public class SchedulerEventTest extends AbstractControllerTest {
         ObjectNode configuration = JacksonUtil.newObjectNode();
         configuration.put("msgType", RPC_CALL_FROM_SERVER_TO_DEVICE.name());
         configuration.set("msgBody", JacksonUtil.toJsonNode(testRpc));
+        ObjectNode metadata = JacksonUtil.newObjectNode();
+        metadata.put("persistent", PERSISTENT_TEST_VALUE);
+        metadata.put("timeout", TIMEOUT_TEST_VALUE);
+        configuration.set("metadata", metadata);
         schedulerEvent.setConfiguration(configuration);
 
         return schedulerEvent;
