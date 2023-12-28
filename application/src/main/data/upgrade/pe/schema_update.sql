@@ -185,12 +185,14 @@ CREATE TABLE IF NOT EXISTS raw_data_event (
 ) PARTITION BY RANGE (ts);
 
 CREATE TABLE IF NOT EXISTS white_labeling (
-    entity_type varchar(255),
-    entity_id uuid,
+    tenant_id UUID NOT NULL,
+    customer_id UUID NOT NULL default '13814000-1dd2-11b2-8080-808080808080',
     type VARCHAR(16),
     settings VARCHAR(10000000),
     domain_name VARCHAR(255) UNIQUE,
-    CONSTRAINT white_labeling_pkey PRIMARY KEY (entity_type, entity_id, type));
+    CONSTRAINT white_labeling_pkey PRIMARY KEY (tenant_id, customer_id, type));
+
+ALTER TABLE resource ADD COLUMN IF NOT EXISTS customer_id uuid;
 
 CREATE INDEX IF NOT EXISTS idx_entity_group_by_type_name_and_owner_id ON entity_group(type, name, owner_id);
 
