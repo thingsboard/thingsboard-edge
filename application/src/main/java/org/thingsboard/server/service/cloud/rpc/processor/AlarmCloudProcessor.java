@@ -18,10 +18,15 @@ package org.thingsboard.server.service.cloud.rpc.processor;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.id.AlarmId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.service.edge.rpc.processor.alarm.BaseAlarmProcessor;
 
@@ -38,9 +43,9 @@ public class AlarmCloudProcessor extends BaseAlarmProcessor {
         }
     }
 
-    public UplinkMsg convertAlarmEventToUplink(CloudEvent cloudEvent) {
+    public UplinkMsg convertAlarmEventToUplink(CloudEvent cloudEvent, EdgeVersion edgeVersion) {
         AlarmUpdateMsg alarmUpdateMsg =
-                convertAlarmEventToAlarmMsg(cloudEvent.getTenantId(), cloudEvent.getEntityId(), cloudEvent.getAction(), cloudEvent.getEntityBody());
+                convertAlarmEventToAlarmMsg(cloudEvent.getTenantId(), cloudEvent.getEntityId(), cloudEvent.getAction(), cloudEvent.getEntityBody(), edgeVersion);
         if (alarmUpdateMsg != null) {
             return UplinkMsg.newBuilder()
                     .setUplinkMsgId(EdgeUtils.nextPositiveInt())
@@ -48,5 +53,16 @@ public class AlarmCloudProcessor extends BaseAlarmProcessor {
                     .build();
         }
         return null;
+    }
+
+    @Override
+    protected EntityId getAlarmOriginatorFromMsg(TenantId tenantId, AlarmUpdateMsg alarmUpdateMsg) {
+        Alarm alarm = JacksonUtil.fromString(alarmUpdateMsg.getEntity(), Alarm.class, true);
+        return alarm != null ? alarm.getOriginator() : null;
+    }
+
+    @Override
+    protected Alarm constructAlarmFromUpdateMsg(TenantId tenantId, AlarmId alarmId, EntityId originatorId, AlarmUpdateMsg alarmUpdateMsg) {
+        return JacksonUtil.fromString(alarmUpdateMsg.getEntity(), Alarm.class, true);
     }
 }

@@ -25,10 +25,12 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.RelationRequestMsg;
 import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.service.edge.rpc.constructor.relation.RelationMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.processor.relation.BaseRelationProcessor;
 
 @Component
@@ -58,12 +60,13 @@ public class RelationCloudProcessor extends BaseRelationProcessor {
         return builder.build();
     }
 
-    public UplinkMsg convertRelationEventToUplink(CloudEvent cloudEvent) {
+    public UplinkMsg convertRelationEventToUplink(CloudEvent cloudEvent, EdgeVersion edgeVersion) {
         UplinkMsg msg = null;
         UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
         EntityRelation entityRelation = JacksonUtil.OBJECT_MAPPER.convertValue(cloudEvent.getEntityBody(), EntityRelation.class);
         if (entityRelation != null) {
-            RelationUpdateMsg relationUpdateMsg = relationMsgConstructor.constructRelationUpdatedMsg(msgType, entityRelation);
+            RelationUpdateMsg relationUpdateMsg = ((RelationMsgConstructor) relationMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion))
+                    .constructRelationUpdatedMsg(msgType, entityRelation);
             msg = UplinkMsg.newBuilder()
                     .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                     .addRelationUpdateMsg(relationUpdateMsg).build();
@@ -71,4 +74,8 @@ public class RelationCloudProcessor extends BaseRelationProcessor {
         return msg;
     }
 
+    @Override
+    protected EntityRelation constructEntityRelationFromUpdateMsg(RelationUpdateMsg relationUpdateMsg) {
+        return JacksonUtil.fromString(relationUpdateMsg.getEntity(), EntityRelation.class, true);
+    }
 }

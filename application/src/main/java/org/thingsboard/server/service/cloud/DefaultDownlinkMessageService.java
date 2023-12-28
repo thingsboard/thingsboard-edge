@@ -196,7 +196,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             }
             if (downlinkMsg.getDeviceUpdateMsgCount() > 0) {
                 for (DeviceUpdateMsg deviceUpdateMsg : downlinkMsg.getDeviceUpdateMsgList()) {
-                    result.add(deviceProcessor.processDeviceMsgFromCloud(tenantId, edgeCustomerId, deviceUpdateMsg, queueStartTs));
+                    result.add(deviceProcessor.processDeviceMsgFromCloud(tenantId, deviceUpdateMsg, queueStartTs));
                 }
             }
             if (downlinkMsg.getDeviceCredentialsUpdateMsgCount() > 0) {
@@ -206,17 +206,17 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             }
             if (downlinkMsg.getAssetProfileUpdateMsgCount() > 0) {
                 for (AssetProfileUpdateMsg assetProfileUpdateMsg  : downlinkMsg.getAssetProfileUpdateMsgList()) {
-                    result.add(assetProfileProcessor.processAssetProfileMsgFromCloud(tenantId, assetProfileUpdateMsg, queueStartTs));
+                    result.add(assetProfileProcessor.processAssetProfileMsgFromCloud(tenantId, assetProfileUpdateMsg));
                 }
             }
             if (downlinkMsg.getAssetUpdateMsgCount() > 0) {
                 for (AssetUpdateMsg assetUpdateMsg : downlinkMsg.getAssetUpdateMsgList()) {
-                    result.add(assetProcessor.processAssetMsgFromCloud(tenantId, edgeCustomerId, assetUpdateMsg, queueStartTs));
+                    result.add(assetProcessor.processAssetMsgFromCloud(tenantId, assetUpdateMsg, queueStartTs));
                 }
             }
             if (downlinkMsg.getEntityViewUpdateMsgCount() > 0) {
                 for (EntityViewUpdateMsg entityViewUpdateMsg : downlinkMsg.getEntityViewUpdateMsgList()) {
-                    result.add(entityViewProcessor.processEntityViewMsgFromCloud(tenantId, edgeCustomerId, entityViewUpdateMsg, queueStartTs));
+                    result.add(entityViewProcessor.processEntityViewMsgFromCloud(tenantId, entityViewUpdateMsg, queueStartTs));
                 }
             }
             if (downlinkMsg.getRuleChainUpdateMsgCount() > 0) {
@@ -231,7 +231,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             }
             if (downlinkMsg.getDashboardUpdateMsgCount() > 0) {
                 for (DashboardUpdateMsg dashboardUpdateMsg : downlinkMsg.getDashboardUpdateMsgList()) {
-                    result.add(dashboardProcessor.processDashboardMsgFromCloud(tenantId, edgeCustomerId, dashboardUpdateMsg, queueStartTs));
+                    result.add(dashboardProcessor.processDashboardMsgFromCloud(tenantId, dashboardUpdateMsg, edgeCustomerId, queueStartTs));
                 }
             }
             if (downlinkMsg.getAlarmUpdateMsgCount() > 0) {
@@ -268,7 +268,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                 for (UserUpdateMsg userUpdateMsg : downlinkMsg.getUserUpdateMsgList()) {
                     sequenceDependencyLock.lock();
                     try {
-                        result.add(userProcessor.processUserMsgFromCloud(tenantId, edgeCustomerId, userUpdateMsg, queueStartTs));
+                        result.add(userProcessor.processUserMsgFromCloud(tenantId, userUpdateMsg, queueStartTs));
                     } finally {
                         sequenceDependencyLock.unlock();
                     }
@@ -348,5 +348,4 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             return Futures.immediateFuture(null);
         }
     }
-
 }

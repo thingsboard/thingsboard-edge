@@ -89,6 +89,7 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -116,6 +117,9 @@ public abstract class AbstractContainerTest {
     protected static RestClient edgeRestClient;
 
     protected static Edge edge;
+
+    protected static EdgeVersion edgeVersion;
+
     protected static String tbUrl;
     protected static String edgeUrl;
 
@@ -140,6 +144,8 @@ public abstract class AbstractContainerTest {
 
             loginIntoEdgeWithRetries("tenant@thingsboard.org", "tenant");
 
+            getEdgeVersion();
+
             Optional<Tenant> tenant = edgeRestClient.getTenantById(edge.getTenantId());
             Assert.assertTrue(tenant.isPresent());
             Assert.assertEquals(edge.getTenantId(), tenant.get().getId());
@@ -149,6 +155,11 @@ public abstract class AbstractContainerTest {
             // This is a starting point to start other tests
             verifyWidgetBundles();
         }
+    }
+
+    private static void getEdgeVersion() {
+        List<AttributeKvEntry> attributes = cloudRestClient.getAttributeKvEntries(edge.getId(), List.of("edgeVersion"));
+        edgeVersion = EdgeVersion.valueOf(attributes.get(0).getValueAsString());
     }
 
     protected static void loginIntoEdgeWithRetries(String userName, String password) {
@@ -176,7 +187,7 @@ public abstract class AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> {
                     try {
-                        return edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 24;
+                        return edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 25;
                     } catch (Throwable e) {
                         return false;
                     }
@@ -547,6 +558,8 @@ public abstract class AbstractContainerTest {
             Optional<WidgetsBundle> cloudWidgetsBundle = cloudRestClient.getWidgetsBundleById(widgetsBundleId);
             WidgetsBundle expected = edgeWidgetsBundle.get();
             WidgetsBundle actual = cloudWidgetsBundle.get();
+            expected.setImage(null);
+            actual.setImage(null);
             Assert.assertEquals("Widgets bundles on cloud and edge are different", expected, actual);
         }
     }
@@ -558,6 +571,8 @@ public abstract class AbstractContainerTest {
             Optional<WidgetTypeDetails> cloudWidgetsBundle = cloudRestClient.getWidgetTypeById(widgetTypeId);
             WidgetTypeDetails expected = edgeWidgetsBundle.get();
             WidgetTypeDetails actual = cloudWidgetsBundle.get();
+            expected.setImage(null);
+            actual.setImage(null);
             Assert.assertEquals("Widget types on cloud and edge are different", expected, actual);
         }
     }

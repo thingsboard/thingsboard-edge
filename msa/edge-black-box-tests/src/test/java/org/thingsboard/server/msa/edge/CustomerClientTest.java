@@ -63,4 +63,3 @@ public class CustomerClientTest extends AbstractContainerTest {
                 .until(() -> edgeRestClient.getCustomerById(publicCustomer.getId()).isPresent());
     }
 }
-
