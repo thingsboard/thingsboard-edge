@@ -100,6 +100,7 @@ export class AttributeKeyValueTableComponent extends PageComponent implements Co
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+    super.ngOnDestroy();
   }
 
   keyValsFormArray(): UntypedFormArray {

@@ -37,7 +37,11 @@ import {
   UntypedFormControl,
   UntypedFormGroup,
   NG_VALUE_ACCESSOR,
-  Validators
+  Validators,
+  NG_VALIDATORS,
+  Validator,
+  AbstractControl,
+  ValidationErrors
 } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
@@ -53,6 +57,8 @@ import * as _moment from 'moment';
 import * as momentTz from 'moment-timezone';
 import { isDefined } from '@core/utils';
 import { ErrorStateMatcher } from '@angular/material/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 interface SchedulerEventScheduleConfig {
   timezone: string;
@@ -86,9 +92,14 @@ export class EndsOnDateErrorStateMatcher implements ErrorStateMatcher {
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => SchedulerEventScheduleComponent),
     multi: true
+  },
+  {
+    provide: NG_VALIDATORS,
+    useExisting: forwardRef(() => SchedulerEventScheduleComponent),
+    multi: true
   }]
 })
-export class SchedulerEventScheduleComponent extends PageComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnDestroy {
+export class SchedulerEventScheduleComponent extends PageComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnDestroy, Validator {
 
   modelValue: SchedulerEventScheduleConfig | null;
 
@@ -110,6 +121,8 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
   disabled: boolean;
 
   private lastAppliedTimezone: string;
+
+  private destroy$ = new Subject<void>();
 
   private propagateChange = (v: any) => {};
 
@@ -133,7 +146,9 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
       )
     }, {validator: this.endsOnDateValidator('startDate', 'endsOnDate')});
 
-    this.scheduleConfigFormGroup.get('timezone').valueChanges.subscribe((timezone: string) => {
+    this.scheduleConfigFormGroup.get('timezone').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe((timezone: string) => {
       if (timezone !== this.lastAppliedTimezone && timezone) {
         let startDate: Date = this.scheduleConfigFormGroup.get('startDate').value;
         const startTime = this.dateTimeToUtcTime(startDate, this.lastAppliedTimezone);
@@ -149,7 +164,9 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
       }
     });
 
-    this.scheduleConfigFormGroup.get('repeat').valueChanges.subscribe((repeat: boolean) => {
+    this.scheduleConfigFormGroup.get('repeat').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe((repeat: boolean) => {
       if (repeat) {
         this.scheduleConfigFormGroup.get('repeatType').patchValue(SchedulerRepeatType.DAILY, {emitEvent: false});
         const startDate: Date | null = this.scheduleConfigFormGroup.get('startDate').value;
@@ -164,7 +181,9 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
       this.updateEnabledState();
     });
 
-    this.scheduleConfigFormGroup.get('repeatType').valueChanges.subscribe((repeatType: SchedulerRepeatType) => {
+    this.scheduleConfigFormGroup.get('repeatType').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe((repeatType: SchedulerRepeatType) => {
       if (repeatType === SchedulerRepeatType.WEEKLY) {
         const startDate: Date = this.scheduleConfigFormGroup.get('startDate').value;
         this.scheduleConfigFormGroup.get('weeklyRepeat').patchValue(this.createDefaultWeeklyRepeat(startDate), {emitEvent: false});
@@ -172,13 +191,17 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
       this.updateEnabledState();
     });
 
-    this.scheduleConfigFormGroup.get('weeklyRepeat').valueChanges.subscribe((weeklyRepeat: boolean[]) => {
+    this.scheduleConfigFormGroup.get('weeklyRepeat').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe((weeklyRepeat: boolean[]) => {
       const startDate: Date = this.scheduleConfigFormGroup.get('startDate').value;
       this.scheduleConfigFormGroup.get('weeklyRepeat').patchValue(this.createDefaultWeeklyRepeat(startDate, weeklyRepeat),
         {emitEvent: false});
     });
 
-    this.scheduleConfigFormGroup.valueChanges.subscribe(() => {
+    this.scheduleConfigFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
       this.updateModel();
     });
   }
@@ -211,6 +234,9 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    super.ngOnDestroy();
   }
 
   setDisabledState(isDisabled: boolean): void {
@@ -266,6 +292,18 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
         this.updateModel();
       }, 0);
     }
+  }
+
+  validate(control: AbstractControl): ValidationErrors | null {
+    if (!this.scheduleConfigFormGroup.valid && !this.disabled) {
+      return {
+        scheduleConfigForm: {
+          valid: false
+        }
+      };
+    }
+
+    return null;
   }
 
   private toSchedulerEventScheduleConfig(value: SchedulerEventSchedule): SchedulerEventScheduleConfig {
