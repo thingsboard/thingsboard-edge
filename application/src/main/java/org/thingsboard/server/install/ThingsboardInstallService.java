@@ -295,6 +295,8 @@ public class ThingsboardInstallService {
                             } else {
                                 log.info("Skipping images migration. Run the upgrade with fromVersion as '3.6.2-images' to migrate");
                             }
+                        case "3.6.3":
+                            log.info("Upgrading ThingsBoard from version 3.6.3 to 3.7.0 ...");
                             break;
                         case "CE":
                             log.info("Upgrading ThingsBoard from version CE to PE ...");

@@ -73,6 +73,7 @@ public class Device extends BaseDataWithAdditionalInfo<DeviceId> implements Grou
     private DeviceProfileId deviceProfileId;
     private transient DeviceData deviceData;
     @JsonIgnore
+    @Getter @Setter
     private byte[] deviceDataBytes;
 
     private OtaPackageId firmwareId;

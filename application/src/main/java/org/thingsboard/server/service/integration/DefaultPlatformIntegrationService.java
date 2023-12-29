@@ -120,7 +120,6 @@ import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
@@ -176,10 +175,6 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     @Autowired
     @Lazy
     private TbQueueProducerProvider producerProvider;
-
-    @Autowired
-    @Lazy
-    private DataDecodingEncodingService encodingService;
 
     @Autowired
     @Lazy

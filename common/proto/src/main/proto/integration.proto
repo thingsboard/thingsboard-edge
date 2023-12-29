@@ -215,6 +215,37 @@ message IntegrationInfoProto {
   bool allowCreateDevicesOrAssets = 9;
 }
 
+message IntegrationProto {
+  int64 integrationIdMSB = 1;
+  int64 integrationIdLSB = 2;
+  int64 tenantIdMSB = 3;
+  int64 tenantIdLSB = 4;
+  string type = 5;
+  string name = 6;
+  bool debugMode = 7;
+  bool enabled = 8;
+  bool remote = 9;
+  bool allowCreateDevicesOrAssets = 10;
+  bool isEdgeTemplate = 11;
+  string routingKey = 12;
+  string secret = 13;
+  string configuration = 14;
+  optional string additionalInfo = 15;
+}
+
+message ConverterProto {
+  int64 converterIdMSB = 1;
+  int64 converterIdLSB = 2;
+  int64 tenantIdMSB = 3;
+  int64 tenantIdLSB = 4;
+  string type = 5;
+  string name = 6;
+  bool debugMode = 7;
+  string configuration = 8;
+  optional string additionalInfo = 9;
+  bool isEdgeTemplate = 10;
+}
+
 message IntegrationInfoListRequestProto {
   string type = 1;
   bool enabled = 2;
@@ -233,19 +264,11 @@ message IntegrationRequestProto {
   string routingKey = 5;
 }
 
-message IntegrationResponseProto {
-  bytes data = 1;
-}
-
 message ConverterRequestProto {
   int64 converterIdMSB = 1;
   int64 converterIdLSB = 2;
   int64 tenantIdMSB = 3;
   int64 tenantIdLSB = 4;
-}
-
-message ConverterResponseProto {
-  bytes data = 1;
 }
 
 /* Request from Integration Executor Service to ThingsBoard Core Service */
@@ -258,21 +281,20 @@ message IntegrationApiRequestMsg {
 /* Response from ThingsBoard Core Service to Integration Executor Service */
 message IntegrationApiResponseMsg {
   IntegrationInfoListResponseProto integrationListResponse = 1;
-  IntegrationResponseProto integrationResponse = 2;
-  ConverterResponseProto converterResponse = 3;
+  IntegrationProto integrationResponse = 2;
+  ConverterProto converterResponse = 3;
 }
 
 /* High priority messages with low latency are handled by ThingsBoard Integration Executor Service separately */
 message ToIntegrationExecutorNotificationMsg {
-  bytes componentLifecycleMsg = 1 [deprecated = true];
-  transport.ComponentLifecycleMsgProto componentLifecycle = 2;
+  transport.ComponentLifecycleMsgProto componentLifecycle = 1;
 }
 
 message IntegrationValidationRequestProto {
   int64 idMSB = 1;
   int64 idLSB = 2;
   string serviceId = 3;
-  bytes configuration = 4;
+  IntegrationProto configuration = 4;
   string type = 5;
 }
 
