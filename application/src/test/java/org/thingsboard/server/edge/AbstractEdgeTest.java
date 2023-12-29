@@ -37,6 +37,7 @@ import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.MessageLite;
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -128,6 +129,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -222,6 +224,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         thermostatDeviceProfile = doPost("/api/deviceProfile", thermostatDeviceProfile, DeviceProfile.class);
 
         edge = doPost("/api/edge", constructEdge("Test Edge", "test"), Edge.class);
+        verifyTenantAdministratorsAndTenantUsersAssignedToEdge();
     }
 
     protected void extendDeviceProfileData(DeviceProfile deviceProfile) {
@@ -950,5 +953,15 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     protected ObjectNode getCustomTranslationHomeObject(String homeValue) {
         ObjectNode objectNode = JacksonUtil.newObjectNode();
         return objectNode.put("home", homeValue);
+    }
+
+    private void verifyTenantAdministratorsAndTenantUsersAssignedToEdge() {
+        Awaitility.await()
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<EntityGroupInfo> entityGroupInfos = getEntityGroupsByOwnerAndType(tenantId, EntityType.USER);
+                    return entityGroupInfos.stream().map(EntityGroupInfo::getName).anyMatch(name -> name.equals(EntityGroup.GROUP_TENANT_ADMINS_NAME))
+                            && entityGroupInfos.stream().map(EntityGroupInfo::getName).anyMatch(name -> name.equals(EntityGroup.GROUP_TENANT_USERS_NAME));
+                });
     }
 }
