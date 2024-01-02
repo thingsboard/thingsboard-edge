@@ -30,6 +30,8 @@
  */
 package org.thingsboard.rule.engine.geo;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -43,6 +45,7 @@ import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.util.Collections;
@@ -54,6 +57,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static org.thingsboard.rule.engine.util.GpsGeofencingEvents.*;
+
 /**
  * Created by ashvayka on 19.01.18.
  */
@@ -61,6 +66,7 @@ import java.util.concurrent.TimeoutException;
 @RuleNode(
         type = ComponentType.ACTION,
         name = "gps geofencing events",
+        version = 1,
         configClazz = TbGpsGeofencingActionNodeConfiguration.class,
         relationTypes = {"Success", "Entered", "Left", "Inside", "Outside"},
         nodeDescription = "Produces incoming messages using GPS based geofencing",
@@ -70,6 +76,7 @@ import java.util.concurrent.TimeoutException;
 )
 public class TbGpsGeofencingActionNode extends AbstractGeofencingNode<TbGpsGeofencingActionNodeConfiguration> {
 
+    private static final String CONTINUOUS_PRESENCE_CHECK = "continuousPresenceCheck";
     private final Map<EntityId, EntityGeofencingState> entityStates = new HashMap<>();
     private final Gson gson = new Gson();
     private final JsonParser parser = new JsonParser();
@@ -98,18 +105,21 @@ public class TbGpsGeofencingActionNode extends AbstractGeofencingNode<TbGpsGeofe
         boolean told = false;
         if (entityState.getStateSwitchTime() == 0L || entityState.isInside() != matches) {
             switchState(ctx, msg.getOriginator(), entityState, matches, ts);
-            ctx.tellNext(msg, matches ? "Entered" : "Left");
+            ctx.tellNext(msg, matches ? ENTERED : LEFT);
             told = true;
-        } else {
+        } else if (!config.isContinuousPresenceCheck()) {
             if (!entityState.isStayed()) {
                 long stayTime = ts - entityState.getStateSwitchTime();
                 if (stayTime > (entityState.isInside() ?
                         TimeUnit.valueOf(config.getMinInsideDurationTimeUnit()).toMillis(config.getMinInsideDuration()) : TimeUnit.valueOf(config.getMinOutsideDurationTimeUnit()).toMillis(config.getMinOutsideDuration()))) {
                     setStaid(ctx, msg.getOriginator(), entityState);
-                    ctx.tellNext(msg, entityState.isInside() ? "Inside" : "Outside");
+                    ctx.tellNext(msg, entityState.isInside() ? INSIDE : OUTSIDE);
                     told = true;
                 }
             }
+        } else {
+            ctx.tellNext(msg, entityState.isInside() ? INSIDE : OUTSIDE);
+            told = true;
         }
         if (!told) {
             ctx.tellSuccess(msg);
@@ -142,4 +152,17 @@ public class TbGpsGeofencingActionNode extends AbstractGeofencingNode<TbGpsGeofe
     protected Class<TbGpsGeofencingActionNodeConfiguration> getConfigClazz() {
         return TbGpsGeofencingActionNodeConfiguration.class;
     }
+
+    @Override
+    public TbPair<Boolean, JsonNode> upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
+        boolean hasChanges = false;
+        if (fromVersion == 0) {
+            if (!oldConfiguration.has(CONTINUOUS_PRESENCE_CHECK)) {
+                hasChanges = true;
+                ((ObjectNode) oldConfiguration).put(CONTINUOUS_PRESENCE_CHECK, false);
+            }
+        }
+        return new TbPair<>(hasChanges, oldConfiguration);
+    }
+
 }
