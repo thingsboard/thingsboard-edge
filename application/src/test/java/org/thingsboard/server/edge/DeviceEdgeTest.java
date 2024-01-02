@@ -42,6 +42,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
@@ -61,7 +62,6 @@ import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.common.msg.session.FeatureType;
-import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.edge.v1.AttributesRequestMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsRequestMsg;
@@ -650,7 +650,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
 
         // Wait before device attributes saved to database before requesting them from edge
         Awaitility.await()
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(TIMEOUT, TimeUnit.SECONDS)
                 .until(() -> {
                     String urlTemplate = "/api/plugins/telemetry/DEVICE/" + device.getId() + "/keys/attributes/" + scope;
                     List<String> actualKeys = doGetAsyncTyped(urlTemplate, new TypeReference<>() {
@@ -769,7 +769,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
 
         // Wait before device timeseries saved to database before requesting them from edge
         Awaitility.await()
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(TIMEOUT, TimeUnit.SECONDS)
                 .until(() -> {
                     String urlTemplate = "/api/plugins/telemetry/DEVICE/" + device.getId() + "/keys/timeseries";
                     List<String> actualKeys = doGetAsyncTyped(urlTemplate, new TypeReference<>() {

@@ -114,7 +114,7 @@ public class EntityGroupEdgeTest extends AbstractEdgeTest {
 
     private void verifyEdgeAllGroupNamingConvention(EntityType entityType, String edgeName) {
         Awaitility.await()
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(TIMEOUT, TimeUnit.SECONDS)
                 .until(() -> {
                     EntityGroup edgeAllGroup = findEdgeAllGroup(entityType);
                     return edgeAllGroup.getName().contains(edgeName);
