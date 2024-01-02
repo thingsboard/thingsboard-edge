@@ -142,6 +142,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Slf4j
 abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
+    protected static final long TIMEOUT = 30;
     protected static final String THERMOSTAT_DEVICE_PROFILE_NAME = "Thermostat";
 
     protected DeviceProfile thermostatDeviceProfile;
@@ -956,12 +957,20 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     private void verifyTenantAdministratorsAndTenantUsersAssignedToEdge() {
+        verifyGroupTenantNameAssignedToEdge(EntityGroup.GROUP_TENANT_ADMINS_NAME);
+        verifyGroupTenantNameAssignedToEdge(EntityGroup.GROUP_TENANT_USERS_NAME);
+    }
+
+    private void verifyGroupTenantNameAssignedToEdge(String groupTenantName) {
         Awaitility.await()
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(TIMEOUT, TimeUnit.SECONDS)
+                .alias("verifyGroupTenantNameAssignedToEdge {" + groupTenantName + "}")
                 .until(() -> {
                     List<EntityGroupInfo> entityGroupInfos = getEntityGroupsByOwnerAndType(tenantId, EntityType.USER);
-                    return entityGroupInfos.stream().map(EntityGroupInfo::getName).anyMatch(name -> name.equals(EntityGroup.GROUP_TENANT_ADMINS_NAME))
-                            && entityGroupInfos.stream().map(EntityGroupInfo::getName).anyMatch(name -> name.equals(EntityGroup.GROUP_TENANT_USERS_NAME));
+                    return entityGroupInfos.stream()
+                            .map(EntityGroupInfo::getName)
+                            .filter(groupTenantName::equals)
+                            .count() == 1;
                 });
     }
 }
