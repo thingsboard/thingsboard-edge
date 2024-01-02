@@ -142,7 +142,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Slf4j
 abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
-    protected static final long TIMEOUT = 30;
     protected static final String THERMOSTAT_DEVICE_PROFILE_NAME = "Thermostat";
 
     protected DeviceProfile thermostatDeviceProfile;
@@ -965,12 +964,9 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Awaitility.await()
                 .atMost(TIMEOUT, TimeUnit.SECONDS)
                 .alias("verifyGroupTenantNameAssignedToEdge {" + groupTenantName + "}")
-                .until(() -> {
-                    List<EntityGroupInfo> entityGroupInfos = getEntityGroupsByOwnerAndType(tenantId, EntityType.USER);
-                    return entityGroupInfos.stream()
-                            .map(EntityGroupInfo::getName)
-                            .filter(groupTenantName::equals)
-                            .count() == 1;
-                });
+                .until(() -> getEntityGroupsByOwnerAndType(tenantId, EntityType.USER).stream()
+                        .map(EntityGroupInfo::getName)
+                        .filter(groupTenantName::equals)
+                        .count() == 1);
     }
 }
