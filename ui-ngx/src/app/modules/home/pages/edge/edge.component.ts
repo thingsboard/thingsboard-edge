@@ -34,17 +34,18 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { EntityType } from '@shared/models/entity-type.models';
+import { EdgeInfo } from '@shared/models/edge.models';
 import { TranslateService } from '@ngx-translate/core';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { generateSecret, guid } from '@core/utils';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
-import { EdgeInfo } from '@shared/models/edge.models';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { Authority } from '@shared/models/authority.enum';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { AuthUser } from '@shared/models/user.model';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
+import {EdgeService} from "@core/http/edge.service";
 
 @Component({
   selector: 'tb-edge',
@@ -56,9 +57,11 @@ export class EdgeComponent extends GroupEntityComponent<EdgeInfo> {
   entityType = EntityType;
 
   // edgeScope: 'tenant' | 'customer' | 'customer_user';
+  upgradeAvailable: boolean = false;
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
+              private edgeService: EdgeService,
               @Inject('entity') protected entityValue: EdgeInfo,
               @Inject('entitiesTableConfig')
               protected entitiesTableConfigValue: EntityTableConfig<EdgeInfo> | GroupEntityTableConfig<EdgeInfo>,
@@ -171,6 +174,10 @@ export class EdgeComponent extends GroupEntityComponent<EdgeInfo> {
       }
     });
     this.generateRoutingKeyAndSecret(entity, this.entityForm);
+    this.edgeService.isEdgeUpgradeAvailable(this.entity.id.id)
+      .subscribe(isUpgradeAvailable => {
+          this.upgradeAvailable = isUpgradeAvailable;
+      });
   }
 
   updateFormState() {

@@ -31,27 +31,29 @@
 package org.thingsboard.server.common.data.wl;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class LoginWhiteLabelingParams extends WhiteLabelingParams {
 
-    @ApiModelProperty(position = 16, value = "Login page background color", example = "#d90f0f")
+    @ApiModelProperty(position = 14, value = "Login page background color", example = "#d90f0f")
     private String pageBackgroundColor;
-    @ApiModelProperty(position = 17, value = "Enable/Disable dark foreground")
+    @ApiModelProperty(position = 15, value = "Enable/Disable dark foreground")
     private boolean darkForeground;
-    @ApiModelProperty(position = 18, value = "Domain name of the login page", example = "iot.mycompany.com")
+    @ApiModelProperty(position = 16, value = "Domain name of the login page", example = "iot.mycompany.com")
     private String domainName;
-    @ApiModelProperty(position = 19, value = "Base URL for the activation link, etc", example = "https://iot.mycompany.com")
+    @ApiModelProperty(position = 17, value = "Base URL for the activation link, etc", example = "https://iot.mycompany.com")
     private String baseUrl;
-    @ApiModelProperty(position = 20, value = "Prohibit use of other URLs. It is recommended to enable this setting", example = "true")
+    @ApiModelProperty(position = 18, value = "Prohibit use of other URLs. It is recommended to enable this setting", example = "true")
     private boolean prohibitDifferentUrl;
-    @ApiModelProperty(position = 21, value = "Id of the settings object that store this parameters")
+    @ApiModelProperty(position = 19, value = "Id of the settings object that store this parameters")
     private String adminSettingsId;
-    @ApiModelProperty(position = 22, value = "Show platform name and version on login page")
+    @ApiModelProperty(position = 20, value = "Show platform name and version on login page")
     private Boolean showNameBottom;
 
     public LoginWhiteLabelingParams merge(LoginWhiteLabelingParams otherWlParams) {

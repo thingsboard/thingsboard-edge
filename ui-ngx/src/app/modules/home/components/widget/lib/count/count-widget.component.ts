@@ -57,6 +57,7 @@ import {
 } from '@home/components/widget/lib/count/count-widget.models';
 import { coerceBoolean } from '@shared/decorators/coercion';
 import { ResizeObserver } from '@juggle/resize-observer';
+import { UtilsService } from '@core/services/utils.service';
 
 const layoutHeight = 36;
 const layoutHeightWithTitle = 60;
@@ -119,6 +120,7 @@ export class CountWidgetComponent implements OnInit, AfterViewInit, OnDestroy {
   private hasTitle = false;
 
   constructor(private renderer: Renderer2,
+              private utils: UtilsService,
               private cd: ChangeDetectorRef) {
   }
 
@@ -129,8 +131,8 @@ export class CountWidgetComponent implements OnInit, AfterViewInit, OnDestroy {
     this.layout = this.settings.layout;
 
     this.showLabel = this.settings.showLabel;
-    this.label = this.settings.label;
-    this.labelStyle = textStyle(this.settings.labelFont, '0.4px');
+    this.label = this.utils.customTranslation(this.settings.label, this.settings.label);
+    this.labelStyle = textStyle(this.settings.labelFont);
     this.labelColor = ColorProcessor.fromSettings(this.settings.labelColor);
 
     this.showIcon = this.settings.showIcon;
@@ -151,7 +153,7 @@ export class CountWidgetComponent implements OnInit, AfterViewInit, OnDestroy {
     };
     this.iconBackgroundColor = ColorProcessor.fromSettings(this.settings.iconBackgroundColor);
 
-    this.valueStyle = textStyle(this.settings.valueFont, '0.1px');
+    this.valueStyle = textStyle(this.settings.valueFont);
     this.valueColor = ColorProcessor.fromSettings(this.settings.valueColor);
 
     this.showChevron = this.settings.showChevron;

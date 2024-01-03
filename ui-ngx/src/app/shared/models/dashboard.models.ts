@@ -153,6 +153,10 @@ export interface HomeDashboardInfo {
   hideDashboardToolbar: boolean;
 }
 
+// export interface DashboardSetup extends Dashboard {
+//   assignedCustomerIds?: Array<string>;
+// }
+
 export const isPublicDashboard = (dashboard: DashboardInfo): boolean => {
   if (dashboard && dashboard.assignedCustomers) {
     return dashboard.assignedCustomers

@@ -74,6 +74,7 @@ import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -406,20 +407,39 @@ public class TestRestClient {
     }
 
     public ValidatableResponse postUplinkPayloadForHttpIntegration(String integrationKey, JsonNode jsonNode) {
+        return postUplinkPayloadForHttpBasedIntegration(integrationKey, jsonNode, IntegrationType.HTTP);
+    }
+
+    public ValidatableResponse postUplinkPayloadForHttpBasedIntegration(String integrationKey, JsonNode jsonNode, IntegrationType integrationType) {
         return given().spec(requestSpec)
                 .body(jsonNode)
-                .post("/api/v1/integrations/http/" + integrationKey)
+                .post("/api/v1/integrations/" + integrationType.name().toLowerCase() + "/" + integrationKey)
                 .then()
                 .statusCode(HTTP_OK);
     }
 
     public ValidatableResponse postUplinkPayloadForHttpIntegration(String integrationKey, JsonNode jsonNode, Map<String, Object> headers) {
+        return postUplinkPayloadForHttpBasedIntegration(integrationKey, jsonNode, IntegrationType.HTTP, headers);
+    }
+
+    public ValidatableResponse postUplinkPayloadForHttpBasedIntegration(String integrationKey, JsonNode jsonNode, IntegrationType integrationType, Map<String, Object> headers) {
         return given().spec(requestSpec)
                 .headers(headers)
                 .body(jsonNode)
-                .post("/api/v1/integrations/http/" + integrationKey)
+                .post("/api/v1/integrations/" + integrationType.name().toLowerCase() + "/" + integrationKey)
                 .then()
                 .statusCode(HTTP_OK);
+    }
+
+    public ValidatableResponse postUplinkPayloadForHttpBasedIntegrationForExpectedErrorStatusCode(String integrationKey, JsonNode jsonNode, Map<String, Object> headers, IntegrationType integrationType, int statusCode) {
+        RequestSpecification spec = given().spec(requestSpec);
+        if (headers != null) {
+            spec.headers(headers);
+        }
+        return spec.body(jsonNode)
+                .post("/api/v1/integrations/" + integrationType.name().toLowerCase() + "/" + integrationKey)
+                .then()
+                .statusCode(statusCode);
     }
 
     public PageData<EventInfo> getEvents(EntityId entityId, EventType eventType, TenantId tenantId, TimePageLink pageLink) {
@@ -435,25 +455,7 @@ public class TestRestClient {
                 .then()
                 .statusCode(HTTP_OK)
                 .extract()
-                .as(new TypeRef<PageData<EventInfo>>() {
-                });
-    }
-
-    public PageData<EventInfo> getEvents(EntityId entityId, TenantId tenantId, TimePageLink pageLink) {
-        Map<String, String> params = new HashMap<>();
-        params.put("entityType", entityId.getEntityType().name());
-        params.put("entityId", entityId.getId().toString());
-        params.put("tenantId", tenantId.getId().toString());
-        addTimePageLinkToParam(params, pageLink);
-
-        return given().spec(requestSpec)
-                .params(params)
-                .get("/api/events/{entityType}/{entityId}/{eventType}?tenantId={tenantId}&" + getTimeUrlParams(pageLink))
-                .then()
-                .statusCode(HTTP_OK)
-                .extract()
-                .as(new TypeRef<PageData<EventInfo>>() {
-                });
+                .as(new TypeRef<>() {});
     }
 
     private void addTimePageLinkToParam(Map<String, String> params, TimePageLink pageLink) {

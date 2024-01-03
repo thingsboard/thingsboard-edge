@@ -31,6 +31,7 @@
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.junit.After;
@@ -41,6 +42,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.TestPropertySource;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -102,47 +105,47 @@ public class EdgeEventControllerTest extends AbstractControllerTest {
     public void testGetEdgeEvents() throws Exception {
         Edge edge = constructEdge("TestEdge", "default");
         edge = doPost("/api/edge", edge, Edge.class);
-        final EdgeId edgeId = edge.getId();
 
-        awaitForNumberOfEdgeEvents(edgeId, 3);
+        // simulate edge activation
+        ObjectNode attributes = JacksonUtil.newObjectNode();
+        attributes.put("active", true);
+        doPost("/api/plugins/telemetry/EDGE/" + edge.getId() + "/attributes/" + DataConstants.SERVER_SCOPE, attributes);
+
+        final EdgeId edgeId = edge.getId();
 
         EntityGroup deviceEntityGroup = constructEntityGroup("TestDeviceGroup", EntityType.DEVICE);
         EntityGroup savedDeviceEntityGroup = doPost("/api/entityGroup", deviceEntityGroup, EntityGroup.class);
         doPost("/api/edge/" + edgeId.toString() + "/entityGroup/" + savedDeviceEntityGroup.getId().toString() + "/DEVICE", EntityGroup.class);
-        awaitForNumberOfEdgeEvents(edgeId, 4);
+        awaitForNumberOfEdgeEvents(edgeId, 1);
 
         Device device = constructDevice("TestDevice", "default");
         Device savedDevice =
                 doPost("/api/device?entityGroupId=" + savedDeviceEntityGroup.getId().getId().toString(), device, Device.class);
-        awaitForNumberOfEdgeEvents(edgeId, 5);
+        awaitForNumberOfEdgeEvents(edgeId, 2);
 
         Device device2 = constructDevice("TestDevice2", "default");
         doPost("/api/device?entityGroupId=" + savedDeviceEntityGroup.getId().getId().toString(), device2, Device.class);
-        awaitForNumberOfEdgeEvents(edgeId, 6);
+        awaitForNumberOfEdgeEvents(edgeId, 3);
 
         EntityGroup assetEntityGroup = constructEntityGroup("TestAssetGroup", EntityType.ASSET);
         EntityGroup savedAssetEntityGroup = doPost("/api/entityGroup", assetEntityGroup, EntityGroup.class);
         doPost("/api/edge/" + edgeId.toString() + "/entityGroup/" + savedAssetEntityGroup.getId().toString()+ "/ASSET", EntityGroup.class);
-        awaitForNumberOfEdgeEvents(edgeId, 7);
+        awaitForNumberOfEdgeEvents(edgeId, 4);
 
         Asset asset = constructAsset("TestAsset", "default");
         Asset savedAsset =
                 doPost("/api/asset?entityGroupId=" + savedAssetEntityGroup.getId().getId().toString(), asset, Asset.class);
-        awaitForNumberOfEdgeEvents(edgeId, 8);
+        awaitForNumberOfEdgeEvents(edgeId, 5);
 
         Asset asset2 = constructAsset("TestAsset2", "default");
         doPost("/api/asset?entityGroupId=" + savedAssetEntityGroup.getId().getId().toString(), asset2, Asset.class);
-        awaitForNumberOfEdgeEvents(edgeId, 9);
+        awaitForNumberOfEdgeEvents(edgeId, 6);
 
         EntityRelation relation = new EntityRelation(savedAsset.getId(), savedDevice.getId(), EntityRelation.CONTAINS_TYPE);
         doPost("/api/relation", relation);
-        awaitForNumberOfEdgeEvents(edgeId, 10);
+        awaitForNumberOfEdgeEvents(edgeId, 7);
 
         List<EdgeEvent> edgeEvents = findEdgeEvents(edgeId);
-
-        Assert.assertTrue(popEdgeEvent(edgeEvents, EdgeEventType.RULE_CHAIN, null)); // root rule chain
-        Assert.assertTrue(popEdgeEvent(edgeEvents, EdgeEventType.ENTITY_GROUP, null)); // tenant administrators
-        Assert.assertTrue(popEdgeEvent(edgeEvents, EdgeEventType.ENTITY_GROUP, null)); // tenant users
 
         Assert.assertTrue(popEdgeEvent(edgeEvents, EdgeEventType.ENTITY_GROUP, EdgeEventActionType.ASSIGNED_TO_EDGE)); // TestDeviceGroup
 

@@ -72,7 +72,7 @@ public class JpaSchedulerEventDao extends JpaAbstractDao<SchedulerEventEntity, S
                 .findByTenantIdAndEdgeId(
                         tenantId,
                         edgeId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 

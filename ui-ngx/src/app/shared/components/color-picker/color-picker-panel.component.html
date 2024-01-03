@@ -57,7 +57,7 @@
     </mat-tab>
   </mat-tab-group>
   <ng-template #colorPicker>
-    <tb-color-picker [(ngModel)]="plainColor" (ngModelChange)="onPlainColorChange($event)"></tb-color-picker>
+    <tb-color-picker [formControl]="plainColorControl"></tb-color-picker>
   </ng-template>
   <div class="tb-color-picker-panel-buttons">
     <button *ngIf="colorClearButton"

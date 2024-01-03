@@ -98,7 +98,7 @@ export class DashboardFormComponent extends GroupEntityComponent<DashboardInfo> 
 
   buildForm(entity: DashboardInfo): UntypedFormGroup {
     this.updateFields(entity);
-    return this.fb.group(
+    const form = this.fb.group(
       {
         title: [entity ? entity.title : '', [Validators.required, Validators.maxLength(255)]],
         image: [entity ? entity.image : null],
@@ -111,6 +111,11 @@ export class DashboardFormComponent extends GroupEntityComponent<DashboardInfo> 
         )
       }
     );
+    // if (this.isAdd) {
+    //   form.addControl('assignedCustomerIds', this.fb.control([]));
+    // }
+
+    return form;
   }
 
   updateForm(entity: Dashboard) {

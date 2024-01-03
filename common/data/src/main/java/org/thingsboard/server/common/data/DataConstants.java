@@ -64,6 +64,8 @@ public class DataConstants {
     public static final String MQTT_TRANSPORT_NAME = "MQTT";
     public static final String HTTP_TRANSPORT_NAME = "HTTP";
     public static final String SNMP_TRANSPORT_NAME = "SNMP";
+    public static final String MAXIMUM_NUMBER_OF_DEVICES_REACHED = "Maximum number of devices reached!";
+    public static final String TB_IMAGE_PREFIX = "tb-image;";
 
 
     public static final String[] allScopes() {
@@ -144,6 +146,7 @@ public class DataConstants {
 
     public static final String EDGE_MSG_SOURCE = "edge";
     public static final String MSG_SOURCE_KEY = "source";
+    public static final String EDGE_VERSION_ATTR_KEY = "edgeVersion";
 
     public static final String UPDATE_FIRMWARE = "updateFirmware";
     public static final String UPDATE_SOFTWARE = "updateSoftware";

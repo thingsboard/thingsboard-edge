@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data.wl;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -38,36 +39,16 @@ import org.thingsboard.server.common.data.StringUtils;
 @ApiModel
 @Data
 @EqualsAndHashCode
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Favicon {
 
     private String url;
-    private String type;
 
     public Favicon() {
     }
 
     public Favicon(String url) {
-        this(url, extractTypeFromDataUrl(url));
-    }
-
-    public Favicon(String url, String type) {
         this.url = url;
-        this.type = type;
-    }
-
-    private static String extractTypeFromDataUrl(String dataUrl) {
-        String type = null;
-        if (!StringUtils.isEmpty(dataUrl)) {
-            String[] parts = dataUrl.split(";");
-            if (parts != null && parts.length > 0) {
-                String part = parts[0];
-                String[] typeParts = part.split(":");
-                if (typeParts != null && typeParts.length > 1) {
-                    type = typeParts[1];
-                }
-            }
-        }
-        return type;
     }
 
 }

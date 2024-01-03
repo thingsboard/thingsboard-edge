@@ -214,7 +214,7 @@ public class TbHttpClient {
                 config.isIgnoreRequestBody()) {
             entity = new HttpEntity<>(headers);
         } else {
-            entity = new HttpEntity<>(getData(ctx, msg), headers);
+            entity = new HttpEntity<>(getData(ctx, msg, config.isIgnoreRequestBody(), config.isParseToPlainText()), headers);
         }
 
         URI uri = buildEncodedUri(endpointUrl);
@@ -262,7 +262,7 @@ public class TbHttpClient {
         return uri;
     }
 
-    private String getData(TbContext ctx, TbMsg msg) {
+    private String getData(TbContext ctx, TbMsg msg, boolean ignoreBody, boolean parseToPlainText) {
         String data = msg.getData();
 
         List<BlobEntityId> attachments = new ArrayList<>();
@@ -283,9 +283,19 @@ public class TbHttpClient {
             }
         }
 
-        if (config.isTrimDoubleQuotes()) {
+        if (!ignoreBody && parseToPlainText) {
+            return parseJsonStringToPlainText(data);
+        }
+
+        return data;
+    }
+
+    protected String parseJsonStringToPlainText(String data) {
+        if (data.startsWith("\"") && data.endsWith("\"") && data.length() >= 2) {
             final String dataBefore = data;
-            data = data.replaceAll("^\"|\"$", "");
+            try {
+                data = JacksonUtil.fromString(data, String.class);
+            } catch (Exception ignored) {}
             log.trace("Trimming double quotes. Before trim: [{}], after trim: [{}]", dataBefore, data);
         }
 

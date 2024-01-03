@@ -76,7 +76,7 @@ public class JpaRoleDao extends JpaAbstractDao<RoleEntity, Role> implements Role
                 roleRepository.findByTenantIdAndCustomerId(
                         tenantId,
                         EntityId.NULL_UUID,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -87,7 +87,7 @@ public class JpaRoleDao extends JpaAbstractDao<RoleEntity, Role> implements Role
                         tenantId,
                         EntityId.NULL_UUID,
                         type,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -109,7 +109,7 @@ public class JpaRoleDao extends JpaAbstractDao<RoleEntity, Role> implements Role
                 roleRepository.findByTenantIdAndCustomerId(
                         tenantId,
                         customerId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -120,7 +120,7 @@ public class JpaRoleDao extends JpaAbstractDao<RoleEntity, Role> implements Role
                         tenantId,
                         customerId,
                         type,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 

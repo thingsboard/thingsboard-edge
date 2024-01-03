@@ -78,6 +78,8 @@ public abstract class AbstractContainerTest {
     protected static final String TELEMETRY_VALUE = "42";
     protected static final int CONNECT_TRY_COUNT = 50;
     protected static final int CONNECT_TIMEOUT_MS = 500;
+
+    protected static final int TIMEOUT = 30;
     protected static final ContainerTestSuite containerTestSuite = ContainerTestSuite.getInstance();
     protected static TestRestClient testRestClient;
     protected static TestRestClient remoteHttpClient;
@@ -182,14 +184,6 @@ public abstract class AbstractContainerTest {
         values.addProperty("longKey", 73L);
 
         return values;
-    }
-
-    protected Converter createUplink(JsonNode config) {
-        Converter converter = new Converter();
-        converter.setName("My converter" + StringUtils.randomAlphanumeric(7));
-        converter.setType(ConverterType.UPLINK);
-        converter.setConfiguration(config);
-        return testRestClient.postConverter(converter);
     }
 
     protected enum CmdsType {

@@ -49,18 +49,14 @@ import io.netty.handler.codec.string.StringEncoder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.awaitility.Awaitility;
 import org.testcontainers.containers.ContainerState;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.msa.WsClient;
@@ -80,8 +76,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.thingsboard.server.common.data.DataConstants.DEVICE;
 import static org.thingsboard.server.common.data.DataConstants.SHARED_SCOPE;
 import static org.thingsboard.server.common.data.integration.IntegrationType.UDP;
-import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.downlinkConverterPrototype;
-import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.uplinkConverterPrototype;
 import static org.thingsboard.server.msa.prototypes.UdpIntegrationPrototypes.defaultBinaryConfig;
 import static org.thingsboard.server.msa.prototypes.UdpIntegrationPrototypes.defaultJsonConfig;
 import static org.thingsboard.server.msa.prototypes.UdpIntegrationPrototypes.defaultTextConfig;
@@ -163,19 +157,9 @@ public class UdpIntegrationTest extends AbstractIntegrationTest {
                     "};\n" +
                     "\n" +
                     "return result;");
-    private RuleChainId defaultRuleChainId;
-    private Converter uplinkConverter;
 
-    @BeforeMethod
-    public void setUp()  {
-        defaultRuleChainId = getDefaultRuleChainId();
-    }
     @AfterMethod
     public void tearDown() {
-        testRestClient.setRootRuleChain(defaultRuleChainId);
-        afterIntegrationTest();
-        device = null;
-
         if (containerTestSuite.isActive()) {
             ContainerState tcpIntegrationContainer = containerTestSuite.getTestContainer().getContainerByServiceName("tb-pe-udp-integration_1").get();
             tcpIntegrationContainer.getDockerClient().restartContainerCmd(tcpIntegrationContainer.getContainerId()).exec();
@@ -186,30 +170,14 @@ public class UdpIntegrationTest extends AbstractIntegrationTest {
     public void checkTelemetryUploadedWithJsonConverter() throws Exception {
         JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder",
                 JSON_CONVERTER_CONFIG.replaceAll("DEVICE_NAME", device.getName()));
-        uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(configConverter));
 
-        integration = Integration.builder()
-                .type(UDP)
-                .name("udp_" + RandomStringUtils.randomAlphanumeric(7))
-                .configuration(defaultJsonConfig(PORT))
-                .defaultConverterId(uplinkConverter.getId())
-                .routingKey(ROUTING_KEY)
-                .secret(SECRET_KEY)
-                .isRemote(true)
-                .enabled(true)
-                .debugMode(true)
-                .allowCreateDevicesOrAssets(true)
-                .build();
+        createIntegration(UDP, defaultJsonConfig(PORT), configConverter, ROUTING_KEY, SECRET_KEY, true);
 
-        integration = testRestClient.postIntegration(integration);
-        waitUntilIntegrationStarted(integration.getId(), integration.getTenantId());
-        
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
 
         String jsonPayload = createPayloadForUplink().toString();
         EventLoopGroup group = new NioEventLoopGroup();
         try {
-
             Channel channel = openChannel(group, new StringEncoder(), new ClientHandler());
             channel.writeAndFlush(jsonPayload);
             channel.close().sync();
@@ -227,33 +195,18 @@ public class UdpIntegrationTest extends AbstractIntegrationTest {
 
         Assert.assertTrue(verify(actualLatestTelemetry, TELEMETRY_KEY, TELEMETRY_VALUE));
     }
+
     @Test
     public void telemetryUploadWithTextConverter() throws Exception {
         JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder", TEXT_CONVERTER_CONFIG);
-        uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(configConverter));
 
-        integration = Integration.builder()
-                .type(UDP)
-                .name("udp_" + RandomStringUtils.randomAlphanumeric(7))
-                .configuration(defaultTextConfig(PORT))
-                .defaultConverterId(uplinkConverter.getId())
-                .routingKey(ROUTING_KEY)
-                .secret(SECRET_KEY)
-                .isRemote(true)
-                .enabled(true)
-                .debugMode(true)
-                .allowCreateDevicesOrAssets(true)
-                .build();
-
-        integration = testRestClient.postIntegration(integration);
-        waitUntilIntegrationStarted(integration.getId(), integration.getTenantId());
+        createIntegration(UDP, defaultTextConfig(PORT), configConverter, ROUTING_KEY, SECRET_KEY, true);
 
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
 
         String textPayload = device.getName() + ",default,temperature,25.7";
         EventLoopGroup group = new NioEventLoopGroup();
         try {
-
             Channel channel = openChannel(group, new StringEncoder(), new ClientHandler());
             channel.writeAndFlush(textPayload);
             channel.close().sync();
@@ -267,26 +220,12 @@ public class UdpIntegrationTest extends AbstractIntegrationTest {
 
         assertThat(actualLatestTelemetry.getDataValuesByKey(TELEMETRY_KEY).get(1)).isEqualTo("25.7");
     }
+
     @Test
     public void telemetryUploadWithBinaryConverter() throws Exception {
         JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder", BINARY_CONVERTER_CONFIG);
-        uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(configConverter));
 
-        integration = Integration.builder()
-                .type(UDP)
-                .name("udp_" + RandomStringUtils.randomAlphanumeric(7))
-                .configuration(defaultBinaryConfig(PORT))
-                .defaultConverterId(uplinkConverter.getId())
-                .routingKey(ROUTING_KEY)
-                .secret(SECRET_KEY)
-                .isRemote(true)
-                .enabled(true)
-                .debugMode(true)
-                .allowCreateDevicesOrAssets(true)
-                .build();
-
-        integration = testRestClient.postIntegration(integration);
-        waitUntilIntegrationStarted(integration.getId(), integration.getTenantId());
+        createIntegration(UDP, defaultBinaryConfig(PORT), configConverter, ROUTING_KEY, SECRET_KEY, true);
 
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
 
@@ -295,7 +234,6 @@ public class UdpIntegrationTest extends AbstractIntegrationTest {
 
         EventLoopGroup group = new NioEventLoopGroup();
         try {
-
             Channel channel = openChannel(group, new ByteArrayEncoder(), new ClientHandler());
             channel.writeAndFlush(bytes);
             channel.close().sync();
@@ -316,27 +254,10 @@ public class UdpIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void checkDownlinkMessageWasSent() throws Exception {
-        JsonNode uplinkConverterConfig = JacksonUtil.newObjectNode().put("decoder",
+        JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder",
                 JSON_CONVERTER_CONFIG.replaceAll("DEVICE_NAME", device.getName()));
-        uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(uplinkConverterConfig));
-        Converter downlinkConverter = testRestClient.postConverter(downlinkConverterPrototype(DOWNLINK_CONVERTER_CONFIGURATION));
 
-        integration = Integration.builder()
-                .type(UDP)
-                .name("udp_" + RandomStringUtils.randomAlphanumeric(7))
-                .configuration(defaultJsonConfig(PORT))
-                .defaultConverterId(uplinkConverter.getId())
-                .downlinkConverterId(downlinkConverter.getId())
-                .routingKey(ROUTING_KEY)
-                .secret(SECRET_KEY)
-                .isRemote(true)
-                .enabled(true)
-                .debugMode(true)
-                .allowCreateDevicesOrAssets(true)
-                .build();
-
-        integration = testRestClient.postIntegration(integration);
-        waitUntilIntegrationStarted(integration.getId(), integration.getTenantId());
+        createIntegration(UDP, defaultJsonConfig(PORT), configConverter, DOWNLINK_CONVERTER_CONFIGURATION, ROUTING_KEY, SECRET_KEY, true);
 
         String jsonPayload = createPayloadForUplink().toString();
         EventLoopGroup group = new NioEventLoopGroup();
@@ -352,7 +273,7 @@ public class UdpIntegrationTest extends AbstractIntegrationTest {
             testRestClient.saveEntityAttributes(DEVICE, device.getId().toString(), SHARED_SCOPE, attributes);
 
             RuleChainMetaData ruleChainMetadata = testRestClient.getRuleChainMetadata(ruleChainId);
-            RuleNode integrationNode  = ruleChainMetadata.getNodes().stream().filter(ruleNode -> ruleNode.getType().equals("org.thingsboard.rule.engine.integration.TbIntegrationDownlinkNode")).findFirst().get();
+            RuleNode integrationNode = ruleChainMetadata.getNodes().stream().filter(ruleNode -> ruleNode.getType().equals("org.thingsboard.rule.engine.integration.TbIntegrationDownlinkNode")).findFirst().get();
             waitTillRuleNodeReceiveMsg(integrationNode.getId(), EventType.DEBUG_RULE_NODE, integration.getTenantId(), "ATTRIBUTES_UPDATED");
 
             //check downlink
@@ -360,7 +281,8 @@ public class UdpIntegrationTest extends AbstractIntegrationTest {
                     .await()
                     .alias("Get message from server")
                     .atMost(20, TimeUnit.SECONDS)
-                    .until(() -> { return clientHandler.getMessageList().size() == 2; });;
+                    .until(() -> clientHandler.getMessageList().size() > 0);
+
             BlockingQueue<String> messages = clientHandler.getMessageList();
 
             JsonNode message = JacksonUtil.toJsonNode(Objects.requireNonNull(messages.poll()));
@@ -397,7 +319,7 @@ public class UdpIntegrationTest extends AbstractIntegrationTest {
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws DecoderException, UnsupportedEncodingException {
             DatagramPacket datagramPacket = (DatagramPacket) msg;
-            ByteBuf buf =  datagramPacket.content();
+            ByteBuf buf = datagramPacket.content();
             byte[] bytes = new byte[buf.readableBytes()];
             buf.readBytes(bytes);
             String hexString = Hex.encodeHexString(bytes);
@@ -411,6 +333,7 @@ public class UdpIntegrationTest extends AbstractIntegrationTest {
         }
 
     }
+
     @Override
     protected String getDevicePrototypeSufix() {
         return "udp_";

@@ -51,8 +51,8 @@ import org.thingsboard.server.queue.TbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.DefaultTbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.NotificationsTopicService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+import org.thingsboard.server.queue.discovery.TopicService;
 import org.thingsboard.server.queue.kafka.TbKafkaAdmin;
 import org.thingsboard.server.queue.kafka.TbKafkaConsumerStatsService;
 import org.thingsboard.server.queue.kafka.TbKafkaConsumerTemplate;
@@ -72,7 +72,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @ConditionalOnExpression("'${queue.type:null}'=='kafka' && '${service.type:null}'=='tb-integration-executor'")
 public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExecutorQueueFactory {
 
-    private final NotificationsTopicService notificationsTopicService;
+    private final TopicService topicService;
     private final TbKafkaSettings kafkaSettings;
     private final TbServiceInfoProvider serviceInfoProvider;
     private final TbQueueCoreSettings coreSettings;
@@ -91,7 +91,7 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
 
     private final AtomicLong integrationConsumerCount = new AtomicLong();
 
-    public KafkaTbIntegrationExecutorQueueFactory(NotificationsTopicService notificationsTopicService,
+    public KafkaTbIntegrationExecutorQueueFactory(TopicService topicService,
                                                   TbKafkaSettings kafkaSettings,
                                                   TbServiceInfoProvider serviceInfoProvider,
                                                   TbQueueCoreSettings coreSettings,
@@ -100,7 +100,7 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
                                                   TbKafkaConsumerStatsService consumerStatsService,
                                                   TbQueueIntegrationExecutorSettings integrationExecutorSettings,
                                                   TbKafkaTopicConfigs kafkaTopicConfigs) {
-        this.notificationsTopicService = notificationsTopicService;
+        this.topicService = topicService;
         this.kafkaSettings = kafkaSettings;
         this.serviceInfoProvider = serviceInfoProvider;
         this.coreSettings = coreSettings;
@@ -123,7 +123,7 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
         TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToCoreIntegrationMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
         requestBuilder.settings(kafkaSettings);
         requestBuilder.clientId("tb-ie-to-core-" + serviceInfoProvider.getServiceId());
-        requestBuilder.defaultTopic(integrationExecutorSettings.getUplinkTopic());
+        requestBuilder.defaultTopic(topicService.buildTopicName(integrationExecutorSettings.getUplinkTopic()));
         requestBuilder.admin(coreAdmin);
         return requestBuilder.build();
     }
@@ -133,7 +133,7 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
         TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<TransportProtos.ToCoreNotificationMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
         requestBuilder.settings(kafkaSettings);
         requestBuilder.clientId("tb-ie-to-core-notifications-" + serviceInfoProvider.getServiceId());
-        requestBuilder.defaultTopic(coreSettings.getTopic());
+        requestBuilder.defaultTopic(topicService.buildTopicName(coreSettings.getTopic()));
         requestBuilder.admin(notificationAdmin);
         return requestBuilder.build();
     }
@@ -142,9 +142,9 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> createToIntegrationExecutorNotificationsMsgConsumer() {
         TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
         consumerBuilder.settings(kafkaSettings);
-        consumerBuilder.topic(notificationsTopicService.getNotificationsTopic(ServiceType.TB_INTEGRATION_EXECUTOR, serviceInfoProvider.getServiceId()).getFullTopicName());
+        consumerBuilder.topic(topicService.getNotificationsTopic(ServiceType.TB_INTEGRATION_EXECUTOR, serviceInfoProvider.getServiceId()).getFullTopicName());
         consumerBuilder.clientId("tb-ie-notifications-consumer-" + serviceInfoProvider.getServiceId());
-        consumerBuilder.groupId("ie-notifications-node-" + serviceInfoProvider.getServiceId());
+        consumerBuilder.groupId(topicService.buildTopicName("ie-notifications-node-" + serviceInfoProvider.getServiceId()));
         consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorNotificationMsg.parseFrom(msg.getData()), msg.getHeaders()));
         consumerBuilder.admin(notificationAdmin);
         consumerBuilder.statsService(consumerStatsService);
@@ -156,9 +156,9 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
         String queueName = integrationType.name();
         TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
         consumerBuilder.settings(kafkaSettings);
-        consumerBuilder.topic(integrationExecutorSettings.getIntegrationDownlinkTopic(integrationType));
+        consumerBuilder.topic(topicService.buildTopicName(integrationExecutorSettings.getIntegrationDownlinkTopic(integrationType)));
         consumerBuilder.clientId("ie-" + queueName + "-consumer-" + serviceInfoProvider.getServiceId() + "-" + integrationConsumerCount.incrementAndGet());
-        consumerBuilder.groupId("ie-" + queueName + "-consumer");
+        consumerBuilder.groupId(topicService.buildTopicName("ie-" + queueName + "-consumer"));
         consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorDownlinkMsg.parseFrom(msg.getData()), msg.getHeaders()));
         consumerBuilder.admin(ruleEngineAdmin);
         consumerBuilder.statsService(consumerStatsService);
@@ -205,14 +205,14 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
         TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<IntegrationApiRequestMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
         requestBuilder.settings(kafkaSettings);
         requestBuilder.clientId("integration-api-request-" + serviceInfoProvider.getServiceId());
-        requestBuilder.defaultTopic(integrationApiSettings.getRequestsTopic());
+        requestBuilder.defaultTopic(topicService.buildTopicName(integrationApiSettings.getRequestsTopic()));
         requestBuilder.admin(integrationApiRequestAdmin);
 
         TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<IntegrationApiResponseMsg>> responseBuilder = TbKafkaConsumerTemplate.builder();
         responseBuilder.settings(kafkaSettings);
-        responseBuilder.topic(integrationApiSettings.getResponsesTopic() + "." + serviceInfoProvider.getServiceId());
+        responseBuilder.topic(topicService.buildTopicName(integrationApiSettings.getResponsesTopic() + "." + serviceInfoProvider.getServiceId()));
         responseBuilder.clientId("integration-api-response-" + serviceInfoProvider.getServiceId());
-        responseBuilder.groupId("integration-node-" + serviceInfoProvider.getServiceId());
+        responseBuilder.groupId(topicService.buildTopicName("integration-node-" + serviceInfoProvider.getServiceId()));
         responseBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), IntegrationApiResponseMsg.parseFrom(msg.getData()), msg.getHeaders()));
         responseBuilder.admin(integrationApiResponseAdmin);
         responseBuilder.statsService(consumerStatsService);

@@ -54,6 +54,7 @@ import org.thingsboard.server.dao.usagerecord.ApiLimitService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
+import org.thingsboard.server.service.install.update.ImagesUpdater;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -87,6 +88,9 @@ class InstallScriptsTest {
     ResourceService resourceService;
     @MockBean
     WhiteLabelingService whiteLabelingService;
+    @MockBean
+    ImagesUpdater imagesUpdater;
+
     @SpyBean
     InstallScripts installScripts;
 

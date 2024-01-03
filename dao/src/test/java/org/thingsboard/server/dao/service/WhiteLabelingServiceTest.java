@@ -65,7 +65,7 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
     public void testIsWhiteLabelingAllowed_null_null_null() throws IOException {
         updateTenantAllowWhiteLabelingSetting(null, null);
         updateCustomerAllowWhiteLabelingSetting(null);
-        Assert.assertTrue(whiteLabelingService.isWhiteLabelingAllowed(tenantId, tenantId));
+        Assert.assertTrue(whiteLabelingService.isWhiteLabelingAllowed(tenantId, null));
         Assert.assertTrue(whiteLabelingService.isCustomerWhiteLabelingAllowed(tenantId));
         Assert.assertTrue(whiteLabelingService.isWhiteLabelingAllowed(tenantId, customerId));
     }
@@ -74,7 +74,7 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
     public void testIsWhiteLabelingAllowed_false_false_null() throws IOException {
         updateTenantAllowWhiteLabelingSetting(false, false);
         updateCustomerAllowWhiteLabelingSetting(null);
-        Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, tenantId));
+        Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, null));
         Assert.assertFalse(whiteLabelingService.isCustomerWhiteLabelingAllowed(tenantId));
         Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, customerId));
     }
@@ -83,7 +83,7 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
     public void testIsWhiteLabelingAllowed_false_false_false() throws IOException {
         updateTenantAllowWhiteLabelingSetting(false, false);
         updateCustomerAllowWhiteLabelingSetting(false);
-        Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, tenantId));
+        Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, null));
         Assert.assertFalse(whiteLabelingService.isCustomerWhiteLabelingAllowed(tenantId));
         Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, customerId));
     }
@@ -92,7 +92,7 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
     public void testIsWhiteLabelingAllowed_false_false_true() throws IOException {
         updateTenantAllowWhiteLabelingSetting(false, false);
         updateCustomerAllowWhiteLabelingSetting(false);
-        Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, tenantId));
+        Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, null));
         Assert.assertFalse(whiteLabelingService.isCustomerWhiteLabelingAllowed(tenantId));
         Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, customerId));
     }
@@ -101,7 +101,7 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
     public void testIsWhiteLabelingAllowed_true_false_null() throws IOException {
         updateTenantAllowWhiteLabelingSetting(true, false);
         updateCustomerAllowWhiteLabelingSetting(null);
-        Assert.assertTrue(whiteLabelingService.isWhiteLabelingAllowed(tenantId, tenantId));
+        Assert.assertTrue(whiteLabelingService.isWhiteLabelingAllowed(tenantId, null));
         Assert.assertFalse(whiteLabelingService.isCustomerWhiteLabelingAllowed(tenantId));
         Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, customerId));
     }
@@ -110,7 +110,7 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
     public void testIsWhiteLabelingAllowed_true_false_false() throws IOException {
         updateTenantAllowWhiteLabelingSetting(true, false);
         updateCustomerAllowWhiteLabelingSetting(false);
-        Assert.assertTrue(whiteLabelingService.isWhiteLabelingAllowed(tenantId, tenantId));
+        Assert.assertTrue(whiteLabelingService.isWhiteLabelingAllowed(tenantId, null));
         Assert.assertFalse(whiteLabelingService.isCustomerWhiteLabelingAllowed(tenantId));
         Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, customerId));
     }
@@ -119,7 +119,7 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
     public void testIsWhiteLabelingAllowed_true_false_true() throws IOException {
         updateTenantAllowWhiteLabelingSetting(true, false);
         updateCustomerAllowWhiteLabelingSetting(true);
-        Assert.assertTrue(whiteLabelingService.isWhiteLabelingAllowed(tenantId, tenantId));
+        Assert.assertTrue(whiteLabelingService.isWhiteLabelingAllowed(tenantId, null));
         Assert.assertFalse(whiteLabelingService.isCustomerWhiteLabelingAllowed(tenantId));
         Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, customerId));
     }
@@ -128,7 +128,7 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
     public void testIsWhiteLabelingAllowed_true_true_null() throws IOException {
         updateTenantAllowWhiteLabelingSetting(true, true);
         updateCustomerAllowWhiteLabelingSetting(null);
-        Assert.assertTrue(whiteLabelingService.isWhiteLabelingAllowed(tenantId, tenantId));
+        Assert.assertTrue(whiteLabelingService.isWhiteLabelingAllowed(tenantId, null));
         Assert.assertTrue(whiteLabelingService.isCustomerWhiteLabelingAllowed(tenantId));
         Assert.assertTrue(whiteLabelingService.isWhiteLabelingAllowed(tenantId, customerId));
     }
@@ -137,7 +137,7 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
     public void testIsWhiteLabelingAllowed_true_true_false() throws IOException {
         updateTenantAllowWhiteLabelingSetting(true, true);
         updateCustomerAllowWhiteLabelingSetting(false);
-        Assert.assertTrue(whiteLabelingService.isWhiteLabelingAllowed(tenantId, tenantId));
+        Assert.assertTrue(whiteLabelingService.isWhiteLabelingAllowed(tenantId, null));
         Assert.assertTrue(whiteLabelingService.isCustomerWhiteLabelingAllowed(tenantId));
         Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, customerId));
     }
@@ -146,7 +146,7 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
     public void testIsWhiteLabelingAllowed_true_true_true() throws IOException {
         updateTenantAllowWhiteLabelingSetting(true, true);
         updateCustomerAllowWhiteLabelingSetting(true);
-        Assert.assertTrue(whiteLabelingService.isWhiteLabelingAllowed(tenantId, tenantId));
+        Assert.assertTrue(whiteLabelingService.isWhiteLabelingAllowed(tenantId, null));
         Assert.assertTrue(whiteLabelingService.isCustomerWhiteLabelingAllowed(tenantId));
         Assert.assertTrue(whiteLabelingService.isWhiteLabelingAllowed(tenantId, customerId));
     }
@@ -155,7 +155,7 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
     public void testIsWhiteLabelingAllowed_false_true_null() throws IOException {
         updateTenantAllowWhiteLabelingSetting(false, true);
         updateCustomerAllowWhiteLabelingSetting(null);
-        Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, tenantId));
+        Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, null));
         Assert.assertFalse(whiteLabelingService.isCustomerWhiteLabelingAllowed(tenantId));
         Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, customerId));
     }
@@ -164,7 +164,7 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
     public void testIsWhiteLabelingAllowed_false_true_false() throws IOException {
         updateTenantAllowWhiteLabelingSetting(false, true);
         updateCustomerAllowWhiteLabelingSetting(false);
-        Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, tenantId));
+        Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, null));
         Assert.assertFalse(whiteLabelingService.isCustomerWhiteLabelingAllowed(tenantId));
         Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, customerId));
     }
@@ -173,12 +173,12 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
     public void testIsWhiteLabelingAllowed_false_true_true() throws IOException {
         updateTenantAllowWhiteLabelingSetting(false, true);
         updateCustomerAllowWhiteLabelingSetting(true);
-        Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, tenantId));
+        Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, null));
         Assert.assertFalse(whiteLabelingService.isCustomerWhiteLabelingAllowed(tenantId));
         Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, customerId));
     }
 
-    private void updateTenantAllowWhiteLabelingSetting(Boolean allowWhiteLabeling, Boolean allowCustomerWhiteLabeling) throws IOException {
+    private void updateTenantAllowWhiteLabelingSetting(Boolean allowWhiteLabeling, Boolean allowCustomerWhiteLabeling) {
         Tenant tenant = tenantService.findTenantById(tenantId);
         if (allowWhiteLabeling == null) {
             tenant.setAdditionalInfo(JacksonUtil.toJsonNode("{}"));

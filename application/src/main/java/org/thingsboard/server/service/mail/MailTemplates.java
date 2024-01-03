@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.mail;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import freemarker.core.TemplateClassResolver;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -72,8 +73,10 @@ public class MailTemplates {
         JsonNode templateNode = getTemplate(config, template);
         if (templateNode.has(BODY)) {
             String bodyTemplate = templateNode.get(BODY).asText();
+            Configuration configuration = new Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS);
+            configuration.setNewBuiltinClassResolver(TemplateClassResolver.SAFER_RESOLVER);
             Template freeMakerTemplate = new Template(template, new StringReader(bodyTemplate),
-                    new Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS));
+                    configuration);
             StringWriter out = new StringWriter();
             freeMakerTemplate.process(model, out);
             return out.toString();

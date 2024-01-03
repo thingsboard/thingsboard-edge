@@ -47,7 +47,7 @@ import java.util.UUID;
 public interface CustomerRepository extends JpaRepository<CustomerEntity, UUID>, ExportableEntityRepository<CustomerEntity> {
 
     @Query("SELECT c FROM CustomerEntity c WHERE c.tenantId = :tenantId " +
-            "AND LOWER(c.title) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND (:textSearch IS NULL OR ilike(c.title, CONCAT('%', :textSearch, '%')) = true)")
     Page<CustomerEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                         @Param("textSearch") String textSearch,
                                         Pageable pageable);
@@ -60,7 +60,7 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, UUID>,
             "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
             "AND re.relationType = 'Contains' " +
             "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
-            "AND LOWER(c.title) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND (:textSearch IS NULL OR ilike(c.title, CONCAT('%', :textSearch, '%')) = true)")
     Page<CustomerEntity> findByEntityGroupId(@Param("groupId") UUID groupId,
                                              @Param("textSearch") String textSearch,
                                              Pageable pageable);
@@ -72,7 +72,7 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, UUID>,
             "AND re.relationType = 'Contains' " +
             "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP') " +
             "OR (:additionalCustomerIds IS NOT NULL AND c.id in :additionalCustomerIds)) " +
-            "AND LOWER(c.title) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND (:textSearch IS NULL OR ilike(c.title, CONCAT('%', :textSearch, '%')) = true)")
     Page<CustomerEntity> findByEntityGroupIds(@Param("groupIds") List<UUID> groupIds,
                                               @Param("additionalCustomerIds") List<UUID> additionalCustomerIds,
                                               @Param("textSearch") String textSearch,

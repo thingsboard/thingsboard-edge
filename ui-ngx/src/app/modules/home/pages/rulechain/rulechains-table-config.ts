@@ -40,7 +40,7 @@ import { RuleChain, RuleChainParams, RuleChainType } from '@shared/models/rule-c
 import { RuleChainService } from '@core/http/rule-chain.service';
 import { DialogService } from '@core/services/dialog.service';
 import { MatDialog } from '@angular/material/dialog';
-import { ImportExportService } from '@home/components/import-export/import-export.service';
+import { ImportExportService } from '@shared/import-export/import-export.service';
 import { ItemBufferService } from '@core/services/item-buffer.service';
 import { EdgeService } from '@core/http/edge.service';
 import { TranslateService } from '@ngx-translate/core';
@@ -233,7 +233,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
     if (ruleChainScope === 'edge') {
       actions.push(
         {
-          name: this.translate.instant('edge.assign-to-edge'),
+          name: this.translate.instant('rulechain.assign-to-edge'),
           icon: 'add',
           isEnabled: () => true,
           onAction: ($event) => this.assignRuleChainsToEdge($event)
@@ -643,7 +643,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
       this.addEnabled = false;
       if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE)) {
         this.headerActionDescriptors.push({
-            name: this.translate.instant('edge.assign-to-edge'),
+            name: this.translate.instant('rulechain.assign-to-edge'),
             icon: 'add',
             isEnabled: () => true,
             onAction: ($event) => {

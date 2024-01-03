@@ -80,7 +80,7 @@ public class JpaIntegrationInfoDao extends JpaAbstractDao<IntegrationInfoEntity,
         return DaoUtil.toPageData(
                 integrationInfoRepository.findByTenantIdAndIsEdgeTemplate(
                         tenantId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         isEdgeTemplate,
                         DaoUtil.toPageable(pageLink)));
     }
@@ -92,7 +92,7 @@ public class JpaIntegrationInfoDao extends JpaAbstractDao<IntegrationInfoEntity,
                 .findByTenantIdAndEdgeId(
                         tenantId,
                         edgeId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -102,7 +102,7 @@ public class JpaIntegrationInfoDao extends JpaAbstractDao<IntegrationInfoEntity,
         return DaoUtil.toPageData(integrationInfoRepository
                 .findAllIntegrationInfosWithStats(
                         tenantId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         isEdgeTemplate,
                         DaoUtil.toPageable(pageLink)));
     }

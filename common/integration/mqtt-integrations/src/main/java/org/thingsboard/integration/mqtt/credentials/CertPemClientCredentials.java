@@ -36,48 +36,37 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.util.codec.binary.Base64;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openssl.PEMDecryptorProvider;
-import org.bouncycastle.openssl.PEMEncryptedKeyPair;
-import org.bouncycastle.openssl.PEMKeyPair;
-import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
+import org.thingsboard.common.util.SslUtil;
 import org.thingsboard.mqtt.MqttClientConfig;
-import org.thingsboard.server.common.data.StringUtils;
 
-import javax.crypto.Cipher;
-import javax.crypto.EncryptedPrivateKeyInfo;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
-import java.io.ByteArrayInputStream;
-import java.security.AlgorithmParameters;
-import java.security.Key;
-import java.security.KeyFactory;
-import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.Security;
+import java.security.cert.CertPath;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.security.spec.KeySpec;
-import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Data
 @Slf4j
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CertPemClientCredentials implements MqttClientCredentials {
 
-    private static final String TLS_VERSION = "TLSv1.2";
+    public static final String PRIVATE_KEY_ALIAS = "private-key";
+    public static final String X_509 = "X.509";
+    public static final String CERT_ALIAS_PREFIX = "cert-";
+    public static final String CA_CERT_CERT_ALIAS_PREFIX = "caCert-cert-";
 
     private String caCert;
     private String cert;
     private String privateKey;
-    private String password;
+    private String privateKeyPassword = "";
 
     @Override
     public Optional<SslContext> initSslContext() {
@@ -99,100 +88,44 @@ public class CertPemClientCredentials implements MqttClientCredentials {
 
     }
 
-    private KeyManagerFactory createAndInitKeyManagerFactory() throws Exception {
-        X509Certificate certHolder = readCertFile(cert);
-        Object keyObject = readPrivateKeyFile(privateKey);
-        char[] passwordCharArray = "".toCharArray();
-        if (!StringUtils.isEmpty(password)) {
-            passwordCharArray = password.toCharArray();
-        }
-
-        JcaPEMKeyConverter keyConverter = new JcaPEMKeyConverter().setProvider("BC");
-
-        PrivateKey privateKey;
-        if (keyObject instanceof PEMEncryptedKeyPair) {
-            PEMDecryptorProvider provider = new JcePEMDecryptorProviderBuilder().build(passwordCharArray);
-            KeyPair key = keyConverter.getKeyPair(((PEMEncryptedKeyPair) keyObject).decryptKeyPair(provider));
-            privateKey = key.getPrivate();
-        } else if (keyObject instanceof PEMKeyPair) {
-            KeyPair key = keyConverter.getKeyPair((PEMKeyPair) keyObject);
-            privateKey = key.getPrivate();
-        } else if (keyObject instanceof PrivateKey) {
-            privateKey = (PrivateKey)keyObject;
-        } else {
-            throw new RuntimeException("Unable to get private key from object: " + keyObject.getClass());
-        }
-
-        KeyStore clientKeyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-        clientKeyStore.load(null, null);
-        clientKeyStore.setCertificateEntry("cert", certHolder);
-        clientKeyStore.setKeyEntry("private-key",
-                privateKey,
-                passwordCharArray,
-                new Certificate[]{certHolder});
-
-        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        keyManagerFactory.init(clientKeyStore, passwordCharArray);
-        return keyManagerFactory;
-    }
-
-    private TrustManagerFactory createAndInitTrustManagerFactory() throws Exception {
-        X509Certificate caCertHolder;
-        caCertHolder = readCertFile(caCert);
+    protected TrustManagerFactory createAndInitTrustManagerFactory() throws Exception {
+        List<X509Certificate> caCerts = SslUtil.readCertFile(caCert);
 
         KeyStore caKeyStore = KeyStore.getInstance(KeyStore.getDefaultType());
         caKeyStore.load(null, null);
-        caKeyStore.setCertificateEntry("caCert-cert", caCertHolder);
+        for (X509Certificate caCert : caCerts) {
+            caKeyStore.setCertificateEntry(CA_CERT_CERT_ALIAS_PREFIX + caCert.getSubjectDN().getName(), caCert);
+        }
 
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         trustManagerFactory.init(caKeyStore);
         return trustManagerFactory;
     }
 
-    private X509Certificate readCertFile(String fileContent) throws Exception {
-        X509Certificate certificate = null;
-        if (fileContent != null && !fileContent.trim().isEmpty()) {
-            fileContent = fileContent.replace("-----BEGIN CERTIFICATE-----", "")
-                    .replace("-----END CERTIFICATE-----", "")
-                    .replaceAll("\\s", "");
-            byte[] decoded = Base64.decodeBase64(fileContent);
-            CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
-            certificate = (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(decoded));
-        }
-        return certificate;
+    private KeyManagerFactory createAndInitKeyManagerFactory() throws Exception {
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        kmf.init(loadKeyStore(), privateKeyPassword.toCharArray());
+        return kmf;
     }
 
-    private PrivateKey readPrivateKeyFile(String fileContent) throws Exception {
-        PrivateKey privateKey = null;
-        if (fileContent != null && !fileContent.isEmpty()) {
-            fileContent = fileContent.replaceAll(".*BEGIN.*PRIVATE KEY.*", "")
-                    .replaceAll(".*END.*PRIVATE KEY.*", "")
-                    .replaceAll("\\s", "");
-            byte[] decoded = Base64.decodeBase64(fileContent);
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-            KeySpec keySpec = getKeySpec(decoded);
-            privateKey = keyFactory.generatePrivate(keySpec);
+    protected KeyStore loadKeyStore() throws Exception {
+        List<X509Certificate> certificates = SslUtil.readCertFile(this.cert);
+        PrivateKey privateKey = SslUtil.readPrivateKey(this.privateKey, privateKeyPassword);
+
+        KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+        keyStore.load(null);
+        List<X509Certificate> unique = certificates.stream().distinct().collect(Collectors.toList());
+        for (X509Certificate cert : unique) {
+            keyStore.setCertificateEntry(CERT_ALIAS_PREFIX + cert.getSubjectDN().getName(), cert);
         }
-        return privateKey;
-    }
 
-    private KeySpec getKeySpec(byte[] encodedKey) throws Exception {
-        KeySpec keySpec;
-        if (StringUtils.isEmpty(password)) {
-            keySpec = new PKCS8EncodedKeySpec(encodedKey);
-        } else {
-            PBEKeySpec pbeKeySpec = new PBEKeySpec(password.toCharArray());
-
-            EncryptedPrivateKeyInfo privateKeyInfo = new EncryptedPrivateKeyInfo(encodedKey);
-            String algorithmName = privateKeyInfo.getAlgName();
-            Cipher cipher = Cipher.getInstance(algorithmName);
-            SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(algorithmName);
-
-            Key pbeKey = secretKeyFactory.generateSecret(pbeKeySpec);
-            AlgorithmParameters algParams = privateKeyInfo.getAlgParameters();
-            cipher.init(Cipher.DECRYPT_MODE, pbeKey, algParams);
-            keySpec = privateKeyInfo.getKeySpec(cipher);
+        if (privateKey != null) {
+            CertificateFactory factory = CertificateFactory.getInstance(X_509);
+            CertPath certPath = factory.generateCertPath(certificates);
+            List<? extends Certificate> path = certPath.getCertificates();
+            Certificate[] x509Certificates = path.toArray(new Certificate[0]);
+            keyStore.setKeyEntry(PRIVATE_KEY_ALIAS, privateKey, privateKeyPassword.toCharArray(), x509Certificates);
         }
-        return keySpec;
+        return keyStore;
     }
 }

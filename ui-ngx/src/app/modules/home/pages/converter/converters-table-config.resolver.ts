@@ -47,7 +47,7 @@ import {
   resolveConverterParams
 } from '@shared/models/converter.models';
 import { ConverterService } from '@core/http/converter.service';
-import { ImportExportService } from '@home/components/import-export/import-export.service';
+import { ImportExportService } from '@shared/import-export/import-export.service';
 import { UtilsService } from '@core/services/utils.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';

@@ -253,7 +253,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         boolean create = tenant.getId() == null;
         Tenant savedTenant = tenantDao.save(tenant.getId(), tenant);
         publishEvictEvent(new TenantEvictEvent(savedTenant.getId(), create));
-        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID)
+        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedTenant.getId())
                 .entityId(savedTenant.getId()).entity(savedTenant).added(create).build());
         if (tenant.getId() == null) {
             deviceProfileService.createDefaultDeviceProfile(savedTenant.getId());
@@ -289,7 +289,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         log.trace("Executing deleteTenant [{}]", tenantId);
         Tenant tenant = findTenantById(tenantId);
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        whiteLabelingService.deleteDomainWhiteLabelingByEntityId(tenantId, tenantId);
+        whiteLabelingService.deleteDomainWhiteLabelingByEntityId(tenantId, null);
         entityViewService.deleteEntityViewsByTenantId(tenantId);
         widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
         widgetTypeService.deleteWidgetTypesByTenantId(tenantId);
@@ -321,7 +321,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         adminSettingsService.deleteAdminSettingsByTenantId(tenantId);
         tenantDao.removeById(tenantId, tenantId.getId());
         publishEvictEvent(new TenantEvictEvent(tenantId, true));
-        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID)
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId)
                 .entity(tenant).entityId(tenantId).build());
         relationService.deleteEntityRelations(tenantId, tenantId);
         alarmService.deleteEntityAlarmRecordsByTenantId(tenantId);

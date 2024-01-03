@@ -45,7 +45,8 @@ export const Constants = {
     badRequestParams: 31,
     itemNotFound: 32,
     tooManyRequests: 33,
-    tooManyUpdates: 34
+    tooManyUpdates: 34,
+    passwordViolation: 45
   },
   entryPoints: {
     login: '/api/auth/login',
@@ -84,6 +85,13 @@ export const MediaBreakpoints = {
   'gt-lg': 'screen and (min-width: 1920px)',
   'gt-xl': 'screen and (min-width: 5001px)',
   'md-lg': 'screen and (min-width: 960px) and (max-width: 1819px)'
+};
+
+export const resolveBreakpoint = (breakpoint: string): string => {
+  if (MediaBreakpoints[breakpoint]) {
+    return MediaBreakpoints[breakpoint];
+  }
+  return breakpoint;
 };
 
 export const helpBaseUrl = 'https://thingsboard.io';
@@ -218,6 +226,7 @@ export const HelpLinks = {
     integrationApachePulsar:  helpBaseUrl +  '/docs/user-guide/integrations/apache-pulsar',
     integrationPubsub:  helpBaseUrl +  '/docs/user-guide/integrations/pubsub',
     integrationCoAP:  helpBaseUrl +  '/docs/user-guide/integrations/coap',
+    integrationKpn:  helpBaseUrl +  '/docs/user-guide/integrations/kpn',
     integrationCustom:  helpBaseUrl +  '/docs/user-guide/integrations/custom',
     whiteLabeling: helpBaseUrl +  '/docs/pe/user-guide/white-labeling',
     entityGroups: helpBaseUrl +  '/docs/pe/user-guide/groups',
@@ -234,6 +243,7 @@ export const HelpLinks = {
     recipientNotifications: helpBaseUrl + '/docs/pe/user-guide/notifications/#recipients',
     ruleNotifications: helpBaseUrl + '/docs/pe/user-guide/notifications/#rules',
     jwtSecuritySettings: helpBaseUrl + '/docs/pe/user-guide/ui/jwt-security-settings/',
+    gatewayInstall: helpBaseUrl + '/docs/iot-gateway/install/docker-installation/',
   }
 };
 

@@ -48,7 +48,7 @@ public class NotificationsCountSubscription extends TbSubscription<Notifications
 
     @Builder
     public NotificationsCountSubscription(String serviceId, String sessionId, int subscriptionId, TenantId tenantId, EntityId entityId,
-                                          BiConsumer<NotificationsCountSubscription, NotificationsSubscriptionUpdate> updateProcessor) {
+                                          BiConsumer<TbSubscription<NotificationsSubscriptionUpdate>, NotificationsSubscriptionUpdate> updateProcessor) {
         super(serviceId, sessionId, subscriptionId, tenantId, entityId, TbSubscriptionType.NOTIFICATIONS_COUNT, updateProcessor);
     }
 
@@ -56,6 +56,7 @@ public class NotificationsCountSubscription extends TbSubscription<Notifications
         return UnreadNotificationsCountUpdate.builder()
                 .cmdId(getSubscriptionId())
                 .totalUnreadCount(unreadCounter.get())
+                .sequenceNumber(sequence.incrementAndGet())
                 .build();
     }
 

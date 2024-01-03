@@ -49,7 +49,7 @@ public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, 
             "WHERE e.ownerId = :parentEntityId " +
             "AND e.ownerType = :parentEntityType " +
             "AND e.type = :groupType " +
-            "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND (:textSearch IS NULL OR ilike(e.name, CONCAT('%', :textSearch, '%')) = true)")
     Page<EntityGroupEntity> findEntityGroupsByType(@Param("parentEntityId") UUID parentEntityId,
                                                    @Param("parentEntityType") EntityType parentEntityType,
                                                    @Param("groupType") EntityType groupType,
@@ -60,7 +60,7 @@ public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, 
             "WHERE " +
             TENANT_ID_FILTER +
             "AND e.type = :groupType " +
-            "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND (:textSearch IS NULL OR ilike(e.name, CONCAT('%', :textSearch, '%')) = true)")
     Page<EntityGroupEntity> findEntityGroupsByType(
             @Param("tenantId") UUID tenantId,
             @Param("groupType") EntityType groupType,
@@ -81,7 +81,7 @@ public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, 
             "WHERE e.id = re.toId AND re.toType = 'ENTITY_GROUP' " +
             "AND re.relationTypeGroup = 'TO_ENTITY_GROUP' " +
             "AND re.fromId = :parentEntityId AND re.fromType = :parentEntityType " +
-            "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND (:textSearch IS NULL OR ilike(e.name, CONCAT('%', :textSearch, '%')) = true)")
     Page<EntityGroupEntity> findAllEntityGroupsByParentRelation(@Param("parentEntityId") UUID parentEntityId,
                                                                 @Param("parentEntityType") String parentEntityType,
                                                                 @Param("textSearch") String textSearch,
@@ -90,7 +90,7 @@ public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, 
     @Query("SELECT e FROM EntityGroupEntity e " +
             "WHERE e.ownerId = :parentEntityId " +
             "AND e.ownerType = :parentEntityType " +
-            "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND (:textSearch IS NULL OR ilike(e.name, CONCAT('%', :textSearch, '%')) = true)")
     Page<EntityGroupEntity> findAllEntityGroups(@Param("parentEntityId") UUID parentEntityId,
                                                 @Param("parentEntityType") EntityType parentEntityType,
                                                 @Param("textSearch") String textSearch,

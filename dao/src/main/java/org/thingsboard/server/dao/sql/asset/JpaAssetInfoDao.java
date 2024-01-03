@@ -78,7 +78,7 @@ public class JpaAssetInfoDao extends JpaAbstractDao<AssetInfoEntity, AssetInfo> 
                 .findByTenantIdAndAssetProfileId(
                         tenantId,
                         assetProfileId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -87,7 +87,7 @@ public class JpaAssetInfoDao extends JpaAbstractDao<AssetInfoEntity, AssetInfo> 
         return DaoUtil.toPageData(assetInfoRepository
                 .findTenantAssetsByTenantId(
                         tenantId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -97,7 +97,7 @@ public class JpaAssetInfoDao extends JpaAbstractDao<AssetInfoEntity, AssetInfo> 
                 .findTenantAssetsByTenantIdAndAssetProfileId(
                         tenantId,
                         assetProfileId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -107,7 +107,7 @@ public class JpaAssetInfoDao extends JpaAbstractDao<AssetInfoEntity, AssetInfo> 
                 .findByTenantIdAndCustomerId(
                         tenantId,
                         customerId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -118,7 +118,7 @@ public class JpaAssetInfoDao extends JpaAbstractDao<AssetInfoEntity, AssetInfo> 
                         tenantId,
                         customerId,
                         assetProfileId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -128,7 +128,7 @@ public class JpaAssetInfoDao extends JpaAbstractDao<AssetInfoEntity, AssetInfo> 
                 .findByTenantIdAndCustomerIdIncludingSubCustomers(
                         tenantId,
                         customerId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -139,7 +139,7 @@ public class JpaAssetInfoDao extends JpaAbstractDao<AssetInfoEntity, AssetInfo> 
                         tenantId,
                         customerId,
                         assetProfileId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
 }

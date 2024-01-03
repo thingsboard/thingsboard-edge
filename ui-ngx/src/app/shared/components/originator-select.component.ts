@@ -37,9 +37,10 @@ import {
   Input,
   OnDestroy,
   OnInit,
-  Output
+  Output,
+  ViewEncapsulation
 } from '@angular/core';
-import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
@@ -54,7 +55,8 @@ import { Authority } from '@shared/models/authority.enum';
 @Component({
   selector: 'tb-originator-select',
   templateUrl: './originator-select.component.html',
-  styleUrls: [],
+  styleUrls: ['./originator-select.component.scss'],
+  encapsulation: ViewEncapsulation.None,
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => OriginatorSelectComponent),
@@ -78,6 +80,20 @@ export class OriginatorSelectComponent implements ControlValueAccessor, OnInit, 
 
   @Input()
   entitiesGroupOwnerText = 'scheduler.entities-group-owner';
+  headerOptions = [
+    {
+      name: this.translate.instant(this.singleEntityText),
+      value: 'entity'
+    },
+    {
+      name: this.translate.instant(this.groupOfEntitiesText),
+      value: 'groupTenant'
+    },
+    {
+      name: this.translate.instant(this.entitiesGroupOwnerText),
+      value: 'ownerGroup'
+    }
+  ];
 
   private requiredValue: boolean;
   get required(): boolean {
@@ -194,7 +210,7 @@ export class OriginatorSelectComponent implements ControlValueAccessor, OnInit, 
   }
 
 
-  updateView(value: {originator: string, entityOriginatorId: EntityId, groupOriginatorId: EntityId} | null) {
+  updateView(value: {originator: string; entityOriginatorId: EntityId; groupOriginatorId: EntityId} | null) {
     let originatorId = null;
     if (value) {
       originatorId = value.originator !== 'entity' ? value.groupOriginatorId : value.entityOriginatorId;

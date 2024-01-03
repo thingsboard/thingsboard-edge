@@ -112,6 +112,7 @@ public class BasicOpcUaIntegrationTest extends AbstractIntegrationTest {
             if (server.getStarted()) {
                 stopServer();
             }
+            Thread.sleep(5000); // Should be sufficient to process all messages from integration to properly delete tenant.
         } catch (InterruptedException | ExecutionException e) {
             log.error("Error during removing OPC-UA integration", e);
         }
@@ -246,13 +247,13 @@ public class BasicOpcUaIntegrationTest extends AbstractIntegrationTest {
 
         clientConfiguration.set("identity", identityNode);
 
-        ArrayNode mappingNode = JacksonUtil.OBJECT_MAPPER.createArrayNode();
+        ArrayNode mappingNode = JacksonUtil.newArrayNode();
 
         ObjectNode deviceConfigurationNode = JacksonUtil.newObjectNode();
         deviceConfigurationNode.put("deviceNodePattern", "Objects\\.HelloWorld");
         deviceConfigurationNode.put("mappingType", "FQN");
 
-        ArrayNode subscriptionTagsNodes = JacksonUtil.OBJECT_MAPPER.createArrayNode();
+        ArrayNode subscriptionTagsNodes = JacksonUtil.newArrayNode();
 
         for (String expectedNode : expectedNodes) {
             ObjectNode subscriptionTagNode = JacksonUtil.newObjectNode();
@@ -285,7 +286,7 @@ public class BasicOpcUaIntegrationTest extends AbstractIntegrationTest {
     private TransportProtos.IntegrationDownlinkMsgProto createIntegrationDownlinkMessage(DeviceId originatorId) {
         ObjectNode dataNode = JacksonUtil.newObjectNode();
         ObjectNode writeValuesNode = JacksonUtil.newObjectNode();
-        ArrayNode writeValuesArray = JacksonUtil.OBJECT_MAPPER.createArrayNode();
+        ArrayNode writeValuesArray = JacksonUtil.newArrayNode();
         ObjectNode writeValueNode = JacksonUtil.newObjectNode();
         writeValueNode.put("nodeId", "ns=2;s=HelloWorld/ScalarTypes/String");
         writeValueNode.put("value", "New value");

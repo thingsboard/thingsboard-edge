@@ -48,6 +48,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileInfo;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
@@ -56,6 +57,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.device.profile.TbDeviceProfileService;
@@ -73,6 +75,8 @@ import static org.thingsboard.server.controller.ControllerConstants.DEVICE_PROFI
 import static org.thingsboard.server.controller.ControllerConstants.DEVICE_PROFILE_INFO_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.DEVICE_PROFILE_SORT_PROPERTY_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.DEVICE_PROFILE_TEXT_SEARCH_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.INLINE_IMAGES;
+import static org.thingsboard.server.controller.ControllerConstants.INLINE_IMAGES_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
@@ -94,6 +98,7 @@ import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LI
 public class DeviceProfileController extends BaseController {
 
     private final TbDeviceProfileService tbDeviceProfileService;
+    private final ImageService imageService;
 
     @Autowired
     private TimeseriesService timeseriesService;
@@ -107,10 +112,16 @@ public class DeviceProfileController extends BaseController {
     @ResponseBody
     public DeviceProfile getDeviceProfileById(
             @ApiParam(value = DEVICE_PROFILE_ID_PARAM_DESCRIPTION)
-            @PathVariable(DEVICE_PROFILE_ID) String strDeviceProfileId) throws ThingsboardException {
+            @PathVariable(DEVICE_PROFILE_ID) String strDeviceProfileId,
+            @ApiParam(value = INLINE_IMAGES_DESCRIPTION)
+            @RequestParam(value = INLINE_IMAGES, required = false) boolean inlineImages) throws ThingsboardException {
         checkParameter(DEVICE_PROFILE_ID, strDeviceProfileId);
         DeviceProfileId deviceProfileId = new DeviceProfileId(toUUID(strDeviceProfileId));
-        return checkDeviceProfileId(deviceProfileId, Operation.READ);
+        var result = checkDeviceProfileId(deviceProfileId, Operation.READ);
+        if (inlineImages) {
+            imageService.inlineImage(result);
+        }
+        return result;
     }
 
     @ApiOperation(value = "Get Device Profile Info (getDeviceProfileInfoById)",
@@ -316,6 +327,20 @@ public class DeviceProfileController extends BaseController {
             deviceProfileIds.add(new DeviceProfileId(toUUID(strDeviceProfileId)));
         }
         return checkNotNull(deviceProfileService.findDeviceProfilesByIdsAsync(tenantId, deviceProfileIds).get());
+    }
+
+    @ApiOperation(value = "Get Device Profile names (getDeviceProfileNames)",
+            notes = "Returns a set of unique device profile names owned by the tenant."
+                    + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/deviceProfile/names", method = RequestMethod.GET)
+    @ResponseBody
+    public List<EntityInfo> getDeviceProfileNames(
+            @ApiParam(value = "Flag indicating whether to retrieve exclusively the names of device profiles that are referenced by tenant's devices.")
+            @RequestParam(value = "activeOnly", required = false, defaultValue = "false") boolean activeOnly) throws ThingsboardException {
+        SecurityUser user = getCurrentUser();
+        TenantId tenantId = user.getTenantId();
+        return checkNotNull(deviceProfileService.findDeviceProfileNamesByTenantId(tenantId, activeOnly));
     }
 
 }

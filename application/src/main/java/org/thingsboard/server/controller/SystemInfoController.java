@@ -55,6 +55,7 @@ import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.settings.UserSettings;
 import org.thingsboard.server.common.data.settings.UserSettingsType;
+import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -136,13 +137,7 @@ public class SystemInfoController extends BaseController {
         }
         if (currentUser.isTenantAdmin() || currentUser.isCustomerUser()) {
             systemParams.setPersistDeviceStateToTelemetry(persistToTelemetry);
-            EntityId entityId;
-            if (currentUser.isTenantAdmin()) {
-                entityId = tenantId;
-            } else {
-                entityId = customerId;
-            }
-            systemParams.setWhiteLabelingAllowed(whiteLabelingService.isWhiteLabelingAllowed(getTenantId(), entityId));
+            systemParams.setWhiteLabelingAllowed(whiteLabelingService.isWhiteLabelingAllowed(tenantId, customerId));
             if (currentUser.isTenantAdmin()) {
                 systemParams.setCustomerWhiteLabelingAllowed(whiteLabelingService.isCustomerWhiteLabelingAllowed(tenantId));
             } else {
@@ -160,6 +155,10 @@ public class SystemInfoController extends BaseController {
         }
         systemParams.setUserSettings(userSettingsNode);
         systemParams.setMaxDatapointsLimit(maxDatapointsLimit);
+        if (!currentUser.isSystemAdmin()) {
+            DefaultTenantProfileConfiguration tenantProfileConfiguration = tenantProfileCache.get(tenantId).getDefaultProfileConfiguration();
+            systemParams.setMaxResourceSize(tenantProfileConfiguration.getMaxResourceSize());
+        }
         return systemParams;
     }
 
