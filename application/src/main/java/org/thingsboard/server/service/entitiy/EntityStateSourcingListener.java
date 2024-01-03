@@ -36,13 +36,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.rule.engine.api.msg.DeviceCredentialsUpdateNotificationMsg;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.ApiUsageState;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.TbResource;
+import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -56,7 +56,6 @@ import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.msg.TbMsgType;
-import org.thingsboard.server.common.data.notification.NotificationRequest;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
@@ -64,6 +63,7 @@ import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.rule.engine.DeviceCredentialsUpdateNotificationMsg;
 import org.thingsboard.server.dao.entity.EntityStateSyncManager;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
@@ -191,14 +191,14 @@ public class EntityStateSourcingListener {
                 break;
             case DEVICE:
                 Device device = (Device) event.getEntity();
-                tbClusterService.onDeviceDeleted(device, null);
+                tbClusterService.onDeviceDeleted(tenantId, device, null);
                 break;
             case DEVICE_PROFILE:
                 DeviceProfile deviceProfile = (DeviceProfile) event.getEntity();
                 onDeviceProfileDelete(event.getTenantId(), event.getEntityId(), deviceProfile);
                 break;
             case TB_RESOURCE:
-                TbResource tbResource = (TbResource) event.getEntity();
+                TbResourceInfo tbResource = (TbResourceInfo) event.getEntity();
                 tbClusterService.onResourceDeleted(tbResource, null);
                 break;
             case INTEGRATION:
@@ -221,14 +221,18 @@ public class EntityStateSourcingListener {
     @TransactionalEventListener(fallbackExecution = true)
     public void handleEvent(ActionEntityEvent<?> event) {
         log.trace("[{}] ActionEntityEvent called: {}", event.getTenantId(), event);
-
-        if (ActionType.CREDENTIALS_UPDATED.equals(event.getActionType()) && EntityType.DEVICE.equals(event.getEntityId().getEntityType())
+        if (ActionType.CREDENTIALS_UPDATED.equals(event.getActionType()) &&
+                EntityType.DEVICE.equals(event.getEntityId().getEntityType())
                 && event.getEntity() instanceof DeviceCredentials) {
-            tbClusterService.pushMsgToCore(new DeviceCredentialsUpdateNotificationMsg(
-                    event.getTenantId(), (DeviceId) event.getEntityId(), (DeviceCredentials) event.getEntity()), null);
+            tbClusterService.pushMsgToCore(new DeviceCredentialsUpdateNotificationMsg(event.getTenantId(),
+                    (DeviceId) event.getEntityId(), (DeviceCredentials) event.getEntity()), null);
         } else if (ActionType.ASSIGNED_TO_TENANT.equals(event.getActionType()) && event.getEntity() instanceof Device) {
+            Device device = (Device) event.getEntity();
             Tenant tenant = JacksonUtil.fromString(event.getBody(), Tenant.class);
-            pushAssignedFromNotification(tenant, event.getTenantId(), (Device) event.getEntity());
+            if (tenant != null) {
+                tbClusterService.onDeviceAssignedToTenant(tenant.getId(), device);
+            }
+            pushAssignedFromNotification(tenant, event.getTenantId(), device);
         }
     }
 

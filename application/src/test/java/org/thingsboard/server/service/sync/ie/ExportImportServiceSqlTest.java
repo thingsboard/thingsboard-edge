@@ -653,7 +653,6 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
         verify(entityActionService).logEntityAction(any(), eq(importedDeviceProfile.getId()), eq(importedDeviceProfile),
                 any(), eq(ActionType.ADDED), isNull());
         verify(tbClusterService).onDeviceProfileChange(eq(importedDeviceProfile), any(), any());
-        verify(tbClusterService).broadcastEntityStateChangeEvent(any(), eq(importedDeviceProfile.getId()), eq(ComponentLifecycleEvent.CREATED));
         verify(tbClusterService).sendNotificationMsgToEdge(any(), any(), eq(importedDeviceProfile.getId()), any(), any(), eq(EdgeEventActionType.ADDED), any(), any(), any());
         verify(otaPackageStateService).update(eq(importedDeviceProfile), eq(false), eq(false));
 

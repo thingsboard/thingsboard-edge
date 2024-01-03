@@ -51,7 +51,7 @@ import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasRuleEngineProfile;
-import org.thingsboard.server.common.data.TbResource;
+import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -373,7 +373,7 @@ public class DefaultTbClusterService implements TbClusterService {
     @Override
     public void onDeviceDeleted(TenantId tenantId, Device device, TbQueueCallback callback) {
         DeviceId deviceId = device.getId();
-            gatewayNotificationsService.onDeviceDeleted(device);
+        gatewayNotificationsService.onDeviceDeleted(device);
         broadcastEntityDeleteToTransport(tenantId, deviceId, device.getName(), callback);
         sendDeviceStateServiceEvent(tenantId, deviceId, false, false, true);
         broadcastEntityStateChangeEvent(tenantId, deviceId, ComponentLifecycleEvent.DELETED);
@@ -386,7 +386,7 @@ public class DefaultTbClusterService implements TbClusterService {
     }
 
     @Override
-    public void onResourceChange(TbResource resource, TbQueueCallback callback) {
+    public void onResourceChange(TbResourceInfo resource, TbQueueCallback callback) {
         TenantId tenantId = resource.getTenantId();
         log.trace("[{}][{}][{}] Processing change resource", tenantId, resource.getResourceType(), resource.getResourceKey());
         TransportProtos.ResourceUpdateMsg resourceUpdateMsg = TransportProtos.ResourceUpdateMsg.newBuilder()
@@ -400,7 +400,7 @@ public class DefaultTbClusterService implements TbClusterService {
     }
 
     @Override
-    public void onResourceDeleted(TbResource resource, TbQueueCallback callback) {
+    public void onResourceDeleted(TbResourceInfo resource, TbQueueCallback callback) {
         log.trace("[{}] Processing delete resource", resource);
         TransportProtos.ResourceDeleteMsg resourceUpdateMsg = TransportProtos.ResourceDeleteMsg.newBuilder()
                 .setTenantIdMSB(resource.getTenantId().getId().getMostSignificantBits())

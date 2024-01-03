@@ -373,6 +373,7 @@ public class DefaultTransportApiService implements TransportApiService {
                 device.setType(requestMsg.getDeviceType());
                 device.setCustomerId(gateway.getCustomerId());
                 DeviceProfile deviceProfile = deviceProfileCache.findOrCreateDeviceProfile(gateway.getTenantId(), requestMsg.getDeviceType());
+
                 device.setDeviceProfileId(deviceProfile.getId());
                 ObjectNode additionalInfo = JacksonUtil.newObjectNode();
                 additionalInfo.put(DataConstants.LAST_CONNECTED_GATEWAY, gatewayId.toString());
@@ -413,7 +414,7 @@ public class DefaultTransportApiService implements TransportApiService {
                                 || !gatewayId.toString().equals(deviceAdditionalInfo.get(DataConstants.LAST_CONNECTED_GATEWAY).asText()))) {
                     ObjectNode newDeviceAdditionalInfo = (ObjectNode) deviceAdditionalInfo;
                     newDeviceAdditionalInfo.put(DataConstants.LAST_CONNECTED_GATEWAY, gatewayId.toString());
-                    deviceService.saveDevice(device);
+                    Device savedDevice = deviceService.saveDevice(device);
                 }
             }
             GetOrCreateDeviceFromGatewayResponseMsg.Builder builder = GetOrCreateDeviceFromGatewayResponseMsg.newBuilder()

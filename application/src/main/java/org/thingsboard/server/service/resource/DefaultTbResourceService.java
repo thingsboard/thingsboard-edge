@@ -146,4 +146,5 @@ public class DefaultTbResourceService extends AbstractTbEntityService implements
     public TbResource save(TbResource tbResource) throws ThingsboardException {
         return save(tbResource, null);
     }
+
 }
