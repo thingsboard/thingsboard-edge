@@ -60,6 +60,9 @@ import java.util.List;
         configClazz = TbDuplicateMsgToGroupByNameNodeConfiguration.class,
         nodeDescription = "Duplicates message to all entities belonging to resolved Entity group",
         nodeDetails = "Entities are fetched from entity group that is detected according to the configuration. " +
+                "When <b>\"search entity group on Tenant level only\"</b> is enabled, the search is restricted to the Tenant level only. " +
+                "If <b>\"consider originator as a group owner\"</b> is enabled and the originator is a Tenant or Customer, the search starts from the originator's level and goes up the hierarchy to the tenant level if the group isn't found. " +
+                "Otherwise, the search starts at the same level as the message originator's owner. " +
                 "Entity group is dynamically resolved based on it's name and type. " +
                 "For each entity from group new message is created with entity as originator " +
                 "and message parameters copied from original message.<br><br>" +
@@ -70,7 +73,7 @@ import java.util.List;
 )
 public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgNode<TbDuplicateMsgToGroupByNameNodeConfiguration> {
 
-    private static final String SEARCH_CUSTOMER_ENTITIES_IF_ORIGINATOR_CUSTOMER = "searchCustomerEntitiesIfOriginatorCustomer";
+    private static final String CONSIDER_MESSAGE_ORIGINATOR_AS_A_GROUP_OWNER = "considerMessageOriginatorAsAGroupOwner";
 
     @Override
     protected TbDuplicateMsgToGroupByNameNodeConfiguration loadNodeConfiguration(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
@@ -100,7 +103,9 @@ public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgNode<
         if (config.isSearchEntityGroupForTenantOnly()) {
             return tryFindGroupByOwnerId(ctx, ctx.getTenantId());
         }
-        if (config.isSearchCustomerEntitiesIfOriginatorCustomer() && originator.getEntityType() == EntityType.CUSTOMER) {
+        if (config.isConsiderMessageOriginatorAsAGroupOwner() &&
+                (originator.getEntityType() == EntityType.TENANT ||
+                        originator.getEntityType() == EntityType.CUSTOMER)) {
             return tryFindGroupByOwnerId(ctx, originator);
         }
         return tryFindGroupByOwnerId(ctx, ctx.getPeContext().getOwner(ctx.getTenantId(), originator));
@@ -125,9 +130,9 @@ public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgNode<
     public TbPair<Boolean, JsonNode> upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
         boolean hasChanges = false;
         if (fromVersion == 0) {
-            if (!oldConfiguration.has(SEARCH_CUSTOMER_ENTITIES_IF_ORIGINATOR_CUSTOMER)) {
+            if (!oldConfiguration.has(CONSIDER_MESSAGE_ORIGINATOR_AS_A_GROUP_OWNER)) {
                 hasChanges = true;
-                ((ObjectNode) oldConfiguration).put(SEARCH_CUSTOMER_ENTITIES_IF_ORIGINATOR_CUSTOMER, false);
+                ((ObjectNode) oldConfiguration).put(CONSIDER_MESSAGE_ORIGINATOR_AS_A_GROUP_OWNER, false);
             }
         }
         return new TbPair<>(hasChanges, oldConfiguration);

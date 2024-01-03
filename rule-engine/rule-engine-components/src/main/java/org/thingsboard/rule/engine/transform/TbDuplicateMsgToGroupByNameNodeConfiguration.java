@@ -39,7 +39,7 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 public class TbDuplicateMsgToGroupByNameNodeConfiguration implements NodeConfiguration<TbDuplicateMsgToGroupByNameNodeConfiguration> {
 
     private boolean searchEntityGroupForTenantOnly;
-    private boolean searchCustomerEntitiesIfOriginatorCustomer;
+    private boolean considerMessageOriginatorAsAGroupOwner;
     private EntityType groupType;
     private String groupName;
 
@@ -47,7 +47,7 @@ public class TbDuplicateMsgToGroupByNameNodeConfiguration implements NodeConfigu
     public TbDuplicateMsgToGroupByNameNodeConfiguration defaultConfiguration() {
         var configuration = new TbDuplicateMsgToGroupByNameNodeConfiguration();
         configuration.setSearchEntityGroupForTenantOnly(false);
-        configuration.setSearchCustomerEntitiesIfOriginatorCustomer(false);
+        configuration.setConsiderMessageOriginatorAsAGroupOwner(true);
         configuration.setGroupType(EntityType.USER);
         configuration.setGroupName(EntityGroup.GROUP_ALL_NAME);
         return configuration;

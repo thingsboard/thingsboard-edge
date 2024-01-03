@@ -64,7 +64,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
-import static org.thingsboard.rule.engine.util.GpsGeofencingEvents.*;
+import static org.thingsboard.rule.engine.util.GpsGeofencingEvents.ENTERED;
+import static org.thingsboard.rule.engine.util.GpsGeofencingEvents.INSIDE;
 
 class TbGpsGeofencingActionNodeTest {
     private TbContext ctx;
@@ -102,20 +103,38 @@ class TbGpsGeofencingActionNodeTest {
                 .find(ctx.getTenantId(), msg.getOriginator(), DataConstants.SERVER_SCOPE, ctx.getServiceId()))
                 .thenReturn(Futures.immediateFuture(Optional.empty()));
 
-        // THEN
+        // WHEN
         ArgumentCaptor<TbMsg> newMsgCaptor = ArgumentCaptor.forClass(TbMsg.class);
         node.onMsg(ctx, msg);
+
+        // THEN
         verifyNodeOutputs(newMsgCaptor, 0, 0, 0);
+
+        // WHEN
         msg = getTbMsg(deviceId, metadata,
                 GeoUtilTest.POINT_INSIDE_SIMPLE_RECT_CENTER.getLatitude(), GeoUtilTest.POINT_INSIDE_SIMPLE_RECT_CENTER.getLongitude());
         node.onMsg(ctx, msg);
+
+        // THEN
         verifyNodeOutputs(newMsgCaptor, 1, 0, 0);
+
+        // WHEN
         node.onMsg(ctx, msg);
+
+        // THEN
         verifyNodeOutputs(newMsgCaptor, 1, 0, 1);
+
+        // WHEN
         Thread.sleep(5000);
         node.onMsg(ctx, msg);
+
+        // THEN
         verifyNodeOutputs(newMsgCaptor, 1, 1, 1);
+
+        // WHEN
         node.onMsg(ctx, msg);
+
+        // THEN
         verifyNodeOutputs(newMsgCaptor, 1, 1, 2);
     }
 
@@ -123,7 +142,7 @@ class TbGpsGeofencingActionNodeTest {
     void givenDefaultConfig_whenStayDurationCheck_thenEnteredInsideInsideInside() throws TbNodeException, InterruptedException {
         // GIVEN
         var config = new TbGpsGeofencingActionNodeConfiguration().defaultConfiguration();
-        config.setContinuousPresenceCheck(true);
+        config.setPresenceMonitoring(true);
         node.init(ctx, new TbNodeConfiguration(JacksonUtil.valueToTree(config)));
 
         DeviceId deviceId = new DeviceId(UUID.randomUUID());
@@ -137,20 +156,38 @@ class TbGpsGeofencingActionNodeTest {
                 .find(ctx.getTenantId(), msg.getOriginator(), DataConstants.SERVER_SCOPE, ctx.getServiceId()))
                 .thenReturn(Futures.immediateFuture(Optional.empty()));
 
-        // THEN
+        // WHEN
         ArgumentCaptor<TbMsg> newMsgCaptor = ArgumentCaptor.forClass(TbMsg.class);
         node.onMsg(ctx, msg);
+
+        // THEN
         verifyNodeOutputs(newMsgCaptor, 0, 0, 0);
+
+        // WHEN
         msg = getTbMsg(deviceId, metadata,
                 GeoUtilTest.POINT_INSIDE_SIMPLE_RECT_CENTER.getLatitude(), GeoUtilTest.POINT_INSIDE_SIMPLE_RECT_CENTER.getLongitude());
         node.onMsg(ctx, msg);
+
+        // THEN
         verifyNodeOutputs(newMsgCaptor, 1, 0, 0);
+
+        // WHEN
         node.onMsg(ctx, msg);
+
+        // THEN
         verifyNodeOutputs(newMsgCaptor, 1, 1, 0);
+
+        // WHEN
         Thread.sleep(5000);
         node.onMsg(ctx, msg);
+
+        // THEN
         verifyNodeOutputs(newMsgCaptor, 1, 2, 0);
+
+        // WHEN
         node.onMsg(ctx, msg);
+
+        // THEN
         verifyNodeOutputs(newMsgCaptor, 1, 3, 0);
     }
 
@@ -198,7 +235,7 @@ class TbGpsGeofencingActionNodeTest {
                                 "  \"minOutsideDuration\": 1,\n" +
                                 "  \"minInsideDurationTimeUnit\": \"MINUTES\",\n" +
                                 "  \"minOutsideDurationTimeUnit\": \"MINUTES\",\n" +
-                                "  \"continuousPresenceCheck\": false,\n" +
+                                "  \"presenceMonitoring\": false,\n" +
                                 "  \"latitudeKeyName\": \"latitude\",\n" +
                                 "  \"longitudeKeyName\": \"longitude\",\n" +
                                 "  \"perimeterType\": \"POLYGON\",\n" +
@@ -217,7 +254,7 @@ class TbGpsGeofencingActionNodeTest {
                                 "  \"minOutsideDuration\": 1,\n" +
                                 "  \"minInsideDurationTimeUnit\": \"MINUTES\",\n" +
                                 "  \"minOutsideDurationTimeUnit\": \"MINUTES\",\n" +
-                                "  \"continuousPresenceCheck\": false,\n" +
+                                "  \"presenceMonitoring\": false,\n" +
                                 "  \"latitudeKeyName\": \"latitude\",\n" +
                                 "  \"longitudeKeyName\": \"longitude\",\n" +
                                 "  \"perimeterType\": \"POLYGON\",\n" +
@@ -235,7 +272,7 @@ class TbGpsGeofencingActionNodeTest {
                                 "  \"minOutsideDuration\": 1,\n" +
                                 "  \"minInsideDurationTimeUnit\": \"MINUTES\",\n" +
                                 "  \"minOutsideDurationTimeUnit\": \"MINUTES\",\n" +
-                                "  \"continuousPresenceCheck\": false,\n" +
+                                "  \"presenceMonitoring\": false,\n" +
                                 "  \"latitudeKeyName\": \"latitude\",\n" +
                                 "  \"longitudeKeyName\": \"longitude\",\n" +
                                 "  \"perimeterType\": \"POLYGON\",\n" +
