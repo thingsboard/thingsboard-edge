@@ -56,6 +56,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -170,7 +171,7 @@ public class SelfRegistrationController extends BaseController {
             ListenableFuture<List<String>> future = attributesService.removeAll(
                     securityUser.getTenantId(),
                     securityUser.getTenantId(),
-                    DataConstants.SERVER_SCOPE,
+                    AttributeScope.SERVER_SCOPE,
                     Arrays.asList("selfRegistrationParams", "termsOfUse", "privacyPolicy"));
             Futures.addCallback(future, new FutureCallback<>() {
                 @Override

@@ -46,6 +46,7 @@ import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
@@ -209,13 +210,13 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
                 data.setTsFuture(ctx.getTimeseriesService().findLatest(ctx.getTenantId(), entityId, latestTsKeyNames));
             }
             if (!clientAttributeNames.isEmpty()) {
-                data.setClientAttributesFuture(ctx.getAttributesService().find(ctx.getTenantId(), entityId, DataConstants.CLIENT_SCOPE, clientAttributeNames));
+                data.setClientAttributesFuture(ctx.getAttributesService().find(ctx.getTenantId(), entityId, AttributeScope.CLIENT_SCOPE, clientAttributeNames));
             }
             if (!sharedAttributeNames.isEmpty()) {
-                data.setSharedAttributesFuture(ctx.getAttributesService().find(ctx.getTenantId(), entityId, DataConstants.SHARED_SCOPE, sharedAttributeNames));
+                data.setSharedAttributesFuture(ctx.getAttributesService().find(ctx.getTenantId(), entityId, AttributeScope.SHARED_SCOPE, sharedAttributeNames));
             }
             if (!serverAttributeNames.isEmpty()) {
-                data.setServerAttributesFuture(ctx.getAttributesService().find(ctx.getTenantId(), entityId, DataConstants.SERVER_SCOPE, serverAttributeNames));
+                data.setServerAttributesFuture(ctx.getAttributesService().find(ctx.getTenantId(), entityId, AttributeScope.SERVER_SCOPE, serverAttributeNames));
             }
             return data;
         }).collect(Collectors.toList()), ctx.getDbCallbackExecutor());

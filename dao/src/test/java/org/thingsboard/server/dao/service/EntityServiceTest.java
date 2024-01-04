@@ -276,8 +276,8 @@ public class EntityServiceTest extends AbstractServiceTest {
         for (int i = 0; i < evenDevices.size(); i++) {
             Device device = evenDevices.get(i);
             long temp = random.nextLong();
-            attributeFutures.add(saveLongAttribute(device.getId(), "temperature", temp - 1, lastUpdateTs++, DataConstants.CLIENT_SCOPE));
-            attributeFutures.add(saveLongAttribute(device.getId(), "temperature", temp, lastUpdateTs++, DataConstants.SHARED_SCOPE));
+            attributeFutures.add(saveLongAttribute(device.getId(), "temperature", temp - 1, lastUpdateTs++, AttributeScope.CLIENT_SCOPE));
+            attributeFutures.add(saveLongAttribute(device.getId(), "temperature", temp, lastUpdateTs++, AttributeScope.SHARED_SCOPE));
             temperatures.add(temp);
         }
         Futures.successfulAsList(attributeFutures).get();

@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.AdminSettings;
@@ -175,7 +176,7 @@ public class BaseCustomMenuService implements CustomMenuService {
     private String getEntityAttributeValue(TenantId tenantId, EntityId entityId) {
         List<AttributeKvEntry> attributeKvEntries;
         try {
-            attributeKvEntries = attributesService.find(tenantId, entityId, DataConstants.SERVER_SCOPE, Arrays.asList(CUSTOM_MENU_ATTR_NAME)).get();
+            attributeKvEntries = attributesService.find(tenantId, entityId, AttributeScope.SERVER_SCOPE, Arrays.asList(CUSTOM_MENU_ATTR_NAME)).get();
         } catch (Exception e) {
             log.error("Unable to read custom menu from attributes!", e);
             throw new IncorrectParameterException("Unable to read custom menu from attributes!");
@@ -208,7 +209,7 @@ public class BaseCustomMenuService implements CustomMenuService {
         long ts = System.currentTimeMillis();
         attributes.add(new BaseAttributeKvEntry(new StringDataEntry(CUSTOM_MENU_ATTR_NAME, value), ts));
         try {
-            attributesService.save(tenantId, entityId, DataConstants.SERVER_SCOPE, attributes).get();
+            attributesService.save(tenantId, entityId, AttributeScope.SERVER_SCOPE, attributes).get();
         } catch (Exception e) {
             log.error("Unable to save custom menu to attributes!", e);
             throw new IncorrectParameterException("Unable to save custom menu to attributes!");

@@ -39,6 +39,7 @@ import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
 import org.thingsboard.server.common.msg.rule.engine.DeviceAttributesEventNotificationMsg;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
@@ -174,7 +175,7 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
                 OtaPackageInfo otaPackageForDevice = otaPackageService.findOtaPackageInfoByDeviceIdAndType(device.getId(), deviceGroupOtaPackage.getOtaPackageType());
                 if (otaPackageForDevice != null) {
                     ListenableFuture<Optional<AttributeKvEntry>> oldFirmwareIdFuture =
-                            attributesService.find(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE, getAttributeKey(otaPackageType, ID));
+                            attributesService.find(device.getTenantId(), device.getId(), AttributeScope.SERVER_SCOPE, getAttributeKey(otaPackageType, ID));
                     DonAsynchron.withCallback(oldFirmwareIdFuture, oldIdOpt -> {
                         if (oldIdOpt.isPresent()) {
                             OtaPackageId oldFirmwareId = new OtaPackageId(UUID.fromString(oldIdOpt.get().getValueAsString()));
@@ -212,7 +213,7 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
         OtaPackageInfo otaPackage = otaPackageService.findOtaPackageInfoByDeviceIdAndType(deviceId, otaPackageType);
         if (otaPackage != null) {
             ListenableFuture<Optional<AttributeKvEntry>> oldFirmwareIdFuture =
-                    attributesService.find(tenantId, deviceId, DataConstants.SERVER_SCOPE, getAttributeKey(otaPackageType, ID));
+                    attributesService.find(tenantId, deviceId, AttributeScope.SERVER_SCOPE, getAttributeKey(otaPackageType, ID));
             DonAsynchron.withCallback(oldFirmwareIdFuture, oldIdOpt -> {
                 if (oldIdOpt.isPresent()) {
                     OtaPackageId otaPackageId = new OtaPackageId(UUID.fromString(oldIdOpt.get().getValueAsString()));
@@ -236,7 +237,7 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
     }
 
     private void updateFirmware(Device device) {
-        ListenableFuture<Optional<AttributeKvEntry>> oldFirmwareIdFuture = attributesService.find(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE, getAttributeKey(FIRMWARE, ID));
+        ListenableFuture<Optional<AttributeKvEntry>> oldFirmwareIdFuture = attributesService.find(device.getTenantId(), device.getId(), AttributeScope.SERVER_SCOPE, getAttributeKey(FIRMWARE, ID));
         DonAsynchron.withCallback(oldFirmwareIdFuture, oldIdOpt -> {
 
             OtaPackageId oldFirmwareId = null;
@@ -259,7 +260,7 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
     }
 
     private void updateSoftware(Device device) {
-        ListenableFuture<Optional<AttributeKvEntry>> oldSoftwareIdFuture = attributesService.find(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE, getAttributeKey(SOFTWARE, ID));
+        ListenableFuture<Optional<AttributeKvEntry>> oldSoftwareIdFuture = attributesService.find(device.getTenantId(), device.getId(), AttributeScope.SERVER_SCOPE, getAttributeKey(SOFTWARE, ID));
         DonAsynchron.withCallback(oldSoftwareIdFuture, oldIdOpt -> {
 
             OtaPackageId oldSoftwareId = null;

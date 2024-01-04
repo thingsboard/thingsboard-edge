@@ -44,10 +44,9 @@ SELECT created_time, id, tenant_id, name, type, debug_mode, enabled, is_remote,
        (CASE WHEN i.enabled THEN
                  (SELECT cast(json_v as varchar)
                   FROM attribute_kv
-                  WHERE entity_type = 'INTEGRATION'
-                    AND entity_id = i.id
-                    AND attribute_type = 'SERVER_SCOPE'
-                    AND attribute_key LIKE 'integration_status_%'
+                  WHERE entity_id = i.id
+                    AND attribute_type = 2
+                    AND attribute_key IN (select key_id from key_dictionary where key LIKE 'integration_status_%')
                   ORDER BY last_update_ts
                  LIMIT 1) END) as status
 FROM integration i;
