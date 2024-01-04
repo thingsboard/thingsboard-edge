@@ -134,7 +134,8 @@ monitoring:
         # Whether to monitor IPs associated with the domain from base url
         check_domain_ips: '${COAP_INTEGRATION_CHECK_DOMAIN_IPS:false}'
 
-  notification_channels:
+  notifications:
+    message_prefix: '${NOTIFICATION_MESSAGE_PREFIX:}'
     slack:
       # Enable notifying via Slack
       enabled: '${SLACK_NOTIFICATION_CHANNEL_ENABLED:false}'
