@@ -414,7 +414,7 @@ public class DefaultTransportApiService implements TransportApiService {
                                 || !gatewayId.toString().equals(deviceAdditionalInfo.get(DataConstants.LAST_CONNECTED_GATEWAY).asText()))) {
                     ObjectNode newDeviceAdditionalInfo = (ObjectNode) deviceAdditionalInfo;
                     newDeviceAdditionalInfo.put(DataConstants.LAST_CONNECTED_GATEWAY, gatewayId.toString());
-                    Device savedDevice = deviceService.saveDevice(device);
+                    deviceService.saveDevice(device);
                 }
             }
             GetOrCreateDeviceFromGatewayResponseMsg.Builder builder = GetOrCreateDeviceFromGatewayResponseMsg.newBuilder()
@@ -444,7 +444,7 @@ public class DefaultTransportApiService implements TransportApiService {
     }
 
     private ListenableFuture<TransportApiResponseMsg> handle(ProvisionDeviceRequestMsg requestMsg) {
-        ListenableFuture<ProvisionResponse> provisionResponseFuture = null;
+        ListenableFuture<ProvisionResponse> provisionResponseFuture;
         try {
             provisionResponseFuture = Futures.immediateFuture(deviceProvisionService.provisionDevice(
                     new ProvisionRequest(
