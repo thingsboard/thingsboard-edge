@@ -40,9 +40,10 @@ import org.thingsboard.monitoring.service.integration.impl.HttpIntegrationHealth
 @Getter
 public enum IntegrationType {
 
-    HTTP(HttpIntegrationHealthChecker.class),
-    COAP(CoapIntegrationHealthChecker.class);
+    HTTP("HTTP", HttpIntegrationHealthChecker.class),
+    COAP("CoAP", CoapIntegrationHealthChecker.class);
 
+    private final String name;
     private final Class<? extends IntegrationHealthChecker<?>> serviceClass;
 
 }
