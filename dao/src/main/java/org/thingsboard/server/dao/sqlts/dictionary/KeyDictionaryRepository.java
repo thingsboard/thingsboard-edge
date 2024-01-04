@@ -28,22 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.model.sqlts.dictionary;
+package org.thingsboard.server.dao.sqlts.dictionary;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.thingsboard.server.dao.model.sqlts.dictionary.KeyDictionaryEntry;
+import org.thingsboard.server.dao.model.sqlts.dictionary.KeyDictionaryCompositeKey;
 
-import jakarta.persistence.Transient;
-import java.io.Serializable;
+import java.util.Optional;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class TsKvDictionaryCompositeKey implements Serializable{
+public interface KeyDictionaryRepository extends JpaRepository<KeyDictionaryEntry, KeyDictionaryCompositeKey> {
 
-    @Transient
-    private static final long serialVersionUID = -4089175869616037523L;
+    Optional<KeyDictionaryEntry> findByKeyId(int keyId);
 
-    private String key;
+
 }

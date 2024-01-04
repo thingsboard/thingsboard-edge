@@ -42,7 +42,6 @@ import org.thingsboard.server.dao.util.TbAutoConfiguration;
 @EnableJpaRepositories({"org.thingsboard.server.dao.sqlts.dictionary"})
 @EntityScan({"org.thingsboard.server.dao.model.sqlts.dictionary"})
 @EnableTransactionManagement
-@SqlTsOrTsLatestAnyDao
 public class SqlTimeseriesDaoConfig {
 
 }

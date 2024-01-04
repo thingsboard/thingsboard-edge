@@ -38,6 +38,7 @@ import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
@@ -462,11 +463,11 @@ public class DefaultTbLocalSubscriptionService implements TbLocalSubscriptionSer
             return;
         }
         final Map<String, Long> keyStates = subscription.getKeyStates();
-        String scope;
+        AttributeScope scope;
         if (subscription.getScope() != null && !TbAttributeSubscriptionScope.ANY_SCOPE.equals(subscription.getScope())) {
-            scope = subscription.getScope().name();
+            scope = AttributeScope.valueOf(subscription.getScope().name());
         } else {
-            scope = DataConstants.CLIENT_SCOPE;
+            scope = AttributeScope.CLIENT_SCOPE;
         }
         DonAsynchron.withCallback(attrService.find(subscription.getTenantId(), subscription.getEntityId(), scope, keyStates.keySet()), values -> {
                     List<TsKvEntry> updates = new ArrayList<>();
@@ -477,7 +478,7 @@ public class DefaultTbLocalSubscriptionService implements TbLocalSubscriptionSer
                     });
                     var missedUpdates = updates.stream().filter(u -> u.getValue() != null).collect(Collectors.toList());
                     if (!missedUpdates.isEmpty()) {
-                        onAttributesUpdate(subscription.getEntityId(), scope, missedUpdates, TbCallback.EMPTY);
+                        onAttributesUpdate(subscription.getEntityId(), scope.name(), missedUpdates, TbCallback.EMPTY);
                     }
                 },
                 e -> log.error("Failed to fetch missed updates.", e), tsCallBackExecutor);

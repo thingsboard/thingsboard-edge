@@ -31,7 +31,7 @@
 package org.thingsboard.server.dao.sql.query;
 
 import lombok.Data;
-import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.query.BooleanFilterPredicate;
@@ -326,13 +326,13 @@ public class EntityKeyMapping {
                         join, alias, readFilter, alias, alias, entityTypeStr, alias, alias);
                 String scope;
                 if (entityKey.getType().equals(EntityKeyType.CLIENT_ATTRIBUTE)) {
-                    scope = DataConstants.CLIENT_SCOPE;
+                    scope = AttributeScope.CLIENT_SCOPE.getId();
                 } else if (entityKey.getType().equals(EntityKeyType.SHARED_ATTRIBUTE)) {
-                    scope = DataConstants.SHARED_SCOPE;
+                    scope = AttributeScope.SHARED_SCOPE.getId();;
                 } else {
-                    scope = DataConstants.SERVER_SCOPE;
+                    scope = AttributeScope.SERVER_SCOPE.getId();;
                 }
-                query = String.format("%s AND %s.attribute_type='%s' %s", query, alias, scope, filterQuery);
+                query = String.format("%s AND %s.attribute_type=%s %s", query, alias, scope, filterQuery);
             } else {
                 String join = (hasFilter() && hasFilterValues(ctx)) ? "join LATERAL" : "left join LATERAL";
                 // Why don't we filter by entityTypeStr entity type here?

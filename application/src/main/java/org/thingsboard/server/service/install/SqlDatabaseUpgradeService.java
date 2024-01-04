@@ -35,12 +35,14 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationType;
@@ -66,6 +68,8 @@ import org.thingsboard.server.queue.settings.TbRuleEngineQueueConfiguration;
 import org.thingsboard.server.service.install.sql.SqlDbHelper;
 import org.thingsboard.server.service.install.update.DefaultDataUpdateService;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -83,6 +87,8 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import static org.thingsboard.server.service.install.AbstractSqlTsDatabaseUpgradeService.PATH_TO_USERS_PUBLIC_FOLDER;
+import static org.thingsboard.server.service.install.AbstractSqlTsDatabaseUpgradeService.THINGSBOARD_WINDOWS_UPGRADE_DIR;
 import static org.thingsboard.server.service.install.DatabaseHelper.ADDITIONAL_INFO;
 import static org.thingsboard.server.service.install.DatabaseHelper.ASSIGNED_CUSTOMERS;
 import static org.thingsboard.server.service.install.DatabaseHelper.CONFIGURATION;
@@ -799,6 +805,33 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     }
                 });
                 break;
+            case "3.6.3":
+                updateSchema("3.6.3", 3006003, "3.7.0", 3007000, connection -> {
+                    try {
+                        Path pathToTempAttributeKvFile;
+                        if (SystemUtils.IS_OS_WINDOWS) {
+                            pathToTempAttributeKvFile = createTempFileWindows("attribute_kv_temp",".sql");
+                        } else {
+                            pathToTempAttributeKvFile = createTempFile("attribute_kv", "attribute_kv_temp.sql");
+                        }
+                        executeQuery(connection, "call insert_into_attribute_kv('" + pathToTempAttributeKvFile + "')");
+
+                        // remove attribute_kv_old
+                        executeQuery(connection, "call drop_attribute_kv_old_table()");
+
+                        //create index for new table attribute_kv
+                        executeQuery(connection, "CREATE INDEX IF NOT EXISTS idx_attribute_kv_by_key_and_last_update_ts ON attribute_kv(entity_id, attribute_key, last_update_ts desc);");
+
+                        // remove temp files
+                        boolean deleteTsKvFile = Files.deleteIfExists(pathToTempAttributeKvFile);
+                        if (deleteTsKvFile) {
+                            log.info("Successfully deleted the temp file for attribute_kv table upgrade!");
+                        }
+                    } catch (Exception e) {
+                        log.error("Failed updating schema!!!", e);
+                    }
+                });
+                break;
             case "ce":
                 log.info("Updating schema ...");
                 schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "pe", SCHEMA_UPDATE_SQL);
@@ -954,6 +987,40 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
         }
     }
 
+    private static Path createTempFile(String tempDirectoryName, String tempFileName) throws IOException {
+        Path pathToTempAttributeKvFile;
+        Path tempDirPath = Files.createTempDirectory(tempDirectoryName);
+        File tempDirAsFile = tempDirPath.toFile();
+        boolean writable = tempDirAsFile.setWritable(true, false);
+        boolean readable = tempDirAsFile.setReadable(true, false);
+        boolean executable = tempDirAsFile.setExecutable(true, false);
+        pathToTempAttributeKvFile = tempDirPath.resolve(tempFileName).toAbsolutePath();
+
+        if (!(writable && readable && executable)) {
+            throw new RuntimeException("Failed to grant write permissions for the: " + tempDirPath + "folder!");
+        }
+        return pathToTempAttributeKvFile;
+    }
+
+    private static Path createTempFileWindows(String prefix, String suffix) throws IOException {
+        Path pathToTempAttributeKvFile;
+        log.info("Lookup for environment variable: {} ...", THINGSBOARD_WINDOWS_UPGRADE_DIR);
+        Path pathToDir;
+        String thingsboardWindowsUpgradeDir = System.getenv("THINGSBOARD_WINDOWS_UPGRADE_DIR");
+        if (StringUtils.isNotEmpty(thingsboardWindowsUpgradeDir)) {
+            log.info("Environment variable: {} was found!", THINGSBOARD_WINDOWS_UPGRADE_DIR);
+            pathToDir = Paths.get(thingsboardWindowsUpgradeDir);
+        } else {
+            log.info("Failed to lookup environment variable: {}", THINGSBOARD_WINDOWS_UPGRADE_DIR);
+            pathToDir = Paths.get(PATH_TO_USERS_PUBLIC_FOLDER);
+        }
+        log.info("Directory: {} will be used for creation temporary upgrade files!", pathToDir);
+
+        Path attributeKvFile = Files.createTempFile(pathToDir, prefix, suffix);
+        pathToTempAttributeKvFile = attributeKvFile.toAbsolutePath();
+        return pathToTempAttributeKvFile;
+    }
+
     private void runSchemaUpdateScript(Connection connection, String version) throws Exception {
         Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", version, SCHEMA_UPDATE_SQL);
         loadSql(schemaUpdateFile, connection);
@@ -966,6 +1033,18 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
         st.execute(sql);//NOSONAR, ignoring because method used to execute thingsboard database upgrade script
         printWarnings(st);
         Thread.sleep(5000);
+    }
+
+    private void executeQuery(Connection conn, String query) {
+        try {
+            Statement statement = conn.createStatement();
+            statement.execute(query); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+            printWarnings(statement);
+            log.info("Successfully executed query: {}", query);
+        } catch (SQLException e) {
+            log.error("Failed to execute query: {} due to: {}", query, e.getMessage());
+            throw new RuntimeException("Failed to execute query:" + query + " due to: ", e);
+        }
     }
 
     protected void printWarnings(Statement statement) throws SQLException {
