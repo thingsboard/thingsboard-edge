@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.kv.ReadTsKvQueryResult;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.dao.DaoUtil;
+import org.thingsboard.server.dao.dictionary.KeyDictionaryDao;
 import org.thingsboard.server.dao.model.sql.AbstractTsKvEntity;
 import org.thingsboard.server.dao.model.sqlts.timescale.ts.TimescaleTsKvCompositeKey;
 import org.thingsboard.server.dao.model.sqlts.timescale.ts.TimescaleTsKvEntity;
@@ -84,6 +85,9 @@ public class TimescaleTimeseriesDao extends AbstractSqlTimeseriesDao implements 
 
     @Autowired
     protected InsertTsRepository<TimescaleTsKvEntity> insertRepository;
+
+    @Autowired
+    protected KeyDictionaryDao keyDictionaryDao;
 
     protected TbSqlBlockingQueueWrapper<TimescaleTsKvEntity> tsQueue;
 
@@ -124,7 +128,7 @@ public class TimescaleTimeseriesDao extends AbstractSqlTimeseriesDao implements 
     public ListenableFuture<Integer> save(TenantId tenantId, EntityId entityId, TsKvEntry tsKvEntry, long ttl) {
         int dataPointDays = getDataPointDays(tsKvEntry, computeTtl(ttl));
         String strKey = tsKvEntry.getKey();
-        Integer keyId = getOrSaveKeyId(strKey);
+        Integer keyId = keyDictionaryDao.getOrSaveKeyId(strKey);
         TimescaleTsKvEntity entity = new TimescaleTsKvEntity();
         entity.setEntityId(entityId.getId());
         entity.setTs(tsKvEntry.getTs());
@@ -146,7 +150,7 @@ public class TimescaleTimeseriesDao extends AbstractSqlTimeseriesDao implements 
     @Override
     public ListenableFuture<Void> remove(TenantId tenantId, EntityId entityId, DeleteTsKvQuery query) {
         String strKey = query.getKey();
-        Integer keyId = getOrSaveKeyId(strKey);
+        Integer keyId = keyDictionaryDao.getOrSaveKeyId(strKey);
         return service.submit(() -> {
             tsKvRepository.delete(
                     entityId.getId(),
@@ -177,7 +181,7 @@ public class TimescaleTimeseriesDao extends AbstractSqlTimeseriesDao implements 
 
     private ReadTsKvQueryResult findAllAsyncWithLimit(EntityId entityId, ReadTsKvQuery query) {
         String strKey = query.getKey();
-        Integer keyId = getOrSaveKeyId(strKey);
+        Integer keyId = keyDictionaryDao.getOrSaveKeyId(strKey);
         List<TimescaleTsKvEntity> timescaleTsKvEntities = tsKvRepository.findAllWithLimit(
                 entityId.getId(),
                 keyId,
@@ -227,7 +231,7 @@ public class TimescaleTimeseriesDao extends AbstractSqlTimeseriesDao implements 
     }
 
     private List<TimescaleTsKvEntity> switchAggregation(String key, long startTs, long endTs, long timeBucket, Aggregation aggregation, UUID entityId) {
-        Integer keyId = getOrSaveKeyId(key);
+        Integer keyId = keyDictionaryDao.getOrSaveKeyId(key);
         switch (aggregation) {
             case AVG:
                 return aggregationRepository.findAvg(entityId, keyId, timeBucket, startTs, endTs);

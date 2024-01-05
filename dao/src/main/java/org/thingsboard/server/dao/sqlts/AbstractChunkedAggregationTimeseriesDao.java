@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.kv.ReadTsKvQueryResult;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.dao.DaoUtil;
+import org.thingsboard.server.dao.dictionary.KeyDictionaryDao;
 import org.thingsboard.server.dao.model.sql.AbstractTsKvEntity;
 import org.thingsboard.server.dao.model.sqlts.ts.TsKvCompositeKey;
 import org.thingsboard.server.dao.model.sqlts.ts.TsKvEntity;
@@ -76,6 +77,9 @@ public abstract class AbstractChunkedAggregationTimeseriesDao extends AbstractSq
     protected TbSqlBlockingQueueWrapper<TsKvEntity> tsQueue;
     @Autowired
     private StatsFactory statsFactory;
+
+    @Autowired
+    private KeyDictionaryDao keyDictionaryDao;
 
     @PostConstruct
     protected void init() {
@@ -109,7 +113,7 @@ public abstract class AbstractChunkedAggregationTimeseriesDao extends AbstractSq
         return service.submit(() -> {
             tsKvRepository.delete(
                     entityId.getId(),
-                    getOrSaveKeyId(query.getKey()),
+                    keyDictionaryDao.getOrSaveKeyId(query.getKey()),
                     query.getStartTs(),
                     query.getEndTs());
             return null;
@@ -153,7 +157,7 @@ public abstract class AbstractChunkedAggregationTimeseriesDao extends AbstractSq
     }
 
     private ReadTsKvQueryResult findAllAsyncWithLimit(EntityId entityId, ReadTsKvQuery query) {
-        Integer keyId = getOrSaveKeyId(query.getKey());
+        Integer keyId = keyDictionaryDao.getOrSaveKeyId(query.getKey());
         List<TsKvEntity> tsKvEntities = tsKvRepository.findAllWithLimit(
                 entityId.getId(),
                 keyId,
@@ -181,7 +185,7 @@ public abstract class AbstractChunkedAggregationTimeseriesDao extends AbstractSq
     }
 
     protected TsKvEntity switchAggregation(EntityId entityId, String key, long startTs, long endTs, Aggregation aggregation) {
-        var keyId = getOrSaveKeyId(key);
+        var keyId = keyDictionaryDao.getOrSaveKeyId(key);
         switch (aggregation) {
             case AVG:
                 return tsKvRepository.findAvg(entityId.getId(), keyId, startTs, endTs);
