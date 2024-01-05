@@ -40,6 +40,7 @@ public class TransportMonitoringTarget implements MonitoringTarget {
 
     private String baseUrl;
     private DeviceConfig device; // set manually during initialization
+    private String queue;
     private boolean checkDomainIps;
 
     @Override
