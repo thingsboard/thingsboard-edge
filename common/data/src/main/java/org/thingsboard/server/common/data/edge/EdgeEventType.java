@@ -61,6 +61,7 @@ public enum EdgeEventType {
     LOGIN_WHITE_LABELING(true, null),
     MAIL_TEMPLATES(true, null),
     CUSTOM_TRANSLATION(true, null),
+    CUSTOM_MENU(true, null),
     ROLE(true, EntityType.ROLE),
     GROUP_PERMISSION(true, EntityType.GROUP_PERMISSION),
     CONVERTER(false, EntityType.CONVERTER),
