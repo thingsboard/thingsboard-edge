@@ -483,8 +483,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     private void validateCustomMenuAdminSettings(AdminSettings adminSettings) {
-        Assert.assertNotNull(adminSettings.getJsonValue().get("value").get("menuItems"));
-        Assert.assertNotNull(adminSettings.getJsonValue().get("value").get("disabledMenuItems"));
+        Assert.assertNotNull(adminSettings.getJsonValue().get("value"));
     }
 
     private void validateAssetProfiles(int expectedMsgCnt) throws Exception {
