@@ -203,7 +203,7 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
 
     private EdgeId findRelatedEdgeIdByEntityId() {
         PageData<EdgeId> pageData = systemContext.getEdgeService().findRelatedEdgeIdsByEntityId(tenantId, deviceId, new PageLink(1));
-        return Optional.ofNullable(pageData).filter(pd -> pd.getTotalElements() == 1).map(pd -> pd.getData().get(0)).orElse(null);
+        return Optional.ofNullable(pageData).filter(pd -> pd.getTotalElements() > 0).map(pd -> pd.getData().get(0)).orElse(null);
     }
 
     void processRpcRequest(TbActorCtx context, ToDeviceRpcRequestActorMsg msg) {
