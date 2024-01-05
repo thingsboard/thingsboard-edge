@@ -76,8 +76,8 @@ import static org.thingsboard.rule.engine.util.GpsGeofencingEvents.OUTSIDE;
         nodeDetails = "Extracts latitude and longitude parameters from incoming message and returns different events based on configuration parameters. " +
                 "If an object enters the area, sends a message with the type <code>Entered</code>. " +
                 "If an object leaves the area, sends a message with the type <code>Left</code>. " +
-                "If the use case <b>\"stay duration monitoring\"</b> is selected, sends messages with types <code>Inside</code> or <code>Outside</code> only the first time the geofencing and duration conditions are satisfied; otherwise <code>Success</code>. " +
-                "If the use case <b>\"presence monitoring\"</b> is selected, sends messages with types <code>Inside</code> or <code>Outside</code> every time the geofencing condition is satisfied.",
+                "If the use case <b>\"Stay duration check\"</b> is selected, sends messages with types <code>Inside</code> or <code>Outside</code> only the first time the geofencing and duration conditions are satisfied; otherwise <code>Success</code>. " +
+                "If the use case <b>\"Presence monitoring\"</b> is selected, sends messages with types <code>Inside</code> or <code>Outside</code> every time the geofencing condition is satisfied.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeGpsGeofencingConfig"
 )

@@ -35,7 +35,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -53,9 +52,10 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.attributes.AttributesService;
 
-import java.util.Optional;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -66,6 +66,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
 import static org.thingsboard.rule.engine.util.GpsGeofencingEvents.ENTERED;
 import static org.thingsboard.rule.engine.util.GpsGeofencingEvents.INSIDE;
+import static org.thingsboard.server.common.data.msg.TbNodeConnectionType.SUCCESS;
 
 class TbGpsGeofencingActionNodeTest {
     private TbContext ctx;
@@ -84,65 +85,33 @@ class TbGpsGeofencingActionNodeTest {
         node.destroy();
     }
 
-    @Test
-    void givenDefaultConfig_whenStayDurationCheck_thenEnteredSuccessInsideSuccess() throws TbNodeException, InterruptedException {
-        // GIVEN
-        var config = new TbGpsGeofencingActionNodeConfiguration().defaultConfiguration();
-        config.setMinInsideDuration(5);
-        config.setMinInsideDurationTimeUnit(TimeUnit.SECONDS.name());
-        node.init(ctx, new TbNodeConfiguration(JacksonUtil.valueToTree(config)));
-
-        DeviceId deviceId = new DeviceId(UUID.randomUUID());
-        TbMsgMetaData metadata = getMetadataForNewVersionPolygonPerimeter();
-        TbMsg msg = getTbMsg(deviceId, metadata,
-                GeoUtilTest.POINT_OUTSIDE_SIMPLE_RECT.getLatitude(), GeoUtilTest.POINT_OUTSIDE_SIMPLE_RECT.getLongitude());
-
-        when(ctx.getAttributesService()).thenReturn(attributesService);
-        when(ctx
-                .getAttributesService()
-                .find(ctx.getTenantId(), msg.getOriginator(), DataConstants.SERVER_SCOPE, ctx.getServiceId()))
-                .thenReturn(Futures.immediateFuture(Optional.empty()));
-
-        // WHEN
-        ArgumentCaptor<TbMsg> newMsgCaptor = ArgumentCaptor.forClass(TbMsg.class);
-        node.onMsg(ctx, msg);
-
-        // THEN
-        verifyNodeOutputs(newMsgCaptor, 0, 0, 0);
-
-        // WHEN
-        msg = getTbMsg(deviceId, metadata,
-                GeoUtilTest.POINT_INSIDE_SIMPLE_RECT_CENTER.getLatitude(), GeoUtilTest.POINT_INSIDE_SIMPLE_RECT_CENTER.getLongitude());
-        node.onMsg(ctx, msg);
-
-        // THEN
-        verifyNodeOutputs(newMsgCaptor, 1, 0, 0);
-
-        // WHEN
-        node.onMsg(ctx, msg);
-
-        // THEN
-        verifyNodeOutputs(newMsgCaptor, 1, 0, 1);
-
-        // WHEN
-        Thread.sleep(5000);
-        node.onMsg(ctx, msg);
-
-        // THEN
-        verifyNodeOutputs(newMsgCaptor, 1, 1, 1);
-
-        // WHEN
-        node.onMsg(ctx, msg);
-
-        // THEN
-        verifyNodeOutputs(newMsgCaptor, 1, 1, 2);
+    private static Stream<Arguments> givenDefaultConfig_whenOnMsg_thenVerifyOutputMsgTypes() {
+        return Stream.of(
+                // default config
+                Arguments.of(false, List.of(
+                        Map.of(ENTERED, 0, INSIDE, 0, SUCCESS, 0),
+                        Map.of(ENTERED, 1, INSIDE, 0, SUCCESS, 0),
+                        Map.of(ENTERED, 1, INSIDE, 0, SUCCESS, 1),
+                        Map.of(ENTERED, 1, INSIDE, 1, SUCCESS, 1),
+                        Map.of(ENTERED, 1, INSIDE, 1, SUCCESS, 2)
+                )),
+                // default config with presenceMonitoring
+                Arguments.of(true, List.of(
+                        Map.of(ENTERED, 0, INSIDE, 0, SUCCESS, 0),
+                        Map.of(ENTERED, 1, INSIDE, 0, SUCCESS, 0),
+                        Map.of(ENTERED, 1, INSIDE, 1, SUCCESS, 0),
+                        Map.of(ENTERED, 1, INSIDE, 2, SUCCESS, 0),
+                        Map.of(ENTERED, 1, INSIDE, 3, SUCCESS, 0)
+                ))
+        );
     }
 
-    @Test
-    void givenDefaultConfig_whenStayDurationCheck_thenEnteredInsideInsideInside() throws TbNodeException, InterruptedException {
+    @ParameterizedTest
+    @MethodSource
+    void givenDefaultConfig_whenOnMsg_thenVerifyOutputMsgTypes( boolean presenceMonitoring, List<Map<String, Integer>> outputMsgTypesCountList) throws TbNodeException {
         // GIVEN
         var config = new TbGpsGeofencingActionNodeConfiguration().defaultConfiguration();
-        config.setPresenceMonitoring(true);
+        config.setPresenceMonitoring(presenceMonitoring);
         node.init(ctx, new TbNodeConfiguration(JacksonUtil.valueToTree(config)));
 
         DeviceId deviceId = new DeviceId(UUID.randomUUID());
@@ -161,7 +130,7 @@ class TbGpsGeofencingActionNodeTest {
         node.onMsg(ctx, msg);
 
         // THEN
-        verifyNodeOutputs(newMsgCaptor, 0, 0, 0);
+        verifyNodeOutputs(newMsgCaptor, outputMsgTypesCountList.get(0));
 
         // WHEN
         msg = getTbMsg(deviceId, metadata,
@@ -169,26 +138,27 @@ class TbGpsGeofencingActionNodeTest {
         node.onMsg(ctx, msg);
 
         // THEN
-        verifyNodeOutputs(newMsgCaptor, 1, 0, 0);
+        verifyNodeOutputs(newMsgCaptor, outputMsgTypesCountList.get(1));
 
         // WHEN
         node.onMsg(ctx, msg);
 
         // THEN
-        verifyNodeOutputs(newMsgCaptor, 1, 1, 0);
+        verifyNodeOutputs(newMsgCaptor, outputMsgTypesCountList.get(2));
 
         // WHEN
-        Thread.sleep(5000);
+        config.setMinInsideDuration(0);
+        node.init(ctx, new TbNodeConfiguration(JacksonUtil.valueToTree(config)));
         node.onMsg(ctx, msg);
 
         // THEN
-        verifyNodeOutputs(newMsgCaptor, 1, 2, 0);
+        verifyNodeOutputs(newMsgCaptor, outputMsgTypesCountList.get(3));
 
         // WHEN
         node.onMsg(ctx, msg);
 
         // THEN
-        verifyNodeOutputs(newMsgCaptor, 1, 3, 0);
+        verifyNodeOutputs(newMsgCaptor, outputMsgTypesCountList.get(4));
     }
 
     private TbMsg getTbMsg(EntityId entityId, TbMsgMetaData metadata, double latitude, double longitude) {
@@ -202,10 +172,10 @@ class TbGpsGeofencingActionNodeTest {
         return metadata;
     }
 
-    private void verifyNodeOutputs(ArgumentCaptor<TbMsg> newMsgCaptor, int numberOfEntered, int numberOfInside, int numberOfSuccess) {
-        verify(this.ctx, times(numberOfEntered)).tellNext(newMsgCaptor.capture(), eq(ENTERED));
-        verify(this.ctx, times(numberOfInside)).tellNext(newMsgCaptor.capture(), eq(INSIDE));
-        verify(this.ctx, times(numberOfSuccess)).tellSuccess(newMsgCaptor.capture());
+    private void verifyNodeOutputs(ArgumentCaptor<TbMsg> newMsgCaptor, Map<String, Integer> outputMsgTypesCount) {
+        verify(this.ctx, times(outputMsgTypesCount.get(ENTERED))).tellNext(newMsgCaptor.capture(), eq(ENTERED));
+        verify(this.ctx, times(outputMsgTypesCount.get(INSIDE))).tellNext(newMsgCaptor.capture(), eq(INSIDE));
+        verify(this.ctx, times(outputMsgTypesCount.get(SUCCESS))).tellSuccess(newMsgCaptor.capture());
     }
 
     // Rule nodes upgrade
