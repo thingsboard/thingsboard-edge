@@ -828,18 +828,30 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
 
     @Test
     public void testVerifyProcessCorrectEdgeUpdateToDeviceActorOnUnassignFromDifferentEdge() throws Exception {
-        Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
-
-        // assign device to another edge
+        // create tmp edge
         Edge tmpEdge = doPost("/api/edge", constructEdge("Test Tmp Edge", "test"), Edge.class);
-        doPost("/api/edge/" + tmpEdge.getUuidId()
-                + "/device/" + device.getUuidId(), Device.class);
+
+        // create entity group and assign to tmp edge
+        EntityGroup deviceEntityGroup = new EntityGroup();
+        deviceEntityGroup.setType(EntityType.DEVICE);
+        deviceEntityGroup.setName(StringUtils.randomAlphanumeric(15));
+        deviceEntityGroup = doPost("/api/entityGroup", deviceEntityGroup, EntityGroup.class);
+        deviceEntityGroup = doPost("/api/edge/" + tmpEdge.getUuidId()
+                + "/entityGroup/" + deviceEntityGroup.getId().toString() + "/" + EntityType.DEVICE.name(), EntityGroup.class);
+
+        // create entity group and assign to edge, add device to entity group
+        EntityGroup entityGroup = createEntityGroupAndAssignToEdge(EntityType.DEVICE, StringUtils.randomAlphanumeric(15), tenantId);
+        Device device = saveDevice(StringUtils.randomAlphanumeric(15), THERMOSTAT_DEVICE_PROFILE_NAME, entityGroup.getId());
+
+        // add device to another entity group, assigned to another edge
+        addEntitiesToEntityGroup(List.of(device.getId()), deviceEntityGroup.getId());
+
         List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, device.getId());
         Assert.assertEquals(2, relatedEdgeIds.size());
 
-        // unassign device from edge
+        // unassign entity group from edge
         doDelete("/api/edge/" + edge.getUuidId()
-                + "/device/" + device.getUuidId(), Device.class);
+                + "/entityGroup/" + entityGroup.getUuidId().toString() + "/" + entityGroup.getType().name(), EntityGroup.class);
         relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, device.getId());
         Assert.assertEquals(1, relatedEdgeIds.size());
         Assert.assertEquals(tmpEdge.getId(), relatedEdgeIds.get(0));
@@ -871,6 +883,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(device.getId().getId(), edgeEvent.getEntityId());
 
         // clean up tmp edge
+        doDelete("/api/entityGroup/" + entityGroup.getId().getId().toString()).andExpect(status().isOk());
         doDelete("/api/edge/" + tmpEdge.getId().getId().toString()).andExpect(status().isOk());
     }
 
