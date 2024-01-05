@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.user;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.UserInfo;
+import org.thingsboard.server.common.data.UserMobileInfo;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -137,5 +138,9 @@ public interface UserService extends EntityDaoService {
     PageData<UserInfo> findUserInfosByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink);
 
     PageData<UserInfo> findUserInfosByTenantIdAndCustomerIdIncludingSubCustomers(TenantId tenantId, CustomerId customerId, PageLink pageLink);
+
+    void saveMobileInfo(TenantId tenantId, UserId userId, UserMobileInfo mobileInfo);
+
+    UserMobileInfo findMobileInfo(TenantId tenantId, UserId userId);
 
 }

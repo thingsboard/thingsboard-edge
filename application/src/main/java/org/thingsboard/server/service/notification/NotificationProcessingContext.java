@@ -58,6 +58,7 @@ public class NotificationProcessingContext {
     @Getter
     private final TenantId tenantId;
     private final NotificationSettings settings;
+    private final NotificationSettings systemSettings;
     @Getter
     private final NotificationRequest request;
     @Getter
@@ -73,11 +74,12 @@ public class NotificationProcessingContext {
 
     @Builder
     public NotificationProcessingContext(TenantId tenantId, NotificationRequest request, Set<NotificationDeliveryMethod> deliveryMethods,
-                                           NotificationTemplate template, NotificationSettings settings) {
+                                         NotificationTemplate template, NotificationSettings settings, NotificationSettings systemSettings) {
         this.tenantId = tenantId;
         this.request = request;
         this.deliveryMethods = deliveryMethods;
         this.settings = settings;
+        this.systemSettings = systemSettings;
         this.notificationTemplate = template;
         this.notificationType = template.getNotificationType();
         this.templates = new EnumMap<>(NotificationDeliveryMethod.class);
@@ -96,6 +98,12 @@ public class NotificationProcessingContext {
     }
 
     public <C extends NotificationDeliveryMethodConfig> C getDeliveryMethodConfig(NotificationDeliveryMethod deliveryMethod) {
+        NotificationSettings settings;
+        if (deliveryMethod == NotificationDeliveryMethod.MOBILE_APP) {
+            settings = this.systemSettings;
+        } else {
+            settings = this.settings;
+        }
         return (C) settings.getDeliveryMethodsConfigs().get(deliveryMethod);
     }
 

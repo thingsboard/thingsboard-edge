@@ -108,7 +108,7 @@ export class SentNotificationDialogComponent extends
               protected fb: FormBuilder,
               private notificationService: NotificationService,
               private dialog: MatDialog,
-              private translate: TranslateService,
+              public translate: TranslateService,
               private userPermissionsService: UserPermissionsService) {
     super(store, router, dialogRef, fb);
 
@@ -324,6 +324,10 @@ export class SentNotificationDialogComponent extends
   }
 
   allowConfigureDeliveryMethod(deliveryMethod: NotificationDeliveryMethod): boolean {
+    const tenantAllowConfigureDeliveryMethod = new Set([
+      NotificationDeliveryMethod.SLACK,
+      NotificationDeliveryMethod.MOBILE_APP
+    ]);
     if (deliveryMethod === NotificationDeliveryMethod.WEB) {
       return false;
     }
@@ -346,6 +350,7 @@ export class SentNotificationDialogComponent extends
         return '/settings/outgoing-mail';
       case NotificationDeliveryMethod.SMS:
       case NotificationDeliveryMethod.SLACK:
+      case NotificationDeliveryMethod.MOBILE_APP:
         return '/settings/notifications';
     }
   }

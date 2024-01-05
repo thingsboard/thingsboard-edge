@@ -60,6 +60,7 @@ export abstract class TemplateConfiguration<T, R = any> extends DialogComponent<
   smsTemplateForm: FormGroup;
   slackTemplateForm: FormGroup;
   microsoftTeamsTemplateForm: FormGroup;
+  mobileTemplateForm: FormGroup;
 
   notificationDeliveryMethods = Object.keys(NotificationDeliveryMethod) as NotificationDeliveryMethod[];
   notificationDeliveryMethodTranslateMap = NotificationDeliveryMethodTranslateMap;
@@ -144,6 +145,11 @@ export abstract class TemplateConfiguration<T, R = any> extends DialogComponent<
       body: ['', Validators.required]
     });
 
+    this.mobileTemplateForm = this.fb.group({
+      subject: ['', Validators.required],
+      body: ['', Validators.required]
+    });
+
     this.microsoftTeamsTemplateForm = this.fb.group({
       subject: [''],
       body: ['', Validators.required],
@@ -156,7 +162,8 @@ export abstract class TemplateConfiguration<T, R = any> extends DialogComponent<
       [NotificationDeliveryMethod.EMAIL, this.emailTemplateForm],
       [NotificationDeliveryMethod.SMS, this.smsTemplateForm],
       [NotificationDeliveryMethod.SLACK, this.slackTemplateForm],
-      [NotificationDeliveryMethod.MICROSOFT_TEAMS, this.microsoftTeamsTemplateForm]
+      [NotificationDeliveryMethod.MICROSOFT_TEAMS, this.microsoftTeamsTemplateForm],
+      [NotificationDeliveryMethod.MOBILE_APP, this.mobileTemplateForm]
     ]);
   }
 

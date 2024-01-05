@@ -41,7 +41,7 @@ import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
 import { MatDialog } from '@angular/material/dialog';
 import { SendTestSmsDialogComponent, SendTestSmsDialogData } from '@home/pages/admin/send-test-sms-dialog.component';
 import { NotificationSettings } from '@shared/models/notification.models';
-import { deepTrim, isDefined, isEmptyStr } from '@core/utils';
+import { deepTrim, isDefined, isEmptyStr, isNotEmptyStr } from '@core/utils';
 import { NotificationService } from '@core/http/notification.service';
 import { Authority } from '@shared/models/authority.enum';
 import { AuthUser } from '@shared/models/user.model';
@@ -59,7 +59,7 @@ export class SmsProviderComponent extends PageComponent implements HasConfirmFor
   smsProvider: FormGroup;
   private adminSettings: AdminSettings<SmsProviderConfiguration>;
 
-  slackSettingsForm: FormGroup;
+  notificationSettingsForm: FormGroup;
   private notificationSettings: NotificationSettings;
 
   private readonly authUser = getCurrentAuthUser(this.store);
@@ -78,7 +78,7 @@ export class SmsProviderComponent extends PageComponent implements HasConfirmFor
     this.notificationService.getNotificationSettings().subscribe(
       (settings) => {
         this.notificationSettings = settings;
-        this.slackSettingsForm.reset(this.notificationSettings);
+        this.notificationSettingsForm.reset(this.notificationSettings);
       }
     );
     this.adminService.getAdminSettings<SmsProviderConfiguration>('sms', false, {ignoreErrors: true}).subscribe({
@@ -183,33 +183,37 @@ export class SmsProviderComponent extends PageComponent implements HasConfirmFor
   }
 
   confirmForm(): FormGroup {
-    return this.smsProvider.dirty ? this.smsProvider : this.slackSettingsForm;
+    return this.smsProvider.dirty ? this.smsProvider : this.notificationSettingsForm;
   }
 
   private buildGeneralServerSettingsForm() {
-    this.slackSettingsForm = this.fb.group({
+    this.notificationSettingsForm = this.fb.group({
       deliveryMethodsConfigs: this.fb.group({
         SLACK: this.fb.group({
           botToken: ['']
+        }),
+        MOBILE_APP: this.fb.group({
+          firebaseServiceAccountCredentialsFileName: [''],
+          firebaseServiceAccountCredentials: ['']
         })
       })
     });
     if(this.readonly) {
-      this.slackSettingsForm.disable(({emitEvent: false}));
+      this.notificationSettingsForm.disable(({emitEvent: false}));
     } else {
-      this.registerDisableOnLoadFormControl(this.slackSettingsForm.get('deliveryMethodsConfigs'));
+      this.registerDisableOnLoadFormControl(this.notificationSettingsForm.get('deliveryMethodsConfigs'));
     }
   }
 
   saveNotification(): void {
     this.notificationSettings = deepTrim({
       ...this.notificationSettings,
-      ...this.slackSettingsForm.value
+      ...this.notificationSettingsForm.value
     });
     // eslint-disable-next-line guard-for-in
     for (const method in this.notificationSettings.deliveryMethodsConfigs) {
       const keys = Object.keys(this.notificationSettings.deliveryMethodsConfigs[method]);
-      if (keys.some(item => isEmptyStr(this.notificationSettings.deliveryMethodsConfigs[method][item]))) {
+      if (keys.some(item => !isNotEmptyStr(this.notificationSettings.deliveryMethodsConfigs[method][item]))) {
         delete this.notificationSettings.deliveryMethodsConfigs[method];
       } else {
         this.notificationSettings.deliveryMethodsConfigs[method].method = method;
@@ -217,7 +221,7 @@ export class SmsProviderComponent extends PageComponent implements HasConfirmFor
     }
     this.notificationService.saveNotificationSettings(this.notificationSettings).subscribe(setting => {
       this.notificationSettings = setting;
-      this.slackSettingsForm.reset(this.notificationSettings);
+      this.notificationSettingsForm.reset(this.notificationSettings);
     });
   }
 }

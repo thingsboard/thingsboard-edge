@@ -211,6 +211,11 @@ public class JpaUserDao extends JpaAbstractDao<UserEntity, User> implements User
     }
 
     @Override
+    public void unassignFcmToken(TenantId tenantId, String fcmToken) {
+        userRepository.unassignFcmToken(fcmToken);
+    }
+
+    @Override
     public Long countByTenantId(TenantId tenantId) {
         return userRepository.countByTenantId(tenantId.getId());
     }
