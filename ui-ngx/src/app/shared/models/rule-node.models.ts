@@ -54,6 +54,7 @@ export interface RuleNode extends BaseData<RuleNodeId> {
   name: string;
   debugMode: boolean;
   singletonMode: boolean;
+  queueName?: string;
   configurationVersion?: number;
   configuration: RuleNodeConfiguration;
   additionalInfo?: any;
@@ -361,6 +362,7 @@ export interface RuleNodeComponentDescriptor extends ComponentDescriptor {
 export interface FcRuleNodeType extends FcNode {
   component?: RuleNodeComponentDescriptor;
   singletonMode?: boolean;
+  queueName?: string;
   nodeClass?: string;
   icon?: string;
   iconUrl?: string;
