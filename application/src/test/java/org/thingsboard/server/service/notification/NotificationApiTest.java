@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.notification;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.SettableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -771,17 +772,60 @@ public class NotificationApiTest extends AbstractNotificationApiTest {
     }
 
     @Test
-    public void testMobileSettings_tenantLevel() throws Exception {
-        MobileAppNotificationDeliveryMethodConfig config = new MobileAppNotificationDeliveryMethodConfig();
-        config.setFirebaseServiceAccountCredentials("testCredentials");
-        NotificationSettings settings = new NotificationSettings();
-        settings.setDeliveryMethodsConfigs(Map.of(
-                NotificationDeliveryMethod.MOBILE_APP, config
-        ));
+    public void testMobileSettings() throws Exception {
+        assertThat(getAvailableDeliveryMethods()).doesNotContain(NotificationDeliveryMethod.MOBILE_APP);
+        loginSysAdmin();
+        var systemConfig = new MobileAppNotificationDeliveryMethodConfig();
+        systemConfig.setFirebaseServiceAccountCredentials("systemCreds");
+        saveNotificationSettings(systemConfig);
 
-        ResultActions result = doPost("/api/notification/settings", settings)
-                .andExpect(status().isBadRequest());
-        assertThat(getErrorMessage(result)).contains("can only be configured by system administrator");
+        loginTenantAdmin();
+        UserMobileInfo tenantMobileInfo = new UserMobileInfo();
+        tenantMobileInfo.setFcmToken("tenantFcmToken");
+        doPost("/api/user/mobile/info", tenantMobileInfo).andExpect(status().isOk());
+        NotificationTarget target = createNotificationTarget(tenantAdminUserId);
+
+        // no tenant settings
+        assertThat(getAvailableDeliveryMethods()).contains(NotificationDeliveryMethod.MOBILE_APP);
+        NotificationRequest request = submitNotificationRequest(target.getId(), "with systemCreds 1", NotificationDeliveryMethod.MOBILE_APP);
+        awaitNotificationRequest(request.getId());
+        verify(firebaseService).sendMessage(eq(tenantId), eq("systemCreds"),
+                eq("tenantFcmToken"), any(), eq("with systemCreds 1"));
+
+        // tenant settings with useSystemSettings = false
+        var tenantConfig = new MobileAppNotificationDeliveryMethodConfig();
+        tenantConfig.setFirebaseServiceAccountCredentials("tenantCreds");
+        tenantConfig.setUseSystemSettings(false);
+        saveNotificationSettings(tenantConfig);
+        assertThat(getAvailableDeliveryMethods()).contains(NotificationDeliveryMethod.MOBILE_APP);
+        request = submitNotificationRequest(target.getId(), "with tenantCreds 2", NotificationDeliveryMethod.MOBILE_APP);
+        awaitNotificationRequest(request.getId());
+        verify(firebaseService).sendMessage(eq(tenantId), eq("tenantCreds"),
+                eq("tenantFcmToken"), any(), eq("with tenantCreds 2"));
+
+        // tenant settings with useSystemSettings = true
+        tenantConfig.setFirebaseServiceAccountCredentials(null);
+        tenantConfig.setUseSystemSettings(true);
+        saveNotificationSettings(tenantConfig);
+        assertThat(getAvailableDeliveryMethods()).contains(NotificationDeliveryMethod.MOBILE_APP);
+        request = submitNotificationRequest(target.getId(), "with systemCreds 3", NotificationDeliveryMethod.MOBILE_APP);
+        awaitNotificationRequest(request.getId());
+        verify(firebaseService).sendMessage(eq(tenantId), eq("systemCreds"),
+                eq("tenantFcmToken"), any(), eq("with systemCreds 3"));
+
+        loginSysAdmin();
+        saveNotificationSettings(); // clearing system settings
+        assertThat(getAvailableDeliveryMethods()).doesNotContain(NotificationDeliveryMethod.MOBILE_APP);
+        loginTenantAdmin();
+        assertThat(getAvailableDeliveryMethods()).doesNotContain(NotificationDeliveryMethod.MOBILE_APP);
+
+        tenantConfig.setFirebaseServiceAccountCredentials("tenantCreds");
+        tenantConfig.setUseSystemSettings(false);
+        saveNotificationSettings(tenantConfig);
+        assertThat(getAvailableDeliveryMethods()).contains(NotificationDeliveryMethod.MOBILE_APP);
+
+        loginSysAdmin();
+        assertThat(getAvailableDeliveryMethods()).doesNotContain(NotificationDeliveryMethod.MOBILE_APP);
     }
 
     private NotificationRequestStats submitNotificationRequestAndWait(NotificationRequest notificationRequest) throws Exception {
@@ -798,6 +842,10 @@ public class NotificationApiTest extends AbstractNotificationApiTest {
             }
         });
         return future.get(30, TimeUnit.SECONDS);
+    }
+
+    private List<NotificationDeliveryMethod> getAvailableDeliveryMethods() throws Exception {
+        return doGetTyped("/api/notification/deliveryMethods", new TypeReference<>() {});
     }
 
     private NotificationRequestStats awaitNotificationRequest(NotificationRequestId requestId) {

@@ -30,21 +30,32 @@
  */
 package org.thingsboard.server.common.data.notification.settings;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
 
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.AssertTrue;
 
 @Data
 public class MobileAppNotificationDeliveryMethodConfig implements NotificationDeliveryMethodConfig {
 
     private String firebaseServiceAccountCredentialsFileName;
-    @NotEmpty
     private String firebaseServiceAccountCredentials;
+    private boolean useSystemSettings;
 
     @Override
     public NotificationDeliveryMethod getMethod() {
         return NotificationDeliveryMethod.MOBILE_APP;
+    }
+
+    @JsonIgnore
+    @AssertTrue(message = "Firebase service account credentials must be specified")
+    public boolean isValid() {
+        if (useSystemSettings) {
+            return true;
+        }
+        return StringUtils.isNotEmpty(firebaseServiceAccountCredentials);
     }
 
 }

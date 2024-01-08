@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.notification.NotificationDeliveryMetho
 import org.thingsboard.server.common.data.notification.NotificationRequest;
 import org.thingsboard.server.common.data.notification.NotificationRequestStats;
 import org.thingsboard.server.common.data.notification.NotificationType;
+import org.thingsboard.server.common.data.notification.settings.MobileAppNotificationDeliveryMethodConfig;
 import org.thingsboard.server.common.data.notification.settings.NotificationDeliveryMethodConfig;
 import org.thingsboard.server.common.data.notification.settings.NotificationSettings;
 import org.thingsboard.server.common.data.notification.targets.NotificationRecipient;
@@ -98,11 +99,12 @@ public class NotificationProcessingContext {
     }
 
     public <C extends NotificationDeliveryMethodConfig> C getDeliveryMethodConfig(NotificationDeliveryMethod deliveryMethod) {
-        NotificationSettings settings;
-        if (deliveryMethod == NotificationDeliveryMethod.MOBILE_APP) {
-            settings = this.systemSettings;
-        } else {
-            settings = this.settings;
+        NotificationSettings settings = this.settings;
+        if (deliveryMethod == NotificationDeliveryMethod.MOBILE_APP && !tenantId.isSysTenantId()) {
+            var config = (MobileAppNotificationDeliveryMethodConfig) settings.getDeliveryMethodsConfigs().get(deliveryMethod);
+            if (config == null || config.isUseSystemSettings()) {
+                settings = this.systemSettings;
+            }
         }
         return (C) settings.getDeliveryMethodsConfigs().get(deliveryMethod);
     }
