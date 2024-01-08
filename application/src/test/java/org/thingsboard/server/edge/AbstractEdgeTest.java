@@ -84,7 +84,6 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -164,7 +163,6 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         doPost("/api/whiteLabel/loginWhiteLabelParams", new LoginWhiteLabelingParams(), LoginWhiteLabelingParams.class);
         doPost("/api/whiteLabel/whiteLabelParams", new WhiteLabelingParams(), WhiteLabelingParams.class);
         doPost("/api/customTranslation/customTranslation", new CustomTranslation(), CustomTranslation.class);
-        doPost("/api/customMenu/customMenu", new CustomMenu(), CustomMenu.class);
 
         // get jwt settings from yaml config
         JwtSettings settings = doGet("/api/admin/jwtSettings", JwtSettings.class);
@@ -176,7 +174,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         installation();
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.expectMessageAmount(28);
+        edgeImitator.expectMessageAmount(27);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();
@@ -273,9 +271,9 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         validateMsgsCnt(RuleChainMetadataUpdateMsg.class, 1);
         validateRuleChainMetadataUpdates(ruleChainUUID);
 
-        // 5 messages ('general', 'mail', 'connectivity', 'jwt', 'customTranslation', 'customMenu')
-        validateMsgsCnt(AdminSettingsUpdateMsg.class, 6);
-        validateAdminSettings(6);
+        // 5 messages ('general', 'mail', 'connectivity', 'jwt', 'customTranslation')
+        validateMsgsCnt(AdminSettingsUpdateMsg.class, 5);
+        validateAdminSettings(5);
 
         // 3 messages
         // - 1 from default profile fetcher
@@ -441,9 +439,6 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
             if (adminSettings.getKey().equals("customTranslation")) {
                 validateCustomTranslationAdminSettings(adminSettings);
             }
-            if (adminSettings.getKey().equals("customMenu")) {
-                validateCustomMenuAdminSettings(adminSettings);
-            }
         }
     }
 
@@ -479,10 +474,6 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     private void validateCustomTranslationAdminSettings(AdminSettings adminSettings) {
-        Assert.assertNotNull(adminSettings.getJsonValue().get("value"));
-    }
-
-    private void validateCustomMenuAdminSettings(AdminSettings adminSettings) {
         Assert.assertNotNull(adminSettings.getJsonValue().get("value"));
     }
 

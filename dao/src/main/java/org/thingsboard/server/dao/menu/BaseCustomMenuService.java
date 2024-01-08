@@ -56,7 +56,6 @@ import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -141,8 +140,6 @@ public class BaseCustomMenuService implements CustomMenuService {
         }
         ((ObjectNode) customMenuSettings.getJsonValue()).put("value", json);
         adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, customMenuSettings);
-        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID)
-                .edgeEventType(EdgeEventType.CUSTOM_MENU).actionType(ActionType.UPDATED).build());
         return getSystemCustomMenu(TenantId.SYS_TENANT_ID);
     }
 
@@ -179,7 +176,7 @@ public class BaseCustomMenuService implements CustomMenuService {
     private String getEntityAttributeValue(TenantId tenantId, EntityId entityId) {
         List<AttributeKvEntry> attributeKvEntries;
         try {
-            attributeKvEntries = attributesService.find(tenantId, entityId, DataConstants.SERVER_SCOPE, Arrays.asList(CUSTOM_MENU_ATTR_NAME)).get();
+            attributeKvEntries = attributesService.find(tenantId, entityId, DataConstants.SERVER_SCOPE, List.of(CUSTOM_MENU_ATTR_NAME)).get();
         } catch (Exception e) {
             log.error("Unable to read custom menu from attributes!", e);
             throw new IncorrectParameterException("Unable to read custom menu from attributes!");

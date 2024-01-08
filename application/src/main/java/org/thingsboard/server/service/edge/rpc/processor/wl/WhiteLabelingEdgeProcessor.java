@@ -307,12 +307,12 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
         DownlinkMsg downlinkMsg = null;
         try {
             EntityId entityId = JacksonUtil.convertValue(edgeEvent.getBody(), EntityId.class);
-            if (entityId == null) {
+            if (entityId == null || TenantId.SYS_TENANT_ID.equals(entityId)) {
                 return null;
             }
             CustomMenu customMenu = getCustomMenuForEntity(edgeEvent.getTenantId(), entityId);
-            if (customMenu == null || isDefaultCustomMenu(customMenu)) {
-                return null;
+            if (customMenu == null) {
+                customMenu = new CustomMenu();
             }
             CustomMenuProto customMenuProto = customMenuMsgConstructor.constructCustomMenuProto(customMenu, entityId);
             if (customMenuProto != null) {
@@ -330,18 +330,12 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
     private CustomMenu getCustomMenuForEntity(TenantId tenantId, EntityId entityId) {
         switch (entityId.getEntityType()) {
             case TENANT:
-                return TenantId.SYS_TENANT_ID.equals(entityId)
-                        ? customMenuService.getSystemCustomMenu(tenantId)
-                        : customMenuService.getTenantCustomMenu(tenantId);
+                return customMenuService.getTenantCustomMenu(tenantId);
             case CUSTOMER:
                 return customMenuService.getCustomerCustomMenu(tenantId, new CustomerId(entityId.getId()));
             default:
                 return null;
         }
-    }
-
-    private boolean isDefaultCustomMenu(CustomMenu customMenu) {
-        return new CustomMenu().equals(customMenu);
     }
 
     public ListenableFuture<Void> processNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {

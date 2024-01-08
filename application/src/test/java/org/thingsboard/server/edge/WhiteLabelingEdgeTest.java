@@ -257,15 +257,9 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
 
     @Test
     public void testCustomMenu() throws Exception {
-        testCustomMenu_sysAdmin();
         testCustomMenu_tenant();
         testCustomMenu_customer();
         resetSysAdminWhiteLabelingSettings();
-    }
-
-    private void testCustomMenu_sysAdmin() throws Exception {
-        loginSysAdmin();
-        updateAndVerifyCustomMenuUpdate("SysAdmin custom menu");
     }
 
     private void testCustomMenu_tenant() throws Exception {
