@@ -295,9 +295,9 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         if (validationTask != null) {
             SettableFuture<Void> future = validationTask.getFuture();
             if (validationResponseMsg.hasError()) {
-                future.set(null);
-            } else {
                 future.setException(ProtoUtils.fromProto(validationResponseMsg.getError()));
+            } else {
+                future.set(null);
             }
         }
     }

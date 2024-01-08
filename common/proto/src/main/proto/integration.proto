@@ -227,10 +227,14 @@ message IntegrationProto {
   bool remote = 9;
   bool allowCreateDevicesOrAssets = 10;
   bool isEdgeTemplate = 11;
-  string routingKey = 12;
-  string secret = 13;
-  string configuration = 14;
-  optional string additionalInfo = 15;
+  int64 defaultConverterIdMSB = 12;
+  int64 defaultConverterIdLSB = 13;
+  optional int64 downlinkConverterIdMSB = 14;
+  optional int64 downlinkConverterIdLSB = 15;
+  string routingKey = 16;
+  string secret = 17;
+  string configuration = 18;
+  optional string additionalInfo = 19;
 }
 
 message ConverterProto {

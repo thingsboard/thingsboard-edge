@@ -1104,11 +1104,17 @@ public class ProtoUtils {
                 .setRemote(integration.isRemote())
                 .setAllowCreateDevicesOrAssets(integration.isAllowCreateDevicesOrAssets())
                 .setIsEdgeTemplate(integration.isEdgeTemplate())
+                .setDefaultConverterIdMSB(getMsb(integration.getDefaultConverterId()))
+                .setDefaultConverterIdLSB(getLsb(integration.getDefaultConverterId()))
                 .setRoutingKey(integration.getRoutingKey())
                 .setSecret(integration.getSecret())
                 .setConfiguration(JacksonUtil.toString(integration.getConfiguration()));
-        if (integration.getAdditionalInfo() != null) {
 
+        if (integration.getDownlinkConverterId() != null) {
+            builder.setDownlinkConverterIdMSB(getMsb(integration.getDownlinkConverterId()))
+                    .setDownlinkConverterIdLSB(getLsb(integration.getDownlinkConverterId()));
+        }
+        if (integration.getAdditionalInfo() != null) {
             builder.setAdditionalInfo(JacksonUtil.toString(integration.getAdditionalInfo()));
         }
 
@@ -1125,9 +1131,14 @@ public class ProtoUtils {
         integration.setRemote(proto.getRemote());
         integration.setAllowCreateDevicesOrAssets(proto.getAllowCreateDevicesOrAssets());
         integration.setEdgeTemplate(proto.getIsEdgeTemplate());
+        integration.setDefaultConverterId(getEntityId(proto.getDefaultConverterIdMSB(), proto.getDefaultConverterIdLSB(), ConverterId::new));
         integration.setRoutingKey(proto.getRoutingKey());
         integration.setSecret(proto.getSecret());
         integration.setConfiguration(JacksonUtil.toJsonNode(proto.getConfiguration()));
+
+        if (proto.hasDownlinkConverterIdMSB() && proto.hasDownlinkConverterIdLSB()) {
+            integration.setDownlinkConverterId(getEntityId(proto.getDownlinkConverterIdMSB(), proto.getDownlinkConverterIdLSB(), ConverterId::new));
+        }
 
         if (proto.hasAdditionalInfo()) {
             integration.setAdditionalInfo(JacksonUtil.toJsonNode(proto.getAdditionalInfo()));
