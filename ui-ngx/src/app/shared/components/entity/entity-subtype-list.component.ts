@@ -37,8 +37,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { EntitySubtype, EntityType } from '@shared/models/entity-type.models';
 import { MatAutocomplete, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatChipGrid, MatChipInputEvent } from '@angular/material/chips';
-import { AssetProfileService } from '@core/http/asset-profile.service';
-import { DeviceProfileService } from '@core/http/device-profile.service';
 import { EdgeService } from '@core/http/edge.service';
 import { EntityViewService } from '@core/http/entity-view.service';
 import { BroadcastService } from '@core/services/broadcast.service';
@@ -141,8 +139,6 @@ export class EntitySubTypeListComponent implements ControlValueAccessor, OnInit,
 
   constructor(private broadcast: BroadcastService,
               public translate: TranslateService,
-              private assetProfileService: AssetProfileService,
-              private deviceProfileService: DeviceProfileService,
               private entityViewService: EntityViewService,
               private edgeService: EdgeService,
               private alarmService: AlarmService,

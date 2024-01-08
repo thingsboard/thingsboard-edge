@@ -36,10 +36,8 @@ import { map, mergeMap, startWith, tap, share } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
-import { DeviceProfileService } from '@core/http/device-profile.service';
 import { EntityType } from '@app/shared/models/entity-type.models';
 import { BroadcastService } from '@app/core/services/broadcast.service';
-import { AssetProfileService } from '@core/http/asset-profile.service';
 import { EdgeService } from '@core/http/edge.service';
 import { EntityViewService } from '@core/http/entity-view.service';
 import { SubscriptSizing } from '@angular/material/form-field';
@@ -98,8 +96,6 @@ export class EntitySubTypeSelectComponent implements ControlValueAccessor, OnIni
   constructor(private store: Store<AppState>,
               private broadcast: BroadcastService,
               public translate: TranslateService,
-              private deviceProfileService: DeviceProfileService,
-              private assetProfileService: AssetProfileService,
               private entityViewService: EntityViewService,
               private edgeService: EdgeService,
               private fb: UntypedFormBuilder,
