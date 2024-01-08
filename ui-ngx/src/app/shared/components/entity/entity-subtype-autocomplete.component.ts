@@ -47,8 +47,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { EntityType } from '@app/shared/models/entity-type.models';
 import { BroadcastService } from '@app/core/services/broadcast.service';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import { EntityViewService } from '@core/http/entity-view.service';
-import { EdgeService } from '@core/http/edge.service';
 import { MatFormFieldAppearance } from '@angular/material/form-field';
 import { EntityService } from '@core/http/entity.service';
 
@@ -113,8 +111,6 @@ export class EntitySubTypeAutocompleteComponent implements ControlValueAccessor,
   constructor(private store: Store<AppState>,
               private broadcast: BroadcastService,
               public translate: TranslateService,
-              private entityViewService: EntityViewService,
-              private edgeService: EdgeService,
               private fb: UntypedFormBuilder,
               private entityService: EntityService) {
     this.subTypeFormGroup = this.fb.group({
