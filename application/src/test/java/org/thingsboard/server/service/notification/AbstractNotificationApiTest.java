@@ -77,6 +77,7 @@ import org.thingsboard.server.controller.AbstractControllerTest;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.notification.NotificationRequestService;
 import org.thingsboard.server.dao.notification.NotificationRuleService;
+import org.thingsboard.server.dao.notification.NotificationSettingsService;
 import org.thingsboard.server.dao.notification.NotificationTargetService;
 import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.sqlts.insert.sql.SqlPartitioningRepository;
@@ -110,6 +111,8 @@ public abstract class AbstractNotificationApiTest extends AbstractControllerTest
     @Autowired
     protected NotificationRequestService notificationRequestService;
     @Autowired
+    protected NotificationSettingsService notificationSettingsService;
+    @Autowired
     protected SqlPartitioningRepository partitioningRepository;
 
     public static final String DEFAULT_NOTIFICATION_SUBJECT = "Just a test";
@@ -122,6 +125,7 @@ public abstract class AbstractNotificationApiTest extends AbstractControllerTest
         notificationTemplateService.deleteNotificationTemplatesByTenantId(TenantId.SYS_TENANT_ID);
         notificationTargetService.deleteNotificationTargetsByTenantId(TenantId.SYS_TENANT_ID);
         partitioningRepository.dropPartitionsBefore("notification", Long.MAX_VALUE, 1);
+        notificationSettingsService.deleteNotificationSettings(TenantId.SYS_TENANT_ID);
     }
 
     protected NotificationTarget createNotificationTarget(UserId... usersIds) {
