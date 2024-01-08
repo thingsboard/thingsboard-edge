@@ -78,6 +78,8 @@ public abstract class AbstractContainerTest {
     protected static final String TELEMETRY_VALUE = "42";
     protected static final int CONNECT_TRY_COUNT = 50;
     protected static final int CONNECT_TIMEOUT_MS = 500;
+
+    protected static final int TIMEOUT = 30;
     protected static final ContainerTestSuite containerTestSuite = ContainerTestSuite.getInstance();
     protected static TestRestClient testRestClient;
     protected static TestRestClient remoteHttpClient;

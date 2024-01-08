@@ -115,6 +115,7 @@ public interface RuleChainService extends EntityDaoService {
 
     PageData<RuleNode> findAllRuleNodesByType(String type, PageLink pageLink);
 
+    @Deprecated(forRemoval = true, since = "3.6.3")
     PageData<RuleNode> findAllRuleNodesByTypeAndVersionLessThan(String type, int version, PageLink pageLink);
 
     PageData<RuleNodeId> findAllRuleNodeIdsByTypeAndVersionLessThan(String type, int version, PageLink pageLink);
