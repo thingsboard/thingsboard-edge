@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,12 +33,13 @@ import {
   BackgroundSettings,
   BackgroundType,
   ColorRange,
-  DateFormatSettings,
-  Font, simpleDateFormat
+  Font,
+  simpleDateFormat
 } from '@shared/models/widget-settings.models';
 import { LegendPosition } from '@shared/models/widget.models';
+import { EChartsTooltipWidgetSettings } from '@home/components/widget/lib/chart/echarts-widget.models';
 
-export interface RangeChartWidgetSettings {
+export interface RangeChartWidgetSettings extends EChartsTooltipWidgetSettings {
   dataZoom: boolean;
   rangeColors: Array<ColorRange>;
   outOfRangeColor: string;
@@ -47,15 +48,6 @@ export interface RangeChartWidgetSettings {
   legendPosition: LegendPosition;
   legendLabelFont: Font;
   legendLabelColor: string;
-  showTooltip: boolean;
-  tooltipValueFont: Font;
-  tooltipValueColor: string;
-  tooltipShowDate: boolean;
-  tooltipDateFormat: DateFormatSettings;
-  tooltipDateFont: Font;
-  tooltipDateColor: string;
-  tooltipBackgroundColor: string;
-  tooltipBackgroundBlur: number;
   background: BackgroundSettings;
 }
 
