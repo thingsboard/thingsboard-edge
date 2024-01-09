@@ -29,11 +29,11 @@
       mat-icon {
         margin-right: 0;
         margin-left: 16px;
-        color: $tb-primary-color;
+        color: var(--tb-primary-500);
       }
 
       .mdc-list-item__primary-text {
-        color: $tb-primary-color;
+        color: var(--tb-primary-500);
       }
     }
   }
