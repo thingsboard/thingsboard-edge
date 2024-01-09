@@ -53,6 +53,7 @@ import org.thingsboard.integration.api.data.DefaultIntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.util.IntegrationUtil;
 import org.thingsboard.server.coapserver.CoapServerService;
+import org.thingsboard.server.common.data.JavaSerDesUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -258,7 +259,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             log.trace("[{}] Processed the validation request for integration: {}", requestId, configuration);
         } catch (Exception e) {
             log.trace("[{}][{}] Integration validation failed: {}", validationRequestMsg.getType(), requestId, e);
-            response.setError(ProtoUtils.toProto(e));
+            response.setError(ByteString.copyFrom(JavaSerDesUtil.encode(e)));
         }
         TopicPartitionInfo tpi = topicService.getNotificationsTopic(ServiceType.TB_CORE, validationRequestMsg.getServiceId());
         TransportProtos.ToCoreNotificationMsg msg = TransportProtos.ToCoreNotificationMsg.newBuilder().setIntegrationValidationResponseMsg(response).build();
@@ -293,11 +294,12 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         UUID requestId = new UUID(validationResponseMsg.getIdMSB(), validationResponseMsg.getIdLSB());
         ValidationTask validationTask = pendingValidationTasks.remove(requestId);
         if (validationTask != null) {
+            ByteString error = validationResponseMsg.getError();
             SettableFuture<Void> future = validationTask.getFuture();
-            if (validationResponseMsg.hasError()) {
-                future.setException(ProtoUtils.fromProto(validationResponseMsg.getError()));
-            } else {
+            if (error.isEmpty()) {
                 future.set(null);
+            } else {
+                future.setException(JavaSerDesUtil.decode(error.toByteArray()));
             }
         }
     }

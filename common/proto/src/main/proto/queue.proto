@@ -1153,7 +1153,7 @@ message EdgeNotificationMsgProto {
 message IntegrationValidationResponseProto {
   int64 idMSB = 1;
   int64 idLSB = 2;
-  optional IntegrationValidationError error = 3;
+  bytes error = 3;
 }
 
 message StackTraceElementProto {
@@ -1614,7 +1614,6 @@ message NotificationSchedulerServiceMsg {
 }
 
 message NotificationRuleProcessorMsg {
-  //Json
   bytes trigger = 1;
 }
 

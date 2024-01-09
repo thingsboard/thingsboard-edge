@@ -107,7 +107,6 @@ import org.thingsboard.server.gen.integration.IntegrationInfoProto;
 import org.thingsboard.server.gen.integration.IntegrationProto;
 import org.thingsboard.server.gen.transport.TransportProtos;
 
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -1180,60 +1179,6 @@ public class ProtoUtils {
         }
 
         return converter;
-    }
-
-    public static TransportProtos.IntegrationValidationError toProto(Exception e) {
-        TransportProtos.IntegrationValidationError.Builder builder = TransportProtos.IntegrationValidationError.newBuilder();
-
-        builder.setType(e.getClass().getName());
-        builder.setMessage(e.getMessage() != null ? e.getMessage() : "No message!");
-
-        for (StackTraceElement element : e.getStackTrace()) {
-            TransportProtos.StackTraceElementProto stackTraceElementProto = TransportProtos.StackTraceElementProto.newBuilder()
-                    .setDeclaringClass(element.getClassName())
-                    .setMethodName(element.getMethodName())
-                    .setFileName(element.getFileName())
-                    .setLineNumber(element.getLineNumber())
-                    .build();
-            builder.addStackTrace(stackTraceElementProto);
-        }
-
-        if (e.getCause() != null) {
-            builder.setCause(toProto((Exception) e.getCause()));
-        }
-
-        return builder.build();
-    }
-
-    public static Exception fromProto(TransportProtos.IntegrationValidationError proto) {
-        Exception exception;
-
-        try {
-            Class<?> clazz = Class.forName(proto.getType());
-            Constructor<?> c = clazz.getConstructor(String.class);
-            exception = (Exception) c.newInstance(proto.getMessage());
-        } catch (Exception e) {
-            log.debug("Failed to deserialize exception: [{}]", proto.getType());
-            exception = new Exception(proto.getMessage());
-        }
-
-        List<StackTraceElement> stackTrace = new ArrayList<>();
-        for (TransportProtos.StackTraceElementProto elementProto : proto.getStackTraceList()) {
-            StackTraceElement stackTraceElement = new StackTraceElement(
-                    elementProto.getDeclaringClass(),
-                    elementProto.getMethodName(),
-                    elementProto.getFileName(),
-                    elementProto.getLineNumber()
-            );
-            stackTrace.add(stackTraceElement);
-        }
-        exception.setStackTrace(stackTrace.toArray(new StackTraceElement[0]));
-
-        if (proto.hasCause()) {
-            exception.initCause(fromProto(proto.getCause()));
-        }
-
-        return exception;
     }
 
     private static boolean isNotNull(Object obj) {
