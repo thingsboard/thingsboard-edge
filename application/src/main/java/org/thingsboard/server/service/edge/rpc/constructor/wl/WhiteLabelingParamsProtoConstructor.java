@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,16 +30,21 @@
  */
 package org.thingsboard.server.service.edge.rpc.constructor.wl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.wl.Favicon;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.Palette;
 import org.thingsboard.server.common.data.wl.PaletteSettings;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.gen.edge.v1.FaviconProto;
 import org.thingsboard.server.gen.edge.v1.LoginWhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.v1.PaletteProto;
@@ -51,12 +56,26 @@ import org.thingsboard.server.gen.edge.v1.WhiteLabelingProto;
 @Slf4j
 public class WhiteLabelingParamsProtoConstructor {
 
-    public WhiteLabelingProto constructWhiteLabeling(WhiteLabeling whiteLabeling) {
+    @Autowired
+    private ImageService imageService;
+
+    public WhiteLabelingProto constructWhiteLabeling(WhiteLabeling whiteLabeling, boolean isEdgeOlderThan_3_6_2) {
+        if (isEdgeOlderThan_3_6_2) {
+            imageService.inlineImagesForEdge(whiteLabeling.getTenantId(), whiteLabeling.getSettings());
+            JsonNode jsonNode = JacksonUtil.valueToTree(whiteLabeling);
+            if (jsonNode != null) {
+                JsonNode entityId =  JacksonUtil.valueToTree(getEntityIdForEvent(whiteLabeling));
+                ((ObjectNode) jsonNode).set("entityId", entityId);
+                return WhiteLabelingProto.newBuilder().setEntity(jsonNode.toString()).build();
+            }
+        }
         return WhiteLabelingProto.newBuilder().setEntity(JacksonUtil.toString(whiteLabeling)).build();
     }
 
-    public LoginWhiteLabelingParamsProto constructLoginWhiteLabelingParamsProto(LoginWhiteLabelingParams loginWhiteLabelingParams,
-                                                                                EntityId entityId) {
+    public LoginWhiteLabelingParamsProto constructLoginWhiteLabelingParamsProto(TenantId tenantId, LoginWhiteLabelingParams loginWhiteLabelingParams, EntityId entityId) {
+        JsonNode settings = JacksonUtil.valueToTree(loginWhiteLabelingParams);
+        imageService.inlineImagesForEdge(tenantId, settings);
+        loginWhiteLabelingParams = JacksonUtil.treeToValue(settings, LoginWhiteLabelingParams.class);
         LoginWhiteLabelingParamsProto.Builder builder = LoginWhiteLabelingParamsProto.newBuilder();
         if (loginWhiteLabelingParams.getPageBackgroundColor() != null) {
             builder.setPageBackgroundColor(loginWhiteLabelingParams.getPageBackgroundColor());
@@ -71,11 +90,14 @@ public class WhiteLabelingParamsProtoConstructor {
         if (loginWhiteLabelingParams.getAdminSettingsId() != null) {
             builder.setAdminSettingsId(loginWhiteLabelingParams.getAdminSettingsId());
         }
-        builder.setWhiteLabelingParams(constructWhiteLabelingParamsProto(loginWhiteLabelingParams, entityId));
+        builder.setWhiteLabelingParams(constructWhiteLabelingParamsProto(tenantId, loginWhiteLabelingParams, entityId));
         return builder.build();
     }
 
-    public WhiteLabelingParamsProto constructWhiteLabelingParamsProto(WhiteLabelingParams whiteLabelingParams, EntityId entityId) {
+    public WhiteLabelingParamsProto constructWhiteLabelingParamsProto(TenantId tenantId, WhiteLabelingParams whiteLabelingParams, EntityId entityId) {
+        JsonNode settings = JacksonUtil.valueToTree(whiteLabelingParams);
+        imageService.inlineImagesForEdge(tenantId, settings);
+        whiteLabelingParams = JacksonUtil.treeToValue(settings, WhiteLabelingParams.class);
         WhiteLabelingParamsProto.Builder builder = WhiteLabelingParamsProto.newBuilder();
         builder.setEntityIdMSB(entityId.getId().getMostSignificantBits())
                 .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
@@ -147,5 +169,9 @@ public class WhiteLabelingParamsProtoConstructor {
             builder.putAllColors(palette.getColors());
         }
         return builder.build();
+    }
+
+    private static EntityId getEntityIdForEvent(WhiteLabeling whiteLabeling) {
+        return whiteLabeling.getCustomerId() != null && !whiteLabeling.getCustomerId().isNullUid() ? whiteLabeling.getCustomerId() : whiteLabeling.getTenantId();
     }
 }

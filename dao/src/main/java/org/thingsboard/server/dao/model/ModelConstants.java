@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -660,6 +660,8 @@ public class ModelConstants {
     public static final String RESOURCE_ETAG_COLUMN = "etag";
     public static final String RESOURCE_DESCRIPTOR_COLUMN = "descriptor";
     public static final String RESOURCE_PREVIEW_COLUMN = "preview";
+    public static final String RESOURCE_IS_PUBLIC_COLUMN = "is_public";
+    public static final String PUBLIC_RESOURCE_KEY_COLUMN = "public_resource_key";
 
     /**
      * Ota Package constants.

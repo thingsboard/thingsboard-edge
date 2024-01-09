@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -145,7 +145,7 @@ export abstract class TbAnalogueGauge<S extends AnalogueGaugeSettings, O extends
 
     const valueDec = getValueDec(this.ctx, settings);
 
-    step = parseFloat(parseFloat(step + '').toFixed(valueDec));
+    step = parseFloat(parseFloat(step + '').toFixed(valueDec)) || 1;
 
     const majorTicks: number[] = [];
     const highlights: Highlight[] = [];

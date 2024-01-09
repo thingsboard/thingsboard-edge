@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -215,7 +215,7 @@ public class AdminController extends BaseController {
     @ResponseBody
     public SecuritySettings getSecuritySettings() throws ThingsboardException {
         accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
-        return checkNotNull(systemSecurityService.getSecuritySettings(TenantId.SYS_TENANT_ID));
+        return checkNotNull(systemSecurityService.getSecuritySettings());
     }
 
     @ApiOperation(value = "Update Security Settings (saveSecuritySettings)",
@@ -227,7 +227,7 @@ public class AdminController extends BaseController {
             @ApiParam(value = "A JSON value representing the Security Settings.")
             @RequestBody SecuritySettings securitySettings) throws ThingsboardException {
         accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.WRITE);
-        securitySettings = checkNotNull(systemSecurityService.saveSecuritySettings(TenantId.SYS_TENANT_ID, securitySettings));
+        securitySettings = checkNotNull(systemSecurityService.saveSecuritySettings(securitySettings));
         return securitySettings;
     }
 

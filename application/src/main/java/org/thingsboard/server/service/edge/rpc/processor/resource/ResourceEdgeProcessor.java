@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -96,10 +96,10 @@ public abstract class ResourceEdgeProcessor extends BaseResourceProcessor implem
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     ResourceUpdateMsg resourceUpdateMsg = ((ResourceMsgConstructor)
                             resourceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructResourceUpdatedMsg(msgType, tbResource);
-                    downlinkMsg = DownlinkMsg.newBuilder()
+                    downlinkMsg = resourceUpdateMsg != null ? DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addResourceUpdateMsg(resourceUpdateMsg)
-                            .build();
+                            .build() : null;
                 }
                 break;
             case DELETED:

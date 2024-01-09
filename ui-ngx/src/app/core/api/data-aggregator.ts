@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -151,6 +151,8 @@ const none: AggFunction = (aggData: AggData, value?: any) => {
   aggData.aggValue = value;
 };
 
+const MAX_INTERVAL_TIMEOUT = Math.pow(2,31)-1;
+
 export class DataAggregator {
 
   constructor(private onDataCb: onAggregatedData,
@@ -232,7 +234,7 @@ export class DataAggregator {
     this.aggregationTimeout = this.isLatestDataAgg ? 1000 : Math.max(this.subsTw.aggregation.interval, 1000);
     this.resetPending = true;
     this.updatedData = false;
-    this.intervalTimeoutHandle = setTimeout(this.onInterval.bind(this), this.aggregationTimeout);
+    this.intervalTimeoutHandle = setTimeout(this.onInterval.bind(this), Math.min(this.aggregationTimeout, MAX_INTERVAL_TIMEOUT));
   }
 
   public destroy() {
@@ -328,7 +330,7 @@ export class DataAggregator {
       this.updatedData = false;
     }
     if (!history) {
-      this.intervalTimeoutHandle = setTimeout(this.onInterval.bind(this), intervalTimeout);
+      this.intervalTimeoutHandle = setTimeout(this.onInterval.bind(this), Math.min(intervalTimeout, MAX_INTERVAL_TIMEOUT));
     }
   }
 

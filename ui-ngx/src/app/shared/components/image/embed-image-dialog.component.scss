@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -28,22 +28,59 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.fetch;
-
-import org.thingsboard.server.common.data.TbResource;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.resource.ResourceService;
-
-public class SystemResourcesEdgeEventFetcher extends BaseResourceEdgeEventFetcher {
-
-    public SystemResourcesEdgeEventFetcher(ResourceService resourceService) {
-        super(resourceService);
+:host {
+  .mat-mdc-dialog-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    .tb-embed-image-text {
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 20px;
+      color: rgba(0,0,0,0.54);
+      letter-spacing: 0.2px;
     }
-
-    @Override
-    protected PageData<TbResource> findTenantResources(TenantId tenantId, PageLink pageLink) {
-        return resourceService.findAllTenantResources(TenantId.SYS_TENANT_ID, pageLink);
+    .tb-form-panel-title {
+      color: rgba(0, 0, 0, 0.87);
     }
+  }
+}
+
+:host ::ng-deep {
+  .tb-markdown-view {
+    max-width: 700px;
+    .tb-embed-image-code {
+      .code-wrapper {
+        padding: 0;
+        pre[class*=language-] {
+          margin: 0;
+          padding: 9px 38px 9px 16px;
+        }
+        code[class*="language-"], pre[class*="language-"] {
+          font-size: 12px;
+          overflow: hidden;
+          white-space: normal;
+          word-break: break-word;
+        }
+        button.clipboard-btn {
+          right: 0;
+          height: 36px;
+          p, div {
+            background: transparent;
+          }
+          p {
+            margin: 0;
+            padding: 6px;
+            font-size: 14px;
+          }
+          div {
+            top: 0;
+            padding: 8px;
+            height: 38px;
+            width: 38px;
+          }
+        }
+      }
+    }
+  }
 }

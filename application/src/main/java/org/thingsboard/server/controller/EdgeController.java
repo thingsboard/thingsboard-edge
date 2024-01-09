@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -759,6 +759,24 @@ public class EdgeController extends BaseController {
             @PathVariable("method") String method) throws Exception {
         if (isEdgesEnabled() && edgeUpgradeServiceOpt.isPresent()) {
             return checkNotNull(edgeUpgradeServiceOpt.get().getUpgradeInstructions(edgeVersion, method));
+        } else {
+            throw new ThingsboardException("Edges support disabled", ThingsboardErrorCode.GENERAL);
+        }
+    }
+
+    @ApiOperation(value = "Is edge upgrade enabled (isEdgeUpgradeAvailable)",
+            notes = "Returns 'true' if upgrade available for connected edge, 'false' - otherwise.")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/edge/{edgeId}/upgrade/available", method = RequestMethod.GET)
+    @ResponseBody
+    public boolean isEdgeUpgradeAvailable(
+            @ApiParam(value = EDGE_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable("edgeId") String strEdgeId) throws Exception {
+        if (isEdgesEnabled() && edgeUpgradeServiceOpt.isPresent()) {
+            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+            edgeId = checkNotNull(edgeId);
+            Edge edge = checkEdgeId(edgeId, Operation.READ);
+            return edgeUpgradeServiceOpt.get().isUpgradeAvailable(edge.getTenantId(), edge.getId());
         } else {
             throw new ThingsboardException("Edges support disabled", ThingsboardErrorCode.GENERAL);
         }

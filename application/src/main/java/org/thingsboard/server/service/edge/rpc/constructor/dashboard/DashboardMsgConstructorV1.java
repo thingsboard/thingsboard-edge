@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,10 +30,12 @@
  */
 package org.thingsboard.server.service.edge.rpc.constructor.dashboard;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -42,8 +44,12 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 @TbCoreComponent
 public class DashboardMsgConstructorV1 extends BaseDashboardMsgConstructor {
 
+    @Autowired
+    private ImageService imageService;
+
     @Override
     public DashboardUpdateMsg constructDashboardUpdatedMsg(UpdateMsgType msgType, Dashboard dashboard, EntityGroupId entityGroupId) {
+        imageService.inlineImagesForEdge(dashboard);
         DashboardUpdateMsg.Builder builder = DashboardUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(dashboard.getId().getId().getMostSignificantBits())

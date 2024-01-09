@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -873,13 +873,6 @@ export interface PublishTelemetryCommand {
   };
   lwm2m?: string;
   snmp?: string;
-}
-
-export interface PublishLaunchCommand {
-  mqtt: {
-    linux: string;
-    windows: string;
-  };
 }
 
 export const dayOfWeekTranslations = new Array<string>(

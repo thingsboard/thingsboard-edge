@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,11 +31,13 @@
 package org.thingsboard.server.service.edge.rpc.constructor.widget;
 
 import com.google.protobuf.ByteString;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
+import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.WidgetTypeUpdateMsg;
@@ -51,8 +53,12 @@ import java.util.List;
 @TbCoreComponent
 public class WidgetMsgConstructorV1 extends BaseWidgetMsgConstructor {
 
+    @Autowired
+    private ImageService imageService;
+
     @Override
     public WidgetsBundleUpdateMsg constructWidgetsBundleUpdateMsg(UpdateMsgType msgType, WidgetsBundle widgetsBundle, List<String> widgets) {
+        imageService.inlineImageForEdge(widgetsBundle);
         WidgetsBundleUpdateMsg.Builder builder = WidgetsBundleUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(widgetsBundle.getId().getId().getMostSignificantBits())
@@ -77,6 +83,7 @@ public class WidgetMsgConstructorV1 extends BaseWidgetMsgConstructor {
 
     @Override
     public WidgetTypeUpdateMsg constructWidgetTypeUpdateMsg(UpdateMsgType msgType, WidgetTypeDetails widgetTypeDetails, EdgeVersion edgeVersion) {
+        imageService.inlineImagesForEdge(widgetTypeDetails);
         WidgetTypeUpdateMsg.Builder builder = WidgetTypeUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(widgetTypeDetails.getId().getId().getMostSignificantBits())

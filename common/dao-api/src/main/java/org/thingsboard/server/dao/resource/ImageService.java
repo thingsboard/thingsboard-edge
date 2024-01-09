@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.resource;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.HasImage;
 import org.thingsboard.server.common.data.TbImageDeleteResult;
@@ -51,6 +52,10 @@ public interface ImageService {
 
     TbResourceInfo getImageInfoByTenantIdAndKey(TenantId tenantId, String key);
 
+    TbResourceInfo getImageInfoByTenantIdAndCustomerIdAndKey(TenantId tenantId, CustomerId customerId, String key);
+
+    TbResourceInfo getPublicImageInfoByKey(String publicResourceKey);
+
     PageData<TbResourceInfo> getImagesByTenantId(TenantId tenantId, PageLink pageLink);
 
     PageData<TbResourceInfo> getImagesByCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink);
@@ -68,7 +73,9 @@ public interface ImageService {
     TbResourceInfo findSystemOrCustomerImageByEtag(TenantId tenantId, CustomerId customerId, String etag);
 
     boolean replaceBase64WithImageUrl(HasImage entity, String type);
+
     boolean replaceBase64WithImageUrl(Dashboard dashboard);
+
     boolean replaceBase64WithImageUrl(WidgetTypeDetails widgetType);
 
     boolean replaceBase64WithImageUrl(WhiteLabeling whiteLabeling);
@@ -79,4 +86,11 @@ public interface ImageService {
 
     void inlineImages(WidgetTypeDetails widgetTypeDetails);
 
+    void inlineImageForEdge(HasImage entity);
+
+    void inlineImagesForEdge(Dashboard dashboard);
+
+    void inlineImagesForEdge(WidgetTypeDetails widgetTypeDetails);
+
+    void inlineImagesForEdge(TenantId tenantId, JsonNode settings);
 }

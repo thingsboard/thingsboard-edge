@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,9 +40,9 @@ import org.eclipse.californium.core.coap.CoAP;
 @Data
 public class CoapTestCallback implements CoapHandler {
 
-    protected Integer observe;
-    protected byte[] payloadBytes;
-    protected CoAP.ResponseCode responseCode;
+    protected volatile Integer observe;
+    protected volatile byte[] payloadBytes;
+    protected volatile CoAP.ResponseCode responseCode;
 
     public Integer getObserve() {
         return observe;

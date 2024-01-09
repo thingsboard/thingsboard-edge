@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -45,6 +45,7 @@ import {
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { blobToBase64 } from '@core/utils';
+import { ResourcesService } from '@core/services/resources.service';
 
 @Injectable({
   providedIn: 'root'
@@ -52,7 +53,8 @@ import { blobToBase64 } from '@core/utils';
 export class ImageService {
   constructor(
     private http: HttpClient,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private resourcesService: ResourcesService
   ) {
   }
 
@@ -81,6 +83,13 @@ export class ImageService {
     const type = imageResourceType(imageInfo);
     const key = encodeURIComponent(imageInfo.resourceKey);
     return this.http.put<ImageResourceInfo>(`${IMAGES_URL_PREFIX}/${type}/${key}/info`,
+      imageInfo, defaultHttpOptionsFromConfig(config));
+  }
+
+  public updateImagePublicStatus(imageInfo: ImageResourceInfo, isPublic: boolean, config?: RequestConfig): Observable<ImageResourceInfo> {
+    const type = imageResourceType(imageInfo);
+    const key = encodeURIComponent(imageInfo.resourceKey);
+    return this.http.put<ImageResourceInfo>(`${IMAGES_URL_PREFIX}/${type}/${key}/public/${isPublic}`,
       imageInfo, defaultHttpOptionsFromConfig(config));
   }
 
@@ -146,34 +155,7 @@ export class ImageService {
   }
 
   public downloadImage(type: ImageResourceType, key: string): Observable<any> {
-    return this.http.get(`${IMAGES_URL_PREFIX}/${type}/${encodeURIComponent(key)}`, {
-      responseType: 'arraybuffer',
-      observe: 'response'
-    }).pipe(
-      map((response) => {
-        const headers = response.headers;
-        const filename = headers.get('x-filename');
-        const contentType = headers.get('content-type');
-        const linkElement = document.createElement('a');
-        try {
-          const blob = new Blob([response.body], {type: contentType});
-          const url = URL.createObjectURL(blob);
-          linkElement.setAttribute('href', url);
-          linkElement.setAttribute('download', filename);
-          const clickEvent = new MouseEvent('click',
-            {
-              view: window,
-              bubbles: true,
-              cancelable: false
-            }
-          );
-          linkElement.dispatchEvent(clickEvent);
-          return null;
-        } catch (e) {
-          throw e;
-        }
-      })
-    );
+    return this.resourcesService.downloadResource(`${IMAGES_URL_PREFIX}/${type}/${encodeURIComponent(key)}`);
   }
 
   public deleteImage(type: ImageResourceType, key: string, force = false, config?: RequestConfig) {

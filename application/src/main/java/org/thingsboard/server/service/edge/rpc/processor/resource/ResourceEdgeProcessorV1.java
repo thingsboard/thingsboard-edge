@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -56,7 +56,7 @@ public class ResourceEdgeProcessorV1 extends ResourceEdgeProcessor {
         resource.setResourceKey(resourceUpdateMsg.getResourceKey());
         resource.setResourceType(ResourceType.valueOf(resourceUpdateMsg.getResourceType()));
         resource.setFileName(resourceUpdateMsg.getFileName());
-        resource.setData(resourceUpdateMsg.hasData() ? resourceUpdateMsg.getData().getBytes() : null);
+        resource.setEncodedData(resourceUpdateMsg.hasData() ? resourceUpdateMsg.getData() : null);
         resource.setEtag(resourceUpdateMsg.hasEtag() ? resourceUpdateMsg.getEtag() : null);
         return resource;
     }

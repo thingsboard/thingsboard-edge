@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,11 +31,13 @@
 package org.thingsboard.server.service.edge.rpc.constructor.asset;
 
 import com.google.protobuf.ByteString;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
@@ -46,6 +48,9 @@ import java.nio.charset.StandardCharsets;
 @Component
 @TbCoreComponent
 public class AssetMsgConstructorV1 extends BaseAssetMsgConstructor {
+
+    @Autowired
+    private ImageService imageService;
 
     @Override
     public AssetUpdateMsg constructAssetUpdatedMsg(UpdateMsgType msgType, Asset asset, EntityGroupId entityGroupId) {
@@ -78,6 +83,7 @@ public class AssetMsgConstructorV1 extends BaseAssetMsgConstructor {
 
     @Override
     public AssetProfileUpdateMsg constructAssetProfileUpdatedMsg(UpdateMsgType msgType, AssetProfile assetProfile) {
+        imageService.inlineImageForEdge(assetProfile);
         AssetProfileUpdateMsg.Builder builder = AssetProfileUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(assetProfile.getId().getId().getMostSignificantBits())

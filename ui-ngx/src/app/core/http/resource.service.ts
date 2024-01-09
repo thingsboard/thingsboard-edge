@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -36,15 +36,17 @@ import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-uti
 import { forkJoin, Observable, of } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
 import { Resource, ResourceInfo, ResourceType } from '@shared/models/resource.models';
-import { catchError, map, mergeMap } from 'rxjs/operators';
+import { catchError, mergeMap } from 'rxjs/operators';
 import { isNotEmptyStr } from '@core/utils';
+import { ResourcesService } from '@core/services/resources.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ResourceService {
   constructor(
-    private http: HttpClient
+    private http: HttpClient,
+    private resourcesService: ResourcesService
   ) {
 
   }
@@ -70,34 +72,7 @@ export class ResourceService {
   }
 
   public downloadResource(resourceId: string): Observable<any> {
-    return this.http.get(`/api/resource/${resourceId}/download`, {
-      responseType: 'arraybuffer',
-      observe: 'response'
-    }).pipe(
-      map((response) => {
-        const headers = response.headers;
-        const filename = headers.get('x-filename');
-        const contentType = headers.get('content-type');
-        const linkElement = document.createElement('a');
-        try {
-          const blob = new Blob([response.body], {type: contentType});
-          const url = URL.createObjectURL(blob);
-          linkElement.setAttribute('href', url);
-          linkElement.setAttribute('download', filename);
-          const clickEvent = new MouseEvent('click',
-            {
-              view: window,
-              bubbles: true,
-              cancelable: false
-            }
-          );
-          linkElement.dispatchEvent(clickEvent);
-          return null;
-        } catch (e) {
-          throw e;
-        }
-      })
-    );
+    return this.resourcesService.downloadResource(`/api/resource/${resourceId}/download`);
   }
 
   public saveResources(resources: Resource[], config?: RequestConfig): Observable<Resource[]> {

@@ -1,7 +1,7 @@
 --
 -- ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 --
--- Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+-- Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 --
 -- NOTICE: All information contained herein is, and remains
 -- the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,29 @@
 
 -- RESOURCES UPDATE START
 
+ALTER TABLE resource ADD COLUMN IF NOT EXISTS descriptor varchar;
+ALTER TABLE resource ADD COLUMN IF NOT EXISTS preview bytea;
+ALTER TABLE resource ADD COLUMN IF NOT EXISTS external_id uuid;
+ALTER TABLE resource ADD COLUMN IF NOT EXISTS customer_id uuid;
+ALTER TABLE resource ADD COLUMN IF NOT EXISTS is_public boolean default true;
+ALTER TABLE resource ADD COLUMN IF NOT EXISTS public_resource_key varchar(32) unique;
+
+CREATE INDEX IF NOT EXISTS idx_resource_etag ON resource(tenant_id, etag);
+CREATE INDEX IF NOT EXISTS idx_resource_type_public_resource_key ON resource(resource_type, public_resource_key);
+
+CREATE OR REPLACE FUNCTION generate_resource_public_key()
+RETURNS text AS $$
+DECLARE
+  chars text := 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  result text := '';
+BEGIN
+  FOR i IN 1..32 LOOP
+    result := result || substr(chars, floor(random()*62)::int + 1, 1);
+  END LOOP;
+  RETURN result;
+END;
+$$ LANGUAGE plpgsql;
+
 DO
 $$
     BEGIN
@@ -39,38 +62,34 @@ $$
             ALTER TABLE resource ADD COLUMN data bytea;
             UPDATE resource SET data = decode(base64_data, 'base64') WHERE base64_data IS NOT NULL;
             ALTER TABLE resource DROP COLUMN base64_data;
+        ELSE
+            UPDATE resource SET public_resource_key = generate_resource_public_key() WHERE resource_type = 'IMAGE' AND public_resource_key IS NULL;
         END IF;
     END;
 $$;
 
-ALTER TABLE resource ADD COLUMN IF NOT EXISTS descriptor varchar;
-ALTER TABLE resource ADD COLUMN IF NOT EXISTS preview bytea;
-ALTER TABLE resource ADD COLUMN IF NOT EXISTS external_id uuid;
-ALTER TABLE resource ADD COLUMN IF NOT EXISTS customer_id uuid;
-
-CREATE INDEX IF NOT EXISTS idx_resource_etag ON resource(tenant_id, etag);
+DROP FUNCTION generate_resource_public_key;
 
 -- RESOURCES UPDATE END
 
 -- WL UPDATE START
 
-UPDATE white_labeling w
-SET domain_name = LOWER(w.domain_name)
-WHERE type = 'LOGIN'
-  AND w.domain_name IS NOT NULL
-  AND w.domain_name != LOWER(w.domain_name)
-  AND NOT EXISTS(
-        SELECT 1
-        FROM white_labeling wl
-        WHERE type = 'LOGIN'
-          AND LOWER(wl.domain_name) = LOWER(w.domain_name)
-          AND wl.entity_id != w.entity_id
-);
-
 DO
 $$
     BEGIN
         IF NOT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name = 'white_labeling' AND column_name = 'tenant_id') THEN
+            UPDATE white_labeling w
+            SET domain_name = LOWER(w.domain_name)
+            WHERE type = 'LOGIN'
+              AND w.domain_name IS NOT NULL
+              AND w.domain_name != LOWER(w.domain_name)
+              AND NOT EXISTS(
+                    SELECT 1
+                    FROM white_labeling wl
+                    WHERE type = 'LOGIN'
+                      AND LOWER(wl.domain_name) = LOWER(w.domain_name)
+                      AND wl.entity_id != w.entity_id
+            );
 
             DELETE from white_labeling WHERE entity_type = 'TENANT' AND entity_id != '13814000-1dd2-11b2-8080-808080808080' AND NOT EXISTS(SELECT id FROM tenant WHERE id = entity_id);
             DELETE from white_labeling WHERE entity_type = 'CUSTOMER' AND NOT EXISTS(SELECT id FROM customer WHERE id = entity_id);
@@ -92,3 +111,5 @@ $$;
 
 
 -- WL UPDATE END
+
+CREATE INDEX IF NOT EXISTS idx_edge_event_tenant_id_edge_id_created_time ON edge_event(tenant_id, edge_id, created_time DESC);

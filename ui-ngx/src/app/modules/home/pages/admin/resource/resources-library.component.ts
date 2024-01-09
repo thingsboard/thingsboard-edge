@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -47,6 +47,7 @@ import {
 import { filter, startWith, takeUntil } from 'rxjs/operators';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { isDefinedAndNotNull } from '@core/utils';
+import { getCurrentAuthState } from '@core/auth/auth.selectors';
 
 @Component({
   selector: 'tb-resources-library',
@@ -57,6 +58,8 @@ export class ResourcesLibraryComponent extends EntityComponent<Resource> impleme
   readonly resourceType = ResourceType;
   readonly resourceTypes: ResourceType[] = Object.values(this.resourceType);
   readonly resourceTypesTranslationMap = ResourceTypeTranslationMap;
+
+  maxResourceSize = getCurrentAuthState(this.store).maxResourceSize;
 
   private destroy$ = new Subject<void>();
 

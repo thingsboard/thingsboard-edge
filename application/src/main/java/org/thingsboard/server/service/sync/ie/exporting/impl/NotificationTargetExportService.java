@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -70,6 +70,8 @@ public class NotificationTargetExportService extends BaseEntityExportService<Not
                 case USER_ROLE:
                     UserRoleFilter userRoleFilter = (UserRoleFilter) usersFilter;
                     userRoleFilter.setRolesIds(toExternalIds(userRoleFilter.getRolesIds(), RoleId::new, ctx).collect(Collectors.toList()));
+                case USER_LIST:
+                    // users list stays as is and is replaced with current user id on import (due to user entities not being supported by VC)
                     break;
             }
         }

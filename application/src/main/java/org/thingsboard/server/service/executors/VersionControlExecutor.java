@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -28,37 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.fetch;
+package org.thingsboard.server.service.executors;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.TbResource;
-import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventType;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.resource.ResourceService;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.AbstractListeningExecutor;
 
-@Slf4j
-@AllArgsConstructor
-public abstract class BaseResourceEdgeEventFetcher extends BasePageableEdgeEventFetcher<TbResource> {
+@Component
+public class VersionControlExecutor extends AbstractListeningExecutor {
 
-    protected final ResourceService resourceService;
+    @Value("${vc.thread_pool_size:6}")
+    private int threadPoolSize;
 
     @Override
-    PageData<TbResource> fetchPageData(TenantId tenantId, Edge edge, PageLink pageLink) {
-        return findTenantResources(tenantId, pageLink);
+    protected int getThreadPollSize() {
+        return threadPoolSize;
     }
-
-    @Override
-    EdgeEvent constructEdgeEvent(TenantId tenantId, Edge edge, TbResource tbResource) {
-        return EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.TB_RESOURCE,
-                EdgeEventActionType.ADDED, tbResource.getId(), null);
-    }
-
-    protected abstract PageData<TbResource> findTenantResources(TenantId tenantId, PageLink pageLink);
 }

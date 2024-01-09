@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,7 +44,6 @@ import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
-import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
 import org.thingsboard.server.common.data.notification.targets.NotificationTargetType;
 import org.thingsboard.server.common.data.notification.targets.platform.CustomerUsersFilter;
@@ -60,6 +59,7 @@ import org.thingsboard.server.dao.service.ConstraintValidator;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -85,10 +85,7 @@ public class NotificationTargetImportService extends BaseEntityImportService<Not
                     break;
                 case USER_LIST:
                     UserListFilter userListFilter = (UserListFilter) usersFilter;
-                    userListFilter.setUsersIds(userListFilter.getUsersIds().stream()
-                            .map(UserId::new).map(idProvider::getInternalId)
-                            .map(UUIDBased::getId).collect(Collectors.toList())
-                    );
+                    userListFilter.setUsersIds(List.of(ctx.getUser().getUuidId())); // user entities are not supported by VC; replacing with current user id
                     break;
                 case USER_GROUP_LIST:
                     UserGroupListFilter userGroupListFilter = (UserGroupListFilter) usersFilter;

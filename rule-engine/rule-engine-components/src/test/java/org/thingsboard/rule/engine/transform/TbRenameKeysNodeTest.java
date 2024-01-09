@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -172,7 +172,11 @@ public class TbRenameKeysNodeTest {
     private static Stream<Arguments> givenFromVersionAndConfig_whenUpgrade_thenVerifyUpgradeResultAndConfig() {
         return Stream.of(
                 Arguments.of(0, "{\"fromMetadata\":false,\"renameKeysMapping\":{\"temp\":\"temperature\"}}", true, "{\"renameIn\":\"DATA\",\"renameKeysMapping\":{\"temp\":\"temperature\"}}"),
-                Arguments.of(0, "{\"fromMetadata\":true,\"renameKeysMapping\":{\"temp\":\"temperature\"}}", true, "{\"renameIn\":\"METADATA\",\"renameKeysMapping\":{\"temp\":\"temperature\"}}")
+                Arguments.of(0, "{\"fromMetadata\":true,\"renameKeysMapping\":{\"temp\":\"temperature\"}}", true, "{\"renameIn\":\"METADATA\",\"renameKeysMapping\":{\"temp\":\"temperature\"}}"),
+                Arguments.of(1, "{\"fromMetadata\":\"METADATA\",\"renameKeysMapping\":{\"temp\":\"temperature\"}}", true, "{\"renameIn\":\"METADATA\",\"renameKeysMapping\":{\"temp\":\"temperature\"}}"),
+                Arguments.of(1, "{\"fromMetadata\":\"DATA\",\"renameKeysMapping\":{\"temp\":\"temperature\"}}", true, "{\"renameIn\":\"DATA\",\"renameKeysMapping\":{\"temp\":\"temperature\"}}"),
+                Arguments.of(1, "{\"renameIn\":\"METADATA\",\"renameKeysMapping\":{\"temp\":\"temperature\"}}", false, "{\"renameIn\":\"METADATA\",\"renameKeysMapping\":{\"temp\":\"temperature\"}}"),
+                Arguments.of(1, "{\"renameIn\":\"DATA\",\"renameKeysMapping\":{\"temp\":\"temperature\"}}", false, "{\"renameIn\":\"DATA\",\"renameKeysMapping\":{\"temp\":\"temperature\"}}")
         );
     }
 

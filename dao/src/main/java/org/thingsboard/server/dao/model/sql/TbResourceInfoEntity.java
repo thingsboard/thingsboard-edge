@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -54,7 +54,9 @@ import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_CUSTOMER_
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_DESCRIPTOR_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_ETAG_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_FILE_NAME_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_IS_PUBLIC_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_KEY_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.PUBLIC_RESOURCE_KEY_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_TENANT_ID_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_TITLE_COLUMN;
@@ -96,6 +98,12 @@ public class TbResourceInfoEntity extends BaseSqlEntity<TbResourceInfo> implemen
     @Column(name = RESOURCE_DESCRIPTOR_COLUMN)
     private JsonNode descriptor;
 
+    @Column(name = RESOURCE_IS_PUBLIC_COLUMN)
+    private Boolean isPublic;
+
+    @Column(name = PUBLIC_RESOURCE_KEY_COLUMN, unique = true, updatable = false)
+    private String publicResourceKey;
+
     @Column(name = EXTERNAL_ID_PROPERTY)
     private UUID externalId;
 
@@ -118,6 +126,8 @@ public class TbResourceInfoEntity extends BaseSqlEntity<TbResourceInfo> implemen
         this.etag = resource.getEtag();
         this.fileName = resource.getFileName();
         this.descriptor = resource.getDescriptor();
+        this.isPublic = resource.isPublic();
+        this.publicResourceKey = resource.getPublicResourceKey();
         this.externalId = getUuid(resource.getExternalId());
     }
 
@@ -136,6 +146,8 @@ public class TbResourceInfoEntity extends BaseSqlEntity<TbResourceInfo> implemen
         resource.setEtag(etag);
         resource.setFileName(fileName);
         resource.setDescriptor(descriptor);
+        resource.setPublic(isPublic == null || isPublic);
+        resource.setPublicResourceKey(publicResourceKey);
         resource.setExternalId(getEntityId(externalId, TbResourceId::new));
         return resource;
     }

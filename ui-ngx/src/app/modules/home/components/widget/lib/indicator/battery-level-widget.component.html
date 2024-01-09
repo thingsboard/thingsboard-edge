@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -40,7 +40,7 @@
         <div class="tb-battery-level-container" [style.gap]="dividedGap">
           <div *ngIf="solid; else dividedIndicator" class="tb-battery-level-indicator-box solid"
                [style.background-image]="'linear-gradient(0deg, ' + batteryLevelColor.color + ' 0% 100%)'"
-               [style.background-size]="vertical ? '100% ' + (value + 1) + '%' : (value + 1) + '% 100%'">
+               [style.background-size]="vertical ? '100% ' + (batteryFillValue + 1) + '%' : (batteryFillValue + 1) + '% 100%'">
           </div>
         </div>
       </div>

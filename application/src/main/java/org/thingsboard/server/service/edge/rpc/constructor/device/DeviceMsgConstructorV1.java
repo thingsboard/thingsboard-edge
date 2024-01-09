@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,6 +38,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
+import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
@@ -53,6 +54,9 @@ public class DeviceMsgConstructorV1 extends BaseDeviceMsgConstructor {
 
     @Autowired
     private DataDecodingEncodingService dataDecodingEncodingService;
+
+    @Autowired
+    private ImageService imageService;
 
     @Override
     public DeviceUpdateMsg constructDeviceUpdatedMsg(UpdateMsgType msgType, Device device, EntityGroupId entityGroupId) {
@@ -111,6 +115,7 @@ public class DeviceMsgConstructorV1 extends BaseDeviceMsgConstructor {
 
     @Override
     public DeviceProfileUpdateMsg constructDeviceProfileUpdatedMsg(UpdateMsgType msgType, DeviceProfile deviceProfile) {
+        imageService.inlineImageForEdge(deviceProfile);
         DeviceProfileUpdateMsg.Builder builder = DeviceProfileUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(deviceProfile.getId().getId().getMostSignificantBits())

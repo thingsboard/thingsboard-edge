@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -44,7 +44,7 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
-  ElementRef, EventEmitter,
+  ElementRef, EventEmitter, HostBinding,
   Input,
   OnDestroy,
   OnInit, Output,
@@ -83,6 +83,7 @@ import {
   ImagesInUseDialogData
 } from '@shared/components/image/images-in-use-dialog.component';
 import { ImagesDatasource } from '@shared/components/image/images-datasource';
+import { EmbedImageDialogComponent, EmbedImageDialogData } from '@shared/components/image/embed-image-dialog.component';
 
 interface GridImagesFilter {
   search: string;
@@ -121,6 +122,9 @@ const popoverGridColumns: ScrollGridColumns = {
   encapsulation: ViewEncapsulation.None
 })
 export class ImageGalleryComponent extends PageComponent implements OnInit, OnDestroy, AfterViewInit {
+
+  @HostBinding('style.display')
+  private display = 'block';
 
   @Input()
   @coerceBoolean()
@@ -664,6 +668,25 @@ export class ImageGalleryComponent extends PageComponent implements OnInit, OnDe
     }
     this.dialog.open<ImageDialogComponent, ImageDialogData,
       ImageResourceInfo>(ImageDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        image,
+        readonly: this.readonly(image)
+      }
+    }).afterClosed().subscribe((result) => {
+      if (result) {
+        this.imageUpdated(result, itemIndex);
+      }
+    });
+  }
+
+  embedImage($event: Event, image: ImageResourceInfo, itemIndex = -1) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.dialog.open<EmbedImageDialogComponent, EmbedImageDialogData,
+      ImageResourceInfo>(EmbedImageDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {

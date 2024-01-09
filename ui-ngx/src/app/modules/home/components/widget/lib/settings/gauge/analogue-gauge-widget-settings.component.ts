@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -129,7 +129,7 @@ export class AnalogueGaugeWidgetSettingsComponent extends WidgetSettingsComponen
       maxValue: [settings.maxValue, []],
       majorTicksCount: [settings.majorTicksCount, [Validators.min(0)]],
       colorMajorTicks: [settings.colorMajorTicks, []],
-      minorTicks: [settings.majorTicksCount, [Validators.min(0)]],
+      minorTicks: [settings.minorTicks, [Validators.min(0)]],
       colorMinorTicks: [settings.colorMinorTicks, []],
       numbersFont: [settings.numbersFont, []],
       numbersColor: [settings.numbersFont.color, []],

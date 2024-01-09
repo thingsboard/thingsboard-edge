@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -43,7 +43,6 @@ import {
   DeviceInfo,
   DeviceInfoQuery,
   DeviceSearchQuery,
-  PublishLaunchCommand,
   PublishTelemetryCommand
 } from '@shared/models/device.models';
 import { EntitySubtype } from '@shared/models/entity-type.models';
@@ -52,6 +51,7 @@ import { map } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
 import { BulkImportRequest, BulkImportResult } from '@shared/import-export/import-export.models';
 import { PersistentRpc, RpcStatus } from '@shared/models/rpc.models';
+import { ResourcesService } from '@core/services/resources.service';
 
 @Injectable({
   providedIn: 'root'
@@ -59,7 +59,8 @@ import { PersistentRpc, RpcStatus } from '@shared/models/rpc.models';
 export class DeviceService {
 
   constructor(
-    private http: HttpClient
+    private http: HttpClient,
+    private resourcesService: ResourcesService
   ) { }
 
   public getDeviceInfosByQuery(deviceInfoQuery: DeviceInfoQuery, config?: RequestConfig): Observable<PageData<DeviceInfo>> {
@@ -272,8 +273,7 @@ export class DeviceService {
     return this.http.get<PublishTelemetryCommand>(`/api/device-connectivity/${deviceId}`, defaultHttpOptionsFromConfig(config));
   }
 
-  public getDevicePublishLaunchCommands(deviceId: string, config?: RequestConfig): Observable<PublishLaunchCommand> {
-    return this.http.get<PublishLaunchCommand>(`/api/device-connectivity/gateway-launch/${deviceId}`, defaultHttpOptionsFromConfig(config));
+  public downloadGatewayDockerComposeFile(deviceId: string): Observable<any> {
+    return this.resourcesService.downloadResource(`/api/device-connectivity/gateway-launch/${deviceId}/docker-compose/download`);
   }
-
 }

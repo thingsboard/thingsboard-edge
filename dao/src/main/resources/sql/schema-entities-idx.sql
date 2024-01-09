@@ -1,7 +1,7 @@
 --
 -- ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 --
--- Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+-- Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 --
 -- NOTICE: All information contained herein is, and remains
 -- the property of ThingsBoard, Inc. and its suppliers,
@@ -82,6 +82,8 @@ CREATE INDEX IF NOT EXISTS idx_audit_log_id ON audit_log(id);
 
 CREATE INDEX IF NOT EXISTS idx_edge_event_tenant_id_and_created_time ON edge_event(tenant_id, created_time DESC);
 
+CREATE INDEX IF NOT EXISTS idx_edge_event_tenant_id_edge_id_created_time ON edge_event(tenant_id, edge_id, created_time DESC);
+
 CREATE INDEX IF NOT EXISTS idx_edge_event_id ON edge_event(id);
 
 CREATE INDEX IF NOT EXISTS idx_entity_group_by_type_name_and_owner_id ON entity_group(type, name, owner_id);
@@ -118,7 +120,7 @@ CREATE INDEX IF NOT EXISTS idx_role_external_id ON role(tenant_id, external_id);
 
 CREATE INDEX IF NOT EXISTS idx_entity_group_external_id ON entity_group(external_id);
 
-CREATE INDEX IF NOT EXISTS idx_rule_node_type_configuration_version ON rule_node(type, configuration_version);
+CREATE INDEX IF NOT EXISTS idx_rule_node_type_id_configuration_version ON rule_node(type, id, configuration_version);
 
 CREATE INDEX IF NOT EXISTS idx_api_usage_state_entity_id ON api_usage_state(entity_id);
 
@@ -156,3 +158,7 @@ CREATE INDEX IF NOT EXISTS idx_notification_recipient_id_created_time ON notific
 CREATE INDEX IF NOT EXISTS idx_notification_recipient_id_unread ON notification(recipient_id) WHERE status <> 'READ';
 
 CREATE INDEX IF NOT EXISTS idx_resource_etag ON resource(tenant_id, etag);
+
+CREATE INDEX IF NOT EXISTS idx_resource_etag ON resource(tenant_id, etag);
+
+CREATE INDEX IF NOT EXISTS idx_resource_type_public_resource_key ON resource(resource_type, public_resource_key);
