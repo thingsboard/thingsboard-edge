@@ -40,6 +40,8 @@ import {
   Datasource,
   datasourcesHasAggregation,
   datasourcesHasOnlyComparisonAggregation,
+  legendPositions,
+  legendPositionTranslationMap,
   WidgetConfig
 } from '@shared/models/widget.models';
 import { WidgetConfigComponent } from '@home/components/widget/widget-config.component';
@@ -55,8 +57,6 @@ import {
   doughnutLayoutImages,
   doughnutLayouts,
   doughnutLayoutTranslations,
-  doughnutLegendPositions,
-  doughnutLegendPositionTranslations,
   DoughnutTooltipValueType,
   doughnutTooltipValueTypes,
   doughnutTooltipValueTypeTranslations,
@@ -98,9 +98,9 @@ export class DoughnutBasicConfigComponent extends BasicWidgetConfigComponent {
 
   doughnutLayoutImageMap: Map<DoughnutLayout, string>;
 
-  doughnutLegendPositions = doughnutLegendPositions;
+  legendPositions = legendPositions;
 
-  doughnutLegendPositionTranslationMap = doughnutLegendPositionTranslations;
+  legendPositionTranslationMap = legendPositionTranslationMap;
 
   doughnutTooltipValueTypes = doughnutTooltipValueTypes;
 
