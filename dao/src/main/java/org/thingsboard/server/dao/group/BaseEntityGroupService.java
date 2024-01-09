@@ -1008,9 +1008,14 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public ListenableFuture<EntityGroup> findOrCreateEdgeAllGroupAsync(TenantId tenantId, Edge edge, String edgeName, EntityType groupType) {
+    public ListenableFuture<EntityGroup> findOrCreateEdgeAllGroupAsync(TenantId tenantId, Edge edge, String edgeName, EntityType entityOwnerType, EntityType groupType) {
         log.trace("Executing findOrCreateEdgeAllGroupAsync, tenantId [{}], edge [{}], edgeName [{}], groupType [{}]", tenantId, edge, edgeName, groupType);
-        String entityGroupName = EdgeUtils.getEdgeGroupAllName(edgeName);
+        String customerName = null;
+        if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
+            customerName = customerService.findCustomerById(tenantId, new CustomerId(edge.getOwnerId().getId())).getName();
+        }
+        customerName = EntityType.CUSTOMER.equals(entityOwnerType) ? customerName : null;
+        String entityGroupName = EdgeUtils.getEdgeGroupAllName(customerName, edgeName);
         ListenableFuture<Optional<EntityGroup>> futureEntityGroup = entityGroupService
                 .findEntityGroupByTypeAndNameAsync(tenantId, edge.getOwnerId(), groupType, entityGroupName);
         return Futures.transformAsync(futureEntityGroup, optionalEntityGroup -> {

@@ -127,7 +127,7 @@ public abstract class EntityViewEdgeProcessor extends BaseEntityViewProcessor im
         EntityView entityViewToDelete = entityViewService.findEntityViewById(tenantId, entityViewId);
         if (entityViewToDelete != null) {
             try {
-                EntityGroup edgeEntityViewGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.ENTITY_VIEW).get();
+                EntityGroup edgeEntityViewGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), entityViewToDelete.getOwnerId().getEntityType(), EntityType.ENTITY_VIEW).get();
                 if (edgeEntityViewGroup != null) {
                     entityGroupService.removeEntityFromEntityGroup(tenantId, edgeEntityViewGroup.getId(), entityViewToDelete.getId());
                 }
@@ -140,7 +140,8 @@ public abstract class EntityViewEdgeProcessor extends BaseEntityViewProcessor im
 
     private void addEntityViewToEdgeAllEntityViewGroup(TenantId tenantId, Edge edge, EntityViewId entityViewId) {
         try {
-            EntityGroup edgeEntityViewGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.ENTITY_VIEW).get();
+            EntityView entityView = entityViewService.findEntityViewById(tenantId, entityViewId);
+            EntityGroup edgeEntityViewGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), entityView.getOwnerId().getEntityType(), EntityType.ENTITY_VIEW).get();
             if (edgeEntityViewGroup != null) {
                 entityGroupService.addEntityToEntityGroup(tenantId, edgeEntityViewGroup.getId(), entityViewId);
             }

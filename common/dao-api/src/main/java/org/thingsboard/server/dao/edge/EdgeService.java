@@ -114,7 +114,7 @@ public interface EdgeService extends EntityDaoService {
 
     PageData<Edge> findEdgesByEntityGroupIdsAndType(List<EntityGroupId> groupIds, String type, PageLink pageLink);
 
-    void renameEdgeAllGroups(TenantId tenantId, Edge edge, String oldEdgeName);
+    void renameEdgeAllGroups(TenantId tenantId, Edge edge, String oldEdgeName, String oldCustomerName, String newCustomerName);
 
     String findMissingToRelatedRuleChains(TenantId tenantId, EdgeId edgeId, String tbRuleChainInputNodeClassName);
 
