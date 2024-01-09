@@ -30,7 +30,10 @@
  */
 package org.thingsboard.server.common.msg;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.AccessLevel;
@@ -57,6 +60,7 @@ import java.util.UUID;
  */
 @Data
 @Slf4j
+@JsonIgnoreProperties(ignoreUnknown = true)
 public final class TbMsg implements Serializable {
 
     public static final String EMPTY_JSON_OBJECT = "{}";
@@ -353,6 +357,17 @@ public final class TbMsg implements Serializable {
     private TbMsg(String queueName, UUID id, long ts, TbMsgType internalType, EntityId originator, CustomerId customerId, TbMsgMetaData metaData, TbMsgDataType dataType, String data,
                   RuleChainId ruleChainId, RuleNodeId ruleNodeId, TbMsgProcessingCtx ctx, TbMsgCallback callback) {
         this(queueName, id, ts, internalType, internalType.name(), originator, customerId, metaData, dataType, data, ruleChainId, ruleNodeId, ctx, callback);
+    }
+
+    //used for DownLinkMsg deserialization
+    @JsonCreator
+    private TbMsg(@JsonProperty("queueName") String queueName, @JsonProperty("id") UUID id, @JsonProperty("ts") long ts,
+                  @JsonProperty("internalType") TbMsgType internalType, @JsonProperty("type") String type,
+                  @JsonProperty("originator") EntityId originator, @JsonProperty("customerId") CustomerId customerId,
+                  @JsonProperty("metaData") TbMsgMetaData metaData, @JsonProperty("dataType") TbMsgDataType dataType,
+                  @JsonProperty("data") String data, @JsonProperty("ruleChainId") RuleChainId ruleChainId,
+                  @JsonProperty("ruleNodeId") RuleNodeId ruleNodeId) {
+        this(queueName, id, ts, internalType, type, originator, customerId, metaData, dataType, data, ruleChainId, ruleNodeId, null, null);
     }
 
     private TbMsg(String queueName, UUID id, long ts, TbMsgType internalType, String type, EntityId originator, CustomerId customerId, TbMsgMetaData metaData, TbMsgDataType dataType, String data,
