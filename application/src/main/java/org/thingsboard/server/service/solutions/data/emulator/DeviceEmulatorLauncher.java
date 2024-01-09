@@ -35,6 +35,7 @@ import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.msg.queue.ServiceType;
@@ -66,7 +67,7 @@ public class DeviceEmulatorLauncher extends AbstractEmulatorLauncher<Device> {
     @Override
     protected void postProcessEntity(Device entity) {
         if (this.emulatorDefinition.getActivityPeriodInMillis() > 0) {
-            tsSubService.saveAttrAndNotify(entity.getTenantId(), entity.getId(), DataConstants.SERVER_SCOPE,
+            tsSubService.saveAttrAndNotify(entity.getTenantId(), entity.getId(), AttributeScope.SERVER_SCOPE,
                     DefaultDeviceStateService.INACTIVITY_TIMEOUT, this.emulatorDefinition.getActivityPeriodInMillis(), new FutureCallback<>() {
                         @Override
                         public void onSuccess(@Nullable Void unused) {

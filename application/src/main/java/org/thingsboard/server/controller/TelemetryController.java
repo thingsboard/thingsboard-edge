@@ -608,7 +608,7 @@ public class TelemetryController extends BaseController {
         SecurityUser user = getCurrentUser();
 
         return accessValidator.validateEntityAndCallback(getCurrentUser(), Operation.WRITE_ATTRIBUTES, entityIdSrc, (result, tenantId, entityId) -> {
-            tsSubService.deleteAndNotify(tenantId, entityId, scope.name(), keys, new FutureCallback<Void>() {
+            tsSubService.deleteAndNotify(tenantId, entityId, scope, keys, new FutureCallback<Void>() {
                 @Override
                 public void onSuccess(@Nullable Void tmp) {
                     logAttributesDeleted(user, entityId, scope, keys, null);
@@ -645,7 +645,7 @@ public class TelemetryController extends BaseController {
             }
             SecurityUser user = getCurrentUser();
             return accessValidator.validateEntityAndCallback(getCurrentUser(), Operation.WRITE_ATTRIBUTES, entityIdSrc, (result, tenantId, entityId) -> {
-                tsSubService.saveAndNotify(tenantId, entityId, scope.name(), attributes, new FutureCallback<Void>() {
+                tsSubService.saveAndNotify(tenantId, entityId, scope, attributes, new FutureCallback<Void>() {
                     @Override
                     public void onSuccess(@Nullable Void tmp) {
                         logAttributesUpdated(user, entityId, scope, attributes, null);

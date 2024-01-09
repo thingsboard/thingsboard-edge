@@ -37,6 +37,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.msg.rule.engine.DeviceAttributesEventNotificationMsg;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.AttributeScope;
@@ -366,7 +367,7 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
             List<AttributeKvEntry> attributes = new ArrayList<>();
             attributes.add(new BaseAttributeKvEntry(ts, new StringDataEntry(getAttributeKey(firmware.getType(), ID), firmware.getId().toString())));
 
-            telemetryService.saveAndNotify(tenantId, deviceId, DataConstants.SERVER_SCOPE, attributes, new FutureCallback<>() {
+            telemetryService.saveAndNotify(tenantId, deviceId, AttributeScope.SERVER_SCOPE, attributes, new FutureCallback<>() {
                 @Override
                 public void onSuccess(@Nullable Void tmp) {
                     log.trace("[{}] Success save attributes with target OtaPackage!", deviceId);
@@ -476,7 +477,7 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
 
         remove(device, otaPackageType, attrToRemove);
 
-        telemetryService.saveAndNotify(tenantId, deviceId, DataConstants.SHARED_SCOPE, attributes, new FutureCallback<>() {
+        telemetryService.saveAndNotify(tenantId, deviceId, AttributeScope.SHARED_SCOPE, attributes, new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable Void tmp) {
                 log.trace("[{}] Success save attributes with target OtaPackage!", deviceId);
@@ -509,7 +510,7 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
     }
 
     private void remove(Device device, OtaPackageType otaPackageType, List<String> attributesKeys) {
-        telemetryService.deleteAndNotify(device.getTenantId(), device.getId(), DataConstants.SHARED_SCOPE, attributesKeys,
+        telemetryService.deleteAndNotify(device.getTenantId(), device.getId(), AttributeScope.SHARED_SCOPE, attributesKeys,
                 new FutureCallback<>() {
                     @Override
                     public void onSuccess(@Nullable Void tmp) {

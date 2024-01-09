@@ -49,7 +49,6 @@ import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.AttributeScope;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
@@ -227,11 +226,11 @@ public class TbMathNode implements TbNode {
         if (isIntegerResult(mathResultDef, config.getOperation())) {
             var value = toIntValue(result);
             return ctx.getTelemetryService().saveAttrAndNotify(
-                    ctx.getTenantId(), msg.getOriginator(), attributeScope.name(), mathResultDef.getKey(), value);
+                    ctx.getTenantId(), msg.getOriginator(), attributeScope, mathResultDef.getKey(), value);
         } else {
             var value = toDoubleValue(mathResultDef, result);
             return ctx.getTelemetryService().saveAttrAndNotify(
-                    ctx.getTenantId(), msg.getOriginator(), attributeScope.name(), mathResultDef.getKey(), value);
+                    ctx.getTenantId(), msg.getOriginator(), attributeScope, mathResultDef.getKey(), value);
         }
     }
 

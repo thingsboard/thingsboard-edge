@@ -46,7 +46,6 @@ import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -232,7 +231,7 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
                 }
                 SettableFuture<ReclaimResult> result = SettableFuture.create();
                 telemetryService.saveAndNotify(
-                        tenantId, device.getId(), DataConstants.SERVER_SCOPE, Collections.singletonList(
+                        tenantId, device.getId(), AttributeScope.SERVER_SCOPE, Collections.singletonList(
                                 new BaseAttributeKvEntry(new BooleanDataEntry(CLAIM_ATTRIBUTE_NAME, true), System.currentTimeMillis())
                         ),
                         new FutureCallback<>() {
@@ -276,7 +275,7 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
         }
         SettableFuture<Void> result = SettableFuture.create();
         telemetryService.deleteAndNotify(device.getTenantId(),
-                device.getId(), DataConstants.SERVER_SCOPE, Arrays.asList(CLAIM_ATTRIBUTE_NAME, CLAIM_DATA_ATTRIBUTE_NAME), new FutureCallback<>() {
+                device.getId(), AttributeScope.SERVER_SCOPE, Arrays.asList(CLAIM_ATTRIBUTE_NAME, CLAIM_DATA_ATTRIBUTE_NAME), new FutureCallback<>() {
                     @Override
                     public void onSuccess(@Nullable Void tmp) {
                         result.set(tmp);
