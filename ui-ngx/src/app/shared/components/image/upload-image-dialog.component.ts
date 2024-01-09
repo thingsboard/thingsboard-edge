@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -46,6 +46,7 @@ import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
 import { ImageService } from '@core/http/image.service';
 import { ImageResourceInfo, imageResourceType } from '@shared/models/resource.models';
+import { getCurrentAuthState } from '@core/auth/auth.selectors';
 
 export interface UploadImageDialogData {
   image?: ImageResourceInfo;
@@ -65,6 +66,8 @@ export class UploadImageDialogComponent extends
   uploadImage = true;
 
   submitted = false;
+
+  maxResourceSize = getCurrentAuthState(this.store).maxResourceSize;
 
   constructor(protected store: Store<AppState>,
               protected router: Router,

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -51,9 +51,6 @@ public class DeviceConnectivityUtil {
     public static final String HTTP = "http";
     public static final String HTTPS = "https";
     public static final String MQTT = "mqtt";
-    public static final String LINUX = "linux";
-    public static final String WINDOWS = "windows";
-    public static final String MACOS = "macos";
     public static final String DOCKER = "docker";
     public static final String MQTTS = "mqtts";
     public static final String COAP = "coap";

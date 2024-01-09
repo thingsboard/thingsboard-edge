@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -96,8 +96,7 @@
               </mat-form-field>
             </section>
             <section [fxShow]="repositorySettingsForm.get('authMethod').value === repositoryAuthMethod.PRIVATE_KEY" fxLayout="column">
-              <tb-file-input style="margin-bottom: 16px;"
-                             [existingFileName]="repositorySettingsForm.get('privateKeyFileName').value"
+              <tb-file-input [existingFileName]="repositorySettingsForm.get('privateKeyFileName').value"
                              required
                              formControlName="privateKey"
                              dropLabel="{{ 'admin.drop-private-key-file-or' | translate }}"

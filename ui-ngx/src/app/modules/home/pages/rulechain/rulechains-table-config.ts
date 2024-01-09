@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -233,7 +233,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
     if (ruleChainScope === 'edge') {
       actions.push(
         {
-          name: this.translate.instant('edge.assign-to-edge'),
+          name: this.translate.instant('rulechain.assign-to-edge'),
           icon: 'add',
           isEnabled: () => true,
           onAction: ($event) => this.assignRuleChainsToEdge($event)
@@ -643,7 +643,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
       this.addEnabled = false;
       if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE)) {
         this.headerActionDescriptors.push({
-            name: this.translate.instant('edge.assign-to-edge'),
+            name: this.translate.instant('rulechain.assign-to-edge'),
             icon: 'add',
             isEnabled: () => true,
             onAction: ($event) => {

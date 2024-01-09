@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -868,7 +868,7 @@ public final class EdgeGrpcSession implements Closeable {
     }
 
     private void processSaveEdgeVersionAsAttribute(String edgeVersion) {
-        AttributeKvEntry attributeKvEntry = new BaseAttributeKvEntry(new StringDataEntry("edgeVersion", edgeVersion), System.currentTimeMillis());
+        AttributeKvEntry attributeKvEntry = new BaseAttributeKvEntry(new StringDataEntry(DataConstants.EDGE_VERSION_ATTR_KEY, edgeVersion), System.currentTimeMillis());
         ctx.getAttributesService().save(this.tenantId, this.edge.getId(), DataConstants.SERVER_SCOPE, attributeKvEntry);
     }
 
