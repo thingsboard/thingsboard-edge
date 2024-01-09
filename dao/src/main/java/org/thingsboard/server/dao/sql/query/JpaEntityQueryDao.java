@@ -45,8 +45,6 @@ import org.thingsboard.server.common.data.query.EntityDataQuery;
 import org.thingsboard.server.dao.entity.EntityQueryDao;
 
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 
 @Component
 public class JpaEntityQueryDao implements EntityQueryDao {
@@ -65,7 +63,7 @@ public class JpaEntityQueryDao implements EntityQueryDao {
     }
 
     @Override
-    public <T> PageData<T> findInCustomerHierarchyByRootCustomerIdOrOtherGroupIdsAndType(TenantId tenantId, CustomerId customerId, EntityType entityType, String type, List<EntityGroupId> groupIds, PageLink pageLink, Function<Map<String, Object>, T> rowMapping, boolean mobile) {
-        return entityQueryRepository.findInCustomerHierarchyByRootCustomerIdOrOtherGroupIdsAndType(tenantId, customerId, entityType, type, groupIds, pageLink, rowMapping, mobile);
+    public <T> PageData<T> findInCustomerHierarchyByRootCustomerIdOrOtherGroupIdsAndType(TenantId tenantId, CustomerId customerId, EntityType entityType, String type, List<EntityGroupId> groupIds, PageLink pageLink, EntityMapping<T, ?> mapping, boolean mobile) {
+        return entityQueryRepository.findInCustomerHierarchyByRootCustomerIdOrOtherGroupIdsAndType(tenantId, customerId, entityType, type, groupIds, pageLink, mapping, mobile);
     }
 }

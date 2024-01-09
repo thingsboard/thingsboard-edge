@@ -40,10 +40,9 @@ import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.query.EntityCountQuery;
 import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityDataQuery;
+import org.thingsboard.server.dao.sql.query.EntityMapping;
 
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 
 public interface EntityQueryDao {
 
@@ -52,6 +51,6 @@ public interface EntityQueryDao {
     PageData<EntityData> findEntityDataByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityDataQuery query);
 
     <T> PageData<T> findInCustomerHierarchyByRootCustomerIdOrOtherGroupIdsAndType(TenantId tenantId, CustomerId customerId, EntityType entityType,
-                    String type, List<EntityGroupId> groupIds, PageLink pageLink, Function<Map<String, Object>, T> rowMapping, boolean mobile);
+                                                                                  String type, List<EntityGroupId> groupIds, PageLink pageLink, EntityMapping<T, ?> mapping, boolean mobile);
 
 }
