@@ -60,6 +60,7 @@ export interface WhiteLabelingParams {
   helpLinkBaseUrl?: string;
   uiHelpBaseUrl?: string;
   enableHelpLinks?: boolean;
+  hideConnectivityDialog?: boolean;
   showNameVersion?: boolean;
   platformName?: string;
   platformVersion?: string;

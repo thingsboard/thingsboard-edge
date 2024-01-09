@@ -41,6 +41,7 @@ import { BaseData, HasId } from '@shared/models/base-data';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation } from '@shared/models/security.models';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 // @dynamic
 @Directive()
