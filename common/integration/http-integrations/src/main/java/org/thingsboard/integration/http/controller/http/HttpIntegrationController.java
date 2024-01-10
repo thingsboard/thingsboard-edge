@@ -30,7 +30,6 @@
  */
 package org.thingsboard.integration.http.controller.http;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -58,6 +57,7 @@ import org.thingsboard.integration.api.controller.BinaryHttpIntegrationMsg;
 import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
 import org.thingsboard.integration.api.controller.JsonHttpIntegrationMsg;
 import org.thingsboard.integration.api.controller.StringHttpIntegrationMsg;
+import org.thingsboard.integration.api.util.TbIntegrationExecutorOrIntegrationComponent;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.integration.IntegrationType;
@@ -72,6 +72,7 @@ import java.util.Optional;
 @RequestMapping("/api/v1/integrations/http")
 @Slf4j
 @SuppressWarnings("rawtypes")
+@TbIntegrationExecutorOrIntegrationComponent
 public class HttpIntegrationController extends BaseIntegrationController {
 
     @ApiOperation(value = "Process request from HTTP integrations", hidden = true)
