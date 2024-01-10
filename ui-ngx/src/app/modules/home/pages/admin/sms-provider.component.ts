@@ -209,7 +209,7 @@ export class SmsProviderComponent extends PageComponent implements HasConfirmFor
         MOBILE_APP: this.fb.group({
           useSystemSettings: [false],
           firebaseServiceAccountCredentialsFileName: [''],
-          firebaseServiceAccountCredentials: ['', [this.isTenantAdmin() ? Validators.required : '']]
+          firebaseServiceAccountCredentials: ['', this.isTenantAdmin() ? [Validators.required] : []]
         })
       })
     });
