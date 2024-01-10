@@ -55,6 +55,7 @@ $$
                 CONSTRAINT attribute_kv_pkey PRIMARY KEY (entity_id, attribute_type, attribute_key)
             );
         END IF;
+        DROP VIEW IF EXISTS integration_info;
         DROP VIEW IF EXISTS device_info_view;
         DROP VIEW IF EXISTS device_info_active_attribute_view;
     END;
