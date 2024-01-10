@@ -173,7 +173,7 @@
         "mail-body": "Mail body",
         "sms-provider": "SMS provider",
         "sms-provider-settings": "SMS provider settings",
-        "use-system-sms-settings": "Use System SMS provider settings",
+        "use-system-sms-settings": "Use system SMS provider settings",
         "sms-provider-type": "SMS provider type",
         "sms-provider-type-required": "SMS provider type is required.",
         "sms-provider-type-aws-sns": "Amazon SNS",
@@ -507,7 +507,8 @@
         "slack-settings": "Slack settings",
         "mobile-settings": "Mobile settings",
         "firebase-service-account-file": "Firebase service account credentials JSON file",
-        "select-firebase-service-account-file": "Drag and drop your Firebase service account credentials file or "
+        "select-firebase-service-account-file": "Drag and drop your Firebase service account credentials file or ",
+        "use-system-mobile-settings": "Use system mobile settings"
       },
     "alarm": {
         "alarm": "Alarm",

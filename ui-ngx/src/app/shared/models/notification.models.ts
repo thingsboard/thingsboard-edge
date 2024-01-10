@@ -117,7 +117,8 @@ interface SlackNotificationDeliveryMethodConfig {
   botToken: string;
 }
 
-interface MobileNotificationDeliveryMethodConfig {
+export interface MobileNotificationDeliveryMethodConfig {
+  useSystemSettings?: boolean;
   firebaseServiceAccountCredentials: string;
   firebaseServiceAccountCredentialsFileName: string;
 }

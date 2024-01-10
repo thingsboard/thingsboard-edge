@@ -33,18 +33,16 @@ import { Component } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
-import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AdminSettings, SmsProviderConfiguration } from '@shared/models/settings.models';
 import { AdminService } from '@core/http/admin.service';
 import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
 import { MatDialog } from '@angular/material/dialog';
 import { SendTestSmsDialogComponent, SendTestSmsDialogData } from '@home/pages/admin/send-test-sms-dialog.component';
-import { NotificationSettings } from '@shared/models/notification.models';
-import { deepTrim, isDefined, isEmptyStr, isNotEmptyStr } from '@core/utils';
+import { NotificationDeliveryMethod, NotificationSettings } from '@shared/models/notification.models';
+import { deepTrim, isDefined, isNotEmptyStr } from '@core/utils';
 import { NotificationService } from '@core/http/notification.service';
 import { Authority } from '@shared/models/authority.enum';
-import { AuthUser } from '@shared/models/user.model';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
@@ -66,7 +64,6 @@ export class SmsProviderComponent extends PageComponent implements HasConfirmFor
   readonly = this.isTenantAdmin() && !this.userPermissionsService.hasGenericPermission(Resource.WHITE_LABELING, Operation.WRITE);
 
   constructor(protected store: Store<AppState>,
-              private router: Router,
               private adminService: AdminService,
               private notificationService: NotificationService,
               private dialog: MatDialog,
@@ -78,7 +75,7 @@ export class SmsProviderComponent extends PageComponent implements HasConfirmFor
     this.notificationService.getNotificationSettings().subscribe(
       (settings) => {
         this.notificationSettings = settings;
-        this.notificationSettingsForm.reset(this.notificationSettings);
+        this.setNotificationSettings(this.notificationSettings);
       }
     );
     this.adminService.getAdminSettings<SmsProviderConfiguration>('sms', false, {ignoreErrors: true}).subscribe({
@@ -111,6 +108,23 @@ export class SmsProviderComponent extends PageComponent implements HasConfirmFor
       );
     }
     this.updateValidators();
+  }
+
+  private setNotificationSettings(notificationSettings: NotificationSettings) {
+    const useSystemSettings = this.isTenantAdmin()
+      ? (notificationSettings.deliveryMethodsConfigs?.MOBILE_APP && isDefined(notificationSettings.deliveryMethodsConfigs.MOBILE_APP.useSystemSettings) ?
+        notificationSettings.deliveryMethodsConfigs.MOBILE_APP.useSystemSettings : true)
+      : false;
+    if (notificationSettings.deliveryMethodsConfigs?.MOBILE_APP) {
+      delete notificationSettings.deliveryMethodsConfigs.MOBILE_APP.useSystemSettings;
+    }
+    this.notificationSettingsForm.reset(this.notificationSettings, {emitEvent: false});
+    if (this.isTenantAdmin()) {
+      this.notificationSettingsForm.get('deliveryMethodsConfigs.MOBILE_APP.useSystemSettings').setValue(
+        useSystemSettings, {emitEvent: false}
+      );
+    }
+    this.updatedNotificationSettings(useSystemSettings);
   }
 
   public isTenantAdmin(): boolean {
@@ -193,15 +207,40 @@ export class SmsProviderComponent extends PageComponent implements HasConfirmFor
           botToken: ['']
         }),
         MOBILE_APP: this.fb.group({
+          useSystemSettings: [false],
           firebaseServiceAccountCredentialsFileName: [''],
-          firebaseServiceAccountCredentials: ['']
+          firebaseServiceAccountCredentials: ['', [this.isTenantAdmin() ? Validators.required : '']]
         })
       })
     });
     if(this.readonly) {
-      this.notificationSettingsForm.disable(({emitEvent: false}));
+      this.notificationSettingsForm.disable({emitEvent: false});
     } else {
-      this.registerDisableOnLoadFormControl(this.notificationSettingsForm.get('deliveryMethodsConfigs'));
+      this.isLoading$.subscribe((isLoading) => {
+        if (isLoading) {
+          this.notificationSettingsForm.disable({emitEvent: false});
+        } else {
+          this.notificationSettingsForm.enable({emitEvent: false});
+          this.updatedNotificationSettings(this.notificationSettingsForm.value.deliveryMethodsConfigs.MOBILE_APP.useSystemSettings)
+        }
+      })
+    }
+    if (this.isTenantAdmin()) {
+      this.notificationSettingsForm.get('deliveryMethodsConfigs.MOBILE_APP.useSystemSettings').valueChanges.subscribe(
+        (value: boolean) => {
+          this.updatedNotificationSettings(value);
+        }
+      );
+    }
+  }
+
+  private updatedNotificationSettings(useMobileSystemSettings: boolean) {
+    if (this.isTenantAdmin() && useMobileSystemSettings) {
+      this.notificationSettingsForm.get('deliveryMethodsConfigs.MOBILE_APP.firebaseServiceAccountCredentials').disable({emitEvent: false});
+      this.notificationSettingsForm.get('deliveryMethodsConfigs.MOBILE_APP.firebaseServiceAccountCredentialsFileName').disable({emitEvent: false});
+    } else {
+      this.notificationSettingsForm.get('deliveryMethodsConfigs.MOBILE_APP.firebaseServiceAccountCredentials').enable({emitEvent: false});
+      this.notificationSettingsForm.get('deliveryMethodsConfigs.MOBILE_APP.firebaseServiceAccountCredentialsFileName').enable({emitEvent: false});
     }
   }
 
@@ -210,10 +249,21 @@ export class SmsProviderComponent extends PageComponent implements HasConfirmFor
       ...this.notificationSettings,
       ...this.notificationSettingsForm.value
     });
+    if (this.isTenantAdmin() && this.notificationSettings.deliveryMethodsConfigs.MOBILE_APP.useSystemSettings) {
+      this.notificationSettings.deliveryMethodsConfigs.MOBILE_APP = {
+        useSystemSettings: true
+      } as any;
+    } else {
+      this.notificationSettings.deliveryMethodsConfigs.MOBILE_APP.useSystemSettings = false;
+    }
     // eslint-disable-next-line guard-for-in
     for (const method in this.notificationSettings.deliveryMethodsConfigs) {
+      if (this.isTenantAdmin() && method === NotificationDeliveryMethod.MOBILE_APP) {
+        this.notificationSettings.deliveryMethodsConfigs[method].method = method;
+        continue;
+      }
       const keys = Object.keys(this.notificationSettings.deliveryMethodsConfigs[method]);
-      if (keys.some(item => !isNotEmptyStr(this.notificationSettings.deliveryMethodsConfigs[method][item]))) {
+      if (keys.every(item => !isNotEmptyStr(this.notificationSettings.deliveryMethodsConfigs[method][item]))) {
         delete this.notificationSettings.deliveryMethodsConfigs[method];
       } else {
         this.notificationSettings.deliveryMethodsConfigs[method].method = method;
@@ -221,7 +271,7 @@ export class SmsProviderComponent extends PageComponent implements HasConfirmFor
     }
     this.notificationService.saveNotificationSettings(this.notificationSettings).subscribe(setting => {
       this.notificationSettings = setting;
-      this.notificationSettingsForm.reset(this.notificationSettings);
+      this.setNotificationSettings(this.notificationSettings);
     });
   }
 }
