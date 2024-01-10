@@ -87,7 +87,7 @@ class TbGpsGeofencingActionNodeTest {
 
     private static Stream<Arguments> givenPresenceMonitoringStrategyOnEachMessage_whenOnMsg_thenVerifyOutputMsgTypes() {
         return Stream.of(
-                // default config
+                // default config with presenceMonitoringStrategyOnEachMessage false
                 Arguments.of(false, List.of(
                         Map.of(ENTERED, 0, INSIDE, 0, SUCCESS, 0),
                         Map.of(ENTERED, 1, INSIDE, 0, SUCCESS, 0),
@@ -95,7 +95,7 @@ class TbGpsGeofencingActionNodeTest {
                         Map.of(ENTERED, 1, INSIDE, 1, SUCCESS, 1),
                         Map.of(ENTERED, 1, INSIDE, 1, SUCCESS, 2)
                 )),
-                // default config with presenceMonitoring
+                // default config with presenceMonitoringStrategyOnEachMessage true
                 Arguments.of(true, List.of(
                         Map.of(ENTERED, 0, INSIDE, 0, SUCCESS, 0),
                         Map.of(ENTERED, 1, INSIDE, 0, SUCCESS, 0),
