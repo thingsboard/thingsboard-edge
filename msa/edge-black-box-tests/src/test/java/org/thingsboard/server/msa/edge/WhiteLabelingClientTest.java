@@ -40,12 +40,17 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.menu.CustomMenuItem;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -243,6 +248,61 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
         updateAndVerifyCustomTranslationUpdate("CUSTOMER_HOME_UPDATED");
 
         changeOwnerToTenantAndRemoveCustomer(savedCustomer);
+    }
+
+    @Test
+    public void testCustomMenu() {
+        testCustomMenu_tenant();
+        testCustomMenu_customer();
+    }
+
+    private void testCustomMenu_tenant() {
+        cloudRestClient.login("tenant@thingsboard.org", "tenant");
+        edgeRestClient.login("tenant@thingsboard.org", "tenant");
+        updateAndVerifyCustomMenuUpdate("Tenant custom menu");
+    }
+
+    private void testCustomMenu_customer() {
+        Customer savedCustomer = createCustomerAndAssignEdgeToCustomer();
+
+        updateAndVerifyCustomMenuUpdate("Customer custom menu");
+
+        changeOwnerToTenantAndRemoveCustomer(savedCustomer);
+    }
+
+    private void updateAndVerifyCustomMenuUpdate(String customMenuName) {
+        CustomMenu customMenu = new CustomMenu();
+        customMenu.setMenuItems(new ArrayList<>(List.of(createCustomMenuItems(customMenuName))));
+        cloudRestClient.saveCustomMenu(customMenu);
+
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    Optional<CustomMenu> edgeCustomMenuOpt = edgeRestClient.getCurrentCustomMenu();
+                    Optional<CustomMenu> cloudCustomMenuOpt = cloudRestClient.getCurrentCustomMenu();
+                    return edgeCustomMenuOpt.isPresent() &&
+                            cloudCustomMenuOpt.isPresent() &&
+                            edgeCustomMenuOpt.get().equals(cloudCustomMenuOpt.get());
+                });
+    }
+
+
+    private CustomMenuItem createCustomMenuItems(String customMenuName) {
+        CustomMenuItem customMenuItemChild1 = new CustomMenuItem();
+        customMenuItemChild1.setName("Waste Management Administration");
+        customMenuItemChild1.setMaterialIcon("dashboard");
+
+        CustomMenuItem customMenuItemChild2 = new CustomMenuItem();
+        customMenuItemChild2.setName("Assisted Living Administration");
+        customMenuItemChild2.setMaterialIcon("tablet_dashboard");
+
+        CustomMenuItem customMenuItem = new CustomMenuItem();
+        customMenuItem.setName(customMenuName);
+        customMenuItem.setMaterialIcon("grid_view");
+        customMenuItem.setChildMenuItems(Arrays.asList(customMenuItemChild1, customMenuItemChild2));
+
+        return customMenuItem;
     }
 
     private Customer createCustomerAndAssignEdgeToCustomer() {
