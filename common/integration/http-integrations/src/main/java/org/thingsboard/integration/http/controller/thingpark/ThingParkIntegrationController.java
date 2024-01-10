@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,6 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.controller.BaseIntegrationController;
+import org.thingsboard.integration.api.util.TbIntegrationExecutorOrIntegrationComponent;
 import org.thingsboard.integration.http.thingpark.ThingParkIntegrationMsg;
 import org.thingsboard.integration.http.thingpark.ThingParkRequestParameters;
 import org.thingsboard.server.common.data.integration.IntegrationType;
@@ -55,6 +56,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/integrations")
 @Slf4j
+@TbIntegrationExecutorOrIntegrationComponent
 public class ThingParkIntegrationController extends BaseIntegrationController {
 
     @ApiOperation(value = "Process request from ThingPark integrations", hidden = true)

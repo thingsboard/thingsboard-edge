@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -50,7 +50,6 @@ import java.util.stream.Collectors;
  * Created by ashvayka on 19.01.18.
  */
 public class TbNodeUtils {
-
 
     private static final Pattern DATA_PATTERN = Pattern.compile("(\\$\\[)(.*?)(])");
 

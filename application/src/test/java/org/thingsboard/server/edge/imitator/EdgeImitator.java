@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -64,8 +64,8 @@ import org.thingsboard.server.gen.edge.v1.IntegrationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.OtaPackageUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.ResourceUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
@@ -318,6 +318,9 @@ public class EdgeImitator {
         }
         if (downlinkMsg.hasCustomerCustomTranslationMsg()) {
             result.add(saveDownlinkMsg(downlinkMsg.getCustomerCustomTranslationMsg()));
+        }
+        if (downlinkMsg.hasCustomMenuProto()) {
+            result.add(saveDownlinkMsg(downlinkMsg.getCustomMenuProto()));
         }
         if (downlinkMsg.hasWhiteLabelingProto()) {
             result.add(saveDownlinkMsg(downlinkMsg.getWhiteLabelingProto()));

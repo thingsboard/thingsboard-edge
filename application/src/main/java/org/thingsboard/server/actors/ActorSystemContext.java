@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -46,7 +46,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.service.executors.PubSubRuleNodeExecutorProvider;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.NotificationCenter;
 import org.thingsboard.rule.engine.api.ReportService;
@@ -132,6 +131,7 @@ import org.thingsboard.server.service.entitiy.entityview.TbEntityViewService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.executors.ExternalCallExecutorService;
 import org.thingsboard.server.service.executors.NotificationExecutorService;
+import org.thingsboard.server.service.executors.PubSubRuleNodeExecutorProvider;
 import org.thingsboard.server.service.executors.SharedEventLoopGroupService;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.integration.TbIntegrationDownlinkService;

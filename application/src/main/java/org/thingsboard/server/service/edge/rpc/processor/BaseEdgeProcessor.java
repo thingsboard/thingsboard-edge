@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -111,6 +111,7 @@ import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.menu.CustomMenuService;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
@@ -147,6 +148,7 @@ import org.thingsboard.server.service.edge.rpc.constructor.edge.EdgeMsgConstruct
 import org.thingsboard.server.service.edge.rpc.constructor.entityview.EntityViewMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.group.GroupMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.integration.IntegrationMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.menu.CustomMenuMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.ota.OtaPackageMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.queue.QueueMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.relation.RelationMsgConstructorFactory;
@@ -347,6 +349,9 @@ public abstract class BaseEdgeProcessor {
     protected EntityDataMsgConstructor entityDataMsgConstructor;
 
     @Autowired
+    protected CustomMenuMsgConstructor customMenuMsgConstructor;
+
+    @Autowired
     protected RuleChainMsgConstructorFactory ruleChainMsgConstructorFactory;
 
     @Autowired
@@ -415,6 +420,9 @@ public abstract class BaseEdgeProcessor {
 
     @Autowired
     protected CustomTranslationService customTranslationService;
+
+    @Autowired
+    protected CustomMenuService customMenuService;
 
     @Autowired
     protected EntityGroupService entityGroupService;
@@ -530,6 +538,7 @@ public abstract class BaseEdgeProcessor {
             case WHITE_LABELING:
             case LOGIN_WHITE_LABELING:
             case CUSTOM_TRANSLATION:
+            case CUSTOM_MENU:
             case MAIL_TEMPLATES:
                 return true;
         }

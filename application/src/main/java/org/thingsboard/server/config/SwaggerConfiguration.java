@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -106,6 +106,8 @@ public class SwaggerConfiguration {
     private boolean enabled;
     @Value("${swagger.api_path_regex}")
     private String apiPathRegex;
+    @Value("${swagger.exclude_api_path_regex}")
+    private String excludeApiPathRegex;
     @Value("${swagger.security_path_regex}")
     private String securityPathRegex;
     @Value("${swagger.non_security_path_regex}")
@@ -239,7 +241,11 @@ public class SwaggerConfiguration {
     }
 
     private Predicate<String> apiPaths() {
-        return regex(apiPathRegex);
+        Predicate<String> regex = regex(apiPathRegex);
+        if (StringUtils.isNotEmpty(excludeApiPathRegex)) {
+            regex = regex.and(regex(excludeApiPathRegex).negate());
+        }
+        return regex;
     }
 
     private Predicate<OperationContext> securityPathOperationSelector() {
