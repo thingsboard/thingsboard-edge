@@ -119,13 +119,13 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
     public <T extends GroupEntity<? extends EntityId>> PageData<T> findUserEntities(TenantId tenantId, CustomerId customerId,
                                                                                     MergedUserPermissions userPermissions,
                                                                                     EntityType entityType, Operation operation, String type, PageLink pageLink) {
-        return findUserEntities(tenantId, customerId, userPermissions, entityType, operation, type, pageLink, false);
+        return findUserEntities(tenantId, customerId, userPermissions, entityType, operation, type, pageLink, false, false);
     }
 
     @Override
     public <T extends GroupEntity<? extends EntityId>> PageData<T> findUserEntities(TenantId tenantId, CustomerId customerId,
                                                                                     MergedUserPermissions userPermissions,
-                                                                                    EntityType entityType, Operation operation, String type, PageLink pageLink, boolean mobile) {
+                                                                                    EntityType entityType, Operation operation, String type, PageLink pageLink, boolean mobile, boolean idOnly) {
         MergedGroupTypePermissionInfo groupPermissions = userPermissions.getGroupPermissionsByEntityTypeAndOperation(entityType, operation);
         if (customerId == null || customerId.isNullUid()) {
             if (groupPermissions.isHasGenericRead()) {
@@ -136,9 +136,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         } else {
             if (groupPermissions.isHasGenericRead()) {
                 if (groupPermissions.getEntityGroupIds().isEmpty()) {
-                    return getEntityPageDataByCustomerId(entityType, type, tenantId, customerId, pageLink, mobile);
+                    return getEntityPageDataByCustomerId(entityType, type, tenantId, customerId, pageLink, mobile, idOnly);
                 } else {
-                    return getEntityPageDataByCustomerIdOrOtherGroupIds(entityType, type, tenantId, customerId, groupPermissions.getEntityGroupIds(), pageLink, mobile);
+                    return getEntityPageDataByCustomerIdOrOtherGroupIds(entityType, type, tenantId, customerId, groupPermissions.getEntityGroupIds(), pageLink, mobile, idOnly);
                 }
             } else {
                 return getEntityPageDataByGroupIds(entityType, type, groupPermissions.getEntityGroupIds(), pageLink, mobile);
@@ -188,17 +188,20 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         }
     }
 
-    private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByCustomerId(EntityType entityType, String type, TenantId tenantId, CustomerId customerId, PageLink pageLink, boolean mobile) {
-        return getEntityPageDataByCustomerIdOrOtherGroupIds(entityType, type, tenantId, customerId, Collections.emptyList(), pageLink, mobile);
+    private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByCustomerId(EntityType entityType, String type, TenantId tenantId, CustomerId customerId, PageLink pageLink, boolean mobile, boolean idOnly) {
+        return getEntityPageDataByCustomerIdOrOtherGroupIds(entityType, type, tenantId, customerId, Collections.emptyList(), pageLink, mobile, idOnly);
     }
 
     @SuppressWarnings("unchecked")
     private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByCustomerIdOrOtherGroupIds(
-            EntityType entityType, String type, TenantId tenantId, CustomerId customerId, List<EntityGroupId> groupIds, PageLink pageLink, boolean mobile) {
+            EntityType entityType, String type, TenantId tenantId, CustomerId customerId, List<EntityGroupId> groupIds, PageLink pageLink, boolean mobile, boolean idOnly) {
         if (type != null && type.trim().length() == 0) {
             type = null;
         }
         EntityMapping<?, ?> mapping = EntityMapping.get(entityType);
+        if (idOnly) {
+            mapping = mapping.onlyId();
+        }
         return (PageData<T>) entityQueryDao.findInCustomerHierarchyByRootCustomerIdOrOtherGroupIdsAndType(
                 tenantId, customerId, entityType, type, groupIds, pageLink, mapping, mobile);
     }

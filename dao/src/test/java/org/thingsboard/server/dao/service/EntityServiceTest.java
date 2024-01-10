@@ -2664,8 +2664,17 @@ public class EntityServiceTest extends AbstractServiceTest {
 
         PageData<Device> devices = entityService.findUserEntities(tenantId, device.getCustomerId(), new MergedUserPermissions(
                 Map.of(Resource.ALL, Set.of(Operation.ALL)), Map.of()
-        ), EntityType.DEVICE, Operation.READ, null, new PageLink(100));
+        ), EntityType.DEVICE, Operation.READ, null, new PageLink(100), false, false);
         assertThat(devices.getData()).contains(mappedDevice);
+
+        devices = entityService.findUserEntities(tenantId, device.getCustomerId(), new MergedUserPermissions(
+                Map.of(Resource.ALL, Set.of(Operation.ALL)), Map.of()
+        ), EntityType.DEVICE, Operation.READ, null, new PageLink(100), false, true);
+        assertThat(devices.getData()).isNotEmpty().allSatisfy(deviceWithId -> {
+            assertThat(deviceWithId.getId()).isEqualTo(mappedDevice.getId());
+            assertThat(deviceWithId.getTenantId()).isNull();
+            assertThat(deviceWithId.getName()).isNull();
+        });
     }
 
     @Test
