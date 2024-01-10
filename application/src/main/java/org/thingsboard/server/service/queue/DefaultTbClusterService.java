@@ -95,8 +95,8 @@ import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.MultipleTbQueueCallbackWrapper;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.TopicService;
 import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.discovery.TopicService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
@@ -105,8 +105,8 @@ import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -625,21 +625,19 @@ public class DefaultTbClusterService implements TbClusterService {
         pushMsgToCore(tenantId, entityId != null ? entityId : tenantId, TransportProtos.ToCoreMsg.newBuilder().setEdgeNotificationMsg(msg).build(), null);
 
         if (entityId != null && (EntityType.DEVICE.equals(entityGroupType) || EntityType.DEVICE.equals(entityId.getEntityType()))) {
-            pushDeviceUpdateMessage(tenantId, edgeId, entityId, action, entityGroupType, entityGroupId);
+            pushDeviceUpdateMessage(tenantId, edgeId, entityId, action, entityGroupType);
         }
     }
 
     private void pushDeviceUpdateMessage(TenantId tenantId, EdgeId edgeId, EntityId entityId, EdgeEventActionType action,
-                                         EntityType entityGroupType, EntityGroupId entityGroupId) {
+                                         EntityType entityGroupType) {
         switch (entityId.getEntityType()) {
             case ENTITY_GROUP:
                 if (EntityType.DEVICE.equals(entityGroupType)) {
                     switch (action) {
                         case ASSIGNED_TO_EDGE:
-                            pushDeviceUpdateMessageByEntityGroupId(tenantId, new EntityGroupId(entityId.getId()), edgeId);
-                            break;
                         case UNASSIGNED_FROM_EDGE:
-                            pushDeviceUpdateMessageByEntityGroupId(tenantId, new EntityGroupId(entityId.getId()), null);
+                            pushDeviceUpdateMessageByEntityGroupId(tenantId, new EntityGroupId(entityId.getId()), edgeId, action);
                             break;
                     }
                 }
@@ -648,7 +646,7 @@ public class DefaultTbClusterService implements TbClusterService {
                 switch (action) {
                     case ADDED_TO_ENTITY_GROUP:
                     case REMOVED_FROM_ENTITY_GROUP:
-                        EdgeId relatedEdgeId = findRelatedEdgeIdIfAny(tenantId, entityGroupId);
+                        EdgeId relatedEdgeId = findRelatedEdgeIdIfAny(tenantId, entityId);
                         log.trace("{} Going to send edge update notification for device actor, device id {}, edge id {}", tenantId, entityId, relatedEdgeId);
                         pushMsgToCore(new DeviceEdgeUpdateMsg(tenantId, new DeviceId(entityId.getId()), relatedEdgeId), null);
                         break;
@@ -656,15 +654,19 @@ public class DefaultTbClusterService implements TbClusterService {
         }
     }
 
-    private void pushDeviceUpdateMessageByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, EdgeId edgeId) {
+    private void pushDeviceUpdateMessageByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, EdgeId edgeId, EdgeEventActionType action) {
         ListenableFuture<List<EntityId>> entityIdsFuture = entityGroupService.findAllEntityIdsAsync(tenantId, entityGroupId, new PageLink(Integer.MAX_VALUE));
         Futures.addCallback(entityIdsFuture, new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable List<EntityId> entityIds) {
                 if (entityIds != null && !entityIds.isEmpty()) {
                     for (EntityId entityId : entityIds) {
-                        log.trace("{} Going to send edge update notification for device actor, device id {}, edge id {}", tenantId, entityId, edgeId);
-                        pushMsgToCore(new DeviceEdgeUpdateMsg(tenantId, new DeviceId(entityId.getId()), edgeId), null);
+                        EdgeId relatedEdgeId = edgeId;
+                        if (EdgeEventActionType.UNASSIGNED_FROM_EDGE.equals(action)) {
+                            relatedEdgeId = findRelatedEdgeIdIfAny(tenantId, entityId);
+                        }
+                        log.trace("{} Going to send edge update notification for device actor, device id {}, edge id {}", tenantId, entityId, relatedEdgeId);
+                        pushMsgToCore(new DeviceEdgeUpdateMsg(tenantId, new DeviceId(entityId.getId()), relatedEdgeId), null);
                     }
                 } else {
                     log.trace("{} No entities found for the provided entity group {}", tenantId, entityGroupId);
@@ -678,15 +680,9 @@ public class DefaultTbClusterService implements TbClusterService {
         }, dbCallbackExecutor);
     }
 
-    private EdgeId findRelatedEdgeIdIfAny(TenantId tenantId, EntityGroupId entityGroupId) {
-        PageLink pageLink = new PageLink(1);
-        PageData<EdgeId> pageData;
-        pageData = edgeService.findEdgeIdsByTenantIdAndEntityGroupIds(tenantId, Collections.singletonList(entityGroupId), EntityType.DEVICE, pageLink);
-        if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
-            return pageData.getData().get(0);
-        } else {
-            return null;
-        }
+    private EdgeId findRelatedEdgeIdIfAny(TenantId tenantId, EntityId entityId) {
+        PageData<EdgeId> pageData = edgeService.findRelatedEdgeIdsByEntityId(tenantId, entityId, new PageLink(1));
+        return Optional.ofNullable(pageData).filter(pd -> pd.getTotalElements() > 0).map(pd -> pd.getData().get(0)).orElse(null);
     }
 
     private static FromDeviceRPCResponseProto.Builder prepareRPCResponseProto(FromDeviceRpcResponse response) {
