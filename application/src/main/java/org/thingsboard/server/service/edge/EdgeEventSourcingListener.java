@@ -38,11 +38,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmApiCallResult;
+import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -63,8 +65,6 @@ import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.user.UserServiceImpl;
 
 import javax.annotation.PostConstruct;
-
-import static org.thingsboard.server.service.entitiy.DefaultTbNotificationEntityService.edgeTypeByActionType;
 
 /**
  * This event listener does not support async event processing because relay on ThreadLocal
@@ -112,8 +112,12 @@ public class EdgeEventSourcingListener {
     public void handleEvent(DeleteEntityEvent<?> event) {
         try {
             log.trace("[{}] DeleteEntityEvent called: {}", event.getTenantId(), event);
+            EdgeEventType type = null;
+            if (event.getEntity() instanceof AlarmComment) {
+                type = EdgeEventType.ALARM_COMMENT;
+            }
             tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), null, event.getEntityId(),
-                    JacksonUtil.toString(event.getEntity()), null, EdgeEventActionType.DELETED,
+                    JacksonUtil.toString(event.getEntity()), type, EdgeEventActionType.DELETED,
                     edgeSynchronizationManager.getEdgeId().get());
         } catch (Exception e) {
             log.error("[{}] failed to process DeleteEntityEvent: {}", event.getTenantId(), event, e);
@@ -137,7 +141,7 @@ public class EdgeEventSourcingListener {
             EntityGroupId entityGroupId = event.getEntityGroup() != null ? event.getEntityGroup().getId() : null;
             log.trace("[{}] ActionEntityEvent called: {}", event.getTenantId(), event);
             tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), event.getEdgeId(), event.getEntityId(),
-                    event.getBody(), event.getEdgeEventType(), edgeTypeByActionType(event.getActionType()),
+                    event.getBody(), event.getEdgeEventType(), EdgeUtils.getEdgeEventActionTypeByActionType(event.getActionType()),
                     entityGroupType, entityGroupId, edgeSynchronizationManager.getEdgeId().get());
         } catch (Exception e) {
             log.error("[{}] failed to process ActionEntityEvent: {}", event.getTenantId(), event, e);
@@ -158,7 +162,7 @@ public class EdgeEventSourcingListener {
             }
             log.trace("[{}] RelationActionEvent called: {}", event.getTenantId(), event);
             tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), null, null,
-                    JacksonUtil.toString(relation), EdgeEventType.RELATION, edgeTypeByActionType(event.getActionType()),
+                    JacksonUtil.toString(relation), EdgeEventType.RELATION, EdgeUtils.getEdgeEventActionTypeByActionType(event.getActionType()),
                     edgeSynchronizationManager.getEdgeId().get());
         } catch (Exception e) {
             log.error("[{}] failed to process RelationActionEvent: {}", event.getTenantId(), event, e);
@@ -183,7 +187,7 @@ public class EdgeEventSourcingListener {
                 cleanUpUserAdditionalInfo(user);
                 return !user.equals(oldUser);
             }
-        } else if (entity instanceof AlarmApiCallResult || entity instanceof Alarm) {
+        } else if (entity instanceof AlarmApiCallResult || entity instanceof Alarm || entity instanceof AlarmComment) {
             return false;
         } else if (entity instanceof Converter) {
             Converter converter = (Converter) entity;

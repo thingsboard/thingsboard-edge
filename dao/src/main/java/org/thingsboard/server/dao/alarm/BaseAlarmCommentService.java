@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
 
 import java.util.UUID;
@@ -76,7 +77,10 @@ public class BaseAlarmCommentService extends AbstractEntityService implements Al
     public AlarmComment saveAlarmComment(TenantId tenantId, AlarmComment alarmComment) {
         log.debug("Deleting Alarm Comment: {}", alarmComment);
         alarmCommentDataValidator.validate(alarmComment, c -> tenantId);
-        return alarmCommentDao.save(tenantId, alarmComment);
+        AlarmComment result = alarmCommentDao.save(tenantId, alarmComment);
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entity(result)
+                .entityId(result.getAlarmId()).build());
+        return result;
     }
 
     @Override
@@ -127,5 +131,4 @@ public class BaseAlarmCommentService extends AbstractEntityService implements Al
         }
         return null;
     }
-
 }

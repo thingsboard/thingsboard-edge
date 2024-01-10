@@ -54,6 +54,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.gen.edge.v1.AlarmCommentUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
@@ -547,6 +548,11 @@ public final class EdgeGrpcSession implements Closeable {
                     case ADDED_TO_ENTITY_GROUP:
                     case REMOVED_FROM_ENTITY_GROUP:
                     case CHANGE_OWNER:
+                    case ASSIGNED_TO_CUSTOMER:
+                    case UNASSIGNED_FROM_CUSTOMER:
+                    case ADDED_COMMENT:
+                    case UPDATED_COMMENT:
+                    case DELETED_COMMENT:
                         downlinkMsg = convertEntityEventToDownlink(edgeEvent);
                         log.trace("[{}][{}] entity message processed [{}]", this.tenantId, this.sessionId, downlinkMsg);
                         break;
@@ -661,6 +667,8 @@ public final class EdgeGrpcSession implements Closeable {
                 return ctx.getRuleChainProcessor().convertRuleChainMetadataEventToDownlink(edgeEvent, this.edgeVersion);
             case ALARM:
                 return ctx.getAlarmProcessor().convertAlarmEventToDownlink(edgeEvent, this.edgeVersion);
+            case ALARM_COMMENT:
+                return ctx.getAlarmProcessor().convertAlarmCommentEventToDownlink(edgeEvent, this.edgeVersion);
             case USER:
                 return ctx.getUserProcessor().convertUserEventToDownlink(edgeEvent, this.edgeVersion);
             case RELATION:
@@ -750,6 +758,12 @@ public final class EdgeGrpcSession implements Closeable {
                 for (AlarmUpdateMsg alarmUpdateMsg : uplinkMsg.getAlarmUpdateMsgList()) {
                     result.add(((AlarmProcessor) ctx.getAlarmEdgeProcessorFactory().getProcessorByEdgeVersion(this.edgeVersion))
                             .processAlarmMsgFromEdge(edge.getTenantId(), edge.getId(), alarmUpdateMsg));
+                }
+            }
+            if (uplinkMsg.getAlarmCommentUpdateMsgCount() > 0) {
+                for (AlarmCommentUpdateMsg alarmCommentUpdateMsg : uplinkMsg.getAlarmCommentUpdateMsgList()) {
+                    result.add(((AlarmProcessor) ctx.getAlarmEdgeProcessorFactory().getProcessorByEdgeVersion(this.edgeVersion))
+                            .processAlarmCommentMsgFromEdge(edge.getTenantId(), edge.getId(), alarmCommentUpdateMsg));
                 }
             }
             if (uplinkMsg.getEntityViewUpdateMsgCount() > 0) {

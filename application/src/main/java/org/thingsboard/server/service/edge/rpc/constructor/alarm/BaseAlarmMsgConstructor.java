@@ -28,35 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.rpc;
+package org.thingsboard.server.service.edge.rpc.constructor.alarm;
 
-import io.grpc.stub.StreamObserver;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.alarm.AlarmComment;
+import org.thingsboard.server.gen.edge.v1.AlarmCommentUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 
-public class SyncedStreamObserver<V> implements StreamObserver<V> {
-    private final StreamObserver<V> delegate;
-
-    public SyncedStreamObserver(StreamObserver<V> delegate) {
-        this.delegate = delegate;
-    }
+public abstract class BaseAlarmMsgConstructor implements AlarmMsgConstructor {
 
     @Override
-    public void onNext(V value) {
-        synchronized (delegate) {
-            delegate.onNext(value);
-        }
-    }
-
-    @Override
-    public void onError(Throwable t) {
-        synchronized (delegate) {
-            delegate.onError(t);
-        }
-    }
-
-    @Override
-    public void onCompleted() {
-        synchronized (delegate) {
-            delegate.onCompleted();
-        }
+    public AlarmCommentUpdateMsg constructAlarmCommentUpdatedMsg(UpdateMsgType msgType, AlarmComment alarmComment) {
+        return AlarmCommentUpdateMsg.newBuilder().setMsgType(msgType).setEntity(JacksonUtil.toString(alarmComment)).build();
     }
 }
