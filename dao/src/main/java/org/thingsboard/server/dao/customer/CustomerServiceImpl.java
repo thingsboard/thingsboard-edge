@@ -203,9 +203,11 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
             } else {
                 if (oldCustomer != null && !savedCustomer.getName().equals(oldCustomer.getName())) {
                     List<EdgeId> edgeIds = edgeService.findAllRelatedEdgeIds(savedCustomer.getTenantId(), savedCustomer.getId());
-                    for (EdgeId edgeId : edgeIds) {
-                        Edge edge = edgeService.findEdgeById(savedCustomer.getTenantId(), edgeId);
-                        edgeService.renameEdgeAllGroups(savedCustomer.getTenantId(), edge, edge.getName(), oldCustomer.getName(), savedCustomer.getName());
+                    if (edgeIds != null) {
+                        for (EdgeId edgeId : edgeIds) {
+                            Edge edge = edgeService.findEdgeById(savedCustomer.getTenantId(), edgeId);
+                            edgeService.renameEdgeAllGroups(savedCustomer.getTenantId(), edge, edge.getName(), oldCustomer.getName(), savedCustomer.getName());
+                        }
                     }
                 }
             }
