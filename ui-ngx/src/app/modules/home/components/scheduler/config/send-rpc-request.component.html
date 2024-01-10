@@ -30,8 +30,8 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [formGroup]="sendRpcRequestFormGroup" fxLayout="column" class="tb-send-rpc-request tb-form-panel no-border">
-  <div class="tb-form-panel">
+<section [formGroup]="sendRpcRequestFormGroup" fxLayout="column" class="tb-send-rpc-request tb-form-panel no-border no-padding">
+  <div class="tb-form-panel stroked">
     <div class="tb-form-panel-title" translate>scheduler.target</div>
     <tb-originator-select
       required
@@ -42,9 +42,9 @@
       formControlName="originatorId">
     </tb-originator-select>
   </div>
-  <fieldset class="tb-form-panel">
+  <fieldset class="tb-form-panel stroked">
     <div class="tb-form-panel-title" translate>scheduler.rpc-settings</div>
-    <fieldset class="tb-form-panel no-border" fxLayout="column" formGroupName="msgBody">
+    <fieldset class="tb-form-panel no-border no-padding" fxLayout="column" formGroupName="msgBody">
       <div class="tb-form-row column-xs" fxLayoutAlign="space-between center">
         <div class="fixed-title-width tb-required" translate>scheduler.rpc-method</div>
         <div class="max-width-content">
@@ -70,7 +70,7 @@
         [fillHeight]="true">
       </tb-json-object-edit>
     </fieldset>
-    <fieldset class="tb-form-panel no-border" fxLayout="column" formGroupName="metadata">
+    <fieldset class="tb-form-panel no-border no-padding" fxLayout="column" formGroupName="metadata">
       <div class="tb-form-row column-xs" fxLayoutAlign="space-between center">
         <div translate>scheduler.rpc-request-timeout</div>
         <div class="max-width-content">

@@ -48,10 +48,18 @@
   <mat-form-field fxFlex class="mat-block">
     <mat-label translate>report.cc</mat-label>
     <textarea matInput formControlName="cc" rows="2"></textarea>
+    <mat-icon matSuffix class="mat-primary cursor-pointer"
+              matTooltip="{{'report.cc-description' | translate}}" matTooltipPosition="above">
+      help
+    </mat-icon>
   </mat-form-field>
   <mat-form-field fxFlex class="mat-block">
     <mat-label translate>report.bcc</mat-label>
     <textarea matInput formControlName="bcc" rows="2"></textarea>
+    <mat-icon matSuffix class="mat-primary cursor-pointer"
+              matTooltip="{{'report.bcc-description' | translate}}" matTooltipPosition="above">
+      help
+    </mat-icon>
   </mat-form-field>
   <mat-form-field fxFlex class="mat-block">
     <mat-label translate>report.subject</mat-label>
