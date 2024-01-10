@@ -142,5 +142,4 @@ public class TbGpsGeofencingActionNode extends AbstractGeofencingNode<TbGpsGeofe
     protected Class<TbGpsGeofencingActionNodeConfiguration> getConfigClazz() {
         return TbGpsGeofencingActionNodeConfiguration.class;
     }
-
 }
