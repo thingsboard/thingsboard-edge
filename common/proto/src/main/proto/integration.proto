@@ -218,36 +218,42 @@ message IntegrationInfoProto {
 message IntegrationProto {
   int64 integrationIdMSB = 1;
   int64 integrationIdLSB = 2;
-  int64 tenantIdMSB = 3;
-  int64 tenantIdLSB = 4;
-  string type = 5;
-  string name = 6;
-  bool debugMode = 7;
-  bool enabled = 8;
-  bool remote = 9;
-  bool allowCreateDevicesOrAssets = 10;
-  bool isEdgeTemplate = 11;
-  int64 defaultConverterIdMSB = 12;
-  int64 defaultConverterIdLSB = 13;
-  optional int64 downlinkConverterIdMSB = 14;
-  optional int64 downlinkConverterIdLSB = 15;
-  string routingKey = 16;
-  string secret = 17;
-  string configuration = 18;
-  optional string additionalInfo = 19;
+  int64 createdTime = 3;
+  int64 tenantIdMSB = 4;
+  int64 tenantIdLSB = 5;
+  string type = 6;
+  string name = 7;
+  bool debugMode = 8;
+  bool enabled = 9;
+  bool remote = 10;
+  bool allowCreateDevicesOrAssets = 11;
+  bool isEdgeTemplate = 12;
+  int64 defaultConverterIdMSB = 13;
+  int64 defaultConverterIdLSB = 14;
+  optional int64 downlinkConverterIdMSB = 15;
+  optional int64 downlinkConverterIdLSB = 16;
+  string routingKey = 17;
+  string secret = 18;
+  string configuration = 19;
+  optional string additionalInfo = 20;
+  optional int64 externalIdMSB = 21;
+  optional int64 externalIdLSB = 22;
 }
 
 message ConverterProto {
   int64 converterIdMSB = 1;
   int64 converterIdLSB = 2;
-  int64 tenantIdMSB = 3;
-  int64 tenantIdLSB = 4;
-  string type = 5;
-  string name = 6;
-  bool debugMode = 7;
-  string configuration = 8;
-  optional string additionalInfo = 9;
-  bool isEdgeTemplate = 10;
+  int64 createdTime = 3;
+  int64 tenantIdMSB = 4;
+  int64 tenantIdLSB = 5;
+  string type = 6;
+  string name = 7;
+  bool debugMode = 8;
+  string configuration = 9;
+  optional string additionalInfo = 10;
+  bool isEdgeTemplate = 11;
+  optional int64 externalIdMSB = 12;
+  optional int64 externalIdLSB = 13;
 }
 
 message IntegrationInfoListRequestProto {
