@@ -46,7 +46,7 @@ public class TbGpsGeofencingActionNodeConfiguration extends TbGpsGeofencingFilte
     private String minInsideDurationTimeUnit;
     private String minOutsideDurationTimeUnit;
 
-    private boolean presenceMonitoring;
+    private boolean presenceMonitoringStrategyOnEachMessage;
 
     @Override
     public TbGpsGeofencingActionNodeConfiguration defaultConfiguration() {
@@ -60,7 +60,7 @@ public class TbGpsGeofencingActionNodeConfiguration extends TbGpsGeofencingFilte
         configuration.setMinOutsideDurationTimeUnit(TimeUnit.MINUTES.name());
         configuration.setMinInsideDuration(1);
         configuration.setMinOutsideDuration(1);
-        configuration.setPresenceMonitoring(false);
+        configuration.setPresenceMonitoringStrategyOnEachMessage(false);
         return configuration;
     }
 }

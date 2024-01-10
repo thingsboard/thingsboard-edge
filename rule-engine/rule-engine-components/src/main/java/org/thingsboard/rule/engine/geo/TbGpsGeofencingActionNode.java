@@ -74,16 +74,17 @@ import static org.thingsboard.rule.engine.util.GpsGeofencingEvents.OUTSIDE;
         relationTypes = {"Success", "Entered", "Left", "Inside", "Outside"},
         nodeDescription = "Produces incoming messages using GPS based geofencing",
         nodeDetails = "Extracts latitude and longitude parameters from incoming message and returns different events based on configuration parameters. " +
-                "If an object enters the area, sends a message with the type <code>Entered</code>. " +
-                "If an object leaves the area, sends a message with the type <code>Left</code>. " +
-                "If the use case <b>\"Stay duration check\"</b> is selected, sends messages with types <code>Inside</code> or <code>Outside</code> only the first time the geofencing and duration conditions are satisfied; otherwise <code>Success</code>. " +
-                "If the use case <b>\"Presence monitoring\"</b> is selected, sends messages with types <code>Inside</code> or <code>Outside</code> every time the geofencing condition is satisfied.",
+                "<br><br>" +
+                "If an object with coordinates extracted from incoming message enters the geofence, sends a message with the type <code>Entered</code>. " +
+                "If an object leaves the geofence, sends a message with the type <code>Left</code>. " +
+                "If the presence monitoring strategy <b>\"On first message\"</b> is selected, sends messages with types <code>Inside</code> or <code>Outside</code> only the first time the geofencing and duration conditions are satisfied; otherwise <code>Success</code>. " +
+                "If the presence monitoring strategy <b>\"On each message\"</b> is selected, sends messages with types <code>Inside</code> or <code>Outside</code> every time the geofencing condition is satisfied.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeGpsGeofencingConfig"
 )
 public class TbGpsGeofencingActionNode extends AbstractGeofencingNode<TbGpsGeofencingActionNodeConfiguration> {
 
-    private static final String PRESENCE_MONITORING = "presenceMonitoring";
+    private static final String PRESENCE_MONITORING_STRATEGY_ON_EACH_MESSAGE = "presenceMonitoringStrategyOnEachMessage";
     private final Map<EntityId, EntityGeofencingState> entityStates = new HashMap<>();
     private final Gson gson = new Gson();
     private final JsonParser parser = new JsonParser();
@@ -114,7 +115,7 @@ public class TbGpsGeofencingActionNode extends AbstractGeofencingNode<TbGpsGeofe
             switchState(ctx, msg.getOriginator(), entityState, matches, ts);
             ctx.tellNext(msg, matches ? ENTERED : LEFT);
             told = true;
-        } else if (!config.isPresenceMonitoring()) {
+        } else if (!config.isPresenceMonitoringStrategyOnEachMessage()) {
             if (!entityState.isStayed()) {
                 long stayTime = ts - entityState.getStateSwitchTime();
                 if (stayTime > (entityState.isInside() ?
@@ -164,9 +165,9 @@ public class TbGpsGeofencingActionNode extends AbstractGeofencingNode<TbGpsGeofe
     public TbPair<Boolean, JsonNode> upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
         boolean hasChanges = false;
         if (fromVersion == 0) {
-            if (!oldConfiguration.has(PRESENCE_MONITORING)) {
+            if (!oldConfiguration.has(PRESENCE_MONITORING_STRATEGY_ON_EACH_MESSAGE)) {
                 hasChanges = true;
-                ((ObjectNode) oldConfiguration).put(PRESENCE_MONITORING, false);
+                ((ObjectNode) oldConfiguration).put(PRESENCE_MONITORING_STRATEGY_ON_EACH_MESSAGE, false);
             }
         }
         return new TbPair<>(hasChanges, oldConfiguration);

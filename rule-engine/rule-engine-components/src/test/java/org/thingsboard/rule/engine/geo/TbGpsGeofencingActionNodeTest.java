@@ -85,7 +85,7 @@ class TbGpsGeofencingActionNodeTest {
         node.destroy();
     }
 
-    private static Stream<Arguments> givenDefaultConfig_whenOnMsg_thenVerifyOutputMsgTypes() {
+    private static Stream<Arguments> givenPresenceMonitoringStrategyOnEachMessage_whenOnMsg_thenVerifyOutputMsgTypes() {
         return Stream.of(
                 // default config
                 Arguments.of(false, List.of(
@@ -108,10 +108,13 @@ class TbGpsGeofencingActionNodeTest {
 
     @ParameterizedTest
     @MethodSource
-    void givenDefaultConfig_whenOnMsg_thenVerifyOutputMsgTypes( boolean presenceMonitoring, List<Map<String, Integer>> outputMsgTypesCountList) throws TbNodeException {
+    void givenPresenceMonitoringStrategyOnEachMessage_whenOnMsg_thenVerifyOutputMsgTypes(
+            boolean presenceMonitoringStrategyOnEachMessage,
+            List<Map<String, Integer>> outputMsgTypesCountList
+    ) throws TbNodeException {
         // GIVEN
         var config = new TbGpsGeofencingActionNodeConfiguration().defaultConfiguration();
-        config.setPresenceMonitoring(presenceMonitoring);
+        config.setPresenceMonitoringStrategyOnEachMessage(presenceMonitoringStrategyOnEachMessage);
         node.init(ctx, new TbNodeConfiguration(JacksonUtil.valueToTree(config)));
 
         DeviceId deviceId = new DeviceId(UUID.randomUUID());
@@ -205,7 +208,7 @@ class TbGpsGeofencingActionNodeTest {
                                 "  \"minOutsideDuration\": 1,\n" +
                                 "  \"minInsideDurationTimeUnit\": \"MINUTES\",\n" +
                                 "  \"minOutsideDurationTimeUnit\": \"MINUTES\",\n" +
-                                "  \"presenceMonitoring\": false,\n" +
+                                "  \"presenceMonitoringStrategyOnEachMessage\": false,\n" +
                                 "  \"latitudeKeyName\": \"latitude\",\n" +
                                 "  \"longitudeKeyName\": \"longitude\",\n" +
                                 "  \"perimeterType\": \"POLYGON\",\n" +
@@ -224,7 +227,7 @@ class TbGpsGeofencingActionNodeTest {
                                 "  \"minOutsideDuration\": 1,\n" +
                                 "  \"minInsideDurationTimeUnit\": \"MINUTES\",\n" +
                                 "  \"minOutsideDurationTimeUnit\": \"MINUTES\",\n" +
-                                "  \"presenceMonitoring\": false,\n" +
+                                "  \"presenceMonitoringStrategyOnEachMessage\": false,\n" +
                                 "  \"latitudeKeyName\": \"latitude\",\n" +
                                 "  \"longitudeKeyName\": \"longitude\",\n" +
                                 "  \"perimeterType\": \"POLYGON\",\n" +
@@ -242,7 +245,7 @@ class TbGpsGeofencingActionNodeTest {
                                 "  \"minOutsideDuration\": 1,\n" +
                                 "  \"minInsideDurationTimeUnit\": \"MINUTES\",\n" +
                                 "  \"minOutsideDurationTimeUnit\": \"MINUTES\",\n" +
-                                "  \"presenceMonitoring\": false,\n" +
+                                "  \"presenceMonitoringStrategyOnEachMessage\": false,\n" +
                                 "  \"latitudeKeyName\": \"latitude\",\n" +
                                 "  \"longitudeKeyName\": \"longitude\",\n" +
                                 "  \"perimeterType\": \"POLYGON\",\n" +
