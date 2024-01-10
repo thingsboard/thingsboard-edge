@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.sql.query;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
@@ -57,14 +58,24 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Data(staticConstructor = "of")
-public class EntityMapping<T, E> {
+public class EntityMapping<E, T> {
 
     private final Supplier<E> creator;
     private final Function<E, T> converter;
     private final Map<String, BiConsumer<E, Object>> mappings = new LinkedHashMap<>();
 
-    public <V> EntityMapping<T, E> with(String fieldName, BiConsumer<E, V> setter) {
-        mappings.put(fieldName, (e, o) -> setter.accept(e, (V) o));
+    public <V> EntityMapping<E, T> with(String fieldName, BiConsumer<E, V> setter) {
+        mappings.put(fieldName, (e, v) -> setter.accept(e, (V) v));
+        return this;
+    }
+
+    public EntityMapping<E, T> withJson(String fieldName, BiConsumer<E, JsonNode> setter) {
+        mappings.put(fieldName, (e, v) -> setter.accept(e, JacksonUtil.toJsonNode(v.toString())));
+        return this;
+    }
+
+    public <V extends Enum<V>> EntityMapping<E, T> withEnum(String fieldName, Class<V> enumType, BiConsumer<E, V> setter) {
+        mappings.put(fieldName, (e, v) -> setter.accept(e, Enum.valueOf(enumType, v.toString())));
         return this;
     }
 
@@ -80,7 +91,7 @@ public class EntityMapping<T, E> {
     }
 
 
-    public static final EntityMapping<Device, DeviceEntity> deviceMapping = EntityMapping.of(DeviceEntity::new, DeviceEntity::toData)
+    public static final EntityMapping<DeviceEntity, Device> deviceMapping = EntityMapping.of(DeviceEntity::new, DeviceEntity::toData)
             .with("id", DeviceEntity::setId)
             .with("created_time", DeviceEntity::setCreatedTime)
             .with("tenant_id", DeviceEntity::setTenantId)
@@ -88,9 +99,9 @@ public class EntityMapping<T, E> {
             .with("name", DeviceEntity::setName)
             .with("type", DeviceEntity::setType)
             .with("label", DeviceEntity::setLabel)
-            .with("additional_info", (device, v) -> device.setAdditionalInfo(JacksonUtil.toJsonNode(v.toString())));
+            .withJson("additional_info", DeviceEntity::setAdditionalInfo);
 
-    public static final EntityMapping<Asset, AssetEntity> assetMapping = EntityMapping.of(AssetEntity::new, AssetEntity::toData)
+    public static final EntityMapping<AssetEntity, Asset> assetMapping = EntityMapping.of(AssetEntity::new, AssetEntity::toData)
             .with("id", AssetEntity::setId)
             .with("created_time", AssetEntity::setCreatedTime)
             .with("tenant_id", AssetEntity::setTenantId)
@@ -98,23 +109,23 @@ public class EntityMapping<T, E> {
             .with("type", AssetEntity::setType)
             .with("label", AssetEntity::setLabel)
             .with("customer_id", AssetEntity::setCustomerId)
-            .with("additional_info", (asset, v) -> asset.setAdditionalInfo(JacksonUtil.toJsonNode(v.toString())));
+            .withJson("additional_info", AssetEntity::setAdditionalInfo);
 
-    public static final EntityMapping<EntityView, EntityViewEntity> entityViewMapping = EntityMapping.of(EntityViewEntity::new, EntityViewEntity::toData)
+    public static final EntityMapping<EntityViewEntity, EntityView> entityViewMapping = EntityMapping.of(EntityViewEntity::new, EntityViewEntity::toData)
             .with("id", EntityViewEntity::setId)
             .with("created_time", EntityViewEntity::setCreatedTime)
             .with("tenant_id", EntityViewEntity::setTenantId)
             .with("name", EntityViewEntity::setName)
             .with("type", EntityViewEntity::setType)
-            .<String>with("entity_type", (entityView, v) -> entityView.setEntityType(EntityType.valueOf(v)))
+            .withEnum("entity_type", EntityType.class, EntityViewEntity::setEntityType)
             .with("entity_id", EntityViewEntity::setEntityId)
             .with("keys", EntityViewEntity::setKeys)
             .with("start_ts", EntityViewEntity::setStartTs)
             .with("end_ts", EntityViewEntity::setEndTs)
             .with("customer_id", EntityViewEntity::setCustomerId)
-            .with("additional_info", (entityView, v) -> entityView.setAdditionalInfo(JacksonUtil.toJsonNode(v.toString())));
+            .withJson("additional_info", EntityViewEntity::setAdditionalInfo);
 
-    public static final EntityMapping<Edge, EdgeEntity> edgeMapping = EntityMapping.of(EdgeEntity::new, EdgeEntity::toData)
+    public static final EntityMapping<EdgeEntity, Edge> edgeMapping = EntityMapping.of(EdgeEntity::new, EdgeEntity::toData)
             .with("id", EdgeEntity::setId)
             .with("created_time", EdgeEntity::setCreatedTime)
             .with("tenant_id", EdgeEntity::setTenantId)
@@ -127,9 +138,9 @@ public class EntityMapping<T, E> {
             .with("edge_license_key", EdgeEntity::setEdgeLicenseKey)
             .with("cloud_endpoint", EdgeEntity::setCloudEndpoint)
             .with("customer_id", EdgeEntity::setCustomerId)
-            .with("additional_info", (edge, v) -> edge.setAdditionalInfo(JacksonUtil.toJsonNode(v.toString())));
+            .withJson("additional_info", EdgeEntity::setAdditionalInfo);
 
-    public static final EntityMapping<DashboardInfo, DashboardInfoEntity> dashboardMapping = EntityMapping.of(DashboardInfoEntity::new, DashboardInfoEntity::toData)
+    public static final EntityMapping<DashboardInfoEntity, DashboardInfo> dashboardMapping = EntityMapping.of(DashboardInfoEntity::new, DashboardInfoEntity::toData)
             .with("id", DashboardInfoEntity::setId)
             .with("created_time", DashboardInfoEntity::setCreatedTime)
             .with("tenant_id", DashboardInfoEntity::setTenantId)
@@ -139,7 +150,7 @@ public class EntityMapping<T, E> {
             .with("mobile_hide", DashboardInfoEntity::setMobileHide)
             .with("mobile_order", DashboardInfoEntity::setMobileOrder);
 
-    public static final EntityMapping<Customer, CustomerEntity> customerMapping = EntityMapping.of(CustomerEntity::new, CustomerEntity::toData)
+    public static final EntityMapping<CustomerEntity, Customer> customerMapping = EntityMapping.of(CustomerEntity::new, CustomerEntity::toData)
             .with("id", CustomerEntity::setId)
             .with("created_time", CustomerEntity::setCreatedTime)
             .with("tenant_id", CustomerEntity::setTenantId)
@@ -153,18 +164,18 @@ public class EntityMapping<T, E> {
             .with("zip", CustomerEntity::setZip)
             .with("phone", CustomerEntity::setPhone)
             .with("email", CustomerEntity::setEmail)
-            .with("additional_info", (customer, v) -> customer.setAdditionalInfo(JacksonUtil.toJsonNode(v.toString())));
+            .withJson("additional_info", CustomerEntity::setAdditionalInfo);
 
-    public static final EntityMapping<User, UserEntity> userMapping = EntityMapping.of(UserEntity::new, UserEntity::toData)
+    public static final EntityMapping<UserEntity, User> userMapping = EntityMapping.of(UserEntity::new, UserEntity::toData)
             .with("id", UserEntity::setId)
             .with("created_time", UserEntity::setCreatedTime)
             .with("tenant_id", UserEntity::setTenantId)
             .with("email", UserEntity::setEmail)
-            .<String>with("authority", (user, v) -> user.setAuthority(Authority.valueOf(v)))
+            .withEnum("authority", Authority.class, UserEntity::setAuthority)
             .with("first_name", UserEntity::setFirstName)
             .with("last_name", UserEntity::setLastName)
             .with("customer_id", UserEntity::setCustomerId)
-            .with("additional_info", (user, v) -> user.setAdditionalInfo(JacksonUtil.toJsonNode(v.toString())));
+            .withJson("additional_info", UserEntity::setAdditionalInfo);
 
     public static final Map<EntityType, EntityMapping<?, ?>> entityMappings = Map.of(
             EntityType.DEVICE, deviceMapping,

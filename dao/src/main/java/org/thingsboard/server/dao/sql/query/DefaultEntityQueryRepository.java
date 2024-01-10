@@ -944,7 +944,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     @Override
     public <T> PageData<T> findInCustomerHierarchyByRootCustomerIdOrOtherGroupIdsAndType(
             TenantId tenantId, CustomerId customerId, EntityType entityType, String type,
-            List<EntityGroupId> groupIds, PageLink pageLink, EntityMapping<T, ?> mapping, boolean mobile) {
+            List<EntityGroupId> groupIds, PageLink pageLink, EntityMapping<?, T> mapping, boolean mobile) {
         return transactionTemplate.execute(status -> {
             QueryContext ctx = new QueryContext(new QuerySecurityContext(tenantId, customerId, entityType, null, null));
             StringBuilder fromClause = new StringBuilder();

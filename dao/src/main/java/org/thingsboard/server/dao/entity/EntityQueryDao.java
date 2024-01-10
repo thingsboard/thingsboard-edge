@@ -51,6 +51,6 @@ public interface EntityQueryDao {
     PageData<EntityData> findEntityDataByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityDataQuery query);
 
     <T> PageData<T> findInCustomerHierarchyByRootCustomerIdOrOtherGroupIdsAndType(TenantId tenantId, CustomerId customerId, EntityType entityType,
-                                                                                  String type, List<EntityGroupId> groupIds, PageLink pageLink, EntityMapping<T, ?> mapping, boolean mobile);
+                                                                                  String type, List<EntityGroupId> groupIds, PageLink pageLink, EntityMapping<?, T> mapping, boolean mobile);
 
 }
