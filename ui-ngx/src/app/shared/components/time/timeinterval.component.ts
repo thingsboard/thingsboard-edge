@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -69,7 +69,7 @@ export class TimeintervalComponent implements OnInit, ControlValueAccessor {
     if (typeof maxValueData !== 'undefined' && maxValueData !== this.maxValue) {
       this.maxValue = maxValueData;
       this.minValue = Math.min(this.minValue, this.maxValue);
-      this.updateView();
+      this.updateView(true);
     }
   }
 
@@ -153,7 +153,7 @@ export class TimeintervalComponent implements OnInit, ControlValueAccessor {
     this.secs = intervalSeconds % 60;
   }
 
-  boundInterval() {
+  boundInterval(updateToPreferred = false) {
     const min = this.timeService.boundMinInterval(this.minValue);
     const max = this.timeService.boundMaxInterval(this.maxValue);
     this.intervals = this.timeService.getIntervals(this.minValue, this.maxValue);
@@ -161,8 +161,8 @@ export class TimeintervalComponent implements OnInit, ControlValueAccessor {
       let newIntervalMs = this.modelValue;
       if (newIntervalMs < min) {
         newIntervalMs = min;
-      } else if (newIntervalMs > max) {
-        newIntervalMs = max;
+      } else if (newIntervalMs >= max && updateToPreferred) {
+        newIntervalMs = this.timeService.boundMaxInterval(max / 7);
       }
       if (!this.advanced) {
         newIntervalMs = this.timeService.boundToPredefinedInterval(min, max, newIntervalMs);
@@ -174,7 +174,7 @@ export class TimeintervalComponent implements OnInit, ControlValueAccessor {
     }
   }
 
-  updateView() {
+  updateView(updateToPreferred = false) {
     if (!this.rendered) {
       return;
     }
@@ -193,7 +193,7 @@ export class TimeintervalComponent implements OnInit, ControlValueAccessor {
     }
     this.modelValue = value;
     this.propagateChange(this.modelValue);
-    this.boundInterval();
+    this.boundInterval(updateToPreferred);
   }
 
   calculateIntervalMs(): number {
