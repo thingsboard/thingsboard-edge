@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,6 @@
  */
 package org.thingsboard.integration.tcpip;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -65,6 +64,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -82,8 +82,8 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
     public static final String JSON_PAYLOAD = "JSON";
     public static final String HEX_PAYLOAD = "HEX";
 
-    protected Map<String, List<DownlinkData>> devicesDownlinkData = new HashMap<>();
-    protected Map<String, ChannelHandlerContext> connectedDevicesContexts = new HashMap<>();
+    protected Map<String, List<DownlinkData>> devicesDownlinkData = new ConcurrentHashMap<>();
+    protected Map<String, ChannelHandlerContext> connectedDevicesContexts = new ConcurrentHashMap<>();
 
     protected Cache<String, SocketAddress> deviceSenderAddress;
 
@@ -163,6 +163,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
     }
 
     protected void downlinkWriter(String entityName) {
+        log.trace("Write downlink [{}]", entityName);
         ChannelHandlerContext deviceCtx = connectedDevicesContexts.get(entityName);
         if (deviceCtx == null) {
             log.warn("Device context not found, downlink data will be send when uplink message will be arrived.");
@@ -198,7 +199,10 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
                     deviceSenderAddress.put(entityName, msg.getAddress());
 
                     if (!devicesDownlinkData.isEmpty() && devicesDownlinkData.get(entityName) != null) {
+                        log.trace("Already have downlink: [{}]", entityName);
                         downlinkWriter(entityName);
+                    } else {
+                        log.trace("No downlink data for [{}]", entityName);
                     }
                 }
             }
@@ -313,6 +317,8 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
                 processUplinkData(context, uplinkData);
                 log.trace("Processed uplink data: [{}]", uplinkData);
             }
+        } else {
+            log.trace("UplinkData list is empty");
         }
     }
 

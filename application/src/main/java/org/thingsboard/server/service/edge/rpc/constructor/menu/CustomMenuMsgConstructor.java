@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -28,18 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.flow;
+package org.thingsboard.server.service.edge.rpc.constructor.menu;
 
-import lombok.Data;
-import org.thingsboard.rule.engine.api.NodeConfiguration;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.gen.edge.v1.CustomMenuProto;
 
-@Data
-public class TbCheckpointNodeConfiguration implements NodeConfiguration<TbCheckpointNodeConfiguration> {
+@Component
+@Slf4j
+public class CustomMenuMsgConstructor {
 
-    private String queueName;
-
-    @Override
-    public TbCheckpointNodeConfiguration defaultConfiguration() {
-        return new TbCheckpointNodeConfiguration();
+    public CustomMenuProto constructCustomMenuProto(CustomMenu customMenu, EntityId entityId) {
+        return CustomMenuProto.newBuilder().setEntity(JacksonUtil.toString(customMenu))
+                .setEntityIdMSB(entityId.getId().getMostSignificantBits())
+                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
+                .setEntityType(entityId.getEntityType().name()).build();
     }
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,7 +44,6 @@ public class TbAggLatestTelemetryNodeV2Configuration implements NodeConfiguratio
 
     private static final int MIN_DEDUPLICATION_IN_SEC = 10;
 
-    private String queueName;
     private String outMsgType;
 
     private EntitySearchDirection direction;
