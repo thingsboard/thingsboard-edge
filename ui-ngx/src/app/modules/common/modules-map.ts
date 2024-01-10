@@ -217,6 +217,17 @@ import * as GroupPermissionsComponent from '@shared/components/role/group-permis
 import * as GroupPermissionDialogComponent from '@shared/components/role/group-permission-dialog.component';
 import * as ShareEntityGroupComponent from '@shared/components/group/share-entity-group.component';
 
+import * as CssUnitSelectComponent from '@home/components/widget/lib/settings/common/css-unit-select.component';
+import * as WidgetActionsPanelComponent from '@home/components/widget/config/basic/common/widget-actions-panel.component';
+import * as FontSettingsComponent from '@home/components/widget/lib/settings/common/font-settings.component';
+import * as ColorSettingsComponent from '@home/components/widget/lib/settings/common/color-settings.component';
+import * as DisplayColumnsPanelComponent from '@home/components/widget/lib/display-columns-panel.component';
+import * as AlarmDetailsDialogComponent from '@home/components/alarm/alarm-details-dialog.component';
+import * as AlarmAssigneePanelComponent from '@home/components/alarm/alarm-assignee-panel.component';
+import * as AlarmCommentDialogComponent from '@home/components/alarm/alarm-comment-dialog.component';
+import * as AlarmFilterConfigComponent from '@home/components/alarm/alarm-filter-config.component';
+import * as DatasourceComponent from '@home/components/widget/config/datasources.component';
+import * as DataKeysPanelComponent from '@home/components/widget/config/basic/common/data-keys-panel.component';
 import * as AddEntityDialogComponent from '@home/components/entity/add-entity-dialog.component';
 import * as EntitiesTableComponent from '@home/components/entity/entities-table.component';
 import * as DetailsPanelComponent from '@home/components/details-panel.component';
@@ -574,6 +585,17 @@ class ModulesMap implements IModulesMap {
     '@shared/components/role/group-permission-dialog.component': GroupPermissionDialogComponent,
     '@shared/components/group/share-entity-group.component': ShareEntityGroupComponent,
 
+    '@home/components/alarm/alarm-filter-config.component': AlarmFilterConfigComponent,
+    '@home/components/alarm/alarm-comment-dialog.component': AlarmCommentDialogComponent,
+    '@home/components/alarm/alarm-assignee-panel.component': AlarmAssigneePanelComponent,
+    '@home/components/alarm/alarm-details-dialog.component': AlarmDetailsDialogComponent,
+    '@home/components/widget/lib/display-columns-panel.component': DisplayColumnsPanelComponent,
+    '@home/components/widget/config/datasources.component': DatasourceComponent,
+    '@home/components/widget/config/basic/common/data-keys-panel.component': DataKeysPanelComponent,
+    '@home/components/widget/lib/settings/common/color-settings.component': ColorSettingsComponent,
+    '@home/components/widget/lib/settings/common/font-settings.component': FontSettingsComponent,
+    '@home/components/widget/config/basic/common/widget-actions-panel.component': WidgetActionsPanelComponent,
+    '@home/components/widget/lib/settings/common/css-unit-select.component': CssUnitSelectComponent,
     '@home/components/entity/add-entity-dialog.component': AddEntityDialogComponent,
     '@home/components/entity/entities-table.component': EntitiesTableComponent,
     '@home/components/details-panel.component': DetailsPanelComponent,

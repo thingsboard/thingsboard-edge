@@ -224,6 +224,8 @@ import {
 import { WidgetConfigComponentsModule } from '@home/components/widget/config/widget-config-components.module';
 import { BasicWidgetConfigModule } from '@home/components/widget/config/basic/basic-widget-config.module';
 import { DeleteTimeseriesPanelComponent } from '@home/components/attribute/delete-timeseries-panel.component';
+import { WidgetSettingsCommonModule } from '@home/components/widget/lib/settings/common/widget-settings-common.module';
+import { WidgetComponentsModule } from '@home/components/widget/widget-components.module';
 
 @NgModule({
   declarations:
@@ -401,16 +403,21 @@ import { DeleteTimeseriesPanelComponent } from '@home/components/attribute/delet
     SharedHomeComponentsModule,
     HomeDialogsModule,
     WidgetConfigComponentsModule,
-    BasicWidgetConfigModule,
     Lwm2mProfileComponentsModule,
     SnmpDeviceProfileTransportModule,
     StatesControllerModule,
     DeviceCredentialsModule,
     DeviceProfileCommonModule,
-    IntegrationComponentModule
+    IntegrationComponentModule,
+    WidgetSettingsCommonModule,
+    WidgetComponentsModule,
+    BasicWidgetConfigModule
   ],
   exports: [
+    WidgetComponentsModule,
     SharedHomeComponentsModule,
+    WidgetSettingsCommonModule,
+    WidgetConfigComponentsModule,
     RouterTabsComponent,
     EntitiesTableComponent,
     AddEntityDialogComponent,
@@ -556,7 +563,8 @@ import { DeleteTimeseriesPanelComponent } from '@home/components/attribute/delet
     RateLimitsListComponent,
     RateLimitsTextComponent,
     IntegrationWizardDialogComponent,
-    SendNotificationButtonComponent
+    SendNotificationButtonComponent,
+    BasicWidgetConfigModule
   ],
   providers: [
     WidgetComponentService,
