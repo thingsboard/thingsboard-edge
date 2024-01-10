@@ -63,12 +63,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.thingsboard.server.common.data.DataConstants.QUEUE_NAME;
+
 @Slf4j
 @RuleNode(
         type = ComponentType.ANALYTICS,
         name = "alarms count",
         configClazz = TbAlarmsCountNodeV2Configuration.class,
-        version = 1,
+        version = 2,
+        hasQueueName = true,
         nodeDescription = "Counts alarms by msg originator",
         nodeDetails = "Performs count of alarms for originator and for propagation entities if specified. " +
                 "Generates outgoing messages with alarm count values for each found entity. By default, an outgoing message generates with 'POST_TELEMETRY_REQUEST' type. " +
@@ -88,7 +91,7 @@ public class TbAlarmsCountNodeV2 implements TbNode {
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbAlarmsCountNodeV2Configuration.class);
-        this.queueName = config.getQueueName();
+        this.queueName = ctx.getQueueName();
         this.outMsgType = StringUtils.isNotBlank(config.getOutMsgType()) ? config.getOutMsgType() : TbMsgType.POST_TELEMETRY_REQUEST.name();
     }
 
@@ -188,14 +191,21 @@ public class TbAlarmsCountNodeV2 implements TbNode {
 
     @Override
     public TbPair<Boolean, JsonNode> upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
-        if (fromVersion == 0) {
-            if (!oldConfiguration.hasNonNull("outMsgType")) {
-                ObjectNode newConfig = (ObjectNode) oldConfiguration;
-                newConfig.put("outMsgType", TbMsgType.POST_TELEMETRY_REQUEST.name());
-                return new TbPair<>(true, newConfig);
-            }
+        boolean hasChanges = false;
+        switch (fromVersion) {
+            case 0:
+                if (!oldConfiguration.hasNonNull("outMsgType")) {
+                    ((ObjectNode) oldConfiguration).put("outMsgType", TbMsgType.POST_TELEMETRY_REQUEST.name());
+                    hasChanges = true;
+                }
+            case 1:
+                if (oldConfiguration.has(QUEUE_NAME)) {
+                    hasChanges = true;
+                    ((ObjectNode) oldConfiguration).remove(QUEUE_NAME);
+                }
+                break;
         }
-        return new TbPair<>(false, oldConfiguration);
+        return new TbPair<>(hasChanges, oldConfiguration);
     }
 
 }
