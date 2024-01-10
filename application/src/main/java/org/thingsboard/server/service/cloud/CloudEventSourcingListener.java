@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -36,8 +37,6 @@ import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static org.thingsboard.server.service.entitiy.DefaultTbNotificationEntityService.edgeTypeByActionType;
 
 /**
  * This event listener does not support async event processing because relay on ThreadLocal
@@ -127,7 +126,7 @@ public class CloudEventSourcingListener {
             }
             log.trace("ActionEntityEvent called: {}", event);
             tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), event.getEntityId(),
-                    event.getBody(), null, edgeTypeByActionType(event.getActionType()));
+                    event.getBody(), null, EdgeUtils.getEdgeEventActionTypeByActionType(event.getActionType()));
         } catch (Exception e) {
             log.error("failed to process ActionEntityEvent: {}", event);
         }
@@ -150,7 +149,7 @@ public class CloudEventSourcingListener {
             }
             log.trace("RelationActionEvent called: {}", event);
             tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), null,
-                    JacksonUtil.toString(event.getRelation()), CloudEventType.RELATION, edgeTypeByActionType(event.getActionType()));
+                    JacksonUtil.toString(event.getRelation()), CloudEventType.RELATION, EdgeUtils.getEdgeEventActionTypeByActionType(event.getActionType()));
         } catch (Exception e) {
             log.error("failed to process RelationActionEvent: {}", event);
         }

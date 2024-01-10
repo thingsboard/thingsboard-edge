@@ -408,6 +408,9 @@ public class CloudManagerService {
                     case RELATION_DELETED:
                     case ASSIGNED_TO_CUSTOMER:
                     case UNASSIGNED_FROM_CUSTOMER:
+                    case ADDED_COMMENT:
+                    case UPDATED_COMMENT:
+                    case DELETED_COMMENT:
                         uplinkMsg = convertEntityEventToUplink(this.tenantId, cloudEvent);
                         break;
                     case ATTRIBUTES_UPDATED:
@@ -458,6 +461,8 @@ public class CloudManagerService {
                 return deviceProfileProcessor.convertDeviceProfileEventToUplink(cloudEvent, edgeVersion);
             case ALARM:
                 return alarmProcessor.convertAlarmEventToUplink(cloudEvent, edgeVersion);
+            case ALARM_COMMENT:
+                return alarmProcessor.convertAlarmCommentEventToUplink(cloudEvent, edgeVersion);
             case ASSET:
                 return assetProcessor.convertAssetEventToUplink(cloudEvent, edgeVersion);
             case ASSET_PROFILE:
