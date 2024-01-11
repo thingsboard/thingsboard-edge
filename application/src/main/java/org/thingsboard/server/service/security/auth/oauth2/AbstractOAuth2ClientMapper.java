@@ -66,7 +66,6 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
-import org.thingsboard.server.dao.entity.EntityStateSyncManager;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.oauth2.OAuth2User;
@@ -89,7 +88,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 public abstract class AbstractOAuth2ClientMapper {
-    private static final int DASHBOARDS_REQUEST_LIMIT = 10;
 
     @Autowired
     private UserService userService;
@@ -126,9 +124,6 @@ public abstract class AbstractOAuth2ClientMapper {
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
-
-    @Autowired
-    private EntityStateSyncManager entityStateSyncManager;
 
     @Value("${edges.enabled}")
     @Getter
@@ -299,8 +294,6 @@ public abstract class AbstractOAuth2ClientMapper {
         List<Tenant> tenants = tenantService.findTenants(new PageLink(1, 0, tenantName)).getData();
         Tenant tenant;
         if (tenants == null || tenants.isEmpty()) {
-            entityStateSyncManager.getSync().set(true);
-
             tenant = new Tenant();
             tenant.setTitle(tenantName);
             tenant = tenantService.saveTenant(tenant);
@@ -308,7 +301,6 @@ public abstract class AbstractOAuth2ClientMapper {
             installScripts.createDefaultEdgeRuleChains(tenant.getId());
             tenantProfileCache.evict(tenant.getId());
 
-            entityStateSyncManager.getSync().remove();
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(tenant.getId()).entity(tenant).added(true).build());
         } else {
             tenant = tenants.get(0);
