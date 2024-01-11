@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
 @RuleNode(
         type = ComponentType.TRANSFORMATION,
         name = "copy key-value pairs",
-        version = 1,
+        version = 2,
         configClazz = TbCopyKeysNodeConfiguration.class,
         nodeDescription = "Copies key-value pairs from message to message metadata or vice-versa.",
         nodeDetails = "Copies key-value pairs from the message to message metadata, or vice-versa, according to the configured direction and keys. " +
@@ -124,8 +124,13 @@ public class TbCopyKeysNode extends TbAbstractTransformNodeWithTbMsgSource {
     }
 
     @Override
-    protected String getKeyToUpgradeFromVersionZero() {
+    protected String getNewKeyForUpgradeFromVersionZero() {
         return "copyFrom";
+    }
+
+    @Override
+    protected String getKeyToUpgradeFromVersionOne() {
+        return FROM_METADATA_PROPERTY;
     }
 
     boolean matches(String key) {

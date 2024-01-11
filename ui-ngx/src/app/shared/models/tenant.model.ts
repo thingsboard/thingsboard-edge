@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,7 +32,7 @@
 import { ContactBased } from '@shared/models/contact-based.model';
 import { TenantId } from './id/tenant-id';
 import { TenantProfileId } from '@shared/models/id/tenant-profile-id';
-import { BaseData } from '@shared/models/base-data';
+import { BaseData, ExportableEntity } from '@shared/models/base-data';
 import { QueueInfo } from '@shared/models/queue.models';
 
 export enum TenantProfileType {
@@ -169,7 +169,7 @@ export interface TenantProfileData {
   queueConfiguration?: Array<QueueInfo>;
 }
 
-export interface TenantProfile extends BaseData<TenantProfileId> {
+export interface TenantProfile extends BaseData<TenantProfileId>, ExportableEntity<TenantProfileId> {
   name: string;
   description?: string;
   default?: boolean;

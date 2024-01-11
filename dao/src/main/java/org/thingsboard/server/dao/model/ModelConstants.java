@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -449,6 +449,7 @@ public class ModelConstants {
     public static final String COMPONENT_DESCRIPTOR_CONFIGURATION_DESCRIPTOR_PROPERTY = "configuration_descriptor";
     public static final String COMPONENT_DESCRIPTOR_CONFIGURATION_VERSION_PROPERTY = "configuration_version";
     public static final String COMPONENT_DESCRIPTOR_ACTIONS_PROPERTY = "actions";
+    public static final String COMPONENT_DESCRIPTOR_HAS_QUEUE_NAME_PROPERTY = "has_queue_name";
 
     /**
      * Event constants.
@@ -495,6 +496,7 @@ public class ModelConstants {
 
     public static final String DEBUG_MODE = "debug_mode";
     public static final String SINGLETON_MODE = "singleton_mode";
+    public static final String QUEUE_NAME = "queue_name";
 
     /**
      * Rule chain constants.
@@ -658,6 +660,8 @@ public class ModelConstants {
     public static final String RESOURCE_ETAG_COLUMN = "etag";
     public static final String RESOURCE_DESCRIPTOR_COLUMN = "descriptor";
     public static final String RESOURCE_PREVIEW_COLUMN = "preview";
+    public static final String RESOURCE_IS_PUBLIC_COLUMN = "is_public";
+    public static final String PUBLIC_RESOURCE_KEY_COLUMN = "public_resource_key";
 
     /**
      * Ota Package constants.

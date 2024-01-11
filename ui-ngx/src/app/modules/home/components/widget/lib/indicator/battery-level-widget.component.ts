@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -135,6 +135,8 @@ export class BatteryLevelWidgetComponent implements OnInit, OnDestroy, AfterView
 
   value: number;
 
+  batteryFillValue: number;
+
   batterySections: boolean[];
   dividedBorderRadius: string;
   dividedGap: string;
@@ -241,9 +243,10 @@ export class BatteryLevelWidgetComponent implements OnInit, OnDestroy, AfterView
 
   public onDataUpdated() {
     const tsValue = getSingleTsValue(this.ctx.data);
-    this.value = 0;
+    this.batteryFillValue = 0;
     if (tsValue && isDefinedAndNotNull(tsValue[1]) && isNumeric(tsValue[1])) {
       this.value = tsValue[1];
+      this.batteryFillValue = this.parseBatteryFillValue(this.value);
       this.valueText = formatValue(this.value, this.decimals, this.units, false);
     } else {
       this.valueText = 'N/A';
@@ -258,6 +261,16 @@ export class BatteryLevelWidgetComponent implements OnInit, OnDestroy, AfterView
     this.batteryLevelColor.update(this.value);
     this.batteryShapeColor.update(this.value);
     this.cd.detectChanges();
+  }
+
+  parseBatteryFillValue(value: number) {
+    if (value < 0) {
+      return 0;
+    } else if (value > 100) {
+      return 100;
+    } else {
+      return value;
+    }
   }
 
   public trackBySection(index: number): number {

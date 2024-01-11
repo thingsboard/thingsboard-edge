@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -48,7 +48,7 @@ import { AuthService } from '@core/auth/auth.service';
 import { select, Store } from '@ngrx/store';
 import { selectIsAuthenticated } from '@core/auth/auth.selectors';
 import { AppState } from '@core/core.state';
-import { tap } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 
 declare const System;
 
@@ -119,6 +119,37 @@ export class ResourcesService {
       return throwError(() => new Error(`Unsupported file type: ${fileType}`));
     }
     return this.loadResourceByType(fileType, url);
+  }
+
+  public downloadResource(downloadUrl: string): Observable<any> {
+    return this.http.get(downloadUrl, {
+      responseType: 'arraybuffer',
+      observe: 'response'
+    }).pipe(
+      map((response) => {
+        const headers = response.headers;
+        const filename = headers.get('x-filename');
+        const contentType = headers.get('content-type');
+        const linkElement = document.createElement('a');
+        try {
+          const blob = new Blob([response.body], {type: contentType});
+          const url = URL.createObjectURL(blob);
+          linkElement.setAttribute('href', url);
+          linkElement.setAttribute('download', filename);
+          const clickEvent = new MouseEvent('click',
+            {
+              view: window,
+              bubbles: true,
+              cancelable: false
+            }
+          );
+          linkElement.dispatchEvent(clickEvent);
+          return null;
+        } catch (e) {
+          throw e;
+        }
+      })
+    );
   }
 
   public loadFactories(resourceId: string | TbResourceId, modulesMap: IModulesMap): Observable<ModulesWithFactories> {

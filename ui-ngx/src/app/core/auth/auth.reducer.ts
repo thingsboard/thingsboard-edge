@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -45,6 +45,7 @@ const emptyUserAuthState: AuthPayload = {
   hasRepository: false,
   tbelEnabled: false,
   persistDeviceStateToTelemetry: false,
+  maxResourceSize: 0,
   userSettings: initialUserSettings,
   allowedDashboardIds: []
 };

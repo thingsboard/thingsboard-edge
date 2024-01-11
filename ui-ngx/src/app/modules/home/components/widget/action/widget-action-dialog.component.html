@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -56,9 +56,10 @@
           {{ 'widget-config.action-source-required' | translate }}
         </mat-error>
       </mat-form-field>
-      <mat-form-field class="mat-block">
+      <mat-form-field class="mat-block" subscriptSizing="dynamic">
         <mat-label translate>widget-config.action-name</mat-label>
         <input required matInput formControlName="name">
+        <mat-hint></mat-hint>
         <mat-error *ngIf="widgetActionFormGroup.get('name').hasError('required')">
           {{ 'widget-config.action-name-required' | translate }}
         </mat-error>

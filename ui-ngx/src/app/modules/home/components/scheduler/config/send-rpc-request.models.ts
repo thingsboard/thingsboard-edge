@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,7 @@
 
 
 import { MessageType } from '@shared/models/rule-node.models';
-import { isDefinedAndNotNull, isObject } from '@core/utils';
+import { isArray, isDefinedAndNotNull, isObject } from '@core/utils';
 import { SchedulerEventConfiguration } from '@shared/models/scheduler-event.models';
 
 export const sendRPCRequestDefaults: SchedulerEventConfiguration = {
@@ -52,16 +52,16 @@ export const safeMerge = (defaults: SchedulerEventConfiguration | { [key: string
                           value: SchedulerEventConfiguration | { [key: string]: any } | null): SchedulerEventConfiguration => {
   const result = {...defaults};
 
-  for (const key in value) {
-    if (value.hasOwnProperty(key)) {
-      const valueToUpdate = value[key];
-      if (isDefinedAndNotNull(valueToUpdate)) {
-        if (isObject(valueToUpdate)) {
-          if (Object.keys(valueToUpdate).length) {
+  if (value) {
+    for (const key in value) {
+      if (value.hasOwnProperty(key)) {
+        const valueToUpdate = value[key];
+        if (isDefinedAndNotNull(valueToUpdate)) {
+          if (isObject(valueToUpdate) && !isArray(valueToUpdate)) {
             result[key] = safeMerge(result[key], valueToUpdate);
+          } else {
+            result[key] = valueToUpdate;
           }
-        } else {
-          result[key] = valueToUpdate;
         }
       }
     }

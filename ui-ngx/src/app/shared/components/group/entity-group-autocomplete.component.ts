@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -35,18 +35,14 @@ import {
   EventEmitter,
   forwardRef,
   Input,
-  OnChanges,
   OnDestroy,
   OnInit,
   Output,
-  SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { merge, Observable, of, Subject } from 'rxjs';
 import { catchError, debounceTime, map, share, switchMap, tap } from 'rxjs/operators';
-import { Store } from '@ngrx/store';
-import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityType } from '@shared/models/entity-type.models';
 import { EntityId } from '@shared/models/id/entity-id';
@@ -68,14 +64,26 @@ import { EntityInfoData } from '@shared/models/entity.models';
     multi: true
   }]
 })
-export class EntityGroupAutocompleteComponent implements ControlValueAccessor, OnInit, OnChanges, OnDestroy {
+export class EntityGroupAutocompleteComponent implements ControlValueAccessor, OnInit, OnDestroy {
 
-  selectEntityGroupFormGroup: UntypedFormGroup;
+  selectEntityGroupFormGroup: FormGroup;
 
   modelValue: string | null = null;
 
+  private groupTypeValue: EntityType;
+  get groupType(): EntityType {
+    return this.groupTypeValue;
+  }
+
   @Input()
-  groupType: EntityType;
+  set groupType(value: EntityType) {
+    if (this.groupTypeValue !== value) {
+      if (this.groupTypeValue) {
+        this.reset();
+      }
+      this.groupTypeValue = value;
+    }
+  }
 
   private ownerIdValue: EntityId | null = null;
   get ownerId(): EntityId {
@@ -135,10 +143,9 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
 
   private propagateChange = (v: any) => { };
 
-  constructor(private store: Store<AppState>,
-              public translate: TranslateService,
+  constructor(public translate: TranslateService,
               private entityGroupService: EntityGroupService,
-              private fb: UntypedFormBuilder) {
+              private fb: FormBuilder) {
     this.selectEntityGroupFormGroup = this.fb.group({
       entityGroup: [null]
     });
@@ -176,20 +183,6 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
       this.cleanFilteredEntityGroups,
       getEntityGroups
     );
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    for (const propName of Object.keys(changes)) {
-      const change = changes[propName];
-      if (!change.firstChange && !isEqual(change.currentValue, change.previousValue)) {
-        if (propName === 'groupType') {
-          const currentEntityGroup = this.getCurrentEntityGroup();
-          if (!currentEntityGroup) {
-            this.reset();
-          }
-        }
-      }
-    }
   }
 
   ngOnDestroy() {

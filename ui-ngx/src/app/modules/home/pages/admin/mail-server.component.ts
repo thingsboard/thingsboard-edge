@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -101,7 +101,7 @@ export class MailServerComponent extends PageComponent implements OnInit, OnDest
 
   mailSettings = this.fb.group({
     useSystemMailSettings: [false],
-   mailFrom: ['', [Validators.required]],
+    mailFrom: ['', [Validators.required]],
     smtpProtocol: [SmtpProtocol.SMTP],
     smtpHost: ['localhost', [Validators.required]],
     smtpPort: [25, [Validators.required,
@@ -132,6 +132,7 @@ export class MailServerComponent extends PageComponent implements OnInit, OnDest
   });
 
   private defaultConfiguration = {
+    useSystemMailSettings: false,
     providerId: 'CUSTOM',
     smtpProtocol: SmtpProtocol.SMTP,
     smtpHost: '',

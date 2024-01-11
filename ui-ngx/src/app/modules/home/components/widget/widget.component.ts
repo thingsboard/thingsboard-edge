@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -1536,7 +1536,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
   private exportWidgetData(widgetExportType: WidgetExportType) {
     let filename: string;
     if (this.widgetContext.widgetTitle && this.widgetContext.widgetTitle.length) {
-      filename = this.widgetContext.widgetTitle;
+      filename = this.utils.customTranslation(this.widgetContext.widgetTitle, this.widgetContext.widgetTitle);
     } else {
       filename = this.utils.customTranslation(this.widget.config.title, this.widget.config.title);
     }

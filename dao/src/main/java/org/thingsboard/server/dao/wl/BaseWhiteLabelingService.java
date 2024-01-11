@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -173,7 +173,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
                 var parts = url.split("/");
                 if (parts.length == 5) {
                     var key = parts[4];
-                    return new ImageCacheKey(imageTenantId, key, false);
+                    return ImageCacheKey.forImage(imageTenantId, key);
                 }
             }
         }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -176,7 +176,7 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
             this.defaultMetaData.putValue("deviceName", deviceName);
             this.defaultMetaData.putValue("deviceType", deviceType);
             if (systemContext.isEdgesEnabled()) {
-                this.edgeId = findRelatedEdgeId();
+                this.edgeId = Optional.ofNullable(findRelatedEdgeIdByToAndType()).orElseGet(this::findRelatedEdgeIdByEntityId);
             }
             return true;
         } else {
@@ -184,7 +184,7 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
         }
     }
 
-    private EdgeId findRelatedEdgeId() {
+    private EdgeId findRelatedEdgeIdByToAndType() {
         List<EntityRelation> result =
                 systemContext.getRelationService().findByToAndType(tenantId, deviceId, EntityRelation.EDGE_TYPE, RelationTypeGroup.COMMON);
         if (result != null && result.size() > 0) {
@@ -199,6 +199,11 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
             log.trace("[{}][{}] device doesn't have any related edge", tenantId, deviceId);
         }
         return null;
+    }
+
+    private EdgeId findRelatedEdgeIdByEntityId() {
+        PageData<EdgeId> pageData = systemContext.getEdgeService().findRelatedEdgeIdsByEntityId(tenantId, deviceId, new PageLink(1));
+        return Optional.ofNullable(pageData).filter(pd -> pd.getTotalElements() > 0).map(pd -> pd.getData().get(0)).orElse(null);
     }
 
     void processRpcRequest(TbActorCtx context, ToDeviceRpcRequestActorMsg msg) {

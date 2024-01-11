@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -52,7 +52,7 @@ import java.util.concurrent.ExecutionException;
 @RuleNode(
         type = ComponentType.TRANSFORMATION,
         name = "rename keys",
-        version = 1,
+        version = 2,
         configClazz = TbRenameKeysNodeConfiguration.class,
         nodeDescription = "Renames message or message metadata keys.",
         nodeDetails = "Renames keys in the message or message metadata according to the provided mapping. " +
@@ -125,8 +125,13 @@ public class TbRenameKeysNode extends TbAbstractTransformNodeWithTbMsgSource {
     }
 
     @Override
-    protected String getKeyToUpgradeFromVersionZero() {
+    protected String getNewKeyForUpgradeFromVersionZero() {
         return "renameIn";
+    }
+
+    @Override
+    protected String getKeyToUpgradeFromVersionOne() {
+        return FROM_METADATA_PROPERTY;
     }
 
 }

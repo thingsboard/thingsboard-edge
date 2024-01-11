@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -156,7 +156,11 @@ public class TbDeleteKeysNodeTest {
     private static Stream<Arguments> givenFromVersionAndConfig_whenUpgrade_thenVerifyUpgradeResultAndConfig() {
         return Stream.of(
                 Arguments.of(0, "{\"fromMetadata\":false,\"keys\":[\"temperature\"]}", true, "{\"deleteFrom\":\"DATA\",\"keys\":[\"temperature\"]}"),
-                Arguments.of(0, "{\"fromMetadata\":true,\"keys\":[\"temperature\"]}", true, "{\"deleteFrom\":\"METADATA\",\"keys\":[\"temperature\"]}")
+                Arguments.of(0, "{\"fromMetadata\":true,\"keys\":[\"temperature\"]}", true, "{\"deleteFrom\":\"METADATA\",\"keys\":[\"temperature\"]}"),
+                Arguments.of(1, "{\"dataToFetch\":\"METADATA\",\"keys\":[\"temperature\"]}", true, "{\"deleteFrom\":\"METADATA\",\"keys\":[\"temperature\"]}"),
+                Arguments.of(1, "{\"dataToFetch\":\"DATA\",\"keys\":[\"temperature\"]}", true, "{\"deleteFrom\":\"DATA\",\"keys\":[\"temperature\"]}"),
+                Arguments.of(1, "{\"deleteFrom\":\"METADATA\",\"keys\":[\"temperature\"]}", false, "{\"deleteFrom\":\"METADATA\",\"keys\":[\"temperature\"]}"),
+                Arguments.of(1, "{\"deleteFrom\":\"DATA\",\"keys\":[\"temperature\"]}", false, "{\"deleteFrom\":\"DATA\",\"keys\":[\"temperature\"]}")
         );
     }
 

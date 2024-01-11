@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -80,6 +80,8 @@ public interface TbResourceInfoRepository extends JpaRepository<TbResourceInfoEn
 
     TbResourceInfoEntity findByTenantIdAndResourceTypeAndResourceKey(UUID tenantId, String resourceType, String resourceKey);
 
+    TbResourceInfoEntity findByTenantIdAndCustomerIdAndResourceTypeAndResourceKey(UUID tenantId, UUID customerId, String resourceType, String resourceKey);
+
     boolean existsByTenantIdAndResourceTypeAndResourceKey(UUID tenantId, String resourceType, String resourceKey);
 
     @Query(value = "SELECT r.resource_key FROM resource r WHERE r.tenant_id = :tenantId AND r.resource_type = :resourceType " +
@@ -103,5 +105,9 @@ public interface TbResourceInfoRepository extends JpaRepository<TbResourceInfoEn
                                                          @Param("customerId") UUID customerId,
                                                          @Param("resourceType") String resourceType,
                                                          @Param("etag") String etag);
+
+    boolean existsByResourceTypeAndPublicResourceKey(String resourceType, String publicResourceKey);
+
+    TbResourceInfoEntity findByResourceTypeAndPublicResourceKeyAndIsPublicTrue(String resourceType, String publicResourceKey);
 
 }

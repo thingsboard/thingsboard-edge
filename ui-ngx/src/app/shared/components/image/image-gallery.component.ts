@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -44,7 +44,7 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
-  ElementRef, EventEmitter,
+  ElementRef, EventEmitter, HostBinding,
   Input,
   OnDestroy,
   OnInit, Output,
@@ -83,6 +83,7 @@ import {
   ImagesInUseDialogData
 } from '@shared/components/image/images-in-use-dialog.component';
 import { ImagesDatasource } from '@shared/components/image/images-datasource';
+import { EmbedImageDialogComponent, EmbedImageDialogData } from '@shared/components/image/embed-image-dialog.component';
 
 interface GridImagesFilter {
   search: string;
@@ -102,15 +103,11 @@ const pageGridColumns: ScrollGridColumns = {
   }
 };
 
-const popoverGridColumns: ScrollGridColumns = {
-  columns: 1,
+const dialogGridColumns: ScrollGridColumns = {
+  columns: 2,
   breakpoints: {
-    'screen and (min-width: 2320px)': 8,
-    'gt-lg': 6,
-    'screen and (min-width: 1600px)': 5,
     'gt-md': 4,
-    'gt-sm': 3,
-    'gt-xs': 2
+    'gt-xs': 3
   }
 };
 
@@ -122,18 +119,28 @@ const popoverGridColumns: ScrollGridColumns = {
 })
 export class ImageGalleryComponent extends PageComponent implements OnInit, OnDestroy, AfterViewInit {
 
+  @HostBinding('style.display')
+  private display = 'block';
+
+  @HostBinding('style.width')
+  private width = '100%';
+
+  @HostBinding('style.height')
+  private height = '100%';
+
   @Input()
   @coerceBoolean()
   pageMode = true;
 
   @Input()
   @coerceBoolean()
-  popoverMode = false;
+  dialogMode = false;
 
   @Input()
   mode: 'list' | 'grid' = 'list';
 
   @Input()
+  @coerceBoolean()
   selectionMode = false;
 
   @Output()
@@ -205,7 +212,7 @@ export class ImageGalleryComponent extends PageComponent implements OnInit, OnDe
   }
 
   ngOnInit(): void {
-    this.gridColumns = this.popoverMode ? popoverGridColumns : pageGridColumns;
+    this.gridColumns = this.dialogMode ? dialogGridColumns : pageGridColumns;
     this.displayedColumns = this.computeDisplayedColumns();
     let sortOrder: SortOrder = this.defaultSortOrder;
     this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
@@ -664,6 +671,25 @@ export class ImageGalleryComponent extends PageComponent implements OnInit, OnDe
     }
     this.dialog.open<ImageDialogComponent, ImageDialogData,
       ImageResourceInfo>(ImageDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        image,
+        readonly: this.readonly(image)
+      }
+    }).afterClosed().subscribe((result) => {
+      if (result) {
+        this.imageUpdated(result, itemIndex);
+      }
+    });
+  }
+
+  embedImage($event: Event, image: ImageResourceInfo, itemIndex = -1) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.dialog.open<EmbedImageDialogComponent, EmbedImageDialogData,
+      ImageResourceInfo>(EmbedImageDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
