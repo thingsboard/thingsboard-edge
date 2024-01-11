@@ -89,11 +89,6 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
-import org.thingsboard.server.common.transport.activity.AbstractActivityManager;
-import org.thingsboard.server.common.transport.activity.ActivityReportCallback;
-import org.thingsboard.server.common.transport.activity.ActivityState;
-import org.thingsboard.server.common.transport.activity.strategy.ActivityStrategy;
-import org.thingsboard.server.common.transport.activity.strategy.ActivityStrategyType;
 import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.common.util.KvProtoUtil;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -119,9 +114,7 @@ import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
-import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.converter.DataConverterService;
@@ -150,7 +143,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @TbCoreComponent
 @Service
 @Data
-public class DefaultPlatformIntegrationService extends AbstractActivityManager<IntegrationActivityKey, Void> implements PlatformIntegrationService {
+public class DefaultPlatformIntegrationService extends IntegrationActivityManager implements PlatformIntegrationService {
 
     private static final ReentrantLock entityCreationLock = new ReentrantLock();
 
@@ -170,14 +163,7 @@ public class DefaultPlatformIntegrationService extends AbstractActivityManager<I
     protected IntegrationContextComponent contextComponent;
 
     @Autowired
-    private PartitionService partitionService;
-
-    @Autowired
     private EventService eventService;
-
-    @Autowired
-    @Lazy
-    private TbQueueProducerProvider producerProvider;
 
     @Autowired
     @Lazy
@@ -229,12 +215,6 @@ public class DefaultPlatformIntegrationService extends AbstractActivityManager<I
     @Autowired
     private DefaultTbAssetProfileCache assetProfileCache;
 
-    @Value("${integrations.activity.reporting_period:3000}")
-    private long reportingPeriodMillis;
-
-    @Value("${integrations.activity.reporting_strategy:ALL}")
-    private ActivityStrategyType reportingStrategyType;
-
     @Value("${integrations.reinit.enabled:false}")
     private boolean reinitEnabled;
 
@@ -258,14 +238,12 @@ public class DefaultPlatformIntegrationService extends AbstractActivityManager<I
     private boolean initialized;
 
     protected TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg>> ruleEngineMsgProducer;
-    protected TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToCoreMsg>> tbCoreMsgProducer;
     protected TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg>> integrationRuleEngineMsgProducer;
 
     @PostConstruct
     public void init() {
         super.init();
         ruleEngineMsgProducer = producerProvider.getRuleEngineMsgProducer();
-        tbCoreMsgProducer = producerProvider.getTbCoreMsgProducer();
         integrationRuleEngineMsgProducer = producerProvider.getIntegrationRuleEngineMsgProducer();
         this.callbackExecutor = ThingsBoardExecutors.newWorkStealingPool(20, "default-integration-callback");
     }
@@ -470,74 +448,6 @@ public class DefaultPlatformIntegrationService extends AbstractActivityManager<I
         metaData.putValue("deviceType", sessionInfo.getDeviceType());
         sendToRuleEngine(tenantId, deviceId, sessionInfo, json, metaData, TbMsgType.POST_ATTRIBUTES_REQUEST,
                 new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(tenantId, getCustomerId(sessionInfo), msg.getKvList().size(), callback)));
-    }
-
-    @Override
-    protected long getReportingPeriodMillis() {
-        return reportingPeriodMillis;
-    }
-
-    @Override
-    protected ActivityState<Void> createNewState(IntegrationActivityKey key) {
-        return new ActivityState<>();
-    }
-
-    @Override
-    protected ActivityStrategy getStrategy() {
-        return reportingStrategyType.toStrategy();
-    }
-
-    @Override
-    protected ActivityState<Void> updateState(IntegrationActivityKey key, ActivityState<Void> state) {
-        return state;
-    }
-
-    @Override
-    protected boolean hasExpired(long lastRecordedTime) {
-        return (getCurrentTimeMillis() - reportingPeriodMillis) > lastRecordedTime;
-    }
-
-    long getCurrentTimeMillis() {
-        return System.currentTimeMillis();
-    }
-
-    @Override
-    protected void onStateExpiry(IntegrationActivityKey key, Void currentMetadata) {
-    }
-
-    @Override
-    protected void reportActivity(IntegrationActivityKey key, Void metadata, long timeToReport, ActivityReportCallback<IntegrationActivityKey> callback) {
-        var tenantId = key.getTenantId();
-        var deviceId = key.getDeviceId();
-        log.debug("[{}][{}] Reporting activity state. Time to report: [{}].", tenantId.getId(), deviceId.getId(), timeToReport);
-        TransportProtos.ToCoreMsg toCoreMsg = buildActivityMsg(tenantId, deviceId, timeToReport);
-        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenantId, deviceId);
-        tbCoreMsgProducer.send(tpi, new TbProtoQueueMsg<>(deviceId.getId(), toCoreMsg), new TbQueueCallback() {
-            @Override
-            public void onSuccess(TbQueueMsgMetadata msgAcknowledged) {
-                callback.onSuccess(key, timeToReport);
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                callback.onFailure(key, t);
-            }
-        });
-    }
-
-    private TransportProtos.ToCoreMsg buildActivityMsg(TenantId tenantId, DeviceId deviceId, long lastActivityTime) {
-        var tenantUuid = tenantId.getId();
-        var deviceUuid = deviceId.getId();
-        TransportProtos.DeviceActivityProto deviceActivityMsg = TransportProtos.DeviceActivityProto.newBuilder()
-                .setTenantIdMSB(tenantUuid.getMostSignificantBits())
-                .setTenantIdLSB(tenantUuid.getLeastSignificantBits())
-                .setDeviceIdMSB(deviceUuid.getMostSignificantBits())
-                .setDeviceIdLSB(deviceUuid.getLeastSignificantBits())
-                .setLastActivityTime(lastActivityTime)
-                .build();
-        return TransportProtos.ToCoreMsg.newBuilder()
-                .setDeviceActivityMsg(deviceActivityMsg)
-                .build();
     }
 
     @Override
