@@ -30,26 +30,32 @@
  */
 package org.thingsboard.server.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.customtranslation.CustomTranslation;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+
+import java.util.Collections;
+import java.util.List;
 
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_END;
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_START;
@@ -68,24 +74,25 @@ public class CustomTranslationController extends BaseController {
     private CustomTranslationService customTranslationService;
 
     @ApiOperation(value = "Get end-user Custom Translation configuration (getCustomTranslation)",
-            notes = "Fetch the Custom Translation map for the end user. The custom translation is configured in the white labeling parameters. " +
+            notes = "Fetch the Custom Translation json for the end user. The custom translation is configured in the white labeling parameters. " +
                     "If custom translation translation is defined on the tenant level, it overrides the custom translation of the system level. " +
                     "Similar, if the custom translation is defined on the customer level, it overrides the translation configuration of the tenant level."
             , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customTranslation/customTranslation", method = RequestMethod.GET, produces = "application/json")
+    @RequestMapping(value = "/customTranslation/customTranslation/{localeCode}", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
-    public CustomTranslation getCustomTranslation() throws ThingsboardException {
+    public JsonNode getCustomTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
+                                                      @PathVariable("localeCode") String localeCode) throws ThingsboardException {
         Authority authority = getCurrentUser().getAuthority();
         CustomTranslation customTranslation = null;
         if (Authority.SYS_ADMIN.equals(authority)) {
-            customTranslation = customTranslationService.getSystemCustomTranslation(TenantId.SYS_TENANT_ID);
+            customTranslation = customTranslationService.getSystemCustomTranslation(localeCode);
         } else if (Authority.TENANT_ADMIN.equals(authority)) {
-            customTranslation = customTranslationService.getMergedTenantCustomTranslation(getCurrentUser().getTenantId());
+            customTranslation = customTranslationService.getMergedTenantCustomTranslation(getCurrentUser().getTenantId(), localeCode);
         } else if (Authority.CUSTOMER_USER.equals(authority)) {
-            customTranslation = customTranslationService.getMergedCustomerCustomTranslation(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
+            customTranslation = customTranslationService.getMergedCustomerCustomTranslation(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId(), localeCode);
         }
-        return customTranslation;
+        return customTranslation == null ? JacksonUtil.newObjectNode() : customTranslation.getValue();
     }
 
     @ApiOperation(value = "Get Custom Translation configuration (getCurrentCustomTranslation)",
@@ -99,20 +106,38 @@ public class CustomTranslationController extends BaseController {
                     ControllerConstants.WL_READ_CHECK
             , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customTranslation/currentCustomTranslation", method = RequestMethod.GET, produces = "application/json")
+    @RequestMapping(value = "/customTranslation/currentCustomTranslation/{localeCode}", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
-    public CustomTranslation getCurrentCustomTranslation() throws ThingsboardException {
+    public JsonNode getCurrentCustomTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
+                                                    @PathVariable("localeCode") String localeCode) throws ThingsboardException {
         Authority authority = getCurrentUser().getAuthority();
         checkWhiteLabelingPermissions(Operation.READ);
         CustomTranslation customTranslation = null;
         if (Authority.SYS_ADMIN.equals(authority)) {
-            customTranslation = customTranslationService.getSystemCustomTranslation(TenantId.SYS_TENANT_ID);
+            customTranslation = customTranslationService.getSystemCustomTranslation(localeCode);
         } else if (Authority.TENANT_ADMIN.equals(authority)) {
-            customTranslation = customTranslationService.getTenantCustomTranslation(getTenantId());
+            customTranslation = customTranslationService.getTenantCustomTranslation(getTenantId(), localeCode);
         } else if (Authority.CUSTOMER_USER.equals(authority)) {
-            customTranslation = customTranslationService.getCustomerCustomTranslation(getTenantId(), getCurrentUser().getCustomerId());
+            customTranslation = customTranslationService.getCustomerCustomTranslation(getTenantId(), getCurrentUser().getCustomerId(), localeCode);
         }
-        return customTranslation;
+        return customTranslation == null ? JacksonUtil.newObjectNode() : customTranslation.getValue();
+    }
+
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/customTranslation/locales", method = RequestMethod.GET, produces = "application/json")
+    @ResponseBody
+    public List<String> getCurrentCustomTranslationLocales() throws ThingsboardException {
+        Authority authority = getCurrentUser().getAuthority();
+        checkWhiteLabelingPermissions(Operation.READ);
+        List<String> locales = Collections.emptyList();
+        if (Authority.SYS_ADMIN.equals(authority)) {
+            locales = customTranslationService.getLocales(TenantId.SYS_TENANT_ID, null);
+        } else if (Authority.TENANT_ADMIN.equals(authority)) {
+            locales = customTranslationService.getLocales(getCurrentUser().getTenantId(), null);
+        } else if (Authority.CUSTOMER_USER.equals(authority)) {
+            locales = customTranslationService.getLocales(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
+        }
+        return locales;
     }
 
     @ApiOperation(value = "Create Or Update Custom Translation (saveCustomTranslation)",
@@ -120,22 +145,25 @@ public class CustomTranslationController extends BaseController {
                     "\n\n Request example: " + CUSTOM_TRANSLATION_EXAMPLE +
                     ControllerConstants.WL_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customTranslation/customTranslation", method = RequestMethod.POST)
+    @RequestMapping(value = "/customTranslation/customTranslation/{localeCode}", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public CustomTranslation saveCustomTranslation(
+    public CustomTranslation saveCustomTranslation( @ApiParam(value = "Locale code (e.g. 'en_US').")
+            @PathVariable("localeCode") String localeCode,
             @ApiParam(value = "A JSON value representing the custom translation. See API call notes above for valid example.")
-            @RequestBody CustomTranslation customTranslation) throws ThingsboardException {
+            @RequestBody JsonNode customTranslationValue) throws ThingsboardException {
         Authority authority = getCurrentUser().getAuthority();
         checkWhiteLabelingPermissions(Operation.WRITE);
-        CustomTranslation savedCustomTranslation = null;
+        CustomTranslation customTranslation = new CustomTranslation();
+        customTranslation.setLocaleCode(localeCode);
+        customTranslation.setValue(customTranslationValue);
         if (Authority.SYS_ADMIN.equals(authority)) {
-            savedCustomTranslation = customTranslationService.saveSystemCustomTranslation(customTranslation);
+            customTranslation = customTranslationService.saveSystemCustomTranslation(customTranslation);
         } else if (Authority.TENANT_ADMIN.equals(authority)) {
-            savedCustomTranslation = customTranslationService.saveTenantCustomTranslation(getCurrentUser().getTenantId(), customTranslation);
+            customTranslation = customTranslationService.saveTenantCustomTranslation(getCurrentUser().getTenantId(), customTranslation);
         } else if (Authority.CUSTOMER_USER.equals(authority)) {
-            savedCustomTranslation = customTranslationService.saveCustomerCustomTranslation(getTenantId(), getCurrentUser().getCustomerId(), customTranslation);
+            customTranslation = customTranslationService.saveCustomerCustomTranslation(getTenantId(), getCurrentUser().getCustomerId(), customTranslation);
         }
-        return savedCustomTranslation;
+        return customTranslation;
     }
 
     private void checkWhiteLabelingPermissions(Operation operation) throws ThingsboardException {

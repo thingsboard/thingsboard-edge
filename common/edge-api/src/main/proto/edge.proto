@@ -675,6 +675,10 @@ message CustomMenuProto {
   optional string entity = 4;
 }
 
+message CustomTranslationUpdateMsg {
+  string entity = 1;
+}
+
 message RoleProto {
   UpdateMsgType msgType = 1;
   int64 idMSB = 2;
@@ -861,9 +865,9 @@ message DownlinkMsg {
   LoginWhiteLabelingParamsProto systemLoginWhiteLabelingParams = 25 [deprecated = true];
   LoginWhiteLabelingParamsProto tenantLoginWhiteLabelingParams = 26 [deprecated = true];
   LoginWhiteLabelingParamsProto customerLoginWhiteLabelingParams = 27 [deprecated = true];
-  CustomTranslationProto systemCustomTranslationMsg = 28;
-  CustomTranslationProto tenantCustomTranslationMsg = 29;
-  CustomTranslationProto customerCustomTranslationMsg = 30;
+  CustomTranslationProto systemCustomTranslationMsg = 28 [deprecated = true];
+  CustomTranslationProto tenantCustomTranslationMsg = 29 [deprecated = true];
+  CustomTranslationProto customerCustomTranslationMsg = 30 [deprecated = true];
   repeated SchedulerEventUpdateMsg schedulerEventUpdateMsg = 31;
   repeated EntityGroupUpdateMsg entityGroupUpdateMsg = 32;
   repeated RoleProto roleMsg = 33;
@@ -879,4 +883,5 @@ message DownlinkMsg {
   repeated ResourceUpdateMsg resourceUpdateMsg = 43;
   WhiteLabelingProto whiteLabelingProto = 44;
   CustomMenuProto customMenuProto = 45;
+  CustomTranslationUpdateMsg customTranslationUpdateMsg = 45;
 }

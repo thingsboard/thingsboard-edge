@@ -28,24 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.constructor.translation;
+package org.thingsboard.server.dao.translation;
 
-import org.springframework.stereotype.Component;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.translation.CustomTranslationEdgeOutdated;
-import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
-import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.common.data.customtranslation.CustomTranslation;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.model.sql.CustomTranslationCompositeKey;
 
-@Component
-@TbCoreComponent
-public class CustomTranslationMsgConstructorV2 implements CustomTranslationMsgConstructor {
+import java.util.List;
 
-    @Override
-    public CustomTranslationProto constructCustomTranslationProto(CustomTranslationEdgeOutdated customTranslation, EntityId entityId) {
-        return CustomTranslationProto.newBuilder().setEntity(JacksonUtil.toString(customTranslation))
-                .setEntityIdMSB(entityId.getId().getMostSignificantBits())
-                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
-                .setEntityType(entityId.getEntityType().name()).build();
-    }
+public interface CustomTranslationDao {
+
+    CustomTranslation save(TenantId tenantId, CustomTranslation customTranslation);
+
+    CustomTranslation findById(TenantId tenantId, CustomTranslationCompositeKey key);
+
+    void removeById(TenantId tenantId, CustomTranslationCompositeKey key);
+
+    List<String> findAllLocalesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId);
+
 }

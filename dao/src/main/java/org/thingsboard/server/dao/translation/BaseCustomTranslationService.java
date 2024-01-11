@@ -30,173 +30,108 @@
  */
 package org.thingsboard.server.dao.translation;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.AdminSettings;
-import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.StringUtils;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.customtranslation.CustomTranslation;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
-import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
-import org.thingsboard.server.common.data.kv.StringDataEntry;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.common.data.settings.UserSettings;
+import org.thingsboard.server.common.data.settings.UserSettingsCompositeKey;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.entity.AbstractCachedService;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
-import org.thingsboard.server.dao.exception.IncorrectParameterException;
+import org.thingsboard.server.dao.model.sql.CustomTranslationCompositeKey;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.dao.user.UserSettingsEvictEvent;
+import org.thingsboard.server.exception.DataValidationException;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class BaseCustomTranslationService implements CustomTranslationService {
+public class BaseCustomTranslationService extends AbstractCachedService<CustomTranslationCompositeKey, CustomTranslation, CustomTranslationEvictEvent> implements CustomTranslationService {
 
-    private static final String CUSTOM_TRANSLATION_ATTR_NAME = "customTranslation";
-
-    private final AdminSettingsService adminSettingsService;
-    private final AttributesService attributesService;
     private final ApplicationEventPublisher eventPublisher;
+    private final CustomTranslationDao customTranslationDao;
 
     @Override
-    public CustomTranslation getSystemCustomTranslation(TenantId tenantId) {
-        AdminSettings customTranslationSettings = adminSettingsService.findAdminSettingsByKey(tenantId, CUSTOM_TRANSLATION_ATTR_NAME);
-        String json = null;
-        if (customTranslationSettings != null) {
-            json = customTranslationSettings.getJsonValue().get("value").asText();
-        }
-        return constructCustomTranslation(json);
+    public CustomTranslation getSystemCustomTranslation(String localeCode) {
+        var key =  new CustomTranslationCompositeKey(TenantId.SYS_TENANT_ID, null, localeCode);
+        return cache.getAndPutInTransaction(key,
+                () -> customTranslationDao.findById(TenantId.SYS_TENANT_ID, key), true);
     }
 
     @Override
-    public CustomTranslation getTenantCustomTranslation(TenantId tenantId) {
-        return getEntityCustomTranslation(tenantId, tenantId);
+    public CustomTranslation getTenantCustomTranslation(TenantId tenantId, String localeCode) {
+        var key =  new CustomTranslationCompositeKey(tenantId, null, localeCode);
+        return cache.getAndPutInTransaction(key,
+                () -> customTranslationDao.findById(TenantId.SYS_TENANT_ID, key), true);
     }
 
     @Override
-    public CustomTranslation getCustomerCustomTranslation(TenantId tenantId, CustomerId customerId) {
-        return getEntityCustomTranslation(tenantId, customerId);
-    }
+    public CustomTranslation getCustomerCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
+        var key =  new CustomTranslationCompositeKey(tenantId, customerId, localeCode);
+        return cache.getAndPutInTransaction(key,
+                () -> customTranslationDao.findById(TenantId.SYS_TENANT_ID, key), true);    }
 
     @Override
-    public CustomTranslation getMergedTenantCustomTranslation(TenantId tenantId) {
-        CustomTranslation result = getTenantCustomTranslation(tenantId);
-        result.merge(getSystemCustomTranslation(tenantId));
+    public CustomTranslation getMergedTenantCustomTranslation(TenantId tenantId, String localeCode) {
+        CustomTranslation result = getTenantCustomTranslation(tenantId, localeCode);
+        result.merge(getSystemCustomTranslation(localeCode));
         return result;
     }
 
     @Override
-    public CustomTranslation getMergedCustomerCustomTranslation(TenantId tenantId, CustomerId customerId) {
-        CustomTranslation result = getCustomerCustomTranslation(tenantId, customerId);
-        result.merge(getTenantCustomTranslation(tenantId)).merge(getSystemCustomTranslation(tenantId));
+    public CustomTranslation getMergedCustomerCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
+        CustomTranslation result = getCustomerCustomTranslation(tenantId, customerId, localeCode);
+        result.merge(getTenantCustomTranslation(tenantId, localeCode)).merge(getSystemCustomTranslation(localeCode));
         return result;
     }
 
     @Override
     public CustomTranslation saveSystemCustomTranslation(CustomTranslation customTranslation) {
-        AdminSettings customTranslationSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, CUSTOM_TRANSLATION_ATTR_NAME);
-        if (customTranslationSettings == null) {
-            customTranslationSettings = new AdminSettings();
-            customTranslationSettings.setKey(CUSTOM_TRANSLATION_ATTR_NAME);
-            ObjectNode node = JacksonUtil.newObjectNode();
-            customTranslationSettings.setJsonValue(node);
-        }
-        String json;
-        try {
-            json = JacksonUtil.toString(customTranslation);
-        } catch (IllegalArgumentException e) {
-            log.error("Unable to convert custom translation to JSON!", e);
-            throw new IncorrectParameterException("Unable to convert custom translation to JSON!");
-        }
-        ((ObjectNode) customTranslationSettings.getJsonValue()).put("value", json);
-        adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, customTranslationSettings);
+        customTranslation.setTenantId(TenantId.SYS_TENANT_ID);
+        customTranslationDao.save(TenantId.SYS_TENANT_ID, customTranslation);
         eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID)
                 .edgeEventType(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
-        return getSystemCustomTranslation(TenantId.SYS_TENANT_ID);
+        return getSystemCustomTranslation(customTranslation.getLocaleCode());
     }
 
     @Override
     public CustomTranslation saveTenantCustomTranslation(TenantId tenantId, CustomTranslation customTranslation) {
-        saveEntityCustomTranslation(tenantId, tenantId, customTranslation);
-        return getTenantCustomTranslation(tenantId);
+        customTranslation.setTenantId(tenantId);
+        customTranslationDao.save(tenantId, customTranslation);
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(tenantId)
+                .edgeEventType(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
+        return getTenantCustomTranslation(tenantId, customTranslation.getLocaleCode());
     }
 
     @Override
     public CustomTranslation saveCustomerCustomTranslation(TenantId tenantId, CustomerId customerId, CustomTranslation customTranslation) {
-        saveEntityCustomTranslation(tenantId, customerId, customTranslation);
-        return getCustomerCustomTranslation(tenantId, customerId);
-    }
-
-    private CustomTranslation constructCustomTranslation(String json) {
-        CustomTranslation result = null;
-        if (!StringUtils.isEmpty(json)) {
-            try {
-                result = JacksonUtil.fromString(json, CustomTranslation.class);
-            } catch (IllegalArgumentException e) {
-                log.error("Unable to read custom translation from JSON!", e);
-                throw new IncorrectParameterException("Unable to read custom translation from JSON!");
-            }
-        }
-        if (result == null) {
-            result = new CustomTranslation();
-        }
-        return result;
-    }
-
-    private CustomTranslation getEntityCustomTranslation(TenantId tenantId, EntityId entityId) {
-        String json = getEntityAttributeValue(tenantId, entityId);
-        return constructCustomTranslation(json);
-    }
-
-    private String getEntityAttributeValue(TenantId tenantId, EntityId entityId) {
-        List<AttributeKvEntry> attributeKvEntries;
-        try {
-            attributeKvEntries = attributesService.find(tenantId, entityId, DataConstants.SERVER_SCOPE, Arrays.asList(CUSTOM_TRANSLATION_ATTR_NAME)).get();
-        } catch (Exception e) {
-            log.error("Unable to read custom translation from attributes!", e);
-            throw new IncorrectParameterException("Unable to read custom translation from attributes!");
-        }
-        if (attributeKvEntries != null && !attributeKvEntries.isEmpty()) {
-            AttributeKvEntry kvEntry = attributeKvEntries.get(0);
-            return kvEntry.getValueAsString();
-        } else {
-            return "";
-        }
-    }
-
-    private void saveEntityCustomTranslation(TenantId tenantId, EntityId entityId, CustomTranslation customTranslation) {
-        String json;
-        try {
-            json = JacksonUtil.toString(customTranslation);
-        } catch (IllegalArgumentException e) {
-            log.error("Unable to convert custom translation to JSON!", e);
-            throw new IncorrectParameterException("Unable to convert custom translation to JSON!");
-        }
-        saveEntityAttribute(tenantId, entityId, json);
-        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(entityId)
+        customTranslation.setTenantId(tenantId);
+        customTranslation.setCustomerId(customerId);
+        customTranslationDao.save(tenantId, customTranslation);
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(customerId)
                 .edgeEventType(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
+        return getCustomerCustomTranslation(tenantId, customerId, customTranslation.getLocaleCode());
     }
 
-    private void saveEntityAttribute(TenantId tenantId, EntityId entityId, String value) {
-        List<AttributeKvEntry> attributes = new ArrayList<>();
-        long ts = System.currentTimeMillis();
-        attributes.add(new BaseAttributeKvEntry(new StringDataEntry(CUSTOM_TRANSLATION_ATTR_NAME, value), ts));
-        try {
-            attributesService.save(tenantId, entityId, DataConstants.SERVER_SCOPE, attributes).get();
-        } catch (Exception e) {
-            log.error("Unable to save custom translation to attributes!", e);
-            throw new IncorrectParameterException("Unable to save custom translation to attributes!");
-        }
+    @Override
+    public List<String> getLocales(TenantId tenantId, CustomerId customerId) {
+        return customTranslationDao.findAllLocalesByTenantIdAndCustomerId(tenantId, customerId);
     }
 
+    @TransactionalEventListener(classes = CustomTranslationEvictEvent.class)
+    @Override
+    public void handleEvictEvent(CustomTranslationEvictEvent event) {
+        cache.evict(event.getKey());
+    }
 }

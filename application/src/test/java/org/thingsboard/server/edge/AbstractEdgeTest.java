@@ -96,7 +96,7 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.security.model.JwtSettings;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.common.data.translation.CustomTranslationEdgeOutdated;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
@@ -162,7 +162,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
         doPost("/api/whiteLabel/loginWhiteLabelParams", new LoginWhiteLabelingParams(), LoginWhiteLabelingParams.class);
         doPost("/api/whiteLabel/whiteLabelParams", new WhiteLabelingParams(), WhiteLabelingParams.class);
-        doPost("/api/customTranslation/customTranslation", new CustomTranslation(), CustomTranslation.class);
+        doPost("/api/customTranslation/customTranslation", new CustomTranslationEdgeOutdated(), CustomTranslationEdgeOutdated.class);
 
         // get jwt settings from yaml config
         JwtSettings settings = doGet("/api/admin/jwtSettings", JwtSettings.class);

@@ -30,26 +30,31 @@
  */
 package org.thingsboard.server.dao.translation;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import org.thingsboard.server.common.data.customtranslation.CustomTranslation;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
+
+import java.util.List;
 
 public interface CustomTranslationService {
 
-    CustomTranslation getSystemCustomTranslation(TenantId tenantId);
+    CustomTranslation getSystemCustomTranslation(String localeCode);
 
-    CustomTranslation getTenantCustomTranslation(TenantId tenantId);
+    CustomTranslation getTenantCustomTranslation(TenantId tenantId, String localeCode);
 
-    CustomTranslation getCustomerCustomTranslation(TenantId tenantId, CustomerId customerId);
+    CustomTranslation getCustomerCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
 
-    CustomTranslation getMergedTenantCustomTranslation(TenantId tenantId);
+    CustomTranslation getMergedTenantCustomTranslation(TenantId tenantId, String localeCode);
 
-    CustomTranslation getMergedCustomerCustomTranslation(TenantId tenantId, CustomerId customerId);
+    CustomTranslation getMergedCustomerCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
 
     CustomTranslation saveSystemCustomTranslation(CustomTranslation customTranslation);
 
     CustomTranslation saveTenantCustomTranslation(TenantId tenantId, CustomTranslation customTranslation);
 
     CustomTranslation saveCustomerCustomTranslation(TenantId tenantId, CustomerId customerId, CustomTranslation customTranslation);
+
+    List<String> getLocales(TenantId tenantId, CustomerId customerId);
 
 }

@@ -28,24 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.constructor.translation;
+package org.thingsboard.server.dao.translation;
 
-import org.springframework.stereotype.Component;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.translation.CustomTranslationEdgeOutdated;
-import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
-import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.CacheSpecsMap;
+import org.thingsboard.server.cache.RedisTbTransactionalCache;
+import org.thingsboard.server.cache.TBRedisCacheConfiguration;
+import org.thingsboard.server.cache.TbFSTRedisSerializer;
+import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.customtranslation.CustomTranslation;
+import org.thingsboard.server.dao.model.sql.CustomTranslationCompositeKey;
 
-@Component
-@TbCoreComponent
-public class CustomTranslationMsgConstructorV2 implements CustomTranslationMsgConstructor {
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "redis")
+@Service("CustomTranslationCache")
+public class CustomTranslationRedisCache extends RedisTbTransactionalCache<CustomTranslationCompositeKey, CustomTranslation> {
 
-    @Override
-    public CustomTranslationProto constructCustomTranslationProto(CustomTranslationEdgeOutdated customTranslation, EntityId entityId) {
-        return CustomTranslationProto.newBuilder().setEntity(JacksonUtil.toString(customTranslation))
-                .setEntityIdMSB(entityId.getId().getMostSignificantBits())
-                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
-                .setEntityType(entityId.getEntityType().name()).build();
+    public CustomTranslationRedisCache(TBRedisCacheConfiguration configuration, CacheSpecsMap cacheSpecsMap, RedisConnectionFactory connectionFactory) {
+        super(CacheConstants.CUSTOM_TRANSLATION_CACHE, cacheSpecsMap, connectionFactory, configuration, new TbFSTRedisSerializer<>());
     }
 }

@@ -28,24 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.constructor.translation;
+package org.thingsboard.server.dao.sql.customtranslation;
 
-import org.springframework.stereotype.Component;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.translation.CustomTranslationEdgeOutdated;
-import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
-import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.model.sql.CustomTranslationCompositeKey;
+import org.thingsboard.server.dao.model.sql.CustomTranslationEntity;
 
-@Component
-@TbCoreComponent
-public class CustomTranslationMsgConstructorV2 implements CustomTranslationMsgConstructor {
+import java.util.List;
+import java.util.UUID;
 
-    @Override
-    public CustomTranslationProto constructCustomTranslationProto(CustomTranslationEdgeOutdated customTranslation, EntityId entityId) {
-        return CustomTranslationProto.newBuilder().setEntity(JacksonUtil.toString(customTranslation))
-                .setEntityIdMSB(entityId.getId().getMostSignificantBits())
-                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
-                .setEntityType(entityId.getEntityType().name()).build();
-    }
+
+public interface CustomTranslationRepository extends JpaRepository<CustomTranslationEntity, CustomTranslationCompositeKey> {
+
+    @Query(value = "SELECT DISTINCT c.localeCode FROM CustomTranslationEntity c WHERE c.tenantId = :tenantId AND c.customerId = :customerId")
+    List<String> findAllLocalesByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId, @Param("customerId") UUID customerId);
+
 }

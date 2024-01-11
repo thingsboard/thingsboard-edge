@@ -28,65 +28,54 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.translation;
+package org.thingsboard.server.common.data.customtranslation;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.validation.Length;
+import org.thingsboard.server.common.data.validation.NoXss;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.io.Serializable;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
-@ApiModel
+import static org.thingsboard.server.common.data.BaseDataWithAdditionalInfo.getJson;
+import static org.thingsboard.server.common.data.BaseDataWithAdditionalInfo.setJson;
+
 @Data
-@EqualsAndHashCode
-@Slf4j
-public class CustomTranslation {
+public class CustomTranslation implements Serializable {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final long serialVersionUID = 2809343057809549363L;
 
-    @ApiModelProperty(value = "Map of locale IDs to stringified json object with custom translations", required = true)
-    private Map<String, String> translationMap = new HashMap<>();
 
-    public CustomTranslation merge(CustomTranslation otherCL) {
-        List<String> languages = new ArrayList<>(translationMap.keySet());
-        if (otherCL != null && otherCL.getTranslationMap() != null) {
-            languages.addAll(otherCL.getTranslationMap().keySet());
-            for (String lang : languages) {
-                JsonNode node = safeParse(translationMap.get(lang));
-                JsonNode otherNode = safeParse(otherCL.getTranslationMap().get(lang));
-                merge(node, otherNode);
-                try {
-                    translationMap.put(lang, OBJECT_MAPPER.writeValueAsString(node));
-                } catch (JsonProcessingException e) {
-                    log.warn("Can't write object as json string", e);
-                }
-            }
-        }
-        return this;
+    private TenantId tenantId;
+    private CustomerId customerId;
+
+    @NoXss
+    @Length(fieldName = "localeCode", max = 5)
+    private String localeCode;
+
+    @NoXss
+    @Length(fieldName = "value", max = 1000000)
+    private transient JsonNode value;
+
+    @JsonIgnore
+    private byte[] valueBytes;
+
+    public JsonNode getValue() {
+        return getJson(() -> value, () -> valueBytes);
     }
 
-    private JsonNode safeParse(String jsonStr) {
-        JsonNode node = OBJECT_MAPPER.createObjectNode();
-        try {
-            if (StringUtils.isNoneBlank(jsonStr)) {
-                node = OBJECT_MAPPER.readTree(jsonStr);
-            }
-        } catch (IOException e) {
-            log.warn("Can't read json string", e);
-        }
-        return node;
+    public void setValue(JsonNode value) {
+        setJson(value, json -> this.value = json, bytes -> this.valueBytes = bytes);
+    }
+
+    public CustomTranslation merge(CustomTranslation otherCT) {
+        merge(this.value, otherCT.getValue());
+        return this;
     }
 
     private void merge(JsonNode mainNode, JsonNode updateNode) {
@@ -114,5 +103,4 @@ public class CustomTranslation {
             }
         }
     }
-
 }

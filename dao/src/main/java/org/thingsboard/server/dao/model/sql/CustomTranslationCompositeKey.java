@@ -28,24 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.constructor.translation;
+package org.thingsboard.server.dao.model.sql;
 
-import org.springframework.stereotype.Component;
-import org.thingsboard.common.util.JacksonUtil;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.translation.CustomTranslationEdgeOutdated;
-import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
-import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.common.data.id.TenantId;
 
-@Component
-@TbCoreComponent
-public class CustomTranslationMsgConstructorV2 implements CustomTranslationMsgConstructor {
+import java.io.Serializable;
+import java.util.UUID;
 
-    @Override
-    public CustomTranslationProto constructCustomTranslationProto(CustomTranslationEdgeOutdated customTranslation, EntityId entityId) {
-        return CustomTranslationProto.newBuilder().setEntity(JacksonUtil.toString(customTranslation))
-                .setEntityIdMSB(entityId.getId().getMostSignificantBits())
-                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
-                .setEntityType(entityId.getEntityType().name()).build();
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class CustomTranslationCompositeKey implements Serializable {
+
+    private UUID tenantId;
+    private UUID customerId;
+    private String localeCode;
+
+    public CustomTranslationCompositeKey(TenantId tenantId, String localeCode) {
+        this(tenantId, null, localeCode);
+    }
+
+    public CustomTranslationCompositeKey(TenantId tenantId, CustomerId customerId, String localeCode) {
+        this.tenantId = tenantId.getId();
+        this.customerId = customerId != null ? customerId.getId() : EntityId.NULL_UUID;
+        this.localeCode = localeCode;
     }
 }
