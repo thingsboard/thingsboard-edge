@@ -109,6 +109,7 @@ export const schedulerWeekday: string[] =
 export interface SchedulerEventSchedule {
   timezone?: string;
   startTime?: number;
+  enabled?: boolean;
   repeat?: {
     type: SchedulerRepeatType;
     endsOn: number;

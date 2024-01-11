@@ -187,6 +187,15 @@
               {{ schedulerEvent.customerTitle }}
             </mat-cell>
           </ng-container>
+          <ng-container matColumnDef="enabled">
+            <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 25%"> {{ 'scheduler.enabled' | translate }} </mat-header-cell>
+            <mat-cell *matCellDef="let schedulerEvent">
+              <mat-slide-toggle [checked]="isEnabled(schedulerEvent)"
+                                (change)="enableSchedulerEvent($event, schedulerEvent)"
+                                (click)="$event.stopPropagation()">
+              </mat-slide-toggle>
+            </mat-cell>
+          </ng-container>
           <ng-container matColumnDef="actions" stickyEnd>
             <mat-header-cell *matHeaderCellDef style="min-width: 100px; max-width: 100px; width: 100px">
             </mat-header-cell>

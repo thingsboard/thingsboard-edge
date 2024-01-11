@@ -5136,7 +5136,8 @@
         "rpc-request-oneway-command": "One-way RPC request",
         "rpc-value-min-error": "Value must be more then {{min}} ms.",
         "set": "Set",
-        "rpc-settings": "RPC settings"
+        "rpc-settings": "RPC settings",
+        "enabled": "Enabled"
     },
     "report": {
         "report-config": "Report configuration",
@@ -5163,7 +5164,8 @@
         "subject": "Subject",
         "subject-required": "Subject is required.",
         "body": "Body",
-        "body-required": "Body is required."
+        "body-required": "Body is required.",
+        "enable-schedule": "Enable schedule"
     },
     "blob-entity": {
         "blob-entity": "Blob entity",

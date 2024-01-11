@@ -51,12 +51,13 @@ import {
 } from '@shared/models/scheduler-event.models';
 import * as _moment from 'moment';
 import * as momentTz from 'moment-timezone';
-import { isDefined } from '@core/utils';
+import { isDefined, isDefinedAndNotNull } from '@core/utils';
 import { ErrorStateMatcher } from '@angular/material/core';
 
 interface SchedulerEventScheduleConfig {
   timezone: string;
   startDate?: Date;
+  enabled?: boolean;
   repeat?: boolean;
   repeatType?: SchedulerRepeatType;
   weeklyRepeat?: boolean[];
@@ -119,6 +120,7 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
     this.scheduleConfigFormGroup = this.fb.group({
       timezone: [null, [Validators.required]],
       startDate: [null, [Validators.required]],
+      enabled: [null, []],
       repeat: [null, []],
       repeatType: [null, [Validators.required]],
       weeklyRepeat: this.fb.array(this.createDefaultWeeklyRepeat()),
@@ -273,7 +275,8 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
       const timezone = value.timezone || momentTz.tz.guess();
       const config: SchedulerEventScheduleConfig = {
         timezone,
-        startDate: this.dateFromUtcTime(value.startTime, timezone)
+        startDate: this.dateFromUtcTime(value.startTime, timezone),
+        enabled: isDefinedAndNotNull(value.enabled) ? value.enabled : true
       };
       if (value.repeat) {
         config.repeat = true;
@@ -306,7 +309,8 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
     if (value) {
       const schedule: SchedulerEventSchedule = {
         timezone: value.timezone,
-        startTime: this.dateTimeToUtcTime(value.startDate, value.timezone)
+        startTime: this.dateTimeToUtcTime(value.startDate, value.timezone),
+        enabled: value.enabled
       };
       if (value.repeat) {
         schedule.repeat = {
@@ -336,7 +340,8 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
 
   private createDefaultSchedulerEventScheduleConfig(): SchedulerEventScheduleConfig {
     const scheduleConfig: SchedulerEventScheduleConfig = {
-      timezone: momentTz.tz.guess()
+      timezone: momentTz.tz.guess(),
+      enabled: true
     };
     const date = new Date();
     scheduleConfig.startDate = new Date(

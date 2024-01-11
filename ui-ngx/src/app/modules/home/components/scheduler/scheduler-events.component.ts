@@ -59,7 +59,7 @@ import {
   schedulerWeekday
 } from '@shared/models/scheduler-event.models';
 import { CollectionViewer, DataSource, SelectionModel } from '@angular/cdk/collections';
-import { BehaviorSubject, forkJoin, merge, Observable, of, ReplaySubject, Subject } from 'rxjs';
+import { BehaviorSubject, forkJoin, merge, Observable, of, ReplaySubject, Subject, switchMap } from 'rxjs';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import { catchError, debounceTime, distinctUntilChanged, map, share, skip, takeUntil, tap } from 'rxjs/operators';
 import { PageLink, PageQueryParam } from '@shared/models/page/page-link';
@@ -209,7 +209,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       this.initializeWidgetConfig();
       this.ctx.updateWidgetParams();
     } else {
-      this.displayedColumns = ['createdTime', 'name', 'typeName', 'customerTitle', 'actions'];
+      this.displayedColumns = ['createdTime', 'name', 'typeName', 'customerTitle', 'enabled', 'actions'];
       if (this.deleteEnabled) {
         this.displayedColumns.unshift('select');
       }
@@ -334,6 +334,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
     if (displayCustomer) {
       this.displayedColumns.push('customerTitle');
     }
+    this.displayedColumns.push('enabled');
     this.displayedColumns.push('actions');
     this.displayPagination = isDefined(this.settings.displayPagination) ? this.settings.displayPagination : true;
     const pageSize = this.settings.defaultPageSize;
@@ -1032,6 +1033,21 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
         }
       });
     }
+  }
+
+  isEnabled(schedulerEventWithCustomerInfo: SchedulerEventWithCustomerInfo): boolean {
+    return isDefinedAndNotNull(schedulerEventWithCustomerInfo.schedule.enabled) ?
+      schedulerEventWithCustomerInfo.schedule.enabled : true;
+  }
+
+  enableSchedulerEvent($event, schedulerEvent: SchedulerEventWithCustomerInfo) {
+    this.schedulerEventService.getSchedulerEvent(schedulerEvent.id.id).pipe(
+      map((scheduler) => {
+        scheduler.schedule = {...scheduler.schedule, enabled: $event.checked};
+        return scheduler;
+      }),
+      switchMap((scheduler) => this.schedulerEventService.saveSchedulerEvent(scheduler))
+    ).subscribe();
   }
 
 
