@@ -80,7 +80,6 @@ import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.JsonDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
-import org.thingsboard.server.common.data.limit.LimitedApi;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -89,8 +88,12 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
-import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
+import org.thingsboard.server.common.transport.activity.AbstractActivityManager;
+import org.thingsboard.server.common.transport.activity.ActivityReportCallback;
+import org.thingsboard.server.common.transport.activity.ActivityState;
+import org.thingsboard.server.common.transport.activity.strategy.ActivityStrategy;
+import org.thingsboard.server.common.transport.activity.strategy.ActivityStrategyType;
 import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.common.util.KvProtoUtil;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -102,7 +105,6 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
-import org.thingsboard.server.dao.util.limits.RateLimitService;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
@@ -148,7 +150,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @TbCoreComponent
 @Service
 @Data
-public class DefaultPlatformIntegrationService implements PlatformIntegrationService {
+public class DefaultPlatformIntegrationService extends AbstractActivityManager<IntegrationActivityKey, Void> implements PlatformIntegrationService {
 
     private static final ReentrantLock entityCreationLock = new ReentrantLock();
 
@@ -227,6 +229,12 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     @Autowired
     private DefaultTbAssetProfileCache assetProfileCache;
 
+    @Value("${integrations.activity.reporting_period:3000}")
+    private long reportingPeriodMillis;
+
+    @Value("${integrations.activity.reporting_strategy:ALL}")
+    private ActivityStrategyType reportingStrategyType;
+
     @Value("${integrations.reinit.enabled:false}")
     private boolean reinitEnabled;
 
@@ -255,6 +263,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     @PostConstruct
     public void init() {
+        super.init();
         ruleEngineMsgProducer = producerProvider.getRuleEngineMsgProducer();
         tbCoreMsgProducer = producerProvider.getTbCoreMsgProducer();
         integrationRuleEngineMsgProducer = producerProvider.getIntegrationRuleEngineMsgProducer();
@@ -432,9 +441,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     @Override
     public void process(SessionInfoProto sessionInfo, PostTelemetryMsg msg, IntegrationCallback<Void> callback) {
-        reportActivity(sessionInfo);
         TenantId tenantId = new TenantId(new UUID(sessionInfo.getTenantIdMSB(), sessionInfo.getTenantIdLSB()));
         DeviceId deviceId = new DeviceId(new UUID(sessionInfo.getDeviceIdMSB(), sessionInfo.getDeviceIdLSB()));
+        onActivity(new IntegrationActivityKey(tenantId, deviceId), getCurrentTimeMillis());
         int dataPoints = 0;
         for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
             dataPoints += tsKv.getKvCount();
@@ -452,15 +461,83 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     @Override
     public void process(SessionInfoProto sessionInfo, PostAttributeMsg msg, IntegrationCallback<Void> callback) {
-        reportActivity(sessionInfo);
         TenantId tenantId = new TenantId(new UUID(sessionInfo.getTenantIdMSB(), sessionInfo.getTenantIdLSB()));
         DeviceId deviceId = new DeviceId(new UUID(sessionInfo.getDeviceIdMSB(), sessionInfo.getDeviceIdLSB()));
+        onActivity(new IntegrationActivityKey(tenantId, deviceId), getCurrentTimeMillis());
         JsonObject json = JsonUtils.getJsonObject(msg.getKvList());
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("deviceName", sessionInfo.getDeviceName());
         metaData.putValue("deviceType", sessionInfo.getDeviceType());
         sendToRuleEngine(tenantId, deviceId, sessionInfo, json, metaData, TbMsgType.POST_ATTRIBUTES_REQUEST,
                 new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(tenantId, getCustomerId(sessionInfo), msg.getKvList().size(), callback)));
+    }
+
+    @Override
+    protected long getReportingPeriodMillis() {
+        return reportingPeriodMillis;
+    }
+
+    @Override
+    protected ActivityState<Void> createNewState(IntegrationActivityKey key) {
+        return new ActivityState<>();
+    }
+
+    @Override
+    protected ActivityStrategy getStrategy() {
+        return reportingStrategyType.toStrategy();
+    }
+
+    @Override
+    protected ActivityState<Void> updateState(IntegrationActivityKey key, ActivityState<Void> state) {
+        return state;
+    }
+
+    @Override
+    protected boolean hasExpired(long lastRecordedTime) {
+        return (getCurrentTimeMillis() - reportingPeriodMillis) > lastRecordedTime;
+    }
+
+    long getCurrentTimeMillis() {
+        return System.currentTimeMillis();
+    }
+
+    @Override
+    protected void onStateExpiry(IntegrationActivityKey key, Void currentMetadata) {
+    }
+
+    @Override
+    protected void reportActivity(IntegrationActivityKey key, Void metadata, long timeToReport, ActivityReportCallback<IntegrationActivityKey> callback) {
+        var tenantId = key.getTenantId();
+        var deviceId = key.getDeviceId();
+        log.debug("[{}][{}] Reporting activity state. Time to report: [{}].", tenantId.getId(), deviceId.getId(), timeToReport);
+        TransportProtos.ToCoreMsg toCoreMsg = buildActivityMsg(tenantId, deviceId, timeToReport);
+        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenantId, deviceId);
+        tbCoreMsgProducer.send(tpi, new TbProtoQueueMsg<>(deviceId.getId(), toCoreMsg), new TbQueueCallback() {
+            @Override
+            public void onSuccess(TbQueueMsgMetadata msgAcknowledged) {
+                callback.onSuccess(key, timeToReport);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                callback.onFailure(key, t);
+            }
+        });
+    }
+
+    private TransportProtos.ToCoreMsg buildActivityMsg(TenantId tenantId, DeviceId deviceId, long lastActivityTime) {
+        var tenantUuid = tenantId.getId();
+        var deviceUuid = deviceId.getId();
+        TransportProtos.DeviceActivityProto deviceActivityMsg = TransportProtos.DeviceActivityProto.newBuilder()
+                .setTenantIdMSB(tenantUuid.getMostSignificantBits())
+                .setTenantIdLSB(tenantUuid.getLeastSignificantBits())
+                .setDeviceIdMSB(deviceUuid.getMostSignificantBits())
+                .setDeviceIdLSB(deviceUuid.getLeastSignificantBits())
+                .setLastActivityTime(lastActivityTime)
+                .build();
+        return TransportProtos.ToCoreMsg.newBuilder()
+                .setDeviceActivityMsg(deviceActivityMsg)
+                .build();
     }
 
     @Override
@@ -717,17 +794,6 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         return metaData;
     }
 
-    private void reportActivity(SessionInfoProto sessionInfo) {
-        TransportProtos.SubscriptionInfoProto subscriptionInfoProto = TransportProtos.SubscriptionInfoProto.newBuilder()
-                .setAttributeSubscription(false).setRpcSubscription(false)
-                .setLastActivityTime(System.currentTimeMillis()).build();
-        TransportProtos.TransportToDeviceActorMsg msg = TransportProtos.TransportToDeviceActorMsg.newBuilder().setSessionInfo(sessionInfo)
-                .setSubscriptionInfo(subscriptionInfoProto).build();
-        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, getTenantId(sessionInfo), getDeviceId(sessionInfo));
-        tbCoreMsgProducer.send(tpi, new TbProtoQueueMsg<>(getRoutingKey(sessionInfo),
-                TransportProtos.ToCoreMsg.newBuilder().setToDeviceActorMsg(msg).build()), null);
-    }
-
     private void process(Asset asset, PostTelemetryMsg msg, IntegrationCallback<Void> callback) {
         int dataPoints = 0;
         for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
@@ -752,11 +818,11 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         metaData.putValue("assetType", asset.getType());
         sendToRuleEngine(asset.getTenantId(), asset.getId(), asset.getAssetProfileId(),
                 asset.getCustomerId(), json, metaData, TbMsgType.POST_ATTRIBUTES_REQUEST,
-                     new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(asset.getTenantId(), asset.getCustomerId(), msg.getKvList().size(), callback)));
+                new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(asset.getTenantId(), asset.getCustomerId(), msg.getKvList().size(), callback)));
     }
 
-    private void sendToRuleEngine(TenantId tenantId, DeviceId deviceId, TransportProtos.SessionInfoProto sessionInfo, JsonObject json,
-                                  TbMsgMetaData metaData, TbMsgType msgType, TbQueueCallback callback) {
+    void sendToRuleEngine(TenantId tenantId, DeviceId deviceId, TransportProtos.SessionInfoProto sessionInfo, JsonObject json,
+                          TbMsgMetaData metaData, TbMsgType msgType, TbQueueCallback callback) {
         DeviceProfileId deviceProfileId = new DeviceProfileId(new UUID(sessionInfo.getDeviceProfileIdMSB(), sessionInfo.getDeviceProfileIdLSB()));
 
         DeviceProfile deviceProfile = deviceProfileCache.get(tenantId, deviceProfileId);

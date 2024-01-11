@@ -200,6 +200,10 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
     @Getter
     private int initFetchPackSize;
 
+    @Value("${state.telemetryTtl:0}")
+    @Getter
+    private int telemetryTtl;
+
     private ListeningExecutorService deviceStateExecutor;
 
     final ConcurrentMap<DeviceId, DeviceStateData> deviceStates = new ConcurrentHashMap<>();
@@ -818,7 +822,7 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
             tsSubService.saveAndNotifyInternal(
                     TenantId.SYS_TENANT_ID, deviceId,
                     Collections.singletonList(new BasicTsKvEntry(getCurrentTimeMillis(), new LongDataEntry(key, value))),
-                    new TelemetrySaveCallback<>(deviceId, key, value));
+                    telemetryTtl, new TelemetrySaveCallback<>(deviceId, key, value));
         } else {
             tsSubService.saveAttrAndNotify(TenantId.SYS_TENANT_ID, deviceId, SERVER_SCOPE, key, value, new TelemetrySaveCallback<>(deviceId, key, value));
         }
@@ -829,7 +833,7 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
             tsSubService.saveAndNotifyInternal(
                     TenantId.SYS_TENANT_ID, deviceId,
                     Collections.singletonList(new BasicTsKvEntry(getCurrentTimeMillis(), new BooleanDataEntry(key, value))),
-                    new TelemetrySaveCallback<>(deviceId, key, value));
+                    telemetryTtl, new TelemetrySaveCallback<>(deviceId, key, value));
         } else {
             tsSubService.saveAttrAndNotify(TenantId.SYS_TENANT_ID, deviceId, SERVER_SCOPE, key, value, new TelemetrySaveCallback<>(deviceId, key, value));
         }

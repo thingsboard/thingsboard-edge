@@ -28,35 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.rpc;
+package org.thingsboard.server.common.transport.activity;
 
-import io.grpc.stub.StreamObserver;
+public interface ActivityReportCallback<Key> {
 
-public class SyncedStreamObserver<V> implements StreamObserver<V> {
-    private final StreamObserver<V> delegate;
+    void onSuccess(Key key, long reportedTime);
 
-    public SyncedStreamObserver(StreamObserver<V> delegate) {
-        this.delegate = delegate;
-    }
+    void onFailure(Key key, Throwable t);
 
-    @Override
-    public void onNext(V value) {
-        synchronized (delegate) {
-            delegate.onNext(value);
-        }
-    }
-
-    @Override
-    public void onError(Throwable t) {
-        synchronized (delegate) {
-            delegate.onError(t);
-        }
-    }
-
-    @Override
-    public void onCompleted() {
-        synchronized (delegate) {
-            delegate.onCompleted();
-        }
-    }
 }

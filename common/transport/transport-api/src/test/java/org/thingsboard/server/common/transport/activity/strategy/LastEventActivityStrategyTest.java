@@ -28,35 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.rpc;
+package org.thingsboard.server.common.transport.activity.strategy;
 
-import io.grpc.stub.StreamObserver;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class SyncedStreamObserver<V> implements StreamObserver<V> {
-    private final StreamObserver<V> delegate;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-    public SyncedStreamObserver(StreamObserver<V> delegate) {
-        this.delegate = delegate;
+public class LastEventActivityStrategyTest {
+
+    private LastEventActivityStrategy strategy;
+
+    @BeforeEach
+    public void setUp() {
+        strategy = LastEventActivityStrategy.getInstance();
     }
 
-    @Override
-    public void onNext(V value) {
-        synchronized (delegate) {
-            delegate.onNext(value);
-        }
+    @Test
+    public void testOnActivity() {
+        assertFalse(strategy.onActivity(), "onActivity() should always return false.");
     }
 
-    @Override
-    public void onError(Throwable t) {
-        synchronized (delegate) {
-            delegate.onError(t);
-        }
+    @Test
+    public void testOnReportingPeriodEnd() {
+        assertTrue(strategy.onReportingPeriodEnd(), "onReportingPeriodEnd() should always return true.");
     }
 
-    @Override
-    public void onCompleted() {
-        synchronized (delegate) {
-            delegate.onCompleted();
-        }
-    }
 }

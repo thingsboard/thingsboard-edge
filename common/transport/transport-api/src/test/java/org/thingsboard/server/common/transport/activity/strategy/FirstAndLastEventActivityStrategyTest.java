@@ -28,35 +28,41 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.rpc;
+package org.thingsboard.server.common.transport.activity.strategy;
 
-import io.grpc.stub.StreamObserver;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class SyncedStreamObserver<V> implements StreamObserver<V> {
-    private final StreamObserver<V> delegate;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-    public SyncedStreamObserver(StreamObserver<V> delegate) {
-        this.delegate = delegate;
+public class FirstAndLastEventActivityStrategyTest {
+
+    private FirstAndLastEventActivityStrategy strategy;
+
+    @BeforeEach
+    public void setUp() {
+        strategy = new FirstAndLastEventActivityStrategy();
     }
 
-    @Override
-    public void onNext(V value) {
-        synchronized (delegate) {
-            delegate.onNext(value);
-        }
+    @Test
+    public void testOnActivity_FirstCall() {
+        assertTrue(strategy.onActivity(), "First call of onActivity() should return true.");
     }
 
-    @Override
-    public void onError(Throwable t) {
-        synchronized (delegate) {
-            delegate.onError(t);
-        }
+    @Test
+    public void testOnActivity_SubsequentCalls() {
+        assertTrue(strategy.onActivity(), "First call of onActivity() should return true.");
+        assertFalse(strategy.onActivity(), "Subsequent calls of onActivity() should return false.");
     }
 
-    @Override
-    public void onCompleted() {
-        synchronized (delegate) {
-            delegate.onCompleted();
-        }
+    @Test
+    public void testOnReportingPeriodEnd() {
+        assertTrue(strategy.onActivity(), "First call of onActivity() should return true.");
+        assertTrue(strategy.onReportingPeriodEnd(), "onReportingPeriodEnd() should always return true.");
+        assertTrue(strategy.onActivity(), "onActivity() should return true after onReportingPeriodEnd() for the next reporting period");
+        assertTrue(strategy.onReportingPeriodEnd(), "onReportingPeriodEnd() should always return true.");
     }
+
+
 }

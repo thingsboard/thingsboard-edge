@@ -28,35 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.rpc;
+package org.thingsboard.server.common.transport.activity.strategy;
 
-import io.grpc.stub.StreamObserver;
+import lombok.EqualsAndHashCode;
 
-public class SyncedStreamObserver<V> implements StreamObserver<V> {
-    private final StreamObserver<V> delegate;
+@EqualsAndHashCode
+public final class FirstEventActivityStrategy implements ActivityStrategy {
 
-    public SyncedStreamObserver(StreamObserver<V> delegate) {
-        this.delegate = delegate;
+    private boolean firstEventReceived;
+
+    @Override
+    public synchronized boolean onActivity() {
+        if (!firstEventReceived) {
+            firstEventReceived = true;
+            return true;
+        }
+        return false;
     }
 
     @Override
-    public void onNext(V value) {
-        synchronized (delegate) {
-            delegate.onNext(value);
-        }
+    public synchronized boolean onReportingPeriodEnd() {
+        firstEventReceived = false;
+        return false;
     }
 
-    @Override
-    public void onError(Throwable t) {
-        synchronized (delegate) {
-            delegate.onError(t);
-        }
-    }
-
-    @Override
-    public void onCompleted() {
-        synchronized (delegate) {
-            delegate.onCompleted();
-        }
-    }
 }
