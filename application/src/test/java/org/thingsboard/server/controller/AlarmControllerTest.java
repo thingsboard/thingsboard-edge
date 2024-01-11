@@ -113,7 +113,7 @@ public class AlarmControllerTest extends AbstractControllerTest {
 
         Alarm alarm = createAlarm(TEST_ALARM_TYPE);
 
-        testNotifyEntityAllOneTime(alarm, alarm.getId(), alarm.getOriginator(),
+        testNotifyEntityOneTimeMsgToEdgeServiceNever(alarm, alarm.getId(), alarm.getOriginator(),
                 tenantId, customerId, customerUserId, CUSTOMER_USER_EMAIL, ActionType.ADDED);
     }
 
@@ -125,7 +125,7 @@ public class AlarmControllerTest extends AbstractControllerTest {
 
         Alarm alarm = createAlarm(TEST_ALARM_TYPE);
 
-        testNotifyEntityAllOneTime(alarm, alarm.getId(), alarm.getOriginator(),
+        testNotifyEntityOneTimeMsgToEdgeServiceNever(alarm, alarm.getId(), alarm.getOriginator(),
                 tenantId, customerId, tenantAdminUserId, TENANT_ADMIN_EMAIL, ActionType.ADDED);
     }
 
@@ -775,7 +775,7 @@ public class AlarmControllerTest extends AbstractControllerTest {
         alarm = doPost("/api/alarm", alarm, Alarm.class);
         Assert.assertNotNull("Saved alarm is null!", alarm);
 
-        testNotifyEntityNeverMsgToEdgeServiceOneTime(alarm, alarm.getId(), tenantId, ActionType.ADDED);
+        testNotifyEntityNever(alarm.getId(), alarm);
 
         resetTokens();
 
