@@ -300,7 +300,6 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
         if (publishSaveEvent) {
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entity(ruleChain).entityId(ruleChain.getId()).build());
         }
-
         return RuleChainUpdateResult.successful(updatedRuleNodes);
     }
 
