@@ -548,8 +548,6 @@ public final class EdgeGrpcSession implements Closeable {
                     case ADDED_TO_ENTITY_GROUP:
                     case REMOVED_FROM_ENTITY_GROUP:
                     case CHANGE_OWNER:
-                    case ASSIGNED_TO_CUSTOMER:
-                    case UNASSIGNED_FROM_CUSTOMER:
                     case ADDED_COMMENT:
                     case UPDATED_COMMENT:
                     case DELETED_COMMENT:

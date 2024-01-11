@@ -479,17 +479,6 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
                 actionType, cntTime, extractMatcherAdditionalInfo(additionalInfo));
     }
 
-    protected void testNotifyEntityOneBroadcastEntityStateChangeEventTimeMsgToEdgeServiceNever(HasName entity, EntityId entityId, EntityId originatorId,
-                                                                                               TenantId tenantId, CustomerId customerId, UserId userId, String userName,
-                                                                                               ActionType actionType, Object... additionalInfo) {
-        testNotificationMsgToEdgeServiceNever(entityId);
-        testLogEntityAction(entity, originatorId, tenantId, customerId, userId, userName, actionType, 1, additionalInfo);
-        ArgumentMatcher<EntityId> matcherOriginatorId = argument -> argument.equals(originatorId);
-        testPushMsgToRuleEngineTime(matcherOriginatorId, tenantId, entity,1);
-        testBroadcastEntityStateChangeEventNever(entityId, tenantId);
-        Mockito.reset(tbClusterService, auditLogService);
-    }
-
     private void testLogEntityActionAdditionalInfo(ArgumentMatcher<HasName> matcherEntity, ArgumentMatcher<EntityId> matcherOriginatorId,
                                                    TenantId tenantId, ArgumentMatcher<CustomerId> matcherCustomerId,
                                                    ArgumentMatcher<UserId> matcherUserId, String userName, ActionType actionType,
