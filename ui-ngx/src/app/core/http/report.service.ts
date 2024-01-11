@@ -41,7 +41,7 @@ import { DOCUMENT } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '@core/auth/auth.service';
 import { OpenReportMessage, ReportResultMessage, WindowMessage } from '@shared/models/window-message.model';
-import { WebsocketCmd } from '@shared/models/telemetry/telemetry.models';
+import { CmdUpdateMsg, WebsocketCmd } from '@shared/models/telemetry/telemetry.models';
 import { CmdWrapper } from '@shared/models/websocket/websocket.models';
 
 // @dynamic
@@ -101,21 +101,17 @@ export class ReportService {
   }
 
   public onSendWsCommands(cmds: CmdWrapper) {
-    for (const key of Object.keys(cmds)) {
-      if (!key.toLowerCase().includes('unsubscribe')) {
-        cmds[key].forEach((cmdComand: any) => {
-          if (typeof cmdComand.cmdId === 'number') {
-            if (!this.receiveWsData.has(cmdComand.cmdId)) {
-              this.receiveWsData.set(cmdComand.cmdId, false);
-              this.lastWsCommandTimeMs = this.utils.currentPerfTime();
-            }
-          }
-        });
+    for (const cmdComand of cmds.cmds as Array<WebsocketCmd>) {
+      if (!cmdComand.type.toLowerCase().includes('unsubscribe')
+        && typeof cmdComand.cmdId === 'number'
+        && !this.receiveWsData.has(cmdComand.cmdId)) {
+        this.receiveWsData.set(cmdComand.cmdId, false);
+        this.lastWsCommandTimeMs = this.utils.currentPerfTime();
       }
     }
   }
 
-  public onWsCmdUpdateMessage(message: WebsocketCmd) {
+  public onWsCmdUpdateMessage(message: CmdUpdateMsg) {
     if (message.cmdId !== undefined) {
       this.receiveWsData.set(message.cmdId, true);
     }

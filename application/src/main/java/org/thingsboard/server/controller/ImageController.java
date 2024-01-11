@@ -68,10 +68,11 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.resource.ImageCacheKey;
 import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
+import org.thingsboard.server.dao.service.validator.ResourceDataValidator;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.dao.resource.ImageCacheKey;
 import org.thingsboard.server.service.resource.TbImageService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
@@ -96,6 +97,8 @@ public class ImageController extends BaseController {
     private final ImageService imageService;
     private final WhiteLabelingService whiteLabelingService;
     private final TbImageService tbImageService;
+    private final ResourceDataValidator resourceValidator;
+
     @Value("${cache.image.systemImagesBrowserTtlInMinutes:0}")
     private int systemImagesBrowserTtlInMinutes;
     @Value("${cache.image.tenantImagesBrowserTtlInMinutes:0}")
@@ -113,6 +116,8 @@ public class ImageController extends BaseController {
         TbResource image = new TbResource();
         image.setTenantId(user.getTenantId());
         image.setCustomerId(user.getCustomerId());
+        resourceValidator.validateResourceSize(user.getTenantId(), null, file.getSize());
+
         image.setFileName(file.getOriginalFilename());
         if (StringUtils.isNotEmpty(title)) {
             image.setTitle(title);
@@ -133,6 +138,8 @@ public class ImageController extends BaseController {
                                       @PathVariable String key,
                                       @RequestPart MultipartFile file) throws Exception {
         TbResourceInfo imageInfo = checkImageInfo(type, key, Operation.WRITE);
+        resourceValidator.validateResourceSize(getTenantId(), imageInfo.getId(), file.getSize());
+
         TbResource image = new TbResource(imageInfo);
         image.setData(file.getBytes());
         image.setFileName(file.getOriginalFilename());

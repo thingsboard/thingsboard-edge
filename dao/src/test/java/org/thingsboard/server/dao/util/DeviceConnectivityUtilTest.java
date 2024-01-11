@@ -28,33 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.ws.telemetry.cmd.v1;
+package org.thingsboard.server.dao.util;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.thingsboard.server.service.ws.WsCmdType;
+import org.junit.jupiter.api.Test;
 
-/**
- * @author Andrew Shvayka
- */
-@NoArgsConstructor
-@AllArgsConstructor
-@Data
-public class GetHistoryCmd implements TelemetryPluginCmd {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    private int cmdId;
-    private String entityType;
-    private String entityId;
-    private String keys;
-    private long startTs;
-    private long endTs;
-    private long interval;
-    private int limit;
-    private String agg;
+class DeviceConnectivityUtilTest {
 
-    @Override
-    public WsCmdType getType() {
-        return WsCmdType.TIMESERIES_HISTORY;
+    @Test
+    void testRootCaPemNaming() {
+        assertThat(DeviceConnectivityUtil.CA_ROOT_CERT_PEM).contains("root");
+        assertThat(DeviceConnectivityUtil.CA_ROOT_CERT_PEM).contains("ca");
+        assertThat(DeviceConnectivityUtil.CA_ROOT_CERT_PEM).endsWith(".pem");
+        assertThat(DeviceConnectivityUtil.CA_ROOT_CERT_PEM).doesNotContainAnyWhitespaces();
     }
+
 }

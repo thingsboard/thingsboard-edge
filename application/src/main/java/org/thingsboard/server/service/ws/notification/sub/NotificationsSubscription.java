@@ -69,6 +69,7 @@ public class NotificationsSubscription extends TbSubscription<NotificationsSubsc
                 .cmdId(getSubscriptionId())
                 .notifications(getSortedNotifications())
                 .totalUnreadCount(totalUnreadCounter.get())
+                .sequenceNumber(sequence.incrementAndGet())
                 .build();
     }
 
@@ -83,6 +84,7 @@ public class NotificationsSubscription extends TbSubscription<NotificationsSubsc
                 .cmdId(getSubscriptionId())
                 .update(notification)
                 .totalUnreadCount(totalUnreadCounter.get())
+                .sequenceNumber(sequence.incrementAndGet())
                 .build();
     }
 
@@ -90,6 +92,7 @@ public class NotificationsSubscription extends TbSubscription<NotificationsSubsc
         return UnreadNotificationsUpdate.builder()
                 .cmdId(getSubscriptionId())
                 .totalUnreadCount(totalUnreadCounter.get())
+                .sequenceNumber(sequence.incrementAndGet())
                 .build();
     }
 
