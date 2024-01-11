@@ -50,6 +50,7 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.TbBiFunction;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -138,7 +139,7 @@ public class RefreshTokenExpCheckService {
     }
     private AdminSettings getTenantMailSettings(TenantId tenantId) throws Exception {
         List<AttributeKvEntry> attributeKvEntries =
-                attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, List.of("mail")).get();
+                attributesService.find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, List.of("mail")).get();
         if (attributeKvEntries != null && !attributeKvEntries.isEmpty()) {
             AdminSettings adminSettings = new AdminSettings();
             adminSettings.setKey("mail");
@@ -155,7 +156,7 @@ public class RefreshTokenExpCheckService {
         List<AttributeKvEntry> attributes = new ArrayList<>();
         long ts = System.currentTimeMillis();
         attributes.add(new BaseAttributeKvEntry(new StringDataEntry(adminSettings.getKey(), jsonString), ts));
-        attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes).get();
+        attributesService.save(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attributes).get();
         return adminSettings;
     }
 }

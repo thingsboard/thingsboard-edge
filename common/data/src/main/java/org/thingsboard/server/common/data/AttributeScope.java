@@ -28,18 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sqlts.dictionary;
+package org.thingsboard.server.common.data;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.thingsboard.server.dao.model.sqlts.dictionary.TsKvDictionary;
-import org.thingsboard.server.dao.model.sqlts.dictionary.TsKvDictionaryCompositeKey;
-import org.thingsboard.server.dao.util.SqlTsOrTsLatestAnyDao;
+import lombok.Getter;
 
-import java.util.Optional;
+public enum AttributeScope {
 
-@SqlTsOrTsLatestAnyDao
-public interface TsKvDictionaryRepository extends JpaRepository<TsKvDictionary, TsKvDictionaryCompositeKey> {
+    CLIENT_SCOPE(1),
+    SERVER_SCOPE(2),
+    SHARED_SCOPE(3);
+    @Getter
+    private final int id;
 
-    Optional<TsKvDictionary> findByKeyId(int keyId);
+    AttributeScope(int id) {
+        this.id = id;
+    }
 
 }

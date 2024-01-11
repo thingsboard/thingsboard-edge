@@ -28,34 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sqlts.latest;
+package org.thingsboard.server.dao.model.sqlts.dictionary;
 
-import org.springframework.stereotype.Repository;
-import org.thingsboard.server.dao.model.sqlts.latest.TsKvLatestEntity;
-import org.thingsboard.server.dao.util.SqlTsLatestAnyDao;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import java.util.List;
-import java.util.UUID;
+import jakarta.persistence.Transient;
+import java.io.Serializable;
 
-@SqlTsLatestAnyDao
-@Repository
-public class SearchTsKvLatestRepository {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class KeyDictionaryCompositeKey implements Serializable{
 
-    public static final String FIND_ALL_BY_ENTITY_ID = "findAllByEntityId";
+    @Transient
+    private static final long serialVersionUID = -4089175869616037523L;
 
-    public static final String FIND_ALL_BY_ENTITY_ID_QUERY = "SELECT ts_kv_latest.entity_id AS entityId, ts_kv_latest.key AS key, key_dictionary.key AS strKey, ts_kv_latest.str_v AS strValue," +
-            " ts_kv_latest.bool_v AS boolValue, ts_kv_latest.long_v AS longValue, ts_kv_latest.dbl_v AS doubleValue, ts_kv_latest.json_v AS jsonValue, ts_kv_latest.ts AS ts FROM ts_kv_latest " +
-            "INNER JOIN key_dictionary ON ts_kv_latest.key = key_dictionary.key_id WHERE ts_kv_latest.entity_id = cast(:id AS uuid)";
-
-    @PersistenceContext
-    private EntityManager entityManager;
-
-    public List<TsKvLatestEntity> findAllByEntityId(UUID entityId) {
-        return entityManager.createNamedQuery(FIND_ALL_BY_ENTITY_ID, TsKvLatestEntity.class)
-                .setParameter("id", entityId)
-                .getResultList();
-    }
-
+    private String key;
 }

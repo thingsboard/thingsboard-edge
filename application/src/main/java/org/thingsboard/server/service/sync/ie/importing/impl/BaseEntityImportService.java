@@ -40,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasOwnerId;
@@ -286,7 +287,7 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
                         })
                         .collect(Collectors.toList());
                 // fixme: attributes are saved outside the transaction
-                tsSubService.saveAndNotify(user.getTenantId(), entity.getId(), scope, attributeKvEntries, new FutureCallback<Void>() {
+                tsSubService.saveAndNotify(user.getTenantId(), entity.getId(), AttributeScope.valueOf(scope), attributeKvEntries, new FutureCallback<Void>() {
                     @Override
                     public void onSuccess(@Nullable Void unused) {
                     }

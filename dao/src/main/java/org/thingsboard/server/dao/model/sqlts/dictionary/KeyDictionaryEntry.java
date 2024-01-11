@@ -30,20 +30,29 @@
  */
 package org.thingsboard.server.dao.model.sqlts.dictionary;
 
-import lombok.AllArgsConstructor;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.Table;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Generated;
 
-import jakarta.persistence.Transient;
-import java.io.Serializable;
+import static org.thingsboard.server.dao.model.ModelConstants.KEY_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.KEY_ID_COLUMN;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class TsKvDictionaryCompositeKey implements Serializable{
+@Entity
+@Table(name = "key_dictionary")
+@IdClass(KeyDictionaryCompositeKey.class)
+public final class KeyDictionaryEntry {
 
-    @Transient
-    private static final long serialVersionUID = -4089175869616037523L;
-
+    @Id
+    @Column(name = KEY_COLUMN)
     private String key;
+
+    @Column(name = KEY_ID_COLUMN, unique = true, columnDefinition = "int")
+    @Generated
+    private int keyId;
+
 }
