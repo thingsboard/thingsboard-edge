@@ -37,8 +37,8 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.server.gen.integration.UplinkMsg;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;

@@ -51,12 +51,13 @@ import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.FSTUtils;
+import org.thingsboard.server.common.data.JavaSerDesUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
@@ -129,8 +130,8 @@ import org.thingsboard.server.service.profile.DefaultTbDeviceProfileCache;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -386,7 +387,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     private void saveEvent(TenantId tenantId, EntityId entityId, TbIntegrationEventProto proto, IntegrationApiCallback callback) {
         try {
-            Event event = FSTUtils.decode(proto.getEvent().toByteArray());
+            Event event = JavaSerDesUtil.decode(proto.getEvent().toByteArray());
             event.setTenantId(tenantId);
             event.setEntityId(entityId.getId());
 
@@ -411,12 +412,12 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                     AttributeKvEntry attr = new BaseAttributeKvEntry(new JsonDataEntry(key, JacksonUtil.toString(value)), event.getCreatedTime());
 
                     saveEventFuture = Futures.transformAsync(saveEventFuture, v -> {
-                        attributesService.save(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(attr));
+                        attributesService.save(tenantId, entityId, AttributeScope.SERVER_SCOPE, Collections.singletonList(attr));
                         return null;
                     }, MoreExecutors.directExecutor());
                 } else if (lcEvent.getLcEventType().equals("STOPPED")) {
                     saveEventFuture = Futures.transformAsync(saveEventFuture, v -> {
-                        attributesService.removeAll(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(key));
+                        attributesService.removeAll(tenantId, entityId, AttributeScope.SERVER_SCOPE, Collections.singletonList(key));
                         return null;
                     }, MoreExecutors.directExecutor());
                 }

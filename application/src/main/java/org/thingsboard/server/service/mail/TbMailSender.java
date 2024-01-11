@@ -44,6 +44,7 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -54,8 +55,8 @@ import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.mail.MailOauth2Provider;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -231,12 +232,12 @@ public class TbMailSender extends JavaMailSenderImpl {
         List<AttributeKvEntry> attributes = new ArrayList<>();
         long ts = System.currentTimeMillis();
         attributes.add(new BaseAttributeKvEntry(new StringDataEntry(adminSettings.getKey(), jsonString), ts));
-        ctx.getAttributesService().save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes).get();
+        ctx.getAttributesService().save(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attributes).get();
     }
 
     private String getEntityAttributeValue(TenantId tenantId, EntityId entityId, String key) throws Exception {
         List<AttributeKvEntry> attributeKvEntries =
-                ctx.getAttributesService().find(tenantId, entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
+                ctx.getAttributesService().find(tenantId, entityId, AttributeScope.SERVER_SCOPE, Arrays.asList(key)).get();
         if (attributeKvEntries != null && !attributeKvEntries.isEmpty()) {
             AttributeKvEntry kvEntry = attributeKvEntries.get(0);
             return kvEntry.getValueAsString();

@@ -50,8 +50,7 @@ import java.util.Arrays;
         "org.thingsboard.integration",
         "org.thingsboard.server.common.stats",
         "org.thingsboard.server.common.transport.config.ssl",
-        "org.thingsboard.server.cache",
-        "org.thingsboard.server.springfox"
+        "org.thingsboard.server.cache"
 })
 public class ThingsboardInstallApplication {
 

@@ -55,8 +55,8 @@ import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.service.integration.IntegrationConfigurationService;
 import org.thingsboard.server.service.integration.IntegrationProtoUtil;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

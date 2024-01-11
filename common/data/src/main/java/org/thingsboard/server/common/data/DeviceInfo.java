@@ -30,28 +30,27 @@
  */
 package org.thingsboard.server.common.data;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import javax.validation.Valid;
 import java.util.List;
 
-@ApiModel
+@Schema
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class DeviceInfo extends Device {
 
     @Valid
-    @ApiModelProperty(position = 14, value = "Owner name", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Owner name", accessMode = Schema.AccessMode.READ_ONLY)
     private String ownerName;
 
     @Valid
-    @ApiModelProperty(position = 15, value = "Groups", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Groups", accessMode = Schema.AccessMode.READ_ONLY)
     private List<EntityInfo> groups;
 
-    @ApiModelProperty(position = 16, value = "Device active flag.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Device active flag.", accessMode = Schema.AccessMode.READ_ONLY)
     private boolean active;
 
     public DeviceInfo() {

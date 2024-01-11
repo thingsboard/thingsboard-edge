@@ -30,8 +30,7 @@
  */
 package org.thingsboard.server.common.data.permission;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -44,30 +43,30 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@ApiModel
+@Schema
 public final class MergedUserPermissions {
 
     @Getter
-    @ApiModelProperty(position = 1, value = "Map of permissions defined using generic roles ('Customer Administrator', etc)")
+    @Schema(description = "Map of permissions defined using generic roles ('Customer Administrator', etc)")
     private final Map<Resource, Set<Operation>> genericPermissions;
 
     @Getter
-    @ApiModelProperty(position = 2, value = "Map of permissions defined using group roles ('Read' or 'Write' access to specific entity group, etc)")
+    @Schema(description = "Map of permissions defined using group roles ('Read' or 'Write' access to specific entity group, etc)")
     private final Map<EntityGroupId, MergedGroupPermissionInfo> groupPermissions;
 
     @Getter
-    @ApiModelProperty(position = 3, value = "Map of read permissions per entity type. Used on the UI to enable/disable certain components.")
+    @Schema(description = "Map of read permissions per entity type. Used on the UI to enable/disable certain components.")
     private final Map<EntityType, MergedGroupTypePermissionInfo> readGroupPermissions;
 
     @Getter
-    @ApiModelProperty(position = 4, value = "Map of read permissions per resource. Used on the UI to enable/disable certain components.")
+    @Schema(description = "Map of read permissions per resource. Used on the UI to enable/disable certain components.")
     private final Map<Resource, MergedGroupTypePermissionInfo> readEntityPermissions;
 
     @Getter
-    @ApiModelProperty(position = 5, value = "Map of read entity attributes permissions per resource. Used on the UI to enable/disable certain tabs.")
+    @Schema(description = "Map of read entity attributes permissions per resource. Used on the UI to enable/disable certain tabs.")
     private final Map<Resource, MergedGroupTypePermissionInfo> readAttrPermissions;
     @Getter
-    @ApiModelProperty(position = 6, value = "Map of read entity time-series permissions per resource. Used on the UI to enable/disable certain tabs.")
+    @Schema(description = "Map of read entity time-series permissions per resource. Used on the UI to enable/disable certain tabs.")
     private final Map<Resource, MergedGroupTypePermissionInfo> readTsPermissions;
 
 

@@ -32,10 +32,9 @@ package org.thingsboard.server.common.data.event;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-@ApiModel
+@Schema
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
         property = "eventType")
@@ -51,7 +50,7 @@ import io.swagger.annotations.ApiModelProperty;
 })
 public interface EventFilter {
 
-    @ApiModelProperty(position = 1, required = true, value = "String value representing the event type", example = "STATS")
+    @Schema(required = true, description = "String value representing the event type", example = "STATS")
     EventType getEventType();
 
     boolean isNotEmpty();

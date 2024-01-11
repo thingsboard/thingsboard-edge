@@ -28,20 +28,45 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.cache;
+package org.thingsboard.server.common.data;
 
-import org.springframework.data.redis.serializer.SerializationException;
-import org.thingsboard.server.common.data.FSTUtils;
+import lombok.extern.slf4j.Slf4j;
 
-public class TbFSTRedisSerializer<K, V> implements TbRedisSerializer<K, V> {
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
-    @Override
-    public byte[] serialize(V value) throws SerializationException {
-        return FSTUtils.encode(value);
+@Slf4j
+public class JavaSerDesUtil {
+
+    @SuppressWarnings("unchecked")
+    public static <T> T decode(byte[] byteArray) {
+        if (byteArray == null || byteArray.length == 0) {
+            return null;
+        }
+        InputStream is = new ByteArrayInputStream(byteArray);
+        try (ObjectInputStream ois = new ObjectInputStream(is)) {
+            return (T) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            log.error("Error during deserialization message, [{}]", e.getMessage());
+            return null;
+        }
     }
 
-    @Override
-    public V deserialize(K key, byte[] bytes) throws SerializationException {
-        return FSTUtils.decode(bytes);
+    public static <T> byte[] encode(T msq) {
+        if (msq == null) {
+            return null;
+        }
+        ByteArrayOutputStream boas = new ByteArrayOutputStream();
+        try (ObjectOutputStream ois = new ObjectOutputStream(boas)) {
+            ois.writeObject(msq);
+            return boas.toByteArray();
+        } catch (IOException e) {
+            log.error("Error during serialization message, [{}]", e.getMessage());
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -64,7 +64,7 @@ import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
 
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;

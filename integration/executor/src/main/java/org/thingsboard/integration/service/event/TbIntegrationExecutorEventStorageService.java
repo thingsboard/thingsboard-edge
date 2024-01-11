@@ -38,7 +38,7 @@ import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.integration.service.api.IntegrationApiService;
-import org.thingsboard.server.common.data.FSTUtils;
+import org.thingsboard.server.common.data.JavaSerDesUtil;
 import org.thingsboard.server.common.data.event.LifecycleEvent;
 import org.thingsboard.server.common.data.event.StatisticsEvent;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -108,7 +108,7 @@ public class TbIntegrationExecutorEventStorageService implements EventStorageSer
         }
 
         var builder = TbIntegrationEventProto.newBuilder().setSource(eventSource)
-                .setEvent(ByteString.copyFrom(FSTUtils.encode(event.build())));
+                .setEvent(ByteString.copyFrom(JavaSerDesUtil.encode(event.build())));
         builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
         builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());
         builder.setEventSourceIdMSB(entityId.getId().getMostSignificantBits());
@@ -123,7 +123,7 @@ public class TbIntegrationExecutorEventStorageService implements EventStorageSer
 
         var builder = TbIntegrationEventProto.newBuilder()
                 .setSource(TbEventSource.INTEGRATION)
-                .setEvent(ByteString.copyFrom(FSTUtils.encode(StatisticsEvent.builder()
+                .setEvent(ByteString.copyFrom(JavaSerDesUtil.encode(StatisticsEvent.builder()
                         .tenantId(tenantId)
                         .entityId(id.getId())
                         .serviceId(serviceInfoProvider.getServiceId())

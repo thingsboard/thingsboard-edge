@@ -30,8 +30,10 @@
  */
 package org.thingsboard.server.controller;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -58,6 +60,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.blob.TbBlobService;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -69,7 +72,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.ControllerConstants.BLOB_ENTITY_ID_PARAM_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.BLOB_ENTITY_SORT_PROPERTY_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.BLOB_ENTITY_TEXT_SEARCH_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.BLOB_ENTITY_TYPE_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
@@ -77,7 +79,6 @@ import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_DELETE_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
-import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
@@ -106,12 +107,12 @@ public class BlobEntityController extends BaseController {
             notes = "Fetch the BlobEntityWithCustomerInfo object based on the provided Blob entity Id. " +
                     BLOB_ENTITY_INFO_WITH_CUSTOMER_INFO_DESCRIPTION + INVALID_BLOB_ENTITY_ID +
                     TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/blobEntity/info/{blobEntityId}", method = RequestMethod.GET)
     @ResponseBody
     public BlobEntityWithCustomerInfo getBlobEntityInfoById(
-            @ApiParam(value = BLOB_ENTITY_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = BLOB_ENTITY_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(BLOB_ENTITY_ID) String strBlobEntityId) throws ThingsboardException {
         checkParameter(BLOB_ENTITY_ID, strBlobEntityId);
         BlobEntityId blobEntityId = new BlobEntityId(toUUID(strBlobEntityId));
@@ -125,7 +126,7 @@ public class BlobEntityController extends BaseController {
     @RequestMapping(value = "/blobEntity/{blobEntityId}/download", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<Resource> downloadBlobEntity(
-            @ApiParam(value = BLOB_ENTITY_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = BLOB_ENTITY_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(BLOB_ENTITY_ID) String strBlobEntityId) throws ThingsboardException {
         checkParameter(BLOB_ENTITY_ID, strBlobEntityId);
         BlobEntityId blobEntityId = new BlobEntityId(toUUID(strBlobEntityId));
@@ -146,7 +147,7 @@ public class BlobEntityController extends BaseController {
     @RequestMapping(value = "/blobEntity/{blobEntityId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteBlobEntity(
-            @ApiParam(value = BLOB_ENTITY_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = BLOB_ENTITY_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(BLOB_ENTITY_ID) String strBlobEntityId) throws ThingsboardException {
         checkParameter(BLOB_ENTITY_ID, strBlobEntityId);
         BlobEntityId blobEntityId = new BlobEntityId(toUUID(strBlobEntityId));
@@ -158,26 +159,26 @@ public class BlobEntityController extends BaseController {
             notes = "Returns a page of BlobEntityWithCustomerInfo object that are available for the current user. "
                     + BLOB_ENTITY_INFO_WITH_CUSTOMER_INFO_DESCRIPTION + PAGE_DATA_PARAMETERS
                     + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/blobEntities", method = RequestMethod.GET)
     @ResponseBody
     public PageData<BlobEntityWithCustomerInfo> getBlobEntities(
-            @ApiParam(value = PAGE_SIZE_DESCRIPTION)
+            @Parameter(description = PAGE_SIZE_DESCRIPTION)
             @RequestParam int pageSize,
-            @ApiParam(value = PAGE_NUMBER_DESCRIPTION)
+            @Parameter(description = PAGE_NUMBER_DESCRIPTION)
             @RequestParam int page,
-            @ApiParam(value = BLOB_ENTITY_TYPE_DESCRIPTION)
+            @Parameter(description = BLOB_ENTITY_TYPE_DESCRIPTION)
             @RequestParam(required = false) String type,
-            @ApiParam(value = BLOB_ENTITY_TEXT_SEARCH_DESCRIPTION)
+            @Parameter(description = BLOB_ENTITY_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
-            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = BLOB_ENTITY_SORT_PROPERTY_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {"createdTime", "name", "type", "contentType", "customerTitle"}))
             @RequestParam(required = false) String sortProperty,
-            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
             @RequestParam(required = false) String sortOrder,
-            @ApiParam(value = BLOB_ENTITY_QUERY_START_TIME_DESCRIPTION)
+            @Parameter(description = BLOB_ENTITY_QUERY_START_TIME_DESCRIPTION)
             @RequestParam(required = false) Long startTime,
-            @ApiParam(value = BLOB_ENTITY_QUERY_END_TIME_DESCRIPTION)
+            @Parameter(description = BLOB_ENTITY_QUERY_END_TIME_DESCRIPTION)
             @RequestParam(required = false) Long endTime
     ) throws ThingsboardException {
         TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
@@ -204,12 +205,12 @@ public class BlobEntityController extends BaseController {
     @ApiOperation(value = "Get Blob Entities By Ids (getBlobEntitiesByIds)",
             notes = "Requested blob entities must be owned by tenant or assigned to customer which user is performing the request. "
                     + BLOB_ENTITY_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/blobEntities", params = {"blobEntityIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<BlobEntityInfo> getBlobEntitiesByIds(
-            @ApiParam(value = "A list of blob entity ids, separated by comma ','", required = true) @RequestParam("blobEntityIds") String[] strBlobEntityIds) throws ThingsboardException, ExecutionException, InterruptedException {
+            @Parameter(description = "A list of blob entity ids, separated by comma ','", required = true) @RequestParam("blobEntityIds") String[] strBlobEntityIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("blobEntityIds", strBlobEntityIds);
         if (!accessControlService.hasPermission(getCurrentUser(), org.thingsboard.server.common.data.permission.Resource.BLOB_ENTITY, Operation.READ)) {
             return Collections.emptyList();

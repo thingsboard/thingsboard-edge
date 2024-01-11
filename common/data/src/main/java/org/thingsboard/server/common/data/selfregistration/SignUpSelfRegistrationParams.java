@@ -30,27 +30,26 @@
  */
 package org.thingsboard.server.common.data.selfregistration;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-@ApiModel
+@Schema
 @Data
 @EqualsAndHashCode
 public class SignUpSelfRegistrationParams {
 
-    @ApiModelProperty(position = 2, name = "The text message to appear on login form")
+    @Schema(description = "The text message to appear on login form")
     protected String signUpTextMessage;
-    @ApiModelProperty(position = 3, name = "Captcha site key for 'I'm not a robot' validation")
+    @Schema(description = "Captcha site key for 'I'm not a robot' validation")
     protected String captchaSiteKey;
-    @ApiModelProperty(position = 4, name = "Captcha version ('v2' = Challenge: display checkbox, 'v3' = Score based)")
+    @Schema(description = "Captcha version ('v2' = Challenge: display checkbox, 'v3' = Score based)")
     protected String captchaVersion;
-    @ApiModelProperty(position = 5, name = "Optional action name used for logging (for captcha version 'v3' only)")
+    @Schema(description = "Optional action name used for logging (for captcha version 'v3' only)")
     protected String captchaAction;
-    @ApiModelProperty(position = 6, name = "Show or hide 'Privacy Policy'")
+    @Schema(description = "Show or hide 'Privacy Policy'")
     protected Boolean showPrivacyPolicy;
-    @ApiModelProperty(position = 7, name = "Show or hide 'Terms of Use'")
+    @Schema(description = "Show or hide 'Terms of Use'")
     protected Boolean showTermsOfUse;
 
 }

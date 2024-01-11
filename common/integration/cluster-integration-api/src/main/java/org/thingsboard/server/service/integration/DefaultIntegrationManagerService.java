@@ -93,8 +93,8 @@ import org.thingsboard.server.service.integration.state.IntegrationState;
 import org.thingsboard.server.service.integration.state.ValidationTask;
 import org.thingsboard.server.service.integration.state.ValidationTaskType;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;

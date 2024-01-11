@@ -37,6 +37,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -161,7 +162,7 @@ public class BaseCustomTranslationService implements CustomTranslationService {
     private String getEntityAttributeValue(TenantId tenantId, EntityId entityId) {
         List<AttributeKvEntry> attributeKvEntries;
         try {
-            attributeKvEntries = attributesService.find(tenantId, entityId, DataConstants.SERVER_SCOPE, Arrays.asList(CUSTOM_TRANSLATION_ATTR_NAME)).get();
+            attributeKvEntries = attributesService.find(tenantId, entityId, AttributeScope.SERVER_SCOPE, Arrays.asList(CUSTOM_TRANSLATION_ATTR_NAME)).get();
         } catch (Exception e) {
             log.error("Unable to read custom translation from attributes!", e);
             throw new IncorrectParameterException("Unable to read custom translation from attributes!");
@@ -192,7 +193,7 @@ public class BaseCustomTranslationService implements CustomTranslationService {
         long ts = System.currentTimeMillis();
         attributes.add(new BaseAttributeKvEntry(new StringDataEntry(CUSTOM_TRANSLATION_ATTR_NAME, value), ts));
         try {
-            attributesService.save(tenantId, entityId, DataConstants.SERVER_SCOPE, attributes).get();
+            attributesService.save(tenantId, entityId, AttributeScope.SERVER_SCOPE, attributes).get();
         } catch (Exception e) {
             log.error("Unable to save custom translation to attributes!", e);
             throw new IncorrectParameterException("Unable to save custom translation to attributes!");

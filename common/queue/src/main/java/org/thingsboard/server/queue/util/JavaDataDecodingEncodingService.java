@@ -28,34 +28,40 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.util.mapping;
+package org.thingsboard.server.queue.util;
 
-import org.hibernate.type.AbstractSingleColumnStandardBasicType;
-import org.hibernate.usertype.DynamicParameterizedType;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.FstStatsService;
+import org.thingsboard.server.common.data.JavaSerDesUtil;
 
-import java.util.Properties;
+import java.util.Optional;
 
-public class JsonBinaryType extends AbstractSingleColumnStandardBasicType<Object> implements DynamicParameterizedType {
+@Slf4j
+@Service
+public class JavaDataDecodingEncodingService implements DataDecodingEncodingService {
 
-    public JsonBinaryType() {
-        super(
-                JsonBinarySqlTypeDescriptor.INSTANCE,
-                new JsonTypeDescriptor()
-        );
-    }
+    @Autowired
+    private FstStatsService fstStatsService;
 
-    public String getName() {
-        return "jsonb";
+    @Override
+    public <T> Optional<T> decode(byte[] byteArray) {
+        long startTime = System.nanoTime();
+        Optional<T> optional = Optional.ofNullable(JavaSerDesUtil.decode(byteArray));
+        optional.ifPresent(obj -> {
+            fstStatsService.recordDecodeTime(obj.getClass(), startTime);
+            fstStatsService.incrementDecode(obj.getClass());
+        });
+        return optional;
     }
 
     @Override
-    protected boolean registerUnderJavaType() {
-        return true;
-    }
-
-    @Override
-    public void setParameterValues(Properties parameters) {
-        ((JsonTypeDescriptor) getJavaTypeDescriptor())
-                .setParameterValues(parameters);
+    public <T> byte[] encode(T msq) {
+        long startTime = System.nanoTime();
+        var bytes = JavaSerDesUtil.encode(msq);
+        fstStatsService.recordEncodeTime(msq.getClass(), startTime);
+        fstStatsService.incrementEncode(msq.getClass());
+        return bytes;
     }
 }

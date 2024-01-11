@@ -31,6 +31,9 @@
 package org.thingsboard.server.service.mail;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.activation.DataSource;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.util.ByteArrayDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +53,7 @@ import org.thingsboard.server.common.data.ApiFeature;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.ApiUsageRecordState;
 import org.thingsboard.server.common.data.ApiUsageStateValue;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.blob.BlobEntity;
@@ -68,9 +72,6 @@ import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 
-import javax.activation.DataSource;
-import javax.mail.internet.MimeMessage;
-import javax.mail.util.ByteArrayDataSource;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -297,7 +298,7 @@ public class DefaultMailService implements MailService {
                     for (String imgId : tbEmail.getImages().keySet()) {
                         String imgValue = tbEmail.getImages().get(imgId);
                         String value = imgValue.replaceFirst("^data:image/[^;]*;base64,?", "");
-                        byte[] bytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(value);
+                        byte[] bytes = jakarta.xml.bind.DatatypeConverter.parseBase64Binary(value);
                         String contentType = helper.getFileTypeMap().getContentType(imgId);
                         InputStreamSource iss = () -> new ByteArrayInputStream(bytes);
                         helper.addInline(imgId, iss, contentType);
@@ -573,7 +574,7 @@ public class DefaultMailService implements MailService {
 
     private String getEntityAttributeValue(TenantId tenantId, EntityId entityId, String key) throws Exception {
         List<AttributeKvEntry> attributeKvEntries =
-                attributesService.find(tenantId, entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
+                attributesService.find(tenantId, entityId, AttributeScope.SERVER_SCOPE, Arrays.asList(key)).get();
         if (attributeKvEntries != null && !attributeKvEntries.isEmpty()) {
             AttributeKvEntry kvEntry = attributeKvEntries.get(0);
             return kvEntry.getValueAsString();

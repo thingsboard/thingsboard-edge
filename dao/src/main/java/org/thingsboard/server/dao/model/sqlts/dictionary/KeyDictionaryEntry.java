@@ -28,23 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.model.sqlts.dictionary;
 
-import lombok.extern.slf4j.Slf4j;
-import org.nustaq.serialization.FSTConfiguration;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.Table;
+import lombok.Data;
+import org.hibernate.annotations.Generated;
 
-@Slf4j
-public class FSTUtils {
+import static org.thingsboard.server.dao.model.ModelConstants.KEY_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.KEY_ID_COLUMN;
 
-    public static final FSTConfiguration CONFIG = FSTConfiguration.createDefaultConfiguration();
+@Data
+@Entity
+@Table(name = "key_dictionary")
+@IdClass(KeyDictionaryCompositeKey.class)
+public final class KeyDictionaryEntry {
 
-    @SuppressWarnings("unchecked")
-    public static <T> T decode(byte[] byteArray) {
-        return byteArray != null && byteArray.length > 0 ? (T) CONFIG.asObject(byteArray) : null;
-    }
+    @Id
+    @Column(name = KEY_COLUMN)
+    private String key;
 
-    public static <T> byte[] encode(T msq) {
-        return CONFIG.asByteArray(msq);
-    }
+    @Column(name = KEY_ID_COLUMN, unique = true, columnDefinition = "int")
+    @Generated
+    private int keyId;
 
 }

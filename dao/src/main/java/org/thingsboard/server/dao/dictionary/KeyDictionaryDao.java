@@ -28,49 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.util.mapping;
+package org.thingsboard.server.dao.dictionary;
 
-import org.hibernate.type.descriptor.ValueBinder;
-import org.hibernate.type.descriptor.WrapperOptions;
-import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
-import org.hibernate.type.descriptor.sql.BasicBinder;
 
-import java.sql.CallableStatement;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+public interface KeyDictionaryDao {
 
-public class JsonStringSqlTypeDescriptor
-        extends AbstractJsonSqlTypeDescriptor {
+    Integer getOrSaveKeyId(String strKey);
 
-    public static final JsonStringSqlTypeDescriptor INSTANCE =
-            new JsonStringSqlTypeDescriptor();
+    String getKey(Integer keyId);
 
-    @Override
-    public <X> ValueBinder<X> getBinder(
-            final JavaTypeDescriptor<X> javaTypeDescriptor) {
-        return new BasicBinder<X>(javaTypeDescriptor, this) {
-            @Override
-            protected void doBind(
-                    PreparedStatement st,
-                    X value,
-                    int index,
-                    WrapperOptions options) throws SQLException {
-                st.setString(index,
-                        javaTypeDescriptor.unwrap(value, String.class, options)
-                );
-            }
-
-            @Override
-            protected void doBind(
-                    CallableStatement st,
-                    X value,
-                    String name,
-                    WrapperOptions options)
-                    throws SQLException {
-                st.setString(name,
-                        javaTypeDescriptor.unwrap(value, String.class, options
-                        ));
-            }
-        };
-    }
 }

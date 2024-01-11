@@ -52,7 +52,7 @@ public interface DashboardRepository extends JpaRepository<DashboardEntity, UUID
 
     Page<DashboardEntity> findByTenantId(UUID tenantId, Pageable pageable);
 
-    @Query("SELECT d.id FROM DashboardEntity d WHERE d.tenantId = :tenantId AND (d.customerId is null OR d.customerId = '13814000-1dd2-11b2-8080-808080808080')")
+    @Query("SELECT d.id FROM DashboardEntity d WHERE d.tenantId = :tenantId AND (d.customerId is null OR d.customerId = uuid('13814000-1dd2-11b2-8080-808080808080'))")
     Page<UUID> findIdsByTenantIdAndNullCustomerId(@Param("tenantId") UUID tenantId, Pageable pageable);
 
     @Query("SELECT d.id FROM DashboardEntity d WHERE d.tenantId = :tenantId AND d.customerId = :customerId")

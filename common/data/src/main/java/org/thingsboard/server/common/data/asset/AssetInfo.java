@@ -30,26 +30,25 @@
  */
 package org.thingsboard.server.common.data.asset;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.EntityInfo;
 
-import javax.validation.Valid;
 import java.util.List;
 
-@ApiModel
+@Schema
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class AssetInfo extends Asset {
 
     @Valid
-    @ApiModelProperty(position = 10, value = "Owner name", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Owner name", accessMode = Schema.AccessMode.READ_ONLY)
     private String ownerName;
 
     @Valid
-    @ApiModelProperty(position = 11, value = "Groups", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Groups", accessMode = Schema.AccessMode.READ_ONLY)
     private List<EntityInfo> groups;
 
     public AssetInfo() {

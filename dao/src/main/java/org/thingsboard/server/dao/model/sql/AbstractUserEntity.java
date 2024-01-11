@@ -31,10 +31,13 @@
 package org.thingsboard.server.dao.model.sql;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.MappedSuperclass;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -43,23 +46,19 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.util.mapping.JsonStringType;
+import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
-import javax.persistence.Column;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.MappedSuperclass;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TypeDef(name = "json", typeClass = JsonStringType.class)
 @MappedSuperclass
 public abstract class AbstractUserEntity<T extends User> extends BaseSqlEntity<T> implements BaseEntity<T> {
 
-    public static final Map<String,String> userColumnMap = new HashMap<>();
+    public static final Map<String, String> userColumnMap = new HashMap<>();
+
     static {
         userColumnMap.put("name", "email");
     }
@@ -86,7 +85,7 @@ public abstract class AbstractUserEntity<T extends User> extends BaseSqlEntity<T
     @Column(name = ModelConstants.PHONE_PROPERTY)
     private String phone;
 
-    @Type(type = "json")
+    @Convert(converter = JsonConverter.class)
     @Column(name = ModelConstants.USER_ADDITIONAL_INFO_PROPERTY)
     private JsonNode additionalInfo;
 

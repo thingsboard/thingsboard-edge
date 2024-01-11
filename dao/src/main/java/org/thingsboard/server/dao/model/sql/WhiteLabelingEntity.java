@@ -31,10 +31,16 @@
 package org.thingsboard.server.dao.model.sql;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -42,15 +48,8 @@ import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.ToData;
-import org.thingsboard.server.dao.util.mapping.JsonStringType;
+import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.Table;
 import java.io.Serializable;
 import java.util.UUID;
 
@@ -60,7 +59,6 @@ import static org.thingsboard.server.dao.model.ModelConstants.WHITE_LABELING_SET
 
 @Data
 @NoArgsConstructor
-@TypeDef(name = "json", typeClass = JsonStringType.class)
 @Entity
 @Table(name = ModelConstants.WHITE_LABELING_TABLE_NAME)
 @IdClass(WhiteLabelingCompositeKey.class)
@@ -79,7 +77,7 @@ public class WhiteLabelingEntity implements ToData<WhiteLabeling>, Serializable 
     @Column(name = WHITE_LABELING_SETTINGS_TYPE)
     private WhiteLabelingType type;
 
-    @Type(type = "json")
+    @Convert(converter = JsonConverter.class)
     @Column(name = ModelConstants.WHITE_LABELING_SETTINGS)
     private JsonNode settings;
 

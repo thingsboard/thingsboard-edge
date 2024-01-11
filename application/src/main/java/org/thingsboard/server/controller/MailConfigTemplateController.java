@@ -31,7 +31,6 @@
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -42,6 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.mail.TbMailConfigTemplateService;
 

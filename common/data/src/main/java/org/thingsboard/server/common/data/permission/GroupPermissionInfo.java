@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.common.data.permission;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.role.Role;
@@ -40,24 +40,24 @@ public class GroupPermissionInfo extends GroupPermission {
 
     private static final long serialVersionUID = 2807343092519543363L;
 
-    @ApiModelProperty(position = 9, value = "Represent set of permissions.")
+    @Schema(description = "Represent set of permissions.")
     private Role role;
 
-    @ApiModelProperty(position = 10, value = "Entity Group Name.")
+    @Schema(description = "Entity Group Name.")
     private String entityGroupName;
-    @ApiModelProperty(position = 11, value = "Entity Group Owner Id (Tenant or Customer).")
+    @Schema(description = "Entity Group Owner Id (Tenant or Customer).")
     private EntityId entityGroupOwnerId;
-    @ApiModelProperty(position = 12, value = "Name of the entity group owner (Tenant or Customer title).")
+    @Schema(description = "Name of the entity group owner (Tenant or Customer title).")
     private String entityGroupOwnerName;
 
-    @ApiModelProperty(position = 13, value = "User Group Name.")
+    @Schema(description = "User Group Name.")
     private String userGroupName;
-    @ApiModelProperty(position = 14, value = "User Group Owner Id (Tenant or Customer).")
+    @Schema(description = "User Group Owner Id (Tenant or Customer).")
     private EntityId userGroupOwnerId;
-    @ApiModelProperty(position = 15, value = "Name of the user group owner (Tenant or Customer title).")
+    @Schema(description = "Name of the user group owner (Tenant or Customer title).")
     private String userGroupOwnerName;
 
-    @ApiModelProperty(position = 16, value = "Shortcut to check if read operations allowed.")
+    @Schema(description = "Shortcut to check if read operations allowed.")
     private boolean isReadOnly;
 
     public GroupPermissionInfo() {

@@ -32,6 +32,7 @@ package org.thingsboard.rule.engine.profile;
 
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -77,7 +78,7 @@ public class DynamicPredicateValueCtxImpl implements DynamicPredicateValueCtx {
 
     private EntityKeyValue getValue(EntityId entityId, String key) {
         try {
-            Optional<AttributeKvEntry> entry = ctx.getAttributesService().find(tenantId, entityId, DataConstants.SERVER_SCOPE, key).get();
+            Optional<AttributeKvEntry> entry = ctx.getAttributesService().find(tenantId, entityId, AttributeScope.SERVER_SCOPE, key).get();
             if (entry.isPresent()) {
                 return DeviceState.toEntityValue(entry.get());
             }

@@ -28,22 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.model.sqlts.dictionary;
+package org.thingsboard.server.dao.util.mapping;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
+import org.thingsboard.common.util.JacksonUtil;
 
-import javax.persistence.Transient;
-import java.io.Serializable;
+@Converter
+public class JsonConverter implements AttributeConverter<JsonNode, String> {
+    @Override
+    public String convertToDatabaseColumn(JsonNode jsonNode) {
+        return JacksonUtil.toString(jsonNode);
+    }
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class TsKvDictionaryCompositeKey implements Serializable{
-
-    @Transient
-    private static final long serialVersionUID = -4089175869616037523L;
-
-    private String key;
+    @Override
+    public JsonNode convertToEntityAttribute(String s) {
+        return JacksonUtil.toJsonNode(s);
+    }
 }

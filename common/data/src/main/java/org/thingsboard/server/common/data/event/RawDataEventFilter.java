@@ -30,22 +30,21 @@
  */
 package org.thingsboard.server.common.data.event;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.thingsboard.server.common.data.StringUtils;
 
 @Data
-@ApiModel
+@Schema
 public class RawDataEventFilter implements EventFilter {
 
-    @ApiModelProperty(position = 1, value = "String value representing the server name, identifier or ip address where the platform is running", example = "ip-172-31-24-152")
+    @Schema(description = "String value representing the server name, identifier or ip address where the platform is running", example = "ip-172-31-24-152")
     protected String server;
-    @ApiModelProperty(position = 2, value = "String value representing the uuid", example = "STARTED")
+    @Schema(description = "String value representing the uuid", example = "STARTED")
     protected String uuid;
-    @ApiModelProperty(position = 3, value = "String value representing the message type")
+    @Schema(description = "String value representing the message type")
     protected String messageType;
-    @ApiModelProperty(position = 4, value = "String value representing the message")
+    @Schema(description = "String value representing the message")
     protected String message;
 
     @Override

@@ -28,51 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.util;
+package org.thingsboard.server.config.annotations;
 
-import lombok.extern.slf4j.Slf4j;
-import org.nustaq.serialization.FSTConfiguration;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.FSTUtils;
-import org.thingsboard.server.common.data.FstStatsService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import org.springframework.core.annotation.AliasFor;
 
-import java.util.Optional;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-@Slf4j
-@Service
-public class ProtoWithFSTService implements DataDecodingEncodingService {
+@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Operation
+public @interface ApiOperation {
 
-    @Autowired
-    private FstStatsService fstStatsService;
+    @AliasFor(annotation = Operation.class, attribute = "summary")
+    String value();
 
-    public static final FSTConfiguration CONFIG = FSTConfiguration.createDefaultConfiguration();
+    @AliasFor(annotation = Operation.class, attribute = "description")
+    String notes() default "";
 
-    @Override
-    public <T> Optional<T> decode(byte[] byteArray) {
-        try {
-            long startTime = System.nanoTime();
-            Optional<T> optional = Optional.ofNullable(FSTUtils.decode(byteArray));
-            optional.ifPresent(obj -> {
-                fstStatsService.recordDecodeTime(obj.getClass(), startTime);
-                fstStatsService.incrementDecode(obj.getClass());
-            });
-            return optional;
-        } catch (IllegalArgumentException e) {
-            log.error("Error during deserialization message, [{}]", e.getMessage());
-            return Optional.empty();
-        }
-    }
+    boolean hidden() default false;
 
+    RequestBody requestBody() default @RequestBody;
 
-    @Override
-    public <T> byte[] encode(T msq) {
-        long startTime = System.nanoTime();
-        var bytes = FSTUtils.encode(msq);
-        fstStatsService.recordEncodeTime(msq.getClass(), startTime);
-        fstStatsService.incrementEncode(msq.getClass());
-        return bytes;
-    }
-
+    ApiResponse[] responses() default {};
 
 }

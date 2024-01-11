@@ -30,17 +30,17 @@
  */
 package org.thingsboard.server.common.data.blob;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 
 @Data
 public class BlobEntityWithCustomerInfo extends BlobEntityInfo {
 
-    @ApiModelProperty(position = 10, value = "Title of the customer", example = "Company A")
+    @Schema(description = "Title of the customer", example = "Company A")
     private String customerTitle;
 
-    @ApiModelProperty(position = 11, value = "Parameter that specifies if customer is public", accessMode = ApiModelProperty.AccessMode.READ_ONLY,  dataType = "boolean")
+    @Schema(description = "Parameter that specifies if customer is public", accessMode = Schema.AccessMode.READ_ONLY, type = "boolean")
     private boolean customerIsPublic;
 
     public BlobEntityWithCustomerInfo() {

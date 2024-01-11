@@ -31,12 +31,11 @@
 package org.thingsboard.server.common.data.wl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.StringUtils;
 
-@ApiModel
+@Schema
 @Data
 @EqualsAndHashCode
 @JsonIgnoreProperties(ignoreUnknown = true)

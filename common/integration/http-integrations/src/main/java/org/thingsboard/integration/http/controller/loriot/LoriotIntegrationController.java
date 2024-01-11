@@ -31,7 +31,7 @@
 package org.thingsboard.integration.http.controller.loriot;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,7 +53,7 @@ import java.util.Map;
 @Slf4j
 public class LoriotIntegrationController extends BaseIntegrationController {
 
-    @ApiOperation(value = "Process request from LORIOT platform", hidden = true)
+    @Operation(description = "Process request from LORIOT platform", hidden = true)
     @SuppressWarnings({"rawtypes", "unchecked"})
     @RequestMapping(value = "/{routingKey}")
     @ResponseStatus(value = HttpStatus.OK)

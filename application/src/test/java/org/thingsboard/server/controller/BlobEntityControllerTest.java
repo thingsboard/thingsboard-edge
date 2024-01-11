@@ -252,7 +252,7 @@ public class BlobEntityControllerTest extends AbstractControllerTest {
         TimePageLink pageLink = new TimePageLink(10, 0);
         doReturn(blobEntityWithCustomerInfos).when(blobEntityService).findBlobEntitiesByTenantIdAndType(Mockito.eq(tenantId), Mockito.eq(type), Mockito.eq(pageLink));
 
-        var response = doGetTyped("/api/blobEntities/?page=" + pageLink.getPage() + "&pageSize=" + pageLink.getPageSize() + "&type=" + type,
+        var response = doGetTyped("/api/blobEntities?page=" + pageLink.getPage() + "&pageSize=" + pageLink.getPageSize() + "&type=" + type,
                 new TypeReference<PageData<BlobEntityWithCustomerInfo>>() {
                 });
         Assert.assertEquals(cntBlobEntityInfo, response.getData().size());
@@ -263,7 +263,7 @@ public class BlobEntityControllerTest extends AbstractControllerTest {
         PageData<BlobEntityWithCustomerInfo> blobEntityWithCustomerInfosPageDataWithoutType = pageDataBlobEntityInfo(cntBlobEntityInfoWithoutType, totalPage, blobEntityWithCustomerInfos.getData());
         doReturn(blobEntityWithCustomerInfosPageDataWithoutType).when(blobEntityService).findBlobEntitiesByTenantId(Mockito.eq(tenantId), Mockito.eq(pageLink));
 
-        response = doGetTyped("/api/blobEntities/?page=" + pageLink.getPage() + "&pageSize=" + pageLink.getPageSize(),
+        response = doGetTyped("/api/blobEntities?page=" + pageLink.getPage() + "&pageSize=" + pageLink.getPageSize(),
                 new TypeReference<>() {
                 });
         long cntBlobEntityInfoAll = cntBlobEntityInfo + cntBlobEntityInfoWithoutType;
@@ -284,7 +284,7 @@ public class BlobEntityControllerTest extends AbstractControllerTest {
         TimePageLink pageLink = new TimePageLink(10, 0);
         doReturn(blobEntityWithCustomerInfos).when(blobEntityService).findBlobEntitiesByTenantIdAndCustomerIdAndType(Mockito.eq(tenantId), Mockito.eq(customerId), Mockito.eq(type), Mockito.eq(pageLink));
 
-        var response = doGetTyped("/api/blobEntities/?page=" + pageLink.getPage() + "&pageSize=" + pageLink.getPageSize() + "&type=" + type,
+        var response = doGetTyped("/api/blobEntities?page=" + pageLink.getPage() + "&pageSize=" + pageLink.getPageSize() + "&type=" + type,
                 new TypeReference<PageData<BlobEntityWithCustomerInfo>>() {
                 });
         Assert.assertEquals(cntBlobEntityInfo, response.getData().size());
@@ -295,7 +295,7 @@ public class BlobEntityControllerTest extends AbstractControllerTest {
         PageData<BlobEntityWithCustomerInfo> blobEntityWithCustomerInfosPageDataWithoutType = pageDataBlobEntityInfo(cntBlobEntityInfoWithoutType, totalPage, blobEntityWithCustomerInfos.getData());
         doReturn(blobEntityWithCustomerInfosPageDataWithoutType).when(blobEntityService).findBlobEntitiesByTenantIdAndCustomerId(Mockito.eq(tenantId), Mockito.eq(customerId), Mockito.eq(pageLink));
 
-        response = doGetTyped("/api/blobEntities/?page=" + pageLink.getPage() + "&pageSize=" + pageLink.getPageSize(),
+        response = doGetTyped("/api/blobEntities?page=" + pageLink.getPage() + "&pageSize=" + pageLink.getPageSize(),
                 new TypeReference<>() {
                 });
         long cntBlobEntityInfoAll = cntBlobEntityInfo + cntBlobEntityInfoWithoutType;
@@ -309,7 +309,7 @@ public class BlobEntityControllerTest extends AbstractControllerTest {
         loginDifferentCustomer();
 
         TimePageLink pageLink = new TimePageLink(10, 0);
-        var response = doGetTyped("/api/blobEntities/?page=" + pageLink.getPage()
+        var response = doGetTyped("/api/blobEntities?page=" + pageLink.getPage()
                         + "&pageSize=" + pageLink.getPageSize(),
                 new TypeReference<PageData<BlobEntityWithCustomerInfo>>() {
                 });
@@ -336,7 +336,7 @@ public class BlobEntityControllerTest extends AbstractControllerTest {
         String strBlobEntityIds = String.join(",", blobEntityIdStrs);
         doReturn(Futures.immediateFuture(blobEntityInfos)).when(blobEntityService).findBlobEntityInfoByIdsAsync(Mockito.eq(tenantId), Mockito.eq(blobEntityIds));
 
-        var response = doGetTyped("/api/blobEntities/?blobEntityIds=" + strBlobEntityIds,
+        var response = doGetTyped("/api/blobEntities?blobEntityIds=" + strBlobEntityIds,
                 new TypeReference<List>() {
                 });
         Assert.assertEquals(blobEntityInfos.size(), response.size());
@@ -357,7 +357,7 @@ public class BlobEntityControllerTest extends AbstractControllerTest {
                 .toArray(String[]::new);
         String strBlobEntityIds = String.join(",", blobEntityIdStrs);
 
-        var response = doGetTyped("/api/blobEntities/?blobEntityIds=" + strBlobEntityIds,
+        var response = doGetTyped("/api/blobEntities?blobEntityIds=" + strBlobEntityIds,
                 new TypeReference<List>() {
                 });
         Assert.assertEquals(0, response.size());

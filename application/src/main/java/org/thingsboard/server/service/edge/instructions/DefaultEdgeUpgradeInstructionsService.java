@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EdgeUpgradeInfo;
 import org.thingsboard.server.common.data.edge.EdgeInstructions;
@@ -98,7 +99,7 @@ public class DefaultEdgeUpgradeInstructionsService implements EdgeUpgradeInstruc
 
     @Override
     public boolean isUpgradeAvailable(TenantId tenantId, EdgeId edgeId) throws Exception {
-        Optional<AttributeKvEntry> attributeKvEntryOpt = attributesService.find(tenantId, edgeId, DataConstants.SERVER_SCOPE, DataConstants.EDGE_VERSION_ATTR_KEY).get();
+        Optional<AttributeKvEntry> attributeKvEntryOpt = attributesService.find(tenantId, edgeId, AttributeScope.SERVER_SCOPE, DataConstants.EDGE_VERSION_ATTR_KEY).get();
         if (attributeKvEntryOpt.isPresent()) {
             String edgeVersionFormatted = convertEdgeVersionToDocsFormat(attributeKvEntryOpt.get().getValueAsString());
             String versionTag = appVersion.replace("PE", "");

@@ -36,8 +36,10 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -54,6 +56,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -62,13 +65,13 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.selfregistration.SelfRegistrationParams;
 import org.thingsboard.server.common.data.selfregistration.SignUpSelfRegistrationParams;
+import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.selfregistration.SelfRegistrationService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.List;
 
@@ -104,12 +107,13 @@ public class SelfRegistrationController extends BaseController {
                     "Specify existing Admin Settings Id to update the Self Registration parameters. " +
                     "Referencing non-existing Admin Settings Id will cause 'Not Found' error." +
                     "\n\n" + SELF_REGISTRATION_DESC +
-                    TENANT_AUTHORITY_PARAGRAPH + ControllerConstants.WL_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+                    TENANT_AUTHORITY_PARAGRAPH + ControllerConstants.WL_WRITE_CHECK,
+            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/selfRegistration/selfRegistrationParams", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     public SelfRegistrationParams saveSelfRegistrationParams(
-            @ApiParam(value = "A JSON value representing the Self Registration Parameters.", required = true)
+            @Parameter(description = "A JSON value representing the Self Registration Parameters.", required = true)
             @RequestBody SelfRegistrationParams selfRegistrationParams) throws ThingsboardException, JsonProcessingException {
         SecurityUser securityUser = getCurrentUser();
         Authority authority = securityUser.getAuthority();
@@ -131,8 +135,8 @@ public class SelfRegistrationController extends BaseController {
 
     @ApiOperation(value = "Get Self Registration parameters (getSelfRegistrationParams)",
             notes = "Fetch the Self Registration parameters object for the tenant of the current user. "
-                    + TENANT_AUTHORITY_PARAGRAPH + WL_READ_CHECK
-            , produces = MediaType.APPLICATION_JSON_VALUE)
+                    + TENANT_AUTHORITY_PARAGRAPH + WL_READ_CHECK,
+            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/selfRegistration/selfRegistrationParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
@@ -167,7 +171,7 @@ public class SelfRegistrationController extends BaseController {
             ListenableFuture<List<String>> future = attributesService.removeAll(
                     securityUser.getTenantId(),
                     securityUser.getTenantId(),
-                    DataConstants.SERVER_SCOPE,
+                    AttributeScope.SERVER_SCOPE,
                     Arrays.asList("selfRegistrationParams", "termsOfUse", "privacyPolicy"));
             Futures.addCallback(future, new FutureCallback<>() {
                 @Override
@@ -189,8 +193,8 @@ public class SelfRegistrationController extends BaseController {
 
     @ApiOperation(value = "Get Self Registration form parameters without authentication (getSignUpSelfRegistrationParams)",
             notes = "Fetch the Self Registration parameters based on the domain name from the request. Available for non-authorized users. " +
-                    "Contains the information to customize the sign-up form."
-            , produces = MediaType.APPLICATION_JSON_VALUE)
+                    "Contains the information to customize the sign-up form.",
+            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @RequestMapping(value = "/noauth/selfRegistration/signUpSelfRegistrationParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public SignUpSelfRegistrationParams getSignUpSelfRegistrationParams(

@@ -47,6 +47,7 @@ import org.thingsboard.rule.engine.flow.TbRuleChainInputNodeConfiguration;
 import org.thingsboard.rule.engine.profile.TbDeviceProfileNode;
 import org.thingsboard.rule.engine.profile.TbDeviceProfileNodeConfiguration;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
@@ -1179,7 +1180,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
        private String getEntityAttributeValue(EntityId entityId, String key) {
         List<AttributeKvEntry> attributeKvEntries = null;
         try {
-            attributeKvEntries = attributesService.find(TenantId.SYS_TENANT_ID, entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
+            attributeKvEntries = attributesService.find(TenantId.SYS_TENANT_ID, entityId, AttributeScope.SERVER_SCOPE, Arrays.asList(key)).get();
         } catch (Exception e) {
             log.error("Unable to find attribute for " + key + "!", e);
         }
@@ -1196,7 +1197,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         long ts = System.currentTimeMillis();
         attributes.add(new BaseAttributeKvEntry(new StringDataEntry(key, value), ts));
         try {
-            return attributesService.save(TenantId.SYS_TENANT_ID, entityId, DataConstants.SERVER_SCOPE, attributes);
+            return attributesService.save(TenantId.SYS_TENANT_ID, entityId, AttributeScope.SERVER_SCOPE, attributes);
         } catch (Exception e) {
             log.error("Unable to save White Labeling Params to attributes!", e);
             throw new IncorrectParameterException("Unable to save White Labeling Params to attributes!");

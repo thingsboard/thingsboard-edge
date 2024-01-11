@@ -31,11 +31,15 @@
 package org.thingsboard.server.dao.model.sql;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -44,13 +48,8 @@ import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.util.mapping.JsonStringType;
+import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Table;
 import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPERTY;
@@ -63,7 +62,6 @@ import static org.thingsboard.server.dao.model.ModelConstants.ROLE_TYPE_PROPERTY
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = ModelConstants.ROLE_TABLE_NAME)
 @Slf4j
 public class RoleEntity extends BaseSqlEntity<Role> implements BaseEntity<Role> {
@@ -81,11 +79,11 @@ public class RoleEntity extends BaseSqlEntity<Role> implements BaseEntity<Role> 
     @Column(name = ROLE_NAME_PROPERTY)
     private String name;
 
-    @Type(type = "json")
+    @Convert(converter = JsonConverter.class)
     @Column(name = ROLE_PERMISSIONS_PROPERTY)
     private JsonNode permissions;
 
-    @Type(type = "json")
+    @Convert(converter = JsonConverter.class)
     @Column(name = ModelConstants.ENTITY_VIEW_ADDITIONAL_INFO_PROPERTY)
     private JsonNode additionalInfo;
 

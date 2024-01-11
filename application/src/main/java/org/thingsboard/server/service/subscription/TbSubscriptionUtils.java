@@ -110,7 +110,6 @@ public class TbSubscriptionUtils {
                 .build();
     }
 
-
     public static TbEntitySubEvent fromProto(TbEntitySubEventProto proto) {
         ComponentLifecycleEvent event = ComponentLifecycleEvent.valueOf(proto.getType());
         var builder = TbEntitySubEvent.builder()

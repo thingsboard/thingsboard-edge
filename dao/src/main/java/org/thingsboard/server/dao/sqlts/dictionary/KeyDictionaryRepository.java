@@ -28,40 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.util.mapping;
+package org.thingsboard.server.dao.sqlts.dictionary;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.hibernate.type.descriptor.ValueBinder;
-import org.hibernate.type.descriptor.WrapperOptions;
-import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
-import org.hibernate.type.descriptor.sql.BasicBinder;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.thingsboard.server.dao.model.sqlts.dictionary.KeyDictionaryEntry;
+import org.thingsboard.server.dao.model.sqlts.dictionary.KeyDictionaryCompositeKey;
 
-import java.sql.CallableStatement;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Types;
+import java.util.Optional;
 
-public class JsonBinarySqlTypeDescriptor extends AbstractJsonSqlTypeDescriptor {
+public interface KeyDictionaryRepository extends JpaRepository<KeyDictionaryEntry, KeyDictionaryCompositeKey> {
 
-    public static final JsonBinarySqlTypeDescriptor INSTANCE = new JsonBinarySqlTypeDescriptor();
+    Optional<KeyDictionaryEntry> findByKeyId(int keyId);
 
-    @Override
-    public int getSqlType() {
-        return Types.OTHER;
-    }
 
-    @Override
-    public <X> ValueBinder<X> getBinder(final JavaTypeDescriptor<X> javaTypeDescriptor) {
-        return new BasicBinder<X>(javaTypeDescriptor, this) {
-            @Override
-            protected void doBind(PreparedStatement st, X value, int index, WrapperOptions options) throws SQLException {
-                st.setObject(index, javaTypeDescriptor.unwrap(value, JsonNode.class, options), getSqlType());
-            }
-
-            @Override
-            protected void doBind(CallableStatement st, X value, String name, WrapperOptions options) throws SQLException {
-                st.setObject(name, javaTypeDescriptor.unwrap(value, JsonNode.class, options), getSqlType());
-            }
-        };
-    }
 }

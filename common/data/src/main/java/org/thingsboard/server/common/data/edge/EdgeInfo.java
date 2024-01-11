@@ -30,26 +30,25 @@
  */
 package org.thingsboard.server.common.data.edge;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.EntityInfo;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.List;
 
-@ApiModel
+@Schema
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class EdgeInfo extends Edge {
 
     @Valid
-    @ApiModelProperty(position = 13, value = "Owner name", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Owner name", accessMode = Schema.AccessMode.READ_ONLY)
     private String ownerName;
 
     @Valid
-    @ApiModelProperty(position = 14, value = "Groups", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Groups", accessMode = Schema.AccessMode.READ_ONLY)
     private List<EntityInfo> groups;
 
     public EdgeInfo() {

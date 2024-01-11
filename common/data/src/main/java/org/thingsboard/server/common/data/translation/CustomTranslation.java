@@ -34,8 +34,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +47,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-@ApiModel
+@Schema
 @Data
 @EqualsAndHashCode
 @Slf4j
@@ -56,7 +55,7 @@ public class CustomTranslation {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    @ApiModelProperty(value = "Map of locale IDs to stringified json object with custom translations", required = true)
+    @Schema(description = "Map of locale IDs to stringified json object with custom translations", required = true)
     private Map<String, String> translationMap = new HashMap<>();
 
     public CustomTranslation merge(CustomTranslation otherCL) {

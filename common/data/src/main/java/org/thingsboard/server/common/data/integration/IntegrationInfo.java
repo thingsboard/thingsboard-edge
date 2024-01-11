@@ -32,11 +32,11 @@ package org.thingsboard.server.common.data.integration;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.id.IntegrationId;
 
-@ApiModel
+@Schema
 @EqualsAndHashCode(callSuper = true)
 public class IntegrationInfo extends AbstractIntegration {
 

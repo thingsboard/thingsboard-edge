@@ -28,36 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.util.mapping;
+package org.thingsboard.server.common.data;
 
-import org.hibernate.type.AbstractSingleColumnStandardBasicType;
-import org.hibernate.usertype.DynamicParameterizedType;
+import lombok.Getter;
 
-import java.util.Properties;
+public enum AttributeScope {
 
-public class JsonStringType
-        extends AbstractSingleColumnStandardBasicType<Object>
-        implements DynamicParameterizedType {
+    CLIENT_SCOPE(1),
+    SERVER_SCOPE(2),
+    SHARED_SCOPE(3);
+    @Getter
+    private final int id;
 
-    public JsonStringType() {
-        super(
-                JsonStringSqlTypeDescriptor.INSTANCE,
-                new JsonTypeDescriptor()
-        );
+    AttributeScope(int id) {
+        this.id = id;
     }
 
-    public String getName() {
-        return "json";
-    }
-
-    @Override
-    protected boolean registerUnderJavaType() {
-        return true;
-    }
-
-    @Override
-    public void setParameterValues(Properties parameters) {
-        ((JsonTypeDescriptor) getJavaTypeDescriptor())
-                .setParameterValues(parameters);
-    }
 }

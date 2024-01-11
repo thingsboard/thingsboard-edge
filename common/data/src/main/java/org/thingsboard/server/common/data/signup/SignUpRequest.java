@@ -30,8 +30,7 @@
  */
 package org.thingsboard.server.common.data.signup;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -39,37 +38,37 @@ import lombok.ToString;
 /**
  * Created by igor on 12/13/16.
  */
-@ApiModel
+@Schema
 @ToString
 public class SignUpRequest {
 
     @Getter
     @Setter
-    @ApiModelProperty(position = 1, value = "First Name", example = "John")
+    @Schema(description = "First Name", example = "John")
     private String firstName;
     @Getter
     @Setter
-    @ApiModelProperty(position = 2, value = "Last Name", example = "Doe")
+    @Schema(description = "Last Name", example = "Doe")
     private String lastName;
     @Getter
     @Setter
-    @ApiModelProperty(position = 3, value = "Email will be used for new user to login", example = "john.doe@company.com")
+    @Schema(description = "Email will be used for new user to login", example = "john.doe@company.com")
     private String email;
     @Getter
     @Setter
-    @ApiModelProperty(position = 4, value = "New User Password", example = "secret")
+    @Schema(description = "New User Password", example = "secret")
     private String password;
     @Getter
     @Setter
-    @ApiModelProperty(position = 5, value = "Response from reCAPTCHA validation")
+    @Schema(description = "Response from reCAPTCHA validation")
     private String recaptchaResponse;
     @Getter
     @Setter
-    @ApiModelProperty(position = 6, value = "For mobile apps only. Mobile app package name")
+    @Schema(description = "For mobile apps only. Mobile app package name")
     private String pkgName;
     @Getter
     @Setter
-    @ApiModelProperty(position = 7, value = "For mobile apps only. Mobile app secret")
+    @Schema(description = "For mobile apps only. Mobile app secret")
     private String appSecret;
 
     public SignUpRequest() {
