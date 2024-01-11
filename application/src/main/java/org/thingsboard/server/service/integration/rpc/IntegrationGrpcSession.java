@@ -44,6 +44,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.JavaSerDesUtil;
@@ -443,12 +444,12 @@ public final class IntegrationGrpcSession implements Closeable {
                     AttributeKvEntry attr = new BaseAttributeKvEntry(new JsonDataEntry(key, JacksonUtil.toString(value)), event.getCreatedTime());
 
                     future = Futures.transform(future, v -> {
-                        ctx.getAttributesService().save(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(attr));
+                        ctx.getAttributesService().save(tenantId, entityId, AttributeScope.SERVER_SCOPE, Collections.singletonList(attr));
                         return null;
                     }, MoreExecutors.directExecutor());
                 } else if (lcEvent.getLcEventType().equals("STOPPED")) {
                     future = Futures.transform(future, v -> {
-                        ctx.getAttributesService().removeAll(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(key));
+                        ctx.getAttributesService().removeAll(tenantId, entityId, AttributeScope.SERVER_SCOPE, Collections.singletonList(key));
                         return null;
                     }, MoreExecutors.directExecutor());
                 }

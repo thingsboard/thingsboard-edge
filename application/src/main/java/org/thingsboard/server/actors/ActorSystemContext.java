@@ -59,6 +59,7 @@ import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.actors.tenant.DebugTbRateLimits;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.event.ErrorEvent;
 import org.thingsboard.server.common.data.event.LifecycleEvent;
@@ -702,9 +703,9 @@ public class ActorSystemContext {
                 }
 
                 AttributeKvEntry attr = new BaseAttributeKvEntry(new JsonDataEntry(key, JacksonUtil.toString(value)), event.getCreatedTime());
-                attributesService.save(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(attr));
+                attributesService.save(tenantId, entityId, AttributeScope.SERVER_SCOPE, Collections.singletonList(attr));
             } else if (event.getLcEventType().equals("STOPPED")) {
-                attributesService.removeAll(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(key));
+                attributesService.removeAll(tenantId, entityId, AttributeScope.SERVER_SCOPE, Collections.singletonList(key));
             }
         }
     }

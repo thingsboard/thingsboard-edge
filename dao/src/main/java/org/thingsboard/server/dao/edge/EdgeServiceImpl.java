@@ -46,6 +46,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntitySubtype;
@@ -753,7 +754,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
 
     private ArrayNode addMissingEdgeAttributes(TenantId tenantId, EdgeId edgeId, Set<String> attributesKeys) throws ExecutionException, InterruptedException {
         List<AttributeKvEntry> edgeAttributes =
-                attributesService.find(tenantId, edgeId, DataConstants.SERVER_SCOPE, attributesKeys).get();
+                attributesService.find(tenantId, edgeId, AttributeScope.SERVER_SCOPE, attributesKeys).get();
         List<String> edgeAttributeKeys =
                 edgeAttributes.stream().map(KvEntry::getKey).collect(Collectors.toList());
         List<String> missingAttributeKeys = attributesKeys.stream()
