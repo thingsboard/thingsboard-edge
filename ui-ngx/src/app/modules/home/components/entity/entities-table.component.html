@@ -200,7 +200,7 @@
                        [routerLink]="detailsPageURl" [innerHTML]="cellContent(entity, column, row)"
                        (click)="$event.stopPropagation();"></a>
                   </ng-template>
-                  <ng-template #defaultContent ngSwitchDefault>>
+                  <ng-template #defaultContent ngSwitchDefault>
                     <span [innerHTML]="cellContent(entity, column, row)"></span>
                   </ng-template>
                 </ng-container>
