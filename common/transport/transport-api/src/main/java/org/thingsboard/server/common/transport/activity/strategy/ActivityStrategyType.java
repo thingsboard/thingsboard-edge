@@ -28,35 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.rpc;
+package org.thingsboard.server.common.transport.activity.strategy;
 
-import io.grpc.stub.StreamObserver;
+public enum ActivityStrategyType {
 
-public class SyncedStreamObserver<V> implements StreamObserver<V> {
-    private final StreamObserver<V> delegate;
-
-    public SyncedStreamObserver(StreamObserver<V> delegate) {
-        this.delegate = delegate;
-    }
-
-    @Override
-    public void onNext(V value) {
-        synchronized (delegate) {
-            delegate.onNext(value);
+    ALL {
+        @Override
+        public ActivityStrategy toStrategy() {
+            return AllEventsActivityStrategy.getInstance();
         }
-    }
-
-    @Override
-    public void onError(Throwable t) {
-        synchronized (delegate) {
-            delegate.onError(t);
+    },
+    FIRST {
+        @Override
+        public ActivityStrategy toStrategy() {
+            return new FirstEventActivityStrategy();
         }
-    }
-
-    @Override
-    public void onCompleted() {
-        synchronized (delegate) {
-            delegate.onCompleted();
+    },
+    LAST {
+        @Override
+        public ActivityStrategy toStrategy() {
+            return LastEventActivityStrategy.getInstance();
         }
-    }
+    },
+    FIRST_AND_LAST {
+        @Override
+        public ActivityStrategy toStrategy() {
+            return new FirstAndLastEventActivityStrategy();
+        }
+    };
+
+    public abstract ActivityStrategy toStrategy();
+
 }
