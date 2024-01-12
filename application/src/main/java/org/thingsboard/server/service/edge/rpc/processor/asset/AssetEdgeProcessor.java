@@ -130,7 +130,7 @@ public abstract class AssetEdgeProcessor extends BaseAssetProcessor implements A
         Asset assetToDelete = assetService.findAssetById(tenantId, assetId);
         if (assetToDelete != null) {
             try {
-                EntityGroup edgeAssetGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.ASSET).get();
+                EntityGroup edgeAssetGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), assetToDelete.getOwnerId().getEntityType(), EntityType.ASSET).get();
                 if (edgeAssetGroup != null) {
                     entityGroupService.removeEntityFromEntityGroup(tenantId, edgeAssetGroup.getId(), assetToDelete.getId());
                 }
@@ -143,7 +143,8 @@ public abstract class AssetEdgeProcessor extends BaseAssetProcessor implements A
 
     private void addAssetToEdgeAllAssetGroup(TenantId tenantId, Edge edge, AssetId assetId) {
         try {
-            EntityGroup edgeAssetGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.ASSET).get();
+            Asset asset = assetService.findAssetById(tenantId, assetId);
+            EntityGroup edgeAssetGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), asset.getOwnerId().getEntityType(), EntityType.ASSET).get();
             if (edgeAssetGroup != null) {
                 entityGroupService.addEntityToEntityGroup(tenantId, edgeAssetGroup.getId(), assetId);
             }

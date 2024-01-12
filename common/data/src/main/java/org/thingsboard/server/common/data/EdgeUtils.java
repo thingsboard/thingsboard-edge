@@ -148,6 +148,13 @@ public final class EdgeUtils {
     }
 
     public static String getEdgeGroupAllName(String edgeName) {
+        return getEdgeGroupAllName(null, edgeName);
+    }
+
+    public static String getEdgeGroupAllName(String customerName, String edgeName) {
+        if (customerName != null) {
+            return String.format(EntityGroup.GROUP_EDGE_CUSTOMER_ALL_NAME_PATTERN, customerName, edgeName);
+        }
         return String.format(EntityGroup.GROUP_EDGE_ALL_NAME_PATTERN, edgeName);
     }
 }
