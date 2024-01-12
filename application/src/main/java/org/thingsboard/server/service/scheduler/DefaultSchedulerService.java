@@ -39,7 +39,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.OtaPackageInfo;
@@ -224,7 +223,7 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
     private void addEventsForTenant(long ts, Tenant tenant) {
         log.debug("[{}] Fetching scheduled events for tenant.", tenant.getId());
         List<SchedulerEventId> eventIds = new ArrayList<>();
-        List<SchedulerEventInfo> events = schedulerEventService.findSchedulerEventsByTenantId(tenant.getId());
+        List<SchedulerEventInfo> events = schedulerEventService.findSchedulerEventsByTenantIdAndEnabled(tenant.getId(), true);
         long scheduled = 0L;
         long passedAway = 0L;
         for (SchedulerEventInfo event : events) {
@@ -256,7 +255,6 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
         JsonNode node = event.getSchedule();
         long startTime = node.get("startTime").asLong();
         String timezone = node.get("timezone").asText();
-        boolean enabled = node.get("enabled").isNull() || node.get("enabled").asBoolean();
         JsonNode repeatNode = node.get("repeat");
         SchedulerRepeat repeat = null;
         if (repeatNode != null) {
@@ -266,7 +264,7 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
                 log.error("Failed to read scheduler config", e);
             }
         }
-        return new SchedulerEventMetaData(event, startTime, timezone, repeat, enabled);
+        return new SchedulerEventMetaData(event, startTime, timezone, repeat, event.isEnabled());
     }
 
     private void processEvent(TenantId tenantId, SchedulerEventId eventId) {

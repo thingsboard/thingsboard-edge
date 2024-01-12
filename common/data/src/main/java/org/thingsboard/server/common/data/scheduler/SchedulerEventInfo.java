@@ -77,6 +77,10 @@ public class SchedulerEventInfo extends BaseDataWithAdditionalInfo<SchedulerEven
     @JsonIgnore
     private byte[] scheduleBytes;
 
+    @ApiModelProperty(position = 9, value = "Enable/disable scheduler", example = "true")
+    @Length(fieldName = "enabled")
+    private boolean enabled = true;
+
     public SchedulerEventInfo() {
         super();
     }
