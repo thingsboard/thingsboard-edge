@@ -321,7 +321,7 @@ export class BarChartWithLabelsWidgetComponent implements OnInit, OnDestroy, Aft
     if (this.barChart) {
       (this.barChartOptions.xAxis as any).min = this.ctx.defaultSubscription.timeWindow.minTime;
       (this.barChartOptions.xAxis as any).max = this.ctx.defaultSubscription.timeWindow.maxTime;
-      (this.barChartOptions.xAxis as any).tbTimewindowInterval = this.ctx.defaultSubscription.timeWindow.interval;
+      (this.barChartOptions.xAxis as any).tbTimeWindow = this.ctx.defaultSubscription.timeWindow;
       this.barChartOptions.series = this.updateSeries();
       this.barChart.setOption(this.barChartOptions);
     }
@@ -399,7 +399,25 @@ export class BarChartWithLabelsWidgetComponent implements OnInit, OnDestroy, Aft
     });
     this.barChartOptions = {
       tooltip: {
-        trigger: 'none'
+        trigger: 'axis',
+        confine: true,
+        appendToBody: true,
+        axisPointer: {
+          type: 'shadow'
+        },
+        formatter: (params: CallbackDataParams[]) => {
+          if (this.settings.showTooltip) {
+            const focusedSeriesIndex = this.focusedSeriesIndex();
+            return echartsTooltipFormatter(this.renderer, this.tooltipDateFormat,
+              this.settings, params, this.decimals, this.units, focusedSeriesIndex);
+          } else {
+            return undefined;
+          }
+        },
+        padding: [8, 12],
+        backgroundColor: this.settings.tooltipBackgroundColor,
+        borderWidth: 0,
+        extraCssText: `line-height: 1; backdrop-filter: blur(${this.settings.tooltipBackgroundBlur}px);`
       },
       grid: {
         containLabel: true,
@@ -432,29 +450,9 @@ export class BarChartWithLabelsWidgetComponent implements OnInit, OnDestroy, Aft
       }
     };
 
-    (this.barChartOptions.xAxis as any).tbTimewindowInterval = this.ctx.defaultSubscription.timeWindow.interval;
+    (this.barChartOptions.xAxis as any).tbTimeWindow = this.ctx.defaultSubscription.timeWindow;
 
     this.barChartOptions.series = this.updateSeries();
-
-    if (this.settings.showTooltip) {
-      this.barChartOptions.tooltip = {
-        trigger: 'axis',
-        confine: true,
-        appendToBody: true,
-        axisPointer: {
-          type: 'shadow'
-        },
-        formatter: (params: CallbackDataParams[]) => {
-          const focusedSeriesIndex = this.focusedSeriesIndex();
-          return echartsTooltipFormatter(this.renderer, this.tooltipDateFormat,
-            this.settings, params, this.decimals, this.units, focusedSeriesIndex);
-        },
-        padding: [8, 12],
-        backgroundColor: this.settings.tooltipBackgroundColor,
-        borderWidth: 0,
-        extraCssText: `line-height: 1; backdrop-filter: blur(${this.settings.tooltipBackgroundBlur}px);`
-      };
-    }
 
     this.barChart.setOption(this.barChartOptions);
 
