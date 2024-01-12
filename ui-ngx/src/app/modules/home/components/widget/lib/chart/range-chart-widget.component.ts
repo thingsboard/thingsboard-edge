@@ -407,6 +407,7 @@ export class RangeChartWidgetComponent implements OnInit, OnDestroy, AfterViewIn
         show: false,
         type: 'piecewise',
         selected: this.selectedRanges,
+        dimension: 1,
         pieces: this.rangeItems.map(item => item.piece),
         outOfRange: {
           color: this.settings.outOfRangeColor
@@ -420,6 +421,8 @@ export class RangeChartWidgetComponent implements OnInit, OnDestroy, AfterViewIn
     if (this.settings.showTooltip) {
       this.rangeChartOptions.tooltip = {
         trigger: 'axis',
+        confine: true,
+        appendToBody: true,
         formatter: (params: CallbackDataParams[]) => echartsTooltipFormatter(this.renderer, this.tooltipDateFormat,
             this.settings, params, this.decimals, this.units, 0),
         padding: [8, 12],

@@ -28,31 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.ws.telemetry.cmd.v2;
+package org.thingsboard.server.dao.util;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
-import org.thingsboard.server.common.data.kv.Aggregation;
 import org.thingsboard.server.common.data.kv.IntervalType;
 
-import java.util.List;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.IsoFields;
+import java.time.temporal.WeekFields;
 
-@Data
-public class TimeSeriesCmd implements GetTsCmd {
+public class TimeUtils {
 
-    private List<String> keys;
-    private long startTs;
-    private long timeWindow;
-    private IntervalType intervalType;
-    private long interval;
-    private String timeZoneId;
-    private int limit;
-    private Aggregation agg;
-    private boolean fetchLatestPreviousPoint;
-
-    @JsonIgnore
-    @Override
-    public long getEndTs() {
-        return startTs + timeWindow;
+    public static long calculateIntervalEnd(long startTs, IntervalType intervalType, ZoneId tzId) {
+        var startTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(startTs), tzId);
+        switch (intervalType) {
+            case WEEK:
+                return startTime.truncatedTo(ChronoUnit.DAYS).with(WeekFields.SUNDAY_START.dayOfWeek(), 1).plusDays(7).toInstant().toEpochMilli();
+            case WEEK_ISO:
+                return startTime.truncatedTo(ChronoUnit.DAYS).with(WeekFields.ISO.dayOfWeek(), 1).plusDays(7).toInstant().toEpochMilli();
+            case MONTH:
+                return startTime.truncatedTo(ChronoUnit.DAYS).withDayOfMonth(1).plusMonths(1).toInstant().toEpochMilli();
+            case QUARTER:
+                return startTime.truncatedTo(ChronoUnit.DAYS).with(IsoFields.DAY_OF_QUARTER, 1).plusMonths(3).toInstant().toEpochMilli();
+            default:
+                throw new RuntimeException("Not supported!");
+        }
     }
+
 }
