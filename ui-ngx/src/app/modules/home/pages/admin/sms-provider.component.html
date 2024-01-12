@@ -44,27 +44,27 @@
   <mat-card-content>
     <form [formGroup]="smsProvider" (ngSubmit)="save()">
       <mat-checkbox *ngIf="isTenantAdmin()" formControlName="useSystemSmsSettings" style="padding-bottom: 16px;">
-          {{ 'admin.use-system-sms-settings' | translate }}
-        </mat-checkbox>
-        <fieldset [disabled]="(isLoading$ | async) || readonly" *ngIf="!smsProvider.get('useSystemSmsSettings').value">
-          <tb-sms-provider-configuration
-            required
-            formControlName="configuration">
-          </tb-sms-provider-configuration>
-        </fieldset>
-        <div fxLayout="row" fxLayoutAlign="end center" fxLayout.xs="column" fxLayoutAlign.xs="end" fxLayoutGap="16px">
-          <button *ngIf="!this.smsProvider.get('useSystemSmsSettings').value && !readonly"
-                  mat-raised-button
-                  type="button" style="margin-right: 16px;"
-                  [disabled]="(isLoading$ | async) || smsProvider.invalid" (click)="sendTestSms()">
-            {{'admin.send-test-sms' | translate}}
-          </button>
-          <button *ngIf="!readonly" mat-raised-button color="primary"
-                  [disabled]="(isLoading$ | async) || smsProvider.invalid || !smsProvider.dirty"
-                  type="submit">{{'action.save' | translate}}
-          </button>
-        </div>
-      </form>
+        {{ 'admin.use-system-sms-settings' | translate }}
+      </mat-checkbox>
+      <fieldset [disabled]="(isLoading$ | async) || readonly" *ngIf="!smsProvider.get('useSystemSmsSettings').value">
+        <tb-sms-provider-configuration
+          required
+          formControlName="configuration">
+        </tb-sms-provider-configuration>
+      </fieldset>
+      <div fxLayout="row" fxLayoutAlign="end center" fxLayout.xs="column" fxLayoutAlign.xs="end" fxLayoutGap="16px">
+        <button *ngIf="!this.smsProvider.get('useSystemSmsSettings').value && !readonly"
+                mat-raised-button
+                type="button" style="margin-right: 16px;"
+                [disabled]="(isLoading$ | async) || smsProvider.invalid" (click)="sendTestSms()">
+          {{ 'admin.send-test-sms' | translate }}
+        </button>
+        <button *ngIf="!readonly" mat-raised-button color="primary"
+                [disabled]="(isLoading$ | async) || smsProvider.invalid || !smsProvider.dirty"
+                type="submit">{{ 'action.save' | translate }}
+        </button>
+      </div>
+    </form>
   </mat-card-content>
 </mat-card>
 <form [formGroup]="notificationSettingsForm" (ngSubmit)="saveNotification()">
