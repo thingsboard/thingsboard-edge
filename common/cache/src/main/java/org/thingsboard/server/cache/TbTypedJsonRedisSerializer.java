@@ -28,40 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.util;
+package org.thingsboard.server.cache;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.FstStatsService;
-import org.thingsboard.server.common.data.JavaSerDesUtil;
+import com.fasterxml.jackson.core.type.TypeReference;
+import org.springframework.data.redis.serializer.SerializationException;
+import org.thingsboard.common.util.JacksonUtil;
 
-import java.util.Optional;
+public class TbTypedJsonRedisSerializer<K, V> implements TbRedisSerializer<K, V> {
 
-@Slf4j
-@Service
-public class JavaDataDecodingEncodingService implements DataDecodingEncodingService {
+    private final TypeReference<V> valueTypeRef;
 
-    @Autowired
-    private FstStatsService fstStatsService;
-
-    @Override
-    public <T> Optional<T> decode(byte[] byteArray) {
-        long startTime = System.nanoTime();
-        Optional<T> optional = Optional.ofNullable(JavaSerDesUtil.decode(byteArray));
-        optional.ifPresent(obj -> {
-            fstStatsService.recordDecodeTime(obj.getClass(), startTime);
-            fstStatsService.incrementDecode(obj.getClass());
-        });
-        return optional;
+    public TbTypedJsonRedisSerializer(TypeReference<V> valueTypeRef) {
+        this.valueTypeRef = valueTypeRef;
     }
 
     @Override
-    public <T> byte[] encode(T msq) {
-        long startTime = System.nanoTime();
-        var bytes = JavaSerDesUtil.encode(msq);
-        fstStatsService.recordEncodeTime(msq.getClass(), startTime);
-        fstStatsService.incrementEncode(msq.getClass());
-        return bytes;
+    public byte[] serialize(V v) throws SerializationException {
+        return JacksonUtil.writeValueAsBytes(v);
+    }
+
+    @Override
+    public V deserialize(K key, byte[] bytes) throws SerializationException {
+        return JacksonUtil.fromBytes(bytes, valueTypeRef);
     }
 }

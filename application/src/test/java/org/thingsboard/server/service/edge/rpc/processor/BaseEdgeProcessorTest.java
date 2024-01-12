@@ -83,7 +83,6 @@ import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.service.edge.rpc.CustomersHierarchyEdgeService;
 import org.thingsboard.server.service.edge.rpc.constructor.alarm.AlarmMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.alarm.AlarmMsgConstructorV1;
@@ -532,9 +531,6 @@ public abstract class BaseEdgeProcessorTest {
 
     @MockBean
     protected DbCallbackExecutorService dbCallbackExecutorService;
-    
-    @MockBean
-    protected DataDecodingEncodingService dataDecodingEncodingService;
 
     @MockBean
     protected WhiteLabelingService whiteLabelingService;
@@ -572,7 +568,7 @@ public abstract class BaseEdgeProcessorTest {
 
     @MockBean
     protected OwnersCacheService ownersCacheService;
-    
+
     protected EdgeId edgeId;
     protected TenantId tenantId;
     protected EdgeEvent edgeEvent;

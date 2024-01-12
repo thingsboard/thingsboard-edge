@@ -52,15 +52,16 @@ import org.thingsboard.server.common.data.event.IntegrationDebugEvent;
 import org.thingsboard.server.common.data.event.RawDataEvent;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.integration.AbstractIntegration;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.util.ProtoUtils;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 import org.thingsboard.server.gen.integration.IntegrationInfoProto;
 import org.thingsboard.server.gen.integration.TbEventSource;
 import org.thingsboard.server.gen.integration.TbIntegrationEventProto;
-import org.thingsboard.server.service.integration.IntegrationProtoUtil;
 
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -86,7 +87,7 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
         this.contextComponent = contextComponent;
         this.configuration = configuration;
         this.logSettingsComponent = logSettingsComponent;
-        this.integrationInfoProto = IntegrationProtoUtil.toProto(configuration);
+        this.integrationInfoProto = ProtoUtils.toProto((AbstractIntegration) configuration);
     }
 
     @Override
