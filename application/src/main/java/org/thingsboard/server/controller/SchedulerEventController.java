@@ -170,13 +170,13 @@ public class SchedulerEventController extends BaseController {
                     TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/schedulerEvent/{schedulerEventId}/enabled", method = RequestMethod.PUT)
+    @RequestMapping(value = "/schedulerEvent/{schedulerEventId}/enabled/{enabledValue}", method = RequestMethod.PUT)
     @ResponseBody
     public SchedulerEvent enableSchedulerEvent(
             @ApiParam(value = SCHEDULER_EVENT_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId,
             @ApiParam(value = "Enabled or disabled scheduler", required = true)
-            @RequestParam(value = "enabledValue") Boolean enabledValue) throws ThingsboardException {
+            @PathVariable(value = "enabledValue") Boolean enabledValue) throws ThingsboardException {
 
         checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
         SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
