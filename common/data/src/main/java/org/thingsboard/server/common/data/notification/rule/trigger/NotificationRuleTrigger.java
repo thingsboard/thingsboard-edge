@@ -30,31 +30,11 @@
  */
 package org.thingsboard.server.common.data.notification.rule.trigger;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.notification.rule.trigger.config.NotificationRuleTriggerType;
 
 import java.io.Serializable;
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-@JsonSubTypes({
-        @JsonSubTypes.Type(value = AlarmTrigger.class, name = "ALARM"),
-        @JsonSubTypes.Type(value = DeviceActivityTrigger.class, name = "DEVICE_ACTIVITY"),
-        @JsonSubTypes.Type(value = EntityActionTrigger.class, name = "ENTITY_ACTION"),
-        @JsonSubTypes.Type(value = AlarmCommentTrigger.class, name = "ALARM_COMMENT"),
-        @JsonSubTypes.Type(value = RuleEngineComponentLifecycleEventTrigger.class, name = "RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT"),
-        @JsonSubTypes.Type(value = AlarmAssignmentTrigger.class, name = "ALARM_ASSIGNMENT"),
-        @JsonSubTypes.Type(value = NewPlatformVersionTrigger.class, name = "NEW_PLATFORM_VERSION"),
-        @JsonSubTypes.Type(value = EntitiesLimitTrigger.class, name = "ENTITIES_LIMIT"),
-        @JsonSubTypes.Type(value = ApiUsageLimitTrigger.class, name = "API_USAGE_LIMIT"),
-        @JsonSubTypes.Type(value = IntegrationLifecycleEventTrigger.class, name = "INTEGRATION_LIFECYCLE_EVENT"),
-        @JsonSubTypes.Type(value = RateLimitsTrigger.class, name = "RATE_LIMITS"),
-})
 
 public interface NotificationRuleTrigger extends Serializable {
 
@@ -64,18 +44,16 @@ public interface NotificationRuleTrigger extends Serializable {
 
     EntityId getOriginatorEntityId();
 
-    @JsonIgnore
+
     default boolean deduplicate() {
         return false;
     }
 
-    @JsonIgnore
     default String getDeduplicationKey() {
         EntityId originatorEntityId = getOriginatorEntityId();
         return String.join(":", getType().toString(), originatorEntityId.getEntityType().toString(), originatorEntityId.getId().toString());
     }
 
-    @JsonIgnore
     default long getDefaultDeduplicationDuration() {
         return 0;
     }
