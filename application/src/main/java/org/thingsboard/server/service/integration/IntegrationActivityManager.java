@@ -141,7 +141,7 @@ public abstract class IntegrationActivityManager extends AbstractActivityManager
                 .build();
     }
 
-    long getCurrentTimeMillis() {
+    protected long getCurrentTimeMillis() {
         return System.currentTimeMillis();
     }
 
