@@ -34,6 +34,8 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.protobuf.ByteString;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,6 +53,7 @@ import org.thingsboard.integration.api.data.DefaultIntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.util.IntegrationUtil;
 import org.thingsboard.server.coapserver.CoapServerService;
+import org.thingsboard.server.common.data.JavaSerDesUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -62,15 +65,16 @@ import org.thingsboard.server.common.data.integration.AbstractIntegration;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.notification.rule.trigger.IntegrationLifecycleEventTrigger;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
-import org.thingsboard.server.common.data.notification.rule.trigger.IntegrationLifecycleEventTrigger;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.common.util.ProtoUtils;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
 import org.thingsboard.server.gen.integration.IntegrationValidationRequestProto;
@@ -86,15 +90,12 @@ import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.discovery.TopicService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.integration.state.IntegrationState;
 import org.thingsboard.server.service.integration.state.ValidationTask;
 import org.thingsboard.server.service.integration.state.ValidationTaskType;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -128,7 +129,6 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     private final IntegrationContextProvider integrationContextProvider;
     private final IntegrationConfigurationService configurationService;
     private final DataConverterService dataConverterService;
-    private final DataDecodingEncodingService encodingService;
     private final EventStorageService eventStorageService;
     private final TbQueueProducerProvider producerProvider;
     private final NotificationRuleProcessor notificationRuleProcessor;
@@ -254,13 +254,12 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         response.setIdLSB(requestId.getLeastSignificantBits());
         try {
             ValidationTaskType validationTaskType = ValidationTaskType.valueOf(validationRequestMsg.getType());
-            Optional<Integration> configurationOpt = encodingService.decode(validationRequestMsg.getConfiguration().toByteArray());
-            Integration configuration = configurationOpt.orElseThrow(() -> new RuntimeException("Failed to decode the integration configuration"));
+            Integration configuration = ProtoUtils.fromProto(validationRequestMsg.getConfiguration());
             doValidateLocally(validationTaskType, configuration);
             log.trace("[{}] Processed the validation request for integration: {}", requestId, configuration);
         } catch (Exception e) {
             log.trace("[{}][{}] Integration validation failed: {}", validationRequestMsg.getType(), requestId, e);
-            response.setError(ByteString.copyFrom(encodingService.encode(e)));
+            response.setError(ByteString.copyFrom(JavaSerDesUtil.encode(e)));
         }
         TopicPartitionInfo tpi = topicService.getNotificationsTopic(ServiceType.TB_CORE, validationRequestMsg.getServiceId());
         TransportProtos.ToCoreNotificationMsg msg = TransportProtos.ToCoreNotificationMsg.newBuilder().setIntegrationValidationResponseMsg(response).build();
@@ -300,8 +299,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             if (error.isEmpty()) {
                 future.set(null);
             } else {
-                Optional<Throwable> e = encodingService.decode(error.toByteArray());
-                future.setException(e.orElse(new RuntimeException("Failed to decode the validation error")));
+                future.setException(JavaSerDesUtil.decode(error.toByteArray()));
             }
         }
     }
@@ -356,7 +354,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                         .setIdMSB(task.getUuid().getMostSignificantBits())
                         .setIdLSB(task.getUuid().getLeastSignificantBits())
                         .setType(validationTaskType.name())
-                        .setConfiguration(ByteString.copyFrom(encodingService.encode(configuration)))
+                        .setConfiguration(ProtoUtils.toProto(configuration))
                         .setServiceId(serviceInfoProvider.getServiceId()).build();
 
                 producer.send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), ToIntegrationExecutorDownlinkMsg.newBuilder()

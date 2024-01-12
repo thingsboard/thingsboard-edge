@@ -299,7 +299,6 @@ public class ThingsboardInstallService {
                             log.info("Upgrading ThingsBoard from version 3.6.3 to 3.7.0 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.6.3");
                             //TODO DON'T FORGET to update switch statement in the CacheCleanupService if you need to clear the cache
-                            break;
                         case "CE":
                             log.info("Upgrading ThingsBoard from version CE to PE ...");
                             //TODO: check CE schema version before launch of the update.

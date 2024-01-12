@@ -58,7 +58,6 @@ public class Integration extends AbstractIntegration implements ExportableEntity
     @NoXss
     @Length(fieldName = "routingKey")
     private String routingKey;
-    private IntegrationType type;
 
     @NoXss
     @Length(fieldName = "secret")
@@ -84,7 +83,6 @@ public class Integration extends AbstractIntegration implements ExportableEntity
         this.defaultConverterId = integration.getDefaultConverterId();
         this.downlinkConverterId = integration.getDownlinkConverterId();
         this.routingKey = integration.getRoutingKey();
-        this.type = integration.getType();
         this.secret = integration.getSecret();
         this.configuration = integration.getConfiguration();
         this.additionalInfo = integration.getAdditionalInfo();
@@ -175,13 +173,12 @@ public class Integration extends AbstractIntegration implements ExportableEntity
     public Integration(TenantId tenantId, String name, IntegrationType type,
                        Boolean enabled, Boolean isRemote, Boolean allowCreateDevicesOrAssets,
                        boolean isEdgeTemplate, ConverterId defaultConverterId, ConverterId downlinkConverterId,
-                       String routingKey, IntegrationType type1, boolean debugMode, String secret,
+                       String routingKey, boolean debugMode, String secret,
                        JsonNode configuration, JsonNode additionalInfo, IntegrationId externalId) {
         super(tenantId, name, type, debugMode, enabled, isRemote, allowCreateDevicesOrAssets, isEdgeTemplate);
         this.defaultConverterId = defaultConverterId;
         this.downlinkConverterId = downlinkConverterId;
         this.routingKey = routingKey;
-        this.type = type1;
         this.secret = secret;
         this.configuration = configuration;
         this.additionalInfo = additionalInfo;

@@ -32,7 +32,6 @@ package org.thingsboard.server.service.integration;
 
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.google.protobuf.ByteString;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -55,7 +54,6 @@ import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbCoreIntegrationExecutorQueueFactory;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.util.AfterStartUp;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.server.queue.util.TbPackCallback;
 import org.thingsboard.server.queue.util.TbPackProcessingContext;
@@ -64,7 +62,6 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
@@ -88,7 +85,6 @@ public class DefaultClusterIntegrationService extends TbApplicationEventListener
     private final TbQueueIntegrationExecutorSettings integrationNotificationSettings;
     private final TbCoreIntegrationExecutorQueueFactory queueFactory;
     private final IntegrationManagerService integrationManagerService;
-    private final DataDecodingEncodingService encodingService;
     private final Map<IntegrationType, Queue<Set<TopicPartitionInfo>>> subscribeEventsMap = new ConcurrentHashMap<>();
 
     private volatile ExecutorService consumersExecutor;
@@ -273,22 +269,8 @@ public class DefaultClusterIntegrationService extends TbApplicationEventListener
 
     private void handleNotification(UUID id, TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg> msg, TbCallback callback) {
         ToIntegrationExecutorNotificationMsg nf = msg.getValue();
-        if (nf.hasComponentLifecycle()) {
-            handleComponentLifecycleMsg(id, ProtoUtils.fromProto(nf.getComponentLifecycle()));
-            callback.onSuccess();
-        } else if (!nf.getComponentLifecycleMsg().isEmpty()) {
-            //will be removed in 3.6.1 in favour of hasComponentLifecycle()
-            handleComponentLifecycleMsg(id, nf.getComponentLifecycleMsg());
-            callback.onSuccess();
-        }
-    }
-
-    protected void handleComponentLifecycleMsg(UUID id, ByteString nfMsg) {
-        Optional<TbActorMsg> actorMsgOpt = encodingService.decode(nfMsg.toByteArray());
-        if (actorMsgOpt.isPresent()) {
-            TbActorMsg actorMsg = actorMsgOpt.get();
-            handleComponentLifecycleMsg(id, actorMsg);
-        }
+        handleComponentLifecycleMsg(id, ProtoUtils.fromProto(nf.getComponentLifecycle()));
+        callback.onSuccess();
     }
 
     protected void handleComponentLifecycleMsg(UUID id, TbActorMsg actorMsg) {
