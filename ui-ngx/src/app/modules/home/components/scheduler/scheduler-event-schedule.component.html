@@ -31,7 +31,6 @@
 
 -->
 <section [formGroup]="scheduleConfigFormGroup" fxLayout="column">
-  <span style="height: 16px;"></span>
   <tb-timezone-select
     userTimezoneByDefault
     required
@@ -46,7 +45,7 @@
     </mat-form-field>
   </section>
   <section class="tb-form-panel stroked"
-           [ngClass]="repeatConfigPanel.expanded ? 'no-padding-bottom' : ''">
+           [class.no-padding-bottom]="repeatConfigPanel.expanded">
     <mat-expansion-panel class="tb-settings" #repeatConfigPanel
                          [disabled]="!scheduleConfigFormGroup.get('repeat').value"
                          [expanded]="scheduleConfigFormGroup.get('repeat').value">
@@ -111,14 +110,14 @@
               </mat-form-field>
             </div>
           </div>
-          <div class="tb-form-row space-between"
+          <div class="tb-form-row space-between column-xs"
                [fxShow]="scheduleConfigFormGroup.get('repeatType').value === schedulerRepeatType.WEEKLY">
-            <div>{{ 'scheduler.repeat-on' | translate }}</div>
+            <div class="title-no-wrap">{{ 'scheduler.repeat-on' | translate }}</div>
             <div formArrayName="weeklyRepeat">
-              <mat-chip-listbox multiple #myChipListBox>
+              <mat-chip-listbox multiple #repeatChipListBox>
                 <mat-chip-option *ngFor="let day of weekDays; let i = index;"
                                  [selected]="weeklyRepeatControl(i).value"
-                                 (click)="onChipClicked(i, myChipListBox)"
+                                 (click)="onChipClicked(i, repeatChipListBox)"
                                  [matTooltip]="day.tooltip | translate" matTooltipPosition="above">
                   {{ day.label | translate }}
                 </mat-chip-option>

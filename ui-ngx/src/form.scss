@@ -224,6 +224,9 @@
       vertical-align: top;
       content: " *";
     }
+    .title-no-wrap {
+      white-space: nowrap;
+    }
   }
 
   .tb-form-panel, .tb-form-row {

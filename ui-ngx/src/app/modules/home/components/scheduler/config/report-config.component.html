@@ -32,7 +32,7 @@
 -->
 <section [formGroup]="reportConfigFormGroup" class="tb-form-panel no-border no-padding" fxLayout="column">
   <div class="tb-form-panel stroked"
-       [ngClass]="generalReportConfigPanel.expanded ? 'no-padding-bottom' : ''">
+       [class.no-padding-bottom]="generalReportConfigPanel.expanded">
     <mat-expansion-panel #generalReportConfigPanel class="tb-settings" [expanded]="true">
       <mat-expansion-panel-header>
         <mat-panel-title>
@@ -105,8 +105,9 @@
         </div>
         <div fxLayout="column" class="tb-form-panel no-border no-padding">
           <div class="tb-form-row space-between column-xs">
-            <mat-slide-toggle class="mat-slide fixed-title-width" formControlName="useDashboardTimewindow">
+            <mat-slide-toggle class="mat-slide" formControlName="useDashboardTimewindow">
               <label (click)="$event.stopPropagation();"
+                     style="word-break: break-all"
                      tb-hint-tooltip-icon="{{ 'report.use-dashboard-timewindow-description' | translate }}">
                 {{ 'report.use-dashboard-timewindow' | translate }}
               </label>
@@ -118,8 +119,9 @@
             </tb-timewindow>
           </div>
           <div [fxShow]="isTenantAdmin" class="tb-form-panel stroked"
-               [ngClass]="!reportConfigFormGroup.get('useCurrentUserCredentials').value ? 'no-padding-bottom' : ''" >
-            <div fxFlex fxLayout="row" style="width: 100%;" fxLayoutAlign="space-between center">
+               [class.no-padding-bottom]="!reportConfigFormGroup.get('useCurrentUserCredentials').value">
+            <div fxFlex fxLayout="row" fxLayout.xs="column" style="width: 100%;" fxLayoutAlign="space-between center"
+                 fxLayoutAlign.xs="space-between start" fxLayoutGap="0px" fxLayoutGap.xs="12px">
               <div class="fixed-title-width" translate
                    tb-hint-tooltip-icon="{{ 'report.user-credentials-description' | translate }}">
                 report.credentials

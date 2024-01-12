@@ -30,15 +30,13 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [formGroup]="generateReportFormGroup" class="tb-form-panel no-border no-padding" fxLayout="column">
+<section [formGroup]="generateReportFormGroup">
   <div formGroupName="msgBody" class="tb-form-panel no-border no-padding" fxLayout="column">
-    <div class="tb-form-panel no-border no-padding">
-      <tb-report-config
-        formControlName="reportConfig">
-      </tb-report-config>
-    </div>
+    <tb-report-config
+      formControlName="reportConfig">
+    </tb-report-config>
     <div class="tb-form-panel stroked"
-         [ngClass]="emailConfigPanel.expanded ? 'no-padding-bottom' : ''">
+         [class.no-padding-bottom]="emailConfigPanel.expanded">
       <mat-expansion-panel class="tb-settings tb-slide-toggle" #emailConfigPanel
                            [expanded]="generateReportFormGroup.get('msgBody.sendEmail').value"
                            [disabled]="!generateReportFormGroup.get('msgBody.sendEmail').value">
