@@ -462,7 +462,7 @@ public class TbRuleEngineQueueConsumerManagerTest {
         verifyMsgProcessed(consumer1.testMsg);
         verifyMsgProcessed(consumer2.testMsg);
 
-        consumerManager.delete();
+        consumerManager.delete(true);
 
         await().atMost(2, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
@@ -503,7 +503,7 @@ public class TbRuleEngineQueueConsumerManagerTest {
         verifySubscribedAndLaunched(consumer, partitions);
         verifyMsgProcessed(consumer.testMsg);
 
-        consumerManager.delete();
+        consumerManager.delete(true);
 
         await().atMost(2, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
