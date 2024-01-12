@@ -109,7 +109,6 @@ export const schedulerWeekday: string[] =
 export interface SchedulerEventSchedule {
   timezone?: string;
   startTime?: number;
-  enabled?: boolean;
   repeat?: {
     type: SchedulerRepeatType;
     endsOn: number;
@@ -127,6 +126,7 @@ export interface SchedulerEventInfo extends BaseData<SchedulerEventId> {
   originatorId?: EntityId;
   name: string;
   type: string;
+  enabled?: boolean;
   schedule: SchedulerEventSchedule;
   additionalInfo?: any;
 }

@@ -187,20 +187,20 @@
               {{ schedulerEvent.customerTitle }}
             </mat-cell>
           </ng-container>
-          <ng-container matColumnDef="enabled">
-            <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 25%"> {{ 'scheduler.enabled' | translate }} </mat-header-cell>
-            <mat-cell *matCellDef="let schedulerEvent">
-              <mat-slide-toggle [checked]="isEnabled(schedulerEvent)"
-                                (change)="enableSchedulerEvent($event, schedulerEvent)"
-                                (click)="$event.stopPropagation()">
-              </mat-slide-toggle>
-            </mat-cell>
-          </ng-container>
           <ng-container matColumnDef="actions" stickyEnd>
             <mat-header-cell *matHeaderCellDef style="min-width: 100px; max-width: 100px; width: 100px">
             </mat-header-cell>
             <mat-cell *matCellDef="let schedulerEvent">
               <div fxFlex fxLayout="row" fxLayoutAlign="end">
+                <button *ngIf="enableEnabled"
+                        mat-icon-button [disabled]="isLoading$ | async"
+                        [matTooltip]="(isEnabled(schedulerEvent) ? 'scheduler.disable' : 'scheduler.enable') | translate"
+                        matTooltipPosition="above"
+                        (click)="enableSchedulerEvent($event, schedulerEvent)">
+                  <tb-icon matButtonIcon>
+                    {{isEnabled(schedulerEvent) ? 'mdi:toggle-switch' : 'mdi:toggle-switch-off-outline'}}
+                  </tb-icon>
+                </button>
                 <button *ngIf="editEnabled"
                         mat-icon-button [disabled]="isLoading$ | async"
                         matTooltip="{{ 'scheduler.edit-scheduler-event' | translate }}"

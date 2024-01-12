@@ -32,16 +32,11 @@
 -->
 <section [formGroup]="scheduleConfigFormGroup" fxLayout="column">
   <span style="height: 16px;"></span>
-  <section fxLayout="column" fxLayoutGap="16px">
-    <mat-slide-toggle class="mat-slide" formControlName="enabled">
-      {{ 'report.enable-schedule' | translate }}
-    </mat-slide-toggle>
-    <tb-timezone-select
-      userTimezoneByDefault
-      required
-      formControlName="timezone">
-    </tb-timezone-select>
-  </section>
+  <tb-timezone-select
+    userTimezoneByDefault
+    required
+    formControlName="timezone">
+  </tb-timezone-select>
   <section fxLayout="column" fxLayout.gt-sm="row" fxLayoutAlign.gt-sm="start start" fxLayoutGap="16px">
     <mat-form-field>
       <mat-label translate>scheduler.start-time</mat-label>

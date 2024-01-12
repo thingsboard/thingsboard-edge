@@ -5137,7 +5137,9 @@
         "rpc-value-min-error": "Value must be more then {{min}} ms.",
         "set": "Set",
         "rpc-settings": "RPC settings",
-        "enabled": "Enabled"
+        "enabled": "Enabled",
+        "enable": "Enable",
+        "disable": "Disable"
     },
     "report": {
         "report-config": "Report configuration",
@@ -5164,8 +5166,7 @@
         "subject": "Subject",
         "subject-required": "Subject is required.",
         "body": "Body",
-        "body-required": "Body is required.",
-        "enable-schedule": "Enable schedule"
+        "body-required": "Body is required."
     },
     "blob-entity": {
         "blob-entity": "Blob entity",

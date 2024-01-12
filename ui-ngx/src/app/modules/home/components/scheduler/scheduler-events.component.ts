@@ -140,6 +140,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   settings: SchedulerEventsWidgetSettings;
 
   editEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.WRITE);
+  enableEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.WRITE);
   addEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.CREATE);
   deleteEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.DELETE);
 
@@ -209,7 +210,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       this.initializeWidgetConfig();
       this.ctx.updateWidgetParams();
     } else {
-      this.displayedColumns = ['createdTime', 'name', 'typeName', 'customerTitle', 'enabled', 'actions'];
+      this.displayedColumns = ['createdTime', 'name', 'typeName', 'customerTitle', 'actions'];
       if (this.deleteEnabled) {
         this.displayedColumns.unshift('select');
       }
@@ -334,7 +335,6 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
     if (displayCustomer) {
       this.displayedColumns.push('customerTitle');
     }
-    this.displayedColumns.push('enabled');
     this.displayedColumns.push('actions');
     this.displayPagination = isDefined(this.settings.displayPagination) ? this.settings.displayPagination : true;
     const pageSize = this.settings.defaultPageSize;
@@ -1036,18 +1036,19 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   }
 
   isEnabled(schedulerEventWithCustomerInfo: SchedulerEventWithCustomerInfo): boolean {
-    return isDefinedAndNotNull(schedulerEventWithCustomerInfo.schedule.enabled) ?
-      schedulerEventWithCustomerInfo.schedule.enabled : true;
+    return isDefinedAndNotNull(schedulerEventWithCustomerInfo.enabled) ?
+      schedulerEventWithCustomerInfo.enabled : true;
   }
 
   enableSchedulerEvent($event, schedulerEvent: SchedulerEventWithCustomerInfo) {
-    this.schedulerEventService.getSchedulerEvent(schedulerEvent.id.id).pipe(
-      map((scheduler) => {
-        scheduler.schedule = {...scheduler.schedule, enabled: $event.checked};
-        return scheduler;
-      }),
-      switchMap((scheduler) => this.schedulerEventService.saveSchedulerEvent(scheduler))
-    ).subscribe();
+    if ($event) {
+      $event.stopPropagation();
+    }
+    schedulerEvent.enabled = !this.isEnabled(schedulerEvent);
+    this.schedulerEventService.updateSchedulerStatus(schedulerEvent.id.id, schedulerEvent.enabled, {ignoreLoading: true})
+      .subscribe(() => {
+        this.cd.detectChanges();
+    });
   }
 
 
