@@ -254,8 +254,8 @@ export class WhiteLabelingService {
     return this.asWhiteLabelingObservable(() => this.getPlatformVersion());
   }
 
-  public getHideConnectivityDialog(): boolean {
-    return this.getCurrentWlParams() ? this.getCurrentWlParams().hideConnectivityDialog : false;
+  public getShowConnectivityDialog(): boolean {
+    return this.getCurrentWlParams() ? this.getCurrentWlParams().showConnectivityDialog : true;
   }
 
   public loadLoginWhiteLabelingParams(): Observable<LoginWhiteLabelingParams> {

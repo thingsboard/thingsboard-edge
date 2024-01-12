@@ -352,7 +352,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     }).afterClosed().subscribe(
       (res) => {
         if (res) {
-          if (this.wl.getHideConnectivityDialog()) {
+          if (!this.wl.getShowConnectivityDialog()) {
             config.updateData();
           } else {
             this.store.pipe(select(selectUserSettingsProperty('notDisplayConnectivityAfterAddDevice'))).pipe(
