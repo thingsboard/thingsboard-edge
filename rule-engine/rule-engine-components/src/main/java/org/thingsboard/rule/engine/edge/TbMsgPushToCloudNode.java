@@ -51,8 +51,6 @@ import java.util.UUID;
                 "<br><code>ATTRIBUTES_UPDATED</code>" +
                 "<br><code>ATTRIBUTES_DELETED</code>" +
                 "<br><code>ALARM</code><br><br>" +
-                "<br><code>COMMENT_CREATED</code>" +
-                "<br><code>COMMENT_UPDATED</code>" +
                 "Message will be routed via <b>Failure</b> route if node was not able to save cloud event to database or unsupported originator type/message type arrived. " +
                 "In case successful storage cloud event to database message will be routed via <b>Success</b> route.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
@@ -80,11 +78,6 @@ public class TbMsgPushToCloudNode extends AbstractTbMsgPushNode<TbMsgPushToCloud
     @Override
     CloudEventType getAlarmEventType() {
         return CloudEventType.ALARM;
-    }
-
-    @Override
-    CloudEventType getAlarmCommentEventType() {
-        return CloudEventType.ALARM_COMMENT;
     }
 
     @Override
