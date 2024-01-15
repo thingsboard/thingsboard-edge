@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -356,7 +356,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
             case PINGREQ:
                 if (checkConnected(ctx, msg)) {
                     ctx.writeAndFlush(new MqttMessage(new MqttFixedHeader(PINGRESP, false, AT_MOST_ONCE, false, 0)));
-                    transportService.reportActivity(deviceSessionCtx.getSessionInfo());
+                    transportService.recordActivity(deviceSessionCtx.getSessionInfo());
                 }
                 break;
             case DISCONNECT:
@@ -384,7 +384,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
         if (topicName.startsWith(MqttTopics.BASE_GATEWAY_API_TOPIC)) {
             if (gatewaySessionHandler != null) {
                 handleGatewayPublishMsg(ctx, topicName, msgId, mqttMsg);
-                transportService.reportActivity(deviceSessionCtx.getSessionInfo());
+                transportService.recordActivity(deviceSessionCtx.getSessionInfo());
             } else {
                 log.error("[gatewaySessionHandler] is null, [{}] Failed to process publish msg [{}][{}]", sessionId, topicName, msgId);
             }
@@ -560,7 +560,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
                 transportService.process(deviceSessionCtx.getSessionInfo(), getAttributeMsg, getPubAckCallback(ctx, msgId, getAttributeMsg));
                 attrReqTopicType = TopicType.V2;
             } else {
-                transportService.reportActivity(deviceSessionCtx.getSessionInfo());
+                transportService.recordActivity(deviceSessionCtx.getSessionInfo());
                 ack(ctx, msgId, ReturnCode.TOPIC_NAME_INVALID);
             }
         } catch (AdaptorException e) {
@@ -830,7 +830,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
             }
         }
         if (!activityReported) {
-            transportService.reportActivity(deviceSessionCtx.getSessionInfo());
+            transportService.recordActivity(deviceSessionCtx.getSessionInfo());
         }
         ctx.writeAndFlush(createSubAckMessage(mqttMsg.variableHeader().messageId(), grantedQoSList));
     }
@@ -928,7 +928,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
             }
         }
         if (!activityReported) {
-            transportService.reportActivity(deviceSessionCtx.getSessionInfo());
+            transportService.recordActivity(deviceSessionCtx.getSessionInfo());
         }
         ctx.writeAndFlush(createUnSubAckMessage(mqttMsg.variableHeader().messageId(), unSubResults));
     }

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
 ///
 
 import { PageComponent } from '@shared/components/page.component';
-import { Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { TbPopoverComponent } from '@shared/components/popover.component';
@@ -38,6 +38,8 @@ import { coerceBoolean } from '@shared/decorators/coercion';
 import { accentPalette, primaryPalette } from '@shared/models/material.models';
 import { UtilsService } from '@core/services/utils.service';
 import { isDefinedAndNotNull } from '@core/utils';
+import { UntypedFormControl } from '@angular/forms';
+import { Subject, takeUntil } from 'rxjs';
 
 type ColorMode = 'color' | 'primary' | 'accent';
 
@@ -48,7 +50,7 @@ type ColorMode = 'color' | 'primary' | 'accent';
   styleUrls: ['./color-picker-panel.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class ColorPickerPanelComponent extends PageComponent implements OnInit {
+export class ColorPickerPanelComponent extends PageComponent implements OnInit, OnDestroy{
 
   @Input()
   color: string;
@@ -68,12 +70,14 @@ export class ColorPickerPanelComponent extends PageComponent implements OnInit {
   colorSelected = new EventEmitter<string>();
 
   colorMode: ColorMode = 'color';
-  plainColor: string;
+  plainColorControl = new UntypedFormControl();
   primaryColor: string;
   accentColor: string;
 
   dirty = false;
   valid = true;
+
+  private destroy$ = new Subject<void>();
 
   constructor(protected store: Store<AppState>,
               private utils: UtilsService) {
@@ -81,6 +85,11 @@ export class ColorPickerPanelComponent extends PageComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.plainColorControl.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.onPlainColorChange();
+    });
     if (this.useThemePalette) {
       if (this.color && this.color.startsWith('var(')) {
         this.colorMode = 'primary';
@@ -90,19 +99,25 @@ export class ColorPickerPanelComponent extends PageComponent implements OnInit {
           this.colorMode = 'accent';
           this.accentColor = this.color;
         }
-        this.plainColor = this.utils.plainColorFromVariable(this.color);
+        this.plainColorControl.patchValue(this.utils.plainColorFromVariable(this.color), {emitEvent: false});
       } else {
-        this.plainColor = this.color;
+        this.plainColorControl.patchValue(this.color, {emitEvent: false});
       }
     } else {
-      this.plainColor = this.color;
+      this.plainColorControl.patchValue(this.color, {emitEvent: false});
     }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+    super.ngOnDestroy();
   }
 
   onPrimaryColorChange(color: string) {
     this.primaryColor = color;
     this.accentColor = null;
-    this.plainColor = this.utils.plainColorFromVariable(this.primaryColor);
+    this.plainColorControl.patchValue(this.utils.plainColorFromVariable(this.primaryColor), {emitEvent: false});
     this.dirty = true;
     this.updateValidity();
   }
@@ -110,15 +125,14 @@ export class ColorPickerPanelComponent extends PageComponent implements OnInit {
   onAccentColorChange(color: string) {
     this.accentColor = color;
     this.primaryColor = null;
-    this.plainColor = this.utils.plainColorFromVariable(this.accentColor);
+    this.plainColorControl.patchValue(this.utils.plainColorFromVariable(this.accentColor), {emitEvent: false});
     this.dirty = true;
     this.updateValidity();
   }
 
-  onPlainColorChange(color: string) {
+  onPlainColorChange() {
     this.primaryColor = null;
     this.accentColor = null;
-    this.plainColor = color;
     this.dirty = true;
     this.updateValidity();
   }
@@ -155,7 +169,7 @@ export class ColorPickerPanelComponent extends PageComponent implements OnInit {
   getColor() {
     switch (this.colorMode) {
       case 'color':
-        return this.plainColor;
+        return this.plainColorControl.value;
       case 'primary':
         return this.primaryColor;
       case 'accent':

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -72,25 +72,25 @@ public class DefaultTbEdgeService extends AbstractTbEntityService implements TbE
         TenantId tenantId = edge.getTenantId();
         try {
             String oldEdgeName = null;
-            if (actionType == ActionType.UPDATED) {
+            if (ActionType.UPDATED.equals(actionType)) {
                 Edge edgeById = edgeService.findEdgeById(tenantId, edge.getId());
                 if (edgeById != null) {
                     oldEdgeName = edgeById.getName();
                 }
             }
-            if (actionType == ActionType.ADDED && edge.getRootRuleChainId() == null) {
+            if (ActionType.ADDED.equals(actionType) && edge.getRootRuleChainId() == null) {
                 edge.setRootRuleChainId(edgeTemplateRootRuleChain.getId());
             }
             Edge savedEdge = checkNotNull(edgeService.saveEdge(edge));
             EdgeId edgeId = savedEdge.getId();
 
-            if (!entityGroups.isEmpty() && actionType == ActionType.ADDED) {
+            if (!entityGroups.isEmpty() && ActionType.ADDED.equals(actionType)) {
                 for (EntityGroup entityGroup : entityGroups) {
                     entityGroupService.addEntityToEntityGroup(tenantId, entityGroup.getId(), edgeId);
                 }
             }
 
-            if (actionType == ActionType.ADDED) {
+            if (ActionType.ADDED.equals(actionType)) {
                 ruleChainService.assignRuleChainToEdge(tenantId, edgeTemplateRootRuleChain.getId(), savedEdge.getId());
                 edgeNotificationService.setEdgeRootRuleChain(tenantId, savedEdge, edgeTemplateRootRuleChain.getId());
                 edgeService.assignDefaultRuleChainsToEdge(tenantId, savedEdge.getId());
@@ -102,7 +102,12 @@ public class DefaultTbEdgeService extends AbstractTbEntityService implements TbE
             }
 
             if (oldEdgeName != null && !oldEdgeName.equals(savedEdge.getName())) {
-                edgeService.renameEdgeAllGroups(tenantId, savedEdge, oldEdgeName);
+                String customerName = null;
+                if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
+                    Customer customer = customerService.findCustomerById(tenantId, new CustomerId(edge.getOwnerId().getId()));
+                    customerName = customer.getName();
+                }
+                edgeService.renameEdgeAllGroups(tenantId, savedEdge, oldEdgeName, customerName, customerName);
             }
 
             notificationEntityService.notifyCreateOrUpdateOrDeleteEdge(tenantId, edgeId, savedEdge.getCustomerId(), savedEdge, actionType, user);

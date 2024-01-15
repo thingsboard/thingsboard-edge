@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -78,6 +78,7 @@ import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
@@ -86,7 +87,6 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
-import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import javax.annotation.Nullable;
@@ -139,7 +139,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     private IntegrationService integrationService;
 
     @Autowired
-    private TenantService tenantService;
+    private CustomerService customerService;
 
     @Autowired
     private DataValidator<Edge> edgeValidator;
@@ -344,30 +344,42 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     }
 
     @Override
-    public void renameEdgeAllGroups(TenantId tenantId, Edge edge, String oldEdgeName) {
-        log.trace("Executing renameDeviceEdgeAllGroup tenantId [{}], edge [{}], previousEdgeName [{}]", tenantId, edge, oldEdgeName);
-        String oldEntityGroupName = EdgeUtils.getEdgeGroupAllName(oldEdgeName);
-        String newEntityGroupName = EdgeUtils.getEdgeGroupAllName(edge.getName());
+    public void renameEdgeAllGroups(TenantId tenantId, Edge edge, String oldEdgeName, String oldCustomerName, String newCustomerName) {
+        log.trace("Executing renameEdgeAllGroups tenantId [{}], edge [{}], previousEdgeName [{}]", tenantId, edge, oldEdgeName);
+        String oldCustomerGroupName = null, newCustomerGroupName = null;
+        if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
+            oldCustomerGroupName = EdgeUtils.getEdgeGroupAllName(oldCustomerName, oldEdgeName);
+            newCustomerGroupName = EdgeUtils.getEdgeGroupAllName(newCustomerName, edge.getName());
+        }
+        String oldTenantGroupName = EdgeUtils.getEdgeGroupAllName(oldEdgeName);
+        String newTenantGroupName = EdgeUtils.getEdgeGroupAllName(edge.getName());
         List<EntityType> groupTypesToRename = List.of(EntityType.DEVICE, EntityType.ASSET, EntityType.ENTITY_VIEW, EntityType.DASHBOARD);
         for (EntityType groupType : groupTypesToRename) {
-            ListenableFuture<Optional<EntityGroup>> future =
-                    entityGroupService.findEntityGroupByTypeAndNameAsync(tenantId, edge.getOwnerId(), groupType, oldEntityGroupName);
-            Futures.addCallback(future, new FutureCallback<>() {
-                @Override
-                public void onSuccess(Optional<EntityGroup> edgeAllGroupOpt) {
-                    if (edgeAllGroupOpt.isPresent()) {
-                        EntityGroup edgeAllGroup = edgeAllGroupOpt.get();
-                        edgeAllGroup.setName(newEntityGroupName);
-                        entityGroupService.saveEntityGroup(tenantId, edgeAllGroup.getOwnerId(), edgeAllGroup);
-                    }
-                }
-
-                @Override
-                public void onFailure(Throwable t) {
-                    log.error("[{}] Failed to find edge 'All' group [{}]", tenantId, edge, t);
-                }
-            }, MoreExecutors.directExecutor());
+            updateGroupName(tenantId, edge, groupType, oldTenantGroupName, newTenantGroupName);
+            if (oldCustomerGroupName != null && newCustomerGroupName != null) {
+                updateGroupName(tenantId, edge, groupType, oldCustomerGroupName, newCustomerGroupName);
+            }
         }
+    }
+
+    private void updateGroupName(TenantId tenantId, Edge edge, EntityType groupType, String oldGroupName, String newGroupName) {
+        ListenableFuture<Optional<EntityGroup>> future =
+                entityGroupService.findEntityGroupByTypeAndNameAsync(tenantId, edge.getOwnerId(), groupType, oldGroupName);
+        Futures.addCallback(future, new FutureCallback<>() {
+            @Override
+            public void onSuccess(Optional<EntityGroup> edgeAllGroupOpt) {
+                if (edgeAllGroupOpt.isPresent()) {
+                    EntityGroup edgeAllGroup = edgeAllGroupOpt.get();
+                    edgeAllGroup.setName(newGroupName);
+                    entityGroupService.saveEntityGroup(tenantId, edgeAllGroup.getOwnerId(), edgeAllGroup);
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.error("[{}] Failed to find edge 'All' group [{}]", tenantId, edge, t);
+            }
+        }, MoreExecutors.directExecutor());
     }
 
     @Override
