@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.scheduler.sql;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import org.junit.Before;
@@ -75,6 +74,7 @@ public class SchedulerEventTest extends AbstractControllerTest {
     @Before
     public void before() throws Exception {
         loginTenantAdmin();
+        Mockito.reset(tbClusterService);
     }
 
     private static final String testRpc = "{\"method\":\"test\",\"params\":{\"p1\":1,\"p2\":\"2\"}}";
@@ -104,7 +104,7 @@ public class SchedulerEventTest extends AbstractControllerTest {
 
         ReflectionTestUtils.setField(schedulerService, "scheduledExecutor", mockExecutor);
 
-        SchedulerEvent schedulerEvent = createSchedulerEvent(savedDevice.getId());
+        SchedulerEvent schedulerEvent = createSchedulerEvent(savedDevice.getId(), true);
         SchedulerEvent savedSchedulerEvent = doPost("/api/schedulerEvent", schedulerEvent, SchedulerEvent.class);
 
         verify(tbClusterService, timeout(10000)).pushMsgToRuleEngine(eq(tenantId), eq(getOriginatorId(savedSchedulerEvent)), argThat(tbMsg -> {
@@ -122,11 +122,43 @@ public class SchedulerEventTest extends AbstractControllerTest {
         ), any());
     }
 
-    private SchedulerEvent createSchedulerEvent(EntityId originatorId) {
+    @Test
+    public void shouldNotSendRpcRequestToDeviceIfSchedulerEventIsDisabled() {
+        Device device = new Device();
+        device.setName("My device");
+        device.setType("default");
+        Device savedDevice = doPost("/api/device", device, Device.class);
+
+        ListeningScheduledExecutorService mockExecutor = Mockito.mock(ListeningScheduledExecutorService.class);
+
+        AtomicBoolean isScheduled = new AtomicBoolean(false);
+
+        when(mockExecutor.schedule(any(Runnable.class), anyLong(), eq(TimeUnit.MILLISECONDS))).thenAnswer(invocation -> {
+            if (!isScheduled.get()) {
+                isScheduled.set(true);
+                Runnable task = (Runnable) invocation.getArguments()[0];
+                task.run();
+            }
+
+            return any();
+        });
+
+        ReflectionTestUtils.setField(schedulerService, "scheduledExecutor", mockExecutor);
+
+        SchedulerEvent schedulerEvent = createSchedulerEvent(savedDevice.getId(), false);
+        SchedulerEvent savedSchedulerEvent = doPost("/api/schedulerEvent", schedulerEvent, SchedulerEvent.class);
+
+        verify(tbClusterService, Mockito.never()).pushMsgToRuleEngine(eq(tenantId), eq(getOriginatorId(savedSchedulerEvent)), argThat(tbMsg -> {
+                    return tbMsg.isTypeOf(RPC_CALL_FROM_SERVER_TO_DEVICE);
+                }
+        ), any());
+    }
+
+    private SchedulerEvent createSchedulerEvent(EntityId originatorId, boolean enabled) {
         SchedulerEvent schedulerEvent = new SchedulerEvent();
         schedulerEvent.setName("TestRpc");
         schedulerEvent.setType("sendRpcRequest");
-        schedulerEvent.setEnabled(true);
+        schedulerEvent.setEnabled(enabled);
         ObjectNode schedule = JacksonUtil.newObjectNode();
         schedule.put("startTime", Long.MAX_VALUE);
         schedule.put("timezone", "UTC");

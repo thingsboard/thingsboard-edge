@@ -53,7 +53,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.Table;
 import java.util.UUID;
 
-import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_ENABLED;
+import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_ENABLED_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_CUSTOMER_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_NAME_PROPERTY;
@@ -100,7 +100,7 @@ public final class SchedulerEventEntity extends BaseSqlEntity<SchedulerEvent> im
     @Column(name = ModelConstants.SCHEDULER_EVENT_SCHEDULE_PROPERTY)
     private JsonNode schedule;
 
-    @Column(name = SCHEDULER_EVENT_ENABLED)
+    @Column(name = SCHEDULER_EVENT_ENABLED_PROPERTY)
     private boolean enabled;
 
     public SchedulerEventEntity() {
