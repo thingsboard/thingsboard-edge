@@ -119,6 +119,7 @@ public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventI
         this.type = schedulerEventInfo.getType();
         this.additionalInfo = schedulerEventInfo.getAdditionalInfo();
         this.schedule = schedulerEventInfo.getSchedule();
+        this.enabled = schedulerEventInfo.isEnabled();
     }
 
     public AbstractSchedulerEventInfoEntity(SchedulerEventInfoEntity schedulerEventInfoEntity) {
