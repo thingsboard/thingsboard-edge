@@ -4855,7 +4855,9 @@
         "test": "Test",
         "help": "Help",
         "reset-debug-mode": "Reset debug mode in all nodes",
-        "test-with-this-message": "{{test}} with this message"
+        "test-with-this-message": "{{test}} with this message",
+        "queue-hint": "Select a queue for message forwarding to another queue.  'Main' queue is used by default.",
+        "queue-singleton-hint": "Select a queue for message forwarding in multi-instance environments. 'Main' queue is used by default."
     },
     "role": {
         "role": "Role",
@@ -5570,6 +5572,12 @@
           "current-half-year-so-far": "Current half year so far",
           "current-year": "Current year",
           "current-year-so-far": "Current year so far"
+        },
+        "type": {
+            "week": "Week (Sun - Sat)",
+            "week-iso": "Week (Mon - Sun)",
+            "month": "Month",
+            "quarter": "Quarter"
         }
     },
     "timeunit": {

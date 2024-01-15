@@ -80,7 +80,6 @@ import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.JsonDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
-import org.thingsboard.server.common.data.limit.LimitedApi;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -89,7 +88,6 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
-import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.common.util.KvProtoUtil;
@@ -102,7 +100,6 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
-import org.thingsboard.server.dao.util.limits.RateLimitService;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
@@ -117,9 +114,7 @@ import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
-import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.converter.DataConverterService;
@@ -148,7 +143,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @TbCoreComponent
 @Service
 @Data
-public class DefaultPlatformIntegrationService implements PlatformIntegrationService {
+public class DefaultPlatformIntegrationService extends IntegrationActivityManager implements PlatformIntegrationService {
 
     private static final ReentrantLock entityCreationLock = new ReentrantLock();
 
@@ -168,14 +163,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     protected IntegrationContextComponent contextComponent;
 
     @Autowired
-    private PartitionService partitionService;
-
-    @Autowired
     private EventService eventService;
-
-    @Autowired
-    @Lazy
-    private TbQueueProducerProvider producerProvider;
 
     @Autowired
     @Lazy
@@ -250,13 +238,12 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     private boolean initialized;
 
     protected TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg>> ruleEngineMsgProducer;
-    protected TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToCoreMsg>> tbCoreMsgProducer;
     protected TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg>> integrationRuleEngineMsgProducer;
 
     @PostConstruct
     public void init() {
+        super.init();
         ruleEngineMsgProducer = producerProvider.getRuleEngineMsgProducer();
-        tbCoreMsgProducer = producerProvider.getTbCoreMsgProducer();
         integrationRuleEngineMsgProducer = producerProvider.getIntegrationRuleEngineMsgProducer();
         this.callbackExecutor = ThingsBoardExecutors.newWorkStealingPool(20, "default-integration-callback");
     }
@@ -432,9 +419,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     @Override
     public void process(SessionInfoProto sessionInfo, PostTelemetryMsg msg, IntegrationCallback<Void> callback) {
-        reportActivity(sessionInfo);
         TenantId tenantId = new TenantId(new UUID(sessionInfo.getTenantIdMSB(), sessionInfo.getTenantIdLSB()));
         DeviceId deviceId = new DeviceId(new UUID(sessionInfo.getDeviceIdMSB(), sessionInfo.getDeviceIdLSB()));
+        onActivity(new IntegrationActivityKey(tenantId, deviceId), getCurrentTimeMillis());
         int dataPoints = 0;
         for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
             dataPoints += tsKv.getKvCount();
@@ -452,9 +439,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     @Override
     public void process(SessionInfoProto sessionInfo, PostAttributeMsg msg, IntegrationCallback<Void> callback) {
-        reportActivity(sessionInfo);
         TenantId tenantId = new TenantId(new UUID(sessionInfo.getTenantIdMSB(), sessionInfo.getTenantIdLSB()));
         DeviceId deviceId = new DeviceId(new UUID(sessionInfo.getDeviceIdMSB(), sessionInfo.getDeviceIdLSB()));
+        onActivity(new IntegrationActivityKey(tenantId, deviceId), getCurrentTimeMillis());
         JsonObject json = JsonUtils.getJsonObject(msg.getKvList());
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("deviceName", sessionInfo.getDeviceName());
@@ -717,17 +704,6 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         return metaData;
     }
 
-    private void reportActivity(SessionInfoProto sessionInfo) {
-        TransportProtos.SubscriptionInfoProto subscriptionInfoProto = TransportProtos.SubscriptionInfoProto.newBuilder()
-                .setAttributeSubscription(false).setRpcSubscription(false)
-                .setLastActivityTime(System.currentTimeMillis()).build();
-        TransportProtos.TransportToDeviceActorMsg msg = TransportProtos.TransportToDeviceActorMsg.newBuilder().setSessionInfo(sessionInfo)
-                .setSubscriptionInfo(subscriptionInfoProto).build();
-        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, getTenantId(sessionInfo), getDeviceId(sessionInfo));
-        tbCoreMsgProducer.send(tpi, new TbProtoQueueMsg<>(getRoutingKey(sessionInfo),
-                TransportProtos.ToCoreMsg.newBuilder().setToDeviceActorMsg(msg).build()), null);
-    }
-
     private void process(Asset asset, PostTelemetryMsg msg, IntegrationCallback<Void> callback) {
         int dataPoints = 0;
         for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
@@ -752,11 +728,11 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         metaData.putValue("assetType", asset.getType());
         sendToRuleEngine(asset.getTenantId(), asset.getId(), asset.getAssetProfileId(),
                 asset.getCustomerId(), json, metaData, TbMsgType.POST_ATTRIBUTES_REQUEST,
-                     new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(asset.getTenantId(), asset.getCustomerId(), msg.getKvList().size(), callback)));
+                new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(asset.getTenantId(), asset.getCustomerId(), msg.getKvList().size(), callback)));
     }
 
-    private void sendToRuleEngine(TenantId tenantId, DeviceId deviceId, TransportProtos.SessionInfoProto sessionInfo, JsonObject json,
-                                  TbMsgMetaData metaData, TbMsgType msgType, TbQueueCallback callback) {
+    void sendToRuleEngine(TenantId tenantId, DeviceId deviceId, TransportProtos.SessionInfoProto sessionInfo, JsonObject json,
+                          TbMsgMetaData metaData, TbMsgType msgType, TbQueueCallback callback) {
         DeviceProfileId deviceProfileId = new DeviceProfileId(new UUID(sessionInfo.getDeviceProfileIdMSB(), sessionInfo.getDeviceProfileIdLSB()));
 
         DeviceProfile deviceProfile = deviceProfileCache.get(tenantId, deviceProfileId);
