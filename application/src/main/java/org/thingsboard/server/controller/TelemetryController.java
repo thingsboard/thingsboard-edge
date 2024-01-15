@@ -337,7 +337,7 @@ public class TelemetryController extends BaseController {
             @RequestParam(name = "limit", defaultValue = "100") Integer limit,
             @Parameter(description = "A string value representing the aggregation function. " +
                     "If the interval is not specified, 'agg' parameter will use 'NONE' value.",
-                    schema = @Schema(allowableValues = "MIN, MAX, AVG, SUM, COUNT, NONE"))
+                    schema = @Schema(allowableValues = {"MIN", "MAX", "AVG", "SUM", "COUNT", "NONE"}))
             @RequestParam(name = "agg", defaultValue = "NONE") String aggStr,
             @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
             @RequestParam(name = "orderBy", defaultValue = "DESC") String orderBy,
