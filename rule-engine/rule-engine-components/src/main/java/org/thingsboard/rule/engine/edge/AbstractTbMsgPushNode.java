@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -81,16 +81,10 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
             ctx.ack(msg);
             return;
         }
-        if (isSupportedOriginator(msg.getOriginator().getEntityType())) {
-            if (isSupportedMsgType(msg)) {
-                processMsg(ctx, msg);
-            } else {
-                String errMsg = String.format("Unsupported msg type %s", msg.getType());
-                log.debug(errMsg);
-                ctx.tellFailure(msg, new RuntimeException(errMsg));
-            }
+        if (isSupportedMsgType(msg)) {
+            processMsg(ctx, msg);
         } else {
-            String errMsg = String.format("Unsupported originator type %s", msg.getOriginator().getEntityType());
+            String errMsg = String.format("Unsupported msg type %s", msg.getType());
             log.debug(errMsg);
             ctx.tellFailure(msg, new RuntimeException(errMsg));
         }
@@ -197,22 +191,5 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
     protected boolean isSupportedMsgType(TbMsg msg) {
         return msg.isTypeOneOf(POST_TELEMETRY_REQUEST, POST_ATTRIBUTES_REQUEST, ATTRIBUTES_UPDATED,
                 ATTRIBUTES_DELETED, TIMESERIES_UPDATED, ALARM, CONNECT_EVENT, DISCONNECT_EVENT, ACTIVITY_EVENT, INACTIVITY_EVENT);
-    }
-
-    protected boolean isSupportedOriginator(EntityType entityType) {
-        switch (entityType) {
-            case DEVICE:
-            case ASSET:
-            case ENTITY_VIEW:
-            case DASHBOARD:
-            case TENANT:
-            case CUSTOMER:
-            case USER:
-            case EDGE:
-            case ENTITY_GROUP:
-                return true;
-            default:
-                return false;
-        }
     }
 }

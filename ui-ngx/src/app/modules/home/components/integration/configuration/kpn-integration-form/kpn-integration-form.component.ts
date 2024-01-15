@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -96,7 +96,7 @@ export class KpnIntegrationFormComponent extends IntegrationForm implements Cont
     }
     this.kpnIntegrationConfigForm = this.fb.group({
       baseUrl: [baseUrl(), baseURLValidators],
-      destinationSharedSecret: ['', Validators.required],
+      destinationSharedSecret: [""],
       httpEndpoint: [{
         value: integrationEndPointUrl(this.integrationType, baseUrl(), this.routingKey),
         disabled: true
@@ -104,7 +104,6 @@ export class KpnIntegrationFormComponent extends IntegrationForm implements Cont
       enableSecurity: [false],
       headersFilter: [{}],
       allowDownlink: [false],
-      customerId:[],
       gripTenantId:[],
       apiId:[],
       apiKey:[]
@@ -130,7 +129,7 @@ export class KpnIntegrationFormComponent extends IntegrationForm implements Cont
 
   writeValue(value: KpnIntegration) {
     if (isDefinedAndNotNull(value)) {
-      this.kpnIntegrationConfigForm.patchValue(value, {emitEvent: false});
+      this.kpnIntegrationConfigForm.reset(value, {emitEvent: false});
       if (!this.disabled) {
         this.updateEnableFields();
       }
@@ -143,6 +142,9 @@ export class KpnIntegrationFormComponent extends IntegrationForm implements Cont
     this.propagateChange = fn;
     if (this.propagateChangePending) {
       this.propagateChangePending = false;
+      setTimeout(() => {
+        this.updateModels(this.kpnIntegrationConfigForm.getRawValue());
+      }, 0);
     }
   }
 
@@ -184,26 +186,21 @@ export class KpnIntegrationFormComponent extends IntegrationForm implements Cont
   private updateEnableFields() {
     const allowDownlink = this.kpnIntegrationConfigForm.get('allowDownlink').value;
     if (allowDownlink) {
-      this.kpnIntegrationConfigForm.get('customerId').enable({emitEvent: false});
       this.kpnIntegrationConfigForm.get('gripTenantId').enable({emitEvent: false});
       this.kpnIntegrationConfigForm.get('apiId').enable({emitEvent: false});
       this.kpnIntegrationConfigForm.get('apiKey').enable({emitEvent: false});
-      this.kpnIntegrationConfigForm.get('customerId').setValidators(Validators.required);
       this.kpnIntegrationConfigForm.get('gripTenantId').setValidators(Validators.required);
       this.kpnIntegrationConfigForm.get('apiId').setValidators(Validators.required);
       this.kpnIntegrationConfigForm.get('apiKey').setValidators(Validators.required);
     } else {
-      this.kpnIntegrationConfigForm.get('customerId').disable({emitEvent: false});
       this.kpnIntegrationConfigForm.get('gripTenantId').disable({emitEvent: false});
       this.kpnIntegrationConfigForm.get('apiId').disable({emitEvent: false});
       this.kpnIntegrationConfigForm.get('apiKey').disable({emitEvent: false});
-      this.kpnIntegrationConfigForm.get('customerId').clearValidators();
       this.kpnIntegrationConfigForm.get('gripTenantId').clearValidators();
       this.kpnIntegrationConfigForm.get('apiId').clearValidators();
       this.kpnIntegrationConfigForm.get('apiKey').clearValidators();
 
     }
-    this.kpnIntegrationConfigForm.get('customerId').updateValueAndValidity({emitEvent: false});
     this.kpnIntegrationConfigForm.get('gripTenantId').updateValueAndValidity({emitEvent: false});
     this.kpnIntegrationConfigForm.get('apiId').updateValueAndValidity({emitEvent: false});
     this.kpnIntegrationConfigForm.get('apiKey').updateValueAndValidity({emitEvent: false});

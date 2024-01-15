@@ -1,7 +1,7 @@
 #
 # ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+# Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
 # the property of ThingsBoard, Inc. and its suppliers,
@@ -535,6 +535,18 @@ integrations:
       privateKey: "${INTEGRATIONS_RPC_SSL_PRIVATE_KEY:privateKeyFile.pem}"
     # Disconnect a client if no keepalive ping received in the specified time
     client_max_keep_alive_time_sec: "${INTEGRATIONS_RPC_CLIENT_MAX_KEEP_ALIVE_TIME_SEC:300}"
+  activity:
+    # This property defines the time interval, in milliseconds, for reporting activity events like post telemetry or post attributes.
+    # The value set here determines how frequently the system will report on activities.
+    # For instance, a value of 3000 means the system will gather and potentially report activities every 3 seconds.
+    reporting_period: "${INTEGRATIONS_ACTIVITY_REPORTING_PERIOD:3000}"
+    # This property specifies the strategy for reporting activity events within each reporting period.
+    # The accepted values are 'FIRST', 'LAST', 'FIRST_AND_LAST' and 'ALL'.
+    # - 'FIRST': Only the first activity event in each reporting period is reported.
+    # - 'LAST': Only the last activity event in the reporting period is reported.
+    # - 'FIRST_AND_LAST': Both the first and last activity events in the reporting period are reported.
+    # - 'ALL': All activity events in the reporting period are reported.
+    reporting_strategy: "${INTEGRATIONS_ACTIVITY_REPORTING_STRATEGY:ALL}"
 
 # Reports parameters
 reports:
@@ -546,7 +558,7 @@ reports:
   rate_limits:
     # Enable/disable reports tenant rate limits
     enabled: "${REPORTS_TENANT_RATE_LIMITS_ENABLED:false}"
-    # The value of repors rate limits. By default, no more then 5 reports per 300 second
+    # The value of reports rate limits. By default, no more than 5 reports per 300 second
     configuration: "${REPORTS_TENANT_RATE_LIMITS_CONFIGURATION:5:300}"
   scheduler:
     # minimum interval between subsequent scheduler events. Applicable for timer based events.
@@ -888,6 +900,10 @@ state:
   # If 'persistToTelemetry' is changed from 'false' to 'true': 'CREATE OR REPLACE VIEW device_info_view AS SELECT * FROM device_info_active_ts_view;'
   # If 'persistToTelemetry' is changed from 'true' to 'false': 'CREATE OR REPLACE VIEW device_info_view AS SELECT * FROM device_info_active_attribute_view;'
   persistToTelemetry: "${PERSIST_STATE_TO_TELEMETRY:false}"
+  # Millisecond value defining time-to-live for device state telemetry data (e.g. 'active', 'lastActivityTime').
+  # Used only when state.persistToTelemetry is set to 'true' and Cassandra is used for timeseries data.
+  # 0 means time-to-live mechanism is disabled.
+  telemetryTtl: "${STATE_TELEMETRY_TTL:0}"
 
 # Tbel parameters
 tbel:
@@ -968,6 +984,14 @@ transport:
     inactivity_timeout: "${TB_TRANSPORT_SESSIONS_INACTIVITY_TIMEOUT:300000}"
     # Interval of periodic check for expired sessions and report of the changes to session last activity time
     report_timeout: "${TB_TRANSPORT_SESSIONS_REPORT_TIMEOUT:3000}"
+  activity:
+    # This property specifies the strategy for reporting activity events within each reporting period.
+    # The accepted values are 'FIRST', 'LAST', 'FIRST_AND_LAST' and 'ALL'.
+    # - 'FIRST': Only the first activity event in each reporting period is reported.
+    # - 'LAST': Only the last activity event in the reporting period is reported.
+    # - 'FIRST_AND_LAST': Both the first and last activity events in the reporting period are reported.
+    # - 'ALL': All activity events in the reporting period are reported.
+    reporting_strategy: "${TB_TRANSPORT_ACTIVITY_REPORTING_STRATEGY:LAST}"
   json:
     # Cast String data types to Numeric if possible when processing Telemetry/Attributes JSON
     type_cast_enabled: "${JSON_TYPE_CAST_ENABLED:true}"
@@ -1371,6 +1395,8 @@ springdoc:
 swagger:
   # General swagger match pattern of swagger UI links
   api_path: "${SWAGGER_API_PATH:/api/**}"
+  # Excluded API path match pattern of swagger UI links
+  exclude_api_path: "${SWAGGER_API_PATH:/api/v1/integrations/**}"
   # Nonsecurity API path match pattern of swagger UI links
   non_security_path_regex: "${SWAGGER_NON_SECURITY_PATH_REGEX:/api/(?:noauth|v1)/.*}"
   # The title on the API doc UI page
@@ -1513,6 +1539,8 @@ queue:
     region: "${TB_QUEUE_AWS_SQS_REGION:YOUR_REGION}"
     # Number of threads per each AWS SQS queue in consumer
     threads_per_topic: "${TB_QUEUE_AWS_SQS_THREADS_PER_TOPIC:1}"
+    # Thread pool size for aws_sqs queue producer executor provider. Default value equals to AmazonSQSAsyncClient.DEFAULT_THREAD_POOL_SIZE
+    producer_thread_pool_size: "${TB_QUEUE_AWS_SQS_EXECUTOR_THREAD_POOL_SIZE:50}"
     queue-properties:
       # AWS SQS queue properties. VisibilityTimeout in seconds;MaximumMessageSize in bytes;MessageRetentionPeriod in seconds
       rule-engine: "${TB_QUEUE_AWS_SQS_RE_QUEUE_PROPERTIES:VisibilityTimeout:30;MaximumMessageSize:262144;MessageRetentionPeriod:604800}"

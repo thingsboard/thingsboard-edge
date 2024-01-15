@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,10 +30,8 @@
  */
 package org.thingsboard.monitoring.notification.channels;
 
-import org.thingsboard.monitoring.data.notification.Notification;
-
 public interface NotificationChannel {
 
-    void sendNotification(Notification notification);
+    void sendNotification(String message);
 
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,11 +32,17 @@ package org.thingsboard.server.common.data.kv;
 
 public interface ReadTsKvQuery extends TsKvQuery {
 
-    long getInterval();
+    AggregationParams getAggParameters();
+
+    default long getInterval(){
+        return getAggParameters().getInterval();
+    }
+
+    default Aggregation getAggregation() {
+        return getAggParameters().getAggregation();
+    }
 
     int getLimit();
-
-    Aggregation getAggregation();
 
     String getOrder();
 

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -92,7 +92,8 @@ public abstract class AbstractComponentDescriptorInsertRepository implements Com
                 .setParameter("name", entity.getName())
                 .setParameter("scope", entity.getScope().name())
                 .setParameter("type", entity.getType().name())
-                .setParameter("clustering_mode", entity.getClusteringMode().name());
+                .setParameter("clustering_mode", entity.getClusteringMode().name())
+                .setParameter("has_queue_name", entity.isHasQueueName());
     }
 
     private ComponentDescriptorEntity processSaveOrUpdate(ComponentDescriptorEntity entity, String query) {

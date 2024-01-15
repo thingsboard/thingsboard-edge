@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -82,6 +82,9 @@ public class ComponentDescriptorEntity extends BaseSqlEntity<ComponentDescriptor
     @Column(name = ModelConstants.COMPONENT_DESCRIPTOR_ACTIONS_PROPERTY)
     private String actions;
 
+    @Column(name = ModelConstants.COMPONENT_DESCRIPTOR_HAS_QUEUE_NAME_PROPERTY)
+    private boolean hasQueueName;
+
     public ComponentDescriptorEntity() {
     }
 
@@ -98,6 +101,7 @@ public class ComponentDescriptorEntity extends BaseSqlEntity<ComponentDescriptor
         this.clazz = component.getClazz();
         this.configurationDescriptor = component.getConfigurationDescriptor();
         this.configurationVersion = component.getConfigurationVersion();
+        this.hasQueueName = component.isHasQueueName();
     }
 
     @Override
@@ -112,6 +116,7 @@ public class ComponentDescriptorEntity extends BaseSqlEntity<ComponentDescriptor
         data.setActions(this.getActions());
         data.setConfigurationDescriptor(configurationDescriptor);
         data.setConfigurationVersion(configurationVersion);
+        data.setHasQueueName(hasQueueName);
         return data;
     }
 }

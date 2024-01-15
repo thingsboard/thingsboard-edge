@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,27 +31,28 @@
 package org.thingsboard.rule.engine.analytics.latest.alarm;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.jupiter.api.Assertions;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.provider.Arguments;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.Times;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 import org.springframework.util.CollectionUtils;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.rule.engine.AbstractRuleNodeUpgradeTest;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
 import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.server.common.data.EntityType;
@@ -70,7 +71,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -85,22 +85,23 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 @Slf4j
-public class TbAlarmsCountNodeV2Test {
+public class TbAlarmsCountNodeV2Test extends AbstractRuleNodeUpgradeTest {
 
     private final Gson gson = new Gson();
 
     @Mock
     private TbContext ctx;
-
     @Mock
     private RuleEngineAlarmService alarmService;
 
@@ -112,20 +113,20 @@ public class TbAlarmsCountNodeV2Test {
     private Map<EntityId, Integer> expectedLastDayAlarmsCountMap;
     private Set<Long> alarmCreatedTimes;
 
-    @Before
+    @BeforeEach
     public void before() {
-        doAnswer((Answer<List<Long>>) invocationOnMock -> {
+        node = spy(new TbAlarmsCountNodeV2());
+        lenient().doAnswer((Answer<List<Long>>) invocationOnMock -> {
             AlarmQuery query = (AlarmQuery) (invocationOnMock.getArguments())[1];
             List<AlarmFilter> filters = (List<AlarmFilter>) (invocationOnMock.getArguments())[2];
             return findAlarmCounts(alarmService, query, filters);
         }).when(alarmService).findAlarmCounts(ArgumentMatchers.any(), ArgumentMatchers.any(AlarmQuery.class), ArgumentMatchers.any(List.class));
 
-        when(ctx.getAlarmService()).thenReturn(alarmService);
+        lenient().when(ctx.getAlarmService()).thenReturn(alarmService);
     }
 
     public void init(TbAlarmsCountNodeV2Configuration configuration) throws TbNodeException {
         nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(configuration));
-        node = new TbAlarmsCountNodeV2();
         expectedAllAlarmsCountMap = new HashMap<>();
         expectedActiveAlarmsCountMap = new HashMap<>();
         expectedLastDayAlarmsCountMap = new HashMap<>();
@@ -160,27 +161,34 @@ public class TbAlarmsCountNodeV2Test {
         testWithCountAlarmsForPropagationEntitiesEnabledAndPropagationTypesSelected(propagationEntityTypes);
     }
 
-    @Test
-    public void givenOldConfig_whenUpgrade_thenShouldReturnTrueResultWithNewConfig() throws Exception {
-        var node = new TbAlarmsCountNodeV2();
-        var defaultConfig = new TbAlarmsCountNodeV2Configuration().defaultConfiguration();
-        String oldConfig = "{\"alarmsCountMappings\":[{\"target\":\"alarmsCount\",\"typesList\":null,\"severityList\":null,\"statusList\":null,\"latestInterval\":0}]," +
-                "\"countAlarmsForPropagationEntities\":true,\"propagationEntityTypes\":[],\"queueName\":null}";
-        TbPair<Boolean, JsonNode> upgrade = node.upgrade(0, JacksonUtil.toJsonNode(oldConfig));
-        Assertions.assertTrue(upgrade.getFirst());
-        Assertions.assertEquals(defaultConfig, JacksonUtil.treeToValue(upgrade.getSecond(), defaultConfig.getClass()));
-    }
+    // Rule nodes upgrade
+    public static final String EXPECTED_CONFIG = "{\"alarmsCountMappings\":[{\"target\":\"alarmsCount\",\"typesList\":null,\"severityList\":null,\"statusList\":null,\"latestInterval\":0}]," +
+            "\"countAlarmsForPropagationEntities\":true,\"propagationEntityTypes\":[],\"outMsgType\":\"POST_TELEMETRY_REQUEST\"}";
 
-    @Test
-    public void givenNewConfigWithOldVersion_whenUpgrade_thenShouldReturnFalseResultWithTheSameConfig() throws Exception {
-        var node = new TbAlarmsCountNodeV2();
-        var defaultConfig = new TbAlarmsCountNodeV2Configuration().defaultConfiguration();
-        JsonNode expectedConfig = JacksonUtil.valueToTree(defaultConfig);
-        TbPair<Boolean, JsonNode> upgrade = node.upgrade(0, expectedConfig);
-        Assertions.assertFalse(upgrade.getFirst());
-        Assertions.assertEquals(defaultConfig, JacksonUtil.treeToValue(upgrade.getSecond(), defaultConfig.getClass()));
+    private static Stream<Arguments> givenFromVersionAndConfig_whenUpgrade_thenVerifyHasChangesAndConfig() {
+        return Stream.of(
+                // default config for version 0
+                Arguments.of(0,
+                        "{\"alarmsCountMappings\":[{\"target\":\"alarmsCount\",\"typesList\":null,\"severityList\":null,\"statusList\":null,\"latestInterval\":0}]," +
+                                "\"countAlarmsForPropagationEntities\":true,\"propagationEntityTypes\":[],\"queueName\":null}",
+                        true,
+                        EXPECTED_CONFIG),
+                // default config for version 0 with queueName
+                Arguments.of(0,
+                        "{\"alarmsCountMappings\":[{\"target\":\"alarmsCount\",\"typesList\":null,\"severityList\":null,\"statusList\":null,\"latestInterval\":0}]," +
+                                "\"countAlarmsForPropagationEntities\":true,\"propagationEntityTypes\":[],\"queueName\":\"Main\"}",
+                        true,
+                        EXPECTED_CONFIG),
+                // default config for version 1 with upgrade from version 1
+                Arguments.of(1,
+                        "{\"alarmsCountMappings\":[{\"target\":\"alarmsCount\",\"typesList\":null,\"severityList\":null,\"statusList\":null,\"latestInterval\":0}]," +
+                                "\"countAlarmsForPropagationEntities\":true,\"propagationEntityTypes\":[],\"queueName\":\"Main\",\"outMsgType\":\"POST_TELEMETRY_REQUEST\"}",
+                        true,
+                        EXPECTED_CONFIG),
+                // default config for version 2 with upgrade from version 0
+                Arguments.of(0, EXPECTED_CONFIG, false, EXPECTED_CONFIG)
+        );
     }
-
 
     private TbAlarmsCountNodeV2Configuration createConfig() {
         TbAlarmsCountNodeV2Configuration configuration = new TbAlarmsCountNodeV2Configuration();
@@ -520,4 +528,8 @@ public class TbAlarmsCountNodeV2Test {
         }
     }
 
+    @Override
+    protected TbNode getTestNode() {
+        return node;
+    }
 }

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -606,6 +606,7 @@ export class RuleChainPageComponent extends PageComponent
         configurationVersion: isDefinedAndNotNull(ruleNode.configurationVersion) ? ruleNode.configurationVersion : 0,
         debugMode: ruleNode.debugMode,
         singletonMode: ruleNode.singletonMode,
+        queueName: ruleNode.queueName,
         x: Math.round(ruleNode.additionalInfo.layoutX),
         y: Math.round(ruleNode.additionalInfo.layoutY),
         component,
@@ -966,7 +967,8 @@ export class RuleChainPageComponent extends PageComponent
             configuration: deepClone(node.configuration),
             additionalInfo: node.additionalInfo ? deepClone(node.additionalInfo) : {},
             debugMode: node.debugMode,
-            singletonMode: node.singletonMode
+            singletonMode: node.singletonMode,
+            queueName: node.queueName
           };
           if (minX === null) {
             minX = node.x;
@@ -1501,7 +1503,8 @@ export class RuleChainPageComponent extends PageComponent
             configuration: node.configuration,
             additionalInfo: node.additionalInfo ? node.additionalInfo : {},
             debugMode: node.debugMode,
-            singletonMode: node.singletonMode
+            singletonMode: node.singletonMode,
+            queueName: node.queueName
           };
           ruleNode.additionalInfo.layoutX = Math.round(node.x);
           ruleNode.additionalInfo.layoutY = Math.round(node.y);

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -64,6 +64,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.server.common.data.kv.AggregationParams;
+import org.thingsboard.server.common.data.kv.IntervalType;
 import org.thingsboard.server.common.msg.rule.engine.DeviceAttributesEventNotificationMsg;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.AttributeScope;
@@ -324,8 +326,12 @@ public class TelemetryController extends BaseController {
             @RequestParam(name = "startTs") Long startTs,
             @Parameter(description = "A long value representing the end timestamp of the time range in milliseconds, UTC.")
             @RequestParam(name = "endTs") Long endTs,
+            @Parameter(description = "A string value representing the type fo the interval.", schema = @Schema(allowableValues = {"MILLISECONDS", "WEEK", "WEEK_ISO", "MONTH", "QUARTER"}))
+            @RequestParam(name = "intervalType", required = false) IntervalType intervalType,
             @Parameter(description = "A long value representing the aggregation interval range in milliseconds.")
             @RequestParam(name = "interval", defaultValue = "0") Long interval,
+            @Parameter(description = "A string value representing the timezone that will be used to calculate exact timestamps for 'WEEK', 'WEEK_ISO', 'MONTH' and 'QUARTER' interval types.")
+            @RequestParam(name = "timeZone", required = false) String timeZone,
             @Parameter(description = "An integer value that represents a max number of timeseries data points to fetch." +
                     " This parameter is used only in the case if 'agg' parameter is set to 'NONE'.", schema = @Schema(defaultValue = "100"))
             @RequestParam(name = "limit", defaultValue = "100") Integer limit,
@@ -339,11 +345,16 @@ public class TelemetryController extends BaseController {
             @RequestParam(name = "useStrictDataTypes", required = false, defaultValue = "false") Boolean useStrictDataTypes) throws ThingsboardException {
         return accessValidator.validateEntityAndCallback(getCurrentUser(), Operation.READ_TELEMETRY, entityType, entityIdStr,
                 (result, tenantId, entityId) -> {
-                    // If interval is 0, convert this to a NONE aggregation, which is probably what the user really wanted
-                    Aggregation agg = interval == 0L ? Aggregation.valueOf(Aggregation.NONE.name()) : Aggregation.valueOf(aggStr);
-                    List<ReadTsKvQuery> queries = toKeysList(keys).stream().map(key -> new BaseReadTsKvQuery(key, startTs, endTs, interval, limit, agg, orderBy))
-                            .collect(Collectors.toList());
-
+                    AggregationParams params;
+                    Aggregation agg = Aggregation.valueOf(aggStr);
+                    if (Aggregation.NONE.equals(agg)) {
+                        params = AggregationParams.none();
+                    } else if (intervalType == null || IntervalType.MILLISECONDS.equals(intervalType)) {
+                        params = interval == 0L ? AggregationParams.none() : AggregationParams.milliseconds(agg, interval);
+                    } else {
+                        params = AggregationParams.calendar(agg, intervalType, timeZone);
+                    }
+                    List<ReadTsKvQuery> queries = toKeysList(keys).stream().map(key -> new BaseReadTsKvQuery(key, startTs, endTs, params, limit, orderBy)).collect(Collectors.toList());
                     Futures.addCallback(tsService.findAll(tenantId, entityId, queries), getTsKvListCallback(result, useStrictDataTypes), MoreExecutors.directExecutor());
                 });
     }

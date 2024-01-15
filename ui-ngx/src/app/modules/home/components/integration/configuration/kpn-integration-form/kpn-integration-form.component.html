@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -43,11 +43,8 @@
   </mat-form-field>
   <mat-form-field class="mat-block">
     <mat-label translate>integration.destination-shared-secret</mat-label>
-    <input matInput formControlName="destinationSharedSecret" required type="password" >
+    <input matInput formControlName="destinationSharedSecret" type="password" >
     <tb-toggle-password matSuffix></tb-toggle-password>
-    <mat-error translate *ngIf="kpnIntegrationConfigForm.get('destinationSharedSecret').hasError('required')">
-      integration.destination-shared-secret-required
-    </mat-error>
   </mat-form-field>
   <div fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start center">
     <mat-form-field class="mat-block" fxFlex>
@@ -75,10 +72,6 @@
         <fieldset class="fields-group">
           <legend class="group-title" translate>integration.credentials</legend>
           <div fxLayout="column" fxLayoutGap.gt-xs="8px">
-            <mat-form-field fxFlex class="mat-block">
-              <mat-label translate>integration.customer-id</mat-label>
-              <input matInput formControlName="customerId" type="text">
-            </mat-form-field>
             <mat-form-field fxFlex class="mat-block">
               <mat-label translate>integration.grip-tenant-id</mat-label>
               <input matInput formControlName="gripTenantId" type="text">

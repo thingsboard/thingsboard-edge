@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -30,11 +30,11 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-images tb-absolute-fill" [ngClass]="{'tb-popover-mode': popoverMode, 'mat-padding': !popoverMode}">
+<div class="tb-images tb-absolute-fill" [ngClass]="{'tb-dialog-mode': dialogMode, 'mat-padding': !dialogMode}">
   <div fxFlex fxLayout="column" class="tb-images-content" [ngClass]="{'tb-outlined-border': pageMode}">
     <mat-toolbar class="mat-mdc-table-toolbar"
-                 fxLayout.lt-md="column" fxLayoutAlign.lt-md="start stretch"
-                 [fxShow]="!textSearchMode && (mode === 'grid' || dataSource?.selection.isEmpty())" [ngClass.lt-md]="{'multi-row': !isSysAdmin}">
+                 fxLayout.lt-lg="column" fxLayoutAlign.lt-lg="start stretch"
+                 [fxShow]="!textSearchMode && (mode === 'grid' || dataSource?.selection.isEmpty())" [ngClass.lt-lg]="{'multi-row': !isSysAdmin}">
       <div fxFlex fxLayout="row" fxLayoutAlign="start center">
         <div class="mat-toolbar-tools">
           <span fxHide fxShow.gt-sm class="tb-images-title" translate>image.gallery</span>
@@ -59,11 +59,11 @@
             </div>
           </div>
           <mat-slide-toggle *ngIf="isTenantAdmin"
-                            fxHide fxShow.gt-sm
+                            fxHide fxShow.gt-md
                             [ngModel]="includeSystemImages"
                             (ngModelChange)="includeSystemImagesChanged($event)">{{ 'image.include-system-images' | translate }}</mat-slide-toggle>
         </div>
-        <section fxFlex fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="16px">
+        <section fxFlex fxLayout="row" fxLayoutAlign="start center" fxLayoutGap.gt-md="16px">
           <span fxFlex></span>
           <section fxLayout="row" fxLayoutAlign="start center">
             <button [disabled]="isLoading$ | async"
@@ -94,7 +94,7 @@
                     (click)="uploadImage()"
                     matTooltip="{{'image.upload-image' | translate }}"
                     matTooltipPosition="above">
-              <mat-icon>upload</mat-icon>
+              <mat-icon>add</mat-icon>
             </button>
           </section>
           <button fxHide fxShow.gt-md
@@ -106,7 +106,7 @@
           </button>
         </section>
       </div>
-      <mat-slide-toggle *ngIf="isTenantAdmin" fxHide fxShow.lt-md
+      <mat-slide-toggle *ngIf="isTenantAdmin" fxHide fxShow.lt-lg
                         [ngModel]="includeSystemImages"
                         (ngModelChange)="includeSystemImagesChanged($event)">{{ 'image.include-system-images' | translate }}</mat-slide-toggle>
     </mat-toolbar>
@@ -308,7 +308,7 @@
                      [hidePageSize]="hidePageSize"
                      showFirstLastButtons></mat-paginator>
     </div>
-    <div fxFlex class="mat-padding" *ngIf="mode === 'grid'" fxLayout="column">
+    <div *ngIf="mode === 'grid'" fxFlex [ngClass]="{'mat-padding': !dialogMode}" fxLayout="column">
       <tb-scroll-grid fxFlex
         [columns]="gridColumns"
         [itemSize]="gridImagesItemSizeStrategy"
@@ -339,7 +339,7 @@
 <ng-template #imageCard let-item="item" let-itemIndex="itemIndex">
   <div class="tb-image-card tb-primary-fill">
     <div class="tb-image-card-overlay">
-      <div class="tb-image-card-overlay-buttons">
+      <div *ngIf="!selectionMode" class="tb-image-card-overlay-buttons">
         <button mat-icon-button [disabled]="isLoading$ | async"
                 matTooltip="{{ 'image.download-image' | translate }}"
                 matTooltipPosition="above"
