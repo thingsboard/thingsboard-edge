@@ -136,7 +136,7 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
 
     @Override
     public List<SchedulerEventInfo> findSchedulerEventsByTenantIdAndEnabled(TenantId tenantId, boolean enabled) {
-        log.trace("Executing findSchedulerEventsByTenantId, tenantId [{}]", tenantId);
+        log.trace("Executing findSchedulerEventsByTenantIdAndEnabled, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         return schedulerEventInfoDao.findSchedulerEventsByTenantIdAndEnabled(tenantId.getId(), enabled);
     }

@@ -45,8 +45,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -288,7 +286,7 @@ public class SchedulerEventController extends BaseController {
         SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
         checkSchedulerEventId(schedulerEventId, Operation.READ);
 
-         return tbSchedulerService.assignSchedulerEventToEdge(schedulerEventId, edge, getCurrentUser());
+         return tbSchedulerService.assignToEdge(schedulerEventId, edge, getCurrentUser());
     }
 
     @ApiOperation(value = "Unassign scheduler event from edge (unassignSchedulerEventFromEdge)",
@@ -313,7 +311,7 @@ public class SchedulerEventController extends BaseController {
         SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
         checkSchedulerEventId(schedulerEventId, Operation.READ);
 
-        return tbSchedulerService.unassignSchedulerEventToEdge(schedulerEventId, edge, getCurrentUser());
+        return tbSchedulerService.unassignFromEdge(schedulerEventId, edge, getCurrentUser());
     }
 
     @ApiOperation(value = "Get Edge Scheduler Events (getEdgeSchedulerEvents)",

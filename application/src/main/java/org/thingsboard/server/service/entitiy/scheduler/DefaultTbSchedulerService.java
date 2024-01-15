@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -56,19 +56,15 @@ public class DefaultTbSchedulerService extends AbstractTbEntityService implement
     @Override
     public SchedulerEvent save(SchedulerEvent schedulerEvent, User user) throws ThingsboardException {
         try {
-
             SchedulerEvent savedSchedulerEvent = checkNotNull(schedulerEventService.saveSchedulerEvent(schedulerEvent));
-
             notificationEntityService.logEntityAction(user.getTenantId(), savedSchedulerEvent.getId(), savedSchedulerEvent,
                     savedSchedulerEvent.getCustomerId(),
                     schedulerEvent.getId() == null ? ActionType.ADDED : ActionType.UPDATED, user);
-
             if (schedulerEvent.getId() == null) {
                 schedulerService.onSchedulerEventAdded(savedSchedulerEvent);
             } else {
                 schedulerService.onSchedulerEventUpdated(savedSchedulerEvent);
             }
-
             return savedSchedulerEvent;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(user.getTenantId(), emptyId(EntityType.SCHEDULER_EVENT), schedulerEvent,
@@ -81,31 +77,24 @@ public class DefaultTbSchedulerService extends AbstractTbEntityService implement
     public void delete(SchedulerEvent schedulerEvent, User user) throws ThingsboardException {
         ActionType actionType = ActionType.DELETED;
         SchedulerEventId schedulerEventId = schedulerEvent.getId();
-
         try {
-
             schedulerEventService.deleteSchedulerEvent(user.getTenantId(), schedulerEventId);
-
             notificationEntityService.logEntityAction(user.getTenantId(), schedulerEventId, schedulerEvent,
                     schedulerEvent.getCustomerId(), actionType, user, schedulerEventId.getId());
-
             schedulerService.onSchedulerEventDeleted(schedulerEvent);
         } catch (Exception e) {
             notificationEntityService.logEntityAction(user.getTenantId(), emptyId(EntityType.SCHEDULER_EVENT),
                     actionType, user, e, schedulerEventId.getId());
-
             throw e;
         }
     }
 
     @Override
-    public SchedulerEventInfo assignSchedulerEventToEdge(SchedulerEventId schedulerEventId, Edge edge, User user) throws ThingsboardException {
+    public SchedulerEventInfo assignToEdge(SchedulerEventId schedulerEventId, Edge edge, User user) throws ThingsboardException {
         try {
             SchedulerEventInfo savedSchedulerEvent = checkNotNull(schedulerEventService.assignSchedulerEventToEdge(user.getTenantId(), schedulerEventId, edge.getId()));
-
             notificationEntityService.logEntityAction(user.getTenantId(), schedulerEventId, savedSchedulerEvent,
                     ActionType.ASSIGNED_TO_EDGE, user, schedulerEventId.getId(), savedSchedulerEvent.getName(), edge.getId().getId(), edge.getName());
-
             return savedSchedulerEvent;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(user.getTenantId(), emptyId(EntityType.SCHEDULER_EVENT),
@@ -116,19 +105,15 @@ public class DefaultTbSchedulerService extends AbstractTbEntityService implement
     }
 
     @Override
-    public SchedulerEventInfo unassignSchedulerEventToEdge(SchedulerEventId schedulerEventId, Edge edge, User user) throws ThingsboardException {
+    public SchedulerEventInfo unassignFromEdge(SchedulerEventId schedulerEventId, Edge edge, User user) throws ThingsboardException {
         try {
-
             SchedulerEventInfo savedSchedulerEvent = checkNotNull(schedulerEventService.unassignSchedulerEventFromEdge(user.getTenantId(), schedulerEventId, edge.getId()));
-
             notificationEntityService.logEntityAction(user.getTenantId(), schedulerEventId, savedSchedulerEvent, ActionType.UNASSIGNED_FROM_EDGE,
                     user, schedulerEventId.getId(), savedSchedulerEvent.getName(), edge.getId().getId(), edge.getName());
-
             return savedSchedulerEvent;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(user.getTenantId(), emptyId(EntityType.SCHEDULER_EVENT),
                     ActionType.UNASSIGNED_FROM_EDGE, user, e, schedulerEventId.getId());
-
             throw e;
         }
     }

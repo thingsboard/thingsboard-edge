@@ -92,7 +92,6 @@ public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventI
     @Column(name = ModelConstants.SCHEDULER_EVENT_SCHEDULE_PROPERTY)
     private JsonNode schedule;
 
-
     @Column(name = ModelConstants.SCHEDULER_EVENT_ENABLED)
     private boolean enabled;
 

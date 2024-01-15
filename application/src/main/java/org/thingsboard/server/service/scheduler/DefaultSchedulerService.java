@@ -243,6 +243,9 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
     }
 
     private void scheduleNextEvent(long ts, SchedulerEventInfo event, SchedulerEventMetaData md) {
+        if (!event.isEnabled()) {
+            return;
+        }
         long eventTs = md.getNextEventTime(ts);
         if (eventTs != 0L) {
             log.debug("schedule next event for ts {}, event {}, metadata {}", ts, event, md);
@@ -264,7 +267,7 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
                 log.error("Failed to read scheduler config", e);
             }
         }
-        return new SchedulerEventMetaData(event, startTime, timezone, repeat, event.isEnabled());
+        return new SchedulerEventMetaData(event, startTime, timezone, repeat);
     }
 
     private void processEvent(TenantId tenantId, SchedulerEventId eventId) {

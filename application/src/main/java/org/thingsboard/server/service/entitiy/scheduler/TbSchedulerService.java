@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -43,8 +43,8 @@ public interface TbSchedulerService {
 
     void delete(SchedulerEvent schedulerEvent, User user) throws ThingsboardException;
 
-    SchedulerEventInfo assignSchedulerEventToEdge(SchedulerEventId schedulerEventId, Edge edge, User user) throws ThingsboardException;
+    SchedulerEventInfo assignToEdge(SchedulerEventId schedulerEventId, Edge edge, User user) throws ThingsboardException;
 
-    SchedulerEventInfo unassignSchedulerEventToEdge(SchedulerEventId schedulerEventId, Edge edge, User user) throws ThingsboardException;
+    SchedulerEventInfo unassignFromEdge(SchedulerEventId schedulerEventId, Edge edge, User user) throws ThingsboardException;
 
 }
