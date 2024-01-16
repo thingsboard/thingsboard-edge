@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -103,15 +103,11 @@ const pageGridColumns: ScrollGridColumns = {
   }
 };
 
-const popoverGridColumns: ScrollGridColumns = {
-  columns: 1,
+const dialogGridColumns: ScrollGridColumns = {
+  columns: 2,
   breakpoints: {
-    'screen and (min-width: 2320px)': 8,
-    'gt-lg': 6,
-    'screen and (min-width: 1600px)': 5,
     'gt-md': 4,
-    'gt-sm': 3,
-    'gt-xs': 2
+    'gt-xs': 3
   }
 };
 
@@ -126,18 +122,25 @@ export class ImageGalleryComponent extends PageComponent implements OnInit, OnDe
   @HostBinding('style.display')
   private display = 'block';
 
+  @HostBinding('style.width')
+  private width = '100%';
+
+  @HostBinding('style.height')
+  private height = '100%';
+
   @Input()
   @coerceBoolean()
   pageMode = true;
 
   @Input()
   @coerceBoolean()
-  popoverMode = false;
+  dialogMode = false;
 
   @Input()
   mode: 'list' | 'grid' = 'list';
 
   @Input()
+  @coerceBoolean()
   selectionMode = false;
 
   @Output()
@@ -209,7 +212,7 @@ export class ImageGalleryComponent extends PageComponent implements OnInit, OnDe
   }
 
   ngOnInit(): void {
-    this.gridColumns = this.popoverMode ? popoverGridColumns : pageGridColumns;
+    this.gridColumns = this.dialogMode ? dialogGridColumns : pageGridColumns;
     this.displayedColumns = this.computeDisplayedColumns();
     let sortOrder: SortOrder = this.defaultSortOrder;
     this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];

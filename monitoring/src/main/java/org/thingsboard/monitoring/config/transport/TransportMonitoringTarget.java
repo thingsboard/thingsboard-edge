@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,7 @@
 package org.thingsboard.monitoring.config.transport;
 
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.thingsboard.monitoring.config.MonitoringTarget;
 
 import java.util.UUID;
@@ -40,11 +41,16 @@ public class TransportMonitoringTarget implements MonitoringTarget {
 
     private String baseUrl;
     private DeviceConfig device; // set manually during initialization
+    private String queue;
     private boolean checkDomainIps;
 
     @Override
     public UUID getDeviceId() {
         return device.getId();
+    }
+
+    public String getQueue() {
+        return StringUtils.defaultIfEmpty(queue, "Main");
     }
 
 }

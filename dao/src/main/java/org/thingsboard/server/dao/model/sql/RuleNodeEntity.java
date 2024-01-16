@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -79,6 +79,9 @@ public class RuleNodeEntity extends BaseSqlEntity<RuleNode> {
     @Column(name = ModelConstants.SINGLETON_MODE)
     private boolean singletonMode;
 
+    @Column(name = ModelConstants.QUEUE_NAME)
+    private String queueName;
+
     @Column(name = ModelConstants.EXTERNAL_ID_PROPERTY)
     private UUID externalId;
 
@@ -97,6 +100,7 @@ public class RuleNodeEntity extends BaseSqlEntity<RuleNode> {
         this.name = ruleNode.getName();
         this.debugMode = ruleNode.isDebugMode();
         this.singletonMode = ruleNode.isSingletonMode();
+        this.queueName = ruleNode.getQueueName();
         this.configurationVersion = ruleNode.getConfigurationVersion();
         this.configuration = ruleNode.getConfiguration();
         this.additionalInfo = ruleNode.getAdditionalInfo();
@@ -116,6 +120,7 @@ public class RuleNodeEntity extends BaseSqlEntity<RuleNode> {
         ruleNode.setName(name);
         ruleNode.setDebugMode(debugMode);
         ruleNode.setSingletonMode(singletonMode);
+        ruleNode.setQueueName(queueName);
         ruleNode.setConfigurationVersion(configurationVersion);
         ruleNode.setConfiguration(configuration);
         ruleNode.setAdditionalInfo(additionalInfo);

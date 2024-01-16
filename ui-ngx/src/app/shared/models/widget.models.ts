@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -476,7 +476,13 @@ export interface ReplaceInfo {
   dataKeyName: string;
 }
 
-export type DataSet = [number, any][];
+export type DataEntry = [number, any, [number, number]?];
+
+export type DataSet = DataEntry[];
+
+export interface IndexedData {
+  [id: number]: DataSet;
+}
 
 export interface DataSetHolder {
   data: DataSet;

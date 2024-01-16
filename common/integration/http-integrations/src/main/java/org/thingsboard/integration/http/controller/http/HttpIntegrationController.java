@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -57,6 +57,7 @@ import org.thingsboard.integration.api.controller.BinaryHttpIntegrationMsg;
 import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
 import org.thingsboard.integration.api.controller.JsonHttpIntegrationMsg;
 import org.thingsboard.integration.api.controller.StringHttpIntegrationMsg;
+import org.thingsboard.integration.api.util.TbIntegrationExecutorOrIntegrationComponent;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.integration.IntegrationType;
@@ -71,6 +72,7 @@ import java.util.Optional;
 @RequestMapping("/api/v1/integrations/http")
 @Slf4j
 @SuppressWarnings("rawtypes")
+@TbIntegrationExecutorOrIntegrationComponent
 public class HttpIntegrationController extends BaseIntegrationController {
 
     @Operation(description = "Process request from HTTP integrations", hidden = true)

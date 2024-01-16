@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -42,7 +42,7 @@ import {
 import { PageComponent } from '@shared/components/page.component';
 import {
   commonFonts,
-  ComponentStyle,
+  ComponentStyle, cssUnit,
   Font,
   fontStyles,
   fontStyleTranslations,
@@ -89,6 +89,9 @@ export class FontSettingsPanelComponent extends PageComponent implements OnInit 
   disabledLineHeight = false;
 
   @Input()
+  forceSizeUnit: cssUnit;
+
+  @Input()
   popover: TbPopoverComponent<FontSettingsPanelComponent>;
 
   @Output()
@@ -121,7 +124,8 @@ export class FontSettingsPanelComponent extends PageComponent implements OnInit 
     this.fontFormGroup = this.fb.group(
       {
         size: [{value: this.font?.size, disabled: this.autoScale}, [Validators.min(0)]],
-        sizeUnit: [{ value: (this.font?.sizeUnit || 'px'), disabled: this.autoScale}, []],
+        sizeUnit: [{ value: (!!this.forceSizeUnit ?
+            this.forceSizeUnit : (this.font?.sizeUnit || 'px')), disabled: this.autoScale || !!this.forceSizeUnit}, []],
         family: [this.font?.family, []],
         weight: [this.font?.weight, []],
         style: [this.font?.style, []],
@@ -165,11 +169,14 @@ export class FontSettingsPanelComponent extends PageComponent implements OnInit 
   }
 
   clearFont() {
-    this.fontFormGroup.reset({sizeUnit: 'px'});
+    this.fontFormGroup.reset({sizeUnit: this.forceSizeUnit || 'px'});
     this.fontFormGroup.markAsDirty();
   }
 
   private updatePreviewStyle(font: Font) {
+    if (!!this.forceSizeUnit) {
+      font = {...font, ...{sizeUnit: this.forceSizeUnit}};
+    }
     this.previewStyle = {...(this.initialPreviewStyle || {}), ...textStyle(font)};
   }
 

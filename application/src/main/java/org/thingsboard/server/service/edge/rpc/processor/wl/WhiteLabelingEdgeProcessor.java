@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
@@ -52,6 +53,7 @@ import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingType;
+import org.thingsboard.server.gen.edge.v1.CustomMenuProto;
 import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
@@ -299,6 +301,41 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
 
     private boolean isDefaultCustomTranslation(CustomTranslation customTranslation) {
         return new CustomTranslation().equals(customTranslation);
+    }
+
+    public DownlinkMsg convertCustomMenuEventToDownlink(EdgeEvent edgeEvent) {
+        DownlinkMsg downlinkMsg = null;
+        try {
+            EntityId entityId = JacksonUtil.convertValue(edgeEvent.getBody(), EntityId.class);
+            if (entityId == null || TenantId.SYS_TENANT_ID.equals(entityId)) {
+                return null;
+            }
+            CustomMenu customMenu = getCustomMenuForEntity(edgeEvent.getTenantId(), entityId);
+            if (customMenu == null) {
+                customMenu = new CustomMenu();
+            }
+            CustomMenuProto customMenuProto = customMenuMsgConstructor.constructCustomMenuProto(customMenu, entityId);
+            if (customMenuProto != null) {
+                downlinkMsg = DownlinkMsg.newBuilder()
+                        .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                        .setCustomMenuProto(customMenuProto)
+                        .build();
+            }
+        } catch (Exception e) {
+            log.error("Can't process custom menu msg [{}]", edgeEvent, e);
+        }
+        return downlinkMsg;
+    }
+
+    private CustomMenu getCustomMenuForEntity(TenantId tenantId, EntityId entityId) {
+        switch (entityId.getEntityType()) {
+            case TENANT:
+                return customMenuService.getTenantCustomMenu(tenantId);
+            case CUSTOMER:
+                return customMenuService.getCustomerCustomMenu(tenantId, new CustomerId(entityId.getId()));
+            default:
+                return null;
+        }
     }
 
     public ListenableFuture<Void> processNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {

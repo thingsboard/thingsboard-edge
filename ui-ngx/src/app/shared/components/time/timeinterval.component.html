@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -58,7 +58,7 @@
   <section fxLayout="row" fxFlex [fxShow]="!advanced && (isEdit || !hideFlag)">
     <mat-form-field fxFlex [subscriptSizing]="subscriptSizing">
       <mat-label *ngIf="predefinedName" translate>{{ predefinedName }}</mat-label>
-      <mat-select [disabled]="hideFlag || disabled" [(ngModel)]="intervalMs" (ngModelChange)="onIntervalMsChange()" style="min-width: 150px;">
+      <mat-select [disabled]="hideFlag || disabled" [(ngModel)]="interval" (ngModelChange)="onIntervalChange()" style="min-width: 150px;">
         <mat-option *ngFor="let interval of intervals" [value]="interval.value">
           {{ interval.name | translate:interval.translateParams }}
         </mat-option>

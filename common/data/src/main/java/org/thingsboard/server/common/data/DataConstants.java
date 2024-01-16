@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -164,5 +164,6 @@ public class DataConstants {
     public static final String HP_QUEUE_TOPIC = "tb_rule_engine.hp";
     public static final String SQ_QUEUE_NAME = "SequentialByOriginator";
     public static final String SQ_QUEUE_TOPIC = "tb_rule_engine.sq";
+    public static final String QUEUE_NAME = "queueName";
 
 }

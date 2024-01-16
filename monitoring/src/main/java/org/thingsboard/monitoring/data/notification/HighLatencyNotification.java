@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,7 +49,7 @@ public class HighLatencyNotification implements Notification {
         StringBuilder text = new StringBuilder();
         text.append("Some of the latencies are higher than ").append(thresholdMs).append(" ms:\n");
         highLatencies.forEach(latency -> {
-            text.append(String.format("[%s] %s\n", latency.getKey(), latency.getFormattedValue()));
+            text.append(String.format("[%s] *%s*\n", latency.getKey(), latency.getFormattedValue()));
         });
         return text.toString();
     }

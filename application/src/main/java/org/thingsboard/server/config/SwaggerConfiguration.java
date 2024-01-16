@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -82,6 +82,8 @@ public class SwaggerConfiguration {
 
     public static final String LOGIN_ENDPOINT = "/api/auth/login";
 
+    @Value("${swagger.exclude_api_path:/api/v1/integrations/**}")
+    private String excludeApiPath;
     @Value("${swagger.api_path:/api/**}")
     private String apiPath;
     @Value("${swagger.non_security_path_regex}")
@@ -215,6 +217,7 @@ public class SwaggerConfiguration {
         return GroupedOpenApi.builder()
                 .group("thingsboard")
                 .pathsToMatch(apiPath)
+                .pathsToExclude(excludeApiPath)
                 .addOpenApiCustomizer(customOpenApiCustomizer())
                 .build();
     }

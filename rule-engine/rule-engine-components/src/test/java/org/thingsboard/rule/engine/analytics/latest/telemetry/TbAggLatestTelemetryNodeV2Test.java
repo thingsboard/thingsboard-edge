@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,20 +37,23 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.provider.Arguments;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 import org.thingsboard.common.util.AbstractListeningExecutor;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.rule.engine.AbstractRuleNodeUpgradeTest;
 import org.thingsboard.rule.engine.analytics.incoming.MathFunction;
 import org.thingsboard.rule.engine.api.ScriptEngine;
 import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.TbPeContext;
@@ -86,6 +89,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -94,12 +98,14 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 @Slf4j
-public class TbAggLatestTelemetryNodeV2Test {
+public class TbAggLatestTelemetryNodeV2Test extends AbstractRuleNodeUpgradeTest {
 
     public static final String FILTER_FUNCTION = "return Number(attributes['temperature']) > 42;";
     @Mock
@@ -119,11 +125,11 @@ public class TbAggLatestTelemetryNodeV2Test {
     private TenantId tenantId;
     private AssetId assetId;
 
-    @Before
+    @BeforeEach
     public void before() {
         tenantId = new TenantId(UUID.randomUUID());
         assetId = new AssetId(UUID.randomUUID());
-        node = new TbAggLatestTelemetryNodeV2();
+        node = spy(new TbAggLatestTelemetryNodeV2());
 
         executor = new AbstractListeningExecutor() {
             @Override
@@ -133,12 +139,12 @@ public class TbAggLatestTelemetryNodeV2Test {
         };
         executor.init();
 
-        when(ctx.getTenantId()).thenReturn(tenantId);
-        when(ctx.getPeContext()).thenReturn(peCtx);
-        when(ctx.getDbCallbackExecutor()).thenReturn(executor);
-        when(ctx.getRelationService()).thenReturn(relationService);
-        when(ctx.getTimeseriesService()).thenReturn(timeseriesService);
-        when(ctx.getAttributesService()).thenReturn(attributesService);
+        lenient().when(ctx.getTenantId()).thenReturn(tenantId);
+        lenient().when(ctx.getPeContext()).thenReturn(peCtx);
+        lenient().when(ctx.getDbCallbackExecutor()).thenReturn(executor);
+        lenient().when(ctx.getRelationService()).thenReturn(relationService);
+        lenient().when(ctx.getTimeseriesService()).thenReturn(timeseriesService);
+        lenient().when(ctx.getAttributesService()).thenReturn(attributesService);
 
         initMock();
     }
@@ -188,11 +194,11 @@ public class TbAggLatestTelemetryNodeV2Test {
         TsKvEntry deviceATemperature = new BasicTsKvEntry(System.currentTimeMillis(), new DoubleDataEntry("temperature", 42.0));
         TsKvEntry deviceBTemperature = new BasicTsKvEntry(System.currentTimeMillis(), new DoubleDataEntry("temperature", 44.0));
 
-        Mockito.when(relationService.findByFromAndTypeAsync(tenantId, assetId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON))
+        lenient().when(relationService.findByFromAndTypeAsync(tenantId, assetId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON))
                 .thenReturn(Futures.immediateFuture(Arrays.asList(relationA, relationB)));
-        Mockito.when(timeseriesService.findLatest(tenantId, deviceA, new HashSet<>(Arrays.asList("temperature"))))
+        lenient().when(timeseriesService.findLatest(tenantId, deviceA, new HashSet<>(Arrays.asList("temperature"))))
                 .thenReturn(Futures.immediateFuture(Arrays.asList(deviceATemperature)));
-        Mockito.when(timeseriesService.findLatest(tenantId, deviceB, new HashSet<>(Arrays.asList("temperature"))))
+        lenient().when(timeseriesService.findLatest(tenantId, deviceB, new HashSet<>(Arrays.asList("temperature"))))
                 .thenReturn(Futures.immediateFuture(Arrays.asList(deviceBTemperature)));
     }
 
@@ -380,4 +386,34 @@ public class TbAggLatestTelemetryNodeV2Test {
         assertThat(data.get("avgAttr").asDouble()).isEqualTo(0.0);
     }
 
+    // Rule nodes upgrade
+    public static final String EXPECTED_CONFIG = "{\"outMsgType\":null,\"direction\":\"FROM\",\"relationType\":null,\"deduplicationInSec\":10," +
+            "\"aggMappings\":[{\"source\":\"temperature\",\"sourceScope\":\"LATEST_TELEMETRY\",\"defaultValue\":0.0," +
+            "\"target\":\"latestAvgTemperature\",\"aggFunction\":\"AVG\",\"filter\":null}]}";
+
+    private static Stream<Arguments> givenFromVersionAndConfig_whenUpgrade_thenVerifyHasChangesAndConfig() {
+        return Stream.of(
+                // default config for version 0
+                Arguments.of(0,
+                        "{\"outMsgType\":null,\"direction\":\"FROM\",\"relationType\":null,\"deduplicationInSec\":10," +
+                                "\"aggMappings\":[{\"source\":\"temperature\",\"sourceScope\":\"LATEST_TELEMETRY\",\"defaultValue\":0.0," +
+                                "\"target\":\"latestAvgTemperature\",\"aggFunction\":\"AVG\",\"filter\":null}], \"queueName\":null}",
+                        true,
+                        EXPECTED_CONFIG),
+                // default config for version 0 with queueName
+                Arguments.of(0,
+                        "{\"outMsgType\":null,\"direction\":\"FROM\",\"relationType\":null,\"deduplicationInSec\":10," +
+                                "\"aggMappings\":[{\"source\":\"temperature\",\"sourceScope\":\"LATEST_TELEMETRY\",\"defaultValue\":0.0," +
+                                "\"target\":\"latestAvgTemperature\",\"aggFunction\":\"AVG\",\"filter\":null}], \"queueName\":\"Main\"}",
+                        true,
+                        EXPECTED_CONFIG),
+                // default config for version 1 with upgrade from version 0
+                Arguments.of(0, EXPECTED_CONFIG, false, EXPECTED_CONFIG)
+        );
+    }
+
+    @Override
+    protected TbNode getTestNode() {
+        return node;
+    }
 }
