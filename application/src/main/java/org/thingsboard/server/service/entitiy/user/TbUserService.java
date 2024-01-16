@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.security.Authority;
 import java.util.List;
 
 public interface TbUserService {
+
     User save(TenantId tenantId, CustomerId customerId, Authority authority, User tbUser,
               boolean sendActivationMail, HttpServletRequest request,
               EntityGroup entityGroup, User user) throws ThingsboardException;

@@ -88,7 +88,6 @@ import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
@@ -677,7 +676,6 @@ public class DefaultSolutionService implements SolutionService {
                 ruleChainService.setRootRuleChain(ctx.getTenantId(), savedRuleChain.getId());
             }
             ctx.register(entityDefinition.getJsonId(), savedRuleChain);
-            tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), savedRuleChain.getId(), ComponentLifecycleEvent.CREATED);
         }
     }
 
@@ -704,7 +702,6 @@ public class DefaultSolutionService implements SolutionService {
             RuleChain savedRuleChain = ruleChainService.findRuleChainById(ctx.getTenantId(), ruleChainId);
             ruleChainMetaData.setRuleChainId(savedRuleChain.getId());
             ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), ruleChainMetaData, tbRuleChainService::updateRuleNodeConfiguration);
-            tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), savedRuleChain.getId(), ComponentLifecycleEvent.UPDATED);
         }
     }
 
@@ -731,7 +728,6 @@ public class DefaultSolutionService implements SolutionService {
             RuleChain savedRuleChain = ruleChainService.findRuleChainById(ctx.getTenantId(), ruleChainId);
             ruleChainMetaData.setRuleChainId(savedRuleChain.getId());
             ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), ruleChainMetaData, tbRuleChainService::updateRuleNodeConfiguration);
-            tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), savedRuleChain.getId(), ComponentLifecycleEvent.UPDATED);
         }
     }
 
@@ -930,7 +926,6 @@ public class DefaultSolutionService implements SolutionService {
             ctx.addDeviceCredentials(deviceCredentialsInfo);
 
             result.put(entity, entityDef);
-            tbClusterService.onDeviceUpdated(entity, null);
         }
         return result;
     }
@@ -1533,7 +1528,6 @@ public class DefaultSolutionService implements SolutionService {
             case RULE_CHAIN:
                 var ruleChainId = new RuleChainId(entityId.getId());
                 ruleChainService.deleteRuleChainById(tenantId, ruleChainId);
-                tbClusterService.broadcastEntityStateChangeEvent(tenantId, ruleChainId, ComponentLifecycleEvent.DELETED);
                 break;
             case DEVICE_PROFILE:
                 deviceProfileService.deleteDeviceProfile(tenantId, new DeviceProfileId(entityId.getId()));

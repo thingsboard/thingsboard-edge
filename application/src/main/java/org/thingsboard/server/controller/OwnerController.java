@@ -122,9 +122,6 @@ public class OwnerController extends AutoCommitController {
         checkEntityId(entityId, Operation.CHANGE_OWNER);
         List<EntityGroup> entityGroups = this.validateEntityGroupIds(strEntityGroupIds, entityId, targetOwnerId);
         changeOwner(getCurrentUser().getTenantId(), targetOwnerId, entityId);
-        if (EntityType.EDGE.equals(entityId.getEntityType())) {
-            tbClusterService.broadcastEntityStateChangeEvent(getTenantId(), new EdgeId(entityId.getId()), ComponentLifecycleEvent.UPDATED);
-        }
         if (entityGroups != null) {
             this.addEntityToEntityGroups(getCurrentUser().getTenantId(), entityId, entityGroups);
         }
@@ -164,9 +161,6 @@ public class OwnerController extends AutoCommitController {
         }
         List<EntityGroup> entityGroups = this.validateEntityGroupIds(strEntityGroupIds, entityId, targetOwnerId);
         changeOwner(currentUser.getTenantId(), targetOwnerId, entityId);
-        if (EntityType.EDGE.equals(entityId.getEntityType())) {
-            tbClusterService.broadcastEntityStateChangeEvent(getTenantId(), new EdgeId(entityId.getId()), ComponentLifecycleEvent.UPDATED);
-        }
         if (entityGroups != null) {
             this.addEntityToEntityGroups(currentUser.getTenantId(), entityId, entityGroups);
         }
@@ -223,7 +217,7 @@ public class OwnerController extends AutoCommitController {
             }
             return previousOwnerId;
         } catch (ThingsboardException e) {
-            notificationEntityService.logEntityAction(tenantId, entityId, ActionType.CHANGE_OWNER, getCurrentUser(), e);
+            logEntityActionService.logEntityAction(tenantId, entityId, ActionType.CHANGE_OWNER, getCurrentUser(), e);
             throw e;
         }
     }
@@ -269,13 +263,13 @@ public class OwnerController extends AutoCommitController {
                     otaPackageStateService.update(getTenantId(), deviceIds, fw != null, sw != null);
                 }
             }
-            notificationEntityService.logEntityAction(getTenantId(), entityId, null,
+            logEntityActionService.logEntityAction(getTenantId(), entityId, null,
                     ActionType.ADDED_TO_ENTITY_GROUP, getCurrentUser(), entityId.toString(), entityGroup.getUuidId().toString(), entityGroup.getName());
         }
     }
 
     private <E extends HasName, I extends EntityId> void logChangeOwnerAction(I entityId, E entity, EntityId targetOwnerId) throws ThingsboardException {
-        notificationEntityService.logEntityAction(getTenantId(), entityId, entity, ActionType.CHANGE_OWNER, getCurrentUser(), targetOwnerId);
+        logEntityActionService.logEntityAction(getTenantId(), entityId, entity, ActionType.CHANGE_OWNER, getCurrentUser(), targetOwnerId);
     }
 
 }

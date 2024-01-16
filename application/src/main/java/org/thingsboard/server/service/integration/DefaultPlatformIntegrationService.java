@@ -536,7 +536,6 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
             }
 
             createRelationFromIntegration(integration, device.getId());
-            clusterService.onDeviceUpdated(device, null);
             pushDeviceCreatedEventToRuleEngine(integration, device);
         } else {
             throw new ThingsboardRuntimeException("Creating devices is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);

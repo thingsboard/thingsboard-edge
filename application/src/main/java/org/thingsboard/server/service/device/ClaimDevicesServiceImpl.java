@@ -35,6 +35,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
+import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,7 +44,6 @@ import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
-import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
@@ -69,7 +69,6 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import jakarta.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -86,8 +85,6 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
     private static final String CLAIM_ATTRIBUTE_NAME = "claimingAllowed";
     private static final String CLAIM_DATA_ATTRIBUTE_NAME = "claimingData";
 
-    @Autowired
-    private TbClusterService clusterService;
     @Autowired
     private DeviceService deviceService;
     @Autowired
@@ -179,8 +176,7 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
 
                             device.setCustomerId(customerId);
                             device.setOwnerId(customerId);
-                            Device savedDevice = deviceService.saveDevice(device);
-                            clusterService.onDeviceUpdated(savedDevice, device);
+                            deviceService.saveDevice(device);
 
                             ownersCacheEviction(device.getId());
                             return null;
@@ -221,8 +217,7 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
                 Customer unassignedCustomer = customerService.findCustomerById(tenantId, device.getCustomerId());
                 device.setCustomerId(null);
                 device.setOwnerId(tenantId);
-                Device savedDevice = deviceService.saveDevice(device);
-                clusterService.onDeviceUpdated(savedDevice, device);
+                deviceService.saveDevice(device);
 
                 ownersCacheEviction(device.getId());
 

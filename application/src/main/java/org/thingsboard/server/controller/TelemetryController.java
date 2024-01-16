@@ -97,6 +97,7 @@ import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+import org.thingsboard.server.common.msg.rule.engine.DeviceAttributesEventNotificationMsg;
 import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.exception.InvalidParametersException;
@@ -402,8 +403,8 @@ public class TelemetryController extends BaseController {
     public DeferredResult<ResponseEntity> saveEntityAttributesV1(
             @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION, required = true, schema = @Schema(defaultValue = "DEVICE")) @PathVariable("entityType") String entityType,
             @Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true) @PathVariable("entityId") String entityIdStr,
-            @Parameter(description = ATTRIBUTES_SCOPE_DESCRIPTION, schema = @Schema(allowableValues = {"SERVER_SCOPE", "SHARED_SCOPE"})) @PathVariable("scope")AttributeScope scope,
-                    @Parameter(description = ATTRIBUTES_JSON_REQUEST_DESCRIPTION, required = true)@RequestBody JsonNode request) throws ThingsboardException {
+            @Parameter(description = ATTRIBUTES_SCOPE_DESCRIPTION, schema = @Schema(allowableValues = {"SERVER_SCOPE", "SHARED_SCOPE"})) @PathVariable("scope") AttributeScope scope,
+            @Parameter(description = ATTRIBUTES_JSON_REQUEST_DESCRIPTION, required = true) @RequestBody JsonNode request) throws ThingsboardException {
         EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
         return saveAttributes(getTenantId(), entityId, scope, request);
     }
@@ -426,8 +427,8 @@ public class TelemetryController extends BaseController {
     public DeferredResult<ResponseEntity> saveEntityAttributesV2(
             @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION, required = true, schema = @Schema(defaultValue = "DEVICE")) @PathVariable("entityType") String entityType,
             @Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true) @PathVariable("entityId") String entityIdStr,
-            @Parameter(description = ATTRIBUTES_SCOPE_DESCRIPTION, schema = @Schema(allowableValues = {"SERVER_SCOPE", "SHARED_SCOPE"}, required = true)) @PathVariable("scope")AttributeScope scope,
-                    @Parameter(description = ATTRIBUTES_JSON_REQUEST_DESCRIPTION, required = true)@RequestBody JsonNode request) throws ThingsboardException {
+            @Parameter(description = ATTRIBUTES_SCOPE_DESCRIPTION, schema = @Schema(allowableValues = {"SERVER_SCOPE", "SHARED_SCOPE"}, required = true)) @PathVariable("scope") AttributeScope scope,
+            @Parameter(description = ATTRIBUTES_JSON_REQUEST_DESCRIPTION, required = true) @RequestBody JsonNode request) throws ThingsboardException {
         EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
         return saveAttributes(getTenantId(), entityId, scope, request);
     }
@@ -451,8 +452,8 @@ public class TelemetryController extends BaseController {
     public DeferredResult<ResponseEntity> saveEntityTelemetry(
             @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION, required = true, schema = @Schema(defaultValue = "DEVICE")) @PathVariable("entityType") String entityType,
             @Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true) @PathVariable("entityId") String entityIdStr,
-            @Parameter(description = TELEMETRY_SCOPE_DESCRIPTION, required = true, schema = @Schema(allowableValues = "ANY")) @PathVariable("scope")String scope,
-                    @Parameter(description = TELEMETRY_JSON_REQUEST_DESCRIPTION, required = true)@RequestBody String requestBody) throws ThingsboardException {
+            @Parameter(description = TELEMETRY_SCOPE_DESCRIPTION, required = true, schema = @Schema(allowableValues = "ANY")) @PathVariable("scope") String scope,
+            @Parameter(description = TELEMETRY_JSON_REQUEST_DESCRIPTION, required = true) @RequestBody String requestBody) throws ThingsboardException {
         EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
         return saveTelemetry(getTenantId(), entityId, requestBody, 0L);
     }
@@ -476,9 +477,9 @@ public class TelemetryController extends BaseController {
     public DeferredResult<ResponseEntity> saveEntityTelemetryWithTTL(
             @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION, required = true, schema = @Schema(defaultValue = "DEVICE")) @PathVariable("entityType") String entityType,
             @Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true) @PathVariable("entityId") String entityIdStr,
-            @Parameter(description = TELEMETRY_SCOPE_DESCRIPTION, required = true, schema = @Schema(allowableValues = "ANY")) @PathVariable("scope")AttributeScope scope,
-                    @Parameter(description = "A long value representing TTL (Time to Live) parameter.", required = true)@PathVariable("ttl")Long ttl,
-                    @Parameter(description = TELEMETRY_JSON_REQUEST_DESCRIPTION, required = true)@RequestBody String requestBody) throws ThingsboardException {
+            @Parameter(description = TELEMETRY_SCOPE_DESCRIPTION, required = true, schema = @Schema(allowableValues = "ANY")) @PathVariable("scope") AttributeScope scope,
+            @Parameter(description = "A long value representing TTL (Time to Live) parameter.", required = true) @PathVariable("ttl") Long ttl,
+            @Parameter(description = TELEMETRY_JSON_REQUEST_DESCRIPTION, required = true) @RequestBody String requestBody) throws ThingsboardException {
         EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
         return saveTelemetry(getTenantId(), entityId, requestBody, ttl);
     }
@@ -581,8 +582,8 @@ public class TelemetryController extends BaseController {
     @ResponseBody
     public DeferredResult<ResponseEntity> deleteDeviceAttributes(
             @Parameter(description = DEVICE_ID_PARAM_DESCRIPTION, required = true) @PathVariable(DEVICE_ID) String deviceIdStr,
-            @Parameter(description = ATTRIBUTES_SCOPE_DESCRIPTION, schema = @Schema(allowableValues = {"SERVER_SCOPE", "SHARED_SCOPE", "CLIENT_SCOPE"}, required = true)) @PathVariable("scope")AttributeScope scope,
-                    @Parameter(description = ATTRIBUTES_KEYS_DESCRIPTION, required = true)@RequestParam(name = "keys")String keysStr) throws ThingsboardException {
+            @Parameter(description = ATTRIBUTES_SCOPE_DESCRIPTION, schema = @Schema(allowableValues = {"SERVER_SCOPE", "SHARED_SCOPE", "CLIENT_SCOPE"}, required = true)) @PathVariable("scope") AttributeScope scope,
+            @Parameter(description = ATTRIBUTES_KEYS_DESCRIPTION, required = true) @RequestParam(name = "keys") String keysStr) throws ThingsboardException {
         EntityId entityId = EntityIdFactory.getByTypeAndUuid(EntityType.DEVICE, deviceIdStr);
         return deleteAttributes(entityId, scope, keysStr);
     }
@@ -605,8 +606,8 @@ public class TelemetryController extends BaseController {
     public DeferredResult<ResponseEntity> deleteEntityAttributes(
             @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION, required = true, schema = @Schema(defaultValue = "DEVICE")) @PathVariable("entityType") String entityType,
             @Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true) @PathVariable("entityId") String entityIdStr,
-            @Parameter(description = ATTRIBUTES_SCOPE_DESCRIPTION, required = true, schema = @Schema(allowableValues = {"SERVER_SCOPE", "SHARED_SCOPE", "CLIENT_SCOPE"})) @PathVariable("scope")AttributeScope scope,
-                    @Parameter(description = ATTRIBUTES_KEYS_DESCRIPTION, required = true)@RequestParam(name = "keys")String keysStr) throws ThingsboardException {
+            @Parameter(description = ATTRIBUTES_SCOPE_DESCRIPTION, required = true, schema = @Schema(allowableValues = {"SERVER_SCOPE", "SHARED_SCOPE", "CLIENT_SCOPE"})) @PathVariable("scope") AttributeScope scope,
+            @Parameter(description = ATTRIBUTES_KEYS_DESCRIPTION, required = true) @RequestParam(name = "keys") String keysStr) throws ThingsboardException {
         EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
         return deleteAttributes(entityId, scope, keysStr);
     }
@@ -846,28 +847,28 @@ public class TelemetryController extends BaseController {
     }
 
     private void logTimeseriesDeleted(SecurityUser user, EntityId entityId, List<String> keys, long startTs, long endTs, Throwable e) {
-        notificationEntityService.logEntityAction(user.getTenantId(), entityId, ActionType.TIMESERIES_DELETED, user,
+        logEntityActionService.logEntityAction(user.getTenantId(), entityId, ActionType.TIMESERIES_DELETED, user,
                 toException(e), keys, startTs, endTs);
     }
 
     private void logTelemetryUpdated(SecurityUser user, EntityId entityId, List<TsKvEntry> telemetry, Throwable e) {
-        notificationEntityService.logEntityAction(user.getTenantId(), entityId, ActionType.TIMESERIES_UPDATED, user,
+        logEntityActionService.logEntityAction(user.getTenantId(), entityId, ActionType.TIMESERIES_UPDATED, user,
                 toException(e), telemetry);
     }
 
     private void logAttributesDeleted(SecurityUser user, EntityId entityId, AttributeScope scope, List<String> keys, Throwable e) {
-        notificationEntityService.logEntityAction(user.getTenantId(), (UUIDBased & EntityId) entityId,
+        logEntityActionService.logEntityAction(user.getTenantId(), (UUIDBased & EntityId) entityId,
                 ActionType.ATTRIBUTES_DELETED, user, toException(e), scope, keys);
     }
 
     private void logAttributesUpdated(SecurityUser user, EntityId entityId, AttributeScope scope, List<AttributeKvEntry> attributes, Throwable e) {
-        notificationEntityService.logEntityAction(user.getTenantId(), entityId, ActionType.ATTRIBUTES_UPDATED, user,
+        logEntityActionService.logEntityAction(user.getTenantId(), entityId, ActionType.ATTRIBUTES_UPDATED, user,
                 toException(e), scope, attributes);
     }
 
 
     private void logAttributesRead(SecurityUser user, EntityId entityId, AttributeScope scope, List<String> keys, Throwable e) {
-        notificationEntityService.logEntityAction(user.getTenantId(), entityId, ActionType.ATTRIBUTES_READ, user,
+        logEntityActionService.logEntityAction(user.getTenantId(), entityId, ActionType.ATTRIBUTES_READ, user,
                 toException(e), scope, keys);
     }
 

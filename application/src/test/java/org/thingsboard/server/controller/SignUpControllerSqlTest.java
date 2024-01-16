@@ -48,7 +48,7 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.user.UserService;
-import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
+import org.thingsboard.server.service.entitiy.TbLogEntityActionService;
 
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -86,7 +86,7 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
     public static final String TEST_EMAIL = "force_push@junior.com";
 
     @SpyBean
-    protected TbNotificationEntityService notificationService;
+    protected TbLogEntityActionService logEntityActionService;
 
     @Autowired
     protected UserService userService;
@@ -139,7 +139,7 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
         Assert.assertNotNull(user);
         Assert.assertEquals(TEST_EMAIL, user.getEmail());
 
-        verify(notificationService, times(1)).logEntityAction(
+        verify(logEntityActionService, times(1)).logEntityAction(
                 eq(tenantId),
                 eq(customer.getId()),
                 eq(customer),
@@ -147,7 +147,7 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
                 eq(ActionType.ADDED),
                 eq(null)
         );
-        verify(notificationService, times(1)).logEntityAction(
+        verify(logEntityActionService, times(1)).logEntityAction(
                 eq(tenantId),
                 eq(user.getId()),
                 argThat(o -> {
@@ -159,7 +159,7 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
                 eq(ActionType.ADDED),
                 eq(null)
         );
-        verify(notificationService, times(1)).logEntityAction(
+        verify(logEntityActionService, times(1)).logEntityAction(
                 eq(tenantId),
                 eq(user.getId()),
                 argThat(o -> {

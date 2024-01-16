@@ -302,9 +302,7 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
                                 } else {
                                     device.setSoftwareId(firmwareId);
                                 }
-                                Device savedDevice = deviceService.saveDevice(device);
-                                clusterService.onDeviceUpdated(savedDevice, device);
-                                firmwareStateService.update(savedDevice);
+                                deviceService.saveDevice(device);
                                 break;
                             case ENTITY_GROUP:
                                 EntityGroup deviceGroup = entityGroupService.findEntityGroupById(tenantId, (EntityGroupId) originatorId);
