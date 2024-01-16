@@ -223,7 +223,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 .tenantId(tenantId)
                 .entityId(savedEntityGroup.getId())
                 .entity(entityGroup)
-                .added(entityGroup.getId() == null)
+                .created(entityGroup.getId() == null)
                 .build());
         return savedEntityGroup;
     }
