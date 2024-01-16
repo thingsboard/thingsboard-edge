@@ -144,7 +144,7 @@
       <span translate>edge.sync</span>
     </button>
   </div>
-  <div fxLayout="row" fxLayout.xs="column">
+  <div fxLayout="row" fxLayout.xs="column" *ngIf="isTenantAdmin()">
     <div [ngSwitch]="upgradeAvailable">
       <ng-container *ngSwitchCase="false">
         <button mat-raised-button color="primary"
