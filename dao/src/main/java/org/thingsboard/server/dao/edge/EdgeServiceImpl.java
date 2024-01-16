@@ -47,7 +47,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AttributeScope;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
@@ -209,7 +208,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
             publishEvictEvent(evictEvent);
             entityGroupService.addEntityToEntityGroupAll(savedEdge.getTenantId(), savedEdge.getOwnerId(), savedEdge.getId());
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedEdge.getTenantId())
-                    .entityId(savedEdge.getId()).entity(savedEdge).added(edge.getId() == null).build());
+                    .entityId(savedEdge.getId()).entity(savedEdge).created(edge.getId() == null).build());
             return savedEdge;
         } catch (Exception t) {
             handleEvictEvent(evictEvent);

@@ -98,7 +98,7 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
             Role savedRole = roleDao.save(tenantId, role);
             publishEvictEvent(new RoleEvictEvent(savedRole.getId()));
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entityId(savedRole.getId())
-                    .added(role.getId() == null).build());
+                    .created(role.getId() == null).build());
             return savedRole;
         } catch (Exception t) {
             checkConstraintViolation(t,

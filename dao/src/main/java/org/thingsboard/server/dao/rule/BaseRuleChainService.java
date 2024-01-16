@@ -141,7 +141,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
             }
             if (publishSaveEvent) {
                 eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedRuleChain.getTenantId())
-                        .entity(savedRuleChain).entityId(savedRuleChain.getId()).added(ruleChain.getId() == null).build());
+                        .entity(savedRuleChain).entityId(savedRuleChain.getId()).created(ruleChain.getId() == null).build());
             }
             return savedRuleChain;
         } catch (Exception e) {
@@ -163,7 +163,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                 previousRootRuleChain.setRoot(false);
                 ruleChainDao.save(tenantId, previousRootRuleChain);
                 eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId)
-                        .entityId(previousRootRuleChain.getId()).entity(previousRootRuleChain).added(false).build());
+                        .entityId(previousRootRuleChain.getId()).entity(previousRootRuleChain).created(false).build());
                 setRootAndSave(tenantId, ruleChain);
                 return true;
             }
@@ -174,7 +174,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
     private void setRootAndSave(TenantId tenantId, RuleChain ruleChain) {
         ruleChain.setRoot(true);
         ruleChainDao.save(tenantId, ruleChain);
-        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entityId(ruleChain.getId()).entity(ruleChain).added(false).build());
+        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entityId(ruleChain.getId()).entity(ruleChain).created(false).build());
     }
 
     @Override
