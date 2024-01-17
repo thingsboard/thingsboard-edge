@@ -373,6 +373,7 @@ public interface TbContext {
     ScriptEngine createScriptEngine(ScriptLanguage scriptLang, String script, String... argNames);
 
     EventService getEventService();
+
     /**
      * This context is available only in TB PE.
      */
@@ -422,7 +423,6 @@ public interface TbContext {
 
     EntityService getEntityService();
 
-    EventService getEventService();
-
     AuditLogService getAuditLogService();
+
 }
