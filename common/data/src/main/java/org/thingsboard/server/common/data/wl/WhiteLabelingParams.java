@@ -111,8 +111,8 @@ public class WhiteLabelingParams {
                 this.customCss = otherWlParams.customCss + "\n" + this.customCss;
             }
         }
-        if (otherWlParams.hideConnectivityDialog != null) {
-            this.hideConnectivityDialog = otherWlParams.hideConnectivityDialog;
+        if (this.hideConnectivityDialog == null) {
+            this.hideConnectivityDialog = false;
         }
         return this;
     }

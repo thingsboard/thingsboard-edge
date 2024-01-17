@@ -194,19 +194,13 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     @Override
     public WhiteLabelingParams getMergedTenantWhiteLabelingParams(TenantId tenantId) {
         WhiteLabelingParams result = getTenantWhiteLabelingParams(tenantId);
-        result.merge(getSystemWhiteLabelingParams());
-        return result;
+        return mergeTenantWhiteLabelingParams(result);
     }
 
     @Override
     public WhiteLabelingParams getMergedCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId) {
         WhiteLabelingParams result = getCustomerWhiteLabelingParams(tenantId, customerId);
-        Customer customer = customerService.findCustomerById(tenantId, customerId);
-        if (customer.isSubCustomer()) {
-            result = getMergedCustomerHierarchyWhileLabelingParams(tenantId, customer.getParentCustomerId(), result);
-        }
-        result.merge(getTenantWhiteLabelingParams(tenantId)).merge(getSystemWhiteLabelingParams());
-        return result;
+        return mergeCustomerWhiteLabelingParams(tenantId, customerId, result);
     }
 
     private WhiteLabelingParams getMergedCustomerHierarchyWhileLabelingParams(TenantId tenantId, CustomerId customerId, WhiteLabelingParams childCustomerWLParams) {
@@ -320,7 +314,9 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
             if (customer.isSubCustomer()) {
                 whiteLabelingParams = getMergedCustomerHierarchyWhileLabelingParams(tenantId, customer.getParentCustomerId(), whiteLabelingParams);
             }
-            return whiteLabelingParams.merge(getTenantWhiteLabelingParams(tenantId)).merge(getSystemWhiteLabelingParams());
+            WhiteLabelingParams tenantWhiteLabelingParams = getTenantWhiteLabelingParams(tenantId);
+            whiteLabelingParams.setHideConnectivityDialog(tenantWhiteLabelingParams.getHideConnectivityDialog());
+            return whiteLabelingParams.merge(tenantWhiteLabelingParams).merge(getSystemWhiteLabelingParams());
         } catch (Exception e) {
             log.error("Unable to merge Customer White Labeling Params!", e);
             throw new RuntimeException("Unable to merge Customer White Labeling Params!", e);
