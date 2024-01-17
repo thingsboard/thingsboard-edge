@@ -168,7 +168,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     }).afterClosed().pipe(
       map(device => {
         if (device) {
-          if (!this.wl.getShowConnectivityDialog()) {
+          if (this.wl.getHideConnectivityDialog()) {
             config.updateData();
           } else {
             this.store.pipe(select(selectUserSettingsProperty('notDisplayConnectivityAfterAddDevice'))).pipe(

@@ -69,8 +69,8 @@ public class WhiteLabelingParams {
     protected String platformVersion;
     @ApiModelProperty(position = 13, value = "Custom CSS content")
     protected String customCss;
-    @ApiModelProperty(position = 21, value = "Show device connectivity dialog")
-    protected Boolean showConnectivityDialog;
+    @ApiModelProperty(position = 21, value = "Hide device connectivity dialog")
+    protected Boolean hideConnectivityDialog;
 
     public WhiteLabelingParams merge(WhiteLabelingParams otherWlParams) {
         if (StringUtils.isEmpty(this.logoImageUrl)) {
@@ -111,8 +111,8 @@ public class WhiteLabelingParams {
                 this.customCss = otherWlParams.customCss + "\n" + this.customCss;
             }
         }
-        if (this.showConnectivityDialog == null) {
-            this.showConnectivityDialog = otherWlParams.showConnectivityDialog != null ? otherWlParams.showConnectivityDialog : true;
+        if (otherWlParams.hideConnectivityDialog != null) {
+            this.hideConnectivityDialog = otherWlParams.hideConnectivityDialog;
         }
         return this;
     }

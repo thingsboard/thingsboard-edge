@@ -188,8 +188,8 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, OnD
       );
     }
     if (!this.isLoginWl) {
-      this.wlSettings.addControl('showConnectivityDialog',
-        this.fb.control(true, [])
+      this.wlSettings.addControl('hideConnectivityDialog',
+        this.fb.control(false, [])
       );
     }
     if (this.readonly) {
@@ -273,6 +273,10 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, OnD
 
   onExit(): Observable<any> {
     return this.whiteLabelingService.cancelWhiteLabelPreview();
+  }
+
+  hideConnectivitySettings(): boolean {
+    return this.whiteLabelingService.getHideConnectivityDialog();
   }
 
 }
