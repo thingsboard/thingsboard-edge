@@ -66,6 +66,8 @@ public interface ConverterRepository extends JpaRepository<ConverterEntity, UUID
 
     Long countByTenantId(UUID tenantId);
 
+    Long countByTenantIdAndEdgeTemplateFalse(UUID tenantId);
+
     @Query("SELECT externalId FROM ConverterEntity WHERE id = :id")
     UUID getExternalIdById(@Param("id") UUID id);
 

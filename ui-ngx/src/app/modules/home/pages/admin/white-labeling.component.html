@@ -119,6 +119,10 @@
                           openOnInput
                           formControlName="pageBackgroundColor">
           </tb-color-input>
+          <mat-checkbox formControlName="showConnectivityDialog" style="display: block;"
+                        *ngIf="!isLoginWl">
+            {{ 'white-labeling.show-connectivity-dialog' | translate }}
+          </mat-checkbox>
           <mat-checkbox formControlName="showNameVersion" style="display: block;">
             {{ 'white-labeling.show-platform-name-version' | translate }}
           </mat-checkbox>

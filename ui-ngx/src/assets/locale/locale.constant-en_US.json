@@ -6632,6 +6632,7 @@
         "ui-help-base-url": "UI help base url",
         "enable-help-links": "Enable help links",
         "error-verification-url": "A domain name shouldn't contain symbols '/' and ':'. Example: thingsboard.io",
+        "show-connectivity-dialog": "Show connectivity dialog",
         "show-platform-name-version": "Show platform name and version",
         "platform-name": "Platform Name",
         "platform-version": "Platform version",

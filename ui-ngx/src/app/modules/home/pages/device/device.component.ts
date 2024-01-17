@@ -55,6 +55,7 @@ import { distinctUntilChanged } from 'rxjs/operators';
 import { getEntityDetailsPageURL } from '@core/utils';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 @Component({
   selector: 'tb-device',
@@ -80,7 +81,8 @@ export class DeviceComponent extends GroupEntityComponent<DeviceInfo> {
               protected entitiesTableConfigValue: EntityTableConfig<DeviceInfo> | GroupEntityTableConfig<DeviceInfo>,
               protected fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef,
-              protected userPermissionsService: UserPermissionsService) {
+              protected userPermissionsService: UserPermissionsService,
+              private wl: WhiteLabelingService) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd, userPermissionsService);
   }
 
@@ -96,6 +98,10 @@ export class DeviceComponent extends GroupEntityComponent<DeviceInfo> {
     } else {
       return false;
     }
+  }
+
+  showConnectivityDialog(): boolean {
+    return this.wl.getShowConnectivityDialog();
   }
 
   hideManageCredentials() {
