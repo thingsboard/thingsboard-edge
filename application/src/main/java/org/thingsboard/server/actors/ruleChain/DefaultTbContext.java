@@ -101,6 +101,7 @@ import org.thingsboard.server.dao.alarm.AlarmCommentService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.cassandra.CassandraCluster;
 import org.thingsboard.server.dao.converter.ConverterService;
@@ -1087,6 +1088,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public EntityService getEntityService() {
         return mainCtx.getEntityService();
+    }
+
+    @Override
+    public AuditLogService getAuditLogService() {
+        return mainCtx.getAuditLogService();
     }
 
     @Override
