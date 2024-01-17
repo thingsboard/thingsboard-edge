@@ -120,8 +120,7 @@
                           formControlName="pageBackgroundColor">
           </tb-color-input>
           <mat-checkbox formControlName="hideConnectivityDialog" style="display: block;"
-                        [fxHide]="!isSysAdmin && hideConnectivitySettings()"
-                        *ngIf="!isLoginWl">
+                        *ngIf="!isLoginWl && isTenant">
             {{ 'white-labeling.hide-connectivity-dialog' | translate }}
           </mat-checkbox>
           <mat-checkbox formControlName="showNameVersion" style="display: block;">
