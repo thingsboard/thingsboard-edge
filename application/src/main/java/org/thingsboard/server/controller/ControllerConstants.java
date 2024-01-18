@@ -324,6 +324,7 @@ public class ControllerConstants {
     protected static final String certificateIdUpdate =  "\"6b8adb49015500e51a527acd332b51684ab9b49b4ade03a9582a44c455e2e9b6\"";
 
     protected static final String DEVICE_WITH_DEVICE_CREDENTIALS_X509_CERTIFICATE_PARAM_DESCRIPTION =
+            "{\n" +
             "  \"device\": {\n" +
             "    \"name\":\"Name_DeviceWithCredantial_X509_Certificate\",\n" +
             "    \"label\":\"Label_DeviceWithCredantial_X509_Certificate\",\n" +
@@ -358,6 +359,7 @@ public class ControllerConstants {
     protected static final String MQTT_BASIC_VALUE_UPDATE = "\"{\\\"clientId\\\":\\\"juy03yv4owqxcmqhqtvk\\\",\\\"userName\\\":\\\"ov19fxca0cyjn7lm7w7u\\\",\\\"password\\\":\\\"twy94he114dfi9usyk1o\\\"}\"";
 
     protected static final String DEVICE_WITH_DEVICE_CREDENTIALS_MQTT_BASIC_PARAM_DESCRIPTION =
+            "{\n" +
             "  \"device\": {\n" +
             "    \"name\":\"Name_DeviceWithCredantial_MQTT_Basic\",\n" +
             "    \"label\":\"Label_DeviceWithCredantial_MQTT_Basic\",\n" +
