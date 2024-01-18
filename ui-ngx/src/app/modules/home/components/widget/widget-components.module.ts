@@ -62,6 +62,12 @@ import { GatewayConnectorComponent } from '@home/components/widget/lib/gateway/g
 import { GatewayLogsComponent } from '@home/components/widget/lib/gateway/gateway-logs.component';
 import { GatewayStatisticsComponent } from '@home/components/widget/lib/gateway/gateway-statistics.component';
 import { GatewayServiceRPCComponent } from '@home/components/widget/lib/gateway/gateway-service-rpc.component';
+import {
+  GatewayServiceRPCConnectorComponent
+} from '@home/components/widget/lib/gateway/gateway-service-rpc-connector.component';
+import {
+  GatewayServiceRPCConnectorTemplatesComponent
+} from '@home/components/widget/lib/gateway/gateway-service-rpc-connector-templates.component';
 import { DeviceGatewayCommandComponent } from '@home/components/widget/lib/gateway/device-gateway-command.component';
 import { GatewayConfigurationComponent } from '@home/components/widget/lib/gateway/gateway-configuration.component';
 import {
@@ -85,6 +91,9 @@ import { RangeChartWidgetComponent } from '@home/components/widget/lib/chart/ran
 import {
   BarChartWithLabelsWidgetComponent
 } from '@home/components/widget/lib/chart/bar-chart-with-labels-widget.component';
+import {
+  GatewayServiceRPCConnectorTemplateDialogComponent
+} from '@home/components/widget/lib/gateway/gateway-service-rpc-connector-template-dialog';
 
 @NgModule({
   declarations:
@@ -113,9 +122,12 @@ import {
       GatewayLogsComponent,
       GatewayStatisticsComponent,
       GatewayServiceRPCComponent,
+      GatewayServiceRPCConnectorComponent,
+      GatewayServiceRPCConnectorTemplatesComponent,
       DeviceGatewayCommandComponent,
       GatewayConfigurationComponent,
       GatewayRemoteConfigurationDialogComponent,
+      GatewayServiceRPCConnectorTemplateDialogComponent,
       ValueCardWidgetComponent,
       AggregatedValueCardWidgetComponent,
       CountWidgetComponent,
@@ -159,11 +171,14 @@ import {
         FlotWidgetComponent,
         GatewayConnectorComponent,
         GatewayLogsComponent,
+        GatewayServiceRPCConnectorComponent,
+        GatewayServiceRPCConnectorTemplatesComponent,
         GatewayStatisticsComponent,
         GatewayServiceRPCComponent,
         DeviceGatewayCommandComponent,
         GatewayConfigurationComponent,
         GatewayRemoteConfigurationDialogComponent,
+        GatewayServiceRPCConnectorTemplateDialogComponent,
         ValueCardWidgetComponent,
         AggregatedValueCardWidgetComponent,
         CountWidgetComponent,
