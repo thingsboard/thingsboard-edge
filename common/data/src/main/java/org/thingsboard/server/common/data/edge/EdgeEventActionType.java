@@ -75,4 +75,5 @@ public enum EdgeEventActionType {
     EdgeEventActionType(ActionType actionType) {
         this.actionType = actionType;
     }
+
 }
