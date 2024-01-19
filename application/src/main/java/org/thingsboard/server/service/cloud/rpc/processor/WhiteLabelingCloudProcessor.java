@@ -40,6 +40,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
@@ -48,6 +49,7 @@ import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
+import org.thingsboard.server.gen.edge.v1.CustomMenuProto;
 import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
 import org.thingsboard.server.gen.edge.v1.WhiteLabelingProto;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
@@ -71,7 +73,7 @@ public class WhiteLabelingCloudProcessor extends BaseEdgeProcessor {
             }
             switch (entityId.getEntityType()) {
                 case TENANT:
-                    if (EntityId.NULL_UUID.equals(entityId.getId())) {
+                    if (TenantId.SYS_TENANT_ID.equals(entityId)) {
                         customTranslationService.saveSystemCustomTranslation(customTranslation);
                     } else {
                         customTranslationService.saveTenantCustomTranslation(tenantId, customTranslation);
@@ -83,6 +85,29 @@ public class WhiteLabelingCloudProcessor extends BaseEdgeProcessor {
             }
         } catch (Exception e) {
             String errMsg = "Exception during updating custom translation";
+            log.error(errMsg, e);
+            return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
+        }
+        return Futures.immediateFuture(null);
+    }
+
+    public ListenableFuture<Void> processCustomMenuMsgFromCloud(TenantId tenantId, CustomMenuProto customMenuProto) {
+        try {
+            EntityId entityId = constructEntityId(customMenuProto.getEntityType(), customMenuProto.getEntityIdMSB(), customMenuProto.getEntityIdLSB());
+            CustomMenu customMenu = JacksonUtil.fromString(customMenuProto.getEntity(), CustomMenu.class, true);
+            if (customMenu == null) {
+                throw new RuntimeException("[{" + tenantId + "}] customMenuProto {" + customMenuProto + "} cannot be converted to custom menu");
+            }
+            switch (entityId.getEntityType()) {
+                case TENANT:
+                    customMenuService.saveTenantCustomMenu(tenantId, customMenu);
+                    break;
+                case CUSTOMER:
+                    customMenuService.saveCustomerCustomMenu(tenantId, new CustomerId(entityId.getId()), customMenu);
+                    break;
+            }
+        } catch (Exception e) {
+            String errMsg = "Exception during updating custom menu";
             log.error(errMsg, e);
             return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
         }

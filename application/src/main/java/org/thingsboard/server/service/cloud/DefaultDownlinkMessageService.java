@@ -359,6 +359,9 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             if (downlinkMsg.hasCustomerCustomTranslationMsg()) {
                 result.add(whiteLabelingProcessor.processCustomTranslationMsgFromCloud(tenantId, downlinkMsg.getCustomerCustomTranslationMsg()));
             }
+            if (downlinkMsg.hasCustomMenuProto()) {
+                result.add(whiteLabelingProcessor.processCustomMenuMsgFromCloud(tenantId, downlinkMsg.getCustomMenuProto()));
+            }
             if (downlinkMsg.hasWhiteLabelingProto()) {
                 result.add(whiteLabelingProcessor.processWhiteLabelingMsgFromCloud(tenantId, this.customerId, downlinkMsg.getWhiteLabelingProto()));
             }
