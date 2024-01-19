@@ -49,6 +49,7 @@ import org.thingsboard.server.dao.alarm.AlarmCommentService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.cassandra.CassandraCluster;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -60,6 +61,7 @@ import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.nosql.CassandraStatementTask;
 import org.thingsboard.server.dao.nosql.TbResultSetFuture;
 import org.thingsboard.server.dao.notification.NotificationRequestService;
@@ -257,6 +259,8 @@ public interface TbContext {
 
     String getRuleChainName();
 
+    String getQueueName();
+
     TenantId getTenantId();
 
     AttributesService getAttributesService();
@@ -399,4 +403,8 @@ public interface TbContext {
     RuleEngineApiUsageStateService getRuleEngineApiUsageStateService();
 
     EntityService getEntityService();
+
+    EventService getEventService();
+
+    AuditLogService getAuditLogService();
 }
