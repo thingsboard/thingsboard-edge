@@ -73,7 +73,7 @@ public class BaseQueueService extends AbstractEntityService implements QueueServ
         }
         Queue savedQueue = queueDao.save(queue.getTenantId(), queue);
         eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedQueue.getTenantId())
-                .entityId(savedQueue.getId()).added(queue.getId() == null).build());
+                .entityId(savedQueue.getId()).created(queue.getId() == null).build());
         return savedQueue;
     }
 

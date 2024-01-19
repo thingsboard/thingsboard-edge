@@ -20,6 +20,7 @@ import org.thingsboard.server.common.data.audit.ActionType;
 
 @Getter
 public enum EdgeEventActionType {
+
     ADDED(ActionType.ADDED),
     UPDATED(ActionType.UPDATED),
     DELETED(ActionType.DELETED),
@@ -56,4 +57,5 @@ public enum EdgeEventActionType {
     EdgeEventActionType(ActionType actionType) {
         this.actionType = actionType;
     }
+
 }

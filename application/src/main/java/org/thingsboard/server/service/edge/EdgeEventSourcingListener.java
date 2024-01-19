@@ -79,23 +79,15 @@ public class EdgeEventSourcingListener {
                 return;
             }
             log.trace("[{}] SaveEntityEvent called: {}", event.getTenantId(), event);
-            boolean isAdded = Boolean.TRUE.equals(event.getAdded());
-            EdgeEventActionType action = isAdded ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED;
-            if (event.getEntity() instanceof AlarmComment) {
-                processAlarmCommentEvent(event, isAdded);
-                return;
-            }
+            boolean isCreated = Boolean.TRUE.equals(event.getCreated());
+            String body = getBodyMsgForEntityEvent(event.getEntity());
+            EdgeEventType type = getEdgeEventTypeForEntityEvent(event.getEntity());
+            EdgeEventActionType action = getActionForEntityEvent(event.getEntity(), isCreated);
             tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), null, event.getEntityId(),
-                    null, null, action, edgeSynchronizationManager.getEdgeId().get());
+                    body, type, action, edgeSynchronizationManager.getEdgeId().get());
         } catch (Exception e) {
             log.error("[{}] failed to process SaveEntityEvent: {}", event.getTenantId(), event, e);
         }
-    }
-
-    private void processAlarmCommentEvent(SaveEntityEvent<?> event, boolean added) {
-        EdgeEventActionType action = added ? EdgeEventActionType.ADDED_COMMENT : EdgeEventActionType.UPDATED_COMMENT;
-        tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), null, event.getEntityId(),
-                JacksonUtil.toString(event.getEntity()), EdgeEventType.ALARM_COMMENT, action, edgeSynchronizationManager.getEdgeId().get());
     }
 
     @TransactionalEventListener(fallbackExecution = true)
@@ -206,5 +198,12 @@ public class EdgeEventSourcingListener {
             return JacksonUtil.toString(entity);
         }
         return null;
+    }
+
+    private EdgeEventActionType getActionForEntityEvent(Object entity, boolean isCreated) {
+        if (entity instanceof AlarmComment) {
+            return isCreated ? EdgeEventActionType.ADDED_COMMENT : EdgeEventActionType.UPDATED_COMMENT;
+        }
+        return isCreated ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED;
     }
 }

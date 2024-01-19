@@ -91,7 +91,7 @@ public class BaseOtaPackageService extends AbstractCachedEntityService<OtaPackag
                 publishEvictEvent(new OtaPackageCacheEvictEvent(otaPackageId));
             }
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getTenantId()).entity(result)
-                    .entityId(result.getId()).added(otaPackageId == null).build());
+                    .entityId(result.getId()).created(otaPackageId == null).build());
             return result;
         } catch (Exception t) {
             if (otaPackageId != null) {
@@ -124,7 +124,7 @@ public class BaseOtaPackageService extends AbstractCachedEntityService<OtaPackag
                 publishEvictEvent(new OtaPackageCacheEvictEvent(otaPackageId));
             }
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getTenantId())
-                    .entityId(result.getId()).added(otaPackageId == null).build());
+                    .entityId(result.getId()).created(otaPackageId == null).build());
             return result;
         } catch (Exception t) {
             if (otaPackageId != null) {
