@@ -53,28 +53,20 @@ import java.util.UUID;
 @Slf4j
 public abstract class IntegrationHealthChecker<C extends IntegrationMonitoringConfig> extends BaseHealthChecker<C, IntegrationMonitoringTarget> {
 
-    private static final String DEFAULT_DEVICE_NAME = "[Monitoring] %s integration (%s)";
-    private static final String DEFAULT_CONVERTER_NAME = "[Monitoring] Default converter";
-    private static final String DEFAULT_INTEGRATION_NAME = "[Monitoring] %s integration";
-
     public IntegrationHealthChecker(C config, IntegrationMonitoringTarget target) {
         super(config, target);
     }
 
     @Override
     protected final void initialize(TbClient tbClient) {
-        String deviceName = String.format(DEFAULT_DEVICE_NAME, config.getIntegrationType(), target.getBaseUrl());
-        Device device = findOrCreateDevice(deviceName, tbClient);
+        Device device = getOrCreateDevice(tbClient);
         DeviceConfig deviceConfig = new DeviceConfig();
         deviceConfig.setId(device.getId().toString());
-        deviceConfig.setName(deviceName);
+        deviceConfig.setName(device.getName());
         target.setDevice(deviceConfig);
 
-        String converterName = DEFAULT_CONVERTER_NAME;
-        Converter converter = findOrCreateConverter(converterName, tbClient);
-
-        String integrationName = String.format(DEFAULT_INTEGRATION_NAME, config.getIntegrationType());
-        Integration integration = findOrCreateIntegration(integrationName, converter.getId(), tbClient);
+        Converter converter = getOrCreateConverter(tbClient);
+        Integration integration = getOrCreateIntegration(converter.getId(), tbClient);
         target.setIntegration(integration);
     }
 
@@ -100,7 +92,8 @@ public abstract class IntegrationHealthChecker<C extends IntegrationMonitoringCo
     protected abstract IntegrationType getIntegrationType();
 
 
-    private Device findOrCreateDevice(String deviceName, TbClient tbClient) {
+    private Device getOrCreateDevice(TbClient tbClient) {
+        String deviceName = String.format("%s integration - %s", config.getIntegrationType().getName(), target.getBaseUrl());
         return tbClient.getTenantDevice(deviceName)
                 .orElseGet(() -> {
                     Device defaultDevice = ResourceUtils.getResource("integration/device.json", Device.class);
@@ -110,7 +103,8 @@ public abstract class IntegrationHealthChecker<C extends IntegrationMonitoringCo
                 });
     }
 
-    private Integration findOrCreateIntegration(String integrationName, ConverterId converterId, TbClient tbClient) {
+    private Integration getOrCreateIntegration(ConverterId converterId, TbClient tbClient) {
+        String integrationName = String.format("%s integration", config.getIntegrationType().getName());
         return tbClient.getIntegrations(new PageLink(1, 0, integrationName)).getData()
                 .stream().findFirst()
                 .orElseGet(() -> {
@@ -126,7 +120,8 @@ public abstract class IntegrationHealthChecker<C extends IntegrationMonitoringCo
                 });
     }
 
-    private Converter findOrCreateConverter(String converterName, TbClient tbClient) {
+    private Converter getOrCreateConverter(TbClient tbClient) {
+        String converterName = "Default converter";
         return tbClient.getConverters(new PageLink(1, 0, converterName)).getData()
                 .stream().findFirst()
                 .orElseGet(() -> {

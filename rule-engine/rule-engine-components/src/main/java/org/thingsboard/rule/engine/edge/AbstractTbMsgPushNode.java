@@ -43,6 +43,7 @@ import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -83,16 +84,10 @@ public abstract class   AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigu
             ctx.ack(msg);
             return;
         }
-        if (isSupportedOriginator(msg.getOriginator().getEntityType())) {
-            if (isSupportedMsgType(msg)) {
-                processMsg(ctx, msg);
-            } else {
-                String errMsg = String.format("Unsupported msg type %s", msg.getType());
-                log.debug(errMsg);
-                ctx.tellFailure(msg, new RuntimeException(errMsg));
-            }
+        if (isSupportedMsgType(msg)) {
+            processMsg(ctx, msg);
         } else {
-            String errMsg = String.format("Unsupported originator type %s", msg.getOriginator().getEntityType());
+            String errMsg = String.format("Unsupported msg type %s", msg.getType());
             log.debug(errMsg);
             ctx.tellFailure(msg, new RuntimeException(errMsg));
         }
@@ -117,7 +112,8 @@ public abstract class   AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigu
                     }
                     break;
                 case ATTRIBUTES_DELETED:
-                    List<String> keys = JacksonUtil.convertValue(dataJson.get("attributes"), new TypeReference<>() {});
+                    List<String> keys = JacksonUtil.convertValue(dataJson.get("attributes"), new TypeReference<>() {
+                    });
                     entityBody.put("keys", keys);
                     entityBody.put(SCOPE, getScope(metadata));
                     break;
@@ -173,9 +169,8 @@ public abstract class   AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigu
     abstract void processMsg(TbContext ctx, TbMsg msg);
 
     protected UUID getUUIDFromMsgData(TbMsg msg) {
-        JsonNode data = JacksonUtil.toJsonNode(msg.getData()).get("id");
-        String id = JacksonUtil.convertValue(data.get("id"), String.class);
-        return UUID.fromString(id);
+        Alarm alarm = JacksonUtil.fromString(msg.getData(), Alarm.class);
+        return alarm != null ? alarm.getUuidId() : null;
     }
 
     protected String getScope(Map<String, String> metadata) {
@@ -211,24 +206,7 @@ public abstract class   AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigu
     }
 
     protected boolean isSupportedMsgType(TbMsg msg) {
-        return msg.isTypeOneOf(POST_TELEMETRY_REQUEST, POST_ATTRIBUTES_REQUEST, ATTRIBUTES_UPDATED,
-                ATTRIBUTES_DELETED, TIMESERIES_UPDATED, ALARM, CONNECT_EVENT, DISCONNECT_EVENT, ACTIVITY_EVENT, INACTIVITY_EVENT, TO_SERVER_RPC_REQUEST);
-    }
-
-    protected boolean isSupportedOriginator(EntityType entityType) {
-        switch (entityType) {
-            case DEVICE:
-            case ASSET:
-            case ENTITY_VIEW:
-            case DASHBOARD:
-            case TENANT:
-            case CUSTOMER:
-            case USER:
-            case EDGE:
-            case ENTITY_GROUP:
-                return true;
-            default:
-                return false;
-        }
+        return msg.isTypeOneOf(POST_TELEMETRY_REQUEST, POST_ATTRIBUTES_REQUEST, ATTRIBUTES_UPDATED, ATTRIBUTES_DELETED, TIMESERIES_UPDATED,
+                ALARM, CONNECT_EVENT, DISCONNECT_EVENT, ACTIVITY_EVENT, INACTIVITY_EVENT);
     }
 }

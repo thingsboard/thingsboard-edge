@@ -95,7 +95,7 @@ public class BaseConverterService extends AbstractEntityService implements Conve
                 entityCountService.publishCountEntityEvictEvent(converter.getTenantId(), EntityType.CONVERTER);
             }
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(converter.getTenantId()).entity(converter)
-                    .entityId(savedConverter.getId()).added(converter.getId() == null).build());
+                    .entityId(savedConverter.getId()).created(converter.getId() == null).build());
             return savedConverter;
         } catch (Exception t) {
             checkConstraintViolation(t,

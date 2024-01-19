@@ -102,7 +102,7 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
         groupPermissionValidator.validate(groupPermission, GroupPermission::getTenantId);
         GroupPermission savedGroupPermission = groupPermissionDao.save(tenantId, groupPermission);
         eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entityId(savedGroupPermission.getId())
-                .added(groupPermission.getId() == null).build());
+                .created(groupPermission.getId() == null).build());
         return savedGroupPermission;
     }
 

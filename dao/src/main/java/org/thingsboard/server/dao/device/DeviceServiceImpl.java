@@ -92,7 +92,6 @@ import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -260,7 +259,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
                 countService.publishCountEntityEvictEvent(savedDevice.getTenantId(), EntityType.DEVICE);
             }
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedDevice.getTenantId())
-                    .entityId(savedDevice.getId()).added(device.getId() == null).build());
+                    .entityId(savedDevice.getId()).created(device.getId() == null).build());
             return savedDevice;
         } catch (Exception t) {
             handleEvictEvent(deviceCacheEvictEvent);

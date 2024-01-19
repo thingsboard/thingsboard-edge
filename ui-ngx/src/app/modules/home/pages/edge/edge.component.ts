@@ -174,10 +174,12 @@ export class EdgeComponent extends GroupEntityComponent<EdgeInfo> {
       }
     });
     this.generateRoutingKeyAndSecret(entity, this.entityForm);
-    this.edgeService.isEdgeUpgradeAvailable(this.entity.id.id)
-      .subscribe(isUpgradeAvailable => {
+    if (this.isTenantAdmin()) {
+      this.edgeService.isEdgeUpgradeAvailable(this.entity.id.id)
+        .subscribe(isUpgradeAvailable => {
           this.upgradeAvailable = isUpgradeAvailable;
-      });
+        });
+    }
   }
 
   updateFormState() {

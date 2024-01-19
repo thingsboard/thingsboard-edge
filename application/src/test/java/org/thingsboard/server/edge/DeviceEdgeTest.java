@@ -673,7 +673,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
 
         // Wait before device attributes saved to database before requesting them from edge
         Awaitility.await()
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(TIMEOUT, TimeUnit.SECONDS)
                 .until(() -> {
                     String urlTemplate = "/api/plugins/telemetry/DEVICE/" + device.getId() + "/keys/attributes/" + scope;
                     List<String> actualKeys = doGetAsyncTyped(urlTemplate, new TypeReference<>() {
@@ -794,7 +794,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
 
         // Wait before device timeseries saved to database before requesting them from edge
         Awaitility.await()
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(TIMEOUT, TimeUnit.SECONDS)
                 .until(() -> {
                     String urlTemplate = "/api/plugins/telemetry/DEVICE/" + device.getId() + "/keys/timeseries";
                     List<String> actualKeys = doGetAsyncTyped(urlTemplate, new TypeReference<>() {

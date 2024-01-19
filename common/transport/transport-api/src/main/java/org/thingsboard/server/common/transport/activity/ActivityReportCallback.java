@@ -28,27 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.transport.service;
+package org.thingsboard.server.common.transport.activity;
 
-import lombok.Data;
-import org.thingsboard.server.gen.transport.TransportProtos;
+public interface ActivityReportCallback<Key> {
 
-/**
- * Created by ashvayka on 15.10.18.
- */
-@Data
-public class SessionActivityData {
+    void onSuccess(Key key, long reportedTime);
 
-    private volatile TransportProtos.SessionInfoProto sessionInfo;
-    private volatile long lastActivityTime;
-    private volatile long lastReportedActivityTime;
-
-    SessionActivityData(TransportProtos.SessionInfoProto sessionInfo) {
-        this.sessionInfo = sessionInfo;
-    }
-
-    void updateLastActivityTime() {
-        this.lastActivityTime = System.currentTimeMillis();
-    }
+    void onFailure(Key key, Throwable t);
 
 }

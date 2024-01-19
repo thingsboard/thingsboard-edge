@@ -187,6 +187,11 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, OnD
         this.fb.control(null, [])
       );
     }
+    if (!this.isLoginWl) {
+      this.wlSettings.addControl('showConnectivityDialog',
+        this.fb.control(true, [])
+      );
+    }
     if (this.readonly) {
       this.wlSettings.disable();
     } else {

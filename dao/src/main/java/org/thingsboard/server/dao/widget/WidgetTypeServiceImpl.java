@@ -114,7 +114,7 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
             imageService.replaceBase64WithImageUrl(widgetTypeDetails);
             WidgetTypeDetails result = widgetTypeDao.save(widgetTypeDetails.getTenantId(), widgetTypeDetails);
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getTenantId())
-                    .entityId(result.getId()).added(widgetTypeDetails.getId() == null).build());
+                    .entityId(result.getId()).created(widgetTypeDetails.getId() == null).build());
             return result;
         } catch (Exception t) {
             AbstractCachedEntityService.checkConstraintViolation(t,
@@ -231,7 +231,7 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
             widgetTypeDao.saveWidgetsBundleWidget(widgetsBundleWidget);
         }
         eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId)
-                .entityId(widgetsBundleId).added(false).build());
+                .entityId(widgetsBundleId).created(false).build());
     }
 
     @Override

@@ -164,5 +164,5 @@ public interface EntityGroupService extends EntityDaoService {
 
     ListenableFuture<Boolean> checkEdgeEntityGroupByIdAsync(TenantId tenantId, EdgeId edgeId, EntityGroupId entityGroupId, EntityType groupType);
 
-    ListenableFuture<EntityGroup> findOrCreateEdgeAllGroupAsync(TenantId tenantId, Edge edge, String edgeName, EntityType groupType);
+    ListenableFuture<EntityGroup> findOrCreateEdgeAllGroupAsync(TenantId tenantId, Edge edge, String edgeName, EntityType entityOwnerType, EntityType groupType);
 }

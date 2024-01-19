@@ -277,7 +277,7 @@ public class TelemetryEdgeTest extends AbstractEdgeTest {
 
         // Wait before device attributes saved to database before deleting them
         Awaitility.await()
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(TIMEOUT, TimeUnit.SECONDS)
                 .until(() -> {
                     String urlTemplate = "/api/plugins/telemetry/ASSET/" + savedAsset.getId() + "/keys/attributes/" + DataConstants.SERVER_SCOPE;
                     List<String> actualKeys = doGetAsyncTyped(urlTemplate, new TypeReference<>() {});
@@ -301,7 +301,7 @@ public class TelemetryEdgeTest extends AbstractEdgeTest {
         Assert.assertTrue(edgeImitator.waitForResponses());
 
         Awaitility.await()
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(TIMEOUT, TimeUnit.SECONDS)
                 .until(() -> {
                     String urlTemplate = "/api/plugins/telemetry/ASSET/" + savedAsset.getId() + "/keys/attributes/" + DataConstants.SERVER_SCOPE;
                     List<String> actualKeys = doGetAsyncTyped(urlTemplate, new TypeReference<>() {});
