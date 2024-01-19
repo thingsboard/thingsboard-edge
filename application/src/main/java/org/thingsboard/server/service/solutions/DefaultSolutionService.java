@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -1301,7 +1301,7 @@ public class DefaultSolutionService implements SolutionService {
         }
         EntityGroup edgeAssetGroup;
         try {
-            edgeAssetGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(ctx.getTenantId(), entity, entity.getName(), EntityType.ASSET).get();
+            edgeAssetGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(ctx.getTenantId(), entity, entity.getName(), EntityType.TENANT, EntityType.ASSET).get();
             ctx.register(edgeAssetGroup.getId());
             ctx.putIdToMap(edgeAssetGroup.getOwnerId(), EntityType.ASSET, edgeAssetGroup.getName(), edgeAssetGroup.getId());
         } catch (Exception e) {
@@ -1326,7 +1326,7 @@ public class DefaultSolutionService implements SolutionService {
         }
         EntityGroup edgeDeviceGroup;
         try {
-            edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(ctx.getTenantId(), entity, entity.getName(), EntityType.DEVICE).get();
+            edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(ctx.getTenantId(), entity, entity.getName(), EntityType.TENANT, EntityType.DEVICE).get();
             ctx.register(edgeDeviceGroup.getId());
             ctx.putIdToMap(edgeDeviceGroup.getOwnerId(), EntityType.DEVICE, edgeDeviceGroup.getName(), edgeDeviceGroup.getId());
         } catch (Exception e) {

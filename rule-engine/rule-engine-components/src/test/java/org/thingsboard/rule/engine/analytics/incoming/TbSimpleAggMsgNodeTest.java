@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,34 +30,32 @@
  */
 package org.thingsboard.rule.engine.analytics.incoming;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.gson.JsonObject;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.jupiter.api.Assertions;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.provider.Arguments;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.rule.engine.AbstractRuleNodeUpgradeTest;
 import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
-import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
-@RunWith(MockitoJUnitRunner.class)
-public class TbSimpleAggMsgNodeTest {
+public class TbSimpleAggMsgNodeTest extends AbstractRuleNodeUpgradeTest {
 
     TbSimpleAggMsgNode node;
     TbSimpleAggMsgNodeConfiguration config;
@@ -65,7 +63,7 @@ public class TbSimpleAggMsgNodeTest {
     TbContext ctx;
     TbMsgCallback callback;
 
-    @Before
+    @BeforeEach
     public void setUp() throws TbNodeException {
         ctx = mock(TbContext.class);
         callback = mock(TbMsgCallback.class);
@@ -94,28 +92,58 @@ public class TbSimpleAggMsgNodeTest {
         Assert.assertThrows(IllegalArgumentException.class, () -> node.onMsg(ctx, msg));
     }
 
-    @Test
-    public void givenOldConfig_whenUpgrade_thenShouldReturnTrueResultWithNewConfig() throws Exception {
-        var node = new TbSimpleAggMsgNode();
-        String oldConfigStr = "{\"parentEntitiesQuery\":{\"type\":\"group\",\"entityGroupId\":null}," +
-                "\"periodTimeUnit\":\"MINUTES\",\"periodValue\":5,\"queueName\":null,\"mathFunction\":\"AVG\"," +
-                "\"aggIntervalType\":\"HOUR\",\"timeZoneId\":\"UTC\",\"aggIntervalTimeUnit\":\"HOURS\"," +
-                "\"aggIntervalValue\":1,\"autoCreateIntervals\":false,\"intervalPersistencePolicy\":\"ON_EACH_CHECK_AFTER_INTERVAL_END\"," +
-                "\"intervalCheckTimeUnit\":\"MINUTES\",\"intervalCheckValue\":1,\"inputValueKey\":\"temperature\"," +
-                "\"outputValueKey\":\"avgHourlyTemperature\",\"statePersistencePolicy\":\"ON_EACH_CHANGE\"," +
-                "\"statePersistenceTimeUnit\":\"MINUTES\",\"statePersistenceValue\":1}";
-        TbPair<Boolean, JsonNode> upgrade = node.upgrade(0, JacksonUtil.toJsonNode(oldConfigStr));
-        Assertions.assertTrue(upgrade.getFirst());
-        Assertions.assertEquals(config, JacksonUtil.treeToValue(upgrade.getSecond(), config.getClass()));
+    // Rule nodes upgrade
+
+    public static final String EXPECTED_CONFIG = "{\"parentEntitiesQuery\":{\"type\":\"group\",\"entityGroupId\":null}," +
+            "\"periodTimeUnit\":\"MINUTES\",\"periodValue\":5,\"mathFunction\":\"AVG\"," +
+            "\"aggIntervalType\":\"HOUR\",\"timeZoneId\":\"UTC\",\"aggIntervalTimeUnit\":\"HOURS\"," +
+            "\"aggIntervalValue\":1,\"autoCreateIntervals\":false,\"intervalPersistencePolicy\":\"ON_EACH_CHECK_AFTER_INTERVAL_END\"," +
+            "\"intervalCheckTimeUnit\":\"MINUTES\",\"intervalCheckValue\":1,\"inputValueKey\":\"temperature\"," +
+            "\"outputValueKey\":\"avgHourlyTemperature\",\"statePersistencePolicy\":\"ON_EACH_CHANGE\"," +
+            "\"statePersistenceTimeUnit\":\"MINUTES\",\"statePersistenceValue\":1, \"outMsgType\": \"POST_TELEMETRY_REQUEST\"}";
+
+    private static Stream<Arguments> givenFromVersionAndConfig_whenUpgrade_thenVerifyHasChangesAndConfig() {
+        return Stream.of(
+                // default config for version 0
+                Arguments.of(0,
+                        "{\"parentEntitiesQuery\":{\"type\":\"group\",\"entityGroupId\":null}," +
+                                "\"periodTimeUnit\":\"MINUTES\",\"periodValue\":5,\"queueName\":null,\"mathFunction\":\"AVG\"," +
+                                "\"aggIntervalType\":\"HOUR\",\"timeZoneId\":\"UTC\",\"aggIntervalTimeUnit\":\"HOURS\"," +
+                                "\"aggIntervalValue\":1,\"autoCreateIntervals\":false,\"intervalPersistencePolicy\":\"ON_EACH_CHECK_AFTER_INTERVAL_END\"," +
+                                "\"intervalCheckTimeUnit\":\"MINUTES\",\"intervalCheckValue\":1,\"inputValueKey\":\"temperature\"," +
+                                "\"outputValueKey\":\"avgHourlyTemperature\",\"statePersistencePolicy\":\"ON_EACH_CHANGE\"," +
+                                "\"statePersistenceTimeUnit\":\"MINUTES\",\"statePersistenceValue\":1}",
+                        true,
+                        EXPECTED_CONFIG),
+                // default config for version 0 with queueName
+                Arguments.of(0,
+                        "{\"parentEntitiesQuery\":{\"type\":\"group\",\"entityGroupId\":null}," +
+                                "\"periodTimeUnit\":\"MINUTES\",\"periodValue\":5,\"queueName\":\"Main\",\"mathFunction\":\"AVG\"," +
+                                "\"aggIntervalType\":\"HOUR\",\"timeZoneId\":\"UTC\",\"aggIntervalTimeUnit\":\"HOURS\"," +
+                                "\"aggIntervalValue\":1,\"autoCreateIntervals\":false,\"intervalPersistencePolicy\":\"ON_EACH_CHECK_AFTER_INTERVAL_END\"," +
+                                "\"intervalCheckTimeUnit\":\"MINUTES\",\"intervalCheckValue\":1,\"inputValueKey\":\"temperature\"," +
+                                "\"outputValueKey\":\"avgHourlyTemperature\",\"statePersistencePolicy\":\"ON_EACH_CHANGE\"," +
+                                "\"statePersistenceTimeUnit\":\"MINUTES\",\"statePersistenceValue\":1}",
+                        true,
+                        EXPECTED_CONFIG),
+                // default config for version 1 with upgrade from version 1
+                Arguments.of(1,
+                        "{\"parentEntitiesQuery\":{\"type\":\"group\",\"entityGroupId\":null}," +
+                                "\"periodTimeUnit\":\"MINUTES\",\"periodValue\":5,\"queueName\":\"Main\",\"mathFunction\":\"AVG\"," +
+                                "\"aggIntervalType\":\"HOUR\",\"timeZoneId\":\"UTC\",\"aggIntervalTimeUnit\":\"HOURS\"," +
+                                "\"aggIntervalValue\":1,\"autoCreateIntervals\":false,\"intervalPersistencePolicy\":\"ON_EACH_CHECK_AFTER_INTERVAL_END\"," +
+                                "\"intervalCheckTimeUnit\":\"MINUTES\",\"intervalCheckValue\":1,\"inputValueKey\":\"temperature\"," +
+                                "\"outputValueKey\":\"avgHourlyTemperature\",\"statePersistencePolicy\":\"ON_EACH_CHANGE\"," +
+                                "\"statePersistenceTimeUnit\":\"MINUTES\",\"statePersistenceValue\":1, \"outMsgType\": \"POST_TELEMETRY_REQUEST\"}",
+                        true,
+                        EXPECTED_CONFIG),
+                // default config for version 2 with upgrade from version 0
+                Arguments.of(0, EXPECTED_CONFIG, false, EXPECTED_CONFIG)
+        );
     }
 
-    @Test
-    public void givenNewConfigWithOldVersion_whenUpgrade_thenShouldReturnFalseResultWithTheSameConfig() throws Exception {
-        var node = new TbSimpleAggMsgNode();
-        JsonNode expectedConfig = JacksonUtil.valueToTree(config);
-        TbPair<Boolean, JsonNode> upgrade = node.upgrade(0, expectedConfig);
-        Assertions.assertFalse(upgrade.getFirst());
-        Assertions.assertEquals(config, JacksonUtil.treeToValue(upgrade.getSecond(), config.getClass()));
+    @Override
+    protected TbNode getTestNode() {
+        return node;
     }
-
 }

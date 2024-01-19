@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,8 +40,10 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import org.awaitility.Awaitility;
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
@@ -51,17 +53,21 @@ import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.device.data.DefaultDeviceConfiguration;
 import org.thingsboard.server.common.data.device.data.DeviceData;
 import org.thingsboard.server.common.data.device.data.MqttDeviceTransportConfiguration;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.common.msg.session.FeatureType;
-import org.thingsboard.server.common.adaptor.JsonConverter;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.edge.v1.AttributesRequestMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsRequestMsg;
@@ -86,6 +92,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -96,6 +103,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class DeviceEdgeTest extends AbstractEdgeTest {
 
     private static final String DEFAULT_DEVICE_TYPE = "default";
+
+    @Autowired
+    protected EdgeService edgeService;
 
     @Test
     public void testDevices() throws Exception {
@@ -650,7 +660,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
 
         // Wait before device attributes saved to database before requesting them from edge
         Awaitility.await()
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(TIMEOUT, TimeUnit.SECONDS)
                 .until(() -> {
                     String urlTemplate = "/api/plugins/telemetry/DEVICE/" + device.getId() + "/keys/attributes/" + scope;
                     List<String> actualKeys = doGetAsyncTyped(urlTemplate, new TypeReference<>() {
@@ -769,7 +779,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
 
         // Wait before device timeseries saved to database before requesting them from edge
         Awaitility.await()
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(TIMEOUT, TimeUnit.SECONDS)
                 .until(() -> {
                     String urlTemplate = "/api/plugins/telemetry/DEVICE/" + device.getId() + "/keys/timeseries";
                     List<String> actualKeys = doGetAsyncTyped(urlTemplate, new TypeReference<>() {
@@ -816,6 +826,67 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
         }
     }
 
+    @Test
+    public void testVerifyProcessCorrectEdgeUpdateToDeviceActorOnUnassignFromDifferentEdge() throws Exception {
+        // create tmp edge
+        Edge tmpEdge = doPost("/api/edge", constructEdge("Test Tmp Edge", "test"), Edge.class);
+
+        // create entity group and assign to tmp edge
+        EntityGroup deviceEntityGroup = new EntityGroup();
+        deviceEntityGroup.setType(EntityType.DEVICE);
+        deviceEntityGroup.setName(StringUtils.randomAlphanumeric(15));
+        deviceEntityGroup = doPost("/api/entityGroup", deviceEntityGroup, EntityGroup.class);
+        deviceEntityGroup = doPost("/api/edge/" + tmpEdge.getUuidId()
+                + "/entityGroup/" + deviceEntityGroup.getId().toString() + "/" + EntityType.DEVICE.name(), EntityGroup.class);
+
+        // create entity group and assign to edge, add device to entity group
+        EntityGroup entityGroup = createEntityGroupAndAssignToEdge(EntityType.DEVICE, StringUtils.randomAlphanumeric(15), tenantId);
+        Device device = saveDevice(StringUtils.randomAlphanumeric(15), THERMOSTAT_DEVICE_PROFILE_NAME, entityGroup.getId());
+
+        // add device to another entity group, assigned to another edge
+        addEntitiesToEntityGroup(List.of(device.getId()), deviceEntityGroup.getId());
+
+        List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, device.getId());
+        Assert.assertEquals(2, relatedEdgeIds.size());
+
+        // unassign entity group from edge
+        doDelete("/api/edge/" + edge.getUuidId()
+                + "/entityGroup/" + entityGroup.getUuidId().toString() + "/" + entityGroup.getType().name(), EntityGroup.class);
+        relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, device.getId());
+        Assert.assertEquals(1, relatedEdgeIds.size());
+        Assert.assertEquals(tmpEdge.getId(), relatedEdgeIds.get(0));
+
+        // clean up stored edge events
+        edgeEventService.cleanupEvents(1);
+
+        // perform rpc call to verify edgeId in DeviceActorMessageProcessor updated properly
+        doPostAsync(
+                "/api/rpc/oneway/" + device.getId().getId().toString(),
+                JacksonUtil.toString(createDefaultRpc()),
+                String.class,
+                status().isOk());
+
+        final AtomicReference<PageData<EdgeEvent>> resultRef = new AtomicReference<>();
+        Awaitility.await()
+                .atMost(TIMEOUT, TimeUnit.SECONDS)
+                .until(() -> {
+                    PageData<EdgeEvent> result = edgeEventService.findEdgeEvents(tenantId, tmpEdge.getId(), 0L, null, new TimePageLink(1));
+                    resultRef.set(result);
+                    return result != null && result.getData().size() == 1;
+                });
+
+        PageData<EdgeEvent> result = resultRef.get();
+        EdgeEvent edgeEvent = result.getData().get(0);
+        Assert.assertEquals(EdgeEventActionType.RPC_CALL, edgeEvent.getAction());
+        Assert.assertEquals(EdgeEventType.DEVICE, edgeEvent.getType());
+        Assert.assertEquals(tmpEdge.getId(), edgeEvent.getEdgeId());
+        Assert.assertEquals(device.getId().getId(), edgeEvent.getEntityId());
+
+        // clean up tmp edge
+        doDelete("/api/entityGroup/" + entityGroup.getId().getId().toString()).andExpect(status().isOk());
+        doDelete("/api/edge/" + tmpEdge.getId().getId().toString()).andExpect(status().isOk());
+    }
+
     private Device buildDeviceForUplinkMsg(String name, String type) {
         Device device = new Device();
         device.setId(new DeviceId(UUID.randomUUID()));
@@ -825,12 +896,27 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
         return device;
     }
 
-
     private DeviceCredentials buildDeviceCredentialsForUplinkMsg(DeviceId deviceId) {
         DeviceCredentials deviceCredentials = new DeviceCredentials();
         deviceCredentials.setDeviceId(deviceId);
         deviceCredentials.setCredentialsValue("NEW_TOKEN");
         deviceCredentials.setCredentialsType(DeviceCredentialsType.ACCESS_TOKEN);
         return deviceCredentials;
+    }
+
+    private ObjectNode createDefaultRpc() {
+        ObjectNode rpc = JacksonUtil.newObjectNode();
+        rpc.put("method", "setGpio");
+
+        ObjectNode params = JacksonUtil.newObjectNode();
+
+        params.put("pin", 7);
+        params.put("value", 1);
+
+        rpc.set("params", params);
+        rpc.put("persistent", true);
+        rpc.put("timeout", 5000);
+
+        return rpc;
     }
 }

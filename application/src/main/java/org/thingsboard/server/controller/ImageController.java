@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -70,8 +69,8 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.util.ThrowingSupplier;
 import org.thingsboard.server.dao.resource.ImageCacheKey;
 import org.thingsboard.server.dao.resource.ImageService;
-import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.dao.service.validator.ResourceDataValidator;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.resource.TbImageService;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -202,7 +201,9 @@ public class ImageController extends BaseController {
 
     @GetMapping(value = "/api/noauth/whiteLabel/loginLogo/{type}/{key}", produces = "image/*")
     public ResponseEntity<ByteArrayResource> downloadLoginLogo(HttpServletRequest request,
+                                                               @ApiParam(value = IMAGE_TYPE_PARAM_DESCRIPTION, allowableValues = IMAGE_TYPE_PARAM_ALLOWABLE_VALUES, required = true)
                                                                @PathVariable String type,
+                                                               @ApiParam(value = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
                                                                @PathVariable String key,
                                                                @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag) throws Exception {
         return this.downloadLoginImage(request.getServerName(), type, key, etag, false);
@@ -210,7 +211,9 @@ public class ImageController extends BaseController {
 
     @GetMapping(value = "/api/noauth/whiteLabel/loginFavicon/{type}/{key}", produces = "image/*")
     public ResponseEntity<ByteArrayResource> downloadLoginFavicon(HttpServletRequest request,
+                                                                  @ApiParam(value = IMAGE_TYPE_PARAM_DESCRIPTION, allowableValues = IMAGE_TYPE_PARAM_ALLOWABLE_VALUES, required = true)
                                                                   @PathVariable String type,
+                                                                  @ApiParam(value = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
                                                                   @PathVariable String key,
                                                                   @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag) throws Exception {
         return this.downloadLoginImage(request.getServerName(), type, key, etag, true);

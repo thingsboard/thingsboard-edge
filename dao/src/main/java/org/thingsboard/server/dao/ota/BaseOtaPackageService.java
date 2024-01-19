@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -104,7 +104,7 @@ public class BaseOtaPackageService extends AbstractCachedEntityService<OtaPackag
                 publishEvictEvent(new OtaPackageCacheEvictEvent(otaPackageId));
             }
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getTenantId()).entity(result)
-                    .entityId(result.getId()).added(otaPackageId == null).build());
+                    .entityId(result.getId()).created(otaPackageId == null).build());
             return result;
         } catch (Exception t) {
             if (otaPackageId != null) {
@@ -130,7 +130,7 @@ public class BaseOtaPackageService extends AbstractCachedEntityService<OtaPackag
                 publishEvictEvent(new OtaPackageCacheEvictEvent(otaPackageId));
             }
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getTenantId())
-                    .entityId(result.getId()).added(otaPackageId == null).build());
+                    .entityId(result.getId()).created(otaPackageId == null).build());
             return result;
         } catch (Exception t) {
             if (otaPackageId != null) {

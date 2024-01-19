@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -42,7 +42,7 @@ import {
   lastUpdateAgoDateFormat,
   textStyle
 } from '@shared/models/widget-settings.models';
-import { ComparisonResultType, DataKey, DatasourceData } from '@shared/models/widget.models';
+import { ComparisonResultType, DataEntry, DataKey, DatasourceData } from '@shared/models/widget.models';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { AggregationType } from '@shared/models/time/time.models';
 
@@ -117,7 +117,7 @@ export const computeAggregatedCardValue =
   }
 };
 
-export const getTsValueByLatestDataKey = (latestData: Array<DatasourceData>, dataKey: DataKey): [number, any] => {
+export const getTsValueByLatestDataKey = (latestData: Array<DatasourceData>, dataKey: DataKey): DataEntry => {
   if (latestData?.length) {
     const dsData = latestData.find(data => data.dataKey === dataKey);
     if (dsData?.data?.length) {

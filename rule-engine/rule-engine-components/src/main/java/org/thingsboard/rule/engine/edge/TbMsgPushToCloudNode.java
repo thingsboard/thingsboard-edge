@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -53,15 +53,7 @@ import java.util.UUID;
                 "This node used only on edge to push messages from edge to cloud. " +
                 "Once message arrived into this node it’s going to be converted into cloud event and saved to the local database. " +
                 "Node doesn't push messages directly to cloud, but stores event(s) in the cloud queue. " +
-                "<br>Supports next originator types:" +
-                "<br><code>DEVICE</code>" +
-                "<br><code>ASSET</code>" +
-                "<br><code>ENTITY_VIEW</code>" +
-                "<br><code>DASHBOARD</code>" +
-                "<br><code>TENANT</code>" +
-                "<br><code>CUSTOMER</code>" +
-                "<br><code>EDGE</code><br><br>" +
-                "As well node supports next message types:" +
+                "Supports next message types:" +
                 "<br><code>POST_TELEMETRY_REQUEST</code>" +
                 "<br><code>POST_ATTRIBUTES_REQUEST</code>" +
                 "<br><code>ATTRIBUTES_UPDATED</code>" +

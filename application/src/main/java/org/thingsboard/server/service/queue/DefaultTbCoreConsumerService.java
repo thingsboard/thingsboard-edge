@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -431,10 +431,6 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             forwardToRuleEngineCallService(toCoreNotification.getRestApiCallResponseMsg(), callback);
         } else if (toCoreNotification.hasComponentLifecycle()) {
             handleComponentLifecycleMsg(id, ProtoUtils.fromProto(toCoreNotification.getComponentLifecycle()));
-            callback.onSuccess();
-        } else if (!toCoreNotification.getComponentLifecycleMsg().isEmpty()) {
-            //will be removed in 3.6.1 in favour of hasComponentLifecycle()
-            handleComponentLifecycleMsg(id, toCoreNotification.getComponentLifecycleMsg());
             callback.onSuccess();
         } else if (toCoreNotification.hasEdgeEventUpdate()) {
             forwardToAppActor(id, ProtoUtils.fromProto(toCoreNotification.getEdgeEventUpdate()));

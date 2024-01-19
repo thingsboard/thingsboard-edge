@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -41,8 +41,10 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.CustomerInfo;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
@@ -60,7 +62,6 @@ import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
-import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -121,9 +122,6 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     private RoleService roleService;
 
     @Autowired
-    private GroupPermissionService groupPermissionService;
-
-    @Autowired
     private ApiUsageStateService apiUsageStateService;
 
     @Autowired
@@ -180,6 +178,10 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
 
     private Customer saveCustomerInternal(Customer customer) {
         try {
+            Customer oldCustomer = null;
+            if (customer.getId() != null) {
+                oldCustomer = findCustomerById(customer.getTenantId(), customer.getId());
+            }
             Customer savedCustomer = customerDao.save(customer.getTenantId(), customer);
             if (customer.getId() == null) {
                 entityGroupService.addEntityToEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getOwnerId(), savedCustomer.getId());
@@ -198,9 +200,19 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
                     entityGroupService.findOrCreatePublicUsersGroup(savedCustomer.getTenantId(), savedCustomer.getId());
                 }
                 countService.publishCountEntityEvictEvent(savedCustomer.getTenantId(), EntityType.CUSTOMER);
+            } else {
+                if (oldCustomer != null && !savedCustomer.getName().equals(oldCustomer.getName())) {
+                    List<EdgeId> edgeIds = edgeService.findAllRelatedEdgeIds(savedCustomer.getTenantId(), savedCustomer.getId());
+                    if (edgeIds != null) {
+                        for (EdgeId edgeId : edgeIds) {
+                            Edge edge = edgeService.findEdgeById(savedCustomer.getTenantId(), edgeId);
+                            edgeService.renameEdgeAllGroups(savedCustomer.getTenantId(), edge, edge.getName(), oldCustomer.getName(), savedCustomer.getName());
+                        }
+                    }
+                }
             }
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedCustomer.getTenantId())
-                    .entityId(savedCustomer.getId()).added(customer.getId() == null).build());
+                    .entityId(savedCustomer.getId()).created(customer.getId() == null).build());
             return savedCustomer;
         } catch (Exception e) {
             checkConstraintViolation(e, "customer_external_id_unq_key", "Customer with such external id already exists!");

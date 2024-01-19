@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -47,7 +47,6 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.SystemParams;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -122,8 +121,8 @@ public class SystemInfoController extends BaseController {
         if (forceFullscreen && (currentUser.isTenantAdmin() || currentUser.isCustomerUser())) {
             PageLink pageLink = new PageLink(100);
             PageData<DashboardInfo> dashboardsPageData = entityService.findUserEntities(tenantId, customerId, mergedUserPermissions, EntityType.DASHBOARD,
-                    Operation.READ, null, pageLink, false);
-            systemParams.setAllowedDashboardIds(dashboardsPageData.getData().stream().map(d -> d.getId().getId().toString()).collect(Collectors.toList()));
+                    Operation.READ, null, pageLink, false, true);
+            systemParams.setAllowedDashboardIds(dashboardsPageData.getData().stream().map(d -> d.getUuidId().toString()).collect(Collectors.toList()));
         } else {
             systemParams.setAllowedDashboardIds(Collections.emptyList());
         }

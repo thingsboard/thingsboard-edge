@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -75,7 +75,7 @@ public abstract class TbAbstractAlarmNode<C extends TbAbstractAlarmNodeConfigura
                         ctx.tellNext(msg, TbNodeConnectionType.FALSE);
                     } else if (alarmResult.isCreated) {
                         tellNext(ctx, msg, alarmResult, TbMsgType.ENTITY_CREATED, "Created");
-                    } else if (alarmResult.isUpdated) {
+                    } else if (alarmResult.isUpdated || alarmResult.isSeverityUpdated) {
                         tellNext(ctx, msg, alarmResult, TbMsgType.ENTITY_UPDATED, "Updated");
                     } else if (alarmResult.isCleared) {
                         tellNext(ctx, msg, alarmResult, TbMsgType.ALARM_CLEAR, "Cleared");
@@ -108,7 +108,7 @@ public abstract class TbAbstractAlarmNode<C extends TbAbstractAlarmNodeConfigura
         TbMsgMetaData metaData = originalMsg.getMetaData().copy();
         if (alarmResult.isCreated) {
             metaData.putValue(DataConstants.IS_NEW_ALARM, Boolean.TRUE.toString());
-        } else if (alarmResult.isUpdated) {
+        } else if (alarmResult.isUpdated || alarmResult.isSeverityUpdated) {
             metaData.putValue(DataConstants.IS_EXISTING_ALARM, Boolean.TRUE.toString());
         } else if (alarmResult.isCleared) {
             metaData.putValue(DataConstants.IS_CLEARED_ALARM, Boolean.TRUE.toString());

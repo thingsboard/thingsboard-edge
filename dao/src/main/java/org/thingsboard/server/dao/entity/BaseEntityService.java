@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,12 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.DashboardInfo;
-import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.HasEmail;
@@ -47,24 +42,12 @@ import org.thingsboard.server.common.data.HasLabel;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasTitle;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.DashboardId;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityIdFactory;
-import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.NameLabelAndCustomerDetails;
-import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
@@ -75,7 +58,6 @@ import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityDataQuery;
 import org.thingsboard.server.common.data.query.EntityFilterType;
 import org.thingsboard.server.common.data.query.RelationsQueryFilter;
-import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -83,13 +65,12 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
+import org.thingsboard.server.dao.sql.query.EntityMapping;
 import org.thingsboard.server.dao.user.UserService;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.function.Function;
 
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
@@ -138,13 +119,13 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
     public <T extends GroupEntity<? extends EntityId>> PageData<T> findUserEntities(TenantId tenantId, CustomerId customerId,
                                                                                     MergedUserPermissions userPermissions,
                                                                                     EntityType entityType, Operation operation, String type, PageLink pageLink) {
-        return findUserEntities(tenantId, customerId, userPermissions, entityType, operation, type, pageLink, false);
+        return findUserEntities(tenantId, customerId, userPermissions, entityType, operation, type, pageLink, false, false);
     }
 
     @Override
     public <T extends GroupEntity<? extends EntityId>> PageData<T> findUserEntities(TenantId tenantId, CustomerId customerId,
                                                                                     MergedUserPermissions userPermissions,
-                                                                                    EntityType entityType, Operation operation, String type, PageLink pageLink, boolean mobile) {
+                                                                                    EntityType entityType, Operation operation, String type, PageLink pageLink, boolean mobile, boolean idOnly) {
         MergedGroupTypePermissionInfo groupPermissions = userPermissions.getGroupPermissionsByEntityTypeAndOperation(entityType, operation);
         if (customerId == null || customerId.isNullUid()) {
             if (groupPermissions.isHasGenericRead()) {
@@ -155,9 +136,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         } else {
             if (groupPermissions.isHasGenericRead()) {
                 if (groupPermissions.getEntityGroupIds().isEmpty()) {
-                    return getEntityPageDataByCustomerId(entityType, type, tenantId, customerId, pageLink, mobile);
+                    return getEntityPageDataByCustomerId(entityType, type, tenantId, customerId, pageLink, mobile, idOnly);
                 } else {
-                    return getEntityPageDataByCustomerIdOrOtherGroupIds(entityType, type, tenantId, customerId, groupPermissions.getEntityGroupIds(), pageLink, mobile);
+                    return getEntityPageDataByCustomerIdOrOtherGroupIds(entityType, type, tenantId, customerId, groupPermissions.getEntityGroupIds(), pageLink, mobile, idOnly);
                 }
             } else {
                 return getEntityPageDataByGroupIds(entityType, type, groupPermissions.getEntityGroupIds(), pageLink, mobile);
@@ -207,246 +188,22 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         }
     }
 
-    private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByCustomerId(EntityType entityType, String type, TenantId tenantId, CustomerId customerId, PageLink pageLink, boolean mobile) {
-        return getEntityPageDataByCustomerIdOrOtherGroupIds(entityType, type, tenantId, customerId, Collections.emptyList(), pageLink, mobile);
+    private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByCustomerId(EntityType entityType, String type, TenantId tenantId, CustomerId customerId, PageLink pageLink, boolean mobile, boolean idOnly) {
+        return getEntityPageDataByCustomerIdOrOtherGroupIds(entityType, type, tenantId, customerId, Collections.emptyList(), pageLink, mobile, idOnly);
     }
 
     @SuppressWarnings("unchecked")
     private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByCustomerIdOrOtherGroupIds(
-            EntityType entityType, String type, TenantId tenantId, CustomerId customerId, List<EntityGroupId> groupIds, PageLink pageLink, boolean mobile) {
+            EntityType entityType, String type, TenantId tenantId, CustomerId customerId, List<EntityGroupId> groupIds, PageLink pageLink, boolean mobile, boolean idOnly) {
         if (type != null && type.trim().length() == 0) {
             type = null;
         }
-        Function<Map<String, Object>, ?> mappingFunction;
-        switch (entityType) {
-            case DEVICE:
-                mappingFunction = getDeviceMapping();
-                break;
-            case ASSET:
-                mappingFunction = getAssetMapping();
-                break;
-            case ENTITY_VIEW:
-                mappingFunction = getEntityViewMapping();
-                break;
-            case DASHBOARD:
-                mappingFunction = getDashboardMapping();
-                break;
-            case CUSTOMER:
-                mappingFunction = getCustomerMapping();
-                break;
-            case USER:
-                mappingFunction = getUserMapping();
-                break;
-            case EDGE:
-                mappingFunction = getEdgeMapping();
-                break;
-            default:
-                mappingFunction = null;
+        EntityMapping<?, ?> mapping = EntityMapping.get(entityType);
+        if (idOnly) {
+            mapping = mapping.onlyId();
         }
         return (PageData<T>) entityQueryDao.findInCustomerHierarchyByRootCustomerIdOrOtherGroupIdsAndType(
-                tenantId, customerId, entityType, type, groupIds, pageLink, mappingFunction, mobile);
-    }
-
-    private Function<Map<String, Object>, Device> getDeviceMapping() {
-        return row -> {
-            Device device = new Device();
-            device.setId(new DeviceId((UUID) row.get("id")));
-            device.setCreatedTime((Long) row.get("created_time"));
-            device.setTenantId(new TenantId((UUID) row.get("tenant_id")));
-            device.setName(row.get("name").toString());
-            device.setType(row.get("type").toString());
-            Object label = row.get("label");
-            if (label != null) {
-                device.setLabel(label.toString());
-            }
-            Object customerId = row.get("customer_id");
-            if (customerId != null) {
-                device.setCustomerId(new CustomerId((UUID) customerId));
-            }
-            Object addInfo = row.get("additional_info");
-            if (addInfo != null) {
-                device.setAdditionalInfo(JacksonUtil.toJsonNode(addInfo.toString()));
-            }
-            return device;
-        };
-    }
-
-    private Function<Map<String, Object>, Asset> getAssetMapping() {
-        return row -> {
-            Asset asset = new Asset();
-            asset.setId(new AssetId((UUID) row.get("id")));
-            asset.setCreatedTime((Long) row.get("created_time"));
-            asset.setTenantId(new TenantId((UUID) row.get("tenant_id")));
-            asset.setName(row.get("name").toString());
-            asset.setType(row.get("type").toString());
-            Object label = row.get("label");
-            if (label != null) {
-                asset.setLabel(label.toString());
-            }
-            Object customerId = row.get("customer_id");
-            if (customerId != null) {
-                asset.setCustomerId(new CustomerId((UUID) customerId));
-            }
-            Object addInfo = row.get("additional_info");
-            if (addInfo != null) {
-                asset.setAdditionalInfo(JacksonUtil.toJsonNode(addInfo.toString()));
-            }
-            return asset;
-        };
-    }
-
-    private Function<Map<String, Object>, EntityView> getEntityViewMapping() {
-        return row -> {
-            EntityView entityView = new EntityView();
-            entityView.setId(new EntityViewId((UUID) row.get("id")));
-            entityView.setCreatedTime((Long) row.get("created_time"));
-            entityView.setTenantId(new TenantId((UUID) row.get("tenant_id")));
-            entityView.setName(row.get("name").toString());
-            entityView.setType(row.get("type").toString());
-            EntityType entityType = EntityType.valueOf(row.get("entity_type").toString());
-            UUID entityId = (UUID) row.get("entity_id");
-            entityView.setEntityId(EntityIdFactory.getByTypeAndUuid(entityType, entityId));
-            try {
-                entityView.setKeys(JacksonUtil.fromString(row.get("keys").toString(), TelemetryEntityView.class));
-            } catch (IllegalArgumentException e) {
-                log.error("Unable to read entity view keys!", e);
-            }
-            entityView.setStartTimeMs((Long) row.get("start_ts"));
-            entityView.setEndTimeMs((Long) row.get("end_ts"));
-
-            Object customerId = row.get("customer_id");
-            if (customerId != null) {
-                entityView.setCustomerId(new CustomerId((UUID) customerId));
-            }
-            Object addInfo = row.get("additional_info");
-            if (addInfo != null) {
-                entityView.setAdditionalInfo(JacksonUtil.toJsonNode(addInfo.toString()));
-            }
-            return entityView;
-        };
-    }
-
-    private Function<Map<String, Object>, Edge> getEdgeMapping() {
-        return row -> {
-            Edge edge = new Edge();
-            edge.setId(new EdgeId((UUID) row.get("id")));
-            edge.setCreatedTime((Long) row.get("created_time"));
-            edge.setTenantId(new TenantId((UUID) row.get("tenant_id")));
-            edge.setName(row.get("name").toString());
-            edge.setType(row.get("type").toString());
-            Object label = row.get("label");
-            if (label != null) {
-                edge.setLabel(label.toString());
-            }
-            edge.setRootRuleChainId(new RuleChainId((UUID) row.get("root_rule_chain_id")));
-            edge.setRoutingKey(row.get("routing_key").toString());
-            edge.setSecret(row.get("secret").toString());
-            edge.setEdgeLicenseKey(row.get("edge_license_key").toString());
-            edge.setCloudEndpoint(row.get("cloud_endpoint").toString());
-
-            Object customerId = row.get("customer_id");
-            if (customerId != null) {
-                edge.setCustomerId(new CustomerId((UUID) customerId));
-            }
-            Object addInfo = row.get("additional_info");
-            if (addInfo != null) {
-                edge.setAdditionalInfo(JacksonUtil.toJsonNode(addInfo.toString()));
-            }
-            return edge;
-        };
-    }
-
-    private Function<Map<String, Object>, DashboardInfo> getDashboardMapping() {
-        return row -> {
-            DashboardInfo dashboard = new DashboardInfo();
-            dashboard.setId(new DashboardId((UUID) row.get("id")));
-            dashboard.setCreatedTime((Long) row.get("created_time"));
-            dashboard.setTenantId(new TenantId((UUID) row.get("tenant_id")));
-            dashboard.setTitle(row.get("title").toString());
-            dashboard.setImage(row.get("image") != null ? row.get("image").toString() : null);
-            dashboard.setMobileHide(row.get("mobile_hide") != null ? (Boolean) row.get("mobile_hide") : false);
-            dashboard.setMobileOrder(row.get("mobile_order") != null ? (Integer) row.get("mobile_order") : null);
-            return dashboard;
-        };
-    }
-
-    private Function<Map<String, Object>, Customer> getCustomerMapping() {
-        return row -> {
-            Customer customer = new Customer();
-            customer.setId(new CustomerId((UUID) row.get("id")));
-            customer.setCreatedTime((Long) row.get("created_time"));
-            customer.setTenantId(new TenantId((UUID) row.get("tenant_id")));
-            customer.setTitle(row.get("title").toString());
-            Object parentCustomerId = row.get("parent_customer_id");
-            if (parentCustomerId != null) {
-                customer.setParentCustomerId(new CustomerId((UUID) parentCustomerId));
-            }
-            Object country = row.get("country");
-            if (country != null) {
-                customer.setCountry(country.toString());
-            }
-            Object state = row.get("state");
-            if (state != null) {
-                customer.setState(state.toString());
-            }
-            Object city = row.get("city");
-            if (city != null) {
-                customer.setCity(city.toString());
-            }
-            Object address = row.get("address");
-            if (address != null) {
-                customer.setAddress(address.toString());
-            }
-            Object address2 = row.get("address2");
-            if (address2 != null) {
-                customer.setAddress2(address2.toString());
-            }
-            Object zip = row.get("zip");
-            if (zip != null) {
-                customer.setZip(zip.toString());
-            }
-            Object phone = row.get("phone");
-            if (phone != null) {
-                customer.setPhone(phone.toString());
-            }
-            Object email = row.get("email");
-            if (email != null) {
-                customer.setEmail(email.toString());
-            }
-            Object addInfo = row.get("additional_info");
-            if (addInfo != null) {
-                customer.setAdditionalInfo(JacksonUtil.toJsonNode(addInfo.toString()));
-            }
-            return customer;
-        };
-    }
-
-    private Function<Map<String, Object>, User> getUserMapping() {
-        return row -> {
-            User user = new User();
-            user.setId(new UserId((UUID) row.get("id")));
-            user.setCreatedTime((Long) row.get("created_time"));
-            user.setTenantId(new TenantId((UUID) row.get("tenant_id")));
-            user.setEmail(row.get("email").toString());
-            user.setAuthority(Authority.valueOf(row.get("authority").toString()));
-            Object firstName = row.get("first_name");
-            if (firstName != null) {
-                user.setFirstName(firstName.toString());
-            }
-            Object lastName = row.get("last_name");
-            if (lastName != null) {
-                user.setLastName(lastName.toString());
-            }
-            Object customerId = row.get("customer_id");
-            if (customerId != null) {
-                user.setCustomerId(new CustomerId((UUID) customerId));
-            }
-            Object addInfo = row.get("additional_info");
-            if (addInfo != null) {
-                user.setAdditionalInfo(JacksonUtil.toJsonNode(addInfo.toString()));
-            }
-            return user;
-        };
+                tenantId, customerId, entityType, type, groupIds, pageLink, mapping, mobile);
     }
 
     @SuppressWarnings("unchecked")

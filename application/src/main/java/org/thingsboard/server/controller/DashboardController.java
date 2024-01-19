@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -341,7 +341,7 @@ public class DashboardController extends BaseController {
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         MergedUserPermissions mergedUserPermissions = securityUser.getUserPermissions();
         return entityService.findUserEntities(securityUser.getTenantId(), securityUser.getCustomerId(), mergedUserPermissions, EntityType.DASHBOARD,
-                operationType, null, pageLink, mobile != null ? mobile : false);
+                operationType, null, pageLink, mobile != null ? mobile : false, false);
     }
 
     @ApiOperation(value = "Get All Dashboards for current user (getAllDashboards)",

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -199,7 +199,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
                 .entity(savedUser)
                 .oldEntity(oldUser)
                 .entityId(savedUser.getId())
-                .added(user.getId() == null).build());
+                .created(user.getId() == null).build());
         return savedUser;
     }
 

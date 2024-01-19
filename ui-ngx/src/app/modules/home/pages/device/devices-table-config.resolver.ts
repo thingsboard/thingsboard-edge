@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -93,6 +93,7 @@ import {
   DeviceCheckConnectivityDialogData
 } from '@home/pages/device/device-check-connectivity-dialog.component';
 import { EntityId } from '@shared/models/id/entity-id';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 interface DevicePageQueryParams extends PageQueryParam {
   deviceProfileId?: string;
@@ -114,7 +115,8 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
               private datePipe: DatePipe,
               private utils: UtilsService,
               private router: Router,
-              private dialog: MatDialog) {
+              private dialog: MatDialog,
+              private wl: WhiteLabelingService) {
   }
 
   resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<DeviceInfo>> {
@@ -350,15 +352,19 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     }).afterClosed().subscribe(
       (res) => {
         if (res) {
-          this.store.pipe(select(selectUserSettingsProperty( 'notDisplayConnectivityAfterAddDevice'))).pipe(
-            take(1)
-          ).subscribe((settings: boolean) => {
-            if(!settings) {
-              this.checkConnectivity(null, res.id, true, config);
-            } else {
-              config.updateData();
-            }
-          });
+          if (!this.wl.getShowConnectivityDialog()) {
+            config.updateData();
+          } else {
+            this.store.pipe(select(selectUserSettingsProperty('notDisplayConnectivityAfterAddDevice'))).pipe(
+              take(1)
+            ).subscribe((settings: boolean) => {
+              if (!settings) {
+                this.checkConnectivity(null, res.id, true, config);
+              } else {
+                config.updateData();
+              }
+            });
+          }
         }
       }
     );

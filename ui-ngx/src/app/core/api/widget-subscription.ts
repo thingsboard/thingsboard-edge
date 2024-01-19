@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -1389,14 +1389,19 @@ export class WidgetSubscription implements IWidgetSubscription {
   private updateTimewindow() {
     this.timeWindow.interval = this.subscriptionTimewindow.aggregation.interval || 1000;
     this.timeWindow.timezone = this.subscriptionTimewindow.timezone;
+    this.timeWindow.tsOffset = this.subscriptionTimewindow.tsOffset;
     if (this.subscriptionTimewindow.realtimeWindowMs) {
       if (this.subscriptionTimewindow.quickInterval) {
         const startEndTime = calculateIntervalStartEndTime(this.subscriptionTimewindow.quickInterval, this.subscriptionTimewindow.timezone);
         this.timeWindow.maxTime = startEndTime[1] + this.subscriptionTimewindow.tsOffset;
         this.timeWindow.minTime = startEndTime[0] + this.subscriptionTimewindow.tsOffset;
       } else {
-        this.timeWindow.maxTime = moment().valueOf() + this.subscriptionTimewindow.tsOffset + this.timeWindow.stDiff;
-        this.timeWindow.minTime = this.timeWindow.maxTime - this.subscriptionTimewindow.realtimeWindowMs;
+        const now = moment().valueOf() + this.subscriptionTimewindow.tsOffset + this.timeWindow.stDiff;
+        if (!this.timeWindow.maxTime || Math.abs(now - this.timeWindow.maxTime) > 500) {
+          this.timeWindow.maxTime = now;
+          this.timeWindow.maxTime -= this.timeWindow.maxTime % 1000;
+          this.timeWindow.minTime = this.timeWindow.maxTime - this.subscriptionTimewindow.realtimeWindowMs;
+        }
       }
     } else if (this.subscriptionTimewindow.fixedWindow) {
       this.timeWindow.maxTime = this.subscriptionTimewindow.fixedWindow.endTimeMs + this.subscriptionTimewindow.tsOffset;

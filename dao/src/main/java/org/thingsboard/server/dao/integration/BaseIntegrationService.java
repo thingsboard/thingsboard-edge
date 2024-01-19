@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -107,7 +107,7 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
                 entityCountService.publishCountEntityEvictEvent(integration.getTenantId(), EntityType.INTEGRATION);
             }
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getTenantId()).entity(result)
-                    .entityId(result.getId()).added(integration.getId() == null).build());
+                    .entityId(result.getId()).created(integration.getId() == null).build());
             return result;
         } catch (Exception t) {
             checkConstraintViolation(t,

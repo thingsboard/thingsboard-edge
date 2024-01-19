@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,5 +42,5 @@ public class SaveEntityEvent<T> {
     private final T entity;
     private final T oldEntity;
     private final EntityId entityId;
-    private final Boolean added;
+    private final Boolean created;
 }

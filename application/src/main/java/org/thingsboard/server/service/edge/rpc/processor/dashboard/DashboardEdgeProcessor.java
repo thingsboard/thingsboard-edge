@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -119,7 +119,7 @@ public abstract class DashboardEdgeProcessor extends BaseDashboardProcessor impl
         Dashboard dashboardToDelete = dashboardService.findDashboardById(tenantId, dashboardId);
         if (dashboardToDelete != null) {
             try {
-                EntityGroup edgeDashboardGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.DASHBOARD).get();
+                EntityGroup edgeDashboardGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), dashboardToDelete.getOwnerId().getEntityType(), EntityType.DASHBOARD).get();
                 if (edgeDashboardGroup != null) {
                     entityGroupService.removeEntityFromEntityGroup(tenantId, edgeDashboardGroup.getId(), dashboardToDelete.getId());
                 }
@@ -132,7 +132,8 @@ public abstract class DashboardEdgeProcessor extends BaseDashboardProcessor impl
 
     private void addDashboardToEdgeAllDashboardGroup(TenantId tenantId, Edge edge, DashboardId dashboardId) {
         try {
-            EntityGroup edgeDashboardGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.DASHBOARD).get();
+            Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
+            EntityGroup edgeDashboardGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), dashboard.getOwnerId().getEntityType(), EntityType.DASHBOARD).get();
             if (edgeDashboardGroup != null) {
                 entityGroupService.addEntityToEntityGroup(tenantId, edgeDashboardGroup.getId(), dashboardId);
             }

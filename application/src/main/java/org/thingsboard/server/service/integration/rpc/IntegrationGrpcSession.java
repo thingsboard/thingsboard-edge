@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -117,12 +117,12 @@ public final class IntegrationGrpcSession implements Closeable {
     private final UUID sessionId;
     private final BiConsumer<IntegrationId, IntegrationGrpcSession> sessionOpenListener;
     private final Consumer<IntegrationId> sessionCloseListener;
+    private final SyncedStreamObserver<ResponseMsg> outputStream;
 
     private IntegrationContextComponent ctx;
     private Integration configuration;
     private StreamObserver<RequestMsg> inputStream;
-    private StreamObserver<ResponseMsg> outputStream;
-    private boolean connected;
+    private volatile boolean connected;
     private String serviceId;
 
     IntegrationGrpcSession(IntegrationContextComponent ctx, StreamObserver<ResponseMsg> outputStream
@@ -130,7 +130,7 @@ public final class IntegrationGrpcSession implements Closeable {
             , Consumer<IntegrationId> sessionCloseListener) {
         this.sessionId = UUID.randomUUID();
         this.ctx = ctx;
-        this.outputStream = outputStream;
+        this.outputStream = new SyncedStreamObserver<>(outputStream);
         this.sessionOpenListener = sessionOpenListener;
         this.sessionCloseListener = sessionCloseListener;
         initInputStream();

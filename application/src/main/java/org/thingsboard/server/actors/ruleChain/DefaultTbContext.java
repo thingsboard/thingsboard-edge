@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -101,6 +101,8 @@ import org.thingsboard.server.dao.alarm.AlarmCommentService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.blob.BlobEntityService;
+import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.cassandra.CassandraCluster;
 import org.thingsboard.server.dao.converter.ConverterService;
@@ -221,7 +223,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
 
     @Override
     public void enqueue(TbMsg tbMsg, Runnable onSuccess, Consumer<Throwable> onFailure) {
-        TopicPartitionInfo tpi = mainCtx.resolve(ServiceType.TB_RULE_ENGINE, getTenantId(), tbMsg.getOriginator());
+        TopicPartitionInfo tpi = mainCtx.resolve(ServiceType.TB_RULE_ENGINE, getQueueName(), getTenantId(), tbMsg.getOriginator());
         enqueue(tpi, tbMsg, onFailure, onSuccess);
     }
 
@@ -346,7 +348,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
 
     @Override
     public boolean isLocalEntity(EntityId entityId) {
-        return mainCtx.resolve(ServiceType.TB_RULE_ENGINE, getTenantId(), entityId).isMyPartition();
+        return mainCtx.resolve(ServiceType.TB_RULE_ENGINE, getQueueName(), getTenantId(), entityId).isMyPartition();
     }
 
     @Override
@@ -539,6 +541,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public String getRuleChainName() {
         return ruleChainName;
+    }
+
+    @Override
+    public String getQueueName() {
+        return getSelf().getQueueName();
     }
 
     @Override
@@ -1082,6 +1089,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public EntityService getEntityService() {
         return mainCtx.getEntityService();
+    }
+
+    @Override
+    public AuditLogService getAuditLogService() {
+        return mainCtx.getAuditLogService();
     }
 
     @Override

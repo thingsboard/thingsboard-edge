@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -176,7 +176,7 @@ public class AlarmControllerTest extends AbstractControllerTest {
 
         Alarm alarm = createAlarm(TEST_ALARM_TYPE);
 
-        testNotifyEntityEntityGroupNullAllOneTime(alarm, alarm.getId(), alarm.getOriginator(),
+        testNotifyEntityOneTimeMsgToEdgeServiceNever(alarm, alarm.getId(), alarm.getOriginator(),
                 tenantId, customerId, customerAdminUserId, CUSTOMER_ADMIN_EMAIL, ActionType.ADDED);
 
     }
@@ -198,7 +198,7 @@ public class AlarmControllerTest extends AbstractControllerTest {
 
         Alarm alarm = createAlarm(TEST_ALARM_TYPE);
 
-        testNotifyEntityEntityGroupNullAllOneTime(alarm, alarm.getId(), alarm.getOriginator(),
+        testNotifyEntityOneTimeMsgToEdgeServiceNever(alarm, alarm.getId(), alarm.getOriginator(),
                 tenantId, customerId, tenantAdminUserId, TENANT_ADMIN_EMAIL, ActionType.ADDED);
     }
 
