@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -796,6 +796,21 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     try {
                         connection.createStatement().execute("CREATE INDEX IF NOT EXISTS idx_asset_profile_id ON asset(tenant_id, asset_profile_id);");
                     } catch (Exception e) {
+                    }
+                });
+                break;
+            case "3.6.2":
+                updateSchema("3.6.2", 3006002, "3.6.3", 3006003, connection -> {
+                    try {
+                        connection.createStatement().execute("UPDATE entity_group SET " +
+                                "name = CONCAT('[Edge][', customer.title, ']', SUBSTRING(entity_group.name, POSITION(']' IN entity_group.name) + 1)) " +
+                                "FROM customer " +
+                                "WHERE entity_group.owner_id = customer.id " +
+                                "AND entity_group.owner_type = 'CUSTOMER' " +
+                                "AND entity_group.name LIKE '[Edge]%All'" +
+                                "AND NOT entity_group.name LIKE CONCAT('[Edge][', customer.title, ']%');");
+                    } catch (Exception e) {
+                        log.warn("Failed to execute update script for edge entity group All for customer level due to: ", e);
                     }
                 });
                 break;

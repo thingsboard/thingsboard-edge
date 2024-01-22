@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -449,6 +449,7 @@ public class ModelConstants {
     public static final String COMPONENT_DESCRIPTOR_CONFIGURATION_DESCRIPTOR_PROPERTY = "configuration_descriptor";
     public static final String COMPONENT_DESCRIPTOR_CONFIGURATION_VERSION_PROPERTY = "configuration_version";
     public static final String COMPONENT_DESCRIPTOR_ACTIONS_PROPERTY = "actions";
+    public static final String COMPONENT_DESCRIPTOR_HAS_QUEUE_NAME_PROPERTY = "has_queue_name";
 
     /**
      * Event constants.
@@ -495,6 +496,7 @@ public class ModelConstants {
 
     public static final String DEBUG_MODE = "debug_mode";
     public static final String SINGLETON_MODE = "singleton_mode";
+    public static final String QUEUE_NAME = "queue_name";
 
     /**
      * Rule chain constants.
@@ -539,8 +541,7 @@ public class ModelConstants {
     public static final String SCHEDULER_EVENT_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
     public static final String SCHEDULER_EVENT_CONFIGURATION_PROPERTY = CONFIGURATION_PROPERTY;
     public static final String SCHEDULER_EVENT_SCHEDULE_PROPERTY = "schedule";
-
-    public static final String SCHEDULER_EVENT_ENABLED = "enabled";
+    public static final String SCHEDULER_EVENT_ENABLED_PROPERTY = "enabled";
 
     /**
      * Blob entity constants.

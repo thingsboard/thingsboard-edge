@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -79,7 +79,7 @@ public class SchedulerEventInfo extends BaseDataWithAdditionalInfo<SchedulerEven
 
     @ApiModelProperty(position = 9, value = "Enable/disable scheduler", example = "true")
     @Length(fieldName = "enabled")
-    private boolean enabled = true;
+    private boolean enabled;
 
     public SchedulerEventInfo() {
         super();
@@ -96,6 +96,7 @@ public class SchedulerEventInfo extends BaseDataWithAdditionalInfo<SchedulerEven
         this.originatorId = schedulerEventInfo.getOriginatorId();
         this.name = schedulerEventInfo.getName();
         this.type = schedulerEventInfo.getType();
+        this.enabled = schedulerEventInfo.isEnabled();
         this.setSchedule(schedulerEventInfo.getSchedule());
     }
 

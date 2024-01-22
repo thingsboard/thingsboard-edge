@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -65,9 +65,11 @@ public class RuleNode extends BaseDataWithAdditionalInfo<RuleNodeId> implements 
     private boolean debugMode;
     @ApiModelProperty(position = 7, value = "Enable/disable singleton mode. ", example = "false")
     private boolean singletonMode;
-    @ApiModelProperty(position = 8, value = "Version of rule node configuration. ", example = "0")
+    @ApiModelProperty(position = 8, value = "Queue name. ", example = "Main")
+    private String queueName;
+    @ApiModelProperty(position = 9, value = "Version of rule node configuration. ", example = "0")
     private int configurationVersion;
-    @ApiModelProperty(position = 9, value = "JSON with the rule node configuration. Structure depends on the rule node implementation.", dataType = "com.fasterxml.jackson.databind.JsonNode")
+    @ApiModelProperty(position = 10, value = "JSON with the rule node configuration. Structure depends on the rule node implementation.", dataType = "com.fasterxml.jackson.databind.JsonNode")
     private transient JsonNode configuration;
     @JsonIgnore
     private byte[] configurationBytes;

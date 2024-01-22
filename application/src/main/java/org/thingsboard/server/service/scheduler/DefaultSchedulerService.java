@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -243,6 +243,9 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
     }
 
     private void scheduleNextEvent(long ts, SchedulerEventInfo event, SchedulerEventMetaData md) {
+        if (!event.isEnabled()) {
+            return;
+        }
         long eventTs = md.getNextEventTime(ts);
         if (eventTs != 0L) {
             log.debug("schedule next event for ts {}, event {}, metadata {}", ts, event, md);
@@ -264,7 +267,7 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
                 log.error("Failed to read scheduler config", e);
             }
         }
-        return new SchedulerEventMetaData(event, startTime, timezone, repeat, event.isEnabled());
+        return new SchedulerEventMetaData(event, startTime, timezone, repeat);
     }
 
     private void processEvent(TenantId tenantId, SchedulerEventId eventId) {

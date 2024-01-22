@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -28,18 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.flow;
+package org.thingsboard.server.common.transport.activity;
 
-import lombok.Data;
-import org.thingsboard.rule.engine.api.NodeConfiguration;
+public interface ActivityManager<Key> {
 
-@Data
-public class TbCheckpointNodeConfiguration implements NodeConfiguration<TbCheckpointNodeConfiguration> {
+    void onActivity(Key key, long activityTimeMillis);
 
-    private String queueName;
+    void onReportingPeriodEnd();
 
-    @Override
-    public TbCheckpointNodeConfiguration defaultConfiguration() {
-        return new TbCheckpointNodeConfiguration();
-    }
+    long getLastRecordedTime(Key key);
+
 }

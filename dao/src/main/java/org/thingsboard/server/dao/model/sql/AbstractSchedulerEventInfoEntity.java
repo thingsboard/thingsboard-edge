@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -92,8 +92,7 @@ public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventI
     @Column(name = ModelConstants.SCHEDULER_EVENT_SCHEDULE_PROPERTY)
     private JsonNode schedule;
 
-
-    @Column(name = ModelConstants.SCHEDULER_EVENT_ENABLED)
+    @Column(name = ModelConstants.SCHEDULER_EVENT_ENABLED_PROPERTY)
     private boolean enabled;
 
     public AbstractSchedulerEventInfoEntity() {
@@ -119,6 +118,7 @@ public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventI
         this.type = schedulerEventInfo.getType();
         this.additionalInfo = schedulerEventInfo.getAdditionalInfo();
         this.schedule = schedulerEventInfo.getSchedule();
+        this.enabled = schedulerEventInfo.isEnabled();
     }
 
     public AbstractSchedulerEventInfoEntity(SchedulerEventInfoEntity schedulerEventInfoEntity) {

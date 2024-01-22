@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -688,6 +688,8 @@ public final class EdgeGrpcSession implements Closeable {
                 return ctx.getWhiteLabelingProcessor().convertLoginWhiteLabelingEventToDownlink(edgeEvent, this.edgeVersion);
             case CUSTOM_TRANSLATION:
                 return ctx.getWhiteLabelingProcessor().convertCustomTranslationEventToDownlink(edgeEvent, this.edgeVersion);
+            case CUSTOM_MENU:
+                return ctx.getWhiteLabelingProcessor().convertCustomMenuEventToDownlink(edgeEvent);
             case ROLE:
                 return ctx.getRoleProcessor().convertRoleEventToDownlink(edgeEvent, this.edgeVersion);
             case GROUP_PERMISSION:
