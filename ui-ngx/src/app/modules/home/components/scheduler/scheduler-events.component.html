@@ -192,7 +192,7 @@
             </mat-header-cell>
             <mat-cell *matCellDef="let schedulerEvent">
               <div fxFlex fxLayout="row" fxLayoutAlign="end">
-                <button *ngIf="enableEnabled"
+                <button *ngIf="editEnabled"
                         mat-icon-button [disabled]="isLoading$ | async"
                         [matTooltip]="(isEnabled(schedulerEvent) ? 'scheduler.disable' : 'scheduler.enable') | translate"
                         matTooltipPosition="above"

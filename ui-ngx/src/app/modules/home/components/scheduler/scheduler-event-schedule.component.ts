@@ -51,7 +51,7 @@ import {
 } from '@shared/models/scheduler-event.models';
 import * as _moment from 'moment';
 import * as momentTz from 'moment-timezone';
-import { isDefined, isDefinedAndNotNull } from '@core/utils';
+import { isDefined } from '@core/utils';
 import { ErrorStateMatcher } from '@angular/material/core';
 
 interface SchedulerEventScheduleConfig {

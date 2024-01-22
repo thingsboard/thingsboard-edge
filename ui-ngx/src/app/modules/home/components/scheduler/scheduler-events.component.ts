@@ -59,7 +59,7 @@ import {
   schedulerWeekday
 } from '@shared/models/scheduler-event.models';
 import { CollectionViewer, DataSource, SelectionModel } from '@angular/cdk/collections';
-import { BehaviorSubject, forkJoin, merge, Observable, of, ReplaySubject, Subject, switchMap } from 'rxjs';
+import { BehaviorSubject, forkJoin, merge, Observable, of, ReplaySubject, Subject } from 'rxjs';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import { catchError, debounceTime, distinctUntilChanged, map, share, skip, takeUntil, tap } from 'rxjs/operators';
 import { PageLink, PageQueryParam } from '@shared/models/page/page-link';
@@ -140,7 +140,6 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   settings: SchedulerEventsWidgetSettings;
 
   editEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.WRITE);
-  enableEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.WRITE);
   addEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.CREATE);
   deleteEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.DELETE);
 
