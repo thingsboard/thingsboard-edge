@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -65,6 +65,8 @@ public interface ConverterRepository extends JpaRepository<ConverterEntity, UUID
     List<ConverterEntity> findConvertersByTenantIdAndIdIn(UUID tenantId, List<UUID> converterIds);
 
     Long countByTenantId(UUID tenantId);
+
+    Long countByTenantIdAndEdgeTemplateFalse(UUID tenantId);
 
     @Query("SELECT externalId FROM ConverterEntity WHERE id = :id")
     UUID getExternalIdById(@Param("id") UUID id);

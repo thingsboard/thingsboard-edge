@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,7 @@ package org.thingsboard.server.service.ws.telemetry.cmd.v2;
 
 import lombok.Data;
 import org.thingsboard.server.common.data.kv.Aggregation;
+import org.thingsboard.server.common.data.kv.IntervalType;
 
 import java.util.List;
 
@@ -41,7 +42,9 @@ public class EntityHistoryCmd implements GetTsCmd {
     private List<String> keys;
     private long startTs;
     private long endTs;
+    private IntervalType intervalType;
     private long interval;
+    private String timeZoneId;
     private int limit;
     private Aggregation agg;
     private boolean fetchLatestPreviousPoint;

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -28,18 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.flow;
+package org.thingsboard.server.service.integration.rpc;
 
-import lombok.Data;
-import org.thingsboard.rule.engine.api.NodeConfiguration;
+import io.grpc.stub.StreamObserver;
 
-@Data
-public class TbCheckpointNodeConfiguration implements NodeConfiguration<TbCheckpointNodeConfiguration> {
+public class SyncedStreamObserver<V> implements StreamObserver<V> {
+    private final StreamObserver<V> delegate;
 
-    private String queueName;
+    public SyncedStreamObserver(StreamObserver<V> delegate) {
+        this.delegate = delegate;
+    }
 
     @Override
-    public TbCheckpointNodeConfiguration defaultConfiguration() {
-        return new TbCheckpointNodeConfiguration();
+    public void onNext(V value) {
+        synchronized (delegate) {
+            delegate.onNext(value);
+        }
+    }
+
+    @Override
+    public void onError(Throwable t) {
+        synchronized (delegate) {
+            delegate.onError(t);
+        }
+    }
+
+    @Override
+    public void onCompleted() {
+        synchronized (delegate) {
+            delegate.onCompleted();
+        }
     }
 }

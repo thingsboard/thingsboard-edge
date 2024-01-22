@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.alarm.AlarmCommentService;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -64,6 +65,7 @@ import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.menu.CustomMenuService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -107,6 +109,7 @@ import org.thingsboard.server.service.edge.rpc.constructor.entityview.EntityView
 import org.thingsboard.server.service.edge.rpc.constructor.entityview.EntityViewMsgConstructorV2;
 import org.thingsboard.server.service.edge.rpc.constructor.group.GroupMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.integration.IntegrationMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.menu.CustomMenuMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.ota.OtaPackageMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.ota.OtaPackageMsgConstructorV1;
 import org.thingsboard.server.service.edge.rpc.constructor.ota.OtaPackageMsgConstructorV2;
@@ -189,6 +192,9 @@ public abstract class BaseEdgeProcessorTest {
 
     @MockBean
     protected AlarmService alarmService;
+
+    @MockBean
+    protected AlarmCommentService alarmCommentService;
 
     @MockBean
     protected DeviceService deviceService;
@@ -292,6 +298,9 @@ public abstract class BaseEdgeProcessorTest {
 
     @MockBean
     protected EdgeMsgConstructor edgeMsgConstructor;
+
+    @MockBean
+    protected CustomMenuMsgConstructor customMenuMsgConstructor;
 
     @MockBean
     protected EntityDataMsgConstructor entityDataMsgConstructor;
@@ -562,6 +571,9 @@ public abstract class BaseEdgeProcessorTest {
 
     @MockBean
     protected ConverterService converterService;
+
+    @MockBean
+    protected CustomMenuService customMenuService;
 
     @MockBean
     protected WhiteLabelingParamsProtoConstructor whiteLabelingParamsProtoConstructor;

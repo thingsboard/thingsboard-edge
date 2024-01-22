@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -82,7 +82,7 @@ public class BaseQueueService extends AbstractEntityService implements QueueServ
         queueValidator.validate(queue, Queue::getTenantId);
         Queue savedQueue = queueDao.save(queue.getTenantId(), queue);
         eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedQueue.getTenantId())
-                .entityId(savedQueue.getId()).added(queue.getId() == null).build());
+                .entityId(savedQueue.getId()).created(queue.getId() == null).build());
         return savedQueue;
     }
 

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data.page;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -79,8 +80,8 @@ public abstract class BasePageDataIterable<T> implements Iterable<T>, Iterator<T
     private void fetch(PageLink link) {
         PageData<T> pageData = fetchPageData(link);
         currentIdx = 0;
-        currentItems = pageData.getData();
-        hasNextPack = pageData.hasNext();
+        currentItems = pageData != null ? pageData.getData() : new ArrayList<>();
+        hasNextPack = pageData != null && pageData.hasNext();
         nextPackLink = link.nextPageLink();
     }
 

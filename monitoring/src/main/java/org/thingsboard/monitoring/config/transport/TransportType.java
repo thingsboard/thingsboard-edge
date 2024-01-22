@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,11 +42,12 @@ import org.thingsboard.monitoring.service.transport.impl.MqttTransportHealthChec
 @Getter
 public enum TransportType {
 
-    MQTT(MqttTransportHealthChecker.class),
-    COAP(CoapTransportHealthChecker.class),
-    HTTP(HttpTransportHealthChecker.class),
-    LWM2M(Lwm2mTransportHealthChecker.class);
+    MQTT("MQTT", MqttTransportHealthChecker.class),
+    COAP("CoAP",CoapTransportHealthChecker.class),
+    HTTP("HTTP", HttpTransportHealthChecker.class),
+    LWM2M("LwM2M", Lwm2mTransportHealthChecker.class);
 
+    private final String name;
     private final Class<? extends TransportHealthChecker<?>> serviceClass;
 
 }

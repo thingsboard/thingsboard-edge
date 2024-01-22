@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -120,7 +120,7 @@ public class KpnIntegrationTest extends AbstractIntegrationTest {
         Awaitility
                 .await()
                 .atMost(TIMEOUT, TimeUnit.SECONDS)
-                .until(() -> wsClient.getMessage().getDataValuesByKey(TELEMETRY_KEY).get(1).equals(TELEMETRY_VALUE));
+                .until(() -> wsClient.getLastMessage().getDataValuesByKey(TELEMETRY_KEY).get(1).equals(TELEMETRY_VALUE));
     }
 
     @Test
@@ -144,7 +144,7 @@ public class KpnIntegrationTest extends AbstractIntegrationTest {
         Awaitility
                 .await()
                 .atMost(TIMEOUT, TimeUnit.SECONDS)
-                .until(() -> wsClient.getMessage().getDataValuesByKey(TELEMETRY_KEY).get(1).equals(TELEMETRY_VALUE));
+                .until(() -> wsClient.getLastMessage().getDataValuesByKey(TELEMETRY_KEY).get(1).equals(TELEMETRY_VALUE));
     }
 
     @Test
