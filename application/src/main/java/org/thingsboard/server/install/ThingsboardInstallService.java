@@ -298,6 +298,7 @@ public class ThingsboardInstallService {
                         case "3.6.2":
                             log.info("Upgrading ThingsBoard from version 3.6.2 to 3.6.3 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.6.2");
+                            systemDataLoaderService.updateDefaultNotificationConfigs();
                             break;
                         case "CE":
                             log.info("Upgrading ThingsBoard from version CE to PE ...");

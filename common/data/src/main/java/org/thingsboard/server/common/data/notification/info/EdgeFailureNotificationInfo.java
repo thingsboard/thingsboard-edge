@@ -28,35 +28,56 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification.rule.trigger.config;
+package org.thingsboard.server.common.data.notification.info;
 
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 
-@Getter
-public enum NotificationRuleTriggerType {
+import java.util.Map;
 
-    ENTITY_ACTION,
-    ALARM,
-    ALARM_COMMENT,
-    ALARM_ASSIGNMENT,
-    DEVICE_ACTIVITY,
-    RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT,
-    INTEGRATION_LIFECYCLE_EVENT,
-    EDGE_CONNECTIVITY,
-    EDGE_FAILURE,
-    NEW_PLATFORM_VERSION(false),
-    ENTITIES_LIMIT(false),
-    API_USAGE_LIMIT(false),
-    RATE_LIMITS(false);
+import static org.thingsboard.server.common.data.util.CollectionsUtil.mapOf;
 
-    private final boolean tenantLevel;
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class EdgeFailureNotificationInfo implements RuleOriginatedNotificationInfo {
 
-    NotificationRuleTriggerType() {
-        this(true);
+    private TenantId tenantId;
+    private CustomerId customerId;
+    private EdgeId edgeId;
+    private String edgeName;
+    private String errorMsg;
+
+    @Override
+    public Map<String, String> getTemplateData() {
+        return mapOf(
+                "tenantId", tenantId.toString(),
+                "edgeId", edgeId.toString(),
+                "edgeName", edgeName,
+                "errorMsg", errorMsg
+        );
     }
 
-    NotificationRuleTriggerType(boolean tenantLevel) {
-        this.tenantLevel = tenantLevel;
+    @Override
+    public TenantId getAffectedTenantId() {
+        return tenantId;
     }
 
+    @Override
+    public CustomerId getAffectedCustomerId() {
+        return customerId;
+    }
+
+    @Override
+    public EntityId getStateEntityId() {
+        return edgeId;
+    }
 }

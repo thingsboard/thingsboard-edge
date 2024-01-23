@@ -84,6 +84,7 @@ import {
 import { LimitedApi, LimitedApiTranslationMap } from '@shared/models/limited-api.models';
 import { StringItemsOption } from '@shared/components/string-items-list.component';
 import { IntegrationType, integrationTypeInfoMap } from '@shared/models/integration.models';
+import { EdgeConnectivityEvent, EdgeConnectivityEventTranslationMap } from '@shared/models/edge.models';
 
 export interface RuleNotificationDialogData {
   rule?: NotificationRule;
@@ -116,6 +117,8 @@ export class RuleNotificationDialogComponent extends
   integrationEventsTemplateForm: FormGroup;
   newPlatformVersionTemplateForm: FormGroup;
   rateLimitsTemplateForm: FormGroup;
+  edgeFailureTemplateForm: FormGroup;
+  edgeConnectivityTemplateForm: FormGroup;
 
   triggerType = TriggerType;
   triggerTypes: TriggerType[];
@@ -149,6 +152,9 @@ export class RuleNotificationDialogComponent extends
 
   apiFeatures: ApiFeature[] = Object.values(ApiFeature);
   apiFeatureTranslationMap = ApiFeatureTranslationMap;
+
+  edgeConnectivityEvents: EdgeConnectivityEvent[] = Object.values(EdgeConnectivityEvent);
+  edgeConnectivityEventTranslationMap = EdgeConnectivityEventTranslationMap;
 
   limitedApis: StringItemsOption[];
 
@@ -243,6 +249,19 @@ export class RuleNotificationDialogComponent extends
       } else {
         this.alarmTemplateForm.get('triggerConfig.clearRule').disable({emitEvent: false});
       }
+    });
+
+    this.edgeConnectivityTemplateForm = this.fb.group({
+      triggerConfig: this.fb.group({
+        edges: [null],
+        notifyOn: [null]
+      })
+    });
+
+    this.edgeFailureTemplateForm = this.fb.group({
+      triggerConfig: this.fb.group({
+        edges: [null]
+      })
     });
 
     this.alarmTemplateForm = this.fb.group({
@@ -375,7 +394,9 @@ export class RuleNotificationDialogComponent extends
       [TriggerType.API_USAGE_LIMIT, this.apiUsageLimitTemplateForm],
       [TriggerType.INTEGRATION_LIFECYCLE_EVENT, this.integrationEventsTemplateForm],
       [TriggerType.NEW_PLATFORM_VERSION, this.newPlatformVersionTemplateForm],
-      [TriggerType.RATE_LIMITS, this.rateLimitsTemplateForm]
+      [TriggerType.RATE_LIMITS, this.rateLimitsTemplateForm],
+      [TriggerType.EDGE_FAILURE, this.edgeFailureTemplateForm],
+      [TriggerType.EDGE_CONNECTIVITY, this.edgeConnectivityTemplateForm]
     ]);
 
     if (data.isAdd || data.isCopy) {

@@ -28,35 +28,50 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification.rule.trigger.config;
+package org.thingsboard.server.common.data.notification.rule.trigger;
 
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.notification.rule.trigger.config.NotificationRuleTriggerType;
 
-@Getter
-public enum NotificationRuleTriggerType {
+import java.util.concurrent.TimeUnit;
 
-    ENTITY_ACTION,
-    ALARM,
-    ALARM_COMMENT,
-    ALARM_ASSIGNMENT,
-    DEVICE_ACTIVITY,
-    RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT,
-    INTEGRATION_LIFECYCLE_EVENT,
-    EDGE_CONNECTIVITY,
-    EDGE_FAILURE,
-    NEW_PLATFORM_VERSION(false),
-    ENTITIES_LIMIT(false),
-    API_USAGE_LIMIT(false),
-    RATE_LIMITS(false);
+@Data
+@Builder
+public class EdgeFailureTrigger implements NotificationRuleTrigger {
 
-    private final boolean tenantLevel;
+    private final TenantId tenantId;
+    private final CustomerId customerId;
+    private final EdgeId edgeId;
+    private final String edgeName;
+    private final String errorMsg;
 
-    NotificationRuleTriggerType() {
-        this(true);
+    @Override
+    public boolean deduplicate() {
+        return true;
     }
 
-    NotificationRuleTriggerType(boolean tenantLevel) {
-        this.tenantLevel = tenantLevel;
+    @Override
+    public String getDeduplicationKey() {
+        return String.join(":", NotificationRuleTrigger.super.getDeduplicationKey(), edgeName, errorMsg);
     }
 
+    @Override
+    public long getDefaultDeduplicationDuration() {
+        return TimeUnit.HOURS.toMillis(2);
+    }
+
+    @Override
+    public NotificationRuleTriggerType getType() {
+        return NotificationRuleTriggerType.EDGE_FAILURE;
+    }
+
+    @Override
+    public EntityId getOriginatorEntityId() {
+        return edgeId;
+    }
 }
