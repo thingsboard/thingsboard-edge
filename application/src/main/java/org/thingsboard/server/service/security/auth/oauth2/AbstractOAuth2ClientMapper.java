@@ -321,4 +321,5 @@ public abstract class AbstractOAuth2ClientMapper {
             return customerService.saveCustomer(customer).getId();
         }
     }
+
 }

@@ -198,4 +198,5 @@ public class UserClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getUserById(savedUser.getId()).isEmpty());
     }
+
 }

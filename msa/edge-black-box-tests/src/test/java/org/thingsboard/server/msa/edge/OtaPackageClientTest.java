@@ -86,4 +86,5 @@ public class OtaPackageClientTest extends AbstractContainerTest {
                     return otaPackages.getData().stream().map(OtaPackageInfo::getId).noneMatch(otaPackageId::equals);
                 });
     }
+
 }

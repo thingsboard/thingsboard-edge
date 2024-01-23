@@ -57,7 +57,6 @@ import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
@@ -435,6 +434,9 @@ public class CloudManagerService {
                     case RELATION_DELETED:
                     case ADDED_TO_ENTITY_GROUP:
                     case REMOVED_FROM_ENTITY_GROUP:
+                    case ADDED_COMMENT:
+                    case UPDATED_COMMENT:
+                    case DELETED_COMMENT:
                         uplinkMsg = convertEntityEventToUplink(this.tenantId, cloudEvent);
                         break;
                     case ATTRIBUTES_UPDATED:
@@ -491,6 +493,8 @@ public class CloudManagerService {
                 return deviceProfileProcessor.convertDeviceProfileEventToUplink(cloudEvent, edgeVersion);
             case ALARM:
                 return alarmProcessor.convertAlarmEventToUplink(cloudEvent, edgeVersion);
+            case ALARM_COMMENT:
+                return alarmProcessor.convertAlarmCommentEventToUplink(cloudEvent, edgeVersion);
             case ASSET:
                 return assetProcessor.convertAssetEventToUplink(cloudEvent, edgeVersion);
             case ASSET_PROFILE:

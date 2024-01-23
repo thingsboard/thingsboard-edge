@@ -75,4 +75,5 @@ public class TenantClientTest extends AbstractContainerTest {
 
         cloudRestClient.login("tenant@thingsboard.org", "tenant");
     }
+
 }

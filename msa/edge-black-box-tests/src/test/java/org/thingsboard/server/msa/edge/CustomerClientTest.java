@@ -123,4 +123,5 @@ public class CustomerClientTest extends AbstractContainerTest {
                     return cloudPublicCustomerUserGroups.size() == edgePublicCustomerUserGroups.size();
                 });
     }
+
 }

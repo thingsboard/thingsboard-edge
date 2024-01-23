@@ -30,27 +30,38 @@
  */
 package org.thingsboard.server.common.data.cloud;
 
+import lombok.Getter;
+import org.thingsboard.server.common.data.EntityType;
+
+@Getter
 public enum CloudEventType {
-    DASHBOARD,
-    ASSET,
-    ASSET_PROFILE,
-    DEVICE,
-    DEVICE_PROFILE,
-    ENTITY_VIEW,
-    ALARM,
-    RULE_CHAIN,
-    RULE_CHAIN_METADATA,
-    USER,
-    TENANT,
-    TENANT_PROFILE,
-    CUSTOMER,
-    RELATION,
-    ENTITY_GROUP,
-    WIDGETS_BUNDLE,
-    WIDGET_TYPE,
-    TB_RESOURCE,
-    SCHEDULER_EVENT,
-    ROLE,
-    GROUP_PERMISSION,
-    EDGE
+    DASHBOARD(EntityType.DASHBOARD),
+    ASSET(EntityType.ASSET),
+    ASSET_PROFILE(EntityType.ASSET_PROFILE),
+    DEVICE(EntityType.DEVICE),
+    DEVICE_PROFILE(EntityType.DEVICE_PROFILE),
+    ENTITY_VIEW(EntityType.ENTITY_VIEW),
+    ALARM(EntityType.ALARM),
+    ALARM_COMMENT(null),
+    RULE_CHAIN(EntityType.RULE_CHAIN),
+    RULE_CHAIN_METADATA(null),
+    USER(EntityType.USER),
+    TENANT(EntityType.TENANT),
+    TENANT_PROFILE(EntityType.TENANT_PROFILE),
+    CUSTOMER(EntityType.CUSTOMER),
+    RELATION(null),
+    WIDGETS_BUNDLE(EntityType.WIDGETS_BUNDLE),
+    WIDGET_TYPE(EntityType.WIDGET_TYPE),
+    EDGE(EntityType.EDGE),
+    TB_RESOURCE(EntityType.TB_RESOURCE),
+    ENTITY_GROUP(EntityType.ENTITY_GROUP),
+    SCHEDULER_EVENT(EntityType.SCHEDULER_EVENT),
+    ROLE(EntityType.ROLE),
+    GROUP_PERMISSION(EntityType.GROUP_PERMISSION);
+
+    private final EntityType entityType;
+
+    CloudEventType(EntityType entityType) {
+        this.entityType = entityType;
+    }
 }

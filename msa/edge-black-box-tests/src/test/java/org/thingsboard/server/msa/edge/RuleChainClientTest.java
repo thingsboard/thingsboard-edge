@@ -75,4 +75,5 @@ public class RuleChainClientTest extends AbstractContainerTest {
 
         unAssignFromEdgeAndDeleteRuleChain(savedRuleChainId);
     }
+
 }

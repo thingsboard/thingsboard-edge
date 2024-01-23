@@ -137,7 +137,7 @@ public abstract class AbstractContainerTest {
     public static final String TB_MONOLITH_SERVICE_NAME = "tb-monolith";
     public static final String TB_EDGE_SERVICE_NAME = "tb-edge";
 
-    private static final String CUSTOM_DEVICE_PROFILE_NAME = "Custom Device Profile";
+    protected static final String CUSTOM_DEVICE_PROFILE_NAME = "Custom Device Profile";
 
     protected static RestClient cloudRestClient = null;
 
@@ -164,8 +164,8 @@ public abstract class AbstractContainerTest {
             edgeUrl = "http://" + edgeHost + ":" + edgePort;
             edgeRestClient = new RestClient(edgeUrl);
 
-            updateRootRuleChain();
-            updateEdgeRootRuleChain();
+            RuleChainId ruleChainId = updateRootRuleChain();
+            RuleChainId edgeRuleChainId = updateEdgeRootRuleChain();
 
             edge = createEdge("test", CLOUD_ROUTING_KEY, CLOUD_ROUTING_SECRET);
 
@@ -177,7 +177,7 @@ public abstract class AbstractContainerTest {
             Assert.assertTrue(tenant.isPresent());
             Assert.assertEquals(edge.getTenantId(), tenant.get().getId());
 
-            createCustomDeviceProfile(CUSTOM_DEVICE_PROFILE_NAME);
+            createCustomDeviceProfile(CUSTOM_DEVICE_PROFILE_NAME, ruleChainId, edgeRuleChainId);
 
             // This is a starting point to start other tests
             verifyWidgetBundles();
@@ -185,7 +185,7 @@ public abstract class AbstractContainerTest {
     }
 
     private static void getEdgeVersion() {
-        List<AttributeKvEntry> attributes = cloudRestClient.getAttributeKvEntries(edge.getId(), List.of("edgeVersion"));
+        List<AttributeKvEntry> attributes = cloudRestClient.getAttributeKvEntries(edge.getId(), List.of(DataConstants.EDGE_VERSION_ATTR_KEY));
         edgeVersion = EdgeVersion.valueOf(attributes.get(0).getValueAsString());
     }
 
@@ -243,22 +243,22 @@ public abstract class AbstractContainerTest {
         }
     }
 
-    private static void updateRootRuleChain() throws IOException {
+    private static RuleChainId updateRootRuleChain() throws IOException {
         // Modifications:
         // - add rule node 'script' to create RPC reply message
         // - add rule node 'rpc call reply' to send RPC reply
         // - add connection - from 'RPC from Device' to 'script'
         // - add connection - from 'script' to 'rpc call reply'
-        updateRootRuleChain(RuleChainType.CORE, "Updated_RootRuleChainMetadata.json");
+        return updateRootRuleChain(RuleChainType.CORE, "Updated_RootRuleChainMetadata.json");
     }
 
-    private static void updateEdgeRootRuleChain() throws IOException {
+    private static RuleChainId updateEdgeRootRuleChain() throws IOException {
         // Modifications:
         // - add connection - from 'RPC from Device' to 'Push to cloud'
-        updateRootRuleChain(RuleChainType.EDGE, "Updated_EdgeRootRuleChainMetadata.json");
+        return updateRootRuleChain(RuleChainType.EDGE, "Updated_EdgeRootRuleChainMetadata.json");
     }
 
-    private static void updateRootRuleChain(RuleChainType ruleChainType, String updatedRootRuleChainFileName) throws IOException {
+    private static RuleChainId updateRootRuleChain(RuleChainType ruleChainType, String updatedRootRuleChainFileName) throws IOException {
         PageData<RuleChain> ruleChains = cloudRestClient.getRuleChains(ruleChainType, new PageLink(100));
         RuleChainId rootRuleChainId = null;
         for (RuleChain datum : ruleChains.getData()) {
@@ -275,15 +275,20 @@ public abstract class AbstractContainerTest {
         ruleChainMetaData.setNodes(Arrays.asList(JacksonUtil.OBJECT_MAPPER.treeToValue(configuration.get("nodes"), RuleNode[].class)));
         ruleChainMetaData.setConnections(Arrays.asList(JacksonUtil.OBJECT_MAPPER.treeToValue(configuration.get("connections"), NodeConnectionInfo[].class)));
         cloudRestClient.saveRuleChainMetaData(ruleChainMetaData);
+        return rootRuleChainId;
     }
 
     protected static DeviceProfile createCustomDeviceProfile(String deviceProfileName,
                                                              DeviceProfileTransportConfiguration deviceProfileTransportConfiguration) {
-        return doCreateDeviceProfile(deviceProfileName, deviceProfileTransportConfiguration, cloudRestClient);
+        return doCreateDeviceProfile(deviceProfileName, null, null, deviceProfileTransportConfiguration, cloudRestClient);
     }
 
     protected static DeviceProfile createCustomDeviceProfile(String deviceProfileName) {
         return createCustomDeviceProfile(deviceProfileName, null);
+    }
+
+    protected static DeviceProfile createCustomDeviceProfile(String deviceProfileName, RuleChainId defaultRuleChain, RuleChainId defaultEdgeRuleChainId) {
+        return doCreateDeviceProfile(deviceProfileName, defaultRuleChain, defaultEdgeRuleChainId, null, cloudRestClient);
     }
 
     @Rule
@@ -314,10 +319,15 @@ public abstract class AbstractContainerTest {
     };
 
     protected static DeviceProfile createDeviceProfileOnEdge(String name) {
-        return doCreateDeviceProfile(name, new DefaultDeviceProfileTransportConfiguration(), edgeRestClient);
+        return doCreateDeviceProfile(name, null, null, new DefaultDeviceProfileTransportConfiguration(), edgeRestClient);
     }
 
-    private static DeviceProfile doCreateDeviceProfile(String name, DeviceProfileTransportConfiguration deviceProfileTransportConfiguration, RestClient restClient) {
+    protected static DeviceProfile createDeviceProfileOnEdge(String name, RuleChainId defaultRuleChain, RuleChainId defaultEdgeRuleChainId) {
+        return doCreateDeviceProfile(name, defaultRuleChain, defaultEdgeRuleChainId, new DefaultDeviceProfileTransportConfiguration(), edgeRestClient);
+    }
+
+    private static DeviceProfile doCreateDeviceProfile(String name, RuleChainId defaultRuleChain, RuleChainId defaultEdgeRuleChainId,
+                                                       DeviceProfileTransportConfiguration deviceProfileTransportConfiguration, RestClient restClient) {
         DeviceProfile deviceProfile = new DeviceProfile();
         deviceProfile.setName(name);
         deviceProfile.setType(DeviceProfileType.DEFAULT);
@@ -332,8 +342,9 @@ public abstract class AbstractContainerTest {
                 DefaultDeviceProfileTransportConfiguration::new));
         deviceProfile.setProfileData(deviceProfileData);
         deviceProfile.setDefault(false);
-        deviceProfile.setDefaultRuleChainId(null);
+        deviceProfile.setDefaultRuleChainId(defaultRuleChain);
         deviceProfile.setDefaultQueueName("Main");
+        deviceProfile.setDefaultEdgeRuleChainId(defaultEdgeRuleChainId);
         extendDeviceProfileData(deviceProfile);
         return restClient.saveDeviceProfile(deviceProfile);
     }
@@ -349,16 +360,15 @@ public abstract class AbstractContainerTest {
         alarmCondition.setSpec(new SimpleAlarmConditionSpec());
         List<AlarmConditionFilter> condition = new ArrayList<>();
         AlarmConditionFilter alarmConditionFilter = new AlarmConditionFilter();
-        alarmConditionFilter.setKey(new AlarmConditionFilterKey(AlarmConditionKeyType.ATTRIBUTE, "temperature"));
+        alarmConditionFilter.setKey(new AlarmConditionFilterKey(AlarmConditionKeyType.TIME_SERIES, "temperature"));
         NumericFilterPredicate predicate = new NumericFilterPredicate();
-        predicate.setOperation(NumericFilterPredicate.NumericOperation.GREATER);
+        predicate.setOperation(NumericFilterPredicate.NumericOperation.GREATER_OR_EQUAL);
         predicate.setValue(new FilterPredicateValue<>(55.0));
         alarmConditionFilter.setPredicate(predicate);
         alarmConditionFilter.setValueType(EntityKeyValueType.NUMERIC);
         condition.add(alarmConditionFilter);
         alarmCondition.setCondition(condition);
         alarmRule.setCondition(alarmCondition);
-        deviceProfileAlarm.setClearRule(alarmRule);
         TreeMap<AlarmSeverity, AlarmRule> createRules = new TreeMap<>();
         createRules.put(AlarmSeverity.CRITICAL, alarmRule);
         deviceProfileAlarm.setCreateRules(createRules);
@@ -994,4 +1004,5 @@ public abstract class AbstractContainerTest {
         Assert.fail("Public customer not found!");
         return null;
     }
+
 }

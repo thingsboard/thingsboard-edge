@@ -108,4 +108,5 @@ public class RelationClientTest extends AbstractContainerTest {
         cloudRestClient.deleteDevice(device.getId());
         cloudRestClient.deleteDevice(savedDeviceOnEdge.getId());
     }
+
 }

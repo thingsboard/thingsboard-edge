@@ -286,4 +286,5 @@ public class EntityViewClientTest extends AbstractContainerTest {
         entityView.setEntityId(entityId);
         return edgeRestClient.saveEntityView(entityView, entityGroupId);
     }
+
 }

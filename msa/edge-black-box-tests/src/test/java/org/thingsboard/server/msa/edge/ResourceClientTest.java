@@ -115,4 +115,5 @@ public class ResourceClientTest extends AbstractContainerTest {
         tbResource.setData("Data".getBytes());
         return restClient.saveResource(tbResource);
     }
+
 }
