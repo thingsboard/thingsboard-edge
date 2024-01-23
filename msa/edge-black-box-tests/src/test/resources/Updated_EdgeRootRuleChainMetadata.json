@@ -10,6 +10,9 @@
       "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
       "name": "Device Profile Node",
       "debugMode": false,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "persistAlarmRulesState": false,
         "fetchAlarmRulesStateOnStart": false
@@ -24,6 +27,9 @@
       "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
       "name": "Save Timeseries",
       "debugMode": false,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "defaultTTL": 0
       },
@@ -37,8 +43,14 @@
       "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
       "name": "Save Client Attributes",
       "debugMode": false,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 2,
       "configuration": {
-        "scope": "CLIENT_SCOPE"
+        "scope": "CLIENT_SCOPE",
+        "notifyDevice": false,
+        "sendAttributesUpdatedNotification": false,
+        "updateAttributesOnlyOnValueChange": true
       },
       "externalId": null
     },
@@ -50,6 +62,9 @@
       "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
       "name": "Message Type Switch",
       "debugMode": false,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "version": 0
       },
@@ -63,6 +78,9 @@
       "type": "org.thingsboard.rule.engine.action.TbLogNode",
       "name": "Log RPC from Device",
       "debugMode": false,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "scriptLang": "TBEL",
         "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
@@ -78,6 +96,9 @@
       "type": "org.thingsboard.rule.engine.action.TbLogNode",
       "name": "Log Other",
       "debugMode": false,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "scriptLang": "TBEL",
         "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
@@ -93,6 +114,9 @@
       "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
       "name": "RPC Call Request",
       "debugMode": false,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "timeoutInSeconds": 60
       },
@@ -100,12 +124,31 @@
     },
     {
       "additionalInfo": {
-        "layoutX": 1129,
-        "layoutY": 52
+        "layoutX": 1126,
+        "layoutY": 104
       },
       "type": "org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode",
       "name": "Push to cloud",
       "debugMode": false,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "scope": "SERVER_SCOPE"
+      },
+      "externalId": null
+    },
+    {
+      "additionalInfo": {
+        "layoutX": 826,
+        "layoutY": 601
+      },
+      "type": "org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode",
+      "name": "Push to cloud",
+      "debugMode": false,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "scope": "SERVER_SCOPE"
       },
@@ -117,6 +160,16 @@
       "fromIndex": 0,
       "toIndex": 3,
       "type": "Success"
+    },
+    {
+      "fromIndex": 0,
+      "toIndex": 8,
+      "type": "Alarm Created"
+    },
+    {
+      "fromIndex": 0,
+      "toIndex": 8,
+      "type": "Alarm Updated"
     },
     {
       "fromIndex": 1,
@@ -155,22 +208,22 @@
     },
     {
       "fromIndex": 3,
-      "toIndex": 7,
+      "toIndex": 8,
       "type": "Attributes Deleted"
     },
     {
       "fromIndex": 3,
-      "toIndex": 7,
+      "toIndex": 8,
       "type": "Attributes Updated"
     },
     {
       "fromIndex": 3,
-      "toIndex": 7,
+      "toIndex": 8,
       "type": "Timeseries Deleted"
     },
     {
       "fromIndex": 3,
-      "toIndex": 7,
+      "toIndex": 8,
       "type": "Timeseries Updated"
     },
     {

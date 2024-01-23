@@ -117,4 +117,5 @@ public class AssetProfileClientTest extends AbstractContainerTest {
         assetProfile.setName(assetProfileName);
         return edgeRestClient.saveAssetProfile(assetProfile);
     }
+
 }

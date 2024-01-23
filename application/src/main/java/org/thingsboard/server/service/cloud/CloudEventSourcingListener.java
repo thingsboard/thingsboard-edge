@@ -92,23 +92,15 @@ public class CloudEventSourcingListener {
                 return;
             }
             log.trace("SaveEntityEvent called: {}", event);
-            boolean isAdded = Boolean.TRUE.equals(event.getAdded());
-            EdgeEventActionType action = isAdded ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED;
-            if (event.getEntity() instanceof AlarmComment) {
-                processAlarmCommentEvent(event, isAdded);
-                return;
-            }
+            boolean isCreated = Boolean.TRUE.equals(event.getCreated());
+            String body = getBodyMsgForEntityEvent(event.getEntity());
+            CloudEventType cloudEventType = getCloudEventTypeForEntityEvent(event.getEntity());
+            EdgeEventActionType action = getActionForEntityEvent(event.getEntity(), isCreated);
             tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), event.getEntityId(),
-                    null, null, action);
+                    body, cloudEventType, action);
         } catch (Exception e) {
             log.error("failed to process SaveEntityEvent: {}", event);
         }
-    }
-
-    private void processAlarmCommentEvent(SaveEntityEvent<?> event, boolean added) {
-        EdgeEventActionType action = added ? EdgeEventActionType.ADDED_COMMENT : EdgeEventActionType.UPDATED_COMMENT;
-        tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), event.getEntityId(),
-                JacksonUtil.toString(event.getEntity()), CloudEventType.ALARM_COMMENT, action);
     }
 
     @TransactionalEventListener(fallbackExecution = true)
@@ -183,5 +175,19 @@ public class CloudEventSourcingListener {
             return EdgeEventActionType.DELETED_COMMENT;
         }
         return EdgeEventActionType.DELETED;
+    }
+
+    private String getBodyMsgForEntityEvent(Object entity) {
+        if (entity instanceof AlarmComment) {
+            return JacksonUtil.toString(entity);
+        }
+        return null;
+    }
+
+    private EdgeEventActionType getActionForEntityEvent(Object entity, boolean isCreated) {
+        if (entity instanceof AlarmComment) {
+            return isCreated ? EdgeEventActionType.ADDED_COMMENT : EdgeEventActionType.UPDATED_COMMENT;
+        }
+        return isCreated ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED;
     }
 }

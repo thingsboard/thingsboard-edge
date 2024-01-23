@@ -38,7 +38,6 @@ import org.thingsboard.server.common.data.oauth2.OAuth2MapperConfig;
 import org.thingsboard.server.common.data.oauth2.OAuth2Registration;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -180,14 +179,7 @@ public abstract class AbstractOAuth2ClientMapper {
         if (tenants == null || tenants.isEmpty()) {
             tenant = new Tenant();
             tenant.setTitle(tenantName);
-            tenant = tenantService.saveTenant(tenant);
-            tenantProfileCache.evict(tenant.getId());
-            tbClusterService.onTenantChange(tenant, null);
-            tbClusterService.broadcastEntityStateChangeEvent(tenant.getId(), tenant.getId(),
-                    ComponentLifecycleEvent.CREATED);
-            /* voba - merge comment - we do not need to createDefaultRuleChains and createDefaultEdgeRuleChains
             tenant = tbTenantService.save(tenant);
-             */
         } else {
             tenant = tenants.get(0);
         }
@@ -228,4 +220,5 @@ public abstract class AbstractOAuth2ClientMapper {
         } while (dashboardsPage.hasNext());
         return Optional.empty();
     }
+
 }

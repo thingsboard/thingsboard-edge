@@ -753,4 +753,5 @@ public class DeviceClientTest extends AbstractContainerTest {
         // cleanup
         cloudRestClient.deleteDevice(savedDevice.getId());
     }
+
 }
