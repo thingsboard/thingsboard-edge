@@ -18,41 +18,25 @@ package org.thingsboard.server.common.data;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 
+import java.util.EnumMap;
+
 @Slf4j
 public final class CloudUtils {
 
-    private CloudUtils() {
+    private static final EnumMap<EntityType, CloudEventType> entityTypeCloudEventTypeEnumMap;
+
+    static {
+        entityTypeCloudEventTypeEnumMap = new EnumMap<>(EntityType.class);
+        for (CloudEventType cloudEventType : CloudEventType.values()) {
+            if (cloudEventType.getEntityType() != null) {
+                entityTypeCloudEventTypeEnumMap.put(cloudEventType.getEntityType(), cloudEventType);
+            }
+        }
     }
 
+    private CloudUtils() {}
+
     public static CloudEventType getCloudEventTypeByEntityType(EntityType entityType) {
-        switch (entityType) {
-            case DEVICE:
-                return CloudEventType.DEVICE;
-            case DEVICE_PROFILE:
-                return CloudEventType.DEVICE_PROFILE;
-            case ASSET:
-                return CloudEventType.ASSET;
-            case ASSET_PROFILE:
-                return CloudEventType.ASSET_PROFILE;
-            case ENTITY_VIEW:
-                return CloudEventType.ENTITY_VIEW;
-            case DASHBOARD:
-                return CloudEventType.DASHBOARD;
-            case USER:
-                return CloudEventType.USER;
-            case ALARM:
-                return CloudEventType.ALARM;
-            case TENANT:
-                return CloudEventType.TENANT;
-            case CUSTOMER:
-                return CloudEventType.CUSTOMER;
-            case EDGE:
-                return CloudEventType.EDGE;
-            case TB_RESOURCE:
-                return CloudEventType.TB_RESOURCE;
-            default:
-                log.warn("Unsupported entity type: [{}]", entityType);
-                return null;
-        }
+        return entityTypeCloudEventTypeEnumMap.get(entityType);
     }
 }

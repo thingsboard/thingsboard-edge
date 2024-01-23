@@ -4,12 +4,15 @@
     {
       "additionalInfo": {
         "description": "",
-        "layoutX": 1132,
-        "layoutY": 51
+        "layoutX": 703,
+        "layoutY": 714
       },
       "type": "org.thingsboard.rule.engine.edge.TbMsgPushToEdgeNode",
       "name": "Push to Edge",
       "debugMode": true,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "scope": "CLIENT_SCOPE"
       },
@@ -24,6 +27,9 @@
       "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
       "name": "Device Profile Node",
       "debugMode": true,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "persistAlarmRulesState": false,
         "fetchAlarmRulesStateOnStart": false
@@ -39,6 +45,9 @@
       "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
       "name": "Save Timeseries",
       "debugMode": true,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "defaultTTL": 7776000
       },
@@ -52,8 +61,14 @@
       "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
       "name": "Save Client Attributes",
       "debugMode": false,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 2,
       "configuration": {
-        "scope": "CLIENT_SCOPE"
+        "scope": "CLIENT_SCOPE",
+        "updateAttributesOnlyOnValueChange": false,
+        "notifyDevice": true,
+        "sendAttributesUpdatedNotification": false
       },
       "externalId": null
     },
@@ -65,6 +80,9 @@
       "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
       "name": "Message Type Switch",
       "debugMode": true,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "version": 0
       },
@@ -78,6 +96,9 @@
       "type": "org.thingsboard.rule.engine.action.TbLogNode",
       "name": "Log RPC from Device",
       "debugMode": false,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "scriptLang": "TBEL",
         "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
@@ -93,6 +114,9 @@
       "type": "org.thingsboard.rule.engine.action.TbLogNode",
       "name": "Log Other",
       "debugMode": true,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "scriptLang": "TBEL",
         "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
@@ -108,6 +132,9 @@
       "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
       "name": "RPC Call Request",
       "debugMode": false,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "timeoutInSeconds": 60
       },
@@ -122,6 +149,9 @@
       "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
       "name": "Create RPC reply",
       "debugMode": false,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "scriptLang": "TBEL",
         "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
@@ -138,6 +168,9 @@
       "type": "org.thingsboard.rule.engine.rpc.TbSendRPCReplyNode",
       "name": "Reply",
       "debugMode": false,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "serviceIdMetaDataAttribute": "serviceId",
         "sessionIdMetaDataAttribute": "sessionId",
@@ -147,6 +180,16 @@
     }
   ],
   "connections": [
+    {
+      "fromIndex": 1,
+      "toIndex": 0,
+      "type": "Alarm Created"
+    },
+    {
+      "fromIndex": 1,
+      "toIndex": 0,
+      "type": "Alarm Updated"
+    },
     {
       "fromIndex": 1,
       "toIndex": 4,
@@ -215,6 +258,11 @@
     {
       "fromIndex": 8,
       "toIndex": 9,
+      "type": "Success"
+    },
+    {
+      "fromIndex": 9,
+      "toIndex": 0,
       "type": "Success"
     }
   ],

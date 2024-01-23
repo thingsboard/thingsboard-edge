@@ -62,4 +62,5 @@ public class CustomerClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(publicCustomer.getId()).isPresent());
     }
+
 }

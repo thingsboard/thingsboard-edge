@@ -352,4 +352,5 @@ public class TelemetryClientTest extends AbstractContainerTest {
             }
         }
     }
+
 }
