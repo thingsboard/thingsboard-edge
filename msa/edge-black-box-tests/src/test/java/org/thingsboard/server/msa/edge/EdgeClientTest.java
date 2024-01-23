@@ -51,4 +51,5 @@ public class EdgeClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> EntityId.NULL_UUID.equals(edgeRestClient.getEdgeById(edge.getId()).get().getCustomerId().getId()));
     }
+
 }

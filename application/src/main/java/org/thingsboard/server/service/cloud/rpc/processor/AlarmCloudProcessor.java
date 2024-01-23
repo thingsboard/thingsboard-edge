@@ -21,13 +21,17 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.gen.edge.v1.AlarmCommentUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.service.edge.rpc.constructor.alarm.AlarmMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.processor.alarm.BaseAlarmProcessor;
 
 @Component
@@ -43,6 +47,15 @@ public class AlarmCloudProcessor extends BaseAlarmProcessor {
         }
     }
 
+    public ListenableFuture<Void> processAlarmCommentMsgFromCloud(TenantId tenantId, AlarmCommentUpdateMsg alarmCommentUpdateMsg) {
+        try {
+            cloudSynchronizationManager.getSync().set(true);
+            return processAlarmCommentMsg(tenantId, alarmCommentUpdateMsg);
+        } finally {
+            cloudSynchronizationManager.getSync().remove();
+        }
+    }
+
     public UplinkMsg convertAlarmEventToUplink(CloudEvent cloudEvent, EdgeVersion edgeVersion) {
         AlarmUpdateMsg alarmUpdateMsg =
                 convertAlarmEventToAlarmMsg(cloudEvent.getTenantId(), cloudEvent.getEntityId(), cloudEvent.getAction(), cloudEvent.getEntityBody(), edgeVersion);
@@ -53,6 +66,24 @@ public class AlarmCloudProcessor extends BaseAlarmProcessor {
                     .build();
         }
         return null;
+    }
+
+    public UplinkMsg convertAlarmCommentEventToUplink(CloudEvent cloudEvent, EdgeVersion edgeVersion) {
+        UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
+        AlarmComment alarmComment;
+        switch (cloudEvent.getAction()) {
+            case ADDED_COMMENT:
+            case UPDATED_COMMENT:
+            case DELETED_COMMENT:
+                alarmComment = JacksonUtil.convertValue(cloudEvent.getEntityBody(), AlarmComment.class);
+                return UplinkMsg.newBuilder()
+                        .setUplinkMsgId(EdgeUtils.nextPositiveInt())
+                        .addAlarmCommentUpdateMsg(((AlarmMsgConstructor) alarmMsgConstructorFactory
+                                .getMsgConstructorByEdgeVersion(edgeVersion)).constructAlarmCommentUpdatedMsg(msgType, alarmComment))
+                        .build();
+            default:
+                return null;
+        }
     }
 
     @Override

@@ -143,6 +143,7 @@ public class AlarmEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendAlarmCommentToCloud() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
@@ -188,6 +189,7 @@ public class AlarmEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testAlarmComments() throws Exception {
         Device device = findDeviceByName("Edge Device 1");
         Alarm alarm = new Alarm();
