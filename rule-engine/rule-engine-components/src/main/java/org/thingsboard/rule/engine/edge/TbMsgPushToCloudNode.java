@@ -126,5 +126,4 @@ public class TbMsgPushToCloudNode extends AbstractTbMsgPushNode<TbMsgPushToCloud
             ctx.tellFailure(msg, e);
         }
     }
-
 }
