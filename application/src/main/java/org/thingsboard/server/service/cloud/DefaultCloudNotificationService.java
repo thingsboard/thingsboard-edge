@@ -196,14 +196,4 @@ public class DefaultCloudNotificationService implements CloudNotificationService
         return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.RELATION, EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction()), null, JacksonUtil.valueToTree(relation), null, 0L);
     }
 
-    public ListenableFuture<Void> processAlarmComment(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) {
-        EdgeEventActionType actionType = EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction());
-        AlarmId alarmId = new AlarmId(new UUID(cloudNotificationMsg.getEntityIdMSB(), cloudNotificationMsg.getEntityIdLSB()));
-        AlarmComment alarmComment = JacksonUtil.fromString(cloudNotificationMsg.getEntityBody(), AlarmComment.class);
-        if (alarmComment == null) {
-            return Futures.immediateFuture(null);
-        }
-        return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ALARM_COMMENT, actionType, alarmId, JacksonUtil.valueToTree(alarmComment), null, 0L);
-    }
-
 }
