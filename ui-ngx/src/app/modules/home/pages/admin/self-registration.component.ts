@@ -43,13 +43,14 @@ import { ActionNotificationShow } from '@core/notification/notification.actions'
 import { TranslateService } from '@ngx-translate/core';
 import { EntityType } from '@shared/models/entity-type.models';
 import { AttributeService } from '@core/http/attribute.service';
+import { HasShowLoading } from '@home/pages/home-pages.models';
 
 @Component({
   selector: 'tb-self-registration',
   templateUrl: './self-registration.component.html',
   styleUrls: ['./self-registration.component.scss', './settings-card.scss']
 })
-export class SelfRegistrationComponent extends PageComponent implements OnInit, HasConfirmForm {
+export class SelfRegistrationComponent extends PageComponent implements OnInit, HasConfirmForm, HasShowLoading {
 
   selfRegistrationFormGroup: UntypedFormGroup;
   selfRegistrationParams: SelfRegistrationParams;
@@ -71,6 +72,8 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
     branding: false,
     resize: true
   };
+
+  showLoadingBar = false;
 
   constructor(protected store: Store<AppState>,
               private router: Router,

@@ -142,6 +142,7 @@ export const entityViewsRoute = (root = false): Route => {
     component: RouterTabsComponent,
     data: {
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      showLoadingBar: true,
       breadcrumb: {
         labelFunction: (route, translate) =>
           (route.data.customerTitle ? (route.data.customerTitle + ': ') : '') + translate.instant('entity-view.entity-views'),

@@ -125,6 +125,7 @@ export const usersRoute = (root = false): Route => {
     component: RouterTabsComponent,
     data: {
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      showLoadingBar: true,
       breadcrumb: {
         label: 'user.users',
         icon: 'account_circle'

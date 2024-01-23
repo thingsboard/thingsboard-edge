@@ -185,6 +185,7 @@ export const dashboardsRoute = (root = false): Route => {
     component: RouterTabsComponent,
     data: {
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      showLoadingBar: true,
       breadcrumb: {
         label: 'dashboard.dashboards',
         icon: 'dashboards'
