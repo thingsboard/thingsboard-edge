@@ -49,6 +49,8 @@ public interface SchedulerEventInfoDao extends Dao<SchedulerEventInfo> {
 
     List<SchedulerEventInfo> findSchedulerEventsByTenantId(UUID tenantId);
 
+    List<SchedulerEventInfo> findSchedulerEventsByTenantIdAndEnabled(UUID tenantId, boolean enabled);
+
     /**
      * Find scheduler events by tenantId.
      *

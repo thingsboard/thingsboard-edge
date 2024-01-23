@@ -640,7 +640,8 @@ CREATE TABLE IF NOT EXISTS scheduler_event (
     tenant_id uuid,
     type varchar(255),
     schedule varchar,
-    configuration varchar(10000000)
+    configuration varchar(10000000),
+    enabled boolean
 );
 
 CREATE TABLE IF NOT EXISTS blob_entity (
