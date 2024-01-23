@@ -49,6 +49,7 @@ import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { FormBuilder } from '@angular/forms';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { TranslateService } from '@ngx-translate/core';
+import { isDefined, isDefinedAndNotNull } from '@core/utils';
 
 @Component({
   selector: 'tb-home',
@@ -161,9 +162,20 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
 
   private updateActiveComponent(activeComponent: any) {
     this.showSearch = false;
+    this.hideLoadingBar = false;
     this.textSearch.reset('', {emitEvent: false});
     this.activeComponent = activeComponent;
-    this.hideLoadingBar = activeComponent && activeComponent instanceof RouterTabsComponent;
+    let showLoadingBar: boolean;
+    if (isDefined(this.activeComponent.activatedRoute?.data?.value?.showLoadingBar)) {
+      showLoadingBar = this.activeComponent.activatedRoute?.data?.value?.showLoadingBar;
+    } else if (isDefined(this.activeComponent?.showLoadingBar)) {
+      showLoadingBar = this.activeComponent.showLoadingBar;
+    }
+    if (activeComponent && activeComponent instanceof RouterTabsComponent) {
+      this.hideLoadingBar = isDefinedAndNotNull(showLoadingBar) ? !showLoadingBar : true;
+    } else if (isDefinedAndNotNull(showLoadingBar)) {
+      this.hideLoadingBar = !showLoadingBar;
+    }
     if (this.activeComponent && instanceOfSearchableComponent(this.activeComponent)) {
       this.searchEnabled = true;
       this.searchableComponent = this.activeComponent;
