@@ -89,7 +89,7 @@ public class TbMailSenderTest {
     public void testShouldGiveSystemSettings() throws Exception {
         String testAttribute = "{\"useSystemMailSettings\":true}";
         when(tbMailSender.getTenantMailAttributeValue(any())).thenReturn(testAttribute);
-        when(tbMailSender.getAllowSystemMailService()).thenReturn(true);
+        when(tbMailSender.isAllowSystemMailService()).thenReturn(true);
 
         willCallRealMethod().given(tbMailSender).getMailSettings(any());
         try {
@@ -103,7 +103,7 @@ public class TbMailSenderTest {
     public void testGiveMailTenantSettings() throws Exception {
         String testAttribute = "{\"useSystemMailSettings\":false}";
         when(tbMailSender.getTenantMailAttributeValue(any())).thenReturn(testAttribute);
-        when(tbMailSender.getAllowSystemMailService()).thenReturn(true);
+        when(tbMailSender.isAllowSystemMailService()).thenReturn(true);
 
         willCallRealMethod().given(tbMailSender).getMailSettings(any());
         try {

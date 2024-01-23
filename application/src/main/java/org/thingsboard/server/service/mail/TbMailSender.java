@@ -72,9 +72,7 @@ public class TbMailSender extends JavaMailSenderImpl {
     private static final String MAIL_PROP = "mail.";
     private final TbMailContextComponent ctx;
     private final Lock lock;
-
     private final Boolean oauth2Enabled;
-    private final Boolean allowSystemMailService;
     private volatile String accessToken;
     private volatile long tokenExpires;
     private final TenantId tenantId;
@@ -86,7 +84,6 @@ public class TbMailSender extends JavaMailSenderImpl {
         this.ctx = ctx;
         this.tenantId = tenantId;
         this.oauth2Enabled = jsonConfig.has("enableOauth2") && jsonConfig.get("enableOauth2").asBoolean();
-        this.allowSystemMailService = jsonConfig.has("allowSystemMailService") && jsonConfig.get("allowSystemMailService").asBoolean();
 
         setHost(jsonConfig.get("smtpHost").asText());
         setPort(parsePort(jsonConfig.get("smtpPort").asText()));
@@ -99,10 +96,6 @@ public class TbMailSender extends JavaMailSenderImpl {
 
     public Boolean getOauth2Enabled() {
         return oauth2Enabled;
-    }
-
-    public Boolean getAllowSystemMailService() {
-        return allowSystemMailService;
     }
 
     public long getTokenExpires() {
@@ -229,7 +222,7 @@ public class TbMailSender extends JavaMailSenderImpl {
                 }
             }
             if (jsonString == null) {
-                if (!getAllowSystemMailService()) {
+                if (!isAllowSystemMailService()) {
                     throw new RuntimeException("Access to System Mail Service is forbidden!");
                 }
                 return getSystemMailSettings();
@@ -239,6 +232,10 @@ public class TbMailSender extends JavaMailSenderImpl {
             adminSettings.setJsonValue(JacksonUtil.toJsonNode(jsonString));
             return adminSettings;
         }
+    }
+
+    public boolean isAllowSystemMailService() {
+        return ctx.isAllowSystemMailService();
     }
 
     private void saveTenantAdminSettings(TenantId tenantId, AdminSettings adminSettings) throws Exception {
