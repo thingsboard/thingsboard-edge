@@ -30,12 +30,29 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field class="tb-rule-select" subscriptSizing="dynamic" appearance="fill"
-                [class.cursor-pointer]="!disabled"
-                (click)="openRuleChainSelectPanel($event)">
-  <mat-icon matPrefix>settings_ethernet</mat-icon>
-  <input matInput readonly disabled
-         [required]="required"
-         [value]="ruleChain?.name">
-  <mat-icon [class.disabled]="disabled || panelOpened" matSuffix>arrow_drop_down</mat-icon>
+<mat-form-field [formGroup]="selectRuleChainGroup" class="mat-block">
+  <input matInput type="text" placeholder="{{ 'rulechain.search' | translate }}"
+         #ruleChainInput
+         formControlName="ruleChainInput"
+         (focusin)="onFocus()"
+         [matAutocomplete]="ruleChainAutocomplete">
+  <mat-icon matSuffix>search</mat-icon>
+  <mat-autocomplete class="tb-autocomplete tb-rule-chain-search"
+                    #ruleChainAutocomplete="matAutocomplete"
+                    (optionSelected)="selected($event)">
+    <mat-option *ngFor="let ruleChain of filteredRuleChains | async"
+                [class.tb-selected-option]="ruleChainId === ruleChain.id.id"
+                [value]="ruleChain">
+      <mat-icon *ngIf="ruleChainId === ruleChain.id.id">check</mat-icon>
+      <span [innerHTML]="ruleChain.name | highlight:searchText:true"></span>
+    </mat-option>
+    <mat-option *ngIf="!(filteredRuleChains | async)?.length" [value]="null" class="tb-not-found">
+      <div class="tb-not-found-content" (click)="$event.stopPropagation()">
+        <span>
+          {{ 'rulechain.no-rulechains-matching' | translate : {entity: searchText} }}
+        </span>
+      </div>
+    </mat-option>
+  </mat-autocomplete>
 </mat-form-field>
+
