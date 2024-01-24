@@ -196,8 +196,8 @@
                     <tb-group-chips [groupEntity]="entity"></tb-group-chips>
                   </ng-template>
                   <ng-template [ngSwitchCase]="'link'">
-                    <a *ngIf="column.entityURL(entity) as detailsPageURl; else defaultContent"
-                       [routerLink]="detailsPageURl" [innerHTML]="cellContent(entity, column, row)"
+                    <a *ngIf="column.entityURL(entity) as detailsPageURL; else defaultContent"
+                       [routerLink]="detailsPageURL" [innerHTML]="cellContent(entity, column, row)"
                        (click)="$event.stopPropagation();"></a>
                   </ng-template>
                   <ng-template #defaultContent ngSwitchDefault>
