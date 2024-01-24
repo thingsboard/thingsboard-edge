@@ -28,36 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.action;
+package org.thingsboard.server.service.entitiy.scheduler;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.thingsboard.server.common.data.alarm.Alarm;
-import org.thingsboard.server.common.data.alarm.AlarmApiCallResult;
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.SchedulerEventId;
+import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
+import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 
-@Data
-@AllArgsConstructor
-public class TbAlarmResult {
-    boolean isCreated;
-    boolean isUpdated;
-    boolean isSeverityUpdated;
-    boolean isCleared;
-    Alarm alarm;
+public interface TbSchedulerService {
 
-    public TbAlarmResult(boolean isCreated, boolean isUpdated, boolean isCleared, Alarm alarm) {
-        this.isCreated = isCreated;
-        this.isUpdated = isUpdated;
-        this.isCleared = isCleared;
-        this.alarm = alarm;
-    }
+    SchedulerEvent save(SchedulerEvent schedulerEvent, User user) throws ThingsboardException;
 
-    public static TbAlarmResult fromAlarmResult(AlarmApiCallResult result) {
-        boolean isSeverityChanged = result.isSeverityChanged();
-        return new TbAlarmResult(
-                result.isCreated(),
-                result.isModified() && !isSeverityChanged,
-                isSeverityChanged,
-                result.isCleared(),
-                result.getAlarm());
-    }
+    void delete(SchedulerEvent schedulerEvent, User user) throws ThingsboardException;
+
+    SchedulerEventInfo assignToEdge(SchedulerEventId schedulerEventId, Edge edge, User user) throws ThingsboardException;
+
+    SchedulerEventInfo unassignFromEdge(SchedulerEventId schedulerEventId, Edge edge, User user) throws ThingsboardException;
+
 }

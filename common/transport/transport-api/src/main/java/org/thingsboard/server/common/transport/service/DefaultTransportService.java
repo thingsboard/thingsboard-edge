@@ -115,10 +115,9 @@ import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.TbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.AsyncCallbackTemplate;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.QueueKey;
-import org.thingsboard.server.queue.discovery.TopicService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+import org.thingsboard.server.queue.discovery.TopicService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.provider.TbTransportQueueFactory;
 import org.thingsboard.server.queue.scheduler.SchedulerComponent;
@@ -793,7 +792,7 @@ public class DefaultTransportService extends TransportActivityManager implements
     }
 
     private void recordActivityInternal(TransportProtos.SessionInfoProto sessionInfo) {
-        onActivity(toSessionId(sessionInfo), getCurrentTimeMillis());
+        onActivity(toSessionId(sessionInfo), sessionInfo, getCurrentTimeMillis());
     }
 
     @Override

@@ -5231,7 +5231,10 @@
         "rpc-request-oneway-command": "One-way RPC request",
         "rpc-value-min-error": "Value must be more then {{min}} ms.",
         "set": "Set",
-        "rpc-settings": "RPC settings"
+        "rpc-settings": "RPC settings",
+        "enabled": "Enabled",
+        "enable": "Enable",
+        "disable": "Disable"
     },
     "report": {
         "report-config": "Report configuration",
