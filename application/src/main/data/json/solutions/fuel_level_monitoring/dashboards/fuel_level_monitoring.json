@@ -2843,7 +2843,7 @@
             "volumeUnitsSource": "attribute",
             "volumeUnitsAttributeName": "tankCapacityOutput"
           },
-          "title": "Liquid level",
+          "title": "Tank level",
           "useDashboardTimewindow": true,
           "displayTimewindow": true,
           "configMode": "basic",
