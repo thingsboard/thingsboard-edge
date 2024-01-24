@@ -35,7 +35,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotEmpty;
 import java.util.Set;
 import java.util.UUID;
 
@@ -43,14 +42,14 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EdgeConnectivityNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
+public class EdgeConnectionNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
 
     private Set<UUID> edges; // if empty - all edges
     private Set<EdgeConnectivityEvent> notifyOn;
 
     @Override
     public NotificationRuleTriggerType getTriggerType() {
-        return NotificationRuleTriggerType.EDGE_CONNECTIVITY;
+        return NotificationRuleTriggerType.EDGE_CONNECTION;
     }
 
     public enum EdgeConnectivityEvent {

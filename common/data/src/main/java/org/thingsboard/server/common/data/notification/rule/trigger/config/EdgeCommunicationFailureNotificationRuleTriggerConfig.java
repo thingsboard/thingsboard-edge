@@ -28,50 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification.rule.trigger;
+package org.thingsboard.server.common.data.notification.rule.trigger.config;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.notification.rule.trigger.config.NotificationRuleTriggerType;
+import lombok.NoArgsConstructor;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Set;
+import java.util.UUID;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class EdgeFailureTrigger implements NotificationRuleTrigger {
+public class EdgeCommunicationFailureNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
 
-    private final TenantId tenantId;
-    private final CustomerId customerId;
-    private final EdgeId edgeId;
-    private final String edgeName;
-    private final String errorMsg;
+    private Set<UUID> edges; // if empty - all edges
 
     @Override
-    public boolean deduplicate() {
-        return true;
+    public NotificationRuleTriggerType getTriggerType() {
+        return NotificationRuleTriggerType.EDGE_COMMUNICATION_FAILURE;
     }
 
-    @Override
-    public String getDeduplicationKey() {
-        return String.join(":", NotificationRuleTrigger.super.getDeduplicationKey(), edgeName, errorMsg);
-    }
-
-    @Override
-    public long getDefaultDeduplicationDuration() {
-        return TimeUnit.HOURS.toMillis(2);
-    }
-
-    @Override
-    public NotificationRuleTriggerType getType() {
-        return NotificationRuleTriggerType.EDGE_FAILURE;
-    }
-
-    @Override
-    public EntityId getOriginatorEntityId() {
-        return edgeId;
-    }
 }

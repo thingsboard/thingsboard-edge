@@ -84,7 +84,7 @@ import {
 import { LimitedApi, LimitedApiTranslationMap } from '@shared/models/limited-api.models';
 import { StringItemsOption } from '@shared/components/string-items-list.component';
 import { IntegrationType, integrationTypeInfoMap } from '@shared/models/integration.models';
-import { EdgeConnectivityEvent, EdgeConnectivityEventTranslationMap } from '@shared/models/edge.models';
+import { EdgeConnectionEvent, EdgeConnectionEventTranslationMap } from '@shared/models/edge.models';
 
 export interface RuleNotificationDialogData {
   rule?: NotificationRule;
@@ -117,8 +117,8 @@ export class RuleNotificationDialogComponent extends
   integrationEventsTemplateForm: FormGroup;
   newPlatformVersionTemplateForm: FormGroup;
   rateLimitsTemplateForm: FormGroup;
-  edgeFailureTemplateForm: FormGroup;
-  edgeConnectivityTemplateForm: FormGroup;
+  edgeCommunicationFailureTemplateForm: FormGroup;
+  edgeConnectionTemplateForm: FormGroup;
 
   triggerType = TriggerType;
   triggerTypes: TriggerType[];
@@ -153,8 +153,8 @@ export class RuleNotificationDialogComponent extends
   apiFeatures: ApiFeature[] = Object.values(ApiFeature);
   apiFeatureTranslationMap = ApiFeatureTranslationMap;
 
-  edgeConnectivityEvents: EdgeConnectivityEvent[] = Object.values(EdgeConnectivityEvent);
-  edgeConnectivityEventTranslationMap = EdgeConnectivityEventTranslationMap;
+  edgeConnectionEvents: EdgeConnectionEvent[] = Object.values(EdgeConnectionEvent);
+  edgeConnectionEventTranslationMap = EdgeConnectionEventTranslationMap;
 
   limitedApis: StringItemsOption[];
 
@@ -251,14 +251,14 @@ export class RuleNotificationDialogComponent extends
       }
     });
 
-    this.edgeConnectivityTemplateForm = this.fb.group({
+    this.edgeConnectionTemplateForm = this.fb.group({
       triggerConfig: this.fb.group({
         edges: [null],
         notifyOn: [null]
       })
     });
 
-    this.edgeFailureTemplateForm = this.fb.group({
+    this.edgeCommunicationFailureTemplateForm = this.fb.group({
       triggerConfig: this.fb.group({
         edges: [null]
       })
@@ -395,8 +395,8 @@ export class RuleNotificationDialogComponent extends
       [TriggerType.INTEGRATION_LIFECYCLE_EVENT, this.integrationEventsTemplateForm],
       [TriggerType.NEW_PLATFORM_VERSION, this.newPlatformVersionTemplateForm],
       [TriggerType.RATE_LIMITS, this.rateLimitsTemplateForm],
-      [TriggerType.EDGE_FAILURE, this.edgeFailureTemplateForm],
-      [TriggerType.EDGE_CONNECTIVITY, this.edgeConnectivityTemplateForm]
+      [TriggerType.EDGE_COMMUNICATION_FAILURE, this.edgeCommunicationFailureTemplateForm],
+      [TriggerType.EDGE_CONNECTION, this.edgeConnectionTemplateForm]
     ]);
 
     if (data.isAdd || data.isCopy) {

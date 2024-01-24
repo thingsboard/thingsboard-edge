@@ -2297,7 +2297,9 @@
         "missing-all-related-attributes-title": "Edge(s) have missing attribute(s)",
         "missing-all-related-attributes-text": "Edge(s), related to integration, don't have attributes that are present inside integration configuration as attribute placeholders. <br><br> List of missing edge attributes(s): <br> {{missingEdgeAttributes}}",
         "quick-overview-widget-header": "{{edgeName}} Quick Overview",
-        "upgrade-instructions": "Upgrade Instructions"
+        "upgrade-instructions": "Upgrade Instructions",
+        "connected": "Connected",
+        "disconnected": "Disconnected"
     },
     "edge-event": {
         "type-dashboard": "Dashboard",
@@ -4424,8 +4426,8 @@
             "rule-node": "Rule node",
             "new-platform-version": "New platform version",
             "rate-limits": "Exceeded rate limits",
-            "edge-failure": "Edge error",
-            "edge-connectivity": "Edge connectivity"
+            "edge-communication-failure": "Edge communication failure",
+            "edge-connection": "Edge connection"
         },
         "templates": "Templates",
         "notification-templates": "Notifications / Templates",
@@ -4447,8 +4449,8 @@
             "rule-engine-lifecycle-event": "Rule engine lifecycle event",
             "new-platform-version": "New platform version",
             "rate-limits": "Exceeded rate limits",
-            "edge-connectivity": "Edge connectivity",
-            "edge-failure": "Edge failure",
+            "edge-connection": "Edge connection",
+            "edge-communication-failure": "Edge communication failure",
             "trigger": "Trigger",
             "trigger-required": "Trigger is required"
         },

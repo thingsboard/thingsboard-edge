@@ -34,7 +34,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -48,21 +47,21 @@ import static org.thingsboard.server.common.data.util.CollectionsUtil.mapOf;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EdgeFailureNotificationInfo implements RuleOriginatedNotificationInfo {
+public class EdgeConnectionNotificationInfo implements RuleOriginatedNotificationInfo {
 
+    private String eventType;
     private TenantId tenantId;
     private CustomerId customerId;
     private EdgeId edgeId;
     private String edgeName;
-    private String errorMsg;
 
     @Override
     public Map<String, String> getTemplateData() {
         return mapOf(
+                "eventType", eventType,
                 "tenantId", tenantId.toString(),
                 "edgeId", edgeId.toString(),
-                "edgeName", edgeName,
-                "errorMsg", errorMsg
+                "edgeName", edgeName
         );
     }
 

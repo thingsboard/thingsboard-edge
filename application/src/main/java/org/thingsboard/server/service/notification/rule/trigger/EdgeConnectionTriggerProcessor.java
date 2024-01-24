@@ -33,37 +33,43 @@ package org.thingsboard.server.service.notification.rule.trigger;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.notification.info.EdgeFailureNotificationInfo;
+import org.thingsboard.server.common.data.notification.info.EdgeConnectionNotificationInfo;
 import org.thingsboard.server.common.data.notification.info.RuleOriginatedNotificationInfo;
-import org.thingsboard.server.common.data.notification.rule.trigger.EdgeFailureTrigger;
-import org.thingsboard.server.common.data.notification.rule.trigger.config.EdgeFailureNotificationRuleTriggerConfig;
+import org.thingsboard.server.common.data.notification.rule.trigger.EdgeConnectionTrigger;
+import org.thingsboard.server.common.data.notification.rule.trigger.config.EdgeConnectionNotificationRuleTriggerConfig;
+import org.thingsboard.server.common.data.notification.rule.trigger.config.EdgeConnectionNotificationRuleTriggerConfig.EdgeConnectivityEvent;
 import org.thingsboard.server.common.data.notification.rule.trigger.config.NotificationRuleTriggerType;
 
 @Service
 @RequiredArgsConstructor
-public class EdgeFailureTriggerProcessor implements NotificationRuleTriggerProcessor<EdgeFailureTrigger, EdgeFailureNotificationRuleTriggerConfig> {
+public class EdgeConnectionTriggerProcessor implements NotificationRuleTriggerProcessor<EdgeConnectionTrigger, EdgeConnectionNotificationRuleTriggerConfig> {
 
     @Override
-    public boolean matchesFilter(EdgeFailureTrigger trigger, EdgeFailureNotificationRuleTriggerConfig triggerConfig) {
+    public boolean matchesFilter(EdgeConnectionTrigger trigger, EdgeConnectionNotificationRuleTriggerConfig triggerConfig) {
+        EdgeConnectivityEvent event = trigger.isConnected() ? EdgeConnectivityEvent.CONNECTED : EdgeConnectivityEvent.DISCONNECTED;
+        if (CollectionUtils.isEmpty(triggerConfig.getNotifyOn()) || !triggerConfig.getNotifyOn().contains(event)) {
+            return false;
+        }
         if (CollectionUtils.isNotEmpty(triggerConfig.getEdges())) {
-            return !triggerConfig.getEdges().contains(trigger.getEdgeId().getId());
+            return triggerConfig.getEdges().contains(trigger.getEdgeId().getId());
         }
         return true;
     }
 
     @Override
-    public RuleOriginatedNotificationInfo constructNotificationInfo(EdgeFailureTrigger trigger) {
-        return EdgeFailureNotificationInfo.builder()
+    public RuleOriginatedNotificationInfo constructNotificationInfo(EdgeConnectionTrigger trigger) {
+        return EdgeConnectionNotificationInfo.builder()
+                .eventType(trigger.isConnected() ? "connected" : "disconnected")
                 .tenantId(trigger.getTenantId())
-                .edgeId(trigger.getEdgeId())
                 .customerId(trigger.getCustomerId())
+                .edgeId(trigger.getEdgeId())
                 .edgeName(trigger.getEdgeName())
-                .errorMsg(trigger.getErrorMsg())
                 .build();
     }
 
     @Override
     public NotificationRuleTriggerType getTriggerType() {
-        return NotificationRuleTriggerType.EDGE_FAILURE;
+        return NotificationRuleTriggerType.EDGE_CONNECTION;
     }
+
 }
