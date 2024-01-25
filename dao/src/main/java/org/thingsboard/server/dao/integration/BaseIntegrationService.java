@@ -107,7 +107,7 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
                 entityCountService.publishCountEntityEvictEvent(integration.getTenantId(), EntityType.INTEGRATION);
             }
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getTenantId()).entity(result)
-                    .entityId(result.getId()).added(integration.getId() == null).build());
+                    .entityId(result.getId()).created(integration.getId() == null).build());
             return result;
         } catch (Exception t) {
             checkConstraintViolation(t,

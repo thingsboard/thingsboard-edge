@@ -267,7 +267,7 @@ export interface EntityAliasInfo {
 
 export interface AliasesInfo {
   datasourceAliases: {[datasourceIndex: number]: EntityAliasInfo};
-  targetDeviceAliases: {[targetDeviceAliasIndex: number]: EntityAliasInfo};
+  targetDeviceAlias: EntityAliasInfo;
 }
 
 export interface EntityAlias extends EntityAliasInfo {

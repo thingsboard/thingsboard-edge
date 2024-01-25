@@ -35,6 +35,7 @@ import { AliasesInfo, EntityAlias, EntityAliases, EntityAliasInfo } from '@share
 import {
   Datasource,
   DatasourceType,
+  TargetDeviceType,
   Widget,
   WidgetPosition,
   WidgetSize,
@@ -102,7 +103,7 @@ export class ItemBufferService {
   public prepareWidgetItem(dashboard: Dashboard, sourceState: string, sourceLayout: DashboardLayoutId, widget: Widget): WidgetItem {
     const aliasesInfo: AliasesInfo = {
       datasourceAliases: {},
-      targetDeviceAliases: {}
+      targetDeviceAlias: null
     };
     const filtersInfo: FiltersInfo = {
       datasourceFilters: {}
@@ -126,15 +127,11 @@ export class ItemBufferService {
           }
         }
       }
-      if (widget.config.targetDeviceAliasIds) {
-        for (let i = 0; i < widget.config.targetDeviceAliasIds.length; i++) {
-          const targetDeviceAliasId = widget.config.targetDeviceAliasIds[i];
-          if (targetDeviceAliasId) {
-            entityAlias = dashboard.configuration.entityAliases[targetDeviceAliasId];
-            if (entityAlias) {
-              aliasesInfo.targetDeviceAliases[i] = this.prepareAliasInfo(entityAlias);
-            }
-          }
+      if (widget.config.targetDevice?.type === TargetDeviceType.entity && widget.config.targetDevice.entityAliasId) {
+        const targetDeviceAliasId = widget.config.targetDevice.entityAliasId;
+        entityAlias = dashboard.configuration.entityAliases[targetDeviceAliasId];
+        if (entityAlias) {
+          aliasesInfo.targetDeviceAlias = this.prepareAliasInfo(entityAlias);
         }
       }
     }
@@ -471,11 +468,15 @@ export class ItemBufferService {
         widget.config.datasources[datasourceIndex].entityAliasId = newAliasId;
       }
     }
-    for (const targetDeviceAliasIndexStr of Object.keys(aliasesInfo.targetDeviceAliases)) {
-      const targetDeviceAliasIndex = Number(targetDeviceAliasIndexStr);
-      aliasInfo = aliasesInfo.targetDeviceAliases[targetDeviceAliasIndex];
+    if (aliasesInfo.targetDeviceAlias) {
+      aliasInfo = aliasesInfo.targetDeviceAlias;
       newAliasId = this.getEntityAliasId(entityAliases, aliasInfo);
-      widget.config.targetDeviceAliasIds[targetDeviceAliasIndex] = newAliasId;
+      if (widget.config.targetDevice?.type !== TargetDeviceType.entity) {
+        widget.config.targetDevice = {
+          type: TargetDeviceType.entity
+        };
+      }
+      widget.config.targetDevice.entityAliasId = newAliasId;
     }
     return entityAliases;
   }

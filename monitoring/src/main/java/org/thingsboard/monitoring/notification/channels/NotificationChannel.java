@@ -30,10 +30,8 @@
  */
 package org.thingsboard.monitoring.notification.channels;
 
-import org.thingsboard.monitoring.data.notification.Notification;
-
 public interface NotificationChannel {
 
-    void sendNotification(Notification notification);
+    void sendNotification(String message);
 
 }

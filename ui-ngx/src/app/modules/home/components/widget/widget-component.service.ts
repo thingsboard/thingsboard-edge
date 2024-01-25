@@ -594,6 +594,9 @@ export class WidgetComponentService {
       if (!isFunction(result.typeParameters.defaultLatestDataKeysFunction)) {
         result.typeParameters.defaultLatestDataKeysFunction = null;
       }
+      if (isUndefined(result.typeParameters.displayRpcMessageToast)) {
+        result.typeParameters.displayRpcMessageToast = true;
+      }
       if (isFunction(widgetTypeInstance.actionSources)) {
         result.actionSources = widgetTypeInstance.actionSources();
       } else {

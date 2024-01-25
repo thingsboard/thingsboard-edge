@@ -28,27 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.transport.service;
-
-import lombok.Data;
-import org.thingsboard.server.gen.transport.TransportProtos;
-
-/**
- * Created by ashvayka on 15.10.18.
- */
-@Data
-public class SessionActivityData {
-
-    private volatile TransportProtos.SessionInfoProto sessionInfo;
-    private volatile long lastActivityTime;
-    private volatile long lastReportedActivityTime;
-
-    SessionActivityData(TransportProtos.SessionInfoProto sessionInfo) {
-        this.sessionInfo = sessionInfo;
+.mdc-button.tb-rpc-state-settings {
+  width: 100%;
+  .mdc-button__label {
+    width: 100%;
+    & > div {
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      justify-content: space-between;
+      align-items: center;
+      & > span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
     }
-
-    void updateLastActivityTime() {
-        this.lastActivityTime = System.currentTimeMillis();
-    }
-
+  }
 }
