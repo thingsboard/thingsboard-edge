@@ -112,7 +112,7 @@
           </div>
           <div class="tb-form-row space-between column-xs"
                [fxShow]="scheduleConfigFormGroup.get('repeatType').value === schedulerRepeatType.WEEKLY">
-            <div class="title-no-wrap">{{ 'scheduler.repeat-on' | translate }}</div>
+            <div class="no-wrap">{{ 'scheduler.repeat-on' | translate }}</div>
             <div formArrayName="weeklyRepeat">
               <mat-chip-listbox multiple #repeatChipListBox>
                 <mat-chip-option *ngFor="let day of weekDays; let i = index;"
