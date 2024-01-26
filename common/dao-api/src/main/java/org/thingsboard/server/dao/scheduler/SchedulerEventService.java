@@ -58,6 +58,8 @@ public interface SchedulerEventService extends EntityDaoService {
 
     List<SchedulerEventInfo> findSchedulerEventsByTenantId(TenantId tenantId);
 
+    List<SchedulerEventInfo> findSchedulerEventsByTenantIdAndEnabled(TenantId tenantId, boolean enabled);
+
     List<SchedulerEventWithCustomerInfo> findSchedulerEventsWithCustomerInfoByTenantId(TenantId tenantId);
 
     List<SchedulerEventWithCustomerInfo> findSchedulerEventsByTenantIdAndType(TenantId tenantId, String type);

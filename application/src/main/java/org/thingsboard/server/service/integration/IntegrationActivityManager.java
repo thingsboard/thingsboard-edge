@@ -83,11 +83,6 @@ public abstract class IntegrationActivityManager extends AbstractActivityManager
     }
 
     @Override
-    protected ActivityState<Void> createNewState(IntegrationActivityKey key) {
-        return new ActivityState<>();
-    }
-
-    @Override
     protected ActivityStrategy getStrategy() {
         return reportingStrategyType.toStrategy();
     }
