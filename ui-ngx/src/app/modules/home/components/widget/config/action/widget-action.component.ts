@@ -109,7 +109,9 @@ export class WidgetActionComponent implements ControlValueAccessor, OnInit, Vali
   @Input()
   customFunctionHelpId = 'widget/action/custom_action_fn';
 
+  @Input()
   widgetActionTypes = Object.keys(WidgetActionType);
+
   widgetActionTypeTranslations = widgetActionTypeTranslationMap;
   widgetActionType = WidgetActionType;
 

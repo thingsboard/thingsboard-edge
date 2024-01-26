@@ -90,6 +90,7 @@ export class WidgetActionDialogComponent extends DialogComponent<WidgetActionDia
   action: WidgetActionDescriptorInfo;
 
   customFunctionArgs = this.data.customFunctionArgs;
+  widgetActionTypes = this.data.actionTypes;
 
   customActionEditorCompleter = CustomActionEditorCompleter;
 
@@ -114,7 +115,7 @@ export class WidgetActionDialogComponent extends DialogComponent<WidgetActionDia
         id: this.utils.guid(),
         name: '',
         icon: 'more_horiz',
-        type: WidgetActionType.updateDashboardState,
+        type: this.isEntityGroup ? WidgetActionType.custom : WidgetActionType.updateDashboardState,
         targetDashboardStateId: null,
         openRightLayout: false,
         setEntityId: data.widgetType !== widgetType.static,
