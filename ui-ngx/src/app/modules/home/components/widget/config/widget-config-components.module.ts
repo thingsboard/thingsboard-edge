@@ -48,6 +48,11 @@ import { WidgetSettingsCommonModule } from '@home/components/widget/lib/settings
 import { TimewindowStyleComponent } from '@home/components/widget/config/timewindow-style.component';
 import { TimewindowStylePanelComponent } from '@home/components/widget/config/timewindow-style-panel.component';
 import { TargetDeviceComponent } from '@home/components/widget/config/target-device.component';
+import { WidgetActionComponent } from '@home/components/widget/config/action/widget-action.component';
+import { CustomActionPrettyResourcesTabsComponent }
+  from '@home/components/widget/config/action/custom-action-pretty-resources-tabs.component';
+import { CustomActionPrettyEditorComponent } from '@home/components/widget/config/action/custom-action-pretty-editor.component';
+import { MobileActionEditorComponent } from '@home/components/widget/config/action/mobile-action-editor.component';
 
 @NgModule({
   declarations:
@@ -65,7 +70,11 @@ import { TargetDeviceComponent } from '@home/components/widget/config/target-dev
       TimewindowStyleComponent,
       TimewindowStylePanelComponent,
       TimewindowConfigPanelComponent,
-      WidgetSettingsComponent
+      WidgetSettingsComponent,
+      WidgetActionComponent,
+      CustomActionPrettyResourcesTabsComponent,
+      CustomActionPrettyEditorComponent,
+      MobileActionEditorComponent
     ],
   imports: [
     CommonModule,
@@ -88,7 +97,11 @@ import { TargetDeviceComponent } from '@home/components/widget/config/target-dev
     TimewindowStylePanelComponent,
     TimewindowConfigPanelComponent,
     WidgetSettingsComponent,
-    WidgetSettingsCommonModule
+    WidgetSettingsCommonModule,
+    WidgetActionComponent,
+    CustomActionPrettyResourcesTabsComponent,
+    CustomActionPrettyEditorComponent,
+    MobileActionEditorComponent
   ]
 })
 export class WidgetConfigComponentsModule { }

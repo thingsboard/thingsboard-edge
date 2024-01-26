@@ -1369,7 +1369,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
             this.widgetContext.parentDashboard : this.widgetContext.dashboard,
           popoverComponent: componentRef.instance
         },
-        {width: popoverWidth, height: popoverHeight},
+        {width: popoverWidth || '25vw', height: popoverHeight || '25vh'},
         popoverStyle,
         {}
       );
