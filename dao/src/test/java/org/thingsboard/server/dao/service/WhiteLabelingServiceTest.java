@@ -38,10 +38,13 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 
 import java.io.IOException;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DaoSqlTest
 public class WhiteLabelingServiceTest extends AbstractServiceTest {
@@ -176,6 +179,20 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
         Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, null));
         Assert.assertFalse(whiteLabelingService.isCustomerWhiteLabelingAllowed(tenantId));
         Assert.assertFalse(whiteLabelingService.isWhiteLabelingAllowed(tenantId, customerId));
+    }
+
+    @Test
+    public void shouldMergeLoginWhiteLabelingParams() {
+        LoginWhiteLabelingParams systemLoginWhiteLabelingParams = new LoginWhiteLabelingParams();
+        systemLoginWhiteLabelingParams.setDarkForeground(true);
+        systemLoginWhiteLabelingParams.setPageBackgroundColor("#673AB7");
+
+        LoginWhiteLabelingParams tenantLoginWhiteLabelingParams = new LoginWhiteLabelingParams();
+        tenantLoginWhiteLabelingParams.setDarkForeground(false);
+
+        tenantLoginWhiteLabelingParams.merge(systemLoginWhiteLabelingParams);
+        assertThat(tenantLoginWhiteLabelingParams.getPageBackgroundColor()).isEqualTo("#673AB7");
+        assertThat(tenantLoginWhiteLabelingParams.isDarkForeground()).isFalse();
     }
 
     private void updateTenantAllowWhiteLabelingSetting(Boolean allowWhiteLabeling, Boolean allowCustomerWhiteLabeling) {
