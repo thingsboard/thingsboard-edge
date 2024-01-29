@@ -45,6 +45,8 @@ import java.util.Set;
 
 public interface IntegrationManagerService {
 
+    int getIntegrationConnectionCheckApiRequestTimeoutSec();
+
     ListenableFuture<Void> validateIntegrationConfiguration(Integration integration);
 
     ListenableFuture<Void> checkIntegrationConnection(Integration integration);

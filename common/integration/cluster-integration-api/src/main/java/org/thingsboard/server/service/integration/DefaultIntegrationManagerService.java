@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.protobuf.ByteString;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -107,6 +108,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.DELETED;
 import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.FAILED;
@@ -153,6 +155,10 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
 
     @Value("${integrations.allow_Local_network_hosts:true}")
     private boolean allowLocalNetworkHosts;
+
+    @Getter
+    @Value("${integrations.init.connection_check_api_request_timeout_sec:20}")
+    private int integrationConnectionCheckApiRequestTimeoutSec;
 
     private ExecutorService commandExecutorService;
     private ScheduledExecutorService statisticsExecutorService;
@@ -246,9 +252,31 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         });
     }
 
+    boolean isExpired(IntegrationValidationRequestProto validationRequestMsg, TbCallback callback) {
+        if (validationRequestMsg.getDeadline() > 0 && validationRequestMsg.getDeadline() <= System.currentTimeMillis()) {
+            UUID requestId = new UUID(validationRequestMsg.getIdMSB(), validationRequestMsg.getIdLSB());
+            TenantId tenantId = TenantId.fromUUID(new UUID(validationRequestMsg.getTenantIdMSB(), validationRequestMsg.getTenantIdLSB()));
+            log.debug("[{}][{}][{}] Integration validation expired: {}", tenantId, validationRequestMsg.getType(), requestId, validationRequestMsg.getDeadline());
+            callback.onFailure(new TimeoutException("Integration validation expired"));
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public void handleValidationRequest(IntegrationValidationRequestProto validationRequestMsg, TbCallback callback) {
+        if (isExpired(validationRequestMsg, callback)) {
+            return;
+        }
+
+        commandExecutorService.submit(() -> {
+
+        if (isExpired(validationRequestMsg, callback)) {
+            return;
+        }
+
         UUID requestId = new UUID(validationRequestMsg.getIdMSB(), validationRequestMsg.getIdLSB());
+        TenantId tenantId = TenantId.fromUUID(new UUID(validationRequestMsg.getTenantIdMSB(), validationRequestMsg.getTenantIdLSB()));
         var response = IntegrationValidationResponseProto.newBuilder();
         response.setIdMSB(requestId.getMostSignificantBits());
         response.setIdLSB(requestId.getLeastSignificantBits());
@@ -257,9 +285,9 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             Optional<Integration> configurationOpt = encodingService.decode(validationRequestMsg.getConfiguration().toByteArray());
             Integration configuration = configurationOpt.orElseThrow(() -> new RuntimeException("Failed to decode the integration configuration"));
             doValidateLocally(validationTaskType, configuration);
-            log.trace("[{}] Processed the validation request for integration: {}", requestId, configuration);
+            log.trace("[{}][{}] Processed the validation request for integration: {}", tenantId, requestId, configuration);
         } catch (Exception e) {
-            log.trace("[{}][{}] Integration validation failed: {}", validationRequestMsg.getType(), requestId, e);
+            log.trace("[{}][{}][{}] Integration validation failed", tenantId, validationRequestMsg.getType(), requestId, e);
             response.setError(ByteString.copyFrom(encodingService.encode(e)));
         }
         TopicPartitionInfo tpi = topicService.getNotificationsTopic(ServiceType.TB_CORE, validationRequestMsg.getServiceId());
@@ -267,15 +295,17 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         producerProvider.getTbCoreNotificationsMsgProducer().send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), msg), new TbQueueCallback() {
             @Override
             public void onSuccess(TbQueueMsgMetadata metadata) {
-                log.trace("[{}] Published the validation response ", requestId);
+                log.trace("[{}][{}] Published the validation response ", tenantId, requestId);
             }
 
             @Override
             public void onFailure(Throwable t) {
-                log.debug("[{}] Failed to publish the validation response ", requestId, t);
+                log.debug("[{}][{}] Failed to publish the validation response ", tenantId, requestId, t);
             }
         });
         callback.onSuccess();
+
+        });
     }
 
     private void doValidateLocally(ValidationTaskType validationTaskType, Integration configuration) throws Exception {
@@ -357,7 +387,12 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                         .setIdLSB(task.getUuid().getLeastSignificantBits())
                         .setType(validationTaskType.name())
                         .setConfiguration(ByteString.copyFrom(encodingService.encode(configuration)))
-                        .setServiceId(serviceInfoProvider.getServiceId()).build();
+                        .setServiceId(serviceInfoProvider.getServiceId())
+                        .setTenantIdMSB(configuration.getTenantId().getId().getMostSignificantBits())
+                        .setTenantIdLSB(configuration.getTenantId().getId().getLeastSignificantBits())
+                        .setTimestamp(System.currentTimeMillis())
+                        .setDeadline(System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(this.getIntegrationConnectionCheckApiRequestTimeoutSec()))
+                        .build();
 
                 producer.send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), ToIntegrationExecutorDownlinkMsg.newBuilder()
                         .setValidationRequestMsg(requestProto).build()), new TbQueueCallback() {

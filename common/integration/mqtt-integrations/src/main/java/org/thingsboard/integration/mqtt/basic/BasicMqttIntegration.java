@@ -119,6 +119,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
         this.configuration = integration;
         try {
             mqttClientConfiguration = getClientConfiguration(configuration, MqttClientConfiguration.class);
+            mqttClientConfiguration.setConnectTimeoutSec(Math.min(mqttClientConfiguration.getConnectTimeoutSec(), ctx.getIntegrationConnectTimeoutSec()));
             mqttClient = initClient(getOwnerId(integration), mqttClientConfiguration, (topic, data) -> processAsync(new BasicMqttIntegrationMsg(topic, data)));
         } catch (RuntimeException e) {
             throw new ThingsboardException(e.getMessage(), ThingsboardErrorCode.BAD_REQUEST_PARAMS);
