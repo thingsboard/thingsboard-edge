@@ -5155,7 +5155,7 @@
         "rpc-value-min-error": "Value must be more then {{min}} ms.",
         "set": "Set",
         "rpc-settings": "RPC settings",
-        "enabled": "Enabled scheduler",
+        "enabled": "Enable scheduler",
         "enable": "Enable",
         "disable": "Disable"
     },

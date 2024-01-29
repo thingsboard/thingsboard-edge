@@ -59,7 +59,7 @@
       </div>
     </mat-expansion-panel>
   </div>
-  <div class="tb-form-panel stroked">
+  <div class="tb-form-panel stroked report-target-dashboard">
     <mat-expansion-panel class="tb-settings" [expanded]="true">
       <mat-expansion-panel-header>
         <mat-panel-title>
@@ -98,7 +98,7 @@
             required
             formControlName="timezone">
           </tb-timezone-select>
-          <div class="tb-hint" style="padding: 0; margin: -18px 0 16px 16px;" translate
+          <div class="tb-hint" translate
                *ngIf="!reportConfigFormGroup.get('timezone').hasError('required')">
             report.timezone-description
           </div>
@@ -107,7 +107,7 @@
           <div class="tb-form-row space-between column-xs">
             <mat-slide-toggle class="mat-slide" formControlName="useDashboardTimewindow">
               <label (click)="$event.stopPropagation();"
-                     style="word-break: break-all"
+                     class="break-word"
                      tb-hint-tooltip-icon="{{ 'report.use-dashboard-timewindow-description' | translate }}">
                 {{ 'report.use-dashboard-timewindow' | translate }}
               </label>
@@ -115,6 +115,7 @@
             <tb-timewindow
               asButton
               aggregation
+              class="margin-right"
               formControlName="timewindow">
             </tb-timewindow>
           </div>
@@ -144,12 +145,13 @@
               formControlName="userId">
             </tb-entity-autocomplete>
           </div>
-          <div class="tb-form-row space-between" style="min-height: 68px;">
+          <div class="tb-form-row space-between test-generate-row">
             <div class="fixed-title-width">{{ 'report.testing' | translate }}</div>
             <button *ngIf="!disabled" mat-raised-button color="primary"
                     type="button"
                     [disabled]="(isLoading$ | async) || reportConfigFormGroup.invalid"
-                    (click)="generateTestReport()">
+                    (click)="generateTestReport()"
+                    class="margin-right">
               {{ 'report.generate-test-report' | translate }}
             </button>
           </div>
