@@ -176,7 +176,7 @@ export class UpdateAttributesComponent implements ControlValueAccessor, OnInit, 
 
   writeValue(value: SchedulerEventConfiguration | null): void {
     this.modelValue = safeMerge<SchedulerEventConfiguration>(updateAttributesDefaults, value);
-    const formValue = this.createDefaultUpdateAttributesConfig();
+    const formValue = this.prepareInputConfig(this.modelValue);
     this.updateAttributesFormGroup.reset(formValue, { emitEvent: false });
     this.updateValidators();
   }
@@ -193,8 +193,8 @@ export class UpdateAttributesComponent implements ControlValueAccessor, OnInit, 
     return null;
   }
 
-  private createDefaultUpdateAttributesConfig(): SchedulerEventConfiguration | null {
-    const formValue = deepClone(this.modelValue);
+  private prepareInputConfig(value: SchedulerEventConfiguration): SchedulerEventConfiguration | null {
+    const formValue = deepClone(value);
 
     const attributes = formValue.msgBody;
     if (formValue.metadata.scope === AttributeScope.SERVER_SCOPE) {

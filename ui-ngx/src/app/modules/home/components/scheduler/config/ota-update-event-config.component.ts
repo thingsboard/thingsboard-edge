@@ -54,7 +54,7 @@ import { OtaUpdateType } from '@shared/models/ota-package.models';
 
 @Component({
   selector: 'tb-ota-update-event-config',
-  templateUrl: './ota-update-config-event.component.html',
+  templateUrl: './ota-update-event-config.component.html',
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => OtaUpdateEventConfigComponent),
@@ -155,7 +155,7 @@ export class OtaUpdateEventConfigComponent implements ControlValueAccessor, OnDe
         this.modelValue.msgType =
           this.schedulerEventType === 'updateSoftware' ? MessageType.SOFTWARE_UPDATED : MessageType.FIRMWARE_UPDATED;
       }
-      const formValue = this.createDefaultUpdatePackageConfig();
+      const formValue = this.prepareInputConfig(value);
       this.updatePackageForm.patchValue(formValue, {emitEvent: false});
     }
   }
@@ -172,8 +172,8 @@ export class OtaUpdateEventConfigComponent implements ControlValueAccessor, OnDe
     return null;
   }
 
-  private createDefaultUpdatePackageConfig(): SchedulerEventConfiguration | null {
-    let formValue = deepClone(this.modelValue);
+  private prepareInputConfig(value: SchedulerEventConfiguration): SchedulerEventConfiguration | null {
+    let formValue = deepClone(value);
     if (!isEqual(this.modelValue.msgBody, {})) {
       formValue = Object.assign(formValue, {packageId: this.modelValue.msgBody});
       this.updatePackageForm.get('packageId').enable({emitEvent: false});

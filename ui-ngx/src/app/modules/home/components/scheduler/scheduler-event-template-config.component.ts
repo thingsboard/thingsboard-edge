@@ -171,6 +171,7 @@ export class SchedulerEventTemplateConfigComponent implements ControlValueAccess
         });
         this.configComponent.setDisabledState(this.disabled);
         this.configComponent.writeValue(this.configuration);
+        this.configComponent$.next(this.configComponent);
       });
     }
   }
@@ -228,17 +229,15 @@ export class SchedulerEventTemplateConfigComponent implements ControlValueAccess
     this.propagateChange(configuration);
   }
 
-  validate(control: AbstractControl) : Observable<ValidationErrors | null> {
+  validate(control: AbstractControl): Observable<ValidationErrors | null> {
     let comp$: Observable<ControlValueAccessor & Validator>;
     if (this.configComponent) {
       comp$ = of(this.configComponent);
+    } else if (this.configTemplate) {
+      this.configComponent$ = new Subject();
+      comp$ = this.configComponent$;
     } else {
-      if (this.configTemplate) {
-        this.configComponent$ = new Subject();
-        comp$ = this.configComponent$;
-      } else {
-        comp$ = of(null);
-      }
+      comp$ = of(null);
     }
 
     return comp$.pipe(
