@@ -30,47 +30,67 @@
 ///
 
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, UntypedFormControl } from '@angular/forms';
-import { cssUnit, cssUnits } from '@shared/models/widget-settings.models';
+import {
+  ControlValueAccessor,
+  NG_VALIDATORS,
+  NG_VALUE_ACCESSOR,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validator,
+  Validators
+} from '@angular/forms';
+import { cssUnit, resolveCssSize } from '@shared/models/widget-settings.models';
 import { coerceBoolean } from '@shared/decorators/coercion';
+import { isDefinedAndNotNull } from '@core/utils';
 
 @Component({
-  selector: 'tb-css-unit-select',
-  templateUrl: './css-unit-select.component.html',
+  selector: 'tb-css-size-input',
+  templateUrl: './css-size-input.component.html',
   styleUrls: [],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => CssUnitSelectComponent),
+      useExisting: forwardRef(() => CssSizeInputComponent),
       multi: true
+    },
+    {
+      provide: NG_VALIDATORS,
+      useExisting: forwardRef(() => CssSizeInputComponent),
+      multi: true,
     }
   ]
 })
-export class CssUnitSelectComponent implements OnInit, ControlValueAccessor {
+export class CssSizeInputComponent implements OnInit, ControlValueAccessor, Validator {
 
   @Input()
   disabled: boolean;
 
   @Input()
   @coerceBoolean()
-  allowEmpty = false;
+  required = false;
 
   @Input()
-  width = '100%';
+  requiredText: string;
 
-  cssUnitsList = cssUnits;
+  @Input()
+  @coerceBoolean()
+  allowEmptyUnit = false;
 
-  cssUnitFormControl: UntypedFormControl;
+  cssSizeFormGroup: UntypedFormGroup;
 
-  modelValue: cssUnit;
+  modelValue: string;
 
   private propagateChange = null;
 
-  constructor() {}
+  constructor(private fb: UntypedFormBuilder) {}
 
   ngOnInit(): void {
-    this.cssUnitFormControl = new UntypedFormControl();
-    this.cssUnitFormControl.valueChanges.subscribe((value: cssUnit) => {
+    this.cssSizeFormGroup = this.fb.group({
+      size: [null, this.required ? [Validators.required, Validators.min(0)] : [Validators.min(0)]],
+      unit: [null, []]
+    });
+    this.cssSizeFormGroup.valueChanges.subscribe((value: {size: number; unit: cssUnit}) => {
       this.updateModel(value);
     });
   }
@@ -85,20 +105,34 @@ export class CssUnitSelectComponent implements OnInit, ControlValueAccessor {
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
     if (this.disabled) {
-      this.cssUnitFormControl.disable({emitEvent: false});
+      this.cssSizeFormGroup.disable({emitEvent: false});
     } else {
-      this.cssUnitFormControl.enable({emitEvent: false});
+      this.cssSizeFormGroup.enable({emitEvent: false});
     }
   }
 
-  writeValue(value: cssUnit): void {
+  writeValue(value: string): void {
     this.modelValue = value;
-    this.cssUnitFormControl.patchValue(this.modelValue, {emitEvent: false});
+    const size = resolveCssSize(value);
+    this.cssSizeFormGroup.patchValue({
+      size: size[0],
+      unit: size[1]
+    }, {emitEvent: false});
   }
 
-  updateModel(value: cssUnit): void {
-    if (this.modelValue !== value) {
-      this.modelValue = value;
+  validate(_c: UntypedFormControl) {
+    return this.cssSizeFormGroup.valid ? null : {
+      cssSize: {
+        valid: false,
+      }
+    };
+  }
+
+  private updateModel(value: {size: number; unit: cssUnit}): void {
+    const result: string = isDefinedAndNotNull(value?.size) && isDefinedAndNotNull(value?.unit)
+      ? value.size + value.unit : '';
+    if (this.modelValue !== result) {
+      this.modelValue = result;
       this.propagateChange(this.modelValue);
     }
   }
