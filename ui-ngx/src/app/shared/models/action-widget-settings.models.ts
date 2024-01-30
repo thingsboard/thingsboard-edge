@@ -30,23 +30,22 @@
 ///
 
 import { AttributeScope } from '@shared/models/telemetry/telemetry.models';
-import { BackgroundSettings } from '@shared/models/widget-settings.models';
 
-export enum RpcInitialStateAction {
+export enum GetValueAction {
   DO_NOTHING = 'DO_NOTHING',
   EXECUTE_RPC = 'EXECUTE_RPC',
   GET_ATTRIBUTE = 'GET_ATTRIBUTE',
   GET_TIME_SERIES = 'GET_TIME_SERIES'
 }
 
-export const rpcInitialStateActions = Object.keys(RpcInitialStateAction) as RpcInitialStateAction[];
+export const getValueActions = Object.keys(GetValueAction) as GetValueAction[];
 
-export const rpcInitialStateTranslations = new Map<RpcInitialStateAction, string>(
+export const getValueActionTranslations = new Map<GetValueAction, string>(
   [
-    [RpcInitialStateAction.DO_NOTHING, 'widgets.rpc-state.do-nothing'],
-    [RpcInitialStateAction.EXECUTE_RPC, 'widgets.rpc-state.execute-rpc'],
-    [RpcInitialStateAction.GET_ATTRIBUTE, 'widgets.rpc-state.get-attribute'],
-    [RpcInitialStateAction.GET_TIME_SERIES, 'widgets.rpc-state.get-time-series']
+    [GetValueAction.DO_NOTHING, 'widgets.value-action.do-nothing'],
+    [GetValueAction.EXECUTE_RPC, 'widgets.value-action.execute-rpc'],
+    [GetValueAction.GET_ATTRIBUTE, 'widgets.value-action.get-attribute'],
+    [GetValueAction.GET_TIME_SERIES, 'widgets.value-action.get-time-series']
   ]
 );
 
@@ -57,79 +56,83 @@ export interface RpcSettings {
   persistentPollingInterval: number;
 }
 
-export interface RpcTelemetrySettings {
+export interface TelemetryValueSettings {
   key: string;
 }
 
-export interface RpcGetAttributeSettings extends RpcTelemetrySettings {
+export interface GetTelemetryValueSettings extends TelemetryValueSettings {
+  subscribeForUpdates: boolean;
+}
+
+export interface GetAttributeValueSettings extends GetTelemetryValueSettings {
   scope: AttributeScope | null;
 }
 
-export interface RpcSetAttributeSettings extends RpcTelemetrySettings {
+export interface SetAttributeValueSettings extends TelemetryValueSettings {
   scope: AttributeScope.SERVER_SCOPE | AttributeScope.SHARED_SCOPE;
 }
 
-export enum RpcDataToStateType {
+export enum DataToValueType {
   NONE = 'NONE',
   FUNCTION = 'FUNCTION'
 }
 
-export interface RpcDataToStateSettings {
-  type: RpcDataToStateType;
-  dataToStateFunction: string;
+export interface DataToValueSettings {
+  type: DataToValueType;
+  dataToValueFunction: string;
   compareToValue?: any;
 }
 
-export interface RpcActionSettings {
+export interface ValueActionSettings {
   actionLabel?: string;
 }
 
-export interface RpcInitialStateSettings<V> extends RpcActionSettings {
-  action: RpcInitialStateAction;
+export interface GetValueSettings<V> extends ValueActionSettings {
+  action: GetValueAction;
   defaultValue: V;
   executeRpc: RpcSettings;
-  getAttribute: RpcGetAttributeSettings;
-  getTimeSeries: RpcTelemetrySettings;
-  dataToState: RpcDataToStateSettings;
+  getAttribute: GetAttributeValueSettings;
+  getTimeSeries: GetTelemetryValueSettings;
+  dataToValue: DataToValueSettings;
 }
 
-export enum RpcUpdateStateAction {
+export enum SetValueAction {
   EXECUTE_RPC = 'EXECUTE_RPC',
   SET_ATTRIBUTE = 'SET_ATTRIBUTE',
   ADD_TIME_SERIES = 'ADD_TIME_SERIES'
 }
 
-export const rpcUpdateStateActions = Object.keys(RpcUpdateStateAction) as RpcUpdateStateAction[];
+export const setValueActions = Object.keys(SetValueAction) as SetValueAction[];
 
-export const rpcUpdateStateTranslations = new Map<RpcUpdateStateAction, string>(
+export const setValueActionTranslations = new Map<SetValueAction, string>(
   [
-    [RpcUpdateStateAction.EXECUTE_RPC, 'widgets.rpc-state.execute-rpc'],
-    [RpcUpdateStateAction.SET_ATTRIBUTE, 'widgets.rpc-state.set-attribute'],
-    [RpcUpdateStateAction.ADD_TIME_SERIES, 'widgets.rpc-state.add-time-series']
+    [SetValueAction.EXECUTE_RPC, 'widgets.value-action.execute-rpc'],
+    [SetValueAction.SET_ATTRIBUTE, 'widgets.value-action.set-attribute'],
+    [SetValueAction.ADD_TIME_SERIES, 'widgets.value-action.add-time-series']
   ]
 );
 
-export enum RpcStateToParamsType {
+export enum ValueToDataType {
   CONSTANT = 'CONSTANT',
   FUNCTION = 'FUNCTION',
   NONE = 'NONE'
 }
 
-export interface RpcStateToParamsSettings {
-  type: RpcStateToParamsType;
+export interface ValueToDataSettings {
+  type: ValueToDataType;
   constantValue: any;
-  stateToParamsFunction: string;
+  valueToDataFunction: string;
 }
 
-export interface RpcUpdateStateSettings extends RpcActionSettings {
-  action: RpcUpdateStateAction;
+export interface SetValueSettings extends ValueActionSettings {
+  action: SetValueAction;
   executeRpc: RpcSettings;
-  setAttribute: RpcSetAttributeSettings;
-  putTimeSeries: RpcTelemetrySettings;
-  stateToParams: RpcStateToParamsSettings;
+  setAttribute: SetAttributeValueSettings;
+  putTimeSeries: TelemetryValueSettings;
+  valueToData: ValueToDataSettings;
 }
 
-export interface RpcStateBehaviourSettings<V> {
+/*export interface RpcStateBehaviourSettings<V> {
   initialState: RpcInitialStateSettings<V>;
   updateStateByValue: (value: V) => RpcUpdateStateSettings;
 }
@@ -137,4 +140,4 @@ export interface RpcStateBehaviourSettings<V> {
 export interface RpcStateWidgetSettings<V> {
   initialState: RpcInitialStateSettings<V>;
   background: BackgroundSettings;
-}
+}*/
