@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -28,48 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.discovery;
+package org.thingsboard.server.dao.sql;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationListener;
-import org.thingsboard.server.queue.discovery.event.TbApplicationEvent;
+import org.thingsboard.server.dao.model.BaseEntity;
+import org.thingsboard.server.dao.util.SqlDao;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 
-@Slf4j
-public abstract class TbApplicationEventListener<T extends TbApplicationEvent> implements ApplicationListener<T> {
+@SqlDao
+public abstract class JpaPartitionedAbstractDao<E extends BaseEntity<D>, D> extends JpaAbstractDao<E, D> {
 
-    private int lastProcessedSequenceNumber = Integer.MIN_VALUE;
-    private final Lock seqNumberLock = new ReentrantLock();
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
-    public void onApplicationEvent(T event) {
-        boolean validUpdate = false;
-        seqNumberLock.lock();
-        try {
-            if (event.getSequenceNumber() > lastProcessedSequenceNumber) {
-                validUpdate = true;
-                lastProcessedSequenceNumber = event.getSequenceNumber();
-            }
-        } finally {
-            seqNumberLock.unlock();
-        }
-        if (validUpdate && filterTbApplicationEvent(event)) {
-            try {
-                onTbApplicationEvent(event);
-            } catch (Exception e) {
-                log.error("Failed to handle partition change event: {}", event, e);
-            }
+    protected E doSave(E entity, boolean isNew) {
+        createPartition(entity);
+        if (isNew) {
+            entityManager.persist(entity);
         } else {
-            log.info("Application event ignored due to invalid sequence number ({} > {}). Event: {}", lastProcessedSequenceNumber, event.getSequenceNumber(), event);
+            entity = entityManager.merge(entity);
         }
+        return entity;
     }
 
-    protected abstract void onTbApplicationEvent(T event);
-
-    protected boolean filterTbApplicationEvent(T event) {
-        return true;
-    }
+    public abstract void createPartition(E entity);
 
 }
