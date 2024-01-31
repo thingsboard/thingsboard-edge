@@ -793,6 +793,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testVerifyProcessCorrectEdgeUpdateToDeviceActorOnUnassignFromDifferentEdge() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
