@@ -51,13 +51,11 @@ public class DefaultTbTenantService extends AbstractTbEntityService implements T
         Tenant oldTenant = !created ? tenantService.findTenantById(tenant.getId()) : null;
 
         Tenant savedTenant = checkNotNull(tenantService.saveTenant(tenant));
-        /* edge: DefaultRuleChains and DefaultEdgeRuleChains are configured on Cloud
         if (created) {
             installScripts.createDefaultRuleChains(savedTenant.getId());
             installScripts.createDefaultEdgeRuleChains(savedTenant.getId());
             installScripts.createDefaultTenantDashboards(savedTenant.getId(), null);
         }
-        */
         tenantProfileCache.evict(savedTenant.getId());
         notificationEntityService.notifyCreateOrUpdateTenant(savedTenant, created ?
                 ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
