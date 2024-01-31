@@ -28,38 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.audit;
+package org.thingsboard.server.dao.sql;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.audit.AuditLog;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.dao.model.BaseEntity;
+import org.thingsboard.server.dao.util.SqlDao;
 
-import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 
-public interface AuditLogService {
+@SqlDao
+public abstract class JpaPartitionedAbstractDao<E extends BaseEntity<D>, D> extends JpaAbstractDao<E, D> {
 
-    PageData<AuditLog> findAuditLogsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, List<ActionType> actionTypes, TimePageLink pageLink);
+    @PersistenceContext
+    private EntityManager entityManager;
 
-    PageData<AuditLog> findAuditLogsByTenantIdAndUserId(TenantId tenantId, UserId userId, List<ActionType> actionTypes, TimePageLink pageLink);
+    @Override
+    protected E doSave(E entity, boolean isNew) {
+        createPartition(entity);
+        if (isNew) {
+            entityManager.persist(entity);
+        } else {
+            entity = entityManager.merge(entity);
+        }
+        return entity;
+    }
 
-    PageData<AuditLog> findAuditLogsByTenantIdAndEntityId(TenantId tenantId, EntityId entityId, List<ActionType> actionTypes, TimePageLink pageLink);
+    public abstract void createPartition(E entity);
 
-    PageData<AuditLog> findAuditLogsByTenantId(TenantId tenantId, List<ActionType> actionTypes, TimePageLink pageLink);
-
-    <E extends HasName, I extends EntityId> ListenableFuture<Void> logEntityAction(
-            TenantId tenantId,
-            CustomerId customerId,
-            UserId userId,
-            String userName,
-            I entityId,
-            E entity,
-            ActionType actionType,
-            Exception e, Object... additionalInfo);
 }
