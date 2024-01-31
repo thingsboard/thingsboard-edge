@@ -260,6 +260,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
         try {
             result = connectFuture.get(configuration.getConnectTimeoutSec(), TimeUnit.SECONDS);
         } catch (TimeoutException ex) {
+            log.warn("TimeoutException on connect with timeout [{}]", configuration.getConnectTimeoutSec(), ex); //TODO remove after debug
             connectFuture.cancel(true);
             client.disconnect();
             String hostPort = configuration.getHost() + ":" + configuration.getPort();

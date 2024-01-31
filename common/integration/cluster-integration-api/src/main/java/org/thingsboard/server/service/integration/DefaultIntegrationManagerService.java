@@ -256,7 +256,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         if (validationRequestMsg.getDeadline() > 0 && validationRequestMsg.getDeadline() <= System.currentTimeMillis()) {
             UUID requestId = new UUID(validationRequestMsg.getIdMSB(), validationRequestMsg.getIdLSB());
             TenantId tenantId = TenantId.fromUUID(new UUID(validationRequestMsg.getTenantIdMSB(), validationRequestMsg.getTenantIdLSB()));
-            log.debug("[{}][{}][{}] Integration validation expired: {}", tenantId, validationRequestMsg.getType(), requestId, validationRequestMsg.getDeadline());
+            log.warn("[{}][{}][{}] Integration validation expired: {}", tenantId, validationRequestMsg.getType(), requestId, validationRequestMsg.getDeadline());
             callback.onFailure(new TimeoutException("Integration validation expired"));
             return true;
         }
@@ -265,12 +265,13 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
 
     @Override
     public void handleValidationRequest(IntegrationValidationRequestProto validationRequestMsg, TbCallback callback) {
+        log.info("submitting validation request: {}", validationRequestMsg);
         if (isExpired(validationRequestMsg, callback)) {
             return;
         }
 
         commandExecutorService.submit(() -> {
-
+            log.info("Starting validation request: {}", validationRequestMsg);
         if (isExpired(validationRequestMsg, callback)) {
             return;
         }
