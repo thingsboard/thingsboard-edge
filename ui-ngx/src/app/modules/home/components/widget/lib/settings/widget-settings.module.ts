@@ -139,9 +139,6 @@ import {
   SendRpcWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/control/send-rpc-widget-settings.component';
 import {
-  DeviceKeyAutocompleteComponent
-} from '@home/components/widget/lib/settings/control/device-key-autocomplete.component';
-import {
   LedIndicatorWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/control/led-indicator-widget-settings.component';
 import {
@@ -335,6 +332,9 @@ import {
 import {
   BarChartWithLabelsWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/chart/bar-chart-with-labels-widget-settings.component';
+import {
+  SingleSwitchWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/control/single-switch-widget-settings.component';
 
 @NgModule({
   declarations: [
@@ -372,7 +372,6 @@ import {
     FlotPieKeySettingsComponent,
     ChartWidgetSettingsComponent,
     DoughnutChartWidgetSettingsComponent,
-    DeviceKeyAutocompleteComponent,
     SwitchRpcSettingsComponent,
     RoundSwitchWidgetSettingsComponent,
     SwitchControlWidgetSettingsComponent,
@@ -449,6 +448,7 @@ import {
     DoughnutWidgetSettingsComponent,
     RangeChartWidgetSettingsComponent,
     BarChartWithLabelsWidgetSettingsComponent,
+    SingleSwitchWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -494,7 +494,6 @@ import {
     FlotPieKeySettingsComponent,
     ChartWidgetSettingsComponent,
     DoughnutChartWidgetSettingsComponent,
-    DeviceKeyAutocompleteComponent,
     SwitchRpcSettingsComponent,
     RoundSwitchWidgetSettingsComponent,
     SwitchControlWidgetSettingsComponent,
@@ -571,6 +570,7 @@ import {
     DoughnutWidgetSettingsComponent,
     RangeChartWidgetSettingsComponent,
     BarChartWithLabelsWidgetSettingsComponent,
+    SingleSwitchWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -659,6 +659,7 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-doughnut-widget-settings': DoughnutWidgetSettingsComponent,
   'tb-range-chart-widget-settings': RangeChartWidgetSettingsComponent,
   'tb-bar-chart-with-labels-widget-settings': BarChartWithLabelsWidgetSettingsComponent,
+  'tb-single-switch-widget-settings': SingleSwitchWidgetSettingsComponent,
   'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
   'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
 };
