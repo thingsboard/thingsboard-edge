@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.alarm;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -47,8 +46,6 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.service.DataValidator;
-
-import java.util.UUID;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
 
@@ -104,12 +101,7 @@ public class BaseAlarmCommentService extends AbstractEntityService implements Al
         if (alarmComment.getType() == null) {
             alarmComment.setType(AlarmCommentType.OTHER);
         }
-        if (alarmComment.getId() == null) {
-            UUID uuid = Uuids.timeBased();
-            alarmComment.setId(new AlarmCommentId(uuid));
-            alarmComment.setCreatedTime(System.currentTimeMillis());
-        }
-        return alarmCommentDao.createAlarmComment(tenantId, alarmComment);
+        return alarmCommentDao.save(tenantId, alarmComment);
     }
 
     private AlarmComment updateAlarmComment(TenantId tenantId, AlarmComment newAlarmComment) {
