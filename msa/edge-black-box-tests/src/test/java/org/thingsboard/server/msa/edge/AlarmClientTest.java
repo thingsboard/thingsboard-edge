@@ -71,8 +71,8 @@ public class AlarmClientTest extends AbstractContainerTest {
         JsonObject telemetry = new JsonObject();
         telemetry.addProperty("temperature", 100);
 
-        ResponseEntity deviceTelemetryResponse = edgeRestClient.getRestTemplate()
-                .postForEntity(edgeUrl + "/api/v1/{credentialsId}/telemetry",
+        ResponseEntity deviceTelemetryResponse = cloudRestClient.getRestTemplate()
+                .postForEntity(tbUrl + "/api/v1/{credentialsId}/telemetry",
                         JacksonUtil.OBJECT_MAPPER.readTree(telemetry.toString()),
                         ResponseEntity.class,
                         accessToken);
@@ -147,8 +147,8 @@ public class AlarmClientTest extends AbstractContainerTest {
         JsonObject telemetry = new JsonObject();
         telemetry.addProperty("temperature", 100);
 
-        ResponseEntity deviceTelemetryResponse = edgeRestClient.getRestTemplate()
-                .postForEntity(edgeUrl + "/api/v1/" + accessToken + "/telemetry",
+        ResponseEntity deviceTelemetryResponse = cloudRestClient.getRestTemplate()
+                .postForEntity(tbUrl + "/api/v1/" + accessToken + "/telemetry",
                         JacksonUtil.toJsonNode(telemetry.toString()),
                         ResponseEntity.class);
         Assert.assertTrue(deviceTelemetryResponse.getStatusCode().is2xxSuccessful());
