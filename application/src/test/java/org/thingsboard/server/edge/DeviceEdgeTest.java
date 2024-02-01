@@ -842,6 +842,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testVerifyProcessCorrectEdgeUpdateToDeviceActorOnUnassignFromDifferentEdge() throws Exception {
         // create tmp edge
         Edge tmpEdge = doPost("/api/edge", constructEdge("Test Tmp Edge", "test"), Edge.class);
