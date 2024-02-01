@@ -117,8 +117,9 @@ public class NotificationRuleExportService<I extends EntityId, E extends Exporta
             case ALARM: {
                 EscalatedNotificationRuleRecipientsConfig recipientsConfig = (EscalatedNotificationRuleRecipientsConfig) ruleRecipientsConfig;
                 Map<Integer, List<UUID>> escalationTable = new LinkedHashMap<>(recipientsConfig.getEscalationTable());
-                escalationTable.replaceAll((delay, targets) ->
-                        toExternalIds(targets, NotificationTargetId::new, ctx).collect(Collectors.toList()));
+                escalationTable.replaceAll((delay, targets) -> {
+                    return toExternalIds(targets, NotificationTargetId::new, ctx).collect(Collectors.toList());
+                });
                 recipientsConfig.setEscalationTable(escalationTable);
                 break;
             }

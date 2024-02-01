@@ -741,6 +741,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
     }
 
     @Override
+    @SneakyThrows
     public void updateDefaultNotificationConfigs() {
         PageDataIterable<TenantId> tenants = new PageDataIterable<>(tenantService::findTenantsIds, 500);
         ExecutorService executor = Executors.newFixedThreadPool(Math.max(Runtime.getRuntime().availableProcessors(), 4));
@@ -755,6 +756,8 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
                 }
             });
         }
+        executor.shutdown();
+        executor.awaitTermination(Integer.MAX_VALUE, TimeUnit.SECONDS);
         notificationSettingsService.updateDefaultNotificationConfigs(TenantId.SYS_TENANT_ID);
     }
 
