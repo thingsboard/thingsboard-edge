@@ -45,8 +45,6 @@ import java.util.Set;
 
 public interface IntegrationManagerService {
 
-    int getIntegrationConnectionCheckApiRequestTimeoutSec();
-
     ListenableFuture<Void> validateIntegrationConfiguration(Integration integration);
 
     ListenableFuture<Void> checkIntegrationConnection(Integration integration);
@@ -62,4 +60,7 @@ public interface IntegrationManagerService {
     void handleValidationRequest(IntegrationValidationRequestProto validationRequestMsg, TbCallback callback);
 
     void handleValidationResponse(IntegrationValidationResponseProto validationRequestMsg, TbCallback callback);
+
+    int getIntegrationConnectionCheckApiRequestTimeoutSec();
+
 }
