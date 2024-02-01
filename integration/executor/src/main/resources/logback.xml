@@ -42,7 +42,6 @@
 
     <logger name="org.thingsboard.integration" level="INFO" />
     <logger name="org.thingsboard.server.service.integration.DefaultIntegrationManagerService" level="TRACE" />
-    <logger name="org.thingsboard.server.service.integration.DefaultClusterIntegrationService" level="TRACE" />
 
     <logger name="com.microsoft.azure.servicebus.primitives.CoreMessageReceiver" level="OFF" />
     <logger name="org.apache.kafka.common.utils.AppInfoParser" level="WARN"/>
