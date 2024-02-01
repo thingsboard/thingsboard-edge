@@ -160,7 +160,7 @@ public class WhiteLabelingCloudProcessor extends BaseEdgeProcessor {
         LoginWhiteLabelingParams result = null;
         if (json != null) {
             try {
-                result = JacksonUtil.treeToValue(json, LoginWhiteLabelingParams.class);
+                result = JacksonUtil.treeToValue(json, LoginWhiteLabelingParams.class, true);
             } catch (IllegalArgumentException e) {
                 log.error("Unable to read Login White Labeling Params from JSON!", e);
                 throw new IncorrectParameterException("Unable to read Login White Labeling Params from JSON!");
@@ -176,7 +176,7 @@ public class WhiteLabelingCloudProcessor extends BaseEdgeProcessor {
         WhiteLabelingParams result = null;
         if (json != null) {
             try {
-                result = JacksonUtil.treeToValue(json, WhiteLabelingParams.class);
+                result = JacksonUtil.treeToValue(json, WhiteLabelingParams.class, true);
                 if (isSystem) {
                     if (!json.has("helpLinkBaseUrl")) {
                         result.setHelpLinkBaseUrl("https://thingsboard.io");

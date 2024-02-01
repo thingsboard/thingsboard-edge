@@ -192,6 +192,15 @@ public class JacksonUtil {
         }
     }
 
+    // edge: WhiteLabelingCloudProcessor
+    public static <T> T treeToValue(JsonNode node, Class<T> clazz, boolean ignoreUnknownProperties) {
+        try {
+            return IGNORE_UNKNOWN_PROPERTIES_JSON_MAPPER.treeToValue(node, clazz);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Can't convert value: " + node.toString(), e);
+        }
+    }
+
     public static JsonNode toJsonNode(String value) {
         return toJsonNode(value, OBJECT_MAPPER);
     }
