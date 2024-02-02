@@ -72,6 +72,7 @@ public class DefaultIntegrationExecutorTenantProfileCache implements Integration
                 }
                 if (profile == null) {
                     profile = integrationConfigurationService.getTenantProfile(tenantId);
+                    log.trace("Fetched tenant profile for tenant {}: {}", tenantId, profile);
                     if (profile != null) {
                         profiles.put(profile.getId(), profile);
                         tenantsProfiles.put(tenantId, profile.getId());
@@ -88,11 +89,13 @@ public class DefaultIntegrationExecutorTenantProfileCache implements Integration
     public void evict(TenantProfileId profileId) {
         tenantsProfiles.values().removeIf(profileId::equals);
         profiles.remove(profileId);
+        log.debug("Evicted tenant profile by id {}", profileId);
     }
 
     @Override
     public void evict(TenantId tenantId) {
         tenantsProfiles.remove(tenantId);
+        log.debug("Evicted tenant profile for tenant {}", tenantId);
     }
 
 }

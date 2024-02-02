@@ -39,6 +39,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -79,6 +80,9 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
 
     @SpyBean
     private DefaultIntegrationRateLimitService limitService;
+
+    @Autowired
+    private DefaultIntegrationExecutorTenantProfileCache tenantProfileCache;
 
     private static final String HTTP_UPLINK_CONVERTER_FILEPATH = "http/default_converter_configuration.json";
     private static final String HTTP_UPLINK_CONVERTER_NAME = "Default test uplink converter";
@@ -139,6 +143,8 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
             profileConfig.setIntegrationMsgsPerTenantRateLimit("10:1,20:60");
             profileConfig.setIntegrationMsgsPerDeviceRateLimit("100:1,2000:60");
         });
+        await().atMost(10, TimeUnit.SECONDS)
+                .until(() -> tenantProfileCache.get(tenantId).getDefaultProfileConfiguration().getIntegrationMsgsPerTenantRateLimit() != null);
 
         repeat(20, i -> {
             try {
@@ -168,6 +174,8 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
             profileConfig.setIntegrationMsgsPerTenantRateLimit("100:1,2000:60");
             profileConfig.setIntegrationMsgsPerDeviceRateLimit("10:1,20:60");
         });
+        await().atMost(10, TimeUnit.SECONDS)
+                .until(() -> tenantProfileCache.get(tenantId).getDefaultProfileConfiguration().getIntegrationMsgsPerDeviceRateLimit() != null);
 
         repeat(20, i -> {
             try {
