@@ -63,6 +63,10 @@
               required
               [schedulerEventConfigTypes]="schedulerEventConfigTypes"
             ></tb-scheduler-event-type-autocomplete>
+            <mat-slide-toggle [fxShow]="schedulerEventFormGroup.get('type').value"
+                              class="mat-slide" formControlName="enabled" style="margin-bottom: 22px;">
+              {{ 'scheduler.enabled' | translate }}
+            </mat-slide-toggle>
             <tb-scheduler-event-config
               [fxShow]="schedulerEventFormGroup.get('type').value"
               formControlName="configuration"

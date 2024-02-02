@@ -61,9 +61,6 @@ import { EntityFilterComponent } from '@home/components/entity/entity-filter.com
 import { RelationFiltersComponent } from '@home/components/relation/relation-filters.component';
 import { ManageWidgetActionsComponent } from '@home/components/widget/action/manage-widget-actions.component';
 import { WidgetActionDialogComponent } from '@home/components/widget/action/widget-action-dialog.component';
-import { CustomActionPrettyResourcesTabsComponent } from '@home/components/widget/action/custom-action-pretty-resources-tabs.component';
-import { CustomActionPrettyEditorComponent } from '@home/components/widget/action/custom-action-pretty-editor.component';
-import { MobileActionEditorComponent } from '@home/components/widget/action/mobile-action-editor.component';
 import { CustomDialogService } from '@home/components/widget/dialog/custom-dialog.service';
 import { CustomDialogContainerComponent } from '@home/components/widget/dialog/custom-dialog-container.component';
 import { AddWidgetToDashboardDialogComponent } from '@home/components/attribute/add-widget-to-dashboard-dialog.component';
@@ -270,9 +267,6 @@ import { WidgetComponentsModule } from '@home/components/widget/widget-component
       ManageWidgetActionsComponent,
       WidgetActionDialogComponent,
       ManageWidgetActionsDialogComponent,
-      CustomActionPrettyResourcesTabsComponent,
-      CustomActionPrettyEditorComponent,
-      MobileActionEditorComponent,
       CustomDialogContainerComponent,
       SelectTargetLayoutDialogComponent,
       SelectTargetStateDialogComponent,
@@ -448,9 +442,6 @@ import { WidgetComponentsModule } from '@home/components/widget/widget-component
     ManageWidgetActionsComponent,
     WidgetActionDialogComponent,
     ManageWidgetActionsDialogComponent,
-    CustomActionPrettyResourcesTabsComponent,
-    CustomActionPrettyEditorComponent,
-    MobileActionEditorComponent,
     CustomDialogContainerComponent,
     SelectTargetLayoutDialogComponent,
     SelectTargetStateDialogComponent,

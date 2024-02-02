@@ -83,6 +83,13 @@ public class JpaSchedulerEventInfoDao extends JpaAbstractDao<SchedulerEventInfoE
     }
 
     @Override
+    public List<SchedulerEventInfo> findSchedulerEventsByTenantIdAndEnabled(UUID tenantId, boolean enabled) {
+        return DaoUtil.convertDataList(schedulerEventInfoRepository
+                .findSchedulerEventInfoEntitiesByTenantIdAndEnabled(
+                        tenantId, enabled));
+    }
+
+    @Override
     public List<SchedulerEventWithCustomerInfo> findSchedulerEventsWithCustomerInfoByTenantId(UUID tenantId) {
         return DaoUtil.convertDataList(schedulerEventInfoRepository
                 .findSchedulerEventsWithCustomerInfoByTenantId(

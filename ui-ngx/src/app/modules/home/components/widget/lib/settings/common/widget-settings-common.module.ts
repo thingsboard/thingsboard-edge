@@ -66,6 +66,22 @@ import { ColorRangePanelComponent } from '@home/components/widget/lib/settings/c
 import {
   ColorRangeSettingsComponent, ColorRangeSettingsComponentService
 } from '@home/components/widget/lib/settings/common/color-range-settings.component';
+import {
+  GetValueActionSettingsComponent
+} from '@home/components/widget/lib/settings/common/action/get-value-action-settings.component';
+import {
+  GetValueActionSettingsPanelComponent
+} from '@home/components/widget/lib/settings/common/action/get-value-action-settings-panel.component';
+import {
+  DeviceKeyAutocompleteComponent
+} from '@home/components/widget/lib/settings/control/device-key-autocomplete.component';
+import {
+  SetValueActionSettingsComponent
+} from '@home/components/widget/lib/settings/common/action/set-value-action-settings.component';
+import {
+  SetValueActionSettingsPanelComponent
+} from '@home/components/widget/lib/settings/common/action/set-value-action-settings-panel.component';
+import { CssSizeInputComponent } from '@home/components/widget/lib/settings/common/css-size-input.component';
 
 @NgModule({
   declarations: [
@@ -76,6 +92,7 @@ import {
     ColorSettingsComponent,
     ColorSettingsPanelComponent,
     CssUnitSelectComponent,
+    CssSizeInputComponent,
     DateFormatSelectComponent,
     DateFormatSettingsPanelComponent,
     BackgroundSettingsComponent,
@@ -86,7 +103,12 @@ import {
     CountWidgetSettingsComponent,
     ColorRangeListComponent,
     ColorRangePanelComponent,
-    ColorRangeSettingsComponent
+    ColorRangeSettingsComponent,
+    GetValueActionSettingsComponent,
+    GetValueActionSettingsPanelComponent,
+    DeviceKeyAutocompleteComponent,
+    SetValueActionSettingsComponent,
+    SetValueActionSettingsPanelComponent
   ],
   imports: [
     CommonModule,
@@ -101,6 +123,7 @@ import {
     ColorSettingsComponent,
     ColorSettingsPanelComponent,
     CssUnitSelectComponent,
+    CssSizeInputComponent,
     DateFormatSelectComponent,
     DateFormatSettingsPanelComponent,
     BackgroundSettingsComponent,
@@ -111,7 +134,12 @@ import {
     CountWidgetSettingsComponent,
     ColorRangeListComponent,
     ColorRangePanelComponent,
-    ColorRangeSettingsComponent
+    ColorRangeSettingsComponent,
+    GetValueActionSettingsComponent,
+    GetValueActionSettingsPanelComponent,
+    DeviceKeyAutocompleteComponent,
+    SetValueActionSettingsComponent,
+    SetValueActionSettingsPanelComponent
   ],
   providers: [
     ColorSettingsComponentService,

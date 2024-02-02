@@ -254,6 +254,10 @@ export class WhiteLabelingService {
     return this.asWhiteLabelingObservable(() => this.getPlatformVersion());
   }
 
+  public getHideConnectivityDialog(): boolean {
+    return this.getCurrentWlParams() ? this.getCurrentWlParams().hideConnectivityDialog : false;
+  }
+
   public loadLoginWhiteLabelingParams(): Observable<LoginWhiteLabelingParams> {
     return this.http.get<LoginWhiteLabelingParams>('/api/noauth/whiteLabel/loginWhiteLabelParams').pipe(
       mergeMap((loginWlParams) => {
