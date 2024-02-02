@@ -45,8 +45,14 @@
   .mat-mdc-tab-body-wrapper {
     height: 100%;
   }
-  .mat-mdc-tab-group-dynamic-height .mat-mdc-tab-body-content {
+  .mat-mdc-tab-group {
+    width: 100%;
     overflow: auto;
+  }
+  .tb-color-picker-tab {
+    height: 100%;
+    padding: 8px 0 0;
+    display: flex;
   }
   .tb-color-picker-panel-buttons {
     height: 60px;

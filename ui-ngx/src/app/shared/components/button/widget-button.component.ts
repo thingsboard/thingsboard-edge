@@ -142,7 +142,7 @@ export class WidgetButtonComponent implements OnInit, AfterViewInit, OnDestroy, 
     if (this.appearance.showIcon) {
       this.iconStyle = iconStyle(this.appearance.iconSize, this.appearance.iconSizeUnit);
     }
-    const appearanceCss = generateWidgetButtonAppearanceCss(this.appearance);
+    const appearanceCss = generateWidgetButtonAppearanceCss(this.utils, this.appearance);
     this.appearanceCssClass = this.utils.applyCssToElement(this.renderer, this.elementRef.nativeElement,
       'tb-widget-button', appearanceCss);
     this.updateAutoScale();
