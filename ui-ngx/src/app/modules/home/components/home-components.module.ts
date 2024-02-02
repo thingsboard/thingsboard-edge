@@ -404,6 +404,7 @@ import { DeleteTimeseriesPanelComponent } from '@home/components/attribute/delet
     IntegrationComponentModule
   ],
   exports: [
+    SharedHomeComponentsModule,
     RouterTabsComponent,
     EntitiesTableComponent,
     AddEntityDialogComponent,
