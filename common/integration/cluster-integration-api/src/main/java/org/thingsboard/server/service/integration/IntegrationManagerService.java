@@ -60,4 +60,7 @@ public interface IntegrationManagerService {
     void handleValidationRequest(IntegrationValidationRequestProto validationRequestMsg, TbCallback callback);
 
     void handleValidationResponse(IntegrationValidationResponseProto validationRequestMsg, TbCallback callback);
+
+    int getIntegrationConnectionCheckApiRequestTimeoutSec();
+
 }
