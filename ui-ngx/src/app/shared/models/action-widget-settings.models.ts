@@ -30,6 +30,7 @@
 ///
 
 import { AttributeScope } from '@shared/models/telemetry/telemetry.models';
+import { widgetType } from '@shared/models/widget.models';
 
 export enum GetValueAction {
   DO_NOTHING = 'DO_NOTHING',
@@ -39,6 +40,14 @@ export enum GetValueAction {
 }
 
 export const getValueActions = Object.keys(GetValueAction) as GetValueAction[];
+
+export const getValueActionsByWidgetType = (type: widgetType): GetValueAction[] => {
+  if (type !== widgetType.rpc) {
+    return getValueActions.filter(action => action !== GetValueAction.EXECUTE_RPC);
+  } else {
+    return getValueActions;
+  }
+};
 
 export const getValueActionTranslations = new Map<GetValueAction, string>(
   [
@@ -60,11 +69,7 @@ export interface TelemetryValueSettings {
   key: string;
 }
 
-export interface GetTelemetryValueSettings extends TelemetryValueSettings {
-  subscribeForUpdates: boolean;
-}
-
-export interface GetAttributeValueSettings extends GetTelemetryValueSettings {
+export interface GetAttributeValueSettings extends TelemetryValueSettings {
   scope: AttributeScope | null;
 }
 
@@ -90,9 +95,9 @@ export interface ValueActionSettings {
 export interface GetValueSettings<V> extends ValueActionSettings {
   action: GetValueAction;
   defaultValue: V;
-  executeRpc: RpcSettings;
+  executeRpc?: RpcSettings;
   getAttribute: GetAttributeValueSettings;
-  getTimeSeries: GetTelemetryValueSettings;
+  getTimeSeries: TelemetryValueSettings;
   dataToValue: DataToValueSettings;
 }
 
@@ -103,6 +108,14 @@ export enum SetValueAction {
 }
 
 export const setValueActions = Object.keys(SetValueAction) as SetValueAction[];
+
+export const setValueActionsByWidgetType = (type: widgetType): SetValueAction[] => {
+  if (type !== widgetType.rpc) {
+    return setValueActions.filter(action => action !== SetValueAction.EXECUTE_RPC);
+  } else {
+    return setValueActions;
+  }
+};
 
 export const setValueActionTranslations = new Map<SetValueAction, string>(
   [
@@ -131,13 +144,3 @@ export interface SetValueSettings extends ValueActionSettings {
   putTimeSeries: TelemetryValueSettings;
   valueToData: ValueToDataSettings;
 }
-
-/*export interface RpcStateBehaviourSettings<V> {
-  initialState: RpcInitialStateSettings<V>;
-  updateStateByValue: (value: V) => RpcUpdateStateSettings;
-}
-
-export interface RpcStateWidgetSettings<V> {
-  initialState: RpcInitialStateSettings<V>;
-  background: BackgroundSettings;
-}*/

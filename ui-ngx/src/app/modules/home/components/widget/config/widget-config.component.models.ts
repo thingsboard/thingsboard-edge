@@ -38,7 +38,7 @@ import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { AbstractControl, UntypedFormGroup } from '@angular/forms';
-import { DataKey, DatasourceType, KeyInfo, WidgetConfigMode } from '@shared/models/widget.models';
+import { DataKey, DatasourceType, KeyInfo, WidgetConfigMode, widgetType } from '@shared/models/widget.models';
 import { WidgetConfigComponent } from '@home/components/widget/widget-config.component';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { isDefinedAndNotNull } from '@core/utils';
@@ -76,6 +76,18 @@ export abstract class BasicWidgetConfigComponent extends PageComponent implement
 
   get aliasController(): IAliasController {
     return this.widgetConfigComponent.aliasController;
+  }
+
+  get callbacks(): WidgetConfigCallbacks {
+    return this.widgetConfigComponent.widgetConfigCallbacks;
+  }
+
+  get widgetType(): widgetType {
+    return this.widgetConfigComponent.widgetType;
+  }
+
+  get widgetEditMode(): boolean {
+    return this.widgetConfigComponent.widgetEditMode;
   }
 
   widgetConfigChangedEmitter = new EventEmitter<WidgetConfigComponentData>();
