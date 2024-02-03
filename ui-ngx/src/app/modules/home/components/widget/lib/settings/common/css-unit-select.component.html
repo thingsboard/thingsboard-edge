@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field appearance="outline" subscriptSizing="dynamic" style="width: 100%;">
+<mat-form-field appearance="outline" subscriptSizing="dynamic" [style.width]="width">
   <mat-select [formControl]="cssUnitFormControl" placeholder="{{ 'widget-config.set' | translate }}">
     <mat-option *ngIf="allowEmpty" [value]="null">
     </mat-option>

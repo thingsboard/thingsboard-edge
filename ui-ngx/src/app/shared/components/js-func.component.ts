@@ -54,7 +54,8 @@ import { CancelAnimationFrame, RafService } from '@core/services/raf.service';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { TbEditorCompleter } from '@shared/models/ace/completion.models';
 import { beautifyJs } from '@shared/models/beautify.models';
-import { ScriptLanguage } from "@shared/models/rule-node.models";
+import { ScriptLanguage } from '@shared/models/rule-node.models';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-js-func',
@@ -112,6 +113,10 @@ export class JsFuncComponent implements OnInit, OnDestroy, ControlValueAccessor,
 
   @Input() scriptLanguage: ScriptLanguage = ScriptLanguage.JS;
 
+  @Input()
+  @coerceBoolean()
+  hideBrackets = false;
+
   private noValidateValue: boolean;
   get noValidate(): boolean {
     return this.noValidateValue;
@@ -130,7 +135,7 @@ export class JsFuncComponent implements OnInit, OnDestroy, ControlValueAccessor,
     this.requiredValue = coerceBooleanProperty(value);
   }
 
-  functionArgsString = '';
+  functionLabel: string;
 
   fullscreen = false;
 
@@ -145,6 +150,8 @@ export class JsFuncComponent implements OnInit, OnDestroy, ControlValueAccessor,
   errorMarkers: number[] = [];
   errorAnnotationId = -1;
 
+  private functionArgsString = '';
+
   private propagateChange = null;
   public hasErrors = false;
 
@@ -157,6 +164,9 @@ export class JsFuncComponent implements OnInit, OnDestroy, ControlValueAccessor,
   }
 
   ngOnInit(): void {
+    if (this.functionTitle) {
+      this.hideBrackets = true;
+    }
     if (!this.resultType || this.resultType.length === 0) {
       this.resultType = 'nocheck';
     }
@@ -167,6 +177,12 @@ export class JsFuncComponent implements OnInit, OnDestroy, ControlValueAccessor,
         }
         this.functionArgsString += functionArg;
       });
+    }
+    if (this.functionTitle) {
+      this.functionLabel = `${this.functionTitle}: f(${this.functionArgsString})`;
+    } else {
+      this.functionLabel =
+        `function ${this.functionName ? this.functionName : ''}(${this.functionArgsString})${this.hideBrackets ? '' : ' {'}`;
     }
     const editorElement = this.javascriptEditorElmRef.nativeElement;
     let editorOptions: Partial<Ace.EditorOptions> = {

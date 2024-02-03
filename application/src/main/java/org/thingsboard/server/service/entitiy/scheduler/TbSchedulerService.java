@@ -28,95 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-.tb-custom-action-pretty {
-  box-sizing: border-box;
-  position: relative;
-  padding: 8px;
-  background-color: #fff;
+package org.thingsboard.server.service.entitiy.scheduler;
 
-  .tb-fullscreen-panel {
-    .tb-custom-action-editor-container {
-      height: calc(100% - 40px);
-    }
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.SchedulerEventId;
+import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
+import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 
-    .right-panel {
-      padding-top: 8px;
-      padding-left: 3px;
-    }
+public interface TbSchedulerService {
 
-    tb-js-func .tb-js-func-panel {
-      box-sizing: border-box;
-    }
+    SchedulerEvent save(SchedulerEvent schedulerEvent, User user) throws ThingsboardException;
 
-    .mat-mdc-tab-group {
-      .mat-mdc-tab-body-wrapper {
-        height: 100%;
-        .mat-mdc-tab-body {
-          height: 100%;
-          & > div {
-            height: 100%;
-          }
-        }
-      }
-    }
-  }
+    void delete(SchedulerEvent schedulerEvent, User user) throws ThingsboardException;
 
-  .tb-split {
-    box-sizing: border-box;
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
+    SchedulerEventInfo assignToEdge(SchedulerEventId schedulerEventId, Edge edge, User user) throws ThingsboardException;
 
-  .tb-content {
-    border: 1px solid #c0c0c0;
-  }
+    SchedulerEventInfo unassignFromEdge(SchedulerEventId schedulerEventId, Edge edge, User user) throws ThingsboardException;
 
-  .gutter {
-    background-color: #eee;
-    background-repeat: no-repeat;
-    background-position: 50%;
-  }
-
-  .gutter.gutter-horizontal {
-    cursor: col-resize;
-    background-image: url("../../../../../../assets/split.js/grips/vertical.png");
-  }
-
-  .tb-split.tb-split-horizontal,
-  .gutter.gutter-horizontal {
-    float: left;
-    height: 100%;
-  }
-
-  .tb-action-expand-button {
-    position: absolute;
-    right: 14px;
-    z-index: 2;
-
-    &.tb-fullscreen-editor {
-      position: relative;
-      right: 0;
-     /* .mat-mdc-button {
-        .mat-icon {
-          margin-right: 5px;
-        }
-      } */
-    }
-
-   /* .mat-mdc-button {
-      min-width: 36px;
-      padding: 0;
-      .mat-icon {
-        margin-right: 0;
-      }
-    } */
-  }
-
-  .tb-custom-action-editor {
-    &.tb-fullscreen-editor {
-      height: 100%;
-    }
-  }
 }
-
-

@@ -65,6 +65,9 @@ public class LoginWhiteLabelingParams extends WhiteLabelingParams {
         if (this.showNameBottom == null) {
             this.showNameBottom = otherWlParams.showNameBottom;
         }
+        if (this.pageBackgroundColor == null) {
+            this.pageBackgroundColor = otherWlParams.pageBackgroundColor;
+        }
         return this;
     }
 }
