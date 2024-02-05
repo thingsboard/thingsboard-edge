@@ -101,6 +101,18 @@ public class CassandraBaseTimeseriesDao extends AbstractCassandraBaseTimeseriesD
     public static final String ASC_ORDER = "ASC";
     public static final long SECONDS_IN_DAY = TimeUnit.DAYS.toSeconds(1);
     protected static final List<Long> FIXED_PARTITION = List.of(0L);
+    private static String INSERT_WITH_NULL = INSERT_INTO + ModelConstants.TS_KV_CF +
+            "(" + ModelConstants.ENTITY_TYPE_COLUMN +
+            "," + ModelConstants.ENTITY_ID_COLUMN +
+            "," + ModelConstants.KEY_COLUMN +
+            "," + ModelConstants.PARTITION_COLUMN +
+            "," + ModelConstants.TS_COLUMN +
+            "," + ModelConstants.BOOLEAN_VALUE_COLUMN +
+            "," + ModelConstants.STRING_VALUE_COLUMN +
+            "," + ModelConstants.LONG_VALUE_COLUMN +
+            "," + ModelConstants.DOUBLE_VALUE_COLUMN +
+            "," + ModelConstants.JSON_VALUE_COLUMN + ")" +
+            " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     private CassandraTsPartitionsCache cassandraTsPartitionsCache;
 
@@ -197,17 +209,19 @@ public class CassandraBaseTimeseriesDao extends AbstractCassandraBaseTimeseriesD
         DataType type = tsKvEntry.getDataType();
         BoundStatementBuilder stmtBuilder;
         if (setNullValuesEnabled) {
-            Boolean booleanValue = tsKvEntry.getBooleanValue().orElse(null);
-            String strValue = tsKvEntry.getStrValue().orElse(null);
-            Long longValue = tsKvEntry.getLongValue().orElse(null);
-            Double doubleValue = tsKvEntry.getDoubleValue().orElse(null);
-            String jsonValue = tsKvEntry.getJsonValue().orElse(null);
-            if (ttl == 0) {
-                stmtBuilder = new BoundStatementBuilder(getSaveWithNullStmt()
-                        .bind(entityType, entityIdId, entryKey, partition, ts, booleanValue, strValue, longValue, doubleValue, jsonValue));
-            } else {
-                stmtBuilder = new BoundStatementBuilder(getSaveWithNullWithTtlStmt()
-                        .bind(entityType, entityIdId, entryKey, partition, ts, booleanValue, strValue, longValue, doubleValue, jsonValue, (int) ttl));
+            stmtBuilder = new BoundStatementBuilder((ttl == 0 ? getSaveWithNullStmt() : getSaveWithNullWithTtlStmt()).bind());
+            stmtBuilder.setString(0, entityType)
+                    .setUuid(1, entityIdId)
+                    .setString(2, entryKey)
+                    .setLong(3, partition)
+                    .setLong(4, ts);
+            tsKvEntry.getBooleanValue().ifPresentOrElse(l -> stmtBuilder.setBoolean(5, l), () -> stmtBuilder.setToNull(5));
+            tsKvEntry.getStrValue().ifPresentOrElse(l -> stmtBuilder.setString(6, l), () -> stmtBuilder.setToNull(6));
+            tsKvEntry.getLongValue().ifPresentOrElse(l -> stmtBuilder.setLong(7, l), () -> stmtBuilder.setToNull(7));
+            tsKvEntry.getDoubleValue().ifPresentOrElse(l -> stmtBuilder.setDouble(8, l), () -> stmtBuilder.setToNull(8));
+            tsKvEntry.getJsonValue().ifPresentOrElse(l -> stmtBuilder.setString(9, l), () -> stmtBuilder.setToNull(9));
+            if (ttl > 0) {
+                stmtBuilder.setInt(10, (int) ttl);
             }
         } else {
             stmtBuilder = new BoundStatementBuilder((ttl == 0 ? getSaveStmt(type) : getSaveTtlStmt(type)).bind());
@@ -594,18 +608,7 @@ public class CassandraBaseTimeseriesDao extends AbstractCassandraBaseTimeseriesD
             stmtCreationLock.lock();
             try {
                 if (saveWithNullStmt == null) {
-                    saveWithNullStmt = prepare(INSERT_INTO + ModelConstants.TS_KV_CF +
-                            "(" + ModelConstants.ENTITY_TYPE_COLUMN +
-                            "," + ModelConstants.ENTITY_ID_COLUMN +
-                            "," + ModelConstants.KEY_COLUMN +
-                            "," + ModelConstants.PARTITION_COLUMN +
-                            "," + ModelConstants.TS_COLUMN +
-                            "," + ModelConstants.BOOLEAN_VALUE_COLUMN +
-                            "," + ModelConstants.STRING_VALUE_COLUMN +
-                            "," + ModelConstants.LONG_VALUE_COLUMN +
-                            "," + ModelConstants.DOUBLE_VALUE_COLUMN +
-                            "," + ModelConstants.JSON_VALUE_COLUMN + ")" +
-                            " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    saveWithNullStmt = prepare(INSERT_WITH_NULL);
                 }
             } finally {
                 stmtCreationLock.unlock();
@@ -619,18 +622,7 @@ public class CassandraBaseTimeseriesDao extends AbstractCassandraBaseTimeseriesD
             stmtCreationLock.lock();
             try {
                 if (saveWithNullWithTtlStmt == null) {
-                    saveWithNullWithTtlStmt = prepare(INSERT_INTO + ModelConstants.TS_KV_CF +
-                            "(" + ModelConstants.ENTITY_TYPE_COLUMN +
-                            "," + ModelConstants.ENTITY_ID_COLUMN +
-                            "," + ModelConstants.KEY_COLUMN +
-                            "," + ModelConstants.PARTITION_COLUMN +
-                            "," + ModelConstants.TS_COLUMN +
-                            "," + ModelConstants.BOOLEAN_VALUE_COLUMN +
-                            "," + ModelConstants.STRING_VALUE_COLUMN +
-                            "," + ModelConstants.LONG_VALUE_COLUMN +
-                            "," + ModelConstants.DOUBLE_VALUE_COLUMN +
-                            "," + ModelConstants.JSON_VALUE_COLUMN + ")" +
-                            " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?) USING TTL ?");
+                    saveWithNullWithTtlStmt = prepare(INSERT_WITH_NULL + " USING TTL ?");
                 }
             } finally {
                 stmtCreationLock.unlock();
