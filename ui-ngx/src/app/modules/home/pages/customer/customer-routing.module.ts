@@ -246,7 +246,6 @@ export const customersRoute = (root = false): Route => {
     component: RouterTabsComponent,
     data: {
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      showLoadingBar: true,
       breadcrumb: {
         label: 'customer.customers',
         icon: 'supervisor_account'
