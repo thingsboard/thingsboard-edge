@@ -120,6 +120,9 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
   isEdit: boolean;
 
   @Input()
+  isPreview: boolean;
+
+  @Input()
   autofillHeight: boolean;
 
   @Input()

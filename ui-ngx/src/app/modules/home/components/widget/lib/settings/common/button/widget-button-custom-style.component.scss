@@ -28,21 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-.mdc-button.tb-value-action-settings {
-  width: 100%;
-  .mdc-button__label {
-    width: 100%;
-    & > div {
-      width: 100%;
-      display: flex;
-      flex-direction: row;
-      gap: 8px;
-      justify-content: space-between;
-      align-items: center;
-      & > span {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+@import '../../../../../../../../../scss/constants';
+
+.tb-widget-button-custom-style {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  button.mat-mdc-icon-button {
+    color: rgba(0,0,0,0.56);
+  }
+  .tb-widget-button-preview-panel {
+    width: 148px;
+    height: 48px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    tb-widget-button {
+      width: 84px;
+      height: 100%;
+    }
+    @media #{$mat-gt-xs} {
+      width: 168px;
+      tb-widget-button {
+        width: 104px;
       }
     }
   }

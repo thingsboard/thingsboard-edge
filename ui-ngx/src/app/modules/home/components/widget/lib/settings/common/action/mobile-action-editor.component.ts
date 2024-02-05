@@ -44,7 +44,7 @@ import {
   WidgetMobileActionType,
   widgetMobileActionTypeTranslationMap
 } from '@shared/models/widget.models';
-import { CustomActionEditorCompleter } from '@home/components/widget/config/action/custom-action.models';
+import { CustomActionEditorCompleter } from '@home/components/widget/lib/settings/common/action/custom-action.models';
 import {
   getDefaultGetLocationFunction,
   getDefaultGetPhoneNumberFunction,
@@ -54,7 +54,7 @@ import {
   getDefaultProcessLaunchResultFunction,
   getDefaultProcessLocationFunction,
   getDefaultProcessQrCodeFunction
-} from '@home/components/widget/config/action/mobile-action-editor.models';
+} from '@home/components/widget/lib/settings/common/action/mobile-action-editor.models';
 import { WidgetService } from '@core/http/widget.service';
 
 @Component({

@@ -1,0 +1,186 @@
+///
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+///
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+///
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
+///
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+///
+
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
+import { PageComponent } from '@shared/components/page.component';
+import { TbPopoverComponent } from '@shared/components/popover.component';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import {
+  defaultBackgroundColorDisabled,
+  defaultMainColorDisabled,
+  WidgetButtonAppearance,
+  WidgetButtonCustomStyle,
+  WidgetButtonState,
+  widgetButtonStates,
+  widgetButtonStatesTranslations,
+  WidgetButtonType
+} from '@shared/components/button/widget-button.models';
+import { merge } from 'rxjs';
+import { deepClone } from '@core/utils';
+
+@Component({
+  selector: 'tb-widget-button-custom-style-panel',
+  templateUrl: './widget-button-custom-style-panel.component.html',
+  providers: [],
+  styleUrls: ['./widget-button-custom-style-panel.component.scss'],
+  encapsulation: ViewEncapsulation.None
+})
+export class WidgetButtonCustomStylePanelComponent extends PageComponent implements OnInit {
+
+  @Input()
+  appearance: WidgetButtonAppearance;
+
+  @Input()
+  borderRadius: string;
+
+  @Input()
+  state: WidgetButtonState;
+
+  @Input()
+  customStyle: WidgetButtonCustomStyle;
+
+  @Input()
+  popover: TbPopoverComponent<WidgetButtonCustomStylePanelComponent>;
+
+  @Output()
+  customStyleApplied = new EventEmitter<WidgetButtonCustomStyle>();
+
+  widgetButtonStateTranslationMap = widgetButtonStatesTranslations;
+
+  widgetButtonState = WidgetButtonState;
+
+  previewAppearance: WidgetButtonAppearance;
+
+  copyFromStates: WidgetButtonState[];
+
+  customStyleFormGroup: UntypedFormGroup;
+
+  constructor(private fb: UntypedFormBuilder,
+              protected store: Store<AppState>,
+              private cd: ChangeDetectorRef) {
+    super(store);
+  }
+
+  ngOnInit(): void {
+    this.copyFromStates = widgetButtonStates.filter(state =>
+      state !== this.state && !!this.appearance.customStyle[state]);
+    this.customStyleFormGroup = this.fb.group(
+      {
+        overrideMainColor: [false, []],
+        mainColor: [null, []],
+        overrideBackgroundColor: [false, []],
+        backgroundColor: [null, []],
+        overrideDropShadow: [false, []],
+        dropShadow: [false, []]
+      }
+    );
+    merge(this.customStyleFormGroup.get('overrideMainColor').valueChanges,
+          this.customStyleFormGroup.get('overrideBackgroundColor').valueChanges,
+          this.customStyleFormGroup.get('overrideDropShadow').valueChanges)
+    .subscribe(() => {
+      this.updateValidators();
+    });
+    this.customStyleFormGroup.valueChanges.subscribe(() => {
+      this.updatePreviewAppearance();
+    });
+    this.setStyle(this.customStyle);
+  }
+
+  copyStyle(state: WidgetButtonState) {
+    this.customStyle = deepClone(this.appearance.customStyle[state]);
+    this.setStyle(this.customStyle);
+    this.customStyleFormGroup.markAsDirty();
+  }
+
+  cancel() {
+    this.popover?.hide();
+  }
+
+  applyCustomStyle() {
+    const customStyle: WidgetButtonCustomStyle = this.customStyleFormGroup.value;
+    this.customStyleApplied.emit(customStyle);
+  }
+
+  private setStyle(customStyle?: WidgetButtonCustomStyle): void {
+    let mainColor = this.state === WidgetButtonState.disabled ? defaultMainColorDisabled : this.appearance.mainColor;
+    if (customStyle?.overrideMainColor) {
+      mainColor = customStyle?.mainColor;
+    }
+    let backgroundColor = this.state === WidgetButtonState.disabled ? defaultBackgroundColorDisabled : this.appearance.backgroundColor;
+    if (customStyle?.overrideBackgroundColor) {
+      backgroundColor = customStyle?.backgroundColor;
+    }
+    let dropShadow = this.appearance.type === WidgetButtonType.basic ? false : true;
+    if (customStyle?.overrideDropShadow) {
+      dropShadow = customStyle?.dropShadow;
+    }
+    this.customStyleFormGroup.patchValue({
+      overrideMainColor: customStyle?.overrideMainColor,
+      mainColor,
+      overrideBackgroundColor: customStyle?.overrideBackgroundColor,
+      backgroundColor,
+      overrideDropShadow: customStyle?.overrideDropShadow,
+      dropShadow
+    }, {emitEvent: false});
+    this.updateValidators();
+    this.updatePreviewAppearance();
+  }
+
+  private updateValidators() {
+    const overrideMainColor: boolean = this.customStyleFormGroup.get('overrideMainColor').value;
+    const overrideBackgroundColor: boolean = this.customStyleFormGroup.get('overrideBackgroundColor').value;
+    const overrideDropShadow: boolean = this.customStyleFormGroup.get('overrideDropShadow').value;
+
+    if (overrideMainColor) {
+      this.customStyleFormGroup.get('mainColor').enable({emitEvent: false});
+    } else {
+      this.customStyleFormGroup.get('mainColor').disable({emitEvent: false});
+    }
+    if (overrideBackgroundColor) {
+      this.customStyleFormGroup.get('backgroundColor').enable({emitEvent: false});
+    } else {
+      this.customStyleFormGroup.get('backgroundColor').disable({emitEvent: false});
+    }
+    if (overrideDropShadow) {
+      this.customStyleFormGroup.get('dropShadow').enable({emitEvent: false});
+    } else {
+      this.customStyleFormGroup.get('dropShadow').disable({emitEvent: false});
+    }
+  }
+
+  private updatePreviewAppearance() {
+    this.previewAppearance = deepClone(this.appearance);
+    this.previewAppearance.customStyle[this.state] = this.customStyleFormGroup.value;
+    this.cd.markForCheck();
+  }
+}

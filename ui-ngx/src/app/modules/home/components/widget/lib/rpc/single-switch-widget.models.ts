@@ -66,6 +66,7 @@ export const singleSwitchLayoutImages = new Map<SingleSwitchLayout, string>(
 
 export interface SingleSwitchWidgetSettings {
   initialState: GetValueSettings<boolean>;
+  disabledState: GetValueSettings<boolean>;
   onUpdateState: SetValueSettings;
   offUpdateState: SetValueSettings;
   layout: SingleSwitchLayout;
@@ -108,12 +109,26 @@ export const singleSwitchDefaultSettings: SingleSwitchWidgetSettings = {
     },
     getAttribute: {
       key: 'state',
-      scope: null,
-      subscribeForUpdates: false
+      scope: null
     },
     getTimeSeries: {
+      key: 'state'
+    },
+    dataToValue: {
+      type: DataToValueType.NONE,
+      compareToValue: true,
+      dataToValueFunction: '/* Should return boolean value */\nreturn data;'
+    }
+  },
+  disabledState: {
+    action: GetValueAction.DO_NOTHING,
+    defaultValue: false,
+    getAttribute: {
       key: 'state',
-      subscribeForUpdates: false
+      scope: null
+    },
+    getTimeSeries: {
+      key: 'state'
     },
     dataToValue: {
       type: DataToValueType.NONE,
@@ -181,8 +196,8 @@ export const singleSwitchDefaultSettings: SingleSwitchWidgetSettings = {
   iconSize: 24,
   iconSizeUnit: 'px',
   iconColor: 'rgba(0, 0, 0, 0.76)',
-  switchColorOn: '#5469FF',
-  switchColorOff: 'rgba(84, 105, 255, 0.30)',
+  switchColorOn: 'var(--tb-primary-500)',
+  switchColorOff: 'var(--tb-primary-100)',
   switchColorDisabled: '#D5D7E5',
   tumblerColorOn: '#fff',
   tumblerColorOff: '#fff',

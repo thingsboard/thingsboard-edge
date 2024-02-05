@@ -250,6 +250,7 @@ import { MultipleGalleryImageInputComponent } from '@shared/components/image/mul
 import { EmbedImageDialogComponent } from '@shared/components/image/embed-image-dialog.component';
 import { ImageGalleryDialogComponent } from '@shared/components/image/image-gallery-dialog.component';
 import { RuleChainSelectPanelComponent } from '@shared/components/rule-chain/rule-chain-select-panel.component';
+import { WidgetButtonComponent } from '@shared/components/button/widget-button.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -468,7 +469,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     GalleryImageInputComponent,
     MultipleGalleryImageInputComponent,
     EmbedImageDialogComponent,
-    ImageGalleryDialogComponent
+    ImageGalleryDialogComponent,
+    WidgetButtonComponent
   ],
   imports: [
     CommonModule,
@@ -739,7 +741,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     GalleryImageInputComponent,
     MultipleGalleryImageInputComponent,
     EmbedImageDialogComponent,
-    ImageGalleryDialogComponent
+    ImageGalleryDialogComponent,
+    WidgetButtonComponent
   ]
 })
 export class SharedModule { }
