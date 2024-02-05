@@ -66,6 +66,7 @@ export const singleSwitchLayoutImages = new Map<SingleSwitchLayout, string>(
 
 export interface SingleSwitchWidgetSettings {
   initialState: GetValueSettings<boolean>;
+  disabledState: GetValueSettings<boolean>;
   onUpdateState: SetValueSettings;
   offUpdateState: SetValueSettings;
   layout: SingleSwitchLayout;
@@ -106,6 +107,22 @@ export const singleSwitchDefaultSettings: SingleSwitchWidgetSettings = {
       requestPersistent: false,
       persistentPollingInterval: 1000
     },
+    getAttribute: {
+      key: 'state',
+      scope: null
+    },
+    getTimeSeries: {
+      key: 'state'
+    },
+    dataToValue: {
+      type: DataToValueType.NONE,
+      compareToValue: true,
+      dataToValueFunction: '/* Should return boolean value */\nreturn data;'
+    }
+  },
+  disabledState: {
+    action: GetValueAction.DO_NOTHING,
+    defaultValue: false,
     getAttribute: {
       key: 'state',
       scope: null

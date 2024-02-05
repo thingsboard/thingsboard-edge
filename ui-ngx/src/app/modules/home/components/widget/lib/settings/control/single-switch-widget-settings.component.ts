@@ -84,6 +84,7 @@ export class SingleSwitchWidgetSettingsComponent extends WidgetSettingsComponent
       initialState: [settings.initialState, []],
       onUpdateState: [settings.onUpdateState, []],
       offUpdateState: [settings.offUpdateState, []],
+      disabledState: [settings.disabledState, []],
       layout: [settings.layout, []],
       autoScale: [settings.autoScale, []],
 
@@ -124,7 +125,7 @@ export class SingleSwitchWidgetSettingsComponent extends WidgetSettingsComponent
     return ['showLabel', 'showIcon', 'showOnLabel', 'showOffLabel'];
   }
 
-  protected updateValidators(emitEvent: boolean): void {
+  protected updateValidators(_emitEvent: boolean): void {
     const showLabel: boolean = this.singleSwitchWidgetSettingsForm.get('showLabel').value;
     const showIcon: boolean = this.singleSwitchWidgetSettingsForm.get('showIcon').value;
     const showOnLabel: boolean = this.singleSwitchWidgetSettingsForm.get('showOnLabel').value;
