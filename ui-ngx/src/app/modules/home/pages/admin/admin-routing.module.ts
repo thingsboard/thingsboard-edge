@@ -194,6 +194,7 @@ const routes: Routes = [
     component: RouterTabsComponent,
     data: {
       auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      showMainLoadingBar: false,
       breadcrumb: {
         label: 'admin.settings',
         icon: 'settings'
