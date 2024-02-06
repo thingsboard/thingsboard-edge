@@ -28,29 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration;
+package org.thingsboard.server.cache.limits;
 
 import org.thingsboard.server.common.data.TenantProfile;
-import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.id.ConverterId;
-import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.integration.IntegrationInfo;
-import org.thingsboard.server.common.data.integration.IntegrationType;
 
-import java.util.List;
+public interface TenantProfileProvider {
 
-public interface IntegrationConfigurationService {
-
-    List<IntegrationInfo> getActiveIntegrationList(IntegrationType type, boolean remote);
-
-    Integration getIntegration(TenantId tenantId, IntegrationId integrationId);
-
-    Integration getIntegration(TenantId tenantId, String routingKey);
-
-    Converter getConverter(TenantId tenantId, ConverterId converterId);
-
-    TenantProfile getTenantProfile(TenantId tenantId);
+    TenantProfile get(TenantId tenantId);
 
 }
