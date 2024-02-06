@@ -37,12 +37,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "redis.ssl.credentials")
 @Data
-public class RedisSslCredentialsConfiguration {
+public class RedisSslCredentials {
 
-    private String type;
+    private String certFile;
 
-    private RedisKeystoreCredentialsConfig keystore;
+    private String userCertFile;
 
-    private RedisPemCredentialsConfig pem;
-
+    private String userKeyFile;
 }
