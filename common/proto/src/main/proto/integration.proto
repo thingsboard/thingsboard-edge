@@ -248,11 +248,21 @@ message ConverterResponseProto {
   bytes data = 1;
 }
 
+message TenantProfileRequestProto {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+}
+
+message TenantProfileResponseProto {
+  bytes data = 1;
+}
+
 /* Request from Integration Executor Service to ThingsBoard Core Service */
 message IntegrationApiRequestMsg {
   IntegrationInfoListRequestProto integrationListRequest = 1;
   IntegrationRequestProto integrationRequest = 2;
   ConverterRequestProto converterRequest = 3;
+  TenantProfileRequestProto tenantProfileRequest = 4;
 }
 
 /* Response from ThingsBoard Core Service to Integration Executor Service */
@@ -260,6 +270,7 @@ message IntegrationApiResponseMsg {
   IntegrationInfoListResponseProto integrationListResponse = 1;
   IntegrationResponseProto integrationResponse = 2;
   ConverterResponseProto converterResponse = 3;
+  TenantProfileResponseProto tenantProfileResponse = 4;
 }
 
 /* High priority messages with low latency are handled by ThingsBoard Integration Executor Service separately */
