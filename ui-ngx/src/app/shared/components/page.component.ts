@@ -37,10 +37,9 @@ import { selectIsLoading } from '@core/interceptors/load.selectors';
 import { delay, share } from 'rxjs/operators';
 import { AbstractControl } from '@angular/forms';
 import { Operation, Resource } from '@shared/models/security.models';
-import { HasShowMainLoading } from '@home/pages/home-pages.models';
 
 @Directive()
-export abstract class PageComponent implements OnDestroy, HasShowMainLoading {
+export abstract class PageComponent implements OnDestroy {
 
   isLoading$: Observable<boolean>;
   loadingSubscription: Subscription;
