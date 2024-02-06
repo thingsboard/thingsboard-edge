@@ -80,9 +80,9 @@ public interface PartitionService {
 
     int getIntegrationExecutorPartitionsCount();
 
-    void updateQueue(TransportProtos.QueueUpdateMsg queueUpdateMsg);
+    void updateQueues(List<TransportProtos.QueueUpdateMsg> queueUpdateMsgs);
 
-    void removeQueue(TransportProtos.QueueDeleteMsg queueDeleteMsg);
+    void removeQueues(List<TransportProtos.QueueDeleteMsg> queueDeleteMsgs);
 
     void removeTenant(TenantId tenantId);
 
