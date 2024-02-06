@@ -74,7 +74,7 @@ public interface PartitionService {
 
     int resolvePartitionIndex(UUID entityId, int partitions);
 
-    void removeTenant(TenantId tenantId);
+    void evictTenantInfo(TenantId tenantId);
 
     int countTransportsByType(String type);
 
@@ -83,6 +83,8 @@ public interface PartitionService {
     void updateQueue(TransportProtos.QueueUpdateMsg queueUpdateMsg);
 
     void removeQueue(TransportProtos.QueueDeleteMsg queueDeleteMsg);
+
+    void removeTenant(TenantId tenantId);
 
     boolean isManagedByCurrentService(TenantId tenantId);
 

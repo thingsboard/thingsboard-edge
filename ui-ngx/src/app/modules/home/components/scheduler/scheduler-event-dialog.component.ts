@@ -40,7 +40,7 @@ import { DialogComponent } from '@shared/components/dialog.component';
 import { SchedulerEvent } from '@shared/models/scheduler-event.models';
 import { SchedulerEventService } from '@core/http/scheduler-event.service';
 import { SchedulerEventConfigType } from '@home/components/scheduler/scheduler-event-config.models';
-import { deepClone, isObject, isString } from '@core/utils';
+import { deepClone, isDefinedAndNotNull, isObject, isString } from '@core/utils';
 
 export interface SchedulerEventDialogData {
   schedulerEventConfigTypes: {[eventType: string]: SchedulerEventConfigType};
@@ -93,6 +93,7 @@ export class SchedulerEventDialogComponent extends DialogComponent<SchedulerEven
       name: [this.schedulerEvent.name, [Validators.required, Validators.maxLength(255)]],
       type: [this.isAdd ? this.defaultEventType : this.schedulerEvent.type, [Validators.required]],
       configuration: [configuration, [Validators.required]],
+      enabled: [isDefinedAndNotNull(this.schedulerEvent.enabled) ? this.schedulerEvent.enabled: true, []],
       schedule: [this.schedulerEvent.schedule, [Validators.required]]
     });
     if (this.readonly) {

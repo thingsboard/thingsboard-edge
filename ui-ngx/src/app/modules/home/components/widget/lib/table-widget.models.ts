@@ -105,6 +105,7 @@ export interface DisplayColumn {
   def: string;
   display: boolean;
   selectable: boolean;
+  includeToExport?: columnExportOptions;
 }
 
 export type CellContentFunction = (...args: any[]) => string;

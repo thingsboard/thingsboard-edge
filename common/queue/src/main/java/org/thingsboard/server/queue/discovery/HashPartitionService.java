@@ -52,7 +52,6 @@ import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.util.AfterStartUp;
 
 import javax.annotation.PostConstruct;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -222,12 +221,23 @@ public class HashPartitionService implements PartitionService {
         myPartitions.remove(queueKey);
         partitionTopicsMap.remove(queueKey);
         partitionSizesMap.remove(queueKey);
-        //TODO: remove after merging tb entity services
-        removeTenant(tenantId);
-
+        evictTenantInfo(tenantId);
         if (serviceInfoProvider.isService(ServiceType.TB_RULE_ENGINE)) {
             publishPartitionChangeEvent(ServiceType.TB_RULE_ENGINE, Map.of(queueKey, Collections.emptySet()));
         }
+    }
+
+    @Override
+    public void removeTenant(TenantId tenantId) {
+        List<QueueKey> queueKeys = partitionSizesMap.keySet().stream()
+                .filter(queueKey -> tenantId.equals(queueKey.getTenantId()))
+                .collect(Collectors.toList());
+        queueKeys.forEach(queueKey -> {
+            myPartitions.remove(queueKey);
+            partitionTopicsMap.remove(queueKey);
+            partitionSizesMap.remove(queueKey);
+        });
+        evictTenantInfo(tenantId);
     }
 
     @Override
@@ -273,7 +283,12 @@ public class HashPartitionService implements PartitionService {
 
     @Override
     public boolean isMyPartition(ServiceType serviceType, TenantId tenantId, EntityId entityId) {
-        return resolve(serviceType, tenantId, entityId).isMyPartition();
+        try {
+            return resolve(serviceType, tenantId, entityId).isMyPartition();
+        } catch (TenantNotFoundException e) {
+            log.warn("Tenant with id {} not found", tenantId, new RuntimeException("stacktrace"));
+            return false;
+        }
     }
 
     private TopicPartitionInfo resolve(QueueKey queueKey, EntityId entityId) {
@@ -290,6 +305,7 @@ public class HashPartitionService implements PartitionService {
 
     @Override
     public synchronized void recalculatePartitions(ServiceInfo currentService, List<ServiceInfo> otherServices) {
+        log.info("Recalculating partitions");
         tbTransportServicesByType.clear();
         responsibleServices.clear();
         logServiceInfo(currentService);
@@ -306,9 +322,14 @@ public class HashPartitionService implements PartitionService {
         final ConcurrentMap<QueueKey, List<Integer>> newPartitions = new ConcurrentHashMap<>();
         partitionSizesMap.forEach((queueKey, size) -> {
             for (int i = 0; i < size; i++) {
-                ServiceInfo serviceInfo = resolveByPartitionIdx(queueServicesMap.get(queueKey), queueKey, i);
-                if (currentService.equals(serviceInfo)) {
-                    newPartitions.computeIfAbsent(queueKey, key -> new ArrayList<>()).add(i);
+                try {
+                    ServiceInfo serviceInfo = resolveByPartitionIdx(queueServicesMap.get(queueKey), queueKey, i);
+                    log.trace("Server responsible for {}[{}] - {}", queueKey, i, serviceInfo != null ? serviceInfo.getServiceId() : "none");
+                    if (currentService.equals(serviceInfo)) {
+                        newPartitions.computeIfAbsent(queueKey, key -> new ArrayList<>()).add(i);
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to resolve server responsible for {}[{}]", queueKey, i, e);
                 }
             }
         });
@@ -392,7 +413,12 @@ public class HashPartitionService implements PartitionService {
                                     .collect(Collectors.toList()))
                             .collect(Collectors.joining(System.lineSeparator())));
         }
-        applicationEventPublisher.publishEvent(new PartitionChangeEvent(this, serviceType, partitionsMap));
+        PartitionChangeEvent event = new PartitionChangeEvent(this, serviceType, partitionsMap);
+        try {
+            applicationEventPublisher.publishEvent(event);
+        } catch (Exception e) {
+            log.error("Failed to publish partition change event {}", event, e);
+        }
     }
 
     @Override
@@ -430,7 +456,7 @@ public class HashPartitionService implements PartitionService {
     }
 
     @Override
-    public void removeTenant(TenantId tenantId) {
+    public void evictTenantInfo(TenantId tenantId) {
         tenantRoutingInfoMap.remove(tenantId);
     }
 

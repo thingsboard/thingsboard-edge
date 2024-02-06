@@ -122,7 +122,7 @@ export class ThemeColorSelectComponent extends PageComponent implements OnInit, 
     let hue = null;
     if (value) {
       const colorIndex = Object.values(this.paletteInfo).indexOf(value);
-      if (colorIndex) {
+      if (colorIndex > -1) {
         hue = this.hues[colorIndex];
       }
     }

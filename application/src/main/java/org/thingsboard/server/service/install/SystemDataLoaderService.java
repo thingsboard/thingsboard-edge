@@ -42,8 +42,6 @@ public interface SystemDataLoaderService {
 
     void createRandomJwtSettings() throws Exception;
 
-    void saveLegacyYmlSettings() throws Exception;
-
     void loadMailTemplates() throws Exception;
 
     void updateMailTemplates(JsonNode value) throws Exception;
