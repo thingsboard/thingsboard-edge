@@ -28,6 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+.mdc-linear-progress.tb-action-widget-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
 .tb-action-widget-error-container {
   position: absolute;
   bottom: 0;
