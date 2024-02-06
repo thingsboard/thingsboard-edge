@@ -43,3 +43,9 @@ ALTER TABLE rule_node ADD COLUMN IF NOT EXISTS queue_name varchar(255);
 ALTER TABLE component_descriptor ADD COLUMN IF NOT EXISTS has_queue_name boolean DEFAULT false;
 
 -- RULE NODE QUEUE UPDATE END
+
+-- SCHEDULER EVENT UPDATE START
+
+ALTER TABLE scheduler_event ADD COLUMN IF NOT EXISTS enabled boolean default true;
+
+-- SCHEDULER EVENT UPDATE END

@@ -1,0 +1,204 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+$defaultMainColor: var(--tb-primary-500);
+$defaultBackgroundColor: #FFFFFF;
+$defaultBoxShadowColor: rgba(0, 0, 0, 0.08);
+$defaultDisabledBoxShadowColor: rgba(0, 0, 0, 0);
+
+$defaultMainColorDisabled: rgba(0, 0, 0, 0.38);
+$defaultBackgroundColorDisabled: rgba(0, 0, 0, 0.03);
+
+$mainColorEnabled: var(--tb-widget-button-main-color-enabled, $defaultMainColor);
+$backgroundColorEnabled: var(--tb-widget-button-background-color-enabled, $defaultBackgroundColor);
+$boxShadowColorEnabled: var(--tb-widget-button-box-shadow-color-enabled, $defaultBoxShadowColor);
+
+$mainColorHovered: var(--tb-widget-button-main-color-hovered, $defaultMainColor);
+$backgroundColorHovered: var(--tb-widget-button-background-color-hovered, $defaultBackgroundColor);
+$boxShadowColorHovered: var(--tb-widget-button-box-shadow-color-hovered, $defaultBoxShadowColor);
+$mainColorHoveredFilled: var(--tb-widget-button-main-color-hovered-filled, #005e52); // main.darken(6)
+
+$mainColorPressed: var(--tb-widget-button-main-color-pressed, $defaultMainColor);
+$backgroundColorPressed: var(--tb-widget-button-background-color-pressed, $defaultBackgroundColor);
+$boxShadowColorPressed: var(--tb-widget-button-box-shadow-color-pressed, $defaultBoxShadowColor);
+$mainColorPressedFilled: var(--tb-widget-button-main-color-pressed-filled, #005349); // main.darken(12)
+$mainColorPressedRipple: var(--tb-widget-button-main-color-pressed-ripple, rgba(0, 105, 92, 0.1)); // Alpha(Main, 0.1)
+$mainColorPressedRippleFilled: var(--tb-widget-button-main-color-pressed-ripple-filled, #00483f); // main.darken(18)
+
+$mainColorActivated: var(--tb-widget-button-main-color-activated, $defaultMainColor);
+$backgroundColorActivated: var(--tb-widget-button-background-color-activated, $defaultBackgroundColor);
+$boxShadowColorActivated: var(--tb-widget-button-box-shadow-color-activated, $defaultBoxShadowColor);
+$mainColorActivatedFilled: var(--tb-widget-button-main-color-activated-filled, #005349); // main.darken(12)
+
+$mainColorDisabled: var(--tb-widget-button-main-color-disabled, $defaultMainColorDisabled);
+$backgroundColorDisabled: var(--tb-widget-button-background-color-disabled, $defaultBackgroundColorDisabled);
+$boxShadowColorDisabled: var(--tb-widget-button-box-shadow-color-disabled, $defaultBoxShadowColor);
+
+
+@mixin _tb-widget-button-styles($main, $background, $boxShadow) {
+  color: $main;
+  background-color: $background;
+  box-shadow: 0 4px 8px 0 $boxShadow;
+  &.tb-outlined {
+    border: 1px solid $main;
+  }
+  &.tb-filled {
+    color: $background;
+    background-color: $main;
+  }
+  &.tb-underlined {
+    border-bottom: 2px solid $main;
+  }
+  &.tb-basic {
+    background-color: transparent;
+  }
+}
+
+
+.mat-mdc-button.mat-mdc-button-base.tb-widget-button {
+  width: 100%;
+  height: 100%;
+  padding: 8px 12px;
+  .mdc-button__label {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tb-widget-button-content {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    justify-content: center;
+    align-items: center;
+    .mat-icon {
+      margin: 0;
+    }
+    span.tb-widget-button-label {
+      line-height: normal;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .mat-mdc-button-persistent-ripple::before {
+    opacity: 0;
+  }
+
+  @include _tb-widget-button-styles($mainColorEnabled, $backgroundColorEnabled, $boxShadowColorEnabled);
+
+  &:not(:disabled):not(.tb-disabled-state) {
+    &:hover, &.tb-hover-state {
+      &:not(:active):not(.tb-active-state) {
+        &:not(.tb-filled) {
+          .mat-mdc-button-persistent-ripple::before {
+            opacity: 0.04;
+            background-color: $mainColorHovered;
+          }
+        }
+        &.tb-filled {
+          .mat-mdc-button-persistent-ripple::before {
+            opacity: 1;
+            background-color: $mainColorHoveredFilled;
+          }
+        }
+        @include _tb-widget-button-styles($mainColorHovered, $backgroundColorHovered, $boxShadowColorHovered);
+      }
+    }
+    &.tb-pressed-state {
+      &:not(.tb-filled) {
+        .mat-mdc-button-ripple {
+          background-color: $mainColorPressedRipple;
+        }
+      }
+      &.tb-filled {
+        .mat-mdc-button-ripple {
+          background-color: $mainColorPressedRippleFilled;
+        }
+      }
+    }
+    &.tb-pressed {
+      &:not(.tb-filled) {
+        .mat-ripple-element {
+          background-color: $mainColorPressedRipple;
+        }
+      }
+      &.tb-filled {
+        .mat-ripple-element {
+          background-color: $mainColorPressedRippleFilled;
+        }
+      }
+    }
+    &.tb-pressed, &.tb-pressed-state {
+      &:not(.tb-filled) {
+        .mat-mdc-button-persistent-ripple::before {
+          opacity: 0.12;
+          background-color: $mainColorPressed;
+        }
+      }
+      &.tb-filled {
+        .mat-mdc-button-persistent-ripple::before {
+          opacity: 1;
+          background-color: $mainColorPressedFilled;
+        }
+      }
+      @include _tb-widget-button-styles($mainColorPressed, $backgroundColorPressed, $boxShadowColorPressed);
+    }
+    &:active, &.tb-active-state {
+      &:not(.tb-pressed):not(.tb-pressed-state) {
+        &:not(.tb-filled) {
+          .mat-mdc-button-persistent-ripple::before {
+            opacity: 0.12;
+            background-color: $mainColorActivated;
+          }
+        }
+        &.tb-filled {
+          .mat-mdc-button-persistent-ripple::before {
+            opacity: 1;
+            background-color: $mainColorActivatedFilled;
+          }
+        }
+        @include _tb-widget-button-styles($mainColorActivated, $backgroundColorActivated, $boxShadowColorActivated);
+      }
+    }
+  }
+
+  &:disabled, &.tb-disabled-state {
+    &:not(.tb-filled) {
+      @include _tb-widget-button-styles($mainColorDisabled, $backgroundColorDisabled, $boxShadowColorDisabled);
+    }
+    &.tb-filled {
+      @include _tb-widget-button-styles($backgroundColorDisabled, $mainColorDisabled, $boxShadowColorDisabled);
+    }
+  }
+}
