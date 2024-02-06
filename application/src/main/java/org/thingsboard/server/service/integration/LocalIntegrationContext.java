@@ -34,7 +34,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.gson.Gson;
 import io.netty.channel.EventLoopGroup;
 import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
@@ -67,6 +69,10 @@ public class LocalIntegrationContext implements IntegrationContext {
     protected final ConverterContext uplinkConverterContext;
     protected final ConverterContext downlinkConverterContext;
     private final Gson gson = new Gson();
+
+    @Getter
+    @Value("${integrations.init.connection_timeout_sec:10}")
+    private int integrationConnectTimeoutSec;
 
     public LocalIntegrationContext(IntegrationContextComponent ctx, Integration configuration) {
         this.ctx = ctx;

@@ -507,6 +507,11 @@ integrations:
     enabled: "${INTEGRATIONS_STATISTICS_ENABLED:true}"
     # Integration statistic persistence frequency in milliseconds
     persist_frequency: "${INTEGRATIONS_STATISTICS_PERSIST_FREQUENCY:3600000}"
+  init:
+    # Maximum connection timeout allowed for integrations in seconds. Any greater user defined timeout will be reduced down to this limit.
+    connection_timeout_sec: "${INTEGRATIONS_INIT_CONNECTION_TIMEOUT_SEC:10}"
+    # Connection check timeout for API request in seconds
+    connection_check_api_request_timeout_sec: "${INTEGRATIONS_INIT_CONNECTION_CHECK_API_REQUEST_TIMEOUT_SEC:20}"
   reinit:
     # Enable/Disable integrations hot reinitialization
     enabled: "${INTEGRATIONS_REINIT_ENABLED:true}"

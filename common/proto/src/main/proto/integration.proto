@@ -285,6 +285,10 @@ message IntegrationValidationRequestProto {
   string serviceId = 3;
   bytes configuration = 4;
   string type = 5;
+  int64 tenantIdMSB = 6;
+  int64 tenantIdLSB = 7;
+  int64 timestamp = 8; // timestamp
+  int64 deadline = 9; // deadline timestamp. after deadline the response is not expected anymore
 }
 
 message ToIntegrationExecutorDownlinkMsg {
