@@ -48,6 +48,8 @@ public enum LimitedApi {
     CASSANDRA_QUERIES(DefaultTenantProfileConfiguration::getCassandraQueryTenantRateLimitsConfiguration, "Cassandra queries", true),
     INTEGRATION_MSGS_PER_TENANT(DefaultTenantProfileConfiguration::getIntegrationMsgsPerTenantRateLimit, "integration messages", true),
     INTEGRATION_MSGS_PER_DEVICE(DefaultTenantProfileConfiguration::getIntegrationMsgsPerDeviceRateLimit, "integration messages per device", false),
+    INTEGRATION_EVENTS(false, true),
+    CONVERTER_EVENTS(false, true),
     REPORTS("reports generation", true),
     PASSWORD_RESET(false, true),
     TWO_FA_VERIFICATION_CODE_SEND(false, true),

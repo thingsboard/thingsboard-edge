@@ -340,7 +340,7 @@ public class DashboardController extends BaseController {
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         MergedUserPermissions mergedUserPermissions = securityUser.getUserPermissions();
         return entityService.findUserEntities(securityUser.getTenantId(), securityUser.getCustomerId(), mergedUserPermissions, EntityType.DASHBOARD,
-                operationType, null, pageLink, mobile != null ? mobile : false);
+                operationType, null, pageLink, mobile != null ? mobile : false, false);
     }
 
     @ApiOperation(value = "Get All Dashboards for current user (getAllDashboards)",

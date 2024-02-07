@@ -281,11 +281,17 @@ message ConverterRequestProto {
   int64 tenantIdLSB = 4;
 }
 
+message TenantProfileRequestProto {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+}
+
 /* Request from Integration Executor Service to ThingsBoard Core Service */
 message IntegrationApiRequestMsg {
   IntegrationInfoListRequestProto integrationListRequest = 1;
   IntegrationRequestProto integrationRequest = 2;
   ConverterRequestProto converterRequest = 3;
+  TenantProfileRequestProto tenantProfileRequest = 4;
 }
 
 /* Response from ThingsBoard Core Service to Integration Executor Service */
@@ -293,6 +299,7 @@ message IntegrationApiResponseMsg {
   IntegrationInfoListResponseProto integrationListResponse = 1;
   IntegrationProto integrationResponse = 2;
   ConverterProto converterResponse = 3;
+  transport.TenantProfileProto tenantProfileResponse = 4;
 }
 
 /* High priority messages with low latency are handled by ThingsBoard Integration Executor Service separately */
@@ -306,6 +313,10 @@ message IntegrationValidationRequestProto {
   string serviceId = 3;
   IntegrationProto configuration = 4;
   string type = 5;
+  int64 tenantIdMSB = 6;
+  int64 tenantIdLSB = 7;
+  int64 timestamp = 8; // timestamp
+  int64 deadline = 9; // deadline timestamp. after deadline the response is not expected anymore
 }
 
 message ToIntegrationExecutorDownlinkMsg {

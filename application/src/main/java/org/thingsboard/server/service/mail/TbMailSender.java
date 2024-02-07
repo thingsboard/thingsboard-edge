@@ -45,9 +45,7 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.AttributeScope;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
@@ -60,7 +58,7 @@ import jakarta.mail.internet.MimeMessage;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.locks.Lock;
@@ -74,7 +72,6 @@ public class TbMailSender extends JavaMailSenderImpl {
     private static final String MAIL_PROP = "mail.";
     private final TbMailContextComponent ctx;
     private final Lock lock;
-
     private final Boolean oauth2Enabled;
     private volatile String accessToken;
     private volatile long tokenExpires;
@@ -181,12 +178,7 @@ public class TbMailSender extends JavaMailSenderImpl {
         lock.lock();
         try {
             if (System.currentTimeMillis() > getTokenExpires()) {
-                AdminSettings settings;
-                if (TenantId.SYS_TENANT_ID.equals(tenantId)) {
-                    settings = ctx.getAdminSettingsService().findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mail");
-                } else {
-                    settings = getTenantAdminSettings(tenantId, "mail");
-                }
+                AdminSettings settings = getMailSettings(tenantId);
                 JsonNode jsonValue = settings.getJsonValue();
                 String clientId = jsonValue.get("clientId").asText();
                 String clientSecret = jsonValue.get("clientSecret").asText();
@@ -218,13 +210,32 @@ public class TbMailSender extends JavaMailSenderImpl {
         }
     }
 
-    private AdminSettings getTenantAdminSettings(TenantId tenantId, String key) throws Exception {
-        String jsonString = getEntityAttributeValue(tenantId, tenantId, key);
-        JsonNode jsonValue = StringUtils.isEmpty(jsonString) ? null : JacksonUtil.toJsonNode(jsonString);
-        AdminSettings adminSettings = new AdminSettings();
-        adminSettings.setKey(key);
-        adminSettings.setJsonValue(jsonValue);
-        return adminSettings;
+    public AdminSettings getMailSettings(TenantId tenantId) throws Exception {
+        if (TenantId.SYS_TENANT_ID.equals(tenantId)) {
+            return getSystemMailSettings();
+        } else {
+            String jsonString = getTenantMailAttributeValue(tenantId);
+            if (jsonString != null) {
+                JsonNode useSystemMailSettingsNode = JacksonUtil.toJsonNode(jsonString).get("useSystemMailSettings");
+                if (useSystemMailSettingsNode == null || useSystemMailSettingsNode.asBoolean()) {
+                    jsonString = null;
+                }
+            }
+            if (jsonString == null) {
+                if (!isAllowSystemMailService()) {
+                    throw new RuntimeException("Access to System Mail Service is forbidden!");
+                }
+                return getSystemMailSettings();
+            }
+            AdminSettings adminSettings = new AdminSettings();
+            adminSettings.setKey("mail");
+            adminSettings.setJsonValue(JacksonUtil.toJsonNode(jsonString));
+            return adminSettings;
+        }
+    }
+
+    public boolean isAllowSystemMailService() {
+        return ctx.isAllowSystemMailService();
     }
 
     private void saveTenantAdminSettings(TenantId tenantId, AdminSettings adminSettings) throws Exception {
@@ -235,17 +246,20 @@ public class TbMailSender extends JavaMailSenderImpl {
         ctx.getAttributesService().save(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attributes).get();
     }
 
-    private String getEntityAttributeValue(TenantId tenantId, EntityId entityId, String key) throws Exception {
+    public AdminSettings getSystemMailSettings() {
+        return ctx.getAdminSettingsService().findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mail");
+    }
+
+    public String getTenantMailAttributeValue(TenantId tenantId) throws Exception {
         List<AttributeKvEntry> attributeKvEntries =
-                ctx.getAttributesService().find(tenantId, entityId, AttributeScope.SERVER_SCOPE, Arrays.asList(key)).get();
+                ctx.getAttributesService().find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, Collections.singletonList("mail")).get();
         if (attributeKvEntries != null && !attributeKvEntries.isEmpty()) {
             AttributeKvEntry kvEntry = attributeKvEntries.get(0);
             return kvEntry.getValueAsString();
         } else {
-            return "";
+            return null;
         }
     }
-
 
     private int parsePort(String strPort) {
         try {

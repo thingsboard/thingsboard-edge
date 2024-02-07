@@ -32,9 +32,12 @@ package org.thingsboard.server.queue;
 
 import org.thingsboard.server.common.data.queue.Queue;
 
+import java.util.List;
+
 public interface TbQueueClusterService {
 
-    void onQueueChange(Queue queue);
+    void onQueuesUpdate(List<Queue> queues);
 
-    void onQueueDelete(Queue queue);
+    void onQueuesDelete(List<Queue> queues);
+
 }

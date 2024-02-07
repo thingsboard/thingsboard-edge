@@ -44,20 +44,15 @@ import {
   GridSettings,
   WidgetLayout
 } from '@shared/models/dashboard.models';
-import {
-  deepClone,
-  isDefined,
-  isDefinedAndNotNull,
-  isEmptyStr,
-  isNotEmptyStr,
-  isString,
-  isUndefined
-} from '@core/utils';
+import { deepClone, isDefined, isDefinedAndNotNull, isNotEmptyStr, isString, isUndefined } from '@core/utils';
 import {
   Datasource,
   datasourcesHasOnlyComparisonAggregation,
   DatasourceType,
-  defaultLegendConfig, isValidWidgetFullFqn,
+  defaultLegendConfig,
+  isValidWidgetFullFqn,
+  TargetDevice,
+  TargetDeviceType,
   Widget,
   WidgetConfig,
   WidgetConfigMode,
@@ -143,7 +138,7 @@ export class DashboardUtilsService {
       }
     }
     const datasourcesByAliasId: {[aliasId: string]: Array<Datasource>} = {};
-    const targetDevicesByAliasId: {[aliasId: string]: Array<Array<string>>} = {};
+    const targetDevicesByAliasId: {[aliasId: string]: Array<TargetDevice>} = {};
     for (const widgetId of Object.keys(dashboard.configuration.widgets)) {
       const widget = dashboard.configuration.widgets[widgetId];
       const datasources = widget.type === widgetType.alarm ? [widget.config.alarmSource] : widget.config.datasources;
@@ -158,14 +153,14 @@ export class DashboardUtilsService {
           aliasDatasources.push(datasource);
         }
       });
-      if (widget.config.targetDeviceAliasIds && widget.config.targetDeviceAliasIds.length) {
-        const aliasId = widget.config.targetDeviceAliasIds[0];
-        let targetDeviceAliasIdsList = targetDevicesByAliasId[aliasId];
-        if (!targetDeviceAliasIdsList) {
-          targetDeviceAliasIdsList = [];
-          targetDevicesByAliasId[aliasId] = targetDeviceAliasIdsList;
+      if (widget.config.targetDevice?.type === TargetDeviceType.entity && widget.config.targetDevice.entityAliasId) {
+        const aliasId = widget.config.targetDevice.entityAliasId;
+        let targetDevicesList = targetDevicesByAliasId[aliasId];
+        if (!targetDevicesList) {
+          targetDevicesList = [];
+          targetDevicesByAliasId[aliasId] = targetDevicesList;
         }
-        targetDeviceAliasIdsList.push(widget.config.targetDeviceAliasIds);
+        targetDevicesList.push(widget.config.targetDevice);
       }
     }
 
@@ -300,21 +295,23 @@ export class DashboardUtilsService {
     if (!widgetConfig) {
       widgetConfig = {};
     }
-    if (!widgetConfig.datasources) {
-      widgetConfig.datasources = [];
-    }
-    widgetConfig.datasources.forEach((datasource) => {
-      if (datasource.deviceAliasId) {
-        datasource.type = DatasourceType.entity;
-        datasource.entityAliasId = datasource.deviceAliasId;
-        delete datasource.deviceAliasId;
-      }
-    });
+    widgetConfig.datasources = this.validateAndUpdateDatasources(widgetConfig.datasources);
     if (type === widgetType.latest) {
       const onlyHistoryTimewindow = datasourcesHasOnlyComparisonAggregation(widgetConfig.datasources);
       widgetConfig.timewindow = initModelFromDefaultTimewindow(widgetConfig.timewindow, true, onlyHistoryTimewindow, this.timeService);
-    }
-    if (type === widgetType.alarm) {
+    } else if (type === widgetType.rpc) {
+      if (widgetConfig.targetDeviceAliasIds && widgetConfig.targetDeviceAliasIds.length) {
+        widgetConfig.targetDevice = {
+          type: TargetDeviceType.entity,
+          entityAliasId: widgetConfig.targetDeviceAliasIds[0]
+        };
+        delete widgetConfig.targetDeviceAliasIds;
+      } else if (!widgetConfig.targetDevice) {
+        widgetConfig.targetDevice = {
+          type: TargetDeviceType.device
+        };
+      }
+    } else if (type === widgetType.alarm) {
       if (!widgetConfig.alarmFilterConfig) {
         widgetConfig.alarmFilterConfig = {};
         const alarmFilterConfig = widgetConfig.alarmFilterConfig;
@@ -352,6 +349,35 @@ export class DashboardUtilsService {
       }
     }
     return widgetConfig;
+  }
+
+  public validateAndUpdateDatasources(datasources?: Datasource[]): Datasource[] {
+    if (!datasources) {
+      datasources = [];
+    }
+    datasources.forEach((datasource) => {
+      if (datasource.deviceAliasId) {
+        datasource.type = DatasourceType.entity;
+        datasource.entityAliasId = datasource.deviceAliasId;
+        delete datasource.deviceAliasId;
+      }
+      if (datasource.deviceName) {
+        datasource.entityName = datasource.deviceName;
+        delete datasource.deviceName;
+      }
+      if (datasource.type === DatasourceType.entity && datasource.entityId) {
+        datasource.name = datasource.entityName;
+      }
+      if (!datasource.dataKeys) {
+        datasource.dataKeys = [];
+      }
+      datasource.dataKeys.forEach(dataKey => {
+        if (isUndefined(dataKey.label)) {
+          dataKey.label = dataKey.name;
+        }
+      });
+    });
+    return datasources;
   }
 
   public createDefaultLayoutData(): DashboardLayout {
@@ -721,7 +747,7 @@ export class DashboardUtilsService {
 
   private validateAndUpdateEntityAliases(configuration: DashboardConfiguration,
                                          datasourcesByAliasId: {[aliasId: string]: Array<Datasource>},
-                                         targetDevicesByAliasId: {[aliasId: string]: Array<Array<string>>}): DashboardConfiguration {
+                                         targetDevicesByAliasId: {[aliasId: string]: Array<TargetDevice>}): DashboardConfiguration {
     let entityAlias: EntityAlias;
     if (isUndefined(configuration.entityAliases)) {
       configuration.entityAliases = {};
@@ -751,7 +777,7 @@ export class DashboardUtilsService {
   private validateAndUpdateDeviceAlias(aliasId: string,
                                        deviceAlias: any,
                                        datasourcesByAliasId: {[aliasId: string]: Array<Datasource>},
-                                       targetDevicesByAliasId: {[aliasId: string]: Array<Array<string>>}): EntityAlias {
+                                       targetDevicesByAliasId: {[aliasId: string]: Array<TargetDevice>}): EntityAlias {
     aliasId = this.validateAliasId(aliasId, datasourcesByAliasId, targetDevicesByAliasId);
     const alias = deviceAlias.alias;
     const entityAlias: EntityAlias = {
@@ -780,7 +806,7 @@ export class DashboardUtilsService {
 
   private validateAndUpdateEntityAlias(aliasId: string, entityAlias: EntityAlias,
                                        datasourcesByAliasId: {[aliasId: string]: Array<Datasource>},
-                                       targetDevicesByAliasId: {[aliasId: string]: Array<Array<string>>}): EntityAlias {
+                                       targetDevicesByAliasId: {[aliasId: string]: Array<TargetDevice>}): EntityAlias {
     entityAlias.id = this.validateAliasId(aliasId, datasourcesByAliasId, targetDevicesByAliasId);
     if (!entityAlias.filter) {
       entityAlias.filter = {
@@ -842,7 +868,7 @@ export class DashboardUtilsService {
 
   private validateAliasId(aliasId: string,
                           datasourcesByAliasId: {[aliasId: string]: Array<Datasource>},
-                          targetDevicesByAliasId: {[aliasId: string]: Array<Array<string>>}): string {
+                          targetDevicesByAliasId: {[aliasId: string]: Array<TargetDevice>}): string {
     if (!aliasId || !isString(aliasId) || aliasId.length !== 36) {
       const newAliasId = this.utils.guid();
       const aliasDatasources = datasourcesByAliasId[aliasId];
@@ -853,11 +879,11 @@ export class DashboardUtilsService {
           }
         );
       }
-      const targetDeviceAliasIdsList = targetDevicesByAliasId[aliasId];
-      if (targetDeviceAliasIdsList) {
-        targetDeviceAliasIdsList.forEach(
-          (targetDeviceAliasIds) => {
-            targetDeviceAliasIds[0] = newAliasId;
+      const targetDevicesList = targetDevicesByAliasId[aliasId];
+      if (targetDevicesList) {
+        targetDevicesList.forEach(
+          (targetDevice) => {
+            targetDevice.entityAliasId = newAliasId;
           }
         );
       }

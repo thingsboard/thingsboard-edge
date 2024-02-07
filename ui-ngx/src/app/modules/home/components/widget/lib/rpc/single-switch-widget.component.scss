@@ -1,0 +1,183 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+$tumblerColorOn: var(--tb-single-switch-tumbler-color-on, #fff);
+$tumblerColorOff: var(--tb-single-switch-tumbler-color-off, #fff);
+$tumblerColorDisabled: var(--tb-single-switch-tumbler-color-disabled, #fff);
+
+$switchColorOn: var(--tb-single-switch-color-on, #5469FF);
+$switchColorOff: var(--tb-single-switch-color-off, rgba(84, 105, 255, 0.30));
+$switchColorDisabled: var(--tb-single-switch-color-disabled, #D5D7E5);
+
+.tb-single-switch-panel {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 24px;
+  &.auto-scale {
+    padding: 0;
+  }
+  > div:not(.tb-single-switch-overlay), > tb-icon {
+    z-index: 1;
+  }
+  .tb-single-switch-overlay {
+    position: absolute;
+    inset: 12px;
+  }
+  > div.tb-single-switch-title-panel {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    z-index: 2;
+  }
+  .tb-single-switch-content {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    &.right {
+      flex-direction: row;
+      justify-content: space-between;
+    }
+    &.no-label.right {
+      justify-content: flex-end;
+    }
+    &.left {
+      flex-direction: row-reverse;
+      justify-content: flex-end;
+    }
+    &.centered {
+      flex-direction: row;
+      justify-content: center;
+    }
+    .tb-single-switch-label-row {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+      .tb-single-switch-label {
+        white-space: nowrap;
+      }
+    }
+    &:not(.auto-scale) {
+      .tb-single-switch-label-row {
+        overflow: hidden;
+        .tb-single-switch-label {
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+    }
+    .tb-single-switch-slide-toggle-row {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+    }
+    .mat-mdc-slide-toggle {
+      &.tb-single-switch-toggle {
+        .mdc-switch {
+          width: 42px;
+          height: 22px;
+          .mdc-switch__track {
+            height: 22px;
+            border-radius: 11px;
+            &::after, &::before {
+              border: none;
+            }
+          }
+          .mdc-switch__handle-track {
+            width: calc(100% - 22px);
+            left: 2px;
+          }
+          .mdc-switch__handle {
+            border-radius: 9px;
+            width: 18px;
+            height: 18px;
+          }
+          .mdc-switch__ripple {
+            width: 36px;
+            height: 36px;
+          }
+          .mdc-switch__icons {
+            display: none;
+          }
+          &:disabled {
+            .mdc-switch__track {
+              opacity: 1;
+              &::after, &::before {
+                background: $switchColorDisabled;
+              }
+            }
+            .mdc-switch__handle::after {
+              opacity: 1;
+              background: $tumblerColorDisabled;
+            }
+          }
+          &:enabled, &:enabled:hover {
+            .mdc-switch__track {
+              &::after {
+                background: $switchColorOn;
+              }
+              &::before {
+                background: $switchColorOff;
+              }
+            }
+            &.mdc-switch--selected {
+              .mdc-switch__handle::after {
+                background: $tumblerColorOn;
+              }
+              .mdc-switch__ripple::after {
+                background-color: $switchColorOn;
+              }
+            }
+            &.mdc-switch--unselected {
+              .mdc-switch__handle::after {
+                background: $tumblerColorOff;
+              }
+              .mdc-switch__ripple::after {
+                background-color: $switchColorOff;
+              }
+            }
+          }
+        }
+        .mdc-form-field > label {
+          display: none;
+        }
+      }
+    }
+  }
+}

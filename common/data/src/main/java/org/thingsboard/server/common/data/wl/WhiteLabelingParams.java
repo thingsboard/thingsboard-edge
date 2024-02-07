@@ -68,6 +68,8 @@ public class WhiteLabelingParams {
     protected String platformVersion;
     @Schema(description = "Custom CSS content")
     protected String customCss;
+    @Schema(description = "Hide device connectivity dialog")
+    protected Boolean hideConnectivityDialog;
 
     public WhiteLabelingParams merge(WhiteLabelingParams otherWlParams) {
         if (StringUtils.isEmpty(this.logoImageUrl)) {
@@ -107,6 +109,9 @@ public class WhiteLabelingParams {
             } else {
                 this.customCss = otherWlParams.customCss + "\n" + this.customCss;
             }
+        }
+        if (this.hideConnectivityDialog == null) {
+            this.hideConnectivityDialog = false;
         }
         return this;
     }

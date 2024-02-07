@@ -70,8 +70,8 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.util.ThrowingSupplier;
 import org.thingsboard.server.dao.resource.ImageCacheKey;
 import org.thingsboard.server.dao.resource.ImageService;
-import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.dao.service.validator.ResourceDataValidator;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.resource.TbImageService;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -107,7 +107,6 @@ public class ImageController extends BaseController {
     private static final String TENANT_IMAGE = "tenant";
 
     private static final String IMAGE_TYPE_PARAM_DESCRIPTION = "Type of the image: tenant or system";
-    private static final String IMAGE_TYPE_PARAM_ALLOWABLE_VALUES = "tenant, system";
     private static final String IMAGE_KEY_PARAM_DESCRIPTION = "Image resource key, for example thermostats_dashboard_background.jpeg";
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
@@ -200,7 +199,9 @@ public class ImageController extends BaseController {
 
     @GetMapping(value = "/api/noauth/whiteLabel/loginLogo/{type}/{key}", produces = "image/*")
     public ResponseEntity<ByteArrayResource> downloadLoginLogo(HttpServletRequest request,
+                                                               @Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {"tenant", "system"}), required = true)
                                                                @PathVariable String type,
+                                                               @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
                                                                @PathVariable String key,
                                                                @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag) throws Exception {
         return this.downloadLoginImage(request.getServerName(), type, key, etag, false);
@@ -208,7 +209,9 @@ public class ImageController extends BaseController {
 
     @GetMapping(value = "/api/noauth/whiteLabel/loginFavicon/{type}/{key}", produces = "image/*")
     public ResponseEntity<ByteArrayResource> downloadLoginFavicon(HttpServletRequest request,
+                                                                  @Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {"tenant", "system"}), required = true)
                                                                   @PathVariable String type,
+                                                                  @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
                                                                   @PathVariable String key,
                                                                   @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag) throws Exception {
         return this.downloadLoginImage(request.getServerName(), type, key, etag, true);

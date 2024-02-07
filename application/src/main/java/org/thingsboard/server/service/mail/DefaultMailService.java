@@ -191,7 +191,7 @@ public class DefaultMailService implements MailService {
         passwordResetExecutorService.execute(() -> {
             try {
                 this.sendResetPasswordEmail(tenantId, passwordResetLink, email);
-            } catch (ThingsboardException e) {
+            } catch (Exception e) {
                 log.error("Error occurred: {} ", e.getMessage());
             }
         });

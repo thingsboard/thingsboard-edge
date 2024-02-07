@@ -39,15 +39,20 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.service.cache.DefaultIntegrationExecutorTenantProfileCache;
+import org.thingsboard.server.service.cache.IntegrationExecutorTenantProfileCache;
 
 import java.io.InputStream;
 import java.util.List;
@@ -66,19 +71,30 @@ import static org.thingsboard.server.service.integration.IntegrationDebugMessage
 @TestPropertySource(properties = {
         "js.evaluator=local",
         "service.integrations.supported=ALL",
-        "transport.coap.enabled=true",
-        "integrations.rate_limits.enabled=true"
+        "transport.coap.enabled=true"
 })
 @Slf4j
 @DaoSqlTest
+@ContextConfiguration(classes = {BasicRateLimitsIntegrationTest.Config.class})
 public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
 
     @SpyBean
     private DefaultIntegrationRateLimitService limitService;
 
+    @Autowired
+    private DefaultIntegrationExecutorTenantProfileCache tenantProfileCache;
+
     private static final String HTTP_UPLINK_CONVERTER_FILEPATH = "http/default_converter_configuration.json";
     private static final String HTTP_UPLINK_CONVERTER_NAME = "Default test uplink converter";
     private static final JsonNode TEST_DATA = JacksonUtil.fromString("{\"test\":1}", JsonNode.class);
+
+    static class Config {
+        @Primary
+        @Bean
+        public IntegrationExecutorTenantProfileCache tenantProfileCache(IntegrationConfigurationService integrationConfigurationService) {
+            return new DefaultIntegrationExecutorTenantProfileCache(integrationConfigurationService);
+        }
+    }
 
     @Before
     public void beforeTest() throws Exception {
@@ -123,9 +139,12 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testIntegrationRateLimitPerTenant() throws Exception {
         long startTime = System.currentTimeMillis();
-        ReflectionTestUtils.setField(limitService, "perTenantLimitsConf", "10:1,20:60");
-        ReflectionTestUtils.setField(limitService, "perDevicesLimitsConf", "100:1,2000:60");
-        ReflectionTestUtils.invokeMethod(limitService, "init");
+        updateDefaultTenantProfileConfig(profileConfig -> {
+            profileConfig.setIntegrationMsgsPerTenantRateLimit("10:1,20:60");
+            profileConfig.setIntegrationMsgsPerDeviceRateLimit("100:1,2000:60");
+        });
+        await().atMost(10, TimeUnit.SECONDS)
+                .until(() -> tenantProfileCache.get(tenantId).getDefaultProfileConfiguration().getIntegrationMsgsPerTenantRateLimit() != null);
 
         repeat(20, i -> {
             try {
@@ -151,9 +170,12 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testIntegrationRateLimitPerDevice() throws Exception {
         long startTime = System.currentTimeMillis();
-        ReflectionTestUtils.setField(limitService, "perTenantLimitsConf", "100:1,2000:60");
-        ReflectionTestUtils.setField(limitService, "perDevicesLimitsConf", "10:1,20:60");
-        ReflectionTestUtils.invokeMethod(limitService, "init");
+        updateDefaultTenantProfileConfig(profileConfig -> {
+            profileConfig.setIntegrationMsgsPerTenantRateLimit("100:1,2000:60");
+            profileConfig.setIntegrationMsgsPerDeviceRateLimit("10:1,20:60");
+        });
+        await().atMost(10, TimeUnit.SECONDS)
+                .until(() -> tenantProfileCache.get(tenantId).getDefaultProfileConfiguration().getIntegrationMsgsPerDeviceRateLimit() != null);
 
         repeat(20, i -> {
             try {
