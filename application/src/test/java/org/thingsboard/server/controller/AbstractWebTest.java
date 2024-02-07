@@ -186,6 +186,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     private static final String DIFFERENT_TENANT_ADMIN_PASSWORD = "difftenant";
 
     protected static final String CUSTOMER_USER_EMAIL = "testcustomer@thingsboard.org";
+    protected static final String SUB_CUSTOMER_ADMIN_USER_EMAIL = "testsubcustomeradmin@thingsboard.org";
     protected static final String CUSTOMER_ADMIN_EMAIL = "testcustomeradmin@thingsboard.org";
     private static final String CUSTOMER_USER_PASSWORD = "customer";
     private static final String CUSTOMER_ADMIN_USER_PASSWORD = "customerAdmin";
@@ -220,10 +221,12 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected CustomerId tenantAdminCustomerId;
     protected TenantId differentTenantId;
     protected CustomerId customerId;
+    protected CustomerId subCustomerId;
     protected CustomerId differentCustomerId;
 
     protected CustomerId differentTenantCustomerId;
     protected UserId customerUserId;
+    protected UserId subCustomerAdminUserId;
     protected UserId customerAdminUserId;
     protected UserId differentCustomerUserId;
 
@@ -335,6 +338,22 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         EntityGroupInfo customerAdminsGroup = findCustomerAdminsGroup(customerId);
         customerAdminUserId = createUser(customerAUser, CUSTOMER_ADMIN_USER_PASSWORD, customerAdminsGroup.getId()).getId();
 
+        Customer subCustomer = new Customer();
+        subCustomer.setTitle("SubCustomer");
+        subCustomer.setTenantId(tenantId);
+        subCustomer.setParentCustomerId(customerId);
+        Customer savedSubCustomer = doPost("/api/customer", subCustomer, Customer.class);
+        subCustomerId = savedSubCustomer.getId();
+
+        User subCustomerAdminUser = new User();
+        subCustomerAdminUser.setAuthority(Authority.CUSTOMER_USER);
+        subCustomerAdminUser.setTenantId(tenantId);
+        subCustomerAdminUser.setCustomerId(savedSubCustomer.getId());
+        subCustomerAdminUser.setEmail(SUB_CUSTOMER_ADMIN_USER_EMAIL);
+        EntityGroupInfo subCustomerAdminsGroup = findCustomerAdminsGroup(subCustomerId);
+
+        subCustomerAdminUserId = createUser(subCustomerAdminUser, CUSTOMER_ADMIN_USER_PASSWORD, subCustomerAdminsGroup.getId()).getId();
+
         resetTokens();
 
         log.debug("Executed web test setup");
@@ -431,6 +450,10 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     protected void loginCustomerAdminUser() throws Exception {
         login(CUSTOMER_ADMIN_EMAIL, CUSTOMER_ADMIN_USER_PASSWORD);
+    }
+
+    protected void loginSubCustomerAdminUser() throws Exception {
+        login(SUB_CUSTOMER_ADMIN_USER_EMAIL, CUSTOMER_ADMIN_USER_PASSWORD);
     }
 
     protected void loginUser(String userName, String password) throws Exception {
