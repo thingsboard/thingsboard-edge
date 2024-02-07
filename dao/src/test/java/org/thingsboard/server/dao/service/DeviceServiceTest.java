@@ -49,8 +49,6 @@ import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TenantProfile;
-import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
@@ -63,6 +61,7 @@ import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.exception.DeviceCredentialsValidationException;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.exception.DataValidationException;
@@ -141,6 +140,30 @@ public class DeviceServiceTest extends AbstractServiceTest {
         Assertions.assertThrows(DataValidationException.class, () -> {
             this.saveDevice(tenantId, "My second device that out of maxDeviceCount limit");
         });
+    }
+
+    @Test
+    public void testSaveDevicesWithTheSameAccessToken() {
+        Device device = new Device();
+        device.setTenantId(tenantId);
+        device.setName(StringUtils.randomAlphabetic(10));
+        device.setType("default");
+        String accessToken = StringUtils.generateSafeToken(10);
+        Device savedDevice = deviceService.saveDeviceWithAccessToken(device, accessToken);
+
+        DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, savedDevice.getId());
+        Assert.assertEquals(accessToken, deviceCredentials.getCredentialsId());
+
+        Device duplicatedDevice = new Device();
+        duplicatedDevice.setTenantId(tenantId);
+        duplicatedDevice.setName(StringUtils.randomAlphabetic(10));
+        duplicatedDevice.setType("default");
+        assertThatThrownBy(() -> deviceService.saveDeviceWithAccessToken(duplicatedDevice, accessToken))
+                .isInstanceOf(DeviceCredentialsValidationException.class)
+                .hasMessageContaining("Device credentials are already assigned to another device!");
+
+        Device deviceByName = deviceService.findDeviceByTenantIdAndName(tenantId, duplicatedDevice.getName());
+        Assertions.assertNull(deviceByName);
     }
 
     @Test
