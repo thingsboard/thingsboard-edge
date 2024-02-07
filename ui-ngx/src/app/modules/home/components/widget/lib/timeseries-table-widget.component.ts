@@ -954,10 +954,8 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
       timestamps.sort();
       timestamps.forEach(timestamp=> {
         const tsRow = sourcesTsRows[timestamp];
-        const dataObj = new Map();
-        columnsToExport.forEach(key =>
-          dataObj[key] = isDefined(tsRow[key]) ? tsRow[key] : null
-        );
+        const dataObj: {[key: string]: any} = {};
+        columnsToExport.forEach(key => dataObj[key] = isDefined(tsRow[key]) ? tsRow[key] : null);
         exportedData.push(dataObj);
       });
 
