@@ -42,6 +42,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -57,6 +58,7 @@ import org.thingsboard.server.common.stats.StatsType;
 import org.thingsboard.server.common.util.ProtoUtils;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.gen.integration.ConverterRequestProto;
 import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
 import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;
@@ -64,6 +66,7 @@ import org.thingsboard.server.gen.integration.IntegrationInfoListRequestProto;
 import org.thingsboard.server.gen.integration.IntegrationInfoListResponseProto;
 import org.thingsboard.server.gen.integration.IntegrationInfoProto;
 import org.thingsboard.server.gen.integration.IntegrationRequestProto;
+import org.thingsboard.server.gen.integration.TenantProfileRequestProto;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.TbQueueProducer;
@@ -89,6 +92,7 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
     private final StatsFactory statsFactory;
     private final IntegrationService integrationService;
     private final ConverterService converterService;
+    private final TbTenantProfileCache tenantProfileCache;
     private final PlatformIntegrationService platformIntegrationService;
 
     @Value("${queue.integration_api.max_pending_requests:10000}")
@@ -153,6 +157,8 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
             result = handleIntegrationRequest(integrationApiRequest.getIntegrationRequest());
         } else if (integrationApiRequest.hasConverterRequest()) {
             result = handleConverterRequest(integrationApiRequest.getConverterRequest());
+        } else if (integrationApiRequest.hasTenantProfileRequest()) {
+            result = handleTenantProfileRequest(integrationApiRequest.getTenantProfileRequest());
         } else {
             throw new RuntimeException("Not Implemented!");
         }
@@ -226,6 +232,14 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
         return Futures.immediateFuture(IntegrationApiResponseMsg.newBuilder().setIntegrationListResponse(
                 IntegrationInfoListResponseProto.newBuilder().addAllIntegrationInfoList(integrationInfoList).build()
         ).build());
+    }
+
+    private ListenableFuture<IntegrationApiResponseMsg> handleTenantProfileRequest(TenantProfileRequestProto request) {
+        TenantId tenantId = new TenantId(new UUID(request.getTenantIdMSB(), request.getTenantIdLSB()));
+        TenantProfile tenantProfile = tenantProfileCache.get(tenantId);
+        return Futures.immediateFuture(IntegrationApiResponseMsg.newBuilder()
+                .setTenantProfileResponse(ProtoUtils.toProto(tenantProfile))
+                .build());
     }
 
 }

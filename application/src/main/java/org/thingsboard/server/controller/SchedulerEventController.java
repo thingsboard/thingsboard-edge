@@ -34,6 +34,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -46,8 +47,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -64,6 +63,7 @@ import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerIn
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.entitiy.scheduler.TbSchedulerService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
@@ -91,6 +91,7 @@ import static org.thingsboard.server.controller.EdgeController.EDGE_ID;
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
+@RequiredArgsConstructor
 @Slf4j
 public class SchedulerEventController extends BaseController {
 
@@ -106,6 +107,8 @@ public class SchedulerEventController extends BaseController {
     private static final int DEFAULT_SCHEDULER_EVENT_LIMIT = 100;
 
     public static final String SCHEDULER_EVENT_ID = "schedulerEventId";
+
+    private final TbSchedulerService tbSchedulerService;
 
     @ApiOperation(value = "Get Scheduler Event With Customer Info (getSchedulerEventInfoById)",
             notes = "Fetch the SchedulerEventWithCustomerInfo object based on the provided scheduler event Id. " +
@@ -153,35 +156,35 @@ public class SchedulerEventController extends BaseController {
     public SchedulerEvent saveSchedulerEvent(
             @Parameter(description = "A JSON value representing the Scheduler Event.")
             @RequestBody SchedulerEvent schedulerEvent) throws ThingsboardException {
-        log.trace("saveSchedulerEvent {}", schedulerEvent);
-        try {
-            schedulerEvent.setTenantId(getCurrentUser().getTenantId());
-            if (Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority())) {
-                schedulerEvent.setCustomerId(getCurrentUser().getCustomerId());
-            }
-
-            checkEntity(schedulerEvent.getId(), schedulerEvent, Resource.SCHEDULER_EVENT, null);
-
-            SchedulerEvent savedSchedulerEvent = checkNotNull(schedulerEventService.saveSchedulerEvent(schedulerEvent));
-
-            logEntityActionService.logEntityAction(getTenantId(), savedSchedulerEvent.getId(), savedSchedulerEvent,
-                    savedSchedulerEvent.getCustomerId(),
-                    schedulerEvent.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser());
-
-            if (schedulerEvent.getId() == null) {
-                schedulerService.onSchedulerEventAdded(savedSchedulerEvent);
-            } else {
-                schedulerService.onSchedulerEventUpdated(savedSchedulerEvent);
-            }
-
-            return savedSchedulerEvent;
-        } catch (Exception e) {
-            log.warn("Failed to save or update schedulerEvent " + schedulerEvent, e);
-            logEntityActionService.logEntityAction(getTenantId(), emptyId(EntityType.SCHEDULER_EVENT), schedulerEvent,
-                    schedulerEvent.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser(), e);
-
-            throw e;
+        SecurityUser currentUser = getCurrentUser();
+        schedulerEvent.setTenantId(currentUser.getTenantId());
+        if (Authority.CUSTOMER_USER.equals(currentUser.getAuthority())) {
+            schedulerEvent.setCustomerId(currentUser.getCustomerId());
         }
+        checkEntity(schedulerEvent.getId(), schedulerEvent, Resource.SCHEDULER_EVENT, null);
+        return tbSchedulerService.save(schedulerEvent, currentUser);
+    }
+
+    @ApiOperation(value = "Enable or disable Scheduler Event (enableSchedulerEvent)",
+            notes = "Updates scheduler event with enabled = true/false. " + SCHEDULER_EVENT_DESCRIPTION +
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
+            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/schedulerEvent/{schedulerEventId}/enabled/{enabledValue}", method = RequestMethod.PUT)
+    @ResponseBody
+    public SchedulerEvent enableSchedulerEvent(
+            @Parameter(description = SCHEDULER_EVENT_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId,
+            @Parameter(description = "Enabled or disabled scheduler", required = true)
+            @PathVariable(value = "enabledValue") Boolean enabledValue) throws ThingsboardException {
+
+        checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
+        SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
+
+        SchedulerEvent schedulerEvent = checkSchedulerEventId(schedulerEventId, Operation.WRITE);
+        schedulerEvent.setEnabled(enabledValue);
+
+        return tbSchedulerService.save(schedulerEvent, getCurrentUser());
     }
 
     @ApiOperation(value = "Delete Scheduler Event (deleteSchedulerEvent)",
@@ -193,22 +196,10 @@ public class SchedulerEventController extends BaseController {
             @Parameter(description = SCHEDULER_EVENT_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId) throws ThingsboardException {
         checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
-        ActionType actionType = ActionType.DELETED;
-        try {
-            SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
-            SchedulerEvent schedulerEvent = checkSchedulerEventId(schedulerEventId, Operation.DELETE);
-            schedulerEventService.deleteSchedulerEvent(getTenantId(), schedulerEventId);
+        SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
+        SchedulerEvent schedulerEvent = checkSchedulerEventId(schedulerEventId, Operation.DELETE);
 
-            logEntityActionService.logEntityAction(getTenantId(), schedulerEventId, schedulerEvent,
-                    schedulerEvent.getCustomerId(), actionType, getCurrentUser(), strSchedulerEventId);
-
-            schedulerService.onSchedulerEventDeleted(schedulerEvent);
-        } catch (Exception e) {
-            logEntityActionService.logEntityAction(getTenantId(), emptyId(EntityType.SCHEDULER_EVENT),
-                    actionType, getCurrentUser(), e, strSchedulerEventId);
-
-            throw e;
-        }
+        tbSchedulerService.delete(schedulerEvent, getCurrentUser());
     }
 
 
@@ -291,25 +282,13 @@ public class SchedulerEventController extends BaseController {
                                                          @PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
         checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
-        try {
-            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-            Edge edge = checkEdgeId(edgeId, Operation.WRITE);
+        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+        Edge edge = checkEdgeId(edgeId, Operation.WRITE);
 
-            SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
-            checkSchedulerEventId(schedulerEventId, Operation.READ);
+        SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
+        checkSchedulerEventId(schedulerEventId, Operation.READ);
 
-            SchedulerEventInfo savedSchedulerEvent = checkNotNull(schedulerEventService.assignSchedulerEventToEdge(getCurrentUser().getTenantId(), schedulerEventId, edgeId));
-
-            logEntityActionService.logEntityAction(getTenantId(), schedulerEventId, savedSchedulerEvent,
-                    ActionType.ASSIGNED_TO_EDGE, getCurrentUser(), strSchedulerEventId, savedSchedulerEvent.getName(), strEdgeId, edge.getName());
-
-            return savedSchedulerEvent;
-        } catch (Exception e) {
-            logEntityActionService.logEntityAction(getTenantId(), emptyId(EntityType.SCHEDULER_EVENT),
-                    ActionType.ASSIGNED_TO_EDGE, getCurrentUser(), e, strSchedulerEventId, strEdgeId);
-
-            throw e;
-        }
+         return tbSchedulerService.assignToEdge(schedulerEventId, edge, getCurrentUser());
     }
 
     @ApiOperation(value = "Unassign scheduler event from edge (unassignSchedulerEventFromEdge)",
@@ -329,24 +308,12 @@ public class SchedulerEventController extends BaseController {
                                                              @PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
         checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
-        try {
-            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-            Edge edge = checkEdgeId(edgeId, Operation.WRITE);
-            SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
-            SchedulerEventInfo schedulerEvent = checkSchedulerEventId(schedulerEventId, Operation.READ);
+        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+        Edge edge = checkEdgeId(edgeId, Operation.WRITE);
+        SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
+        checkSchedulerEventId(schedulerEventId, Operation.READ);
 
-            SchedulerEventInfo savedSchedulerEvent = checkNotNull(schedulerEventService.unassignSchedulerEventFromEdge(getCurrentUser().getTenantId(), schedulerEventId, edgeId));
-
-            logEntityActionService.logEntityAction(getTenantId(), schedulerEventId, schedulerEvent, ActionType.UNASSIGNED_FROM_EDGE,
-                    getCurrentUser(), strSchedulerEventId, savedSchedulerEvent.getName(), strEdgeId, edge.getName());
-
-            return savedSchedulerEvent;
-        } catch (Exception e) {
-            logEntityActionService.logEntityAction(getTenantId(), emptyId(EntityType.SCHEDULER_EVENT),
-                    ActionType.UNASSIGNED_FROM_EDGE, getCurrentUser(), e, strSchedulerEventId);
-
-            throw e;
-        }
+        return tbSchedulerService.unassignFromEdge(schedulerEventId, edge, getCurrentUser());
     }
 
     @ApiOperation(value = "Get Edge Scheduler Events (getEdgeSchedulerEvents)",

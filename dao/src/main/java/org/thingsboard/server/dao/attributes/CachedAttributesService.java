@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -54,7 +55,6 @@ import org.thingsboard.server.dao.cache.CacheExecutorService;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.sql.JpaExecutorService;
 
-import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -257,6 +257,15 @@ public class CachedAttributesService implements AttributesService {
     }
 
     @Override
+    public List<String> findAllKeysByEntityIds(TenantId tenantId, List<EntityId> entityIds, String scope) {
+        if (StringUtils.isEmpty(scope)) {
+            return attributesDao.findAllKeysByEntityIds(tenantId, entityIds);
+        } else {
+            return attributesDao.findAllKeysByEntityIdsAndAttributeType(tenantId, entityIds, scope);
+        }
+    }
+
+    @Override
     public ListenableFuture<String> save(TenantId tenantId, EntityId entityId, String scope, AttributeKvEntry attribute) {
         return save(tenantId, entityId, AttributeScope.valueOf(scope), attribute);
     }
@@ -271,7 +280,7 @@ public class CachedAttributesService implements AttributesService {
 
     @Override
     public ListenableFuture<List<String>> save(TenantId tenantId, EntityId entityId, String scope, List<AttributeKvEntry> attributes) {
-        return save(tenantId, entityId, scope, attributes);
+        return save(tenantId, entityId, AttributeScope.valueOf(scope), attributes);
     }
 
     @Override

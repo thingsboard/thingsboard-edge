@@ -38,6 +38,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardExecutors;
+import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
@@ -51,6 +52,7 @@ import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
 import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;
 import org.thingsboard.server.gen.integration.IntegrationInfoListRequestProto;
 import org.thingsboard.server.gen.integration.IntegrationRequestProto;
+import org.thingsboard.server.gen.integration.TenantProfileRequestProto;
 import org.thingsboard.server.queue.TbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.service.integration.IntegrationConfigurationService;
@@ -137,6 +139,16 @@ public class TbIntegrationExecutorIntegrationConfigurationService implements Int
         return Futures.transform(response, this::parseConverterFromProto, callbackExecutor).get(1, TimeUnit.MINUTES);
     }
 
+    @SneakyThrows
+    @Override
+    public TenantProfile getTenantProfile(TenantId tenantId) {
+        var response = apiTemplate.send(new TbProtoQueueMsg<>(UUID.randomUUID(), IntegrationApiRequestMsg.newBuilder()
+                .setTenantProfileRequest(TenantProfileRequestProto.newBuilder()
+                        .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
+                        .setTenantIdLSB(tenantId.getId().getLeastSignificantBits()))
+                .build()));
+        return Futures.transform(response, this::parseTenantProfileFromProto, callbackExecutor).get(1, TimeUnit.MINUTES);
+    }
 
     private List<IntegrationInfo> parseListFromProto(TbProtoQueueMsg<IntegrationApiResponseMsg> proto) {
         var result = new ArrayList<IntegrationInfo>();
@@ -161,5 +173,10 @@ public class TbIntegrationExecutorIntegrationConfigurationService implements Int
     private Converter parseConverterFromProto(TbProtoQueueMsg<IntegrationApiResponseMsg> proto) {
         var responseProto = proto.getValue();
         return ProtoUtils.fromProto(responseProto.getConverterResponse());
+    }
+
+    private TenantProfile parseTenantProfileFromProto(TbProtoQueueMsg<IntegrationApiResponseMsg> proto) {
+        var responseProto = proto.getValue();
+        return ProtoUtils.fromProto(responseProto.getTenantProfileResponse());
     }
 }

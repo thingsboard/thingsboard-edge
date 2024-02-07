@@ -52,11 +52,12 @@ import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
 import java.util.UUID;
 
+import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_ENABLED_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_CUSTOMER_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_NAME_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_ORIGINATOR_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_ORIGINATOR_TYPE_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TYPE_PROPERTY;
 
@@ -97,6 +98,9 @@ public final class SchedulerEventEntity extends BaseSqlEntity<SchedulerEvent> im
     @Column(name = ModelConstants.SCHEDULER_EVENT_SCHEDULE_PROPERTY)
     private JsonNode schedule;
 
+    @Column(name = SCHEDULER_EVENT_ENABLED_PROPERTY)
+    private boolean enabled;
+
     public SchedulerEventEntity() {
         super();
     }
@@ -121,6 +125,7 @@ public final class SchedulerEventEntity extends BaseSqlEntity<SchedulerEvent> im
         this.additionalInfo = schedulerEvent.getAdditionalInfo();
         this.configuration = schedulerEvent.getConfiguration();
         this.schedule = schedulerEvent.getSchedule();
+        this.enabled = schedulerEvent.isEnabled();
     }
 
     @Override
@@ -141,6 +146,7 @@ public final class SchedulerEventEntity extends BaseSqlEntity<SchedulerEvent> im
         schedulerEvent.setAdditionalInfo(additionalInfo);
         schedulerEvent.setConfiguration(configuration);
         schedulerEvent.setSchedule(schedule);
+        schedulerEvent.setEnabled(enabled);
         return schedulerEvent;
     }
 

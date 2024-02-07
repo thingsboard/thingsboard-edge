@@ -76,6 +76,10 @@ public class SchedulerEventInfo extends BaseDataWithAdditionalInfo<SchedulerEven
     @JsonIgnore
     private byte[] scheduleBytes;
 
+    @Schema(description = "Enable/disable scheduler", example = "true")
+    @Length(fieldName = "enabled")
+    private boolean enabled;
+
     public SchedulerEventInfo() {
         super();
     }
@@ -91,6 +95,7 @@ public class SchedulerEventInfo extends BaseDataWithAdditionalInfo<SchedulerEven
         this.originatorId = schedulerEventInfo.getOriginatorId();
         this.name = schedulerEventInfo.getName();
         this.type = schedulerEventInfo.getType();
+        this.enabled = schedulerEventInfo.isEnabled();
         this.setSchedule(schedulerEventInfo.getSchedule());
     }
 

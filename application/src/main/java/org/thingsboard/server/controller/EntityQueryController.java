@@ -31,9 +31,11 @@
 package org.thingsboard.server.controller;
 
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -59,6 +61,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.query.EntityQueryService;
 
 import static org.thingsboard.server.controller.ControllerConstants.ALARM_DATA_QUERY_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.ATTRIBUTES_SCOPE_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_COUNT_QUERY_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_DATA_QUERY_DESCRIPTION;
 
@@ -136,14 +139,16 @@ public class EntityQueryController extends BaseController {
             @Parameter(description = "Include all unique time-series keys to the result.")
             @RequestParam("timeseries") boolean isTimeseries,
             @Parameter(description = "Include all unique attribute keys to the result.")
-            @RequestParam("attributes") boolean isAttributes) throws ThingsboardException {
+            @RequestParam("attributes") boolean isAttributes,
+            @Parameter(description = ATTRIBUTES_SCOPE_DESCRIPTION, schema = @Schema(allowableValues = {"SERVER_SCOPE", "SHARED_SCOPE", "CLIENT_SCOPE"}))
+            @RequestParam(value = "scope", required = false) String scope) throws ThingsboardException {
         TenantId tenantId = getTenantId();
         checkNotNull(query);
         EntityDataPageLink pageLink = query.getPageLink();
         if (pageLink.getPageSize() > MAX_PAGE_SIZE) {
             pageLink.setPageSize(MAX_PAGE_SIZE);
         }
-        return entityQueryService.getKeysByQuery(getCurrentUser(), tenantId, query, isTimeseries, isAttributes);
+        return entityQueryService.getKeysByQuery(getCurrentUser(), tenantId, query, isTimeseries, isAttributes, scope);
     }
 
 }

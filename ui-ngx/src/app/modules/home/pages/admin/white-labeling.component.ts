@@ -64,6 +64,7 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, OnD
   whiteLabelingParams: WhiteLabelingParams & LoginWhiteLabelingParams;
 
   isSysAdmin = getCurrentAuthUser(this.store).authority === Authority.SYS_ADMIN;
+  isTenant = getCurrentAuthUser(this.store).authority === Authority.TENANT_ADMIN;
 
   readonly = !this.userPermissionsService.hasGenericPermission(Resource.WHITE_LABELING, Operation.WRITE);
   isLoginWl: boolean = this.route.snapshot.data.isLoginWl;
@@ -185,6 +186,11 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, OnD
       );
       this.wlSettings.addControl('showNameBottom',
         this.fb.control(null, [])
+      );
+    }
+    if (!this.isLoginWl && this.isTenant) {
+      this.wlSettings.addControl('hideConnectivityDialog',
+        this.fb.control(false, [])
       );
     }
     if (this.readonly) {

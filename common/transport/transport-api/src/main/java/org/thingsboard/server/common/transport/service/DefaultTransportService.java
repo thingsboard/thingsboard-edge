@@ -786,7 +786,7 @@ public class DefaultTransportService extends TransportActivityManager implements
     }
 
     private void recordActivityInternal(TransportProtos.SessionInfoProto sessionInfo) {
-        onActivity(toSessionId(sessionInfo), getCurrentTimeMillis());
+        onActivity(toSessionId(sessionInfo), sessionInfo, getCurrentTimeMillis());
     }
 
     @Override
@@ -941,7 +941,9 @@ public class DefaultTransportService extends TransportActivityManager implements
                 } else if (EntityType.TENANT_PROFILE.equals(entityType)) {
                     tenantProfileCache.remove(new TenantProfileId(entityUuid));
                 } else if (EntityType.TENANT.equals(entityType)) {
-                    rateLimitService.remove(TenantId.fromUUID(entityUuid));
+                    TenantId tenantId = TenantId.fromUUID(entityUuid);
+                    rateLimitService.remove(tenantId);
+                    partitionService.removeTenant(tenantId);
                 } else if (EntityType.DEVICE.equals(entityType)) {
                     rateLimitService.remove(new DeviceId(entityUuid));
                     onDeviceDeleted(new DeviceId(entityUuid));
@@ -967,10 +969,10 @@ public class DefaultTransportService extends TransportActivityManager implements
                     log.warn("ResourceDelete - [{}] [{}]", id, mdRez);
                     transportCallbackExecutor.submit(() -> mdRez.getListener().onResourceDelete(msg));
                 });
-            } else if (toSessionMsg.hasQueueUpdateMsg()) {
-                partitionService.updateQueue(toSessionMsg.getQueueUpdateMsg());
-            } else if (toSessionMsg.hasQueueDeleteMsg()) {
-                partitionService.removeQueue(toSessionMsg.getQueueDeleteMsg());
+            } else if (toSessionMsg.getQueueUpdateMsgsCount() > 0) {
+                partitionService.updateQueues(toSessionMsg.getQueueUpdateMsgsList());
+            } else if (toSessionMsg.getQueueDeleteMsgsCount() > 0) {
+                partitionService.removeQueues(toSessionMsg.getQueueDeleteMsgsList());
             } else {
                 //TODO: should we notify the device actor about missed session?
                 log.debug("[{}] Missing session.", sessionId);
@@ -1014,6 +1016,7 @@ public class DefaultTransportService extends TransportActivityManager implements
                 Tenant tenant = ProtoUtils.fromProto(msg.getTenant());
                 partitionService.removeTenant(tenant.getId());
                 boolean updated = tenantProfileCache.put(tenant.getId(), tenant.getTenantProfileId());
+                partitionService.evictTenantInfo(tenant.getId());
                 if (updated) {
                     rateLimitService.update(tenant.getId());
                 }

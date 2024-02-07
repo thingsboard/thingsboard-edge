@@ -106,6 +106,15 @@ import {
 import {
   BarChartWithLabelsBasicConfigComponent
 } from '@home/components/widget/config/basic/chart/bar-chart-with-labels-basic-config.component';
+import {
+  SingleSwitchBasicConfigComponent
+} from '@home/components/widget/config/basic/rpc/single-switch-basic-config.component';
+import {
+  ActionButtonBasicConfigComponent
+} from '@home/components/widget/config/basic/button/action-button-basic-config.component';
+import {
+  CommandButtonBasicConfigComponent
+} from '@home/components/widget/config/basic/button/command-button-basic-config.component';
 
 @NgModule({
   declarations: [
@@ -134,7 +143,10 @@ import {
     LiquidLevelCardBasicConfigComponent,
     DoughnutBasicConfigComponent,
     RangeChartBasicConfigComponent,
-    BarChartWithLabelsBasicConfigComponent
+    BarChartWithLabelsBasicConfigComponent,
+    SingleSwitchBasicConfigComponent,
+    ActionButtonBasicConfigComponent,
+    CommandButtonBasicConfigComponent
   ],
   imports: [
     CommonModule,
@@ -167,7 +179,10 @@ import {
     LiquidLevelCardBasicConfigComponent,
     DoughnutBasicConfigComponent,
     RangeChartBasicConfigComponent,
-    BarChartWithLabelsBasicConfigComponent
+    BarChartWithLabelsBasicConfigComponent,
+    SingleSwitchBasicConfigComponent,
+    ActionButtonBasicConfigComponent,
+    CommandButtonBasicConfigComponent
   ]
 })
 export class BasicWidgetConfigModule {
@@ -194,5 +209,8 @@ export const basicWidgetConfigComponentsMap: {[key: string]: Type<IBasicWidgetCo
   'tb-liquid-level-card-basic-config': LiquidLevelCardBasicConfigComponent,
   'tb-doughnut-basic-config': DoughnutBasicConfigComponent,
   'tb-range-chart-basic-config': RangeChartBasicConfigComponent,
-  'tb-bar-chart-with-labels-basic-config': BarChartWithLabelsBasicConfigComponent
+  'tb-bar-chart-with-labels-basic-config': BarChartWithLabelsBasicConfigComponent,
+  'tb-single-switch-basic-config': SingleSwitchBasicConfigComponent,
+  'tb-action-button-basic-config': ActionButtonBasicConfigComponent,
+  'tb-command-button-basic-config': CommandButtonBasicConfigComponent
 };

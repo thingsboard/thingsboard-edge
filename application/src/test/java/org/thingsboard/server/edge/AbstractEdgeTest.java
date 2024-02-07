@@ -955,12 +955,17 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     private void verifyTenantAdministratorsAndTenantUsersAssignedToEdge() {
+        verifyGroupTenantNameAssignedToEdge(EntityGroup.GROUP_TENANT_ADMINS_NAME);
+        verifyGroupTenantNameAssignedToEdge(EntityGroup.GROUP_TENANT_USERS_NAME);
+    }
+
+    private void verifyGroupTenantNameAssignedToEdge(String groupTenantName) {
         Awaitility.await()
-                .atMost(10, TimeUnit.SECONDS)
-                .until(() -> {
-                    List<EntityGroupInfo> entityGroupInfos = getEntityGroupsByOwnerAndType(tenantId, EntityType.USER);
-                    return entityGroupInfos.stream().map(EntityGroupInfo::getName).anyMatch(name -> name.equals(EntityGroup.GROUP_TENANT_ADMINS_NAME))
-                            && entityGroupInfos.stream().map(EntityGroupInfo::getName).anyMatch(name -> name.equals(EntityGroup.GROUP_TENANT_USERS_NAME));
-                });
+                .atMost(TIMEOUT, TimeUnit.SECONDS)
+                .alias("verifyGroupTenantNameAssignedToEdge {" + groupTenantName + "}")
+                .until(() -> getEntityGroupsByOwnerAndType(tenantId, EntityType.USER).stream()
+                        .map(EntityGroupInfo::getName)
+                        .filter(groupTenantName::equals)
+                        .count() == 1);
     }
 }

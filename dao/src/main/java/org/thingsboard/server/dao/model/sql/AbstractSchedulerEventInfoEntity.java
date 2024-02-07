@@ -90,6 +90,9 @@ public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventI
     @Column(name = ModelConstants.SCHEDULER_EVENT_SCHEDULE_PROPERTY)
     private JsonNode schedule;
 
+    @Column(name = ModelConstants.SCHEDULER_EVENT_ENABLED_PROPERTY)
+    private boolean enabled;
+
     public AbstractSchedulerEventInfoEntity() {
         super();
     }
@@ -113,6 +116,7 @@ public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventI
         this.type = schedulerEventInfo.getType();
         this.additionalInfo = schedulerEventInfo.getAdditionalInfo();
         this.schedule = schedulerEventInfo.getSchedule();
+        this.enabled = schedulerEventInfo.isEnabled();
     }
 
     public AbstractSchedulerEventInfoEntity(SchedulerEventInfoEntity schedulerEventInfoEntity) {
@@ -126,6 +130,7 @@ public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventI
         this.name = schedulerEventInfoEntity.getName();
         this.schedule = schedulerEventInfoEntity.getSchedule();
         this.additionalInfo = schedulerEventInfoEntity.getAdditionalInfo();
+        this.enabled = schedulerEventInfoEntity.isEnabled();
     }
 
     protected SchedulerEventInfo toSchedulerEventInfo() {
@@ -144,6 +149,7 @@ public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventI
         schedulerEventInfo.setType(type);
         schedulerEventInfo.setSchedule(schedule);
         schedulerEventInfo.setAdditionalInfo(additionalInfo);
+        schedulerEventInfo.setEnabled(enabled);
         return schedulerEventInfo;
     }
 
