@@ -1573,7 +1573,8 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
     } else if (widgetExportType === WidgetExportType.xls) {
       this.importExport.exportXls(data, filename);
     } else if (widgetExportType === WidgetExportType.xlsx) {
-      this.importExport.exportXlsx(data, filename);
+      const dateFormat = isDefined(this.widget?.config?.settings?.dateFormat?.format) ? this.widget.config.settings.dateFormat.format : 'yyyy-MM-dd HH:mm:ss';
+      this.importExport.exportXlsx(data, filename, dateFormat);
     }
   }
 

@@ -936,15 +936,15 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
           if (isDefined(sourcesTsRowsContentFunc[timestamp])) {
             const tsRowContentFuncKeys = Object.keys(sourcesTsRowsContentFunc[timestamp]);
             tsRowContentFuncKeys.forEach(key => {
-              const div = document.createElement('div');
               if (isDefinedAndNotNull(sourcesTsRowsContentFunc[timestamp][key].contentFunction)) {
+                const div = document.createElement('div');
                 try {
                   div.innerHTML = sourcesTsRowsContentFunc[timestamp][key].contentFunction(sourcesTsRowsContentFunc[timestamp][key].value, sourcesTsRows[timestamp], this.ctx);
                 } catch (e) {
                   div.innerText = sourcesTsRowsContentFunc[timestamp][key].value;
                 }
+                sourcesTsRows[timestamp][key] = div.textContent;
               }
-              sourcesTsRows[timestamp][key] = div.textContent;
             });
           }
         });
@@ -954,8 +954,10 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
       timestamps.sort();
       timestamps.forEach(timestamp=> {
         const tsRow = sourcesTsRows[timestamp];
-        const dataObj: {[key: string]: any} = {};
-        columnsToExport.forEach(key => dataObj[key] = isDefined(tsRow[key]) ? tsRow[key] : null);
+        const dataObj = new Map();
+        columnsToExport.forEach(key =>
+          dataObj[key] = isDefined(tsRow[key]) ? tsRow[key] : null
+        );
         exportedData.push(dataObj);
       });
 
