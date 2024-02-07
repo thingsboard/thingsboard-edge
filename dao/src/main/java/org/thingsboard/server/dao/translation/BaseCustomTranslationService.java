@@ -103,7 +103,7 @@ public class BaseCustomTranslationService implements CustomTranslationService {
         CustomTranslation result = getCustomerCustomTranslation(tenantId, customerId);
         Customer customer = customerService.findCustomerById(tenantId, customerId);
         if (customer.isSubCustomer()) {
-            result = getMergedCustomerHierarchyWhileLabelingParams(tenantId, customer.getParentCustomerId(), result);
+            result = getMergedCustomerHierarchyCustomTranslation(tenantId, customer.getParentCustomerId(), result);
         }
         result.merge(getTenantCustomTranslation(tenantId)).merge(getSystemCustomTranslation(tenantId));
         return result;
@@ -206,12 +206,12 @@ public class BaseCustomTranslationService implements CustomTranslationService {
         }
     }
 
-    private CustomTranslation getMergedCustomerHierarchyWhileLabelingParams(TenantId tenantId, CustomerId customerId, CustomTranslation customTranslation) {
+    private CustomTranslation getMergedCustomerHierarchyCustomTranslation(TenantId tenantId, CustomerId customerId, CustomTranslation customTranslation) {
         CustomTranslation entityCustomTranslation = getEntityCustomTranslation(tenantId, customerId);
         customTranslation.merge(entityCustomTranslation);
         Customer customer = customerService.findCustomerById(tenantId, customerId);
         if (customer.isSubCustomer()) {
-            return getMergedCustomerHierarchyWhileLabelingParams(tenantId, customer.getParentCustomerId(), customTranslation);
+            return getMergedCustomerHierarchyCustomTranslation(tenantId, customer.getParentCustomerId(), customTranslation);
         } else {
             return customTranslation;
         }

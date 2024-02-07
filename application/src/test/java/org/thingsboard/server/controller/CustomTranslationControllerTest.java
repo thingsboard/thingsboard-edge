@@ -82,7 +82,7 @@ public class CustomTranslationControllerTest extends AbstractControllerTest {
         String esSubCustomerCustomTranslation = "{\"search\":\"subCustomer\"}";
         updateSpanishCustomTranslation(esSubCustomerCustomTranslation);
 
-        // get tenant merged custom translation
+        // get merged customer custom translation
         loginCustomerAdminUser();
         CustomTranslation mergedCustomTranslation = doGet("/api/customTranslation/customTranslation", CustomTranslation.class);
         String mergedEsCustomTranslation = mergedCustomTranslation.getTranslationMap().get(ES_ES);
@@ -91,7 +91,7 @@ public class CustomTranslationControllerTest extends AbstractControllerTest {
         assertThat(JacksonUtil.toJsonNode(mergedEsCustomTranslation).get("remove").asText()).isEqualTo("customer");
         assertThat(JacksonUtil.toJsonNode(mergedEsCustomTranslation).get("search").asText()).isEqualTo("customer");
 
-        // get customer merged custom translation
+        // get merged subcustomer custom translation
         loginSubCustomerAdminUser();
         CustomTranslation mergedSubCustomerCustomTranslation = doGet("/api/customTranslation/customTranslation", CustomTranslation.class);
         String mergedEsSubCustomerCustomTranslation = mergedSubCustomerCustomTranslation.getTranslationMap().get(ES_ES);
