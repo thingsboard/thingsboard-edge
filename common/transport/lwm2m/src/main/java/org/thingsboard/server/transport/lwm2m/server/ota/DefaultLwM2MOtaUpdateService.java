@@ -248,19 +248,19 @@ public class DefaultLwM2MOtaUpdateService extends LwM2MExecutorAwareService impl
 
     @Override
     public void onCurrentFirmwareNameUpdate(LwM2mClient client, String name) {
-        log.debug("[{}] Current fw name: {}", client.getEndpoint(), name);
+        log.trace("[{}] Current fw name: {}", client.getEndpoint(), name);
         getOrInitFwInfo(client).setCurrentName(name);
     }
 
     @Override
     public void onCurrentSoftwareNameUpdate(LwM2mClient client, String name) {
-        log.debug("[{}] Current sw name: {}", client.getEndpoint(), name);
+        log.trace("[{}] Current sw name: {}", client.getEndpoint(), name);
         getOrInitSwInfo(client).setCurrentName(name);
     }
 
     @Override
     public void onFirmwareStrategyUpdate(LwM2mClient client, OtherConfiguration configuration) {
-        log.debug("[{}] Current fw strategy: {}", client.getEndpoint(), configuration.getFwUpdateStrategy());
+        log.trace("[{}] Current fw strategy: {}", client.getEndpoint(), configuration.getFwUpdateStrategy());
         startFirmwareUpdateIfNeeded(client, initFwStrategy(client, configuration));
     }
 
@@ -273,7 +273,7 @@ public class DefaultLwM2MOtaUpdateService extends LwM2MExecutorAwareService impl
 
     @Override
     public void onCurrentSoftwareStrategyUpdate(LwM2mClient client, OtherConfiguration configuration) {
-        log.debug("[{}] Current sw strategy: {}", client.getEndpoint(), configuration.getSwUpdateStrategy());
+        log.trace("[{}] Current sw strategy: {}", client.getEndpoint(), configuration.getSwUpdateStrategy());
         startSoftwareUpdateIfNeeded(client, initSwStrategy(client, configuration));
     }
 
@@ -286,21 +286,21 @@ public class DefaultLwM2MOtaUpdateService extends LwM2MExecutorAwareService impl
 
     @Override
     public void onCurrentFirmwareVersion3Update(LwM2mClient client, String version) {
-        log.debug("[{}] Current fw version(3): {}", client.getEndpoint(), version);
+        log.trace("[{}] Current fw version(3): {}", client.getEndpoint(), version);
         LwM2MClientFwOtaInfo fwInfo = getOrInitFwInfo(client);
         fwInfo.setCurrentVersion3(version);
     }
 
     @Override
     public void onCurrentFirmwareVersionUpdate(LwM2mClient client, String version) {
-        log.debug("[{}] Current fw version(5): {}", client.getEndpoint(), version);
+        log.trace("[{}] Current fw version(5): {}", client.getEndpoint(), version);
         LwM2MClientFwOtaInfo fwInfo = getOrInitFwInfo(client);
         fwInfo.setCurrentVersion(version);
     }
 
     @Override
     public void onCurrentFirmwareStateUpdate(LwM2mClient client, Long stateCode) {
-        log.debug("[{}] Current fw state: {}", client.getEndpoint(), stateCode);
+        log.trace("[{}] Current fw state: {}", client.getEndpoint(), stateCode);
         LwM2MClientFwOtaInfo fwInfo = getOrInitFwInfo(client);
         FirmwareUpdateState state = FirmwareUpdateState.fromStateFwByCode(stateCode.intValue());
         if (FirmwareUpdateState.DOWNLOADED.equals(state)) {
@@ -324,7 +324,7 @@ public class DefaultLwM2MOtaUpdateService extends LwM2MExecutorAwareService impl
 
     @Override
     public void onCurrentFirmwareResultUpdate(LwM2mClient client, Long code) {
-        log.debug("[{}] Current fw result: {}", client.getEndpoint(), code);
+        log.trace("[{}] Current fw result: {}", client.getEndpoint(), code);
         LwM2MClientFwOtaInfo fwInfo = getOrInitFwInfo(client);
         FirmwareUpdateResult result = FirmwareUpdateResult.fromUpdateResultFwByCode(code.intValue());
         Optional<OtaPackageUpdateStatus> status = toOtaPackageUpdateStatus(result);
@@ -353,26 +353,26 @@ public class DefaultLwM2MOtaUpdateService extends LwM2MExecutorAwareService impl
 
     @Override
     public void onCurrentFirmwareDeliveryMethodUpdate(LwM2mClient client, Long value) {
-        log.debug("[{}] Current fw delivery method: {}", client.getEndpoint(), value);
+        log.trace("[{}] Current fw delivery method: {}", client.getEndpoint(), value);
         LwM2MClientFwOtaInfo fwInfo = getOrInitFwInfo(client);
         fwInfo.setDeliveryMethod(value.intValue());
     }
 
     @Override
     public void onCurrentSoftwareVersion3Update(LwM2mClient client, String version) {
-        log.debug("[{}] Current sw version(3): {}", client.getEndpoint(), version);
+        log.trace("[{}] Current sw version(3): {}", client.getEndpoint(), version);
         getOrInitSwInfo(client).setCurrentVersion3(version);
     }
 
     @Override
     public void onCurrentSoftwareVersionUpdate(LwM2mClient client, String version) {
-        log.debug("[{}] Current sw version(9): {}", client.getEndpoint(), version);
+        log.trace("[{}] Current sw version(9): {}", client.getEndpoint(), version);
         getOrInitSwInfo(client).setCurrentVersion(version);
     }
 
     @Override
     public void onCurrentSoftwareStateUpdate(LwM2mClient client, Long stateCode) {
-        log.debug("[{}] Current sw state: {}", client.getEndpoint(), stateCode);
+        log.trace("[{}] Current sw state: {}", client.getEndpoint(), stateCode);
         LwM2MClientSwOtaInfo swInfo = getOrInitSwInfo(client);
         SoftwareUpdateState state = SoftwareUpdateState.fromUpdateStateSwByCode(stateCode.intValue());
         if (SoftwareUpdateState.INITIAL.equals(state)) {
@@ -390,7 +390,7 @@ public class DefaultLwM2MOtaUpdateService extends LwM2MExecutorAwareService impl
 
     @Override
     public void onCurrentSoftwareResultUpdate(LwM2mClient client, Long code) {
-        log.debug("[{}] Current sw result: {}", client.getEndpoint(), code);
+        log.trace("[{}] Current sw result: {}", client.getEndpoint(), code);
         LwM2MClientSwOtaInfo swInfo = getOrInitSwInfo(client);
         SoftwareUpdateResult result = SoftwareUpdateResult.fromUpdateResultSwByCode(code.intValue());
         Optional<OtaPackageUpdateStatus> status = toOtaPackageUpdateStatus(result);
@@ -432,14 +432,14 @@ public class DefaultLwM2MOtaUpdateService extends LwM2MExecutorAwareService impl
     private void startFirmwareUpdateIfNeeded(LwM2mClient client, LwM2MClientFwOtaInfo fwInfo) {
         try {
             if (!fwInfo.isSupported() && fwInfo.isAssigned()) {
-                log.debug("[{}] Fw update is not supported: {}", client.getEndpoint(), fwInfo);
+                log.trace("[{}] Fw update is not supported: {}", client.getEndpoint(), fwInfo);
                 sendStateUpdateToTelemetry(client, fwInfo, OtaPackageUpdateStatus.FAILED, "Client does not support firmware update or profile misconfiguration!");
             } else if (fwInfo.isUpdateRequired()) {
                 if (StringUtils.isNotEmpty(fwInfo.getTargetUrl())) {
-                    log.debug("[{}] Starting update to [{}{}][] using URL: {}", client.getEndpoint(), fwInfo.getTargetName(), fwInfo.getTargetVersion(), fwInfo.getTargetUrl());
+                    log.trace("[{}] Starting update to [{}{}][] using URL: {}", client.getEndpoint(), fwInfo.getTargetName(), fwInfo.getTargetVersion(), fwInfo.getTargetUrl());
                     startUpdateUsingUrl(client, FW_URL_ID, fwInfo.getTargetUrl());
                 } else {
-                    log.debug("[{}] Starting update to [{}{}] using binary", client.getEndpoint(), fwInfo.getTargetName(), fwInfo.getTargetVersion());
+                    log.trace("[{}] Starting update to [{}{}] using binary", client.getEndpoint(), fwInfo.getTargetName(), fwInfo.getTargetVersion());
                     startUpdateUsingBinary(client, fwInfo);
                 }
             } else if (fwInfo.getResult() != null && fwInfo.getResult().getCode() > UPDATE_SUCCESSFULLY.getCode()) {
@@ -455,18 +455,18 @@ public class DefaultLwM2MOtaUpdateService extends LwM2MExecutorAwareService impl
     private void startSoftwareUpdateIfNeeded(LwM2mClient client, LwM2MClientSwOtaInfo swInfo) {
         try {
             if (!swInfo.isSupported() && swInfo.isAssigned()) {
-                log.debug("[{}] Sw update is not supported: {}", client.getEndpoint(), swInfo);
+                log.trace("[{}] Sw update is not supported: {}", client.getEndpoint(), swInfo);
                 sendStateUpdateToTelemetry(client, swInfo, OtaPackageUpdateStatus.FAILED, "Client does not support software update or profile misconfiguration!");
             } else if (swInfo.isUpdateRequired()) {
                 if (SoftwareUpdateState.INSTALLED.equals(swInfo.getUpdateState())) {
-                    log.debug("[{}] Attempt to restore the update state: {}", client.getEndpoint(), swInfo.getUpdateState());
+                    log.trace("[{}] Attempt to restore the update state: {}", client.getEndpoint(), swInfo.getUpdateState());
                     executeSwUninstallForUpdate(client);
                 } else {
                     if (StringUtils.isNotEmpty(swInfo.getTargetUrl())) {
-                        log.debug("[{}] Starting update to [{}{}] using URL: {}", client.getEndpoint(), swInfo.getTargetName(), swInfo.getTargetVersion(), swInfo.getTargetUrl());
+                        log.trace("[{}] Starting update to [{}{}] using URL: {}", client.getEndpoint(), swInfo.getTargetName(), swInfo.getTargetVersion(), swInfo.getTargetUrl());
                         startUpdateUsingUrl(client, SW_PACKAGE_URI_ID, swInfo.getTargetUrl());
                     } else {
-                        log.debug("[{}] Starting update to [{}{}] using binary", client.getEndpoint(), swInfo.getTargetName(), swInfo.getTargetVersion());
+                        log.trace("[{}] Starting update to [{}{}] using binary", client.getEndpoint(), swInfo.getTargetName(), swInfo.getTargetVersion());
                         startUpdateUsingBinary(client, swInfo);
                     }
                 }
@@ -581,18 +581,21 @@ public class DefaultLwM2MOtaUpdateService extends LwM2MExecutorAwareService impl
     }
 
     private void executeFwUpdate(LwM2mClient client) {
-        TbLwM2MExecuteRequest request = TbLwM2MExecuteRequest.builder().versionedId(FW_EXECUTE_ID).timeout(clientContext.getRequestTimeout(client)).build();
-        downlinkHandler.sendExecuteRequest(client, request, new TbLwM2MExecuteCallback(logService, client, FW_EXECUTE_ID));
+        String fwExecuteVerId = convertObjectIdToVersionedId(FW_EXECUTE_ID, client.getRegistration());
+        TbLwM2MExecuteRequest request = TbLwM2MExecuteRequest.builder().versionedId(fwExecuteVerId).timeout(clientContext.getRequestTimeout(client)).build();
+        downlinkHandler.sendExecuteRequest(client, request, new TbLwM2MExecuteCallback(logService, client, fwExecuteVerId));
     }
 
     private void executeSwInstall(LwM2mClient client) {
-        TbLwM2MExecuteRequest request = TbLwM2MExecuteRequest.builder().versionedId(SW_INSTALL_ID).timeout(clientContext.getRequestTimeout(client)).build();
-        downlinkHandler.sendExecuteRequest(client, request, new TbLwM2MExecuteCallback(logService, client, SW_INSTALL_ID));
+        String swInstallVerId = convertObjectIdToVersionedId(SW_INSTALL_ID, client.getRegistration());
+        TbLwM2MExecuteRequest request = TbLwM2MExecuteRequest.builder().versionedId(swInstallVerId).timeout(clientContext.getRequestTimeout(client)).build();
+        downlinkHandler.sendExecuteRequest(client, request, new TbLwM2MExecuteCallback(logService, client, swInstallVerId));
     }
 
     private void executeSwUninstallForUpdate(LwM2mClient client) {
-        TbLwM2MExecuteRequest request = TbLwM2MExecuteRequest.builder().versionedId(SW_UN_INSTALL_ID).params("1").timeout(clientContext.getRequestTimeout(client)).build();
-        downlinkHandler.sendExecuteRequest(client, request, new TbLwM2MExecuteCallback(logService, client, SW_INSTALL_ID));
+        String swInInstallVerId = convertObjectIdToVersionedId(SW_UN_INSTALL_ID, client.getRegistration());
+        TbLwM2MExecuteRequest request = TbLwM2MExecuteRequest.builder().versionedId(swInInstallVerId).params("1").timeout(clientContext.getRequestTimeout(client)).build();
+        downlinkHandler.sendExecuteRequest(client, request, new TbLwM2MExecuteCallback(logService, client, swInInstallVerId));
     }
 
     private Optional<String> getAttributeValue(List<TransportProtos.TsKvProto> attrs, String keyName) {

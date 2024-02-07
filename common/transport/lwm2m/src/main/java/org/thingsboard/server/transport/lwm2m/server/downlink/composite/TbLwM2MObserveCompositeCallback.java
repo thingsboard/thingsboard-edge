@@ -28,56 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.msa;
+package org.thingsboard.server.transport.lwm2m.server.downlink.composite;
 
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.californium.core.CoapHandler;
-import org.eclipse.californium.core.CoapResponse;
-import org.eclipse.californium.core.coap.CoAP;
-
-import java.util.concurrent.CountDownLatch;
+import org.eclipse.leshan.core.request.ObserveCompositeRequest;
+import org.eclipse.leshan.core.response.ObserveCompositeResponse;
+import org.thingsboard.server.transport.lwm2m.server.client.LwM2mClient;
+import org.thingsboard.server.transport.lwm2m.server.downlink.TbLwM2MUplinkTargetedCallback;
+import org.thingsboard.server.transport.lwm2m.server.log.LwM2MTelemetryLogService;
+import org.thingsboard.server.transport.lwm2m.server.uplink.LwM2mUplinkMsgHandler;
 
 @Slf4j
-@Data
-public class TestCoapClientCallback implements CoapHandler {
+public class TbLwM2MObserveCompositeCallback extends TbLwM2MUplinkTargetedCallback<ObserveCompositeRequest, ObserveCompositeResponse> {
 
-    protected final CountDownLatch latch;
-    protected Integer observe;
-    protected byte[] payloadBytes;
-    protected CoAP.ResponseCode responseCode;
-
-    public TestCoapClientCallback() {
-        this.latch = new CountDownLatch(1);
-    }
-
-    public TestCoapClientCallback(int subscribeCount) {
-        this.latch = new CountDownLatch(subscribeCount);
-    }
-
-    public Integer getObserve() {
-        return observe;
-    }
-
-    public byte[] getPayloadBytes() {
-        return payloadBytes;
-    }
-
-    public CoAP.ResponseCode getResponseCode() {
-        return responseCode;
+    public TbLwM2MObserveCompositeCallback(LwM2mUplinkMsgHandler handler, LwM2MTelemetryLogService logService, LwM2mClient client, String[] versionedIds) {
+        super(handler, logService, client, versionedIds);
     }
 
     @Override
-    public void onLoad(CoapResponse response) {
-        observe = response.getOptions().getObserve();
-        payloadBytes = response.getPayload();
-        responseCode = response.getCode();
-        latch.countDown();
-    }
-
-    @Override
-    public void onError() {
-        log.warn("Command Response Ack Error, No connect");
+    public void onSuccess(ObserveCompositeRequest request, ObserveCompositeResponse response) {
+        super.onSuccess(request, response);
+        handler.onUpdateValueAfterReadCompositeResponse(client.getRegistration(), response);
     }
 
 }
