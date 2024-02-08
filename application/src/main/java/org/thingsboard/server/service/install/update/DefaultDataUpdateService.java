@@ -70,10 +70,7 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
-import org.thingsboard.server.dao.alarm.AlarmDao;
 import org.thingsboard.server.dao.asset.AssetService;
-import org.thingsboard.server.dao.attributes.AttributesService;
-import org.thingsboard.server.dao.cloud.CloudEventDao;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -90,7 +87,6 @@ import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.sql.JpaExecutorService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
-import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
@@ -163,16 +159,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private SystemDataLoaderService systemDataLoaderService;
 
     @Autowired
-    private AttributesService attributesService;
-
-    @Autowired
-    private AlarmDao alarmDao;
-
-    @Autowired
     private WidgetsBundleService widgetsBundleService;
-
-    @Autowired
-    private WidgetTypeService widgetTypeService;
 
     @Autowired
     private CloudEventService cloudEventService;
@@ -182,9 +169,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     @Autowired
     private EdgeEventDao edgeEventDao;
-
-    @Autowired
-    private CloudEventDao cloudEventDao;
 
     @Autowired
     private IntegrationRateLimitsUpdater integrationRateLimitsUpdater;
@@ -197,7 +181,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     @Override
     public void updateData(String fromVersion) throws Exception {
-
         switch (fromVersion) {
             case "3.5.1":
                 log.info("Updating data from version 3.5.1 to 3.6.0 ...");
