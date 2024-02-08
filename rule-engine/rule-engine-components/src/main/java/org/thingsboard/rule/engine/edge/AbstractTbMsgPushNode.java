@@ -136,9 +136,9 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
         entityBody.put("requestId", metadata.get("requestId"));
         entityBody.put("serviceId", metadata.get("serviceId"));
         entityBody.put("sessionId", metadata.get("sessionId"));
-        JsonNode data = JacksonUtil.OBJECT_MAPPER.readTree(msg.getData());
+        JsonNode data = JacksonUtil.toJsonNode(msg.getData());
         entityBody.put("method", data.get("method").asText());
-        entityBody.put("params", JacksonUtil.OBJECT_MAPPER.writeValueAsString(data.get("params")));
+        entityBody.put("params", JacksonUtil.toString(data.get("params")));
     }
 
     abstract S buildEvent(TenantId tenantId, EdgeEventActionType eventAction, UUID entityId, U eventType, JsonNode entityBody);
@@ -192,6 +192,6 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
 
     protected boolean isSupportedMsgType(TbMsg msg) {
         return msg.isTypeOneOf(POST_TELEMETRY_REQUEST, POST_ATTRIBUTES_REQUEST, ATTRIBUTES_UPDATED, ATTRIBUTES_DELETED, TIMESERIES_UPDATED,
-                ALARM, CONNECT_EVENT, DISCONNECT_EVENT, ACTIVITY_EVENT, INACTIVITY_EVENT);
+                ALARM, CONNECT_EVENT, DISCONNECT_EVENT, ACTIVITY_EVENT, INACTIVITY_EVENT, TO_SERVER_RPC_REQUEST);
     }
 }

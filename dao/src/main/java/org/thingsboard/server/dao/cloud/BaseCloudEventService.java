@@ -144,7 +144,7 @@ public class BaseCloudEventService implements CloudEventService {
                     attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, DataConstants.EDGE_SETTINGS_ATTR_KEY).get();
             if (attr.isPresent()) {
                 log.trace("Found current edge settings {}", attr.get().getValueAsString());
-                return JacksonUtil.OBJECT_MAPPER.readValue(attr.get().getValueAsString(), EdgeSettings.class);
+                return JacksonUtil.fromString(attr.get().getValueAsString(), EdgeSettings.class);
             } else {
                 log.trace("Edge settings not found");
                 return null;
@@ -159,7 +159,7 @@ public class BaseCloudEventService implements CloudEventService {
     public ListenableFuture<List<String>> saveEdgeSettings(TenantId tenantId, EdgeSettings edgeSettings) {
         try {
             BaseAttributeKvEntry edgeSettingAttr =
-                    new BaseAttributeKvEntry(new StringDataEntry(DataConstants.EDGE_SETTINGS_ATTR_KEY, JacksonUtil.OBJECT_MAPPER.writeValueAsString(edgeSettings)), System.currentTimeMillis());
+                    new BaseAttributeKvEntry(new StringDataEntry(DataConstants.EDGE_SETTINGS_ATTR_KEY, JacksonUtil.toString(edgeSettings)), System.currentTimeMillis());
             List<AttributeKvEntry> attributes =
                     Collections.singletonList(edgeSettingAttr);
             return attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);

@@ -32,6 +32,7 @@ import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
@@ -91,6 +92,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToTransportUpdateCre
 import org.thingsboard.server.gen.transport.TransportProtos.TransportToDeviceActorMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.TsKvProto;
 import org.thingsboard.server.service.rpc.RpcSubmitStrategy;
+import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.transport.msg.TransportToDeviceActorMsgWrapper;
 
 import javax.annotation.Nullable;
@@ -212,8 +214,12 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
         if (systemContext.isEdgesEnabled() && edgeId != null) {
             log.debug("[{}][{}] device is related to edge: [{}]. Saving RPC request: [{}][{}] to edge queue", tenantId, deviceId, edgeId.getId(), rpcId, requestId);
             try {
-                saveRpcRequestToEdgeQueue(request, requestId).get();
-                sent = true;
+                var edgeAttributeOpt = systemContext.getAttributesService().find(tenantId, edgeId, DataConstants.SERVER_SCOPE, DefaultDeviceStateService.ACTIVITY_STATE).get();
+                if (edgeAttributeOpt.isPresent() && edgeAttributeOpt.get().getBooleanValue().orElse(false)) {
+                    saveRpcRequestToEdgeQueue(request, requestId).get();
+                } else {
+                    log.error("[{}][{}][{}] Failed to save RPC request to edge queue {} because Edge is offline", tenantId, deviceId, edgeId.getId(), request);
+                }
             } catch (InterruptedException | ExecutionException e) {
                 log.error("[{}][{}][{}] Failed to save RPC request to edge queue {}", tenantId, deviceId, edgeId.getId(), request, e);
             }
@@ -240,6 +246,8 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
         if (!persisted && request.isOneway() && sent) {
             log.debug("[{}] RPC command response sent [{}][{}]!", deviceId, rpcId, requestId);
             systemContext.getTbCoreDeviceRpcService().processRpcResponseFromDeviceActor(new FromDeviceRpcResponse(rpcId, null, null));
+        } else if (!persisted && request.isOneway() && !sent) {
+            saveRpcResponseToCloudQueue(msg, requestId, rpcId); // edge only
         } else {
             registerPendingRpcRequest(context, msg, sent, rpcRequest, timeout);
         }
@@ -1087,6 +1095,23 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
             }
         }
 
+    }
+
+    // edge-only:
+    private void saveRpcResponseToCloudQueue(ToDeviceRpcRequestActorMsg msg, int requestId, UUID rpcId) {
+        ObjectNode body = JacksonUtil.newObjectNode();
+        body.put("requestId", requestId);
+        body.put("requestUUID", msg.getMsg().getId().toString());
+        body.put("rpcId", rpcId.toString());
+        body.put("serviceId", msg.getServiceId());
+        body.put("error", RpcError.NO_ACTIVE_CONNECTION.name());
+
+        try {
+            systemContext.getCloudEventService().saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.RPC_CALL,
+                    deviceId, body, 0L).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
