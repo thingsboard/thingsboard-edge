@@ -59,6 +59,7 @@ import static org.testng.Assert.fail;
 public class ContainerTestSuite {
     final static boolean IS_REDIS_CLUSTER = Boolean.parseBoolean(System.getProperty("blackBoxTests.redisCluster"));
     final static boolean IS_REDIS_SENTINEL = Boolean.parseBoolean(System.getProperty("blackBoxTests.redisSentinel"));
+    final static boolean IS_REDIS_SSL = Boolean.parseBoolean(System.getProperty("blackBoxTests.redisSsl"));
     final static boolean IS_HYBRID_MODE = Boolean.parseBoolean(System.getProperty("blackBoxTests.hybridMode"));
     final static String QUEUE_TYPE = System.getProperty("blackBoxTests.queue", "kafka");
     private static final String SOURCE_DIR = "./../../docker/";
@@ -99,6 +100,7 @@ public class ContainerTestSuite {
         installTb.createVolumes();
         log.info("System property of blackBoxTests.redisCluster is {}", IS_REDIS_CLUSTER);
         log.info("System property of blackBoxTests.redisSentinel is {}", IS_REDIS_SENTINEL);
+        log.info("System property of blackBoxTests.redisSsl is {}", IS_REDIS_SSL);
         log.info("System property of blackBoxTests.hybridMode is {}", IS_HYBRID_MODE);
         boolean skipTailChildContainers = Boolean.parseBoolean(System.getProperty("blackBoxTests.skipTailChildContainers"));
         try {
@@ -118,6 +120,12 @@ public class ContainerTestSuite {
                     super.stop();
                     tryDeleteDir(targetDir);
                 }
+            }
+
+            if (IS_REDIS_SSL) {
+                addToFile(targetDir, "cache-redis.env",
+                        Map.of("TB_REDIS_SSL_ENABLED", "true",
+                                "TB_REDIS_SSL_PEM_CERT", "/redis/certs/redisCA.crt"));
             }
 
             List<File> composeFiles = new ArrayList<>(Arrays.asList(
@@ -217,6 +225,9 @@ public class ContainerTestSuite {
         if (IS_REDIS_SENTINEL) {
             return "docker-compose.redis-sentinel.yml";
         }
+        if (IS_REDIS_SSL) {
+            return "docker-compose.redis-ssl.yml";
+        }
         return "docker-compose.redis.yml";
     }
 
@@ -226,6 +237,9 @@ public class ContainerTestSuite {
         }
         if (IS_REDIS_SENTINEL) {
             return "docker-compose.redis-sentinel.volumes.yml";
+        }
+        if (IS_REDIS_SSL) {
+            return "docker-compose.redis-ssl.volumes.yml";
         }
         return "docker-compose.redis.volumes.yml";
     }
@@ -245,6 +259,15 @@ public class ContainerTestSuite {
             data = data.replace(entry.getKey(), entry.getValue());
         }
         Files.write(envFilePath, data.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static void addToFile(String targetDir, String fileName, Map<String, String> properties) throws IOException {
+        Path envFilePath = Path.of(targetDir, fileName);
+        StringBuilder data = new StringBuilder(Files.readString(envFilePath));
+        for (var entry : properties.entrySet()) {
+            data.append("\n").append(entry.getKey()).append("=").append(entry.getValue());
+        }
+        Files.write(envFilePath, data.toString().getBytes(StandardCharsets.UTF_8));
     }
 
     private static String getSysProp(String propertyName) {
