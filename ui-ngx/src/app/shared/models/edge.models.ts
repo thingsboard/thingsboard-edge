@@ -232,3 +232,15 @@ export const edgeEntityGroupTypes: EntityType[] = [
 ];
 
 export const edgeVersionAttributeKey = 'edgeVersion';
+
+export enum EdgeConnectionEvent {
+  CONNECTED= 'CONNECTED',
+  DISCONNECTED = 'DISCONNECTED'
+}
+
+export const EdgeConnectionEventTranslationMap = new Map<EdgeConnectionEvent, string>(
+  [
+    [EdgeConnectionEvent.CONNECTED, 'edge.connected'],
+    [EdgeConnectionEvent.DISCONNECTED, 'edge.disconnected']
+  ]
+);
