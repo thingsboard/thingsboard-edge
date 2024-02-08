@@ -233,7 +233,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         eventPublisher.publishEvent(SaveEntityEvent.builder()
                 .tenantId(tenantId)
                 .entityId(savedEntityGroup.getId())
-                .entity(entityGroup)
+                .entity(savedEntityGroup)
                 .created(entityGroup.getId() == null)
                 .build());
         return savedEntityGroup;

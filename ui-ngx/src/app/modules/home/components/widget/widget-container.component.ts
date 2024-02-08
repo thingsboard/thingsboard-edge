@@ -37,7 +37,6 @@ import {
   ElementRef,
   EventEmitter,
   HostBinding,
-  Inject,
   Input,
   OnDestroy,
   OnInit,
@@ -52,10 +51,9 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { SafeStyle } from '@angular/platform-browser';
 import { WidgetExportType, widgetExportTypeTranslationMap } from '@shared/models/widget.models';
-import { guid, isNotEmptyStr } from '@core/utils';
-import cssjs from '@core/css/css';
-import { DOCUMENT } from '@angular/common';
+import { isNotEmptyStr } from '@core/utils';
 import { GridsterItemComponent } from 'angular-gridster2';
+import { UtilsService } from '@core/services/utils.service';
 
 export enum WidgetComponentActionType {
   MOUSE_DOWN,
@@ -103,6 +101,9 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, A
   isEdit: boolean;
 
   @Input()
+  isPreview: boolean;
+
+  @Input()
   isMobile: boolean;
 
   @Input()
@@ -134,7 +135,7 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, A
   constructor(protected store: Store<AppState>,
               private cd: ChangeDetectorRef,
               private renderer: Renderer2,
-              @Inject(DOCUMENT) private document: Document) {
+              private utils: UtilsService) {
     super(store);
   }
 
@@ -142,12 +143,8 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, A
     this.widget.widgetContext.containerChangeDetector = this.cd;
     const cssString = this.widget.widget.config.widgetCss;
     if (isNotEmptyStr(cssString)) {
-      const cssParser = new cssjs();
-      cssParser.testMode = false;
-      this.cssClass = 'tb-widget-css-' + guid();
-      this.renderer.addClass(this.gridsterItem.el, this.cssClass);
-      cssParser.cssPreviewNamespace = this.cssClass;
-      cssParser.createStyleElement(this.cssClass, cssString);
+      this.cssClass =
+        this.utils.applyCssToElement(this.renderer, this.gridsterItem.el, 'tb-widget-css', cssString);
     }
   }
 
@@ -157,10 +154,7 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, A
 
   ngOnDestroy(): void {
     if (this.cssClass) {
-      const el = this.document.getElementById(this.cssClass);
-      if (el) {
-        el.parentNode.removeChild(el);
-      }
+      this.utils.clearCssElement(this.renderer, this.cssClass);
     }
   }
 

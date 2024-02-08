@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.tenant;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.limits.TenantProfileProvider;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -46,7 +47,7 @@ import java.util.function.Consumer;
 
 @Service
 @Slf4j
-public class DefaultTbTenantProfileCache implements TbTenantProfileCache {
+public class DefaultTbTenantProfileCache implements TbTenantProfileCache, TenantProfileProvider {
 
     private final Lock tenantProfileFetchLock = new ReentrantLock();
     private final TenantProfileService tenantProfileService;

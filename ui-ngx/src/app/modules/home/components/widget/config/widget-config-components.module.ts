@@ -47,6 +47,7 @@ import { TimewindowConfigPanelComponent } from '@home/components/widget/config/t
 import { WidgetSettingsCommonModule } from '@home/components/widget/lib/settings/common/widget-settings-common.module';
 import { TimewindowStyleComponent } from '@home/components/widget/config/timewindow-style.component';
 import { TimewindowStylePanelComponent } from '@home/components/widget/config/timewindow-style-panel.component';
+import { TargetDeviceComponent } from '@home/components/widget/config/target-device.component';
 
 @NgModule({
   declarations:
@@ -58,6 +59,7 @@ import { TimewindowStylePanelComponent } from '@home/components/widget/config/ti
       DataKeyConfigComponent,
       DatasourceComponent,
       DatasourcesComponent,
+      TargetDeviceComponent,
       EntityAliasSelectComponent,
       FilterSelectComponent,
       TimewindowStyleComponent,
@@ -79,6 +81,7 @@ import { TimewindowStylePanelComponent } from '@home/components/widget/config/ti
     DataKeyConfigComponent,
     DatasourceComponent,
     DatasourcesComponent,
+    TargetDeviceComponent,
     EntityAliasSelectComponent,
     FilterSelectComponent,
     TimewindowStyleComponent,

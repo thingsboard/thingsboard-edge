@@ -34,6 +34,7 @@ import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.m
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
+import { columnExportOptions } from '@home/components/widget/lib/table-widget.models';
 
 @Component({
   selector: 'tb-timeseries-table-latest-key-settings',
@@ -61,7 +62,8 @@ export class TimeseriesTableLatestKeySettingsComponent extends WidgetSettingsCom
       useCellContentFunction: false,
       cellContentFunction: '',
       defaultColumnVisibility: 'visible',
-      columnSelectionToDisplay: 'enabled'
+      columnSelectionToDisplay: 'enabled',
+      columnExportOption: columnExportOptions.onlyVisible
     };
   }
 
@@ -75,6 +77,7 @@ export class TimeseriesTableLatestKeySettingsComponent extends WidgetSettingsCom
       cellContentFunction: [settings.cellContentFunction, [Validators.required]],
       defaultColumnVisibility: [settings.defaultColumnVisibility, []],
       columnSelectionToDisplay: [settings.columnSelectionToDisplay, []],
+      columnExportOption: [settings.columnExportOption, []]
     });
   }
 

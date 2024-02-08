@@ -255,7 +255,7 @@ public class IntegrationController extends AutoCommitController {
             checkNotNull(integration);
             integration.setTenantId(getCurrentUser().getTenantId());
             try {
-                integrationManagerService.checkIntegrationConnection(integration).get(20, TimeUnit.SECONDS);
+                integrationManagerService.checkIntegrationConnection(integration).get(integrationManagerService.getIntegrationConnectionCheckApiRequestTimeoutSec(), TimeUnit.SECONDS);
             } catch (ExecutionException e) {
                 throwRealCause(e);
             }

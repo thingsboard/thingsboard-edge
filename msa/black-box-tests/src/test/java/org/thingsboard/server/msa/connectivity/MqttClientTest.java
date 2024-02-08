@@ -420,10 +420,12 @@ public class MqttClientTest extends AbstractContainerTest {
 
         MqttEvent provisionResponseMsg = listener.getEvents().poll(timeoutMultiplier, TimeUnit.SECONDS);
 
-        assertThat(provisionResponseMsg).isNotNull();
+        assertThat(provisionResponseMsg).as("provisionResponseMsg").isNotNull();
+        assertThat(provisionResponseMsg.getMessage()).as("provisionResponseMsg.getMessage()").isNotNull();
 
         JsonNode provisionResponse = JacksonUtil.toJsonNode(provisionResponseMsg.getMessage());
 
+        assertThat(provisionResponse).as("provision response JsonNode").isNotNull();
         testRestClient.deleteDeviceIfExists(device.getId());
         device = testRestClient.getDeviceByName(testDeviceName);
 

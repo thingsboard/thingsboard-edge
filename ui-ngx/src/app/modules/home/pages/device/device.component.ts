@@ -101,7 +101,7 @@ export class DeviceComponent extends GroupEntityComponent<DeviceInfo> {
   }
 
   showConnectivityDialog(): boolean {
-    return this.wl.getShowConnectivityDialog();
+    return !this.wl.getHideConnectivityDialog();
   }
 
   hideManageCredentials() {

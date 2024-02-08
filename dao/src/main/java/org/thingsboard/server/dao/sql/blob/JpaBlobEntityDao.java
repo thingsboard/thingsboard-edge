@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.sql.blob;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,12 +37,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.blob.BlobEntity;
-import org.thingsboard.server.common.data.id.BlobEntityId;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.blob.BlobEntityDao;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.sql.BlobEntityEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractDao;
+import org.thingsboard.server.dao.sql.JpaPartitionedAbstractDao;
 import org.thingsboard.server.dao.sqlts.insert.sql.SqlPartitioningRepository;
 import org.thingsboard.server.dao.util.SqlDao;
 
@@ -54,7 +51,7 @@ import java.util.concurrent.TimeUnit;
 @SqlDao
 @RequiredArgsConstructor
 @Slf4j
-public class JpaBlobEntityDao extends JpaAbstractDao<BlobEntityEntity, BlobEntity> implements BlobEntityDao {
+public class JpaBlobEntityDao extends JpaPartitionedAbstractDao<BlobEntityEntity, BlobEntity> implements BlobEntityDao {
 
     private final BlobEntityRepository blobEntityRepository;
     private final SqlPartitioningRepository partitioningRepository;
@@ -77,17 +74,6 @@ public class JpaBlobEntityDao extends JpaAbstractDao<BlobEntityEntity, BlobEntit
     @Override
     protected JpaRepository<BlobEntityEntity, UUID> getRepository() {
         return blobEntityRepository;
-    }
-
-    @Override
-    public BlobEntity save(TenantId tenantId, BlobEntity blobEntity) {
-        if (blobEntity.getId() == null) {
-            UUID uuid = Uuids.timeBased();
-            blobEntity.setId(new BlobEntityId(uuid));
-            blobEntity.setCreatedTime(Uuids.unixTimestamp(uuid));
-        }
-        partitioningRepository.createPartitionIfNotExists(TABLE_NAME, blobEntity.getCreatedTime(), getPartitionSizeInMs());
-        return super.save(tenantId, blobEntity);
     }
 
     @Override
@@ -122,6 +108,11 @@ public class JpaBlobEntityDao extends JpaAbstractDao<BlobEntityEntity, BlobEntit
         jdbcTemplate.execute("DROP TABLE IF EXISTS old_blob_entity");
         log.info("Dropped old_blob_entity table");
         log.info("Blob entities migration finished");
+    }
+
+    @Override
+    public void createPartition(BlobEntityEntity entity) {
+        partitioningRepository.createPartitionIfNotExists(TABLE_NAME, entity.getCreatedTime(), getPartitionSizeInMs());
     }
 
     private long getPartitionSizeInMs() {

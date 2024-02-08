@@ -126,7 +126,9 @@ export class DefaultTenantProfileConfigurationComponent implements ControlValueA
       maxWsSubscriptionsPerRegularUser: [null, [Validators.min(0)]],
       maxWsSubscriptionsPerPublicUser: [null, [Validators.min(0)]],
       wsUpdatesPerSessionRateLimit: [null, []],
-      cassandraQueryTenantRateLimitsConfiguration: [null, []]
+      cassandraQueryTenantRateLimitsConfiguration: [null, []],
+      edgeEventRateLimits: [null, []],
+      edgeEventRateLimitsPerEdge: [null, []]
     });
 
     this.defaultTenantProfileConfigurationFormGroup.get('smsEnabled').valueChanges.pipe(

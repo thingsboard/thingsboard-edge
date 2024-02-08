@@ -88,6 +88,8 @@ import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationM
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.FromDeviceRPCResponseProto;
 import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
+import org.thingsboard.server.gen.transport.TransportProtos.QueueDeleteMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.QueueUpdateMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
@@ -112,6 +114,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.util.ProtoUtils.toProto;
 
@@ -475,7 +478,7 @@ public class DefaultTbClusterService implements TbClusterService {
 
         boolean toIntegrationExecutor = entityType.equals(EntityType.CONVERTER) || entityType.equals(EntityType.INTEGRATION);
 
-        if (entityType.equals(EntityType.TENANT) || toIntegrationExecutor) {
+        if (entityType.equals(EntityType.TENANT) || entityType.equals(EntityType.TENANT_PROFILE) || toIntegrationExecutor) {
             TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> toIeNfProducer = producerProvider.getTbIntegrationExecutorNotificationsMsgProducer();
             Set<String> tbIeServices = partitionService.getAllServiceIds(ServiceType.TB_INTEGRATION_EXECUTOR);
             tbIeServices.addAll(partitionService.getAllServiceIds(ServiceType.TB_CORE));
@@ -697,40 +700,40 @@ public class DefaultTbClusterService implements TbClusterService {
     }
 
     @Override
-    public void onQueueChange(Queue queue) {
-        log.trace("[{}][{}] Processing queue change [{}] event", queue.getTenantId(), queue.getId(), queue.getName());
+    public void onQueuesUpdate(List<Queue> queues) {
+        List<QueueUpdateMsg> queueUpdateMsgs = queues.stream()
+                .map(queue -> QueueUpdateMsg.newBuilder()
+                        .setTenantIdMSB(queue.getTenantId().getId().getMostSignificantBits())
+                        .setTenantIdLSB(queue.getTenantId().getId().getLeastSignificantBits())
+                        .setQueueIdMSB(queue.getId().getId().getMostSignificantBits())
+                        .setQueueIdLSB(queue.getId().getId().getLeastSignificantBits())
+                        .setQueueName(queue.getName())
+                        .setQueueTopic(queue.getTopic())
+                        .setPartitions(queue.getPartitions())
+                        .build())
+                .collect(Collectors.toList());
 
-        TransportProtos.QueueUpdateMsg queueUpdateMsg = TransportProtos.QueueUpdateMsg.newBuilder()
-                .setTenantIdMSB(queue.getTenantId().getId().getMostSignificantBits())
-                .setTenantIdLSB(queue.getTenantId().getId().getLeastSignificantBits())
-                .setQueueIdMSB(queue.getId().getId().getMostSignificantBits())
-                .setQueueIdLSB(queue.getId().getId().getLeastSignificantBits())
-                .setQueueName(queue.getName())
-                .setQueueTopic(queue.getTopic())
-                .setPartitions(queue.getPartitions())
-                .build();
-
-        ToRuleEngineNotificationMsg ruleEngineMsg = ToRuleEngineNotificationMsg.newBuilder().setQueueUpdateMsg(queueUpdateMsg).build();
-        ToCoreNotificationMsg coreMsg = ToCoreNotificationMsg.newBuilder().setQueueUpdateMsg(queueUpdateMsg).build();
-        ToTransportMsg transportMsg = ToTransportMsg.newBuilder().setQueueUpdateMsg(queueUpdateMsg).build();
+        ToRuleEngineNotificationMsg ruleEngineMsg = ToRuleEngineNotificationMsg.newBuilder().addAllQueueUpdateMsgs(queueUpdateMsgs).build();
+        ToCoreNotificationMsg coreMsg = ToCoreNotificationMsg.newBuilder().addAllQueueUpdateMsgs(queueUpdateMsgs).build();
+        ToTransportMsg transportMsg = ToTransportMsg.newBuilder().addAllQueueUpdateMsgs(queueUpdateMsgs).build();
         doSendQueueNotifications(ruleEngineMsg, coreMsg, transportMsg);
     }
 
     @Override
-    public void onQueueDelete(Queue queue) {
-        log.trace("[{}][{}] Processing queue delete [{}] event", queue.getTenantId(), queue.getId(), queue.getName());
+    public void onQueuesDelete(List<Queue> queues) {
+        List<QueueDeleteMsg> queueDeleteMsgs = queues.stream()
+                .map(queue -> QueueDeleteMsg.newBuilder()
+                        .setTenantIdMSB(queue.getTenantId().getId().getMostSignificantBits())
+                        .setTenantIdLSB(queue.getTenantId().getId().getLeastSignificantBits())
+                        .setQueueIdMSB(queue.getId().getId().getMostSignificantBits())
+                        .setQueueIdLSB(queue.getId().getId().getLeastSignificantBits())
+                        .setQueueName(queue.getName())
+                        .build())
+                .collect(Collectors.toList());
 
-        TransportProtos.QueueDeleteMsg queueDeleteMsg = TransportProtos.QueueDeleteMsg.newBuilder()
-                .setTenantIdMSB(queue.getTenantId().getId().getMostSignificantBits())
-                .setTenantIdLSB(queue.getTenantId().getId().getLeastSignificantBits())
-                .setQueueIdMSB(queue.getId().getId().getMostSignificantBits())
-                .setQueueIdLSB(queue.getId().getId().getLeastSignificantBits())
-                .setQueueName(queue.getName())
-                .build();
-
-        ToRuleEngineNotificationMsg ruleEngineMsg = ToRuleEngineNotificationMsg.newBuilder().setQueueDeleteMsg(queueDeleteMsg).build();
-        ToCoreNotificationMsg coreMsg = ToCoreNotificationMsg.newBuilder().setQueueDeleteMsg(queueDeleteMsg).build();
-        ToTransportMsg transportMsg = ToTransportMsg.newBuilder().setQueueDeleteMsg(queueDeleteMsg).build();
+        ToRuleEngineNotificationMsg ruleEngineMsg = ToRuleEngineNotificationMsg.newBuilder().addAllQueueDeleteMsgs(queueDeleteMsgs).build();
+        ToCoreNotificationMsg coreMsg = ToCoreNotificationMsg.newBuilder().addAllQueueDeleteMsgs(queueDeleteMsgs).build();
+        ToTransportMsg transportMsg = ToTransportMsg.newBuilder().addAllQueueDeleteMsgs(queueDeleteMsgs).build();
         doSendQueueNotifications(ruleEngineMsg, coreMsg, transportMsg);
     }
 
