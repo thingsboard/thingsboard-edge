@@ -4,8 +4,8 @@
     {
       "additionalInfo": {
         "description": "",
-        "layoutX": 531,
-        "layoutY": 530
+        "layoutX": 525,
+        "layoutY": 563
       },
       "type": "org.thingsboard.rule.engine.edge.TbMsgPushToEdgeNode",
       "name": "Push to Edge",
@@ -210,6 +210,26 @@
       "fromIndex": 3,
       "toIndex": 10,
       "type": "Success"
+    },
+    {
+      "fromIndex": 4,
+      "toIndex": 0,
+      "type": "Attributes Deleted"
+    },
+    {
+      "fromIndex": 4,
+      "toIndex": 0,
+      "type": "Attributes Updated"
+    },
+    {
+      "fromIndex": 4,
+      "toIndex": 0,
+      "type": "Timeseries Deleted"
+    },
+    {
+      "fromIndex": 4,
+      "toIndex": 0,
+      "type": "Timeseries Updated"
     },
     {
       "fromIndex": 4,
