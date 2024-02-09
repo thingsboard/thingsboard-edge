@@ -42,6 +42,7 @@ import {
 import { Circle, Element, G, Gradient, Runner, Stop, Svg, Text, Timeline } from '@svgdotjs/svg.js';
 import tinycolor from 'tinycolor2';
 import { WidgetContext } from '@home/models/widget-component.models';
+import { plainColorFromVariable } from '@core/utils';
 
 export enum PowerButtonLayout {
   default = 'default',
@@ -173,7 +174,7 @@ export const powerButtonDefaultSettings: PowerButtonWidgetSettings = {
     }
   },
   layout: PowerButtonLayout.default,
-  mainColorOn: '#3F52DD',
+  mainColorOn: 'var(--tb-primary-500)',
   backgroundColorOn: '#FFFFFF',
   mainColorOff: '#A2A2A2',
   backgroundColorOff: '#FFFFFF',
@@ -205,12 +206,12 @@ interface PowerButtonColorState {
 type PowerButtonShapeColors = Record<PowerButtonState, PowerButtonColorState>;
 
 const createPowerButtonShapeColors = (settings: PowerButtonWidgetSettings): PowerButtonShapeColors => {
-  const mainColorOn = tinycolor(settings.mainColorOn);
-  const backgroundColorOn = tinycolor(settings.backgroundColorOn);
-  const mainColorOff = tinycolor(settings.mainColorOff);
-  const backgroundColorOff = tinycolor(settings.backgroundColorOff);
-  const mainColorDisabled = tinycolor(settings.mainColorDisabled);
-  const backgroundColorDisabled = tinycolor(settings.backgroundColorDisabled);
+  const mainColorOn = tinycolor(plainColorFromVariable(settings.mainColorOn));
+  const backgroundColorOn = tinycolor(plainColorFromVariable(settings.backgroundColorOn));
+  const mainColorOff = tinycolor(plainColorFromVariable(settings.mainColorOff));
+  const backgroundColorOff = tinycolor(plainColorFromVariable(settings.backgroundColorOff));
+  const mainColorDisabled = tinycolor(plainColorFromVariable(settings.mainColorDisabled));
+  const backgroundColorDisabled = tinycolor(plainColorFromVariable(settings.backgroundColorDisabled));
   return {
     on: {
       mainColor: {hex: mainColorOn.toHexString(), opacity: mainColorOn.getAlpha()},

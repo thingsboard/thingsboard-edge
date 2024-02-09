@@ -36,7 +36,7 @@ import { AppState } from '@core/core.state';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { accentPalette, ColorPalette, getContrastColor, primaryPalette } from '@shared/models/material.models';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
-import { UtilsService } from '@core/services/utils.service';
+import { plainColorFromVariable } from '@app/core/utils';
 
 @Component({
   selector: 'tb-theme-color-select',
@@ -67,8 +67,7 @@ export class ThemeColorSelectComponent extends PageComponent implements OnInit, 
   selectedHue: string;
 
   constructor(protected store: Store<AppState>,
-              private wl: WhiteLabelingService,
-              private utils: UtilsService) {
+              private wl: WhiteLabelingService) {
     super(store);
   }
 
@@ -79,7 +78,7 @@ export class ThemeColorSelectComponent extends PageComponent implements OnInit, 
     this.hues = Object.keys(this.paletteInfo);
     this.colors = {};
     for (const hue of this.hues) {
-      this.colors[hue] = this.utils.plainColorFromVariable(this.paletteInfo[hue]);
+      this.colors[hue] = plainColorFromVariable(this.paletteInfo[hue]);
     }
   }
 
