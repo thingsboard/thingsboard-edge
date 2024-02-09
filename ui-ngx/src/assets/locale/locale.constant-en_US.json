@@ -912,7 +912,9 @@
         "rest-api-requests-per-customer": "REST API requests per customer",
         "transport-messages": "Transport messages",
         "transport-messages-per-device": "Transport messages per device",
-        "ws-updates-per-session": "WS updates per session"
+        "ws-updates-per-session": "WS updates per session",
+        "edge-events": "Edge events",
+        "edge-events-per-edge": "Edge events per edge"
     },
     "audit-log": {
         "audit": "Audit",
@@ -2304,7 +2306,9 @@
         "missing-all-related-attributes-title": "Edge(s) have missing attribute(s)",
         "missing-all-related-attributes-text": "Edge(s), related to integration, don't have attributes that are present inside integration configuration as attribute placeholders. <br><br> List of missing edge attributes(s): <br> {{missingEdgeAttributes}}",
         "quick-overview-widget-header": "{{edgeName}} Quick Overview",
-        "upgrade-instructions": "Upgrade Instructions"
+        "upgrade-instructions": "Upgrade Instructions",
+        "connected": "Connected",
+        "disconnected": "Disconnected"
     },
     "edge-event": {
         "type-dashboard": "Dashboard",
@@ -2359,7 +2363,9 @@
         "action-type-entity-merge-request": "Entity Merge Request",
         "action-type-added-to-entity-group": "Added to Entity Group",
         "action-type-removed-from-entity-group": "Removed from Entity Group",
-        "action-type-change-owner": "Change owner"
+        "action-type-change-owner": "Change owner",
+        "connected": "Connected",
+        "disconnected": "Disconnected"
     },
     "error": {
         "unable-to-connect": "Unable to connect to the server! Please check your internet connection.",
@@ -4276,6 +4282,8 @@
         "device-list-rule-hint": "If the field is empty, the trigger will be applied to all devices",
         "device-profiles-list-rule-hint": "If the field is empty, the trigger will be applied to all device profiles",
         "disabled": "Disabled",
+        "edge-trigger-settings": "Edge trigger settings",
+        "edge-list-rule-hint": "If the field is empty, the trigger will be applied to all edge instances",
         "edit-notification-recipients-group": "Edit notification recipients group",
         "edit-notification-template": "Edit notification template",
         "edit-rule": "Edit rule",
@@ -4426,7 +4434,9 @@
             "rule-engine-lifecycle-event": "Rule engine lifecycle event",
             "rule-node": "Rule node",
             "new-platform-version": "New platform version",
-            "rate-limits": "Exceeded rate limits"
+            "rate-limits": "Exceeded rate limits",
+            "edge-communication-failure": "Edge communication failure",
+            "edge-connection": "Edge connection"
         },
         "templates": "Templates",
         "notification-templates": "Notifications / Templates",
@@ -4448,6 +4458,8 @@
             "rule-engine-lifecycle-event": "Rule engine lifecycle event",
             "new-platform-version": "New platform version",
             "rate-limits": "Exceeded rate limits",
+            "edge-connection": "Edge connection",
+            "edge-communication-failure": "Edge communication failure",
             "trigger": "Trigger",
             "trigger-required": "Trigger is required"
         },
@@ -5538,6 +5550,10 @@
             "edit-tenant-notification-requests-per-rule-rate-limit-title": "Edit notification requests per notification rule rate limits",
             "edit-integration-msgs-per-tenant-rate-limit-title": "Edit integration messages per tenant rate limits",
             "edit-integration-msgs-per-device-rate-limit-title": "Edit integration messages per device rate limits",
+            "edit-edge-events-rate-limit": "Edit edge events rate limits",
+            "edit-edge-events-per-edge-rate-limit": "Edit edge events per edge rate limits",
+            "edge-events-rate-limit": "Edge events",
+            "edge-events-per-edge-rate-limit": "Edge events per edge",
             "messages-per": "messages per",
             "not-set": "Not set",
             "number-of-messages": "Number of messages",
@@ -6675,7 +6691,7 @@
         "action-button": {
             "behavior": "Behavior",
             "on-click": "On click",
-            "on-click-hint": "Action performed when the button is clicked."
+            "on-click-hint": "Action triggered when the button is clicked"
         },
         "command-button": {
             "behavior": "Behavior",
@@ -6704,9 +6720,9 @@
         },
         "button-state": {
             "activated-state": "Activated state",
-            "activated-state-hint": "Condition under which the button is active.",
+            "activated-state-hint": "Configure condition under which the button is active.",
             "disabled-state": "Disabled state",
-            "disabled-state-hint": "Condition under which the button is disabled.",
+            "disabled-state-hint": "Configure condition under which the button is disabled.",
             "enabled": "Enabled",
             "hovered": "Hovered",
             "pressed": "Pressed",
@@ -8049,13 +8065,13 @@
         },
         "rpc-state": {
             "initial-state": "Initial state",
-            "initial-state-hint": "Action to get the initial value of the component.",
+            "initial-state-hint": "Action to get the initial state (On/Off) of the component.",
             "disabled-state": "Disabled state",
-            "disabled-state-hint": "Condition under which the component is disabled.",
+            "disabled-state-hint": "Configure condition under which the component is disabled.",
             "turn-on": "Turn 'On'",
-            "turn-on-hint": "Action performed to turn ON the component.",
+            "turn-on-hint": "Action triggered when the slider is switched to 'On'",
             "turn-off": "Turn 'Off'",
-            "turn-off-hint": "Action performed to turn OFF the component.",
+            "turn-off-hint": "Action triggered when the slider is switched to 'Off'",
             "on": "On",
             "off": "Off",
             "disabled": "Disabled"

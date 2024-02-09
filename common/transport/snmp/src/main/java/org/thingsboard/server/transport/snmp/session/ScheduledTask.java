@@ -28,23 +28,50 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification;
+package org.thingsboard.server.transport.snmp.session;
 
-public enum NotificationType {
+import com.google.common.util.concurrent.AsyncCallable;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
-    GENERAL,
-    ALARM,
-    DEVICE_ACTIVITY,
-    ENTITY_ACTION,
-    ALARM_COMMENT,
-    RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT,
-    ALARM_ASSIGNMENT,
-    NEW_PLATFORM_VERSION,
-    ENTITIES_LIMIT,
-    API_USAGE_LIMIT,
-    RULE_NODE,
-    INTEGRATION_LIFECYCLE_EVENT,
-    RATE_LIMITS,
-    EDGE_CONNECTION,
-    EDGE_COMMUNICATION_FAILURE
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+@Data
+@Slf4j
+public class ScheduledTask {
+    private ListenableFuture<?> scheduledFuture;
+    private boolean stopped = false;
+
+    public void init(AsyncCallable<Void> task, long delayMs, ScheduledExecutorService scheduler) {
+        schedule(task, delayMs, scheduler);
+    }
+
+    private void schedule(AsyncCallable<Void> task, long delayMs, ScheduledExecutorService scheduler) {
+        scheduledFuture = Futures.scheduleAsync(() -> {
+            if (stopped) {
+                return Futures.immediateCancelledFuture();
+            }
+            try {
+                return task.call();
+            } catch (Throwable t) {
+                log.error("Unhandled error in scheduled task", t);
+                return Futures.immediateFailedFuture(t);
+            }
+        }, delayMs, TimeUnit.MILLISECONDS, scheduler);
+        if (!stopped) {
+            scheduledFuture.addListener(() -> schedule(task, delayMs, scheduler), MoreExecutors.directExecutor());
+        }
+    }
+
+    public void cancel() {
+        stopped = true;
+        if (scheduledFuture != null) {
+            scheduledFuture.cancel(true);
+        }
+    }
+
 }

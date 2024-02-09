@@ -28,23 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification;
+package org.thingsboard.server.common.data.notification.rule.trigger.config;
 
-public enum NotificationType {
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-    GENERAL,
-    ALARM,
-    DEVICE_ACTIVITY,
-    ENTITY_ACTION,
-    ALARM_COMMENT,
-    RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT,
-    ALARM_ASSIGNMENT,
-    NEW_PLATFORM_VERSION,
-    ENTITIES_LIMIT,
-    API_USAGE_LIMIT,
-    RULE_NODE,
-    INTEGRATION_LIFECYCLE_EVENT,
-    RATE_LIMITS,
-    EDGE_CONNECTION,
-    EDGE_COMMUNICATION_FAILURE
+import java.util.Set;
+import java.util.UUID;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class EdgeCommunicationFailureNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
+
+    private Set<UUID> edges; // if empty - all edges
+
+    @Override
+    public NotificationRuleTriggerType getTriggerType() {
+        return NotificationRuleTriggerType.EDGE_COMMUNICATION_FAILURE;
+    }
+
 }
