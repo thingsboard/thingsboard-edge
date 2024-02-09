@@ -297,22 +297,16 @@ public class AlarmClientTest extends AbstractContainerTest {
         comment = JacksonUtil.newObjectNode().put("text", RandomStringUtils.randomAlphanumeric(10));
         alarmComment.setComment(comment);
         AlarmComment updated = edgeRestClient.saveAlarmComment(savedAlarm.getId(), alarmComment);
-        System.out.println("updated = " + updated + ", id = " + updated.getId());
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> {
-                    var s = edgeRestClient.getAlarmComments(savedAlarm.getId(), new PageLink(100)).getData().get(0);
-                    System.out.println("s = " + s.getComment() + "id = " + s.getAlarmId() + "id of itself = " + updated.getId());
-                    System.out.println("edgeRestClient.getAlarmComments = " + edgeRestClient.getAlarmComments(savedAlarm.getId(), new PageLink(100)).getData());
-                    return edgeRestClient.getAlarmComments(savedAlarm.getId(), new PageLink(100)).getTotalElements() > 0 &&
-                        edgeRestClient.getAlarmComments(savedAlarm.getId(), new PageLink(100)).getData().stream()
-                                .anyMatch(ac -> ac.getComment().get("text").equals(updated.getComment().get("text"))
-                                        && ac.getComment().get("edited").asBoolean()
-                                        && updated.getComment().get("edited").asBoolean()
-                                        && ac.getId().equals(updated.getId())
-                                        && ac.getAlarmId().equals(updated.getAlarmId()));
-                });
+                .until(() -> edgeRestClient.getAlarmComments(savedAlarm.getId(), new PageLink(100)).getTotalElements() > 0 &&
+                    edgeRestClient.getAlarmComments(savedAlarm.getId(), new PageLink(100)).getData().stream()
+                            .anyMatch(ac -> ac.getComment().get("text").equals(updated.getComment().get("text"))
+                                    && ac.getComment().get("edited").asBoolean()
+                                    && updated.getComment().get("edited").asBoolean()
+                                    && ac.getId().equals(updated.getId())
+                                    && ac.getAlarmId().equals(updated.getAlarmId())));
 
         // delete alarm
         cloudRestClient.deleteAlarm(savedAlarm.getId());
