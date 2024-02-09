@@ -28,23 +28,50 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification;
+package org.thingsboard.server.common.data.notification.rule.trigger;
 
-public enum NotificationType {
+import lombok.Builder;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.notification.rule.trigger.config.NotificationRuleTriggerType;
 
-    GENERAL,
-    ALARM,
-    DEVICE_ACTIVITY,
-    ENTITY_ACTION,
-    ALARM_COMMENT,
-    RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT,
-    ALARM_ASSIGNMENT,
-    NEW_PLATFORM_VERSION,
-    ENTITIES_LIMIT,
-    API_USAGE_LIMIT,
-    RULE_NODE,
-    INTEGRATION_LIFECYCLE_EVENT,
-    RATE_LIMITS,
-    EDGE_CONNECTION,
-    EDGE_COMMUNICATION_FAILURE
+import java.util.concurrent.TimeUnit;
+
+@Data
+@Builder
+public class EdgeConnectionTrigger implements NotificationRuleTrigger {
+
+    private final TenantId tenantId;
+    private final CustomerId customerId;
+    private final EdgeId edgeId;
+    private final boolean connected;
+    private final String edgeName;
+
+    @Override
+    public boolean deduplicate() {
+        return true;
+    }
+
+    @Override
+    public String getDeduplicationKey() {
+        return String.join(":", NotificationRuleTrigger.super.getDeduplicationKey(), String.valueOf(connected));
+    }
+
+    @Override
+    public long getDefaultDeduplicationDuration() {
+        return TimeUnit.MINUTES.toMillis(1);
+    }
+
+    @Override
+    public NotificationRuleTriggerType getType() {
+        return NotificationRuleTriggerType.EDGE_CONNECTION;
+    }
+
+    @Override
+    public EntityId getOriginatorEntityId() {
+        return edgeId;
+    }
 }
