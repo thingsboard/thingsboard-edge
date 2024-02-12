@@ -72,6 +72,8 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
     resize: true
   };
 
+  showMainLoadingBar = false;
+
   constructor(protected store: Store<AppState>,
               private router: Router,
               private selfRegistrationService: SelfRegistrationService,

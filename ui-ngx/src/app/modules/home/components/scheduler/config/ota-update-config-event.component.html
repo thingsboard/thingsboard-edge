@@ -30,9 +30,9 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [formGroup]="updatePackageForm" fxLayout="column">
-  <div>
-    <small translate>scheduler.target</small>
+<section [formGroup]="updatePackageForm" fxLayout="column" class="tb-form-panel no-border no-padding">
+  <div class="tb-form-panel stroked">
+    <div class="tb-form-panel-title" translate>scheduler.target</div>
     <tb-target-select
       formControlName="originatorId"
       (currentEntity)="currentEntity($event)"

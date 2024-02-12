@@ -124,6 +124,9 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, OnD
       if(this.whiteLabelingParams.platformVersion === null){
         this.whiteLabelingParams.platformVersion = env.tbVersion;
       }
+      if (this.whiteLabelingParams.showNameBottom === null){
+        this.whiteLabelingParams.showNameBottom = true;
+      }
       this.wlSettings.reset(this.whiteLabelingParams);
       if (!this.readonly) {
         this.updateValidators();

@@ -675,7 +675,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     return res;
   }
 
-  public cellContent(entity: EntityData, key: EntityColumn, row: number, useSafeHtml = true): SafeHtml {
+  public cellContent(entity: EntityData, key: EntityColumn, row: number, useSafeHtml = true, isExport = false): SafeHtml {
     const col = this.columns.indexOf(key);
     const index = row * this.columns.length + col;
     let res = useSafeHtml ? this.cellContentCache[index] : undefined;
@@ -685,14 +685,11 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
         const contentInfo = this.contentsInfo[key.def];
         const value = getEntityValue(entity, key);
         let content: string;
-        if (contentInfo.useCellContentFunction && contentInfo.cellContentFunction) {
-          try {
-            content = contentInfo.cellContentFunction(value, entity, this.ctx);
-          } catch (e) {
-            content = '' + value;
-          }
+        if (contentInfo.useCellContentFunction && contentInfo.cellContentFunction && !isExport) {
+          content = this.applyCellContentFunction(entity, contentInfo, value);
         } else {
-          content = this.defaultContent(key, contentInfo, value);
+          content = contentInfo.useCellContentFunctionOnExport ? this.applyCellContentFunction(entity, contentInfo, value)
+            : this.defaultContent(key, contentInfo, value);
         }
         if (isDefined(content)) {
           content = this.utils.customTranslation(content, content);
@@ -710,6 +707,16 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
       }
     }
     return res;
+  }
+
+  private applyCellContentFunction(entity: EntityData, contentInfo: CellContentInfo, value: any) {
+    let content: string;
+    try {
+      content = contentInfo.cellContentFunction(value, entity, this.ctx);
+    } catch (e) {
+      content = '' + value;
+    }
+    return content;
   }
 
   private defaultContent(key: EntityColumn, contentInfo: CellContentInfo, value: any): any {
@@ -803,7 +810,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
         const dataObj: {[key: string]: any} = {};
         this.columns.forEach((column) => {
           if (this.includeColumnInExport(column)) {
-            dataObj[column.title] = this.cellContent(entity, column, index, false);
+            dataObj[column.title] = this.cellContent(entity, column, index, false, true);
           }
         });
         exportedData.push(dataObj);
@@ -870,7 +877,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     });
     const dataObj: { [key: string]: any } = {};
     columns.forEach(column => {
-      dataObj[column.title] = this.cellContent(entity, column, index, false);
+      dataObj[column.title] = this.cellContent(entity, column, index, false, true);
     });
     return dataObj;
   }

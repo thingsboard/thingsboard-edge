@@ -59,6 +59,7 @@ export class TimeseriesTableKeySettingsComponent extends WidgetSettingsComponent
       useCellStyleFunction: false,
       cellStyleFunction: '',
       useCellContentFunction: false,
+      useCellContentFunctionOnExport: true,
       cellContentFunction: '',
       defaultColumnVisibility: 'visible',
       columnSelectionToDisplay: 'enabled',
@@ -71,6 +72,7 @@ export class TimeseriesTableKeySettingsComponent extends WidgetSettingsComponent
       useCellStyleFunction: [settings.useCellStyleFunction, []],
       cellStyleFunction: [settings.cellStyleFunction, [Validators.required]],
       useCellContentFunction: [settings.useCellContentFunction, []],
+      useCellContentFunctionOnExport: [settings.useCellContentFunctionOnExport, []],
       cellContentFunction: [settings.cellContentFunction, [Validators.required]],
       defaultColumnVisibility: [settings.defaultColumnVisibility, []],
       columnSelectionToDisplay: [settings.columnSelectionToDisplay, []],
@@ -92,8 +94,10 @@ export class TimeseriesTableKeySettingsComponent extends WidgetSettingsComponent
     }
     if (useCellContentFunction) {
       this.timeseriesTableKeySettingsForm.get('cellContentFunction').enable();
+      this.timeseriesTableKeySettingsForm.get('useCellContentFunctionOnExport').enable();
     } else {
       this.timeseriesTableKeySettingsForm.get('cellContentFunction').disable();
+      this.timeseriesTableKeySettingsForm.get('useCellContentFunctionOnExport').disable();
     }
     this.timeseriesTableKeySettingsForm.get('cellStyleFunction').updateValueAndValidity({emitEvent});
     this.timeseriesTableKeySettingsForm.get('cellContentFunction').updateValueAndValidity({emitEvent});
