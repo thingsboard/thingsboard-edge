@@ -110,7 +110,7 @@
         </mat-panel-description>
       </mat-expansion-panel-header>
       <ng-template matExpansionPanelContent>
-        <mat-slide-toggle class="mat-slide" formControlName="useCellContentFunctionOnExport" (click)="$event.stopPropagation()">
+        <mat-slide-toggle class="mat-slide" formControlName="useCellContentFunctionOnExport">
           {{ 'widgets.table.use-cell-content-function-on-export' | translate }}
         </mat-slide-toggle>
         <tb-js-func required
