@@ -45,7 +45,7 @@ import {
 import { WidgetConfigComponent } from '@home/components/widget/widget-config.component';
 import {
   Datasource,
-  DatasourceType,
+  DatasourceType, datasourceValid,
   JsonSettingsSchema,
   WidgetConfigMode,
   widgetType
@@ -332,6 +332,9 @@ export class DatasourcesComponent implements ControlValueAccessor, OnInit, Valid
   }
 
   private datasourcesUpdated(datasources: Datasource[]) {
+    if (this.datasourcesOptional) {
+      datasources = datasources ? datasources.filter(d => datasourceValid(d)) : [];
+    }
     this.propagateChange(datasources);
   }
 

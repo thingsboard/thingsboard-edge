@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   UntypedFormBuilder,
@@ -75,7 +75,8 @@ export class GenerateReportComponent implements ControlValueAccessor, OnInit, Af
   private propagateChange = (v: any) => { };
 
   constructor(private store: Store<AppState>,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private cd: ChangeDetectorRef) {
     this.generateReportFormGroup = this.fb.group({
       msgBody: this.fb.group(
         {
@@ -111,6 +112,7 @@ export class GenerateReportComponent implements ControlValueAccessor, OnInit, Af
         this.generateReportFormGroup.get('msgBody.emailConfig').disable({emitEvent: false});
       }
     }
+    this.cd.detectChanges();
   }
 
   registerOnChange(fn: any): void {

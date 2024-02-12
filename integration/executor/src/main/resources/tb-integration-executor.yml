@@ -70,18 +70,16 @@ integrations:
     enabled: "${INTEGRATIONS_STATISTICS_ENABLED:true}"
     # Integration statistic persistence frequency in milliseconds
     persist_frequency: "${INTEGRATIONS_STATISTICS_PERSIST_FREQUENCY:3600000}"
+  init:
+    # Maximum connection timeout allowed for integrations in seconds. Any greater user defined timeout will be reduced down to this limit.
+    connection_timeout_sec: "${INTEGRATIONS_INIT_CONNECTION_TIMEOUT_SEC:10}"
+    # Connection check timeout for API request in seconds
+    connection_check_api_request_timeout_sec: "${INTEGRATIONS_INIT_CONNECTION_CHECK_API_REQUEST_TIMEOUT_SEC:20}"
   reinit:
     # Enable/Disable integrations hot reinitialization
     enabled: "${INTEGRATIONS_REINIT_ENABLED:true}"
     # Checking interval for reinit integrations
     frequency: "${INTEGRATIONS_REINIT_FREQUENCY:300000}"
-  rate_limits:
-    # Enable/Disable integrations rate limits
-    enabled: "${TB_INTEGRATION_RATE_LIMITS_ENABLED:false}"
-    # The value of integrations rate limit. By default, no more than 1000 messages per second and no more 20000 messages per hour
-    tenant: "${TB_INTEGRATION_RATE_LIMITS_TENANT:1000:1,20000:60}"
-    # The value of integrations device rate limit. By default, no more than 10 messages per second and no more 300 messages per hour
-    device: "${TB_INTEGRATION_RATE_LIMITS_DEVICE:10:1,300:60}"
   # Enable/Disable integrations local network hosts
   allow_Local_network_hosts: "${INTEGRATIONS_ALLOW_LOCAL_NETWORK_HOSTS:true}"
 

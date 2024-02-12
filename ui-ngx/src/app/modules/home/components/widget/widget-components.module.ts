@@ -85,6 +85,10 @@ import { RangeChartWidgetComponent } from '@home/components/widget/lib/chart/ran
 import {
   BarChartWithLabelsWidgetComponent
 } from '@home/components/widget/lib/chart/bar-chart-with-labels-widget.component';
+import { SingleSwitchWidgetComponent } from '@home/components/widget/lib/rpc/single-switch-widget.component';
+import { ActionButtonWidgetComponent } from '@home/components/widget/lib/button/action-button-widget.component';
+import { CommandButtonWidgetComponent } from '@home/components/widget/lib/button/command-button-widget.component';
+import { PowerButtonWidgetComponent } from '@home/components/widget/lib/rpc/power-button-widget.component';
 
 @NgModule({
   declarations:
@@ -127,7 +131,11 @@ import {
       LiquidLevelWidgetComponent,
       DoughnutWidgetComponent,
       RangeChartWidgetComponent,
-      BarChartWithLabelsWidgetComponent
+      BarChartWithLabelsWidgetComponent,
+      SingleSwitchWidgetComponent,
+      ActionButtonWidgetComponent,
+      CommandButtonWidgetComponent,
+      PowerButtonWidgetComponent
     ],
   imports: [
     CommonModule,
@@ -175,7 +183,11 @@ import {
         LiquidLevelWidgetComponent,
         DoughnutWidgetComponent,
         RangeChartWidgetComponent,
-        BarChartWithLabelsWidgetComponent
+        BarChartWithLabelsWidgetComponent,
+        SingleSwitchWidgetComponent,
+        ActionButtonWidgetComponent,
+        CommandButtonWidgetComponent,
+        PowerButtonWidgetComponent
     ],
   providers: [
     {provide: WIDGET_COMPONENTS_MODULE_TOKEN, useValue: WidgetComponentsModule }

@@ -34,6 +34,7 @@ import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.m
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
+import { columnExportOptions } from '@home/components/widget/lib/table-widget.models';
 
 @Component({
   selector: 'tb-timeseries-table-widget-settings',
@@ -63,6 +64,7 @@ export class TimeseriesTableWidgetSettingsComponent extends WidgetSettingsCompon
       reserveSpaceForHiddenAction: 'true',
       showTimestamp: true,
       dateFormat: {format: 'yyyy-MM-dd HH:mm:ss'},
+      timestampExportOption: columnExportOptions.onlyVisible,
       displayPagination: true,
       useEntityLabel: false,
       defaultPageSize: 10,
@@ -89,6 +91,7 @@ export class TimeseriesTableWidgetSettingsComponent extends WidgetSettingsCompon
       reserveSpaceForHiddenAction: [settings.reserveSpaceForHiddenAction, []],
       showTimestamp: [settings.showTimestamp, []],
       dateFormat: [dateFormat, []],
+      timestampExportOption: [settings.timestampExportOption, []],
       displayPagination: [settings.displayPagination, []],
       useEntityLabel: [settings.useEntityLabel, []],
       defaultPageSize: [settings.defaultPageSize, [Validators.min(1)]],

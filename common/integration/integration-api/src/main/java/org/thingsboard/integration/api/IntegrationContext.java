@@ -145,4 +145,7 @@ public interface IntegrationContext {
     void onDownlinkMessageProcessed(boolean success);
 
     Optional<IntegrationRateLimitService> getRateLimitService();
+
+    int getIntegrationConnectTimeoutSec();
+
 }

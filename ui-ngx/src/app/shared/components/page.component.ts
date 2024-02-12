@@ -45,6 +45,8 @@ export abstract class PageComponent implements OnDestroy {
   loadingSubscription: Subscription;
   disabledOnLoadFormControls: Array<AbstractControl> = [];
 
+  showMainLoadingBar = true;
+
   resource = Resource;
   operation = Operation;
 

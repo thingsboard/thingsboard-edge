@@ -1,0 +1,61 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div #singleSwitchPanel class="tb-single-switch-panel" [class.auto-scale]="autoScale" [style.pointer-events]="ctx.isEdit ? 'none' : 'all'" [style]="backgroundStyle$ | async">
+  <div class="tb-single-switch-overlay" [style]="overlayStyle" [style.inset]="overlayInset"></div>
+  <div class="tb-single-switch-title-panel">
+    <ng-container *ngTemplateOutlet="widgetTitlePanel"></ng-container>
+  </div>
+  <div #singleSwitchContent class="tb-single-switch-content" [class]="this.layout" [class.no-label]="!showIcon && !showLabel" [class.auto-scale]="autoScale">
+    <div *ngIf="showIcon || showLabel" #singleSwitchLabelRow class="tb-single-switch-label-row">
+      <tb-icon *ngIf="showIcon" [style]="iconStyle"
+               [style.color]="(disabled || (loading$ | async)) ? disabledColor : settings.iconColor">{{ icon }}</tb-icon>
+      <div *ngIf="showLabel" class="tb-single-switch-label" [style]="labelStyle"
+           [style.color]="(disabled || (loading$ | async)) ? disabledColor : settings.labelColor">{{ label$ | async }}</div>
+    </div>
+    <div #singleSwitchToggleRow class="tb-single-switch-slide-toggle-row">
+      <div *ngIf="showOffLabel" [style]="offLabelStyle"
+           [style.color]="(disabled || (loading$ | async)) ? disabledColor : settings.offLabelColor">{{ offLabel }}</div>
+      <mat-slide-toggle class="tb-single-switch-toggle" [disabled]="disabled || (loading$ | async)" [(ngModel)]="value" (click)="!disabled && onToggleChange($event)">
+      </mat-slide-toggle>
+      <div *ngIf="showOnLabel" [style]="onLabelStyle"
+           [style.color]="(disabled || (loading$ | async)) ? disabledColor : settings.onLabelColor">{{ onLabel }}</div>
+    </div>
+  </div>
+  <mat-progress-bar class="tb-action-widget-progress" style="height: 4px;" color="accent" mode="indeterminate" *ngIf="loading$ | async"></mat-progress-bar>
+  <div *ngIf="error" class="tb-action-widget-error-container">
+    <div class="tb-action-widget-error-panel">
+      <div class="tb-action-widget-error-text" [innerHTML]="error | safe: 'html'"></div>
+      <button class="tb-action-widget-error-clear tb-mat-20" mat-icon-button (click)="clearError()"><mat-icon>close</mat-icon></button>
+    </div>
+  </div>
+</div>

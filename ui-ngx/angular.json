@@ -167,7 +167,8 @@
               "ace-builds",
               "diff-match-patch",
               "tv4",
-              "@messageformat/parser"
+              "@messageformat/parser",
+              "sorted-btree"
             ]
           },
           "configurations": {

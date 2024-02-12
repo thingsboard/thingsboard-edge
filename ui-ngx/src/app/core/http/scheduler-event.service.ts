@@ -100,4 +100,9 @@ export class SchedulerEventService {
       defaultHttpOptionsFromConfig(config));
   }
 
+  public updateSchedulerStatus(schedulerEventId: string, enabled: boolean, config?: RequestConfig) {
+    return this.http.put(`/api/schedulerEvent/${schedulerEventId}/enabled/${enabled}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
 }

@@ -40,7 +40,7 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.Promise;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
@@ -255,7 +255,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
 
         MqttClient client = MqttClient.create(config, defaultHandler, handlerExecutor);
         client.setEventLoop(context.getEventLoopGroup());
-        Future<MqttConnectResult> connectFuture = client.connect(configuration.getHost(), configuration.getPort());
+        Promise<MqttConnectResult> connectFuture = client.connect(configuration.getHost(), configuration.getPort());
         MqttConnectResult result;
         try {
             result = connectFuture.get(configuration.getConnectTimeoutSec(), TimeUnit.SECONDS);
