@@ -105,7 +105,7 @@ const defaultDocLinksMap = new Map<Authority, DocumentationLinks>(
         {
           icon: 'rocket',
           name: 'Getting started',
-          link: 'https://thingsboard.io/docs/getting-started-guides/helloworld/'
+          link: '${baseUrl}getting-started-guides/helloworld/'
         }
       ]
     }]

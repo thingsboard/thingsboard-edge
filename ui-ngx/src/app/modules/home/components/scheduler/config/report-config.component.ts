@@ -54,7 +54,7 @@ import { Observable } from 'rxjs/internal/Observable';
 @Component({
   selector: 'tb-report-config',
   templateUrl: './report-config.component.html',
-  styleUrls: [],
+  styleUrls: ['./report-config.component.scss'],
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => ReportConfigComponent),

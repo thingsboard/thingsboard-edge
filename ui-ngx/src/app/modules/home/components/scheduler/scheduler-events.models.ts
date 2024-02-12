@@ -69,6 +69,16 @@ export const schedulerCalendarViewTranslationMap = new Map<schedulerCalendarView
   ]
 );
 
+export const scheduleWeekDays: Array<SchedulerWeekDay> = [
+  { label: 'scheduler.sunday-label', tooltip: 'scheduler.repeat-on-sunday' },
+  { label: 'scheduler.monday-label', tooltip: 'scheduler.repeat-on-monday' },
+  { label: 'scheduler.tuesday-label', tooltip: 'scheduler.repeat-on-tuesday' },
+  { label: 'scheduler.wednesday-label', tooltip: 'scheduler.repeat-on-wednesday' },
+  { label: 'scheduler.thursday-label', tooltip: 'scheduler.repeat-on-thursday' },
+  { label: 'scheduler.friday-label', tooltip: 'scheduler.repeat-on-friday' },
+  { label: 'scheduler.saturday-label', tooltip: 'scheduler.repeat-on-saturday' }
+];
+
 export interface CustomSchedulerEventType {
   name: string;
   value: string;
@@ -90,4 +100,9 @@ export interface SchedulerEventsWidgetSettings {
   enabledViews: 'both' | 'list' | 'calendar';
   forceDefaultEventType: string;
   customEventTypes: CustomSchedulerEventType[];
+}
+
+export interface SchedulerWeekDay {
+  label: string;
+  tooltip: string;
 }

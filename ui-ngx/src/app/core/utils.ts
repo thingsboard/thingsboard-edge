@@ -926,6 +926,15 @@ export const getOS = (): string => {
   return os;
 };
 
+export const plainColorFromVariable = (variable: string): string => {
+  if (!variable || (!variable.startsWith('--') && !variable.startsWith('var('))) {
+    return variable;
+  }
+  if (variable.startsWith('var(')) {
+    variable = variable.substring(4, variable.length - 1);
+  }
+  return getComputedStyle(document.documentElement).getPropertyValue(variable);
+};
 
 export const camelCase = (str: string): string => {
   return _.camelCase(str);
