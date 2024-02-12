@@ -29,51 +29,22 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
-  min-width: 48px;
-  margin: 8px 0;
-  max-width: 100%;
-  &.no-margin {
-    margin: 0;
-  }
-  .mdc-button {
-    max-width: 100%;
-  }
-  section.tb-timewindow {
-    padding: 0 8px;
-    &.no-padding {
+  .report-target-dashboard {
+    .tb-hint {
       padding: 0;
-    }
-    line-height: 32px;
-    pointer-events: all;
-    cursor: pointer;
-    display: flex;
-    flex-direction: row;
-    place-content: center flex-start;
-    align-items: center;
-    gap: 4px;
-    width: 100%;
-
-    .tb-timewindow-label {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      margin: -18px 0 16px 16px;
     }
 
-    .timezone-abbr {
-      font-weight: 500;
+    .break-word {
+      word-break: break-all;
     }
-  }
-}
 
-:host ::ng-deep {
-  .mdc-button {
-    .mat-icon {
-      min-width: 24px;
+    .margin-right {
+      margin-right: 6px;
     }
-    .mdc-button__label {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+
+    .test-generate-row {
+      min-height: 68px;
     }
   }
 }
