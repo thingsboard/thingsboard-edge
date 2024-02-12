@@ -865,9 +865,9 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
     }
 
     let sourcesLatest: {[datasourceName: string]: {[key: string]: any}} = {};
-    const sourcesLatestContentFunc: {[datasourceName: string]: {[key: string]: {value: any, contentFunction: any}}} = {};
+    const sourcesLatestContentFunc: {[datasourceName: string]: {[key: string]: {value: any, contentFunction: any, useContentFunctionOnExport: boolean}}} = {};
     const sourcesTsRows: {[ts: string]: {[key: string]: any}} = {};
-    const sourcesTsRowsContentFunc: {[ts: string]: {[key: string]: {value: any, contentFunction: any}}} = {};
+    const sourcesTsRowsContentFunc: {[ts: string]: {[key: string]: {value: any, contentFunction: any, useContentFunctionOnExport: boolean}}} = {};
     if (this.sources.length) {
       this.sources.forEach((source, index) => {
         const useCellContentFunction = source.header.filter(header => header?.contentInfo.useCellContentFunction);
@@ -884,7 +884,8 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
               }
               sourcesLatestContentFunc[latestRow.datasource.name][latestRow.dataKey.label] = {
                 value: latestRow.data[0][1],
-                contentFunction: header.contentInfo.cellContentFunction
+                contentFunction: header.contentInfo.cellContentFunction,
+                useContentFunctionOnExport: header.contentInfo.useCellContentFunctionOnExport
               };
             }
           }
@@ -918,7 +919,8 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
                 }
                 sourcesTsRowsContentFunc[tsKey][key] = deepClone({
                   value,
-                  contentFunction: header.contentInfo.cellContentFunction
+                  contentFunction: header.contentInfo.cellContentFunction,
+                  useContentFunctionOnExport: header.contentInfo.useCellContentFunctionOnExport
                 });
               }
             }
@@ -937,14 +939,15 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
             const tsRowContentFuncKeys = Object.keys(sourcesTsRowsContentFunc[timestamp]);
             tsRowContentFuncKeys.forEach(key => {
               const div = document.createElement('div');
-              if (isDefinedAndNotNull(sourcesTsRowsContentFunc[timestamp][key].contentFunction)) {
+              if (isDefinedAndNotNull(sourcesTsRowsContentFunc[timestamp][key].contentFunction) &&
+                sourcesTsRowsContentFunc[timestamp][key].useContentFunctionOnExport) {
                 try {
                   div.innerHTML = sourcesTsRowsContentFunc[timestamp][key].contentFunction(sourcesTsRowsContentFunc[timestamp][key].value, sourcesTsRows[timestamp], this.ctx);
                 } catch (e) {
                   div.innerText = sourcesTsRowsContentFunc[timestamp][key].value;
                 }
+                sourcesTsRows[timestamp][key] = div.textContent;
               }
-              sourcesTsRows[timestamp][key] = div.textContent;
             });
           }
         });

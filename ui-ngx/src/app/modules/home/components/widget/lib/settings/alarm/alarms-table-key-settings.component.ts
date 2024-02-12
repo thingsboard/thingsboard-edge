@@ -60,6 +60,7 @@ export class AlarmsTableKeySettingsComponent extends WidgetSettingsComponent {
       useCellStyleFunction: false,
       cellStyleFunction: '',
       useCellContentFunction: false,
+      useCellContentFunctionOnExport: true,
       cellContentFunction: '',
       defaultColumnVisibility: 'visible',
       columnSelectionToDisplay: 'enabled',
@@ -74,6 +75,7 @@ export class AlarmsTableKeySettingsComponent extends WidgetSettingsComponent {
       useCellStyleFunction: [settings.useCellStyleFunction, []],
       cellStyleFunction: [settings.cellStyleFunction, [Validators.required]],
       useCellContentFunction: [settings.useCellContentFunction, []],
+      useCellContentFunctionOnExport: [settings.useCellContentFunctionOnExport, []],
       cellContentFunction: [settings.cellContentFunction, [Validators.required]],
       defaultColumnVisibility: [settings.defaultColumnVisibility, []],
       columnSelectionToDisplay: [settings.columnSelectionToDisplay, []],
@@ -95,8 +97,10 @@ export class AlarmsTableKeySettingsComponent extends WidgetSettingsComponent {
     }
     if (useCellContentFunction) {
       this.alarmsTableKeySettingsForm.get('cellContentFunction').enable();
+      this.alarmsTableKeySettingsForm.get('useCellContentFunctionOnExport').enable();
     } else {
       this.alarmsTableKeySettingsForm.get('cellContentFunction').disable();
+      this.alarmsTableKeySettingsForm.get('useCellContentFunctionOnExport').disable();
     }
     this.alarmsTableKeySettingsForm.get('cellStyleFunction').updateValueAndValidity({emitEvent});
     this.alarmsTableKeySettingsForm.get('cellContentFunction').updateValueAndValidity({emitEvent});
