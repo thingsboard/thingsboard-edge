@@ -244,11 +244,6 @@ public class DeviceConnectivityServiceImpl implements DeviceConnectivityService 
                 ? "" : ":" + propertiesPort;
         // Edge only:
         port = ":" + getPortFromBaseUrl(baseUrl);
-        Pattern pattern = Pattern.compile("https?://[^:/]+:(\\d+)");
-        Matcher matcher = pattern.matcher(baseUrl);
-        if (matcher.find()) {
-            port = ":" + matcher.group(1);
-        }
         return DeviceConnectivityUtil.getHttpPublishCommand(protocol, hostName, port, deviceCredentials);
     }
 
