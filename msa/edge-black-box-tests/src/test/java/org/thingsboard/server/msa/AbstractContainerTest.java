@@ -214,7 +214,7 @@ public abstract class AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> {
                     try {
-                        return edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 27;
+                        return edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 28;
                     } catch (Throwable e) {
                         return false;
                     }
@@ -222,22 +222,22 @@ public abstract class AbstractContainerTest {
 
         PageData<WidgetsBundle> pageData = edgeRestClient.getWidgetsBundles(new PageLink(100));
 
-        for (String widgetsBundlesAlias : pageData.getData().stream().map(WidgetsBundle::getAlias).collect(Collectors.toList())) {
+        for (WidgetsBundleId widgetsBundleId : pageData.getData().stream().map(WidgetsBundle::getId).collect(Collectors.toList())) {
             Awaitility.await()
                     .pollInterval(1000, TimeUnit.MILLISECONDS)
                     .atMost(60, TimeUnit.SECONDS).
                     until(() -> {
                         try {
-                            List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
-                            List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+                            List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(widgetsBundleId);
+                            List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(widgetsBundleId);
                             return cloudBundleWidgetTypes != null && edgeBundleWidgetTypes != null
                                     && edgeBundleWidgetTypes.size() == cloudBundleWidgetTypes.size();
                         } catch (Throwable e) {
                             return false;
                         }
                     });
-            List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
-            List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+            List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(widgetsBundleId);
+            List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(widgetsBundleId);
             Assert.assertNotNull("edgeBundleWidgetTypes can't be null", edgeBundleWidgetTypes);
             Assert.assertNotNull("cloudBundleWidgetTypes can't be null", cloudBundleWidgetTypes);
         }
@@ -272,8 +272,8 @@ public abstract class AbstractContainerTest {
         RuleChainMetaData ruleChainMetaData = new RuleChainMetaData();
         ruleChainMetaData.setRuleChainId(rootRuleChainId);
         ruleChainMetaData.setFirstNodeIndex(configuration.get("firstNodeIndex").asInt());
-        ruleChainMetaData.setNodes(Arrays.asList(JacksonUtil.OBJECT_MAPPER.treeToValue(configuration.get("nodes"), RuleNode[].class)));
-        ruleChainMetaData.setConnections(Arrays.asList(JacksonUtil.OBJECT_MAPPER.treeToValue(configuration.get("connections"), NodeConnectionInfo[].class)));
+        ruleChainMetaData.setNodes(Arrays.asList(JacksonUtil.treeToValue(configuration.get("nodes"), RuleNode[].class)));
+        ruleChainMetaData.setConnections(Arrays.asList(JacksonUtil.treeToValue(configuration.get("connections"), NodeConnectionInfo[].class)));
         cloudRestClient.saveRuleChainMetaData(ruleChainMetaData);
         return rootRuleChainId;
     }
@@ -354,6 +354,7 @@ public abstract class AbstractContainerTest {
         List<DeviceProfileAlarm> alarms = new ArrayList<>();
         DeviceProfileAlarm deviceProfileAlarm = new DeviceProfileAlarm();
         deviceProfileAlarm.setAlarmType("High Temperature");
+        deviceProfileAlarm.setId("High Temperature");
         AlarmRule alarmRule = new AlarmRule();
         alarmRule.setAlarmDetails("Alarm Details");
         AlarmCondition alarmCondition = new AlarmCondition();
@@ -768,7 +769,7 @@ public abstract class AbstractContainerTest {
     }
 
     protected List<AttributeKvEntry> sendAttributesUpdated(RestClient sourceRestClient, RestClient targetRestClient,
-                                                           JsonObject attributesPayload, List<String> keys, String scope) throws Exception {
+                                                           JsonObject attributesPayload, List<String> keys, String scope) {
 
         Device device = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
 

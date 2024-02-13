@@ -30,8 +30,11 @@
  */
 package org.thingsboard.server.msa.edge;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.awaitility.Awaitility;
 import org.junit.Assert;
 import org.junit.Test;
@@ -41,10 +44,14 @@ import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmComment;
+import org.thingsboard.server.common.data.alarm.AlarmCommentType;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
+import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.msa.AbstractContainerTest;
@@ -56,33 +63,39 @@ import java.util.concurrent.TimeUnit;
 public class AlarmClientTest extends AbstractContainerTest {
 
     @Test
-    public void testAlarms() throws Exception {
+    public void testAlarms() {
         // create alarm
-        Device device = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
+        Device device = saveDeviceAndAssignEntityGroupToEdge(CUSTOM_DEVICE_PROFILE_NAME, createEntityGroup(EntityType.DEVICE));
 
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> cloudRestClient.getDeviceCredentialsByDeviceId(device.getId()).isPresent());
+                .until(() -> {
+                    Optional<DeviceCredentials> edgeDeviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(device.getId());
+                    Optional<DeviceCredentials> cloudDeviceCredentials = cloudRestClient.getDeviceCredentialsByDeviceId(device.getId());
+                    return edgeDeviceCredentials.isPresent() &&
+                            cloudDeviceCredentials.isPresent() &&
+                            edgeDeviceCredentials.get().getCredentialsId().equals(cloudDeviceCredentials.get().getCredentialsId());
+                });
 
-        DeviceCredentials deviceCredentials = cloudRestClient.getDeviceCredentialsByDeviceId(device.getId()).get();
-        String accessToken = deviceCredentials.getCredentialsId();
+        DeviceCredentials deviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(device.getId()).get();
+        final String accessToken = deviceCredentials.getCredentialsId();
 
         JsonObject telemetry = new JsonObject();
         telemetry.addProperty("temperature", 100);
 
         ResponseEntity deviceTelemetryResponse = cloudRestClient.getRestTemplate()
-                .postForEntity(tbUrl + "/api/v1/{credentialsId}/telemetry",
-                        JacksonUtil.OBJECT_MAPPER.readTree(telemetry.toString()),
-                        ResponseEntity.class,
-                        accessToken);
+                .postForEntity(tbUrl + "/api/v1/" + accessToken + "/telemetry",
+                        JacksonUtil.toJsonNode(telemetry.toString()),
+                        ResponseEntity.class);
 
         Assert.assertTrue(deviceTelemetryResponse.getStatusCode().is2xxSuccessful());
 
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> getLatestAlarmByEntityIdFromEdge(device.getId()).isPresent());
+                .until(() -> getLatestAlarmByEntityIdFromEdge(device.getId()).isPresent() && getLatestAlarmByEntityIdFromCloud(device.getId()).isPresent() &&
+                        getLatestAlarmByEntityIdFromEdge(device.getId()).get().getId().equals(getLatestAlarmByEntityIdFromCloud(device.getId()).get().getId()));
 
         Alarm savedAlarm = getLatestAlarmByEntityIdFromEdge(device.getId()).get();
 
@@ -111,7 +124,8 @@ public class AlarmClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> getLatestAlarmByEntityIdFromEdge(device.getId()).isEmpty());
+                .until(() -> getLatestAlarmByEntityIdFromCloud(device.getId()).isEmpty()
+                        && getLatestAlarmByEntityIdFromEdge(device.getId()).isEmpty());
 
         // cleanup
         cloudRestClient.deleteDevice(device.getId());
@@ -134,21 +148,27 @@ public class AlarmClientTest extends AbstractContainerTest {
     @Test
     public void sendAlarmToCloud() {
         // create alarm on edge
-        Device device = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
+        Device device = saveDeviceAndAssignEntityGroupToEdge(CUSTOM_DEVICE_PROFILE_NAME, createEntityGroup(EntityType.DEVICE));
 
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> cloudRestClient.getDeviceCredentialsByDeviceId(device.getId()).isPresent());
+                .until(() -> {
+                    Optional<DeviceCredentials> edgeDeviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(device.getId());
+                    Optional<DeviceCredentials> cloudDeviceCredentials = cloudRestClient.getDeviceCredentialsByDeviceId(device.getId());
+                    return edgeDeviceCredentials.isPresent() &&
+                            cloudDeviceCredentials.isPresent() &&
+                            edgeDeviceCredentials.get().getCredentialsId().equals(cloudDeviceCredentials.get().getCredentialsId());
+                });
 
-        DeviceCredentials deviceCredentials = cloudRestClient.getDeviceCredentialsByDeviceId(device.getId()).get();
-        String accessToken = deviceCredentials.getCredentialsId();
+        DeviceCredentials deviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(device.getId()).get();
+        final String accessToken = deviceCredentials.getCredentialsId();
 
         JsonObject telemetry = new JsonObject();
         telemetry.addProperty("temperature", 100);
 
-        ResponseEntity deviceTelemetryResponse = cloudRestClient.getRestTemplate()
-                .postForEntity(tbUrl + "/api/v1/" + accessToken + "/telemetry",
+        ResponseEntity deviceTelemetryResponse = edgeRestClient.getRestTemplate()
+                .postForEntity(edgeUrl + "/api/v1/" + accessToken + "/telemetry",
                         JacksonUtil.toJsonNode(telemetry.toString()),
                         ResponseEntity.class);
         Assert.assertTrue(deviceTelemetryResponse.getStatusCode().is2xxSuccessful());
@@ -156,7 +176,8 @@ public class AlarmClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> getLatestAlarmByEntityIdFromCloud(device.getId()).isPresent());
+                .until(() -> getLatestAlarmByEntityIdFromEdge(device.getId()).isPresent() && getLatestAlarmByEntityIdFromCloud(device.getId()).isPresent() &&
+                        getLatestAlarmByEntityIdFromEdge(device.getId()).get().getId().equals(getLatestAlarmByEntityIdFromCloud(device.getId()).get().getId()));
 
         Alarm savedAlarm = getLatestAlarmByEntityIdFromEdge(device.getId()).get();
 
@@ -193,6 +214,161 @@ public class AlarmClientTest extends AbstractContainerTest {
 
     private Optional<AlarmInfo> getLatestAlarmByEntityIdFromCloud(EntityId entityId) {
         return getLatestAnyAlarmByEntityId(entityId, cloudRestClient);
+    }
+
+    @Test
+    public void testAlarmComments() {
+        // create alarm
+        Device device = saveDeviceAndAssignEntityGroupToEdge(CUSTOM_DEVICE_PROFILE_NAME, createEntityGroup(EntityType.DEVICE));
+
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    Optional<DeviceCredentials> edgeDeviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(device.getId());
+                    Optional<DeviceCredentials> cloudDeviceCredentials = cloudRestClient.getDeviceCredentialsByDeviceId(device.getId());
+                    return edgeDeviceCredentials.isPresent() &&
+                            cloudDeviceCredentials.isPresent() &&
+                            edgeDeviceCredentials.get().getCredentialsId().equals(cloudDeviceCredentials.get().getCredentialsId());
+                });
+
+        DeviceCredentials deviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(device.getId()).get();
+        final String accessToken = deviceCredentials.getCredentialsId();
+
+        JsonObject telemetry = new JsonObject();
+        telemetry.addProperty("temperature", 100);
+
+        ResponseEntity deviceTelemetryResponse = cloudRestClient.getRestTemplate()
+                .postForEntity(tbUrl + "/api/v1/" + accessToken + "/telemetry/",
+                        JacksonUtil.toJsonNode(telemetry.toString()),
+                        ResponseEntity.class,
+                        accessToken);
+
+        Assert.assertTrue(deviceTelemetryResponse.getStatusCode().is2xxSuccessful());
+
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> getLatestAlarmByEntityIdFromEdge(device.getId()).isPresent() && getLatestAlarmByEntityIdFromCloud(device.getId()).isPresent() &&
+                        getLatestAlarmByEntityIdFromEdge(device.getId()).get().getId().equals(getLatestAlarmByEntityIdFromCloud(device.getId()).get().getId()));
+
+        Alarm savedAlarm = getLatestAlarmByEntityIdFromCloud(device.getId()).get();
+
+        ObjectNode comment = JacksonUtil.newObjectNode().put("text", RandomStringUtils.randomAlphanumeric(10));
+        AlarmComment alarmComment = saveAlarmComment(savedAlarm.getId(), comment, cloudRestClient);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getAlarmComments(savedAlarm.getId(), new PageLink(100)).getTotalElements() > 0 &&
+                        edgeRestClient.getAlarmComments(savedAlarm.getId(), new PageLink(100)).getData().stream()
+                                .anyMatch(ac -> ac.getComment().equals(alarmComment.getComment())
+                                        && ac.getId().equals(alarmComment.getId())
+                                        && ac.getAlarmId().equals(alarmComment.getAlarmId())));
+
+        comment = JacksonUtil.newObjectNode().put("text", RandomStringUtils.randomAlphanumeric(10));
+        alarmComment.setComment(comment);
+        AlarmComment updated = cloudRestClient.saveAlarmComment(savedAlarm.getId(), alarmComment);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getAlarmComments(savedAlarm.getId(), new PageLink(100)).getTotalElements() > 0 &&
+                        edgeRestClient.getAlarmComments(savedAlarm.getId(), new PageLink(100)).getData().stream()
+                                .anyMatch(ac -> ac.getComment().get("text").equals(updated.getComment().get("text"))
+                                        && ac.getComment().get("edited").asBoolean()
+                                        && updated.getComment().get("edited").asBoolean()
+                                        && ac.getId().equals(updated.getId())
+                                        && ac.getAlarmId().equals(updated.getAlarmId())));
+
+        // delete alarm
+        cloudRestClient.deleteAlarm(savedAlarm.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> getLatestAlarmByEntityIdFromEdge(device.getId()).isEmpty());
+
+        // cleanup
+        cloudRestClient.deleteDevice(device.getId());
+    }
+
+    @Test
+    public void sendAlarmCommentToCloud() {
+        // create alarm
+        Device device = saveDeviceAndAssignEntityGroupToEdge(CUSTOM_DEVICE_PROFILE_NAME, createEntityGroup(EntityType.DEVICE));
+
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    Optional<DeviceCredentials> edgeDeviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(device.getId());
+                    Optional<DeviceCredentials> cloudDeviceCredentials = cloudRestClient.getDeviceCredentialsByDeviceId(device.getId());
+                    return edgeDeviceCredentials.isPresent() &&
+                            cloudDeviceCredentials.isPresent() &&
+                            edgeDeviceCredentials.get().getCredentialsId().equals(cloudDeviceCredentials.get().getCredentialsId());
+                });
+
+        DeviceCredentials deviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(device.getId()).get();
+        final String accessToken = deviceCredentials.getCredentialsId();
+
+        JsonObject telemetry = new JsonObject();
+        telemetry.addProperty("temperature", 100);
+
+        ResponseEntity deviceTelemetryResponse = edgeRestClient.getRestTemplate()
+                .postForEntity(edgeUrl + "/api/v1/" + accessToken + "/telemetry/",
+                        JacksonUtil.toJsonNode(telemetry.toString()),
+                        ResponseEntity.class,
+                        accessToken);
+
+        Assert.assertTrue(deviceTelemetryResponse.getStatusCode().is2xxSuccessful());
+
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> getLatestAlarmByEntityIdFromEdge(device.getId()).isPresent() && getLatestAlarmByEntityIdFromCloud(device.getId()).isPresent() &&
+                        getLatestAlarmByEntityIdFromEdge(device.getId()).get().getId().equals(getLatestAlarmByEntityIdFromCloud(device.getId()).get().getId()));
+
+        Alarm savedAlarm = getLatestAlarmByEntityIdFromEdge(device.getId()).get();
+
+        ObjectNode comment = JacksonUtil.newObjectNode().put("text", RandomStringUtils.randomAlphanumeric(10));
+        AlarmComment alarmComment = saveAlarmComment(savedAlarm.getId(), comment, edgeRestClient);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getAlarmComments(savedAlarm.getId(), new PageLink(100)).getData().stream()
+                        .anyMatch(ac -> ac.getComment().equals(alarmComment.getComment())
+                                && ac.getId().equals(alarmComment.getId())
+                                && ac.getAlarmId().equals(alarmComment.getAlarmId())));
+
+        comment = JacksonUtil.newObjectNode().put("text", RandomStringUtils.randomAlphanumeric(10));
+        alarmComment.setComment(comment);
+        AlarmComment updated = edgeRestClient.saveAlarmComment(savedAlarm.getId(), alarmComment);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getAlarmComments(savedAlarm.getId(), new PageLink(100)).getTotalElements() > 0 &&
+                    edgeRestClient.getAlarmComments(savedAlarm.getId(), new PageLink(100)).getData().stream()
+                            .anyMatch(ac -> ac.getComment().get("text").equals(updated.getComment().get("text"))
+                                    && ac.getComment().get("edited").asBoolean()
+                                    && updated.getComment().get("edited").asBoolean()
+                                    && ac.getId().equals(updated.getId())
+                                    && ac.getAlarmId().equals(updated.getAlarmId())));
+
+        // delete alarm
+        cloudRestClient.deleteAlarm(savedAlarm.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> getLatestAlarmByEntityIdFromEdge(device.getId()).isEmpty());
+
+        // cleanup
+        cloudRestClient.deleteDevice(device.getId());
+    }
+
+    private AlarmComment saveAlarmComment(AlarmId alarmId, JsonNode comment, RestClient restClient) {
+        AlarmComment alarmComment = new AlarmComment();
+        alarmComment.setAlarmId(alarmId);
+        alarmComment.setType(AlarmCommentType.OTHER);
+        alarmComment.setComment(comment);
+        return restClient.saveAlarmComment(alarmId, alarmComment);
     }
 
 }

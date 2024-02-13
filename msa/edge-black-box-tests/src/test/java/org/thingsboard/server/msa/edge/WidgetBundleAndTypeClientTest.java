@@ -38,6 +38,7 @@ import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.IdBased;
+import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.widget.WidgetType;
@@ -57,23 +58,23 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 27);
+                .until(() -> edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 28);
 
         PageData<WidgetsBundle> pageData = edgeRestClient.getWidgetsBundles(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.WIDGETS_BUNDLE);
 
-        for (String widgetsBundlesAlias : pageData.getData().stream().map(WidgetsBundle::getAlias).collect(Collectors.toList())) {
+        for (WidgetsBundleId widgetsBundleId : pageData.getData().stream().map(WidgetsBundle::getId).collect(Collectors.toList())) {
             Awaitility.await()
                     .pollInterval(500, TimeUnit.MILLISECONDS)
                     .atMost(30, TimeUnit.SECONDS)
                     .until(() -> {
-                        List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
-                        List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+                        List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(widgetsBundleId);
+                        List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(widgetsBundleId);
                         return cloudBundleWidgetTypes != null && edgeBundleWidgetTypes != null
                                 && edgeBundleWidgetTypes.size() == cloudBundleWidgetTypes.size();
                     });
-            List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
-            List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+            List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(widgetsBundleId);
+            List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(widgetsBundleId);
             Assert.assertNotNull("edgeBundleWidgetTypes can't be null", edgeBundleWidgetTypes);
             Assert.assertNotNull("cloudBundleWidgetTypes can't be null", cloudBundleWidgetTypes);
             assertEntitiesByIdsAndType(edgeBundleWidgetTypes.stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.WIDGET_TYPE);
