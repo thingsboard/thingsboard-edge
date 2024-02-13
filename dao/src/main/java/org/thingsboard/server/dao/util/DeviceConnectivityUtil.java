@@ -230,7 +230,8 @@ public class DeviceConnectivityUtil {
     }
 
     public static String getHost(String baseUrl, DeviceConnectivityInfo properties, String protocol) throws URISyntaxException {
-        String initialHost = StringUtils.isBlank(properties.getHost()) ? baseUrl : properties.getHost();
+//        String initialHost = StringUtils.isBlank(properties.getHost()) ? baseUrl : properties.getHost();
+        String initialHost = baseUrl;
         InetAddress inetAddress;
         String host = null;
         if (VALID_URL_PATTERN.matcher(initialHost).matches()) {
@@ -255,7 +256,9 @@ public class DeviceConnectivityUtil {
     }
 
     public static String getPort(DeviceConnectivityInfo properties) {
-        return StringUtils.isBlank(properties.getPort()) ? "" : properties.getPort();
+        // edge
+        // return StringUtils.isBlank(properties.getPort()) ? "" : properties.getPort();
+        return "";
     }
 
     public static boolean isLocalhost(String host) {

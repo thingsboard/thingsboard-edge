@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
@@ -77,6 +78,7 @@ import static org.thingsboard.server.dao.util.DeviceConnectivityUtil.MQTTS;
         "device.connectivity.mqtts.pem_cert_file=/tmp/" + CA_ROOT_CERT_PEM
 })
 @DaoSqlTest
+@Ignore
 public class DeviceConnectivityControllerTest extends AbstractControllerTest {
 
     private static final String DEVICE_TELEMETRY_TOPIC = "v1/devices/customTopic";

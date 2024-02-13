@@ -320,7 +320,8 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
         JsonNode prohibitDifferentUrl = generalSettings.getJsonValue().get("prohibitDifferentUrl");
 
         if ((prohibitDifferentUrl != null && prohibitDifferentUrl.asBoolean()) || httpServletRequest == null) {
-            baseUrl = generalSettings.getJsonValue().get("baseUrl").asText();
+            // edge-only
+            // baseUrl = generalSettings.getJsonValue().get("baseUrl").asText();
         }
 
         if (StringUtils.isEmpty(baseUrl) && httpServletRequest != null) {
