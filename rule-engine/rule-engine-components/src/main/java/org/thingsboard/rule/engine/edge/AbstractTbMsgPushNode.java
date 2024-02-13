@@ -207,6 +207,6 @@ public abstract class   AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigu
 
     protected boolean isSupportedMsgType(TbMsg msg) {
         return msg.isTypeOneOf(POST_TELEMETRY_REQUEST, POST_ATTRIBUTES_REQUEST, ATTRIBUTES_UPDATED, ATTRIBUTES_DELETED, TIMESERIES_UPDATED,
-                ALARM, CONNECT_EVENT, DISCONNECT_EVENT, ACTIVITY_EVENT, INACTIVITY_EVENT);
+                ALARM, CONNECT_EVENT, DISCONNECT_EVENT, ACTIVITY_EVENT, INACTIVITY_EVENT, TO_SERVER_RPC_REQUEST);
     }
 }

@@ -104,6 +104,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.TransportToDeviceAct
 import org.thingsboard.server.gen.transport.TransportProtos.TsKvProto;
 import org.thingsboard.server.gen.transport.TransportProtos.UplinkNotificationMsg;
 import org.thingsboard.server.service.rpc.RpcSubmitStrategy;
+import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.transport.msg.TransportToDeviceActorMsgWrapper;
 
 import javax.annotation.Nullable;
@@ -230,8 +231,11 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
         if (systemContext.isEdgesEnabled() && edgeId != null) {
             log.debug("[{}][{}] device is related to edge: [{}]. Saving RPC request: [{}][{}] to edge queue", tenantId, deviceId, edgeId.getId(), rpcId, requestId);
             try {
-                saveRpcRequestToEdgeQueue(request, requestId).get();
-                sent = true;
+                if (systemContext.getEdgeService().isEdgeActiveAsync(tenantId, edgeId, DefaultDeviceStateService.ACTIVITY_STATE).get()) {
+                    saveRpcRequestToEdgeQueue(request, requestId).get();
+                } else {
+                    log.error("[{}][{}][{}] Failed to save RPC request to edge queue {}. The Edge is currently offline or unreachable", tenantId, deviceId, edgeId.getId(), request);
+                }
             } catch (InterruptedException | ExecutionException e) {
                 log.error("[{}][{}][{}] Failed to save RPC request to edge queue {}", tenantId, deviceId, edgeId.getId(), request, e);
             }

@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.edge.rpc.constructor;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
@@ -76,7 +75,7 @@ public class RuleChainMsgConstructorTest {
     }
 
     @Test
-    public void testConstructRuleChainMetadataUpdatedMsg_V_3_4_0() throws JsonProcessingException {
+    public void testConstructRuleChainMetadataUpdatedMsg_V_3_4_0() {
         RuleChainId ruleChainId = new RuleChainId(UUID.randomUUID());
         RuleChainMetaData ruleChainMetaData = createRuleChainMetaData(
                 ruleChainId, 3, createRuleNodes(ruleChainId), createConnections());
@@ -95,7 +94,7 @@ public class RuleChainMsgConstructorTest {
     }
 
     @Test
-    public void testConstructRuleChainMetadataUpdatedMsg_V_3_3_3() throws JsonProcessingException {
+    public void testConstructRuleChainMetadataUpdatedMsg_V_3_3_3() {
         RuleChainId ruleChainId = new RuleChainId(UUID.randomUUID());
         RuleChainMetaData ruleChainMetaData = createRuleChainMetaData(
                 ruleChainId, 3, createRuleNodes(ruleChainId), createConnections());
@@ -135,7 +134,7 @@ public class RuleChainMsgConstructorTest {
     }
 
     @Test
-    public void testConstructRuleChainMetadataUpdatedMsg_V_3_3_0() throws JsonProcessingException {
+    public void testConstructRuleChainMetadataUpdatedMsg_V_3_3_0() {
         RuleChainId ruleChainId = new RuleChainId(UUID.randomUUID());
         RuleChainMetaData ruleChainMetaData = createRuleChainMetaData(ruleChainId, 3, createRuleNodes(ruleChainId), createConnections());
         RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg =
@@ -176,7 +175,7 @@ public class RuleChainMsgConstructorTest {
     }
 
     @Test
-    public void testConstructRuleChainMetadataUpdatedMsg_V_3_3_0_inDifferentOrder() throws JsonProcessingException {
+    public void testConstructRuleChainMetadataUpdatedMsg_V_3_3_0_inDifferentOrder() {
         // same rule chain metadata, but different order of rule nodes
         RuleChainId ruleChainId = new RuleChainId(UUID.randomUUID());
         RuleChainMetaData ruleChainMetaData1 = createRuleChainMetaData(ruleChainId, 8, createRuleNodesInDifferentOrder(ruleChainId), createConnectionsInDifferentOrder());

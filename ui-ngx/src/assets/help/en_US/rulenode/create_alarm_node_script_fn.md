@@ -60,7 +60,7 @@ return details;
 
 <br>
 
-More details about Alarms can be found in [this tutorial{:target="_blank"}](${siteBaseUrl}/docs/user-guide/alarms/).
+More details about Alarms can be found in [this tutorial{:target="_blank"}](${siteBaseUrl}/docs/pe/user-guide/alarms/).
 
 You can see the real life example, where this node is used, in the next tutorial:
 

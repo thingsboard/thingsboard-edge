@@ -60,6 +60,7 @@ export class TimeseriesTableLatestKeySettingsComponent extends WidgetSettingsCom
       useCellStyleFunction: false,
       cellStyleFunction: '',
       useCellContentFunction: false,
+      useCellContentFunctionOnExport: true,
       cellContentFunction: '',
       defaultColumnVisibility: 'visible',
       columnSelectionToDisplay: 'enabled',
@@ -74,6 +75,7 @@ export class TimeseriesTableLatestKeySettingsComponent extends WidgetSettingsCom
       useCellStyleFunction: [settings.useCellStyleFunction, []],
       cellStyleFunction: [settings.cellStyleFunction, [Validators.required]],
       useCellContentFunction: [settings.useCellContentFunction, []],
+      useCellContentFunctionOnExport: [settings.useCellContentFunctionOnExport, []],
       cellContentFunction: [settings.cellContentFunction, [Validators.required]],
       defaultColumnVisibility: [settings.defaultColumnVisibility, []],
       columnSelectionToDisplay: [settings.columnSelectionToDisplay, []],
@@ -100,14 +102,17 @@ export class TimeseriesTableLatestKeySettingsComponent extends WidgetSettingsCom
       }
       if (useCellContentFunction) {
         this.timeseriesTableLatestKeySettingsForm.get('cellContentFunction').enable();
+        this.timeseriesTableLatestKeySettingsForm.get('useCellContentFunctionOnExport').enable();
       } else {
         this.timeseriesTableLatestKeySettingsForm.get('cellContentFunction').disable();
+        this.timeseriesTableLatestKeySettingsForm.get('useCellContentFunctionOnExport').disable();
       }
     } else {
       this.timeseriesTableLatestKeySettingsForm.get('order').disable();
       this.timeseriesTableLatestKeySettingsForm.get('useCellStyleFunction').disable({emitEvent: false});
       this.timeseriesTableLatestKeySettingsForm.get('cellStyleFunction').disable();
       this.timeseriesTableLatestKeySettingsForm.get('useCellContentFunction').disable({emitEvent: false});
+      this.timeseriesTableLatestKeySettingsForm.get('useCellContentFunctionOnExport').disable();
       this.timeseriesTableLatestKeySettingsForm.get('cellContentFunction').disable();
     }
     this.timeseriesTableLatestKeySettingsForm.get('order').updateValueAndValidity({emitEvent});

@@ -88,6 +88,8 @@ public interface EdgeService extends EntityDaoService {
 
     ListenableFuture<List<EntitySubtype>> findEdgeTypesByTenantId(TenantId tenantId);
 
+    ListenableFuture<Boolean> isEdgeActiveAsync(TenantId tenantId, EdgeId edgeId, String activityState);
+
     void assignDefaultRuleChainsToEdge(TenantId tenantId, EdgeId edgeId);
 
     void assignTenantAdministratorsAndUsersGroupToEdge(TenantId tenantId, EdgeId edgeId);

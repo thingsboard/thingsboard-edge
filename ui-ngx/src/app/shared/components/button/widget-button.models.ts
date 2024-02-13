@@ -31,7 +31,7 @@
 
 import { cssUnit } from '@shared/models/widget-settings.models';
 import tinycolor from 'tinycolor2';
-import { UtilsService } from '@core/services/utils.service';
+import { plainColorFromVariable } from '@core/utils';
 
 const defaultMainColor = 'var(--tb-primary-500)';
 const defaultBackgroundColor = '#FFFFFF';
@@ -147,7 +147,9 @@ abstract class ButtonStateCssGenerator {
 
   constructor() {}
 
-  public generateStateCss(utils: UtilsService, appearance: WidgetButtonAppearance): string {
+  protected abstract get state(): WidgetButtonState;
+
+  public generateStateCss(appearance: WidgetButtonAppearance): string {
     let mainColor = this.getMainColor(appearance);
     let backgroundColor = this.getBackgroundColor(appearance);
     const shadowEnabledByDefault = appearance.type !== WidgetButtonType.basic;
@@ -166,14 +168,12 @@ abstract class ButtonStateCssGenerator {
     let css = `${mainColorVarPrefix}${this.state}: ${mainColor};\n`+
                      `${backgroundColorVarPrefix}${this.state}: ${backgroundColor};\n`+
                      `${boxShadowColorVarPrefix}${this.state}: ${shadowColor};`;
-    const additionalCss = this.generateAdditionalStateCss(utils, mainColor, backgroundColor);
+    const additionalCss = this.generateAdditionalStateCss(mainColor, backgroundColor);
     if (additionalCss) {
       css += `\n${additionalCss}`;
     }
     return css;
   }
-
-  protected abstract get state(): WidgetButtonState;
 
   protected getMainColor(appearance: WidgetButtonAppearance): string {
     return appearance.mainColor || defaultMainColor;
@@ -183,7 +183,7 @@ abstract class ButtonStateCssGenerator {
     return appearance.backgroundColor || defaultBackgroundColor;
   }
 
-  protected generateAdditionalStateCss(_utils: UtilsService, _mainColor: string, _backgroundColor: string): string {
+  protected generateAdditionalStateCss(_mainColor: string, _backgroundColor: string): string {
     return null;
   }
 }
@@ -201,8 +201,8 @@ class HoveredButtonStateCssGenerator extends ButtonStateCssGenerator {
     return WidgetButtonState.hovered;
   }
 
-  protected generateAdditionalStateCss(utils: UtilsService, mainColor: string): string {
-    const mainColorHoveredFilled = darkenColor(utils, mainColor, hoveredFilledDarkenAmount);
+  protected generateAdditionalStateCss(mainColor: string): string {
+    const mainColorHoveredFilled = darkenColor(mainColor, hoveredFilledDarkenAmount);
     return `--tb-widget-button-main-color-hovered-filled: ${mainColorHoveredFilled};`;
   }
 }
@@ -213,11 +213,11 @@ class PressedButtonStateCssGenerator extends ButtonStateCssGenerator {
     return WidgetButtonState.pressed;
   }
 
-  protected generateAdditionalStateCss(utils: UtilsService, mainColor: string): string {
-    const mainColorPressedFilled = darkenColor(utils, mainColor, pressedFilledDarkenAmount);
-    const mainColorInstance = tinycolor(utils.plainColorFromVariable(mainColor));
+  protected generateAdditionalStateCss(mainColor: string): string {
+    const mainColorPressedFilled = darkenColor(mainColor, pressedFilledDarkenAmount);
+    const mainColorInstance = tinycolor(plainColorFromVariable(mainColor));
     const mainColorPressedRipple = mainColorInstance.setAlpha(mainColorInstance.getAlpha() * 0.1).toRgbString();
-    const mainColorPressedRippleFilled = darkenColor(utils, mainColor, pressedRippleFilledDarkenAmount);
+    const mainColorPressedRippleFilled = darkenColor(mainColor, pressedRippleFilledDarkenAmount);
     return `--tb-widget-button-main-color-pressed-filled: ${mainColorPressedFilled};\n`+
            `--tb-widget-button-main-color-pressed-ripple: ${mainColorPressedRipple};\n`+
            `--tb-widget-button-main-color-pressed-ripple-filled: ${mainColorPressedRippleFilled};`;
@@ -230,8 +230,8 @@ class ActivatedButtonStateCssGenerator extends ButtonStateCssGenerator {
     return WidgetButtonState.activated;
   }
 
-  protected generateAdditionalStateCss(utils: UtilsService, mainColor: string): string {
-    const mainColorActivatedFilled = darkenColor(utils, mainColor, activatedFilledDarkenAmount);
+  protected generateAdditionalStateCss(mainColor: string): string {
+    const mainColorActivatedFilled = darkenColor(mainColor, activatedFilledDarkenAmount);
     return `--tb-widget-button-main-color-activated-filled: ${mainColorActivatedFilled};`;
   }
 }
@@ -263,19 +263,19 @@ const buttonStateCssGeneratorsMap = new Map<WidgetButtonState, ButtonStateCssGen
 
 const widgetButtonCssSelector = '.mat-mdc-button.mat-mdc-button-base.tb-widget-button';
 
-export const generateWidgetButtonAppearanceCss = (utils: UtilsService, appearance: WidgetButtonAppearance): string => {
+export const generateWidgetButtonAppearanceCss = (appearance: WidgetButtonAppearance): string => {
   let statesCss = '';
   for (const state of widgetButtonStates) {
     const generator = buttonStateCssGeneratorsMap.get(state);
-    statesCss += `\n${generator.generateStateCss(utils, appearance)}`;
+    statesCss += `\n${generator.generateStateCss(appearance)}`;
   }
   return `${widgetButtonCssSelector} {\n`+
             `${statesCss}\n`+
     `}`;
 };
 
-const darkenColor = (utils: UtilsService, inputColor: string, amount: number): string => {
-  const input = tinycolor(utils.plainColorFromVariable(inputColor));
+const darkenColor = (inputColor: string, amount: number): string => {
+  const input = tinycolor(plainColorFromVariable(inputColor));
   const brightness = input.getBrightness() / 255;
   let ratio: number;
   if (brightness >= 0.4 && brightness <= 0.5) {

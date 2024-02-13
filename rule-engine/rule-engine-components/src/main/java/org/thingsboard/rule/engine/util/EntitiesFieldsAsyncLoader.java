@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -77,6 +78,9 @@ public class EntitiesFieldsAsyncLoader {
                         EntityFieldsData::new, ctx);
             case ENTITY_VIEW:
                 return toEntityFieldsDataAsync(ctx.getEntityViewService().findEntityViewByIdAsync(ctx.getTenantId(), (EntityViewId) originatorId),
+                        EntityFieldsData::new, ctx);
+            case EDGE:
+                return toEntityFieldsDataAsync(ctx.getEdgeService().findEdgeByIdAsync(ctx.getTenantId(), (EdgeId) originatorId),
                         EntityFieldsData::new, ctx);
             default:
                 return Futures.immediateFailedFuture(new TbNodeException("Unexpected originator EntityType: " + originatorId.getEntityType()));

@@ -81,7 +81,8 @@ import {
   isDefined,
   isDefinedAndNotNull,
   isEqual,
-  parseHttpErrorMessage
+  parseHttpErrorMessage,
+  plainColorFromVariable
 } from '@core/utils';
 import { EntityId } from '@app/shared/models/id/entity-id';
 import moment_ from 'moment';
@@ -1629,7 +1630,7 @@ export class WidgetSubscription implements IWidgetSubscription {
       dataKey.hidden = !!dataKey.settings.hideDataByDefault;
       dataKey.inLegend = !dataKey.settings.removeFromLegend;
       dataKey.label = this.ctx.utils.customTranslation(dataKey.label, dataKey.label);
-      dataKey.color = this.ctx.utils.plainColorFromVariable(dataKey.color);
+      dataKey.color = plainColorFromVariable(dataKey.color);
       const datasourceData: DatasourceData = {
         datasource,
         dataKey,
@@ -1643,7 +1644,7 @@ export class WidgetSubscription implements IWidgetSubscription {
     if (datasource.latestDataKeys) {
       datasourceDataArray = datasourceDataArray.concat(datasource.latestDataKeys.map((dataKey, latestKeyIndex) => {
         dataKey.label = this.ctx.utils.customTranslation(dataKey.label, dataKey.label);
-        dataKey.color = this.ctx.utils.plainColorFromVariable(dataKey.color);
+        dataKey.color = plainColorFromVariable(dataKey.color);
         const datasourceData: DatasourceData = {
           datasource,
           dataKey,
