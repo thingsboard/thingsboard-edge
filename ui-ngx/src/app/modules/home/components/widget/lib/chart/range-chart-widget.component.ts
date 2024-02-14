@@ -56,7 +56,7 @@ import {
 } from '@shared/models/widget-settings.models';
 import { ResizeObserver } from '@juggle/resize-observer';
 import * as echarts from 'echarts/core';
-import { formatValue, isDefinedAndNotNull, isNumber } from '@core/utils';
+import { formatValue, isDefinedAndNotNull, isNumber, plainColorFromVariable } from '@core/utils';
 import { rangeChartDefaultSettings, RangeChartWidgetSettings } from './range-chart-widget.models';
 import { Observable } from 'rxjs';
 import { ImagePipe } from '@shared/pipe/image.pipe';
@@ -108,7 +108,7 @@ const rangeItemLabel = (from?: number, to?: number): string => {
 
 const toVisualPiece = (color: string, from?: number, to?: number): VisualPiece => {
   const piece: VisualPiece = {
-    color
+    color: plainColorFromVariable(color)
   };
   if (isNumber(from) && isNumber(to)) {
     if (from === to) {
@@ -142,7 +142,7 @@ const toRangeItems = (colorRanges: Array<ColorRange>): RangeItem[] => {
     rangeItems.push(
       {
         index: counter++,
-        color: range.color,
+        color: plainColorFromVariable(range.color),
         enabled: true,
         visible: true,
         from,
@@ -423,10 +423,10 @@ export class RangeChartWidgetComponent implements OnInit, OnDestroy, AfterViewIn
         dimension: 1,
         pieces: this.rangeItems.map(item => item.piece),
         outOfRange: {
-          color: this.settings.outOfRangeColor
+          color: plainColorFromVariable(this.settings.outOfRangeColor)
         },
         inRange: !this.rangeItems.length ? {
-          color: this.settings.outOfRangeColor
+          color: plainColorFromVariable(this.settings.outOfRangeColor)
         } : undefined
       }
     };
