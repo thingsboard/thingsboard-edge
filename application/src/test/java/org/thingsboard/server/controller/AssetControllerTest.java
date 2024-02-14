@@ -66,7 +66,6 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.asset.AssetDao;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.exception.DataValidationException;
-import org.thingsboard.server.service.stats.DefaultRuleEngineStatisticsService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -500,8 +499,6 @@ public class AssetControllerTest extends AbstractControllerTest {
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new Asset(), new Asset(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, cntEntity, cntEntity, cntEntity);
-
-        loadedAssets.removeIf(asset -> asset.getType().equals(DefaultRuleEngineStatisticsService.TB_SERVICE_QUEUE));
 
         assets.sort(idComparator);
         loadedAssets.sort(idComparator);

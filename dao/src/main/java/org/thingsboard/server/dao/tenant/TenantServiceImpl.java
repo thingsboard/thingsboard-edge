@@ -69,6 +69,7 @@ import org.thingsboard.server.dao.notification.NotificationTargetService;
 import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
+import org.thingsboard.server.dao.queue.QueueStatsService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rpc.RpcService;
@@ -176,6 +177,10 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     @Lazy
     @Autowired
     private QueueService queueService;
+
+    @Lazy
+    @Autowired
+    private QueueStatsService queueStatsService;
 
     @Autowired
     private AdminSettingsService adminSettingsService;
@@ -322,6 +327,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(tenantId).build());
         relationService.deleteEntityRelations(tenantId, tenantId);
         alarmService.deleteEntityAlarmRecordsByTenantId(tenantId);
+        queueStatsService.deleteByTenantId(tenantId);
     }
 
     @Override

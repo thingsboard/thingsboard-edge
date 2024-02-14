@@ -79,6 +79,7 @@ public enum Resource {
     TB_RESOURCE(EntityType.TB_RESOURCE),
     OTA_PACKAGE(EntityType.OTA_PACKAGE),
     QUEUE(EntityType.QUEUE),
+    QUEUE_STATS(EntityType.QUEUE_STATS),
     VERSION_CONTROL,
     NOTIFICATION(EntityType.NOTIFICATION_TARGET, EntityType.NOTIFICATION_TEMPLATE,
             EntityType.NOTIFICATION_REQUEST, EntityType.NOTIFICATION_RULE);
@@ -151,6 +152,7 @@ public enum Resource {
         operationsByResource.put(Resource.WHITE_LABELING, Set.of(Operation.ALL, Operation.READ, Operation.WRITE));
         operationsByResource.put(Resource.AUDIT_LOG, Set.of(Operation.ALL, Operation.READ));
         operationsByResource.put(Resource.QUEUE, Set.of(Operation.ALL, Operation.READ));
+        operationsByResource.put(Resource.QUEUE_STATS, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.VERSION_CONTROL, Set.of(Operation.ALL, Operation.READ, Operation.WRITE, Operation.DELETE));
         operationsByResource.put(Resource.NOTIFICATION, Operation.crudOperations);
 
@@ -171,6 +173,7 @@ public enum Resource {
                 Resource.OAUTH2_CONFIGURATION_TEMPLATE,
                 Resource.TB_RESOURCE,
                 Resource.QUEUE,
+                Resource.QUEUE_STATS,
                 Resource.NOTIFICATION
         ));
 
@@ -210,6 +213,7 @@ public enum Resource {
                 Resource.TB_RESOURCE,
                 Resource.OTA_PACKAGE,
                 Resource.QUEUE,
+                Resource.QUEUE_STATS,
                 Resource.VERSION_CONTROL,
                 Resource.NOTIFICATION
         ));
