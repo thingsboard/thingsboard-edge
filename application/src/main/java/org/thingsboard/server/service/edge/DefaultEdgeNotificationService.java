@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -261,6 +261,9 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                         case ALARM:
                             alarmProcessor.processAlarmNotification(tenantId, edgeNotificationMsg);
                             break;
+                        case ALARM_COMMENT:
+                            alarmProcessor.processAlarmCommentNotification(tenantId, edgeNotificationMsg);
+                            break;
                         case RELATION:
                             relationProcessor.processRelationNotification(tenantId, edgeNotificationMsg);
                             break;
@@ -284,8 +287,9 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                             break;
                         case WHITE_LABELING:
                         case LOGIN_WHITE_LABELING:
-                        case CUSTOM_TRANSLATION:
                         case MAIL_TEMPLATES:
+                        case CUSTOM_MENU:
+                        case CUSTOM_TRANSLATION:
                             whiteLabelingProcessor.processNotification(tenantId, edgeNotificationMsg);
                             break;
                         case TENANT:

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 public class TbDuplicateMsgToGroupByNameNodeConfiguration implements NodeConfiguration<TbDuplicateMsgToGroupByNameNodeConfiguration> {
 
     private boolean searchEntityGroupForTenantOnly;
+    private boolean considerMessageOriginatorAsAGroupOwner;
     private EntityType groupType;
     private String groupName;
 
@@ -46,6 +47,7 @@ public class TbDuplicateMsgToGroupByNameNodeConfiguration implements NodeConfigu
     public TbDuplicateMsgToGroupByNameNodeConfiguration defaultConfiguration() {
         var configuration = new TbDuplicateMsgToGroupByNameNodeConfiguration();
         configuration.setSearchEntityGroupForTenantOnly(false);
+        configuration.setConsiderMessageOriginatorAsAGroupOwner(true);
         configuration.setGroupType(EntityType.USER);
         configuration.setGroupName(EntityGroup.GROUP_ALL_NAME);
         return configuration;

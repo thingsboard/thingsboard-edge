@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -80,6 +80,13 @@ public class JpaSchedulerEventInfoDao extends JpaAbstractDao<SchedulerEventInfoE
         return DaoUtil.convertDataList(schedulerEventInfoRepository
                 .findSchedulerEventInfoEntitiesByTenantId(
                         tenantId));
+    }
+
+    @Override
+    public List<SchedulerEventInfo> findSchedulerEventsByTenantIdAndEnabled(UUID tenantId, boolean enabled) {
+        return DaoUtil.convertDataList(schedulerEventInfoRepository
+                .findSchedulerEventInfoEntitiesByTenantIdAndEnabled(
+                        tenantId, enabled));
     }
 
     @Override

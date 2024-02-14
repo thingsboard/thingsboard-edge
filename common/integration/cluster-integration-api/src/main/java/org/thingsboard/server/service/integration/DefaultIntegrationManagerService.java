@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -59,6 +59,7 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.integration.AbstractIntegration;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
@@ -89,6 +90,7 @@ import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
+import org.thingsboard.server.service.cache.IntegrationExecutorTenantProfileCache;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.integration.state.IntegrationState;
 import org.thingsboard.server.service.integration.state.ValidationTask;
@@ -140,6 +142,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     private final ConcurrentMap<UUID, ValidationTask> pendingValidationTasks = new ConcurrentHashMap<>();
     private final IntegrationStatisticsService integrationStatisticsService;
     private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
+    private final Optional<IntegrationExecutorTenantProfileCache> tenantProfileCache;
 
     @Value("${integrations.reinit.enabled:false}")
     private boolean reInitEnabled;
@@ -210,6 +213,9 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             case TENANT:
                 processTenantUpdate(componentLifecycleMsg);
                 break;
+            case TENANT_PROFILE:
+                tenantProfileCache.ifPresent(cache -> cache.evict((TenantProfileId) componentLifecycleMsg.getEntityId()));
+                break;
             default:
                 log.info("[{}][{}] Ignore update due to not supported entity type: {}",
                         componentLifecycleMsg.getTenantId(), componentLifecycleMsg.getEntityId(), componentLifecycleMsg.getEvent());
@@ -223,6 +229,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 scheduleIntegrationEvent(state.getTenantId(), state.getId(), DELETED);
             });
         }
+        tenantProfileCache.ifPresent(cache -> cache.evict(tenantId));
     }
 
     @Override

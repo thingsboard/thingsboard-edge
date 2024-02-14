@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   UntypedFormArray,
@@ -53,6 +53,8 @@ import * as _moment from 'moment';
 import * as momentTz from 'moment-timezone';
 import { isDefined } from '@core/utils';
 import { ErrorStateMatcher } from '@angular/material/core';
+import { scheduleWeekDays } from '@home/components/scheduler/scheduler-events.models';
+import { MatChipListbox } from '@angular/material/chips';
 
 interface SchedulerEventScheduleConfig {
   timezone: string;
@@ -106,6 +108,8 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
 
   schedulerTimeUnitTranslations = schedulerTimeUnitTranslationMap;
 
+  weekDays = scheduleWeekDays;
+
   @Input()
   disabled: boolean;
 
@@ -114,7 +118,8 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
   private propagateChange = (v: any) => {};
 
   constructor(protected store: Store<AppState>,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private cd: ChangeDetectorRef) {
     super(store);
     this.scheduleConfigFormGroup = this.fb.group({
       timezone: [null, [Validators.required]],
@@ -197,6 +202,19 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
     return (this.scheduleConfigFormGroup.get('weeklyRepeat') as UntypedFormArray).at(index) as UntypedFormControl;
   }
 
+  onChipClicked(index: number, chipListBox: MatChipListbox): void {
+    const control = this.weeklyRepeatControl(index);
+    const isSelected = control.value;
+    const options = chipListBox._chips.toArray();
+    const selectedOptions = options.filter(chip => chip.selected);
+
+    if (isSelected && !selectedOptions.length) {
+      options[index]._setSelectedState(true, false, false);
+    } else {
+      control.setValue(!isSelected);
+    }
+  }
+
   registerOnChange(fn: any): void {
     this.propagateChange = fn;
   }
@@ -247,6 +265,7 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
         }
       }
     }
+    this.cd.detectChanges();
   }
 
   writeValue(value: SchedulerEventSchedule | null): void {

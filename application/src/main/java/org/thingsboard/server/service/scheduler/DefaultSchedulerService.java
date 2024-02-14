@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,7 +39,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.OtaPackageInfo;
@@ -224,7 +223,7 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
     private void addEventsForTenant(long ts, Tenant tenant) {
         log.debug("[{}] Fetching scheduled events for tenant.", tenant.getId());
         List<SchedulerEventId> eventIds = new ArrayList<>();
-        List<SchedulerEventInfo> events = schedulerEventService.findSchedulerEventsByTenantId(tenant.getId());
+        List<SchedulerEventInfo> events = schedulerEventService.findSchedulerEventsByTenantIdAndEnabled(tenant.getId(), true);
         long scheduled = 0L;
         long passedAway = 0L;
         for (SchedulerEventInfo event : events) {
@@ -244,6 +243,9 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
     }
 
     private void scheduleNextEvent(long ts, SchedulerEventInfo event, SchedulerEventMetaData md) {
+        if (!event.isEnabled()) {
+            return;
+        }
         long eventTs = md.getNextEventTime(ts);
         if (eventTs != 0L) {
             log.debug("schedule next event for ts {}, event {}, metadata {}", ts, event, md);

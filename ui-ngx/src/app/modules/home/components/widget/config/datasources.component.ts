@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -45,7 +45,7 @@ import {
 import { WidgetConfigComponent } from '@home/components/widget/widget-config.component';
 import {
   Datasource,
-  DatasourceType,
+  DatasourceType, datasourceValid,
   JsonSettingsSchema,
   WidgetConfigMode,
   widgetType
@@ -332,6 +332,9 @@ export class DatasourcesComponent implements ControlValueAccessor, OnInit, Valid
   }
 
   private datasourcesUpdated(datasources: Datasource[]) {
+    if (this.datasourcesOptional) {
+      datasources = datasources ? datasources.filter(d => datasourceValid(d)) : [];
+    }
     this.propagateChange(datasources);
   }
 

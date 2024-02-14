@@ -5,7 +5,7 @@
 
 *function Transform(msg, metadata, msgType): {msg: object, metadata: object, msgType: string}*
 
-The [TBEL{:target="_blank"}](${siteBaseUrl}/docs/user-guide/tbel/) function to transform input Message payload, Metadata and/or Message type to the output message.  
+The [TBEL{:target="_blank"}](${siteBaseUrl}/docs/pe/user-guide/tbel/) function to transform input Message payload, Metadata and/or Message type to the output message.  
 
 **Parameters:**
 

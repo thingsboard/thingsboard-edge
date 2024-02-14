@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -48,6 +48,7 @@ import { map, mergeMap, tap } from 'rxjs/operators';
 import { Lwm2mSecurityType } from '@shared/models/lwm2m-security-config.models';
 import { Integration } from '@shared/models/integration.models';
 import { sortEntitiesByIds } from '@shared/models/base-data';
+import { EntityInfoData } from '@shared/models/entity.models';
 
 @Injectable({
   providedIn: 'root'
@@ -191,6 +192,14 @@ export class DeviceProfileService {
       url += `?deviceProfileId=${deviceProfileId}`;
     }
     return this.http.get<Array<string>>(url, defaultHttpOptionsFromConfig(config));
+  }
+
+  public getDeviceProfileNames(activeOnly: boolean = false, config?: RequestConfig): Observable<Array<EntityInfoData>> {
+    let url = '/api/deviceProfile/names';
+    if (isDefinedAndNotNull(activeOnly)) {
+      url += `?activeOnly=${activeOnly}`;
+    }
+    return this.http.get<Array<EntityInfoData>>(url, defaultHttpOptionsFromConfig(config));
   }
 
 }

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -34,6 +34,7 @@ import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.m
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
+import { columnExportOptions } from '@home/components/widget/lib/table-widget.models';
 
 @Component({
   selector: 'tb-timeseries-table-key-settings',
@@ -58,9 +59,11 @@ export class TimeseriesTableKeySettingsComponent extends WidgetSettingsComponent
       useCellStyleFunction: false,
       cellStyleFunction: '',
       useCellContentFunction: false,
+      useCellContentFunctionOnExport: true,
       cellContentFunction: '',
       defaultColumnVisibility: 'visible',
-      columnSelectionToDisplay: 'enabled'
+      columnSelectionToDisplay: 'enabled',
+      columnExportOption: columnExportOptions.onlyVisible
     };
   }
 
@@ -69,9 +72,11 @@ export class TimeseriesTableKeySettingsComponent extends WidgetSettingsComponent
       useCellStyleFunction: [settings.useCellStyleFunction, []],
       cellStyleFunction: [settings.cellStyleFunction, [Validators.required]],
       useCellContentFunction: [settings.useCellContentFunction, []],
+      useCellContentFunctionOnExport: [settings.useCellContentFunctionOnExport, []],
       cellContentFunction: [settings.cellContentFunction, [Validators.required]],
       defaultColumnVisibility: [settings.defaultColumnVisibility, []],
       columnSelectionToDisplay: [settings.columnSelectionToDisplay, []],
+      columnExportOption: [settings.columnExportOption, []]
     });
   }
 
@@ -89,8 +94,10 @@ export class TimeseriesTableKeySettingsComponent extends WidgetSettingsComponent
     }
     if (useCellContentFunction) {
       this.timeseriesTableKeySettingsForm.get('cellContentFunction').enable();
+      this.timeseriesTableKeySettingsForm.get('useCellContentFunctionOnExport').enable();
     } else {
       this.timeseriesTableKeySettingsForm.get('cellContentFunction').disable();
+      this.timeseriesTableKeySettingsForm.get('useCellContentFunctionOnExport').disable();
     }
     this.timeseriesTableKeySettingsForm.get('cellStyleFunction').updateValueAndValidity({emitEvent});
     this.timeseriesTableKeySettingsForm.get('cellContentFunction').updateValueAndValidity({emitEvent});

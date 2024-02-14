@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -585,6 +585,9 @@ export class WidgetComponentService {
       if (isUndefined(result.typeParameters.embedTitlePanel)) {
         result.typeParameters.embedTitlePanel = false;
       }
+      if (isUndefined(result.typeParameters.overflowVisible)) {
+        result.typeParameters.overflowVisible = false;
+      }
       if (isUndefined(result.typeParameters.hideDataSettings)) {
         result.typeParameters.hideDataSettings = false;
       }
@@ -593,6 +596,9 @@ export class WidgetComponentService {
       }
       if (!isFunction(result.typeParameters.defaultLatestDataKeysFunction)) {
         result.typeParameters.defaultLatestDataKeysFunction = null;
+      }
+      if (isUndefined(result.typeParameters.displayRpcMessageToast)) {
+        result.typeParameters.displayRpcMessageToast = true;
       }
       if (isFunction(widgetTypeInstance.actionSources)) {
         result.actionSources = widgetTypeInstance.actionSources();

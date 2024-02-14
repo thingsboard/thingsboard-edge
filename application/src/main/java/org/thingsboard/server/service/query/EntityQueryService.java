@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -53,6 +53,6 @@ public interface EntityQueryService {
     long countAlarmsByQuery(SecurityUser securityUser, AlarmCountQuery query);
 
     DeferredResult<ResponseEntity> getKeysByQuery(SecurityUser securityUser, TenantId tenantId, EntityDataQuery query,
-                                                  boolean isTimeseries, boolean isAttributes);
+                                                  boolean isTimeseries, boolean isAttributes, String attributesScope);
 
 }

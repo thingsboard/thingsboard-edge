@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -103,6 +103,16 @@ export const telemetryTypeTranslations = new Map<TelemetryType, string>(
   ]
 );
 
+export const telemetryTypeTranslationsShort = new Map<TelemetryType, string>(
+  [
+    [LatestTelemetry.LATEST_TELEMETRY, 'attribute.scope-telemetry-short'],
+    [AttributeScope.CLIENT_SCOPE, 'attribute.scope-client-short'],
+    [AttributeScope.SERVER_SCOPE, 'attribute.scope-server-short'],
+    [AttributeScope.SHARED_SCOPE, 'attribute.scope-shared-short']
+  ]
+);
+
+
 export const isClientSideTelemetryType = new Map<TelemetryType, boolean>(
   [
     [LatestTelemetry.LATEST_TELEMETRY, true],
@@ -186,6 +196,14 @@ export class AttributesSubscriptionCmd extends SubscriptionCmd {
   type = WsCmdType.ATTRIBUTES;
 }
 
+export enum IntervalType {
+  MILLISECONDS = 'MILLISECONDS',
+  WEEK = 'WEEK',
+  WEEK_ISO = 'WEEK_ISO',
+  MONTH = 'MONTH',
+  QUARTER = 'QUARTER'
+}
+
 export class TimeseriesSubscriptionCmd extends SubscriptionCmd {
   startTs: number;
   timeWindow: number;
@@ -212,7 +230,9 @@ export interface EntityHistoryCmd {
   keys: Array<string>;
   startTs: number;
   endTs: number;
+  intervalType: IntervalType;
   interval: number;
+  timeZoneId: string;
   limit: number;
   agg: AggregationType;
   fetchLatestPreviousPoint?: boolean;
@@ -226,7 +246,9 @@ export interface TimeSeriesCmd {
   keys: Array<string>;
   startTs: number;
   timeWindow: number;
+  intervalType: IntervalType;
   interval: number;
+  timeZoneId: string;
   limit: number;
   agg: AggregationType;
   fetchLatestPreviousPoint?: boolean;
@@ -397,12 +419,14 @@ export class TelemetryPluginCmdsWrapper implements CmdWrapper {
   }
 }
 
+export type SubscriptionDataEntry = [number, any, number?];
+
 export interface SubscriptionData {
-  [key: string]: [number, any, number?][];
+  [key: string]: SubscriptionDataEntry[];
 }
 
 export interface IndexedSubscriptionData {
-  [id: number]: [number, any, number?][];
+  [id: number]: SubscriptionDataEntry[];
 }
 
 export interface SubscriptionDataHolder {

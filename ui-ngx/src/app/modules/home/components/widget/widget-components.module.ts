@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -82,6 +82,13 @@ import { ProgressBarWidgetComponent } from '@home/components/widget/lib/cards/pr
 import { LiquidLevelWidgetComponent } from '@home/components/widget/lib/indicator/liquid-level-widget.component';
 import { DoughnutWidgetComponent } from '@home/components/widget/lib/chart/doughnut-widget.component';
 import { RangeChartWidgetComponent } from '@home/components/widget/lib/chart/range-chart-widget.component';
+import {
+  BarChartWithLabelsWidgetComponent
+} from '@home/components/widget/lib/chart/bar-chart-with-labels-widget.component';
+import { SingleSwitchWidgetComponent } from '@home/components/widget/lib/rpc/single-switch-widget.component';
+import { ActionButtonWidgetComponent } from '@home/components/widget/lib/button/action-button-widget.component';
+import { CommandButtonWidgetComponent } from '@home/components/widget/lib/button/command-button-widget.component';
+import { PowerButtonWidgetComponent } from '@home/components/widget/lib/rpc/power-button-widget.component';
 
 @NgModule({
   declarations:
@@ -123,7 +130,12 @@ import { RangeChartWidgetComponent } from '@home/components/widget/lib/chart/ran
       ProgressBarWidgetComponent,
       LiquidLevelWidgetComponent,
       DoughnutWidgetComponent,
-      RangeChartWidgetComponent
+      RangeChartWidgetComponent,
+      BarChartWithLabelsWidgetComponent,
+      SingleSwitchWidgetComponent,
+      ActionButtonWidgetComponent,
+      CommandButtonWidgetComponent,
+      PowerButtonWidgetComponent
     ],
   imports: [
     CommonModule,
@@ -170,7 +182,12 @@ import { RangeChartWidgetComponent } from '@home/components/widget/lib/chart/ran
         ProgressBarWidgetComponent,
         LiquidLevelWidgetComponent,
         DoughnutWidgetComponent,
-        RangeChartWidgetComponent
+        RangeChartWidgetComponent,
+        BarChartWithLabelsWidgetComponent,
+        SingleSwitchWidgetComponent,
+        ActionButtonWidgetComponent,
+        CommandButtonWidgetComponent,
+        PowerButtonWidgetComponent
     ],
   providers: [
     {provide: WIDGET_COMPONENTS_MODULE_TOKEN, useValue: WidgetComponentsModule }

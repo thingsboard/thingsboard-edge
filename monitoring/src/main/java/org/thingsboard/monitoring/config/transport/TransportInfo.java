@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,10 +37,15 @@ public class TransportInfo {
 
     private final TransportType transportType;
     private final String baseUrl;
+    private final String queue;
 
     @Override
     public String toString() {
-        return String.format("%s transport (%s)", transportType, baseUrl);
+        if (queue.equals("Main")) {
+            return String.format("*%s* (%s)", transportType.getName(), baseUrl);
+        } else {
+            return String.format("*%s* (%s) _%s_", transportType.getName(), baseUrl, queue);
+        }
     }
 
 }

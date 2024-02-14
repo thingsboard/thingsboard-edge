@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -518,7 +518,9 @@ export enum NotificationType {
   NEW_PLATFORM_VERSION = 'NEW_PLATFORM_VERSION',
   RULE_NODE = 'RULE_NODE',
   INTEGRATION_LIFECYCLE_EVENT = 'INTEGRATION_LIFECYCLE_EVENT',
-  RATE_LIMITS = 'RATE_LIMITS'
+  RATE_LIMITS = 'RATE_LIMITS',
+  EDGE_CONNECTION = 'EDGE_CONNECTION',
+  EDGE_COMMUNICATION_FAILURE = 'EDGE_COMMUNICATION_FAILURE'
 }
 
 export const NotificationTypeIcons = new Map<NotificationType, string | null>([
@@ -636,6 +638,18 @@ export const NotificationTemplateTypeTranslateMap = new Map<NotificationType, No
       name: 'notification.template-type.rate-limits',
       helpId: 'notification/rate_limits'
     }
+  ],
+  [NotificationType.EDGE_CONNECTION,
+    {
+      name: 'notification.template-type.edge-connection',
+      helpId: 'notification/edge_connection'
+    }
+  ],
+  [NotificationType.EDGE_COMMUNICATION_FAILURE,
+    {
+      name: 'notification.template-type.edge-communication-failure',
+      helpId: 'notification/edge_communication_failure'
+    }
   ]
 ]);
 
@@ -650,7 +664,9 @@ export enum TriggerType {
   API_USAGE_LIMIT = 'API_USAGE_LIMIT',
   INTEGRATION_LIFECYCLE_EVENT = 'INTEGRATION_LIFECYCLE_EVENT',
   NEW_PLATFORM_VERSION = 'NEW_PLATFORM_VERSION',
-  RATE_LIMITS = 'RATE_LIMITS'
+  RATE_LIMITS = 'RATE_LIMITS',
+  EDGE_CONNECTION = 'EDGE_CONNECTION',
+  EDGE_COMMUNICATION_FAILURE = 'EDGE_COMMUNICATION_FAILURE'
 }
 
 export const TriggerTypeTranslationMap = new Map<TriggerType, string>([
@@ -665,6 +681,8 @@ export const TriggerTypeTranslationMap = new Map<TriggerType, string>([
   [TriggerType.INTEGRATION_LIFECYCLE_EVENT, 'notification.trigger.integration-lifecycle-event'],
   [TriggerType.NEW_PLATFORM_VERSION, 'notification.trigger.new-platform-version'],
   [TriggerType.RATE_LIMITS, 'notification.trigger.rate-limits'],
+  [TriggerType.EDGE_CONNECTION, 'notification.trigger.edge-connection'],
+  [TriggerType.EDGE_COMMUNICATION_FAILURE, 'notification.trigger.edge-communication-failure']
 ]);
 
 export interface NotificationUserSettings {

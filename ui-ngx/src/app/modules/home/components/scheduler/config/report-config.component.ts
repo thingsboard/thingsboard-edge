@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -54,7 +54,7 @@ import { Observable } from 'rxjs/internal/Observable';
 @Component({
   selector: 'tb-report-config',
   templateUrl: './report-config.component.html',
-  styleUrls: [],
+  styleUrls: ['./report-config.component.scss'],
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => ReportConfigComponent),

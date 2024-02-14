@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -192,6 +192,15 @@
             </mat-header-cell>
             <mat-cell *matCellDef="let schedulerEvent">
               <div fxFlex fxLayout="row" fxLayoutAlign="end">
+                <button *ngIf="editEnabled"
+                        mat-icon-button [disabled]="isLoading$ | async"
+                        [matTooltip]="(isEnabled(schedulerEvent) ? 'scheduler.disable' : 'scheduler.enable') | translate"
+                        matTooltipPosition="above"
+                        (click)="enableSchedulerEvent($event, schedulerEvent)">
+                  <tb-icon matButtonIcon>
+                    {{isEnabled(schedulerEvent) ? 'mdi:toggle-switch' : 'mdi:toggle-switch-off-outline'}}
+                  </tb-icon>
+                </button>
                 <button *ngIf="editEnabled"
                         mat-icon-button [disabled]="isLoading$ | async"
                         matTooltip="{{ 'scheduler.edit-scheduler-event' | translate }}"

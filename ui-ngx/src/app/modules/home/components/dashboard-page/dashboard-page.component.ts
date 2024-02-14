@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -1138,26 +1138,20 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
         this.onAddWidgetClosed();
         this.isAddingWidgetClosed = true;
       }
-      if (this.widgetEditMode) {
-        if (revert) {
-          this.dashboard = this.prevDashboard;
-          this.dashboardLogoCache = undefined;
-          this.dashboardConfiguration = this.dashboard.configuration;
-        }
-      } else {
-        this.resetHighlight();
-        if (revert) {
-          this.dashboard = this.prevDashboard;
-          this.dashboardLogoCache = undefined;
-          this.dashboardConfiguration = this.dashboard.configuration;
+      this.resetHighlight();
+      if (revert) {
+        this.dashboard = this.prevDashboard;
+        this.dashboardLogoCache = undefined;
+        this.dashboardConfiguration = this.dashboard.configuration;
+        if (!this.widgetEditMode) {
           this.dashboardCtx.dashboardTimewindow = this.dashboardConfiguration.timewindow;
           this.updateDashboardCss();
           this.entityAliasesUpdated();
           this.filtersUpdated();
           this.updateLayouts();
-        } else {
-          this.dashboard.configuration.timewindow = this.dashboardCtx.dashboardTimewindow;
         }
+      } else if (!this.widgetEditMode) {
+        this.dashboard.configuration.timewindow = this.dashboardCtx.dashboardTimewindow;
       }
     }
   }

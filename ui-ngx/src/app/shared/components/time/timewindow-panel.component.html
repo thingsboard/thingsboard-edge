@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -218,6 +218,7 @@
         [(hideFlag)]="timewindow.hideAggInterval"
         (hideFlagChange)="onHideAggIntervalChanged()"
         [min]="minRealtimeAggInterval()" [max]="maxRealtimeAggInterval()"
+        useCalendarIntervals
         predefinedName="aggregation.group-interval">
       </tb-timeinterval>
     </div>
@@ -230,6 +231,7 @@
         [(hideFlag)]="timewindow.hideAggInterval"
         (hideFlagChange)="onHideAggIntervalChanged()"
         [min]="minHistoryAggInterval()" [max]="maxHistoryAggInterval()"
+        useCalendarIntervals
         predefinedName="aggregation.group-interval">
       </tb-timeinterval>
     </div>

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -1032,6 +1032,22 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
         }
       });
     }
+  }
+
+  isEnabled(schedulerEventWithCustomerInfo: SchedulerEventWithCustomerInfo): boolean {
+    return isDefinedAndNotNull(schedulerEventWithCustomerInfo.enabled) ?
+      schedulerEventWithCustomerInfo.enabled : true;
+  }
+
+  enableSchedulerEvent($event, schedulerEvent: SchedulerEventWithCustomerInfo) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    schedulerEvent.enabled = !this.isEnabled(schedulerEvent);
+    this.schedulerEventService.updateSchedulerStatus(schedulerEvent.id.id, schedulerEvent.enabled, {ignoreLoading: true})
+      .subscribe(() => {
+        this.cd.detectChanges();
+    });
   }
 
 

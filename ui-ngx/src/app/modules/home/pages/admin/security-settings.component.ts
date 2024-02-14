@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -38,7 +38,8 @@ import {
   AbstractControl,
   UntypedFormBuilder,
   UntypedFormControl,
-  UntypedFormGroup, ValidationErrors,
+  UntypedFormGroup,
+  ValidationErrors,
   ValidatorFn,
   Validators
 } from '@angular/forms';
@@ -50,10 +51,7 @@ import { randomAlphanumeric } from '@core/utils';
 import { AuthService } from '@core/auth/auth.service';
 import { DialogService } from '@core/services/dialog.service';
 import { TranslateService } from '@ngx-translate/core';
-import { forkJoin, Observable, of } from 'rxjs';
-import { MatCheckboxChange } from '@angular/material/checkbox';
-import { AlarmInfo } from '@shared/models/alarm.models';
-import { QueueProcessingStrategyTypes, QueueProcessingStrategyTypesMap } from '@shared/models/queue.models';
+import { Observable, of } from 'rxjs';
 
 @Component({
   selector: 'tb-security-settings',
@@ -64,6 +62,8 @@ export class SecuritySettingsComponent extends PageComponent implements HasConfi
 
   securitySettingsFormGroup: UntypedFormGroup;
   jwtSecuritySettingsFormGroup: UntypedFormGroup;
+
+  showMainLoadingBar = false;
 
   private securitySettings: SecuritySettings;
   private jwtSettings: JwtSettings;

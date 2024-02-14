@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -167,12 +167,14 @@ public class SnmpTransportContext extends TransportContext {
         try {
             if (!newProfileTransportConfiguration.equals(sessionContext.getProfileTransportConfiguration())) {
                 sessionContext.setProfileTransportConfiguration(newProfileTransportConfiguration);
+                sessionContext.setDevice(device);
                 sessionContext.initializeTarget(newProfileTransportConfiguration, newDeviceTransportConfiguration);
                 snmpTransportService.cancelQueryingTasks(sessionContext);
                 snmpTransportService.createQueryingTasks(sessionContext);
                 transportService.lifecycleEvent(sessionContext.getTenantId(), sessionContext.getDeviceId(), ComponentLifecycleEvent.UPDATED, true, null);
             } else if (!newDeviceTransportConfiguration.equals(sessionContext.getDeviceTransportConfiguration())) {
                 sessionContext.setDeviceTransportConfiguration(newDeviceTransportConfiguration);
+                sessionContext.setDevice(device);
                 sessionContext.initializeTarget(newProfileTransportConfiguration, newDeviceTransportConfiguration);
                 transportService.lifecycleEvent(sessionContext.getTenantId(), sessionContext.getDeviceId(), ComponentLifecycleEvent.UPDATED, true, null);
             } else {

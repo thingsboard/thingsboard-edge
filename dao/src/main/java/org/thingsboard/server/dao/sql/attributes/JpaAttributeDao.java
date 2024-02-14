@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -166,6 +166,12 @@ public class JpaAttributeDao extends JpaAbstractDaoListeningExecutorService impl
     public List<String> findAllKeysByEntityIds(TenantId tenantId, EntityType entityType, List<EntityId> entityIds) {
         return attributeKvRepository
                 .findAllKeysByEntityIds(entityType.name(), entityIds.stream().map(EntityId::getId).collect(Collectors.toList()));
+    }
+
+    @Override
+    public List<String> findAllKeysByEntityIdsAndAttributeType(TenantId tenantId, EntityType entityType, List<EntityId> entityIds, String attributeType) {
+        return attributeKvRepository
+                .findAllKeysByEntityIdsAndAttributeType(entityType.name(), entityIds.stream().map(EntityId::getId).collect(Collectors.toList()), attributeType);
     }
 
     @Override

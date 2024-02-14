@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -37,10 +37,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { EntitySubtype, EntityType } from '@shared/models/entity-type.models';
 import { MatAutocomplete, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatChipGrid, MatChipInputEvent } from '@angular/material/chips';
-import { AssetService } from '@core/http/asset.service';
-import { DeviceService } from '@core/http/device.service';
-import { EdgeService } from '@core/http/edge.service';
-import { EntityViewService } from '@core/http/entity-view.service';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { COMMA, ENTER, SEMICOLON } from '@angular/cdk/keycodes';
 import { AlarmService } from '@core/http/alarm.service';
@@ -49,6 +45,7 @@ import { coerceArray, coerceBoolean } from '@shared/decorators/coercion';
 import { PageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
 import { UtilsService } from '@core/services/utils.service';
+import { EntityService } from '@core/http/entity.service';
 
 @Component({
   selector: 'tb-entity-subtype-list',
@@ -140,13 +137,10 @@ export class EntitySubTypeListComponent implements ControlValueAccessor, OnInit,
 
   constructor(private broadcast: BroadcastService,
               public translate: TranslateService,
-              private assetService: AssetService,
-              private deviceService: DeviceService,
-              private entityViewService: EntityViewService,
-              private edgeService: EdgeService,
               private alarmService: AlarmService,
               private utils: UtilsService,
-              private fb: FormBuilder) {
+              private fb: FormBuilder,
+              private entityService: EntityService) {
     this.entitySubtypeListFormGroup = this.fb.group({
       entitySubtypeList: [this.entitySubtypeList, this.required ? [Validators.required] : []],
       entitySubtype: [null]
@@ -188,7 +182,6 @@ export class EntitySubTypeListComponent implements ControlValueAccessor, OnInit,
           this.entitySubtypes = null;
         });
         break;
-
       case EntityType.ENTITY_VIEW:
         this.placeholder = this.required ? this.translate.instant('entity-view.enter-entity-view-type')
           : this.translate.instant('entity-view.any-entity-view');
@@ -342,24 +335,9 @@ export class EntitySubTypeListComponent implements ControlValueAccessor, OnInit,
       }
     }
     if (!this.entitySubtypes) {
-      let subTypesObservable: Observable<Array<EntitySubtype>>;
-      switch (this.entityType) {
-        case EntityType.ASSET:
-          subTypesObservable = this.assetService.getAssetTypes({ignoreLoading: true});
-          break;
-        case EntityType.DEVICE:
-          subTypesObservable = this.deviceService.getDeviceTypes({ignoreLoading: true});
-          break;
-        case EntityType.ENTITY_VIEW:
-          subTypesObservable = this.entityViewService.getEntityViewTypes({ignoreLoading: true});
-          break;
-        case EntityType.EDGE:
-          subTypesObservable = this.edgeService.getEdgeTypes({ignoreLoading: true});
-          break;
-      }
+      const subTypesObservable = this.entityService.getEntitySubtypesObservable(this.entityType);
       if (subTypesObservable) {
         this.entitySubtypes = subTypesObservable.pipe(
-          map(subTypes => subTypes.map(subType => subType.type)),
           share({
             connector: () => new ReplaySubject(1),
             resetOnError: false,

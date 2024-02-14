@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,14 @@
 
 import { AliasInfo, IAliasController, StateControllerHolder, StateEntityInfo } from '@core/api/widget-api.models';
 import { forkJoin, Observable, of, ReplaySubject, Subject } from 'rxjs';
-import { Datasource, DatasourceType, datasourceTypeTranslationMap } from '@app/shared/models/widget.models';
+import {
+  Datasource,
+  DatasourceType,
+  datasourceTypeTranslationMap,
+  TargetDevice,
+  TargetDeviceType,
+  targetDeviceValid
+} from '@app/shared/models/widget.models';
 import { deepClone, isDefinedAndNotNull, isEqual } from '@core/utils';
 import { EntityService } from '@core/http/entity.service';
 import { UtilsService } from '@core/services/utils.service';
@@ -39,8 +46,6 @@ import { AliasFilterType, EntityAliases, SingleEntityFilter } from '@shared/mode
 import { EntityInfo } from '@shared/models/entity.models';
 import { map, mergeMap } from 'rxjs/operators';
 import {
-  AlarmFilter,
-  AlarmFilterConfig,
   createDefaultEntityDataPageLink,
   Filter,
   FilterInfo,
@@ -68,10 +73,10 @@ export class AliasController implements IAliasController {
   filters: Filters;
   userFilters: Filters;
 
-  resolvedAliases: {[aliasId: string]: AliasInfo} = {};
-  resolvedAliasesObservable: {[aliasId: string]: Observable<AliasInfo>} = {};
+  resolvedAliases: { [aliasId: string]: AliasInfo } = {};
+  resolvedAliasesObservable: { [aliasId: string]: Observable<AliasInfo> } = {};
 
-  resolvedAliasesToStateEntities: {[aliasId: string]: StateEntityInfo} = {};
+  resolvedAliasesToStateEntities: { [aliasId: string]: StateEntityInfo } = {};
 
   constructor(private utils: UtilsService,
               private entityService: EntityService,
@@ -263,6 +268,24 @@ export class AliasController implements IAliasController {
         }
       })
     );
+  }
+
+  resolveSingleEntityInfoForDeviceId(deviceId: string): Observable<EntityInfo> {
+    const entityFilter = singleEntityFilterFromDeviceId(deviceId);
+    return this.entityService.findSingleEntityInfoByEntityFilter(entityFilter,
+      {ignoreLoading: true, ignoreErrors: true});
+  }
+
+  resolveSingleEntityInfoForTargetDevice(targetDevice: TargetDevice): Observable<EntityInfo> {
+    if (targetDeviceValid(targetDevice)) {
+      if (targetDevice.type === TargetDeviceType.entity) {
+        return this.resolveSingleEntityInfo(targetDevice.entityAliasId);
+      } else {
+        return this.resolveSingleEntityInfoForDeviceId(targetDevice.deviceId);
+      }
+    } else {
+      return of(null);
+    }
   }
 
   private resolveDatasource(datasource: Datasource, forceFilter = false): Observable<Datasource> {

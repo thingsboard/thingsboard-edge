@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,7 +32,7 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="../../../../src/typings/rawloader.typings.d.ts" />
 
-import { Inject, Injectable, NgZone } from '@angular/core';
+import { Inject, Injectable, NgZone, Renderer2 } from '@angular/core';
 import { WINDOW } from '@core/services/window.service';
 import { ExceptionData } from '@app/shared/models/error.models';
 import {
@@ -70,8 +70,9 @@ import {
   TelemetryType
 } from '@shared/models/telemetry/telemetry.models';
 import { EntityId } from '@shared/models/id/entity-id';
-import { DatePipe } from '@angular/common';
+import { DatePipe, DOCUMENT } from '@angular/common';
 import { entityTypeTranslations } from '@shared/models/entity-type.models';
+import cssjs from '@core/css/css';
 
 const i18nRegExp = new RegExp(`{${i18nPrefix}:[^{}]+}`, 'g');
 
@@ -133,6 +134,7 @@ export class UtilsService {
   defaultAlarmDataKeys: Array<DataKey> = [];
 
   constructor(@Inject(WINDOW) private window: Window,
+              @Inject(DOCUMENT) private document: Document,
               private zone: NgZone,
               private datePipe: DatePipe,
               private translate: TranslateService) {
@@ -313,32 +315,6 @@ export class UtilsService {
 
   public guid(): string {
     return guid();
-  }
-
-  public validateDatasources(datasources: Array<Datasource>): Array<Datasource> {
-    datasources.forEach((datasource) => {
-      if (datasource.type === DatasourceType.device) {
-        if (datasource.deviceAliasId) {
-          datasource.type = DatasourceType.entity;
-          datasource.entityAliasId = datasource.deviceAliasId;
-        }
-        if (datasource.deviceName) {
-          datasource.entityName = datasource.deviceName;
-        }
-      }
-      if (datasource.type === DatasourceType.entity && datasource.entityId) {
-        datasource.name = datasource.entityName;
-      }
-      if (!datasource.dataKeys) {
-        datasource.dataKeys = [];
-      }
-      datasource.dataKeys.forEach(dataKey => {
-        if (isUndefined(dataKey.label)) {
-          dataKey.label = dataKey.name;
-        }
-      });
-    });
-    return datasources;
   }
 
   public getMaterialColor(index: number) {
@@ -557,13 +533,23 @@ export class UtilsService {
     return base64toObj(b64Encoded);
   }
 
-  public plainColorFromVariable(variable: string): string {
-    if (!variable || (!variable.startsWith('--') && !variable.startsWith('var('))) {
-      return variable;
+  public applyCssToElement(renderer: Renderer2, element: any, cssClassPrefix: string, css: string): string {
+    const cssParser = new cssjs();
+    cssParser.testMode = false;
+    const cssClass = `${cssClassPrefix}-${guid()}`;
+    cssParser.cssPreviewNamespace = cssClass;
+    cssParser.createStyleElement(cssClass, css);
+    renderer.addClass(element, cssClass);
+    return cssClass;
+  }
+
+  public clearCssElement(renderer: Renderer2, cssClass: string, element?: any): void {
+    if (element) {
+      renderer.removeClass(element, cssClass);
     }
-    if (variable.startsWith('var(')) {
-      variable = variable.substring(4, variable.length - 1);
+    const el = this.document.getElementById(cssClass);
+    if (el) {
+      el.parentNode.removeChild(el);
     }
-    return getComputedStyle(this.window.document.documentElement).getPropertyValue(variable);
   }
 }

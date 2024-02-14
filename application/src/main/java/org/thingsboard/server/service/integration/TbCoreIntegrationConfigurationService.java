@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,7 @@ package org.thingsboard.server.service.integration;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
@@ -41,6 +42,7 @@ import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 
 import java.util.List;
 
@@ -50,6 +52,7 @@ public class TbCoreIntegrationConfigurationService implements IntegrationConfigu
 
     private final ConverterService converterService;
     private final IntegrationService integrationService;
+    private final TbTenantProfileCache tenantProfileCache;
 
     @Override
     public List<IntegrationInfo> getActiveIntegrationList(IntegrationType type, boolean remote) {
@@ -70,4 +73,10 @@ public class TbCoreIntegrationConfigurationService implements IntegrationConfigu
     public Converter getConverter(TenantId tenantId, ConverterId converterId) {
         return converterService.findConverterById(tenantId, converterId);
     }
+
+    @Override
+    public TenantProfile getTenantProfile(TenantId tenantId) {
+        return tenantProfileCache.get(tenantId);
+    }
+
 }

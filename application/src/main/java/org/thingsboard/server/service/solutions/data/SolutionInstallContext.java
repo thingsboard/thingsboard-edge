@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -63,6 +63,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Data
 public class SolutionInstallContext {
@@ -79,7 +80,7 @@ public class SolutionInstallContext {
     // For instructions
     private final Map<String, DeviceCredentialsInfo> createdDevices = new LinkedHashMap<>();
     private final Map<String, UserCredentialsInfo> createdUsers = new LinkedHashMap<>();
-    private final Map<String, CreatedEntityInfo> createdEntities = new LinkedHashMap<>();
+    private final Map<UUID, CreatedEntityInfo> createdEntities = new LinkedHashMap<>();
     private final List<DashboardLinkInfo> dashboardLinks = new ArrayList<>();
     private final Map<String, EdgeLinkInfo> createdEdges = new LinkedHashMap<>();
 
@@ -108,53 +109,53 @@ public class SolutionInstallContext {
 
     public void register(CustomerDefinition definition, Customer customer) {
         register(definition.getJsonId(), customer.getId());
-        createdEntities.put(customer.getName(), new CreatedEntityInfo(customer.getName(), "Customer", "Tenant"));
+        createdEntities.put(customer.getUuidId(), new CreatedEntityInfo(customer.getName(), "Customer", "Tenant"));
     }
 
     public void register(CustomerDefinition cDef, UserDefinition definition, User user) {
         register(definition.getJsonId(), user.getId());
-        createdEntities.put(user.getName(), new CreatedEntityInfo(user.getName(), "User", StringUtils.isEmpty(cDef.getName()) ? "Tenant" : cDef.getName()));
+        createdEntities.put(user.getUuidId(), new CreatedEntityInfo(user.getName(), "User", StringUtils.isEmpty(cDef.getName()) ? "Tenant" : cDef.getName()));
     }
 
     public void register(AssetDefinition definition, Asset asset) {
         register(definition.getJsonId(), asset.getId());
-        createdEntities.put(asset.getName(), new CreatedEntityInfo(asset.getName(), "Asset", StringUtils.isEmpty(definition.getCustomer()) ? "Tenant" : definition.getCustomer()));
+        createdEntities.put(asset.getUuidId(), new CreatedEntityInfo(asset.getName(), "Asset", StringUtils.isEmpty(definition.getCustomer()) ? "Tenant" : definition.getCustomer()));
     }
 
     public void register(DeviceDefinition definition, Device device) {
         register(definition.getJsonId(), device.getId());
-        createdEntities.put(device.getName(), new CreatedEntityInfo(device.getName(), "Device", StringUtils.isEmpty(definition.getCustomer()) ? "Tenant" : definition.getCustomer()));
+        createdEntities.put(device.getUuidId(), new CreatedEntityInfo(device.getName(), "Device", StringUtils.isEmpty(definition.getCustomer()) ? "Tenant" : definition.getCustomer()));
     }
 
     public void register(DashboardDefinition definition, Dashboard dashboard) {
         register(definition.getJsonId(), dashboard.getId());
-        createdEntities.put(dashboard.getName(), new CreatedEntityInfo(dashboard.getName(), "Dashboard", StringUtils.isEmpty(definition.getCustomer()) ? "Tenant" : definition.getCustomer()));
+        createdEntities.put(dashboard.getUuidId(), new CreatedEntityInfo(dashboard.getName(), "Dashboard", StringUtils.isEmpty(definition.getCustomer()) ? "Tenant" : definition.getCustomer()));
     }
 
     public void register(String referenceId, RuleChain ruleChain) {
         register(referenceId, ruleChain.getId());
-        createdEntities.put(ruleChain.getName(), new CreatedEntityInfo(ruleChain.getName(), "Rule chain", "Tenant"));
+        createdEntities.put(ruleChain.getUuidId(), new CreatedEntityInfo(ruleChain.getName(), "Rule chain", "Tenant"));
     }
 
 
     public void register(Role role) {
         register(role.getId());
-        createdEntities.put(role.getName(), new CreatedEntityInfo(role.getName(), "Role", "Tenant"));
+        createdEntities.put(role.getUuidId(), new CreatedEntityInfo(role.getName(), "Role", "Tenant"));
     }
 
     public void register(DeviceProfile deviceProfile) {
         register(deviceProfile.getId());
-        createdEntities.put(deviceProfile.getName(), new CreatedEntityInfo(deviceProfile.getName(), "Device profile", "Tenant"));
+        createdEntities.put(deviceProfile.getUuidId(), new CreatedEntityInfo(deviceProfile.getName(), "Device profile", "Tenant"));
     }
 
     public void register(AssetProfile assetProfile) {
         register(assetProfile.getId());
-        createdEntities.put(assetProfile.getName(), new CreatedEntityInfo(assetProfile.getName(), "Asset profile", "Tenant"));
+        createdEntities.put(assetProfile.getUuidId(), new CreatedEntityInfo(assetProfile.getName(), "Asset profile", "Tenant"));
     }
 
     public void register(EdgeDefinition definition, Edge edge) {
         register(definition.getJsonId(), edge.getId());
-        createdEntities.put(edge.getName(), new CreatedEntityInfo(edge.getName(), "Edge", StringUtils.isEmpty(definition.getCustomer()) ? "Tenant" : definition.getCustomer()));
+        createdEntities.put(edge.getUuidId(), new CreatedEntityInfo(edge.getName(), "Edge", StringUtils.isEmpty(definition.getCustomer()) ? "Tenant" : definition.getCustomer()));
     }
 
     public void register(SchedulerEventDefinition definition, SchedulerEvent schedulerEvent) {

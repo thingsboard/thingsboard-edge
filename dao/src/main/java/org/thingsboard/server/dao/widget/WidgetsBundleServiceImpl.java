@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -98,7 +98,7 @@ public class WidgetsBundleServiceImpl implements WidgetsBundleService {
             imageService.replaceBase64WithImageUrl(widgetsBundle, "bundle");
             WidgetsBundle result = widgetsBundleDao.save(widgetsBundle.getTenantId(), widgetsBundle);
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getTenantId())
-                    .entityId(result.getId()).added(widgetsBundle.getId() == null).build());
+                    .entityId(result.getId()).created(widgetsBundle.getId() == null).build());
             return result;
         } catch (Exception e) {
             AbstractCachedEntityService.checkConstraintViolation(e,

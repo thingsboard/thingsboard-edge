@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -788,7 +788,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     return res;
   }
 
-  public cellContent(alarm: AlarmDataInfo, key: EntityColumn, row: number, useSafeHtml = true): SafeHtml {
+  public cellContent(alarm: AlarmDataInfo, key: EntityColumn, row: number, useSafeHtml = true, isExport = false): SafeHtml {
     const col = this.columns.indexOf(key);
     const index = row * this.columns.length + col;
     let res = useSafeHtml ? this.cellContentCache[index] : undefined;
@@ -798,14 +798,11 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
         const contentInfo = this.contentsInfo[key.def];
         const value = getAlarmValue(alarm, key);
         let content = '';
-        if (contentInfo.useCellContentFunction && contentInfo.cellContentFunction) {
-          try {
-            content = contentInfo.cellContentFunction(value, alarm, this.ctx);
-          } catch (e) {
-            content = '' + value;
-          }
+        if (contentInfo.useCellContentFunction && contentInfo.cellContentFunction && !isExport) {
+          content = this.applyCellContentFunction(alarm, contentInfo, value);
         } else {
-          content = this.defaultContent(key, contentInfo, value);
+          content = contentInfo.useCellContentFunctionOnExport ? this.applyCellContentFunction(alarm, contentInfo, value)
+            : this.defaultContent(key, contentInfo, value);
         }
         if (isDefined(content)) {
           content = this.utils.customTranslation(content, content);
@@ -823,6 +820,16 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
       }
     }
     return res;
+  }
+
+  private applyCellContentFunction(alarm: AlarmDataInfo, contentInfo: CellContentInfo, value: any) {
+    let content: string;
+    try {
+      content = contentInfo.cellContentFunction(value, alarm, this.ctx);
+    } catch (e) {
+      content = '' + value;
+    }
+    return content;
   }
 
   public onRowClick($event: Event, alarm: AlarmDataInfo) {
@@ -1135,7 +1142,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
         const dataObj: {[key: string]: any} = {};
         this.columns.forEach((column) => {
           if (this.includeColumnInExport(column)) {
-            dataObj[column.title] = this.cellContent(alarm, column, index, false);
+            dataObj[column.title] = this.cellContent(alarm, column, index, false, true);
           }
         });
         exportedData.push(dataObj);
@@ -1169,7 +1176,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
         dataObj[column.title] = displayName;
         return;
       }
-      dataObj[column.title] = this.cellContent(alarm, column, index, false);
+      dataObj[column.title] = this.cellContent(alarm, column, index, false, true);
     });
     return dataObj;
   }

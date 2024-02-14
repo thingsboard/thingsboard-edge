@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,6 +45,8 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -62,18 +64,28 @@ public class BaseAlarmCommentService extends AbstractEntityService implements Al
     @Override
     public AlarmComment createOrUpdateAlarmComment(TenantId tenantId, AlarmComment alarmComment) {
         alarmCommentDataValidator.validate(alarmComment, c -> tenantId);
-        if (alarmComment.getId() == null) {
-            return createAlarmComment(tenantId, alarmComment);
+        boolean isCreated = alarmComment.getId() == null;
+        AlarmComment result;
+        if (isCreated) {
+            result = createAlarmComment(tenantId, alarmComment);
         } else {
-            return updateAlarmComment(tenantId, alarmComment);
+            result = updateAlarmComment(tenantId, alarmComment);
         }
+        if (result != null) {
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entity(result)
+                    .entityId(result.getAlarmId()).created(isCreated).build());
+        }
+        return result;
     }
 
     @Override
     public AlarmComment saveAlarmComment(TenantId tenantId, AlarmComment alarmComment) {
         log.debug("Deleting Alarm Comment: {}", alarmComment);
         alarmCommentDataValidator.validate(alarmComment, c -> tenantId);
-        return alarmCommentDao.save(tenantId, alarmComment);
+        AlarmComment result = alarmCommentDao.save(tenantId, alarmComment);
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entity(result)
+                .entityId(result.getAlarmId()).build());
+        return result;
     }
 
     @Override
@@ -119,5 +131,4 @@ public class BaseAlarmCommentService extends AbstractEntityService implements Al
         }
         return null;
     }
-
 }

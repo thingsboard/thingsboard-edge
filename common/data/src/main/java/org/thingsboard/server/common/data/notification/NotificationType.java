@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,6 +44,7 @@ public enum NotificationType {
     API_USAGE_LIMIT,
     RULE_NODE,
     INTEGRATION_LIFECYCLE_EVENT,
-    RATE_LIMITS
-
+    RATE_LIMITS,
+    EDGE_CONNECTION,
+    EDGE_COMMUNICATION_FAILURE
 }

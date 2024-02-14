@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -75,8 +75,14 @@ const applyCustomCss = (customCss: string, isLoginTheme: boolean) => {
   }
   let css;
   if (customCss && customCss.length) {
+    const parsedCss = cssParser.parseCSS(customCss);
+    for (const cssObject of parsedCss) {
+      if (cssObject.selector.includes(':root')) {
+        cssObject.selector = cssObject.selector.replace(':root', '');
+      }
+    }
     cssParser.cssPreviewNamespace = isLoginTheme ? 'tb-custom-css' : 'tb-default';
-    css = cssParser.applyNamespacing(customCss);
+    css = cssParser.applyNamespacing(parsedCss);
     if (typeof css !== 'string') {
       css = cssParser.getCSSForEditor(css);
     }

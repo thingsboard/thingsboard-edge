@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,8 @@
  */
 package org.thingsboard.rule.engine.transform;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.rule.engine.api.RuleNode;
@@ -45,18 +47,22 @@ import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @RuleNode(
         type = ComponentType.TRANSFORMATION,
         name = "duplicate to group by name",
+        version = 1,
         configClazz = TbDuplicateMsgToGroupByNameNodeConfiguration.class,
         nodeDescription = "Duplicates message to all entities belonging to resolved Entity group",
         nodeDetails = "Entities are fetched from entity group that is detected according to the configuration. " +
+                "When <b>\"search entity group on Tenant level only\"</b> is enabled, the search is restricted to the Tenant level only. " +
+                "If <b>\"consider originator as a group owner\"</b> is enabled and the originator is a Tenant or Customer, the search starts from the originator's level and goes up the hierarchy to the tenant level if the group isn't found. " +
+                "Otherwise, the search starts at the same level as the message originator's owner. " +
                 "Entity group is dynamically resolved based on it's name and type. " +
                 "For each entity from group new message is created with entity as originator " +
                 "and message parameters copied from original message.<br><br>" +
@@ -66,6 +72,8 @@ import java.util.concurrent.ExecutionException;
         icon = "call_split"
 )
 public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgNode<TbDuplicateMsgToGroupByNameNodeConfiguration> {
+
+    private static final String CONSIDER_MESSAGE_ORIGINATOR_AS_A_GROUP_OWNER = "considerMessageOriginatorAsAGroupOwner";
 
     @Override
     protected TbDuplicateMsgToGroupByNameNodeConfiguration loadNodeConfiguration(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
@@ -92,8 +100,15 @@ public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgNode<
     }
 
     private EntityGroupId detectTargetEntityGroupId(TbContext ctx, EntityId originator) {
-        EntityId ownerId = config.isSearchEntityGroupForTenantOnly() ? ctx.getTenantId() : ctx.getPeContext().getOwner(ctx.getTenantId(), originator);
-        return tryFindGroupByOwnerId(ctx, ownerId);
+        if (config.isSearchEntityGroupForTenantOnly()) {
+            return tryFindGroupByOwnerId(ctx, ctx.getTenantId());
+        }
+        if (config.isConsiderMessageOriginatorAsAGroupOwner() &&
+                (originator.getEntityType() == EntityType.TENANT ||
+                        originator.getEntityType() == EntityType.CUSTOMER)) {
+            return tryFindGroupByOwnerId(ctx, originator);
+        }
+        return tryFindGroupByOwnerId(ctx, ctx.getPeContext().getOwner(ctx.getTenantId(), originator));
     }
 
     private EntityGroupId tryFindGroupByOwnerId(TbContext ctx, EntityId ownerId) {
@@ -109,6 +124,18 @@ public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgNode<
                 throw new RuntimeException("Can't find group with type: " + config.getGroupType() + " name: " + config.getGroupName() + "!");
             }
         }
+    }
+
+    @Override
+    public TbPair<Boolean, JsonNode> upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
+        boolean hasChanges = false;
+        if (fromVersion == 0) {
+            if (!oldConfiguration.has(CONSIDER_MESSAGE_ORIGINATOR_AS_A_GROUP_OWNER)) {
+                hasChanges = true;
+                ((ObjectNode) oldConfiguration).put(CONSIDER_MESSAGE_ORIGINATOR_AS_A_GROUP_OWNER, false);
+            }
+        }
+        return new TbPair<>(hasChanges, oldConfiguration);
     }
 
 }

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -84,6 +84,7 @@ import {
 import { LimitedApi, LimitedApiTranslationMap } from '@shared/models/limited-api.models';
 import { StringItemsOption } from '@shared/components/string-items-list.component';
 import { IntegrationType, integrationTypeInfoMap } from '@shared/models/integration.models';
+import { EdgeConnectionEvent, EdgeConnectionEventTranslationMap } from '@shared/models/edge.models';
 
 export interface RuleNotificationDialogData {
   rule?: NotificationRule;
@@ -116,6 +117,8 @@ export class RuleNotificationDialogComponent extends
   integrationEventsTemplateForm: FormGroup;
   newPlatformVersionTemplateForm: FormGroup;
   rateLimitsTemplateForm: FormGroup;
+  edgeCommunicationFailureTemplateForm: FormGroup;
+  edgeConnectionTemplateForm: FormGroup;
 
   triggerType = TriggerType;
   triggerTypes: TriggerType[];
@@ -149,6 +152,9 @@ export class RuleNotificationDialogComponent extends
 
   apiFeatures: ApiFeature[] = Object.values(ApiFeature);
   apiFeatureTranslationMap = ApiFeatureTranslationMap;
+
+  edgeConnectionEvents: EdgeConnectionEvent[] = Object.values(EdgeConnectionEvent);
+  edgeConnectionEventTranslationMap = EdgeConnectionEventTranslationMap;
 
   limitedApis: StringItemsOption[];
 
@@ -243,6 +249,19 @@ export class RuleNotificationDialogComponent extends
       } else {
         this.alarmTemplateForm.get('triggerConfig.clearRule').disable({emitEvent: false});
       }
+    });
+
+    this.edgeConnectionTemplateForm = this.fb.group({
+      triggerConfig: this.fb.group({
+        edges: [null],
+        notifyOn: [null]
+      })
+    });
+
+    this.edgeCommunicationFailureTemplateForm = this.fb.group({
+      triggerConfig: this.fb.group({
+        edges: [null]
+      })
     });
 
     this.alarmTemplateForm = this.fb.group({
@@ -375,7 +394,9 @@ export class RuleNotificationDialogComponent extends
       [TriggerType.API_USAGE_LIMIT, this.apiUsageLimitTemplateForm],
       [TriggerType.INTEGRATION_LIFECYCLE_EVENT, this.integrationEventsTemplateForm],
       [TriggerType.NEW_PLATFORM_VERSION, this.newPlatformVersionTemplateForm],
-      [TriggerType.RATE_LIMITS, this.rateLimitsTemplateForm]
+      [TriggerType.RATE_LIMITS, this.rateLimitsTemplateForm],
+      [TriggerType.EDGE_COMMUNICATION_FAILURE, this.edgeCommunicationFailureTemplateForm],
+      [TriggerType.EDGE_CONNECTION, this.edgeConnectionTemplateForm]
     ]);
 
     if (data.isAdd || data.isCopy) {

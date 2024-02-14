@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -123,6 +123,9 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, OnD
       }
       if(this.whiteLabelingParams.platformVersion === null){
         this.whiteLabelingParams.platformVersion = env.tbVersion;
+      }
+      if (this.whiteLabelingParams.showNameBottom === null){
+        this.whiteLabelingParams.showNameBottom = true;
       }
       this.wlSettings.reset(this.whiteLabelingParams);
       if (!this.readonly) {
