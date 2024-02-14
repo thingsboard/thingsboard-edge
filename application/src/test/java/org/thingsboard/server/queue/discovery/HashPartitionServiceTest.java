@@ -130,7 +130,7 @@ public class HashPartitionServiceTest {
 
     @Test
     public void testPartitionsCreatedWithCorrectName() {
-        clusterRoutingService.getPartitionTopicsMap().forEach((queueKey, s) -> {
+        partitionService.getPartitionTopicsMap().forEach((queueKey, s) -> {
             if (queueKey.getType().equals(ServiceType.TB_INTEGRATION_EXECUTOR)) {
                 Assert.assertEquals("tb_ie.downlink" + "." + queueKey.getQueueName().toLowerCase(), s);
             }
