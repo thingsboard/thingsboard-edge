@@ -258,11 +258,7 @@ public class DeviceConnectivityServiceImpl implements DeviceConnectivityService 
         String port = (propertiesPort.isEmpty() || HTTP_DEFAULT_PORT.equals(propertiesPort) || HTTPS_DEFAULT_PORT.equals(propertiesPort))
                 ? "" : ":" + propertiesPort;
         // Edge only:
-        Pattern pattern = Pattern.compile("https?://[^:/]+:(\\d+)");
-        Matcher matcher = pattern.matcher(baseUrl);
-        if (matcher.find()) {
-            port = ":" + matcher.group(1);
-        }
+        port = ":" + getPortFromBaseUrl(baseUrl);
         return DeviceConnectivityUtil.getHttpPublishCommand(protocol, hostName, port, deviceCredentials);
     }
 
@@ -315,6 +311,9 @@ public class DeviceConnectivityServiceImpl implements DeviceConnectivityService 
         // String mqttPort = getPort(properties);
         String mqttHost = getHost(baseUrl, properties, MQTT);
         String mqttPort = mqttBindPort.toString();
+        if (mqttPort.equals("1883") && getPortFromBaseUrl(baseUrl).equals("18080")) {
+            mqttPort = "11883";
+        }
         return DeviceConnectivityUtil.getMqttPublishCommand(MQTT, mqttHost, mqttPort, deviceTelemetryTopic, deviceCredentials);
     }
 
@@ -340,7 +339,10 @@ public class DeviceConnectivityServiceImpl implements DeviceConnectivityService 
         String mqttHost = getHost(baseUrl, properties, protocol);
         // edge-only:
         // String mqttPort = getPort(properties);
-        String mqttPort = mqttsBindPort.toString();
+        String mqttPort = mqttSslEnabled && MQTTS.equals(protocol) ? mqttsBindPort.toString() : mqttBindPort.toString();
+        if (mqttPort.equals("1883") && getPortFromBaseUrl(baseUrl).equals("18080")) {
+            mqttPort = "11883";
+        }
         return DeviceConnectivityUtil.getDockerMqttPublishCommand(protocol, baseUrl, mqttHost, mqttPort, deviceTelemetryTopic, deviceCredentials);
     }
 
@@ -386,7 +388,11 @@ public class DeviceConnectivityServiceImpl implements DeviceConnectivityService 
         String hostName = getHost(baseUrl, properties, protocol);
         // edge-only:
         // String port = StringUtils.isBlank(properties.getPort()) ? "" : ":" + properties.getPort();
-        String port = ":" + (coapDtlsEnabled && COAPS.equals(protocol) ? coapsBindPort.toString() : coapBindPort.toString());
+        String port = coapDtlsEnabled && COAPS.equals(protocol) ? coapsBindPort.toString() : coapBindPort.toString();
+        if (port.equals("5683") && getPortFromBaseUrl(baseUrl).equals("18080")) {
+            port = "15683";
+        }
+        port = ":" + port;
         return DeviceConnectivityUtil.getCoapPublishCommand(protocol, hostName, port, deviceCredentials);
     }
 
@@ -395,8 +401,22 @@ public class DeviceConnectivityServiceImpl implements DeviceConnectivityService 
         String host = getHost(baseUrl, properties, protocol);
         // edge-only:
         // String port = StringUtils.isBlank(properties.getPort()) ? "" : ":" + properties.getPort();
-        String port = ":" + (coapDtlsEnabled && COAPS.equals(protocol) ? coapsBindPort.toString() : coapBindPort.toString());
+        String port = coapDtlsEnabled && COAPS.equals(protocol) ? coapsBindPort.toString() : coapBindPort.toString();
+        if (port.equals("5683") && getPortFromBaseUrl(baseUrl).equals("18080")) {
+            port = "15683";
+        }
+        port = ":" + port;
         return DeviceConnectivityUtil.getDockerCoapPublishCommand(protocol, host, port, deviceCredentials);
+    }
+
+    //edge-only:
+    private String getPortFromBaseUrl(String baseUrl) {
+        Pattern pattern = Pattern.compile("https?://[^:/]+:(\\d+)");
+        Matcher matcher = pattern.matcher(baseUrl);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return "8080";
     }
 
 }
