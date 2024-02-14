@@ -178,7 +178,7 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
         responseBuilder.settings(kafkaSettings);
         responseBuilder.topic(jsInvokeSettings.getResponseTopic() + "." + serviceInfoProvider.getServiceId());
         responseBuilder.clientId("js-" + serviceInfoProvider.getServiceId());
-        responseBuilder.groupId("ie-node-" + serviceInfoProvider.getServiceId());
+        responseBuilder.groupId(topicService.buildTopicName("ie-node-") + serviceInfoProvider.getServiceId());
         responseBuilder.decoder(msg -> {
                     JsInvokeProtos.RemoteJsResponse.Builder builder = JsInvokeProtos.RemoteJsResponse.newBuilder();
                     JsonFormat.parser().ignoringUnknownFields().merge(new String(msg.getData(), StandardCharsets.UTF_8), builder);
