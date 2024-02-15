@@ -87,24 +87,18 @@ public class CoapClientTest extends AbstractCoapClientTest{
         DeviceProfile deviceProfile = testRestClient.getDeviceProfileById(device.getDeviceProfileId());
 
         deviceProfile = updateDeviceProfileWithProvisioningStrategy(deviceProfile, DeviceProfileProvisionType.ALLOW_CREATE_NEW_DEVICES);
-        byte[] payload = null;
-        try {
-            payload = createCoapClientAndPublish(testDeviceName);
-            JsonNode provisionResponse = JacksonUtil.fromBytes(payload);
+        JsonNode provisionResponse = JacksonUtil.fromBytes(createCoapClientAndPublish(testDeviceName));
 
-            testRestClient.deleteDeviceIfExists(device.getId());
-            device = testRestClient.getDeviceByName(testDeviceName);
+        testRestClient.deleteDeviceIfExists(device.getId());
+        device = testRestClient.getDeviceByName(testDeviceName);
 
-            DeviceCredentials expectedDeviceCredentials = testRestClient.getDeviceCredentialsByDeviceId(device.getId());
+        DeviceCredentials expectedDeviceCredentials = testRestClient.getDeviceCredentialsByDeviceId(device.getId());
 
-            assertThat(provisionResponse.get("credentialsType").asText()).isEqualTo(expectedDeviceCredentials.getCredentialsType().name());
-            assertThat(provisionResponse.get("credentialsValue").asText()).isEqualTo(expectedDeviceCredentials.getCredentialsId());
-            assertThat(provisionResponse.get("status").asText()).isEqualTo("SUCCESS");
+        assertThat(provisionResponse.get("credentialsType").asText()).isEqualTo(expectedDeviceCredentials.getCredentialsType().name());
+        assertThat(provisionResponse.get("credentialsValue").asText()).isEqualTo(expectedDeviceCredentials.getCredentialsId());
+        assertThat(provisionResponse.get("status").asText()).isEqualTo("SUCCESS");
 
-            updateDeviceProfileWithProvisioningStrategy(deviceProfile, DeviceProfileProvisionType.DISABLED);
-        } catch (NullPointerException e) {
-            log.error("NewDevicesStrategy, testDeviceName: [{}], payload [{}]", testDeviceName, payload);
-        }
+        updateDeviceProfileWithProvisioningStrategy(deviceProfile, DeviceProfileProvisionType.DISABLED);
     }
 
     @Test
