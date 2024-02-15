@@ -278,15 +278,12 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         return savedTenant;
     }
 
-    /**
-     * We intentionally leave this method without "Transactional" annotation due to complexity of the method.
-     * Ideally we should delete related entites without "paginatedRemover" logic. But in such a case we can't clear cache and send events.
-     * We will create separate task to make "deleteTenant" transactional.
-     */
+    @Transactional
     @Override
     public void deleteTenant(TenantId tenantId) {
         log.trace("Executing deleteTenant [{}]", tenantId);
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+<<<<<<< HEAD
         whiteLabelingService.deleteDomainWhiteLabelingByEntityId(tenantId, null);
         entityViewService.deleteEntityViewsByTenantId(tenantId);
         widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
@@ -317,11 +314,23 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         notificationTemplateService.deleteNotificationTemplatesByTenantId(tenantId);
         notificationTargetService.deleteNotificationTargetsByTenantId(tenantId);
         adminSettingsService.deleteAdminSettingsByTenantId(tenantId);
+=======
+
+        userService.deleteByTenantId(tenantId);
+>>>>>>> ce/feature/housekeeper
         tenantDao.removeById(tenantId, tenantId.getId());
+
+        cleanUpService.removeTenantEntities(tenantId, // don't forget to implement deleteByTenantId from EntityDaoService when adding entity type to this list
+                EntityType.ENTITY_VIEW, EntityType.WIDGETS_BUNDLE, EntityType.WIDGET_TYPE,
+                EntityType.ASSET, EntityType.ASSET_PROFILE, EntityType.DEVICE, EntityType.DEVICE_PROFILE,
+                EntityType.DASHBOARD, EntityType.CUSTOMER, EntityType.EDGE, EntityType.RULE_CHAIN,
+                EntityType.API_USAGE_STATE, EntityType.TB_RESOURCE, EntityType.OTA_PACKAGE, EntityType.RPC,
+                EntityType.QUEUE, EntityType.NOTIFICATION_REQUEST, EntityType.NOTIFICATION_RULE,
+                EntityType.NOTIFICATION_TEMPLATE, EntityType.NOTIFICATION_TARGET, EntityType.ADMIN_SETTINGS
+        );
+
         publishEvictEvent(new TenantEvictEvent(tenantId, true));
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(tenantId).build());
-        relationService.deleteEntityRelations(tenantId, tenantId);
-        alarmService.deleteEntityAlarmRecordsByTenantId(tenantId);
     }
 
     @Override

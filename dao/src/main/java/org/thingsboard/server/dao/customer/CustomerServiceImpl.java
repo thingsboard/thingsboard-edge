@@ -254,7 +254,6 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         schedulerEventService.deleteSchedulerEventsByTenantIdAndCustomerId(customer.getTenantId(), customerId);
         blobEntityService.deleteBlobEntitiesByTenantIdAndCustomerId(customer.getTenantId(), customerId);
         deleteEntityGroups(tenantId, customerId);
-        deleteEntityRelations(tenantId, customerId);
         roleService.deleteRolesByTenantIdAndCustomerId(customer.getTenantId(), customerId);
         apiUsageStateService.deleteApiUsageStateByEntityId(customerId);
         customerDao.removeById(tenantId, customerId.getId());
@@ -349,6 +348,11 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         log.trace("Executing deleteCustomersByTenantId, tenantId [{}]", tenantId);
         Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
         customersByTenantRemover.removeEntities(tenantId, tenantId);
+    }
+
+    @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteCustomersByTenantId(tenantId);
     }
 
     @Override

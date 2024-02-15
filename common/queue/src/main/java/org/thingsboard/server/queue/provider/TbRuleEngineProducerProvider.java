@@ -133,4 +133,15 @@ public class TbRuleEngineProducerProvider implements TbQueueProducerProvider {
     public TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> getIntegrationRuleEngineMsgProducer() {
         throw new RuntimeException(NOT_IMPLEMENTED);
     }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToHousekeeperServiceMsg>> getHousekeeperMsgProducer() {
+        return null; // fixme
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToHousekeeperServiceMsg>> getHousekeeperDelayedMsgProducer() {
+        throw new RuntimeException(NOT_IMPLEMENTED);
+    }
+
 }

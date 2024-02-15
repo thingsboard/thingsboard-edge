@@ -30,15 +30,15 @@
  */
 package org.thingsboard.server.dao.housekeeper;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.id.AlarmId;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.housekeeper.data.HousekeeperTask;
 
-import java.util.List;
+import java.util.UUID;
 
-public interface HouseKeeperService {
+public interface HousekeeperService {
 
-    ListenableFuture<List<AlarmId>> unassignDeletedUserAlarms(TenantId tenantId, User user, long unassignTs);
+    void submitTask(HousekeeperTask task);
+
+    // tasks with the same key will be pushed to the same partition and thus processed synchronously
+    void submitTask(UUID key, HousekeeperTask task);
 
 }
