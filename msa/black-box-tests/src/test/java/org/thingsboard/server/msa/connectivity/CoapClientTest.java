@@ -32,6 +32,7 @@ package org.thingsboard.server.msa.connectivity;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.gson.JsonObject;
+import lombok.extern.slf4j.Slf4j;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -45,7 +46,7 @@ import org.thingsboard.server.msa.DisableUIListeners;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.thingsboard.server.msa.prototypes.DevicePrototypes.defaultDevicePrototype;
-
+@Slf4j
 @DisableUIListeners
 public class CoapClientTest extends AbstractCoapClientTest{
     private Device device;
@@ -86,7 +87,6 @@ public class CoapClientTest extends AbstractCoapClientTest{
         DeviceProfile deviceProfile = testRestClient.getDeviceProfileById(device.getDeviceProfileId());
 
         deviceProfile = updateDeviceProfileWithProvisioningStrategy(deviceProfile, DeviceProfileProvisionType.ALLOW_CREATE_NEW_DEVICES);
-
         JsonNode provisionResponse = JacksonUtil.fromBytes(createCoapClientAndPublish(testDeviceName));
 
         testRestClient.deleteDeviceIfExists(device.getId());

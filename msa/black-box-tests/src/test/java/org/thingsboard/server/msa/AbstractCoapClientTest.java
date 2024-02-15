@@ -31,6 +31,8 @@
 package org.thingsboard.server.msa;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.core.config.CoapConfig;
@@ -41,6 +43,11 @@ import org.eclipse.californium.elements.config.TcpConfig;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.msg.session.FeatureType;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.awaitility.Awaitility.await;
+@Slf4j
 public abstract class AbstractCoapClientTest extends AbstractContainerTest{
 
     private static final String COAP_BASE_URL = "coap://localhost:5683/api/v1/";
@@ -71,9 +78,18 @@ public abstract class AbstractCoapClientTest extends AbstractContainerTest{
         Configuration.addDefaultModule(MODULE_DEFINITIONS_PROVIDER);
         String featureTokenUrl = COAP_BASE_URL + FeatureType.PROVISION.name().toLowerCase();
         client = new CoapClient(featureTokenUrl);
-        return client.setTimeout(CLIENT_REQUEST_TIMEOUT)
-                .post(provisionRequestMsg.getBytes(), MediaTypeRegistry.APPLICATION_JSON)
-                .getPayload();
+        AtomicReference<Byte[]> payloadB = new AtomicReference<>();
+        await("create Coap Client And Publish: return null")
+                .atMost(40, TimeUnit.SECONDS)
+                .until(() -> {
+                     byte[] payload = client.setTimeout(CLIENT_REQUEST_TIMEOUT)
+                            .post(provisionRequestMsg, MediaTypeRegistry.APPLICATION_JSON)
+                            .getPayload();
+                    payloadB.set(ArrayUtils.toObject(payload));
+                    log.warn("createCoapClientAndPublish return: {}", payloadB.get());
+                    return payloadB.get()!=null && payloadB.get().length > 0;
+                });
+        return ArrayUtils.toPrimitive(payloadB.get());
     }
 
     protected void disconnect() {
