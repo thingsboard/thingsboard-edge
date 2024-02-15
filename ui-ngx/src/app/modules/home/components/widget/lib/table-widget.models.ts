@@ -70,6 +70,7 @@ export interface TableWidgetDataKeySettings {
   useCellStyleFunction: boolean;
   cellStyleFunction?: string;
   useCellContentFunction: boolean;
+  useCellContentFunctionOnExport: boolean;
   cellContentFunction?: string;
   defaultColumnVisibility?: ColumnVisibilityOptions;
   columnSelectionToDisplay?: ColumnSelectionOptions;
@@ -112,6 +113,7 @@ export type CellContentFunction = (...args: any[]) => string;
 
 export interface CellContentInfo {
   useCellContentFunction: boolean;
+  useCellContentFunctionOnExport?: boolean;
   cellContentFunction?: CellContentFunction;
   units?: string;
   decimals?: number;
@@ -296,6 +298,7 @@ export function getCellStyleInfo(keySettings: TableWidgetDataKeySettings, ...arg
 export function getCellContentInfo(keySettings: TableWidgetDataKeySettings, ...args: string[]): CellContentInfo {
   let cellContentFunction: CellContentFunction = null;
   let useCellContentFunction = false;
+  let useCellContentFunctionOnExport = false;
 
   if (keySettings.useCellContentFunction === true) {
     if (isDefined(keySettings.cellContentFunction) && keySettings.cellContentFunction.length > 0) {
@@ -306,11 +309,14 @@ export function getCellContentInfo(keySettings: TableWidgetDataKeySettings, ...a
         cellContentFunction = null;
         useCellContentFunction = false;
       }
+      useCellContentFunctionOnExport = isDefined(keySettings.useCellContentFunctionOnExport) ?
+        keySettings.useCellContentFunctionOnExport : true;
     }
   }
   return {
     cellContentFunction,
-    useCellContentFunction
+    useCellContentFunction,
+    useCellContentFunctionOnExport
   };
 }
 

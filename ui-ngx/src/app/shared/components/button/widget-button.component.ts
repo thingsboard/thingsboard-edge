@@ -159,7 +159,7 @@ export class WidgetButtonComponent implements OnInit, AfterViewInit, OnDestroy, 
     if (this.appearance.showLabel) {
       this.label$ = this.ctx ? this.ctx.registerLabelPattern(this.appearance.label, this.label$) : of(this.appearance.label);
     }
-    const appearanceCss = generateWidgetButtonAppearanceCss(this.utils, this.appearance);
+    const appearanceCss = generateWidgetButtonAppearanceCss(this.appearance);
     this.appearanceCssClass = this.utils.applyCssToElement(this.renderer, this.elementRef.nativeElement,
       'tb-widget-button', appearanceCss);
     this.updateAutoScale();

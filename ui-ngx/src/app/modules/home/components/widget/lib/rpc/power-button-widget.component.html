@@ -30,22 +30,12 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [formGroup]="updatePackageForm" fxLayout="column">
-  <div>
-    <small translate>scheduler.target</small>
-    <tb-target-select
-      formControlName="originatorId"
-      (currentEntity)="currentEntity($event)"
-      required>
-    </tb-target-select>
-    <tb-ota-package-autocomplete
-      formControlName="packageId"
-      [type]="packageType"
-      [deviceProfileId]="profileId"
-      [deviceGroupId]="groupId"
-      [deviceGroupAll]="groupAll"
-      [useFullEntityId]="true"
-      required
-    ></tb-ota-package-autocomplete>
+<div class="tb-power-button-panel" [style]="backgroundStyle$ | async">
+  <div class="tb-power-button-overlay" [style]="overlayStyle"></div>
+  <ng-container *ngTemplateOutlet="widgetTitlePanel"></ng-container>
+  <div class="tb-power-button-content">
+    <div #powerButtonShape class="tb-power-button-shape" [class.tb-power-button-pointer]="!disabled && (loading$ | async) === false">
+    </div>
   </div>
-</section>
+  <mat-progress-bar class="tb-action-widget-progress" style="height: 4px;" color="accent" mode="indeterminate" *ngIf="loading$ | async"></mat-progress-bar>
+</div>

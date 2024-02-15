@@ -36,7 +36,7 @@ import { select, Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Dashboard, DashboardLayoutId } from '@shared/models/dashboard.models';
-import { deepClone, guid, isDefined, isNumber, isNotEmptyStr, isObject, isString, isUndefined } from '@core/utils';
+import { deepClone, guid, isDefined, isNotEmptyStr, isNumber, isObject, isString, isUndefined } from '@core/utils';
 import { WINDOW } from '@core/services/window.service';
 import { DOCUMENT } from '@angular/common';
 import {
@@ -102,12 +102,11 @@ import { selectUserSettingsProperty } from '@core/auth/auth.selectors';
 import { ActionPreferencesPutUserSettings } from '@core/auth/auth.actions';
 import { ExportableEntity } from '@shared/models/base-data';
 import { EntityId } from '@shared/models/id/entity-id';
+import { Borders, Column, Workbook } from 'exceljs';
+import * as moment_ from 'moment';
 
 export type editMissingAliasesFunction = (widgets: Array<Widget>, isSingleWidget: boolean,
                                           customTitle: string, missingEntityAliases: EntityAliases) => Observable<EntityAliases>;
-
-import { Borders, Column, Workbook } from 'exceljs';
-import * as moment_ from 'moment';
 
 const moment = moment_;
 
@@ -814,7 +813,7 @@ export class ImportExportService {
     this.downloadFile(xlsData, filename, XLS_TYPE);
   }
 
-  public exportXlsx(data: { [key: string]: any }[], filename: string) {
+  public exportXlsx(data: { [key: string]: any }[], filename: string, dateFormat: string = 'yyyy-MM-dd HH:mm:ss') {
     import('exceljs').then((Excel) => {
       const workbook: Workbook = new Excel.Workbook();
       workbook.creator = 'ThingsBoard, Inc.';
@@ -829,8 +828,6 @@ export class ImportExportService {
         bottom: {style: 'thin'},
         right: {style: 'thin'}
       };
-
-      const dateFormat = 'yyyy-MM-dd HH:mm:ss';
 
       if (data && data.length) {
         const titles = Object.keys(data[0]);
@@ -853,7 +850,7 @@ export class ImportExportService {
 
         data.forEach((item) => {
           if (item.Timestamp) {
-            item.Timestamp = moment(item.Timestamp).utcOffset(0, true).toDate();
+            item.Timestamp = moment(new Date(Date.parse(item.Timestamp))).utcOffset(0, true).toDate();
           }
           sheet.addRow(item).eachCell({ includeEmpty: true }, cell => {
             cell.border = cellBorderStyle;

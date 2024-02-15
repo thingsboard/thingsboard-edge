@@ -57,7 +57,7 @@
       </mat-form-field>
       <mat-tab-group dynamicHeight>
         <mat-tab label="{{ 'scheduler.configuration' | translate }}">
-          <div fxLayout="column" class="mat-padding">
+          <div fxLayout="column" class="tb-scheduler-configuration">
             <tb-scheduler-event-type-autocomplete
               formControlName="type"
               required
@@ -77,7 +77,7 @@
           </div>
         </mat-tab>
         <mat-tab label="{{ 'scheduler.schedule' | translate }}">
-          <div fxLayout="column" class="mat-padding">
+          <div fxLayout="column" class="tb-scheduler-configuration">
             <tb-scheduler-event-schedule
               formControlName="schedule">
             </tb-scheduler-event-schedule>
