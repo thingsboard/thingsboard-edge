@@ -46,6 +46,7 @@
     <div [fxShow]="backgroundSettingsFormGroup.get('type').value === backgroundType.color" class="tb-form-row space-between tb-background-color-field">
       <div translate>widgets.color.color</div>
       <tb-color-input asBoxInput
+                      useThemePalette
                       formControlName="color">
       </tb-color-input>
     </div>
@@ -58,6 +59,7 @@
     <div class="tb-form-row space-between">
       <div translate>widgets.color.color</div>
       <tb-color-input asBoxInput
+                      useThemePalette
                       formControlName="color">
       </tb-color-input>
     </div>
