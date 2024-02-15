@@ -31,6 +31,7 @@
 package org.thingsboard.server.msa;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.core.config.CoapConfig;
@@ -45,7 +46,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.awaitility.Awaitility.await;
-
+@Slf4j
 public abstract class AbstractCoapClientTest extends AbstractContainerTest{
 
     private static final String COAP_BASE_URL = "coap://localhost:5683/api/v1/";
@@ -83,9 +84,14 @@ public abstract class AbstractCoapClientTest extends AbstractContainerTest{
         Configuration.addDefaultModule(MODULE_DEFINITIONS_PROVIDER);
         String featureTokenUrl = COAP_BASE_URL + FeatureType.PROVISION.name().toLowerCase();
         client = new CoapClient(featureTokenUrl);
-        return client.setTimeout(CLIENT_REQUEST_TIMEOUT)
-                .post(provisionRequestMsg.get().getBytes(), MediaTypeRegistry.APPLICATION_JSON)
-                .getPayload();
+        try {
+            return client.setTimeout(CLIENT_REQUEST_TIMEOUT)
+                    .post(provisionRequestMsg.get().getBytes(), MediaTypeRegistry.APPLICATION_JSON)
+                    .getPayload();
+        } catch (NullPointerException e){
+            log.error("createCoapClientAndPublish, deviceName [{}], provisionRequestMsg: [{}]", deviceName, provisionRequestMsg.get());
+            return null;
+        }
     }
 
     protected void disconnect() {

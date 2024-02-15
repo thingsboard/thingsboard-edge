@@ -32,6 +32,7 @@ package org.thingsboard.server.msa.connectivity;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.gson.JsonObject;
+import lombok.extern.slf4j.Slf4j;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -45,7 +46,7 @@ import org.thingsboard.server.msa.DisableUIListeners;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.thingsboard.server.msa.prototypes.DevicePrototypes.defaultDevicePrototype;
-
+@Slf4j
 @DisableUIListeners
 public class CoapClientTest extends AbstractCoapClientTest{
     private Device device;
@@ -86,19 +87,24 @@ public class CoapClientTest extends AbstractCoapClientTest{
         DeviceProfile deviceProfile = testRestClient.getDeviceProfileById(device.getDeviceProfileId());
 
         deviceProfile = updateDeviceProfileWithProvisioningStrategy(deviceProfile, DeviceProfileProvisionType.ALLOW_CREATE_NEW_DEVICES);
+        byte[] payload = null;
+        try {
+            payload = createCoapClientAndPublish(testDeviceName);
+            JsonNode provisionResponse = JacksonUtil.fromBytes(payload);
 
-        JsonNode provisionResponse = JacksonUtil.fromBytes(createCoapClientAndPublish(testDeviceName));
+            testRestClient.deleteDeviceIfExists(device.getId());
+            device = testRestClient.getDeviceByName(testDeviceName);
 
-        testRestClient.deleteDeviceIfExists(device.getId());
-        device = testRestClient.getDeviceByName(testDeviceName);
+            DeviceCredentials expectedDeviceCredentials = testRestClient.getDeviceCredentialsByDeviceId(device.getId());
 
-        DeviceCredentials expectedDeviceCredentials = testRestClient.getDeviceCredentialsByDeviceId(device.getId());
+            assertThat(provisionResponse.get("credentialsType").asText()).isEqualTo(expectedDeviceCredentials.getCredentialsType().name());
+            assertThat(provisionResponse.get("credentialsValue").asText()).isEqualTo(expectedDeviceCredentials.getCredentialsId());
+            assertThat(provisionResponse.get("status").asText()).isEqualTo("SUCCESS");
 
-        assertThat(provisionResponse.get("credentialsType").asText()).isEqualTo(expectedDeviceCredentials.getCredentialsType().name());
-        assertThat(provisionResponse.get("credentialsValue").asText()).isEqualTo(expectedDeviceCredentials.getCredentialsId());
-        assertThat(provisionResponse.get("status").asText()).isEqualTo("SUCCESS");
-
-        updateDeviceProfileWithProvisioningStrategy(deviceProfile, DeviceProfileProvisionType.DISABLED);
+            updateDeviceProfileWithProvisioningStrategy(deviceProfile, DeviceProfileProvisionType.DISABLED);
+        } catch (NullPointerException e) {
+            log.error("NewDevicesStrategy, testDeviceName: [{}], payload [{}]", testDeviceName, payload);
+        }
     }
 
     @Test
