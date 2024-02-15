@@ -28,19 +28,60 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.user;
+:host {
+  .tb-template-header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding-bottom: 12px;
+    background-color: var(--mdc-dialog-container-color, white);
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.thingsboard.server.common.data.settings.UserSettingsCompositeKey;
-import org.thingsboard.server.dao.model.sql.UserSettingsEntity;
+    .tb-hint-available-params {
+      color: rgba(0, 0, 0, 0.54);
+      letter-spacing: 0.4px;
 
-import java.util.List;
+      .content {
+        vertical-align: middle;
+      }
+    }
+  }
 
-public interface UserSettingsRepository extends JpaRepository<UserSettingsEntity, UserSettingsCompositeKey> {
+  .template-tittle {
+    gap: 12px;
+    font-weight: normal;
 
-    @Query(value = "SELECT * FROM user_settings WHERE type = :type AND (settings #> :path) IS NOT NULL", nativeQuery = true)
-    List<UserSettingsEntity> findByTypeAndPathExisting(@Param("type") String type, @Param("path") String[] path);
+    tb-icon {
+      color: rgba(0, 0, 0, .38);
+    }
+  }
 
+  .tb-mat-error {
+    font-size: 13px;
+  }
+
+  .tb-title {
+    font-size: 16px;
+    line-height: 24px;
+
+    &.tb-required::after {
+      font-size: initial;
+      content: "*";
+    }
+
+    &.tb-error {
+      color: var(--mdc-theme-error, #f44336);
+
+      &.tb-required::after {
+        color: var(--mdc-theme-error, #f44336);
+      }
+    }
+  }
+}
+
+:host ::ng-deep {
+  .tb-form-panel .mat-expansion-panel.tb-settings {
+    & > .mat-expansion-panel-content > .mat-expansion-panel-body {
+      gap: 0;
+    }
+  }
 }

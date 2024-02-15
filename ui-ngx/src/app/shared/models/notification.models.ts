@@ -343,9 +343,11 @@ export interface NotificationTemplate extends Omit<BaseData<NotificationTemplate
 }
 
 interface NotificationTemplateConfig {
-  deliveryMethodsTemplates: {
-    [key in NotificationDeliveryMethod]: DeliveryMethodNotificationTemplate
-  };
+  deliveryMethodsTemplates: DeliveryMethodsTemplates;
+}
+
+export type DeliveryMethodsTemplates = {
+  [key in NotificationDeliveryMethod]: DeliveryMethodNotificationTemplate
 }
 
 export interface DeliveryMethodNotificationTemplate extends
@@ -408,20 +410,52 @@ export enum NotificationStatus {
 
 export enum NotificationDeliveryMethod {
   WEB = 'WEB',
+  MOBILE_APP = 'MOBILE_APP',
   SMS = 'SMS',
   EMAIL = 'EMAIL',
   SLACK = 'SLACK',
-  MOBILE_APP = 'MOBILE_APP',
   MICROSOFT_TEAMS = 'MICROSOFT_TEAMS'
 }
 
-export const NotificationDeliveryMethodTranslateMap = new Map<NotificationDeliveryMethod, string>([
-  [NotificationDeliveryMethod.WEB, 'notification.delivery-method.web'],
-  [NotificationDeliveryMethod.SMS, 'notification.delivery-method.sms'],
-  [NotificationDeliveryMethod.EMAIL, 'notification.delivery-method.email'],
-  [NotificationDeliveryMethod.SLACK, 'notification.delivery-method.slack'],
-  [NotificationDeliveryMethod.MOBILE_APP, 'notification.delivery-method.mobile-app'],
-  [NotificationDeliveryMethod.MICROSOFT_TEAMS, 'notification.delivery-method.microsoft-teams']
+export interface NotificationDeliveryMethodInfo {
+  name: string;
+  icon: string;
+}
+
+export const NotificationDeliveryMethodInfoMap = new Map<NotificationDeliveryMethod, NotificationDeliveryMethodInfo>([
+  [NotificationDeliveryMethod.WEB,
+    {
+      name: 'notification.delivery-method.web',
+      icon: 'mdi:bell-badge'
+    }
+  ],
+  [NotificationDeliveryMethod.SMS,
+    {
+      name: 'notification.delivery-method.sms',
+      icon: 'mdi:message-processing'
+    }
+  ],
+  [NotificationDeliveryMethod.EMAIL,
+    {
+      name: 'notification.delivery-method.email',
+      icon: 'mdi:email'
+    }],
+  [NotificationDeliveryMethod.SLACK,
+    {
+      name: 'notification.delivery-method.slack',
+      icon: 'mdi:slack'
+    }
+  ],
+  [NotificationDeliveryMethod.MOBILE_APP,
+    {
+      name: 'notification.delivery-method.mobile-app',
+      icon: 'mdi:cellphone-text'
+    }],
+  [NotificationDeliveryMethod.MICROSOFT_TEAMS,
+    {
+      name: 'notification.delivery-method.microsoft-teams',
+      icon: 'mdi:microsoft-teams'
+    }]
 ]);
 
 export enum NotificationRequestStatus {

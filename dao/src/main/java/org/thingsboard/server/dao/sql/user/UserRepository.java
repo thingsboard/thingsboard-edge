@@ -33,10 +33,8 @@ package org.thingsboard.server.dao.sql.user;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.model.sql.UserEntity;
 
@@ -149,11 +147,5 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
             "(SELECT p.userGroupId FROM GroupPermissionEntity p WHERE p.roleId = :roleId))")
     Page<UserEntity> findByRoleId(@Param("roleId") UUID roleId,
                                   Pageable pageable);
-
-    @Query(value = "UPDATE user_settings SET settings = settings - 'fcmToken' " +
-            "WHERE type = 'MOBILE' AND (settings ->> 'fcmToken') = :fcmToken", nativeQuery = true)
-    @Modifying
-    @Transactional
-    void unassignFcmToken(@Param("fcmToken") String fcmToken);
 
 }

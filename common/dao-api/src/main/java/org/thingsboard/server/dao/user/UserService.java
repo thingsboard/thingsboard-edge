@@ -33,7 +33,6 @@ package org.thingsboard.server.dao.user;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.UserInfo;
-import org.thingsboard.server.common.data.UserMobileInfo;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -42,12 +41,14 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.id.UserCredentialsId;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.mobile.MobileSessionInfo;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
+import java.util.Map;
 
 public interface UserService extends EntityDaoService {
 
@@ -139,8 +140,12 @@ public interface UserService extends EntityDaoService {
 
     PageData<UserInfo> findUserInfosByTenantIdAndCustomerIdIncludingSubCustomers(TenantId tenantId, CustomerId customerId, PageLink pageLink);
 
-    void saveMobileInfo(TenantId tenantId, UserId userId, UserMobileInfo mobileInfo);
+    void saveMobileSession(TenantId tenantId, UserId userId, String mobileToken, MobileSessionInfo sessionInfo);
 
-    UserMobileInfo findMobileInfo(TenantId tenantId, UserId userId);
+    Map<String, MobileSessionInfo> findMobileSessions(TenantId tenantId, UserId userId);
+
+    MobileSessionInfo findMobileSession(TenantId tenantId, UserId userId, String mobileToken);
+
+    void removeMobileSession(TenantId tenantId, String mobileToken);
 
 }

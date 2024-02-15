@@ -36,6 +36,7 @@ import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import com.google.firebase.messaging.AndroidConfig;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
@@ -49,6 +50,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -65,7 +67,7 @@ public class DefaultFirebaseService implements FirebaseService {
             .build();
 
     @Override
-    public void sendMessage(TenantId tenantId, String credentials, String fcmToken, String title, String body) throws FirebaseMessagingException {
+    public void sendMessage(TenantId tenantId, String credentials, String fcmToken, String title, String body, Map<String, String> data) throws FirebaseMessagingException {
         FirebaseContext firebaseContext = contexts.asMap().compute(tenantId.toString(), (key, context) -> {
             if (context == null) {
                 return new FirebaseContext(key, credentials);
@@ -76,11 +78,15 @@ public class DefaultFirebaseService implements FirebaseService {
         });
 
         Message message = Message.builder()
+                .setToken(fcmToken)
                 .setNotification(Notification.builder()
                         .setTitle(title)
                         .setBody(body)
                         .build())
-                .setToken(fcmToken)
+                .setAndroidConfig(AndroidConfig.builder()
+                        .setPriority(AndroidConfig.Priority.HIGH)
+                        .build())
+                .putAllData(data)
                 .build();
         firebaseContext.getMessaging().send(message);
         log.trace("[{}] Sent message for FCM token {}", tenantId, fcmToken);
