@@ -66,6 +66,7 @@ import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.GroupPermissionProto;
 import org.thingsboard.server.gen.edge.v1.IntegrationUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.OAuth2UpdateMsg;
 import org.thingsboard.server.gen.edge.v1.OtaPackageUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
@@ -95,6 +96,7 @@ import org.thingsboard.server.service.cloud.rpc.processor.EntityGroupCloudProces
 import org.thingsboard.server.service.cloud.rpc.processor.EntityViewCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.GroupPermissionCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.IntegrationCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.OAuth2CloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.OtaPackageCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.QueueCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RelationCloudProcessor;
@@ -212,6 +214,9 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
 
     @Autowired
     private ResourceCloudProcessor tbResourceCloudProcessor;
+
+    @Autowired
+    private OAuth2CloudProcessor oAuth2CloudProcessor;
 
     @Autowired
     private DbCallbackExecutorService dbCallbackExecutorService;
@@ -414,6 +419,11 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             if (downlinkMsg.getTenantProfileUpdateMsgCount() > 0) {
                 for (TenantProfileUpdateMsg tenantProfileUpdateMsg : downlinkMsg.getTenantProfileUpdateMsgList()) {
                     result.add(tenantProfileCloudProcessor.processTenantProfileMsgFromCloud(tenantId, tenantProfileUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getOAuth2UpdateMsgCount() > 0) {
+                for (OAuth2UpdateMsg oAuth2UpdateMsg : downlinkMsg.getOAuth2UpdateMsgList()) {
+                    result.add(oAuth2CloudProcessor.processOAuth2MsgFromCloud(oAuth2UpdateMsg));
                 }
             }
             if (downlinkMsg.getTenantUpdateMsgCount() > 0) {
