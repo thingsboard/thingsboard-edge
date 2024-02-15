@@ -254,7 +254,6 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
                 entityGroupDao.save(tenantId, entityGroup);
             }
         }
-        deleteEntityRelations(tenantId, groupPermissionId);
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(groupPermissionId).build());
         groupPermissionDao.removeById(tenantId, groupPermissionId.getId());
     }

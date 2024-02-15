@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.TimePaginatedRemover;
 
@@ -140,8 +141,8 @@ public class BaseBlobEntityService extends AbstractEntityService implements Blob
     public void deleteBlobEntity(TenantId tenantId, BlobEntityId blobEntityId) {
         log.trace("Executing deleteBlobEntity [{}]", blobEntityId);
         validateId(blobEntityId, INCORRECT_BLOB_ENTITY_ID + blobEntityId);
-        deleteEntityRelations(tenantId, blobEntityId);
         blobEntityDao.removeById(tenantId, blobEntityId.getId());
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(blobEntityId).build());
     }
 
     @Override

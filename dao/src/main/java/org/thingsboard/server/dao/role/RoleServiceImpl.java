@@ -167,7 +167,6 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
         log.trace("Executing deleteRole [{}]", roleId);
         validateId(roleId, INCORRECT_ROLE_ID + roleId);
         groupPermissionService.deleteGroupPermissionsByTenantIdAndRoleId(tenantId, roleId);
-        deleteEntityRelations(tenantId, roleId);
         roleDao.removeById(tenantId, roleId.getId());
         publishEvictEvent(new RoleEvictEvent(roleId));
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(roleId).build());
