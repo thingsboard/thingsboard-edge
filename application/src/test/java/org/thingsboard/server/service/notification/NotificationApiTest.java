@@ -41,7 +41,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.client.RestTemplate;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.NotificationCenter;
@@ -797,9 +796,8 @@ public class NotificationApiTest extends AbstractNotificationApiTest {
         saveNotificationSettings(systemConfig);
 
         loginTenantAdmin();
-        UserMobileInfo tenantMobileInfo = new UserMobileInfo();
-        tenantMobileInfo.setFcmToken("tenantFcmToken");
-        doPost("/api/user/mobile/info", tenantMobileInfo).andExpect(status().isOk());
+        mobileToken = "tenantFcmToken";
+        doPost("/api/user/mobile/session", new MobileSessionInfo()).andExpect(status().isOk());
         NotificationTarget target = createNotificationTarget(tenantAdminUserId);
 
         // no tenant settings
@@ -807,7 +805,7 @@ public class NotificationApiTest extends AbstractNotificationApiTest {
         NotificationRequest request = submitNotificationRequest(target.getId(), "with systemCreds 1", NotificationDeliveryMethod.MOBILE_APP);
         awaitNotificationRequest(request.getId());
         verify(firebaseService).sendMessage(eq(tenantId), eq("systemCreds"),
-                eq("tenantFcmToken"), any(), eq("with systemCreds 1"));
+                eq("tenantFcmToken"), any(), eq("with systemCreds 1"), anyMap());
 
         // tenant settings with useSystemSettings = false
         var tenantConfig = new MobileAppNotificationDeliveryMethodConfig();
@@ -818,7 +816,7 @@ public class NotificationApiTest extends AbstractNotificationApiTest {
         request = submitNotificationRequest(target.getId(), "with tenantCreds 2", NotificationDeliveryMethod.MOBILE_APP);
         awaitNotificationRequest(request.getId());
         verify(firebaseService).sendMessage(eq(tenantId), eq("tenantCreds"),
-                eq("tenantFcmToken"), any(), eq("with tenantCreds 2"));
+                eq("tenantFcmToken"), any(), eq("with tenantCreds 2"), anyMap());
 
         // tenant settings with useSystemSettings = true
         tenantConfig.setFirebaseServiceAccountCredentials(null);
@@ -828,7 +826,7 @@ public class NotificationApiTest extends AbstractNotificationApiTest {
         request = submitNotificationRequest(target.getId(), "with systemCreds 3", NotificationDeliveryMethod.MOBILE_APP);
         awaitNotificationRequest(request.getId());
         verify(firebaseService).sendMessage(eq(tenantId), eq("systemCreds"),
-                eq("tenantFcmToken"), any(), eq("with systemCreds 3"));
+                eq("tenantFcmToken"), any(), eq("with systemCreds 3"), anyMap());
 
         loginSysAdmin();
         saveNotificationSettings(); // clearing system settings
