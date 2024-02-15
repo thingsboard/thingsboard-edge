@@ -73,23 +73,17 @@ public abstract class AbstractCoapClientTest extends AbstractContainerTest{
     protected CoapClient client;
 
     protected byte[] createCoapClientAndPublish(String deviceName) throws Exception {
-        AtomicReference<String> provisionRequestMsg = new AtomicReference<>(createTestProvisionMessage(deviceName));
-        await("create Test Provision Message...")
-                .atMost(40, TimeUnit.SECONDS)
-                .until(() -> {
-                    provisionRequestMsg.set(createTestProvisionMessage(deviceName));
-                    return provisionRequestMsg.get() != null && !provisionRequestMsg.get().isEmpty();
-                });
-
+        String provisionRequestMsg = createTestProvisionMessage(deviceName);
         Configuration.addDefaultModule(MODULE_DEFINITIONS_PROVIDER);
         String featureTokenUrl = COAP_BASE_URL + FeatureType.PROVISION.name().toLowerCase();
         client = new CoapClient(featureTokenUrl);
         try {
             return client.setTimeout(CLIENT_REQUEST_TIMEOUT)
-                    .post(provisionRequestMsg.get().getBytes(), MediaTypeRegistry.APPLICATION_JSON)
+                    .post(provisionRequestMsg.getBytes(), MediaTypeRegistry.APPLICATION_JSON)
                     .getPayload();
         } catch (NullPointerException e){
-            log.error("createCoapClientAndPublish, deviceName [{}], provisionRequestMsg: [{}]", deviceName, provisionRequestMsg.get());
+            log.error("", e);
+            log.error("createCoapClientAndPublish, deviceName [{}], provisionRequestMsg: [{}]", deviceName, provisionRequestMsg);
             return null;
         }
     }
