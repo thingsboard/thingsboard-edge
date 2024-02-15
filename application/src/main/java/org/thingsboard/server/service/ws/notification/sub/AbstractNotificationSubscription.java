@@ -28,43 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.subscription;
+package org.thingsboard.server.service.ws.notification.sub;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+
+import lombok.Getter;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.service.subscription.TbSubscription;
+import org.thingsboard.server.service.subscription.TbSubscriptionType;
 
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
-@Data
-@AllArgsConstructor
-public abstract class TbSubscription<T> {
+@Getter
+public abstract class AbstractNotificationSubscription<T> extends TbSubscription<T> {
 
-    private final String serviceId;
-    private final String sessionId;
-    private final int subscriptionId;
-    private final TenantId tenantId;
-    private final EntityId entityId;
-    private final TbSubscriptionType type;
-    private final BiConsumer<TbSubscription<T>, T> updateProcessor;
+    protected final AtomicInteger sequence = new AtomicInteger();
+    protected final AtomicInteger totalUnreadCounter = new AtomicInteger();
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        TbSubscription that = (TbSubscription) o;
-        return subscriptionId == that.subscriptionId &&
-                sessionId.equals(that.sessionId) &&
-                tenantId.equals(that.tenantId) &&
-                entityId.equals(that.entityId) &&
-                type == that.type;
+    public AbstractNotificationSubscription(String serviceId, String sessionId, int subscriptionId, TenantId tenantId, EntityId entityId, TbSubscriptionType type, BiConsumer<TbSubscription<T>, T> updateProcessor) {
+        super(serviceId, sessionId, subscriptionId, tenantId, entityId, type, updateProcessor);
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(sessionId, subscriptionId, tenantId, entityId, type);
-    }
 }
