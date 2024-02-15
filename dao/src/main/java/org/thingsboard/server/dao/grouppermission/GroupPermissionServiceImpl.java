@@ -267,6 +267,11 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
     }
 
     @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteGroupPermissionsByTenantId(tenantId);
+    }
+
+    @Override
     public void deleteGroupPermissionsByTenantIdAndUserGroupId(TenantId tenantId, EntityGroupId userGroupId) {
         log.trace("Executing deleteGroupPermissionsByTenantIdAndUserGroupId, tenantId [{}], userGroupId [{}]", tenantId, userGroupId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);

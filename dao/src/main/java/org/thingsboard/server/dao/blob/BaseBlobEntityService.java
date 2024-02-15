@@ -152,8 +152,13 @@ public class BaseBlobEntityService extends AbstractEntityService implements Blob
     }
 
     @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteBlobEntitiesByTenantId(tenantId);
+    }
+
+    @Override
     public void deleteBlobEntitiesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
-        log.trace("Executing deleteBlobEntitiesByTenantIdAndCustomerId, tenantId [{}], customerId", tenantId, customerId);
+        log.trace("Executing deleteBlobEntitiesByTenantIdAndCustomerId, tenantId [{}], customerId [{}]", tenantId, customerId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
         customerBlobEntitiesRemover.removeEntities(tenantId, customerId);

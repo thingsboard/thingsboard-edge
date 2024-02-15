@@ -207,6 +207,11 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
     }
 
     @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteSchedulerEventsByTenantId(tenantId);
+    }
+
+    @Override
     public void deleteSchedulerEventsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
         log.trace("Executing deleteSchedulerEventsByTenantIdAndCustomerId, tenantId [{}], customerId [{}]", tenantId, customerId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);

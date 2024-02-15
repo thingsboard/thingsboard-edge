@@ -181,6 +181,11 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
     }
 
     @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteRolesByTenantId(tenantId);
+    }
+
+    @Override
     public void deleteRolesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
         log.trace("Executing deleteRolesByTenantIdAndCustomerId, tenantId [{}], customerId [{}]", tenantId, customerId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);

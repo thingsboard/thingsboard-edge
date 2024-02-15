@@ -88,11 +88,6 @@ public abstract class AbstractEntityService {
         relationService.deleteRelation(tenantId, relation);
     }
 
-    protected void deleteEntityGroups(TenantId tenantId, EntityId entityId) {
-        log.trace("Executing deleteEntityGroups [{}]", entityId);
-        entityGroupService.deleteAllEntityGroups(tenantId, entityId);
-    }
-
     public static final void checkConstraintViolation(Exception t, String constraintName, String constraintMessage) {
         checkConstraintViolation(t, Collections.singletonMap(constraintName, constraintMessage));
     }

@@ -515,6 +515,11 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteAllEntityGroups(tenantId, tenantId);
+    }
+
+    @Override
     public PageData<EntityGroup> findEntityGroupsByType(TenantId tenantId, EntityId parentEntityId,
                                                         EntityType groupType, PageLink pageLink) {
         log.trace("Executing findEntityGroupsByType, parentEntityId [{}], groupType [{}], pageLink [{}]", parentEntityId, groupType, pageLink);

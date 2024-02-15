@@ -171,6 +171,11 @@ public class BaseConverterService extends AbstractEntityService implements Conve
         tenantConvertersRemover.removeEntities(tenantId, tenantId);
     }
 
+    @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteConvertersByTenantId(tenantId);
+    }
+
     private PaginatedRemover<TenantId, Converter> tenantConvertersRemover =
             new PaginatedRemover<TenantId, Converter>() {
 

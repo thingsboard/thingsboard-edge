@@ -215,6 +215,12 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
         tenantIntegrationsRemover.removeEntities(tenantId, tenantId);
     }
 
+    @Transactional
+    @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteIntegrationsByTenantId(tenantId);
+    }
+
     @Override
     public Long countCoreIntegrations() {
         log.trace("Executing countCoreIntegrations");
